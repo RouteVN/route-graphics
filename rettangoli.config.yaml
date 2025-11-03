@@ -27,3 +27,9 @@ vt:
         - title: "Sprite"
           files: "sprite"
           description: "Sprite rendering test"
+    - title: "Route Graphics"
+      type: "groupLabel"
+      items:
+        - title: "RouteGraphics"
+          files: "routegraphics"
+          description: "Using RouteGraphics object with renderApp function"
