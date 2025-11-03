@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+      window.vtState = `
+{{ content }}
+        `;
+    </script>
+    <script type="module">
+        import RouteGraphics, {
+            Assets
+        } from "/RouteGraphics.js"
+
+        await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
+        await Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' });
+        await Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' });
+
+        import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+        const app = new RouteGraphics();
+        await app.init({
+            width: 1280, 
+            height: 720,
+            plugins: []
+        })
+        document.body.appendChild(app.canvas);
+        let index = 0
+        const states = parse(window.vtState).states
+        app.render({
+            elements: states[index].elements,
+            transitions: [], 
+            global: {}
+        })
+
+        const listenEvents = () => {
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "n") {
+                    if(states.length > index+1){
+                        index++
+                        app.render({
+                            elements: states[index].elements,
+                            transitions: [], 
+                            global: {}
+                        })
+                    }
+                } else if (e.key === "b") {
+                    if(index - 1 >= 0 ){
+                        index--;
+                        app.render({
+                            elements: states[index].elements,
+                            transitions: [], 
+                            global: {}
+                        })
+                    }
+                }
+            });
+        };
+        listenEvents()
+    </script>
+    <link rel="stylesheet" href="/public/theme.css" />
+</head>
+<body>
+    
+</body>
+</html>
