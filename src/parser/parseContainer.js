@@ -24,7 +24,7 @@ export function parseContainer(state) {
   const direction = state.direction;
   const scroll = state.scroll? true : false
   const gap = state.gap || 0;
-  const children = state.children || [];
+  const children = structuredClone(state.children || []);
   const parsedChildren = []
 
   let containerWidth = 0;
