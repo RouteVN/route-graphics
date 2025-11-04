@@ -28,7 +28,7 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
             await transitionElements(prevTextASTNode.id, {app, sprite: textElement, transitions, signal});
         }
         
-        if (JSON.stringify(prevTextASTNode) === JSON.stringify(nextTextASTNode)) {
+        if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
             textElement.text = nextTextASTNode.text;
     
             textElement.style = {

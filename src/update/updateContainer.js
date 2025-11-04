@@ -30,7 +30,7 @@ export async function updateContainer({app, parent, prevAST, nextAST, transition
             await transitionElements(prevAST.id, {app, sprite: containerElement, transitions, signal});
         }
         
-        if (JSON.stringify(prevAST) === JSON.stringify(nextAST)) {
+        if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
             containerElement.x = nextAST.x;
             containerElement.y = nextAST.y;
             containerElement.zIndex = nextAST.zIndex;
