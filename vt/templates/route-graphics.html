@@ -29,8 +29,8 @@
         let index = 0
         const states = parse(window.vtState).states
         app.render({
-            elements: states[index].elements,
-            transitions: [], 
+            elements: states[index].elements ?? [],
+            transitions: states[index].transitions ?? [], 
             global: {}
         })
 
@@ -40,8 +40,8 @@
                     if(states.length > index+1){
                         index++
                         app.render({
-                            elements: states[index].elements,
-                            transitions: [], 
+                            elements: states[index].elements ?? [],
+                            transitions: states[index].transitions ?? [], 
                             global: {}
                         })
                     }
@@ -49,8 +49,8 @@
                     if(index - 1 >= 0 ){
                         index--;
                         app.render({
-                            elements: states[index].elements,
-                            transitions: [], 
+                            elements: states[index].elements ?? [],
+                            transitions: states[index].transitions ?? [], 
                             global: {}
                         })
                     }

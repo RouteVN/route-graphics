@@ -22,10 +22,15 @@ import { updateContainer } from '../update/updateContainer.js';
 /**
  * @param {Application} app
  * @param {Container} parent 
- * @param {ASTNode[]} ASTTree 
+ * @param {ASTNode[]} prevASTTree 
+ * @param {ASTNode[]} nextASTTree 
+ * @param {Object[]} transitions 
+ * @param {AbortSignal[]} signal 
 */
-export function renderApp(app,parent,prevASTTree,nextASTTree){
+export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,signal){
     const {toAddElement,toDeleteElement,toUpdateElement} = diffElements(prevASTTree,nextASTTree)
+    const asyncActions = []
+
     for (const element of toDeleteElement){
         switch(element.type){
             case "rect":
@@ -56,7 +61,7 @@ export function renderApp(app,parent,prevASTTree,nextASTTree){
                 renderContainer(parent,element)
                 break;
             case "sprite":
-                renderSprite(parent,element)
+                asyncActions.push(renderSprite({app,parent,spriteASTNode: element,transitions,signal})
                 break;
             default:
         }
@@ -79,6 +84,7 @@ export function renderApp(app,parent,prevASTTree,nextASTTree){
             default:
         }
     }
+    await Promise.all(asyncActions);
     sortContainerChildren(parent,nextASTTree)
 }
 

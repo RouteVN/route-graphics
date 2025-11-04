@@ -406,15 +406,16 @@ class RouteGraphics extends BaseRouteGraphics {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
 
-    renderApp(app, parent, prevState.elements, nextState.elements)
-
+    
     // Cancel any previous render operations
     if (this._currentAbortController) {
       this._currentAbortController.abort();
     }
-
+    
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
+    const signal = this._currentAbortController.signal;
+    await renderApp(app, parent, prevState.elements, nextState.elements, nextState.transitions, signal)
   };
 }
 
