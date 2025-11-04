@@ -84,7 +84,7 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
             default:
         }
     }
-    await Promise.all(asyncActions.map((action) => action()));
+    await Promise.all(asyncActions);
     sortContainerChildren(parent,nextASTTree)
 }
 
