@@ -71,23 +71,6 @@ properties:
   anchorY:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
-  scaleX:
-    type: number
-    description: Horizontal scale factor
-  scaleY:
-    type: number
-    description: Vertical scale factor
-  z:
-    type: number
-    description: Z-index for layering elements
-  cursor:
-    type: string
-    description: CSS cursor style when hovering over the text
-  eventName:
-    type: string
-    description: Event name to fire when text is clicked
-  eventPayload:
-    description: Payload data to send with the event
   textStyle:
     "$ref": "#/$def/textStyle"
   hover:

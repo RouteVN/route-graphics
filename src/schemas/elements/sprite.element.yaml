@@ -37,14 +37,6 @@ properties:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
     default: 0
-  scaleX:
-    type: number
-    description: Horizontal scale factor
-    default: 1
-  scaleY:
-    type: number
-    description: Vertical scale factor
-    default: 1
   src:
     type: string
     description: src of the sprite image. the alias of the pre loaded asset. can be empty
