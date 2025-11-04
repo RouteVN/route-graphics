@@ -29,6 +29,8 @@ import { updateContainer } from '../update/updateContainer.js';
 */
 export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,signal){
     const {toAddElement,toDeleteElement,toUpdateElement} = diffElements(prevASTTree,nextASTTree)
+    const asyncActions = []
+
     for (const element of toDeleteElement){
         switch(element.type){
             case "rect":
@@ -59,7 +61,7 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
                 renderContainer(parent,element)
                 break;
             case "sprite":
-                await renderSprite({app,parent,spriteASTNode: element,transitions,signal})
+                asyncActions.push(()=>renderSprite({app,parent,spriteASTNode: element,transitions,signal}))
                 break;
             default:
         }
@@ -82,6 +84,7 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
             default:
         }
     }
+    await Promise.all(asyncActions.map((action) => action()));
     sortContainerChildren(parent,nextASTTree)
 }
 

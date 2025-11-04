@@ -1,8 +1,9 @@
-import keyFrameTransition from "./keyFrameTransition";
 
+import keyframeTransition from './keyframeTransition.js';
 /**
  * @typedef {import('../types.js').RenderElementOptions} RenderElementOptions
  */
+
 
 /**
  * 
@@ -15,7 +16,7 @@ export default async function transitionElements(id,{app,sprite,transitions,sign
     for (const transition of transitions) {
         if (transition.elementId === id) {
             transitionPromises.push(
-                keyFrameTransition( app, sprite, transition, signal)
+                keyframeTransition( app, sprite, transition, signal)
             );
         }
     }

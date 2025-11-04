@@ -10,7 +10,7 @@ const interpolate = (start, end, t, easing) => {
 
 
 // Get function with camelCase to nested path support
-function get(object, path, defaultValue) {
+function getTransitionProperty(object, path, defaultValue) {
   if (typeof path === "string") {
     path = TRANSITION_PROPERTY_PATH_MAP[path];
   }
@@ -26,7 +26,7 @@ function get(object, path, defaultValue) {
 }
 
 // Set function with camelCase to nested path support
-function set(object, path, value) {
+function setTransitionProperty(object, path, value) {
   if (typeof path === "string") {
     path = TRANSITION_PROPERTY_PATH_MAP[path];
   }
@@ -119,18 +119,16 @@ function getMaxOfArray(numArray) {
   return Math.max.apply(null, numArray);
 }
 
-export default async function keyFrameTransition (app, sprite, transition, signal) {
+export default async function keyframeTransition (app, sprite, transition, signal) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(new DOMException("Operation aborted", "AbortError"));
       return;
     }
 
-    const { properties: propertiesArrayOrObject } = transition;
+    const { properties } = transition;
 
-    const animationProperties = Array.isArray(propertiesArrayOrObject)
-      ? propertiesArrayOrObject
-      : Object.entries(propertiesArrayOrObject).map(([property, value]) =>{
+    const animationProperties = Object.entries(properties).map(([property, value]) =>{
         if(!WhiteListTransitionProps[property]) throw new Error(`${property} is not a supported property for transition.`)
         return {
           ...value,
@@ -151,7 +149,7 @@ export default async function keyFrameTransition (app, sprite, transition, signa
     // Store initial sprite values
     const initialProperties = {};
     animationProperties.forEach((animationProperty) => {
-      initialProperties[animationProperty.property] = get(
+      initialProperties[animationProperty.property] = getTransitionProperty(
         sprite,
         animationProperty.property,
       );
@@ -184,7 +182,7 @@ export default async function keyFrameTransition (app, sprite, transition, signa
         const value = getValueAtTime(timeline, timeDelta);
 
         if (sprite && !sprite.destroyed) {
-          set(sprite, property, value);
+          setTransitionProperty(sprite, property, value);
         }
       });
     };
