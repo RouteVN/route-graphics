@@ -42,5 +42,7 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, sig
 
   parent.addChild(sprite);
 
-  await transitionElements( id, {app, sprite, transitions, signal})
+  if (transitions && transitions.length > 0) {
+    await transitionElements( id, {app, sprite, transitions, signal})
+  }
 }

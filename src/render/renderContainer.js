@@ -2,6 +2,7 @@ import { Container, Graphics } from "pixi.js";
 import { renderRect } from './renderRect.js';
 import renderText from './renderText.js';
 import { renderSprite } from './renderSprite.js';
+import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -12,10 +13,18 @@ import { renderSprite } from './renderSprite.js';
 
 /**
  *
- * @param {ContainerASTNode} containerASTNode
- * @param {Container} parent
+ * @param {Object} params
+ * @param {import('../types.js').Application} params.app
+ * @param {Container} params.parent
+ * @param {ContainerASTNode} params.containerASTNode
+ * @param {Object[]} params.transitions
+ * @param {AbortSignal} params.signal
  */
-export function renderContainer(parent,containerASTNode) {
+export async function renderContainer({app, parent, containerASTNode, transitions, signal}) {
+    if (signal?.aborted) {
+        return;
+    }
+
     const {
         id,
         x,
@@ -40,24 +49,27 @@ export function renderContainer(parent,containerASTNode) {
 
     container.label = id;
 
+    const childPromises = [];
     for (const child of children) {
       switch (child.type) {
         case "rect":
-            renderRect(container,child);
+            childPromises.push(renderRect({app, parent: container, rectASTNode: child, transitions, signal}));
             break;
         case "text":
-            renderText(container,child);
+            childPromises.push(renderText({app, parent: container, textASTNode: child, transitions, signal}));
             break;
         case "sprite":
-            renderSprite(container,child);
+            childPromises.push(renderSprite({app, parent: container, spriteASTNode: child, transitions, signal}));
             break;
         case "container":
-            renderContainer(container,child);
+            childPromises.push(renderContainer({app, parent: container, containerASTNode: child, transitions, signal}));
             break;
         default:
             throw new Error("Unkown types")
       }
     }
+
+    await Promise.all(childPromises);
 
     if(scroll){
         setupScrolling({
@@ -67,6 +79,10 @@ export function renderContainer(parent,containerASTNode) {
     }
 
     parent.addChild(container);
+
+    if (transitions && transitions.length > 0) {
+        await transitionElements(id, {app, sprite: container, transitions, signal});
+    }
 }
 
 /**

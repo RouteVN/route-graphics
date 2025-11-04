@@ -1,0 +1,30 @@
+---
+title: Sprite Fade Out Transition
+description: A sprite element fading out when removed
+template: "route-graphics.html"
+specs:
+  - "sprite should fade from 1 to 0 alpha"
+  - "sprite should disappear gradually"
+  - "sprite should be destroyed after animation"
+---
+states:
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-blue"
+        x: 300
+        y: 200
+        width: 150
+        height: 150
+        alpha: 1
+  - elements: []
+    transitions:
+      - id: 'sprite-fade-out'
+        elementId: 'sprite1'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

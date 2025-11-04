@@ -1,0 +1,31 @@
+---
+title: Rect Slide In Transition
+description: A rect element sliding in from the left
+template: "route-graphics.html"
+specs:
+  - "rect should slide from x: -100 to x: 300"
+  - "rect should take 1.5 seconds"
+  - "rect uses initialValue to override starting position"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 300
+        y: 200
+        width: 300
+        height: 200
+        fill: "#e74c3c"
+        alpha: 1
+    transitions:
+      - id: 'rect-slide-in'
+        elementId: 'rect1'
+        type: keyframes
+        properties:
+          x:
+            initialValue: -100
+            keyframes:
+              - duration: 1500
+                value: 300
+                easing: linear

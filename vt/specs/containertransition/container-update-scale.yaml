@@ -1,0 +1,67 @@
+---
+title: Container Update Scale Transition
+description: A container scaling during update
+template: "route-graphics.html"
+specs:
+  - "container should scale from 1 to 1.5 on both axes"
+  - "children should scale with container"
+  - "animation should take 1 second"
+---
+states:
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 300
+        y: 200
+        direction: "vertical"
+        gap: 5
+        scaleX: 1
+        scaleY: 1
+        children:
+          - id: 'text1'
+            type: "text"
+            text: "Scaling"
+            style:
+              fontSize: 20
+              fill: "#ffffff"
+          - id: 'rect1'
+            type: "rect"
+            width: 100
+            height: 50
+            fill: "#f39c12"
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 300
+        y: 200
+        direction: "vertical"
+        gap: 5
+        scaleX: 1.5
+        scaleY: 1.5
+        children:
+          - id: 'text1'
+            type: "text"
+            text: "Scaling"
+            style:
+              fontSize: 20
+              fill: "#ffffff"
+          - id: 'rect1'
+            type: "rect"
+            width: 100
+            height: 50
+            fill: "#f39c12"
+    transitions:
+      - id: 'container-scale'
+        elementId: 'container1'
+        type: keyframes
+        properties:
+          scaleX:
+            keyframes:
+              - duration: 1000
+                value: 1.5
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 1000
+                value: 1.5
+                easing: linear

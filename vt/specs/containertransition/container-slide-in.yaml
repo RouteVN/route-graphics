@@ -1,0 +1,48 @@
+---
+title: Container Slide In Transition
+description: A container sliding in from the left with children
+template: "route-graphics.html"
+specs:
+  - "container should slide from x: -200 to x: 200"
+  - "all children should move with container"
+  - "animation should take 1.2 seconds"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 200
+        y: 150
+        direction: "vertical"
+        gap: 15
+        children:
+          - id: 'text1'
+            type: "text"
+            text: "Item 1"
+            style:
+              fontSize: 24
+              fill: "#ffffff"
+          - id: 'text2'
+            type: "text"
+            text: "Item 2"
+            style:
+              fontSize: 24
+              fill: "#ffffff"
+          - id: 'text3'
+            type: "text"
+            text: "Item 3"
+            style:
+              fontSize: 24
+              fill: "#ffffff"
+    transitions:
+      - id: 'container-slide-in'
+        elementId: 'container1'
+        type: keyframes
+        properties:
+          x:
+            initialValue: -200
+            keyframes:
+              - duration: 1200
+                value: 200
+                easing: linear

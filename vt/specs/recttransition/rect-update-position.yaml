@@ -1,0 +1,41 @@
+---
+title: Rect Update Position Transition
+description: A rect animating its position when updated
+template: "route-graphics.html"
+specs:
+  - "rect should move from (100, 100) to (500, 300)"
+  - "animation should take 1 second"
+  - "rect should remain visible throughout"
+---
+states:
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 100
+        y: 100
+        width: 200
+        height: 200
+        fill: "#1abc9c"
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 500
+        y: 300
+        width: 200
+        height: 200
+        fill: "#1abc9c"
+    transitions:
+      - id: 'rect-move'
+        elementId: 'rect1'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 500
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 300
+                easing: linear

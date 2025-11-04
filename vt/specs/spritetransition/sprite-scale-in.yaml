@@ -1,0 +1,38 @@
+---
+title: Sprite Scale In Transition
+description: A sprite scaling up from zero when added
+template: "route-graphics.html"
+specs:
+  - "sprite should scale from 0 to 1 on both axes"
+  - "sprite should appear to grow from center"
+  - "animation should take 1.2 seconds"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-red"
+        x: 350
+        y: 250
+        width: 200
+        height: 200
+        scaleX: 1
+        scaleY: 1
+    transitions:
+      - id: 'sprite-scale-in'
+        elementId: 'sprite1'
+        type: keyframes
+        properties:
+          scaleX:
+            initialValue: 0
+            keyframes:
+              - duration: 1200
+                value: 1
+                easing: linear
+          scaleY:
+            initialValue: 0
+            keyframes:
+              - duration: 1200
+                value: 1
+                easing: linear

@@ -1,3 +1,5 @@
+import transitionElements from "../transition/index.js";
+
 /**
  * Update function for Text elements
  * @typedef {import('../types.js').TextASTNode} TextASTNode
@@ -5,27 +7,42 @@
  */
 
 /**
- * @param {Container} container - The parent container to search in
- * @param {TextASTNode} prevAST - Previous text state
- * @param {TextASTNode} nextAST - Next text state
+ * @param {Object} params
+ * @param {import('../types.js').Application} params.app
+ * @param {Container} params.parent
+ * @param {TextASTNode} params.prevTextASTNode
+ * @param {TextASTNode} params.nextTextASTNode
+ * @param {Object[]} params.transitions
+ * @param {AbortSignal} params.signal
  */
-export function updateText(container, prevAST, nextAST) {
-    const textElement = container.children.find(child => child.label === prevAST.id);
+export async function updateText({app, parent, prevTextASTNode, nextTextASTNode, transitions, signal}) {
+    if (signal?.aborted) {
+        return;
+    }
 
+    
+    const textElement = parent.children.find(child => child.label === prevTextASTNode.id);
+    
     if (textElement) {
-        textElement.text = nextAST.text;
-
-        textElement.style = {
-            fill: nextAST.style.fill,
-            fontFamily: nextAST.style.fontFamily,
-            fontSize: nextAST.style.fontSize,
-            wordWrap: nextAST.style.wordWrap,
-            breakWords: nextAST.style.breakWords,
-            wordWrapWidth: nextAST.style.wordWrapWidth
-        };
-
-        textElement.x = nextAST.x;
-        textElement.y = nextAST.y;
-        textElement.zIndex = nextAST.zIndex;
+        if (transitions && transitions.length > 0) {
+            await transitionElements(prevTextASTNode.id, {app, sprite: textElement, transitions, signal});
+        }
+        
+        if (JSON.stringify(prevTextASTNode) === JSON.stringify(nextTextASTNode)) {
+            textElement.text = nextTextASTNode.text;
+    
+            textElement.style = {
+                fill: nextTextASTNode.style.fill,
+                fontFamily: nextTextASTNode.style.fontFamily,
+                fontSize: nextTextASTNode.style.fontSize,
+                wordWrap: nextTextASTNode.style.wordWrap,
+                breakWords: nextTextASTNode.style.breakWords,
+                wordWrapWidth: nextTextASTNode.style.wordWrapWidth
+            };
+    
+            textElement.x = nextTextASTNode.x;
+            textElement.y = nextTextASTNode.y;
+            textElement.zIndex = nextTextASTNode.zIndex;
+        }
     }
 }

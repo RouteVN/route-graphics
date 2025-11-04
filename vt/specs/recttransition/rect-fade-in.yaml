@@ -1,0 +1,31 @@
+---
+title: Rect Fade In Transition
+description: A rect element fading in with alpha animation
+template: "route-graphics.html"
+specs:
+  - "rect should fade from 0 to 1 alpha"
+  - "rect should appear gradually over 1 second"
+  - "rect should use linear easing"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        fill: "#3498db"
+        alpha: 1
+    transitions:
+      - id: 'rect-fade-in'
+        elementId: 'rect1'
+        type: keyframes
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

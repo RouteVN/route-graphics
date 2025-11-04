@@ -1,0 +1,45 @@
+---
+title: Container Fade Out Transition
+description: A container with children fading out when removed
+template: "route-graphics.html"
+specs:
+  - "container should fade from 1 to 0 alpha"
+  - "all children should fade out with container"
+  - "container should be destroyed after animation"
+---
+states:
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 150
+        y: 100
+        direction: "horizontal"
+        gap: 10
+        alpha: 1
+        children:
+          - id: 'sprite1'
+            type: "sprite"
+            url: "circle-blue"
+            width: 60
+            height: 60
+          - id: 'sprite2'
+            type: "sprite"
+            url: "circle-red"
+            width: 60
+            height: 60
+          - id: 'sprite3'
+            type: "sprite"
+            url: "circle-blue"
+            width: 60
+            height: 60
+  - elements: []
+    transitions:
+      - id: 'container-fade-out'
+        elementId: 'container1'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

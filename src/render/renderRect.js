@@ -1,4 +1,5 @@
 import { Graphics } from "pixi.js";
+import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -7,11 +8,19 @@ import { Graphics } from "pixi.js";
 
 
 /**
- * 
- * @param {Container} parent 
- * @param {RectASTNode} rectASTNode
+ *
+ * @param {Object} params
+ * @param {import('../types.js').Application} params.app
+ * @param {Container} params.parent
+ * @param {RectASTNode} params.rectASTNode
+ * @param {Object[]} params.transitions
+ * @param {AbortSignal} params.signal
  */
-export function renderRect(parent,rectASTNode){
+export async function renderRect({app, parent, rectASTNode, transitions, signal}){
+    if (signal?.aborted) {
+        return;
+    }
+
     const {
         id,
         x,
@@ -29,7 +38,7 @@ export function renderRect(parent,rectASTNode){
     const rect = new Graphics()
         .rect(x,y,width,height)
         .fill(fill)
-    
+
     if(border){
         rect.stroke({
             color: border.color,
@@ -41,7 +50,11 @@ export function renderRect(parent,rectASTNode){
     rect.label = id
     // rect.pivot.set(originX,originY)
     // rect.rotation = (rotation * Math.PI) / 180
-    rect.zIndex = zIndex 
-    
+    rect.zIndex = zIndex
+
     parent.addChild(rect)
+
+    if (transitions && transitions.length > 0) {
+        await transitionElements(id, {app, sprite: rect, transitions, signal})
+    }
 }

@@ -1,0 +1,38 @@
+---
+title: Sprite Update Rotation Transition
+description: A sprite rotating during update
+template: "route-graphics.html"
+specs:
+  - "sprite should rotate from 0 to 360 degrees"
+  - "animation should take 1.5 seconds"
+  - "demonstrates rotation property"
+---
+states:
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-red"
+        x: 350
+        y: 250
+        width: 150
+        height: 150
+        rotation: 0
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-red"
+        x: 350
+        y: 250
+        width: 150
+        height: 150
+        rotation: 6.28318
+    transitions:
+      - id: 'sprite-rotate'
+        elementId: 'sprite1'
+        type: keyframes
+        properties:
+          rotation:
+            keyframes:
+              - duration: 1500
+                value: 6.28318
+                easing: linear

@@ -1,0 +1,31 @@
+---
+title: Text Fade Out Transition
+description: A text element fading out when removed
+template: "route-graphics.html"
+specs:
+  - "text should fade from 1 to 0 alpha"
+  - "text should disappear gradually"
+  - "text should be destroyed after animation"
+---
+states:
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Goodbye!"
+        x: 300
+        y: 250
+        style:
+          fontSize: 42
+          fill: "#9b59b6"
+          fontFamily: "Arial"
+  - elements: []
+    transitions:
+      - id: 'text-fade-out'
+        elementId: 'text1'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear
