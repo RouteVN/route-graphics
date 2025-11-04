@@ -145,6 +145,31 @@
  *
  * @typedef {BaseElement & ContainerElementOptions} ContainerElement
  */
+/**
+ * @readonly 
+ * @enum {string}
+ */
+export const WhtieListTransitionProps = {
+  alpha: "alpha",
+  x: "x",
+  y: "y",
+  scaleX: "scaleX",
+  scaleY: "scaleY",
+  rotation: "rotation"
+}
+
+/**
+ * @readonly
+ * @enum {string[]}
+ */
+export const TRANSITION_PROPERTY_PATH_MAP = {
+  scaleX: ["scale", "x"],
+  scaleY: ["scale", "y"],
+  x: ["x"],
+  y: ["y"],
+  alpha: ["alpha"],
+  rotation: ["rotation"],
+};
 
 /**
  * @readonly
