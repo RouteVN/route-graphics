@@ -5,6 +5,8 @@ type: object
 required:
   - id
   - type
+  - x
+  - y
 properties:
   id:
     type: string
@@ -21,19 +23,23 @@ properties:
   x:
     type: number
     description: X position of the container
-    default: 0
   y:
     type: number
     description: Y position of the container
-    default: 0
   anchorX:
     type: number
     description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). For containers, must be 0, 0.5, or 1.
-    enum: [0, 0.5, 1]
+    default: 0
   anchorY:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). For containers, must be 0, 0.5, or 1.
-    enum: [0, 0.5, 1]
+    default: 0
+  alpha:
+    type: number
+    description: Opacity/transparency of the container (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
   children:
     type: array
     description: Child elements contained within this container
@@ -43,10 +49,12 @@ properties:
         - $ref: "./text.element.yaml"
         - $ref: "./rect.element.yaml"
         - $ref: "./container.element.yaml"
+    default: []
   direction:
     type: string
-    enum: [horizontal, vertical]
+    enum: [absolute, horizontal, vertical]
     description: Layout direction for children. Horizontal arranges left-to-right, vertical arranges top-to-bottom.
+    default: absolute
   gap:
     type: number
     description: Spacing between child elements in pixels
@@ -55,8 +63,7 @@ properties:
     type: number
     description: Rotation in degrees
     default: 0
-  # check if we need to split horizontal and vertical scroll
-  # scroll:
-  #   type: boolean
-  #   description: Enable scrolling for overflow content
-  #   default: false
+  scroll:
+    type: boolean
+    description: Enable scrolling for overflow content
+    default: false

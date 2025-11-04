@@ -34,6 +34,12 @@ properties:
   anchorY:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+  alpha:
+    type: number
+    description: Opacity/transparency of the rectangle (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
   fill:
     type: string
     description: Fill color of the rectangle
