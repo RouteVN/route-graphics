@@ -1,0 +1,43 @@
+---
+title: Sprite Update Position Transition
+description: A sprite animating position during update
+template: "route-graphics.html"
+specs:
+  - "sprite should move from (100, 100) to (500, 350)"
+  - "animation should take 1 second"
+  - "sprite should remain visible throughout"
+---
+states:
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-blue"
+        x: 100
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-blue"
+        x: 500
+        y: 350
+        width: 120
+        height: 120
+        alpha: 1
+    transitions:
+      - id: 'sprite-move'
+        elementId: 'sprite1'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 500
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 350
+                easing: linear

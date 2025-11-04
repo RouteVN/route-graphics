@@ -1,0 +1,31 @@
+---
+title: Sprite Fade In Transition
+description: A sprite element fading in with alpha animation
+template: "route-graphics.html"
+specs:
+  - "sprite should fade from 0 to 1 alpha"
+  - "sprite should appear gradually over 1 second"
+  - "sprite image should load and fade in"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'sprite1'
+        type: "sprite"
+        url: "circle-blue"
+        x: 300
+        y: 200
+        width: 150
+        height: 150
+        alpha: 1
+    transitions:
+      - id: 'sprite-fade-in'
+        elementId: 'sprite1'
+        type: keyframes
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

@@ -1,0 +1,45 @@
+---
+title: Text Update Position Transition
+description: A text element animating position during update
+template: "route-graphics.html"
+specs:
+  - "text should move from (100, 100) to (400, 300)"
+  - "text content remains the same"
+  - "animation should take 1 second"
+---
+states:
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Moving Text"
+        x: 100
+        y: 100
+        style:
+          fontSize: 28
+          fill: "#1abc9c"
+          fontFamily: "Arial"
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Moving Text"
+        x: 400
+        y: 300
+        style:
+          fontSize: 28
+          fill: "#1abc9c"
+          fontFamily: "Arial"
+    transitions:
+      - id: 'text-move'
+        elementId: 'text1'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 400
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 300
+                easing: linear

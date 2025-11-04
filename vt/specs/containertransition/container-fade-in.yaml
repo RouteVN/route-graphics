@@ -1,0 +1,46 @@
+---
+title: Container Fade In Transition
+description: A container with children fading in together
+template: "route-graphics.html"
+specs:
+  - "container should fade from 0 to 1 alpha"
+  - "all children should fade in with container"
+  - "animation should take 1 second"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 150
+        y: 100
+        direction: "horizontal"
+        gap: 10
+        alpha: 1
+        children:
+          - id: 'rect1'
+            type: "rect"
+            width: 80
+            height: 80
+            fill: "#e74c3c"
+          - id: 'rect2'
+            type: "rect"
+            width: 80
+            height: 80
+            fill: "#3498db"
+          - id: 'rect3'
+            type: "rect"
+            width: 80
+            height: 80
+            fill: "#2ecc71"
+    transitions:
+      - id: 'container-fade-in'
+        elementId: 'container1'
+        type: keyframes
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

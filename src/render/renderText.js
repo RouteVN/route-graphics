@@ -1,4 +1,5 @@
 import { Text } from 'pixi.js'
+import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -7,11 +8,19 @@ import { Text } from 'pixi.js'
 
 
 /**
- * 
- * @param {TextASTNode} textASTNode
- * @param {Container} parent 
+ *
+ * @param {Object} params
+ * @param {import('../types.js').Application} params.app
+ * @param {Container} params.parent
+ * @param {TextASTNode} params.textASTNode
+ * @param {Object[]} params.transitions
+ * @param {AbortSignal} params.signal
  */
-export default function renderText(parent,textASTNode){
+export default async function renderText({app, parent, textASTNode, transitions, signal}){
+    if (signal?.aborted) {
+        return;
+    }
+
     const text = new Text({
         text: textASTNode.text,
         style: {
@@ -28,6 +37,10 @@ export default function renderText(parent,textASTNode){
     text.x = textASTNode.x
     text.y = textASTNode.y
     text.zIndex = textASTNode.zIndex
-    
+
     parent.addChild(text)
+
+    if (transitions && transitions.length > 0) {
+        await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal})
+    }
 }   

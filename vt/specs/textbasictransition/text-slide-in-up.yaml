@@ -1,0 +1,38 @@
+---
+title: Text Slide In From Bottom
+description: A text element sliding up from below
+template: "route-graphics.html"
+specs:
+  - "text should slide from y: 600 to y: 250"
+  - "text should also fade in during slide"
+  - "combined animation should take 1.2 seconds"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Sliding Up!"
+        x: 200
+        y: 250
+        style:
+          fontSize: 36
+          fill: "#e74c3c"
+          fontFamily: "Arial"
+    transitions:
+      - id: 'text-slide-up'
+        elementId: 'text1'
+        type: keyframes
+        properties:
+          y:
+            initialValue: 600
+            keyframes:
+              - duration: 1200
+                value: 250
+                easing: linear
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1200
+                value: 1
+                easing: linear

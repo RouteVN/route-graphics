@@ -1,0 +1,42 @@
+---
+title: Text Update Alpha Transition
+description: A text element transitioning alpha during update
+template: "route-graphics.html"
+specs:
+  - "text should fade from full opacity to 50%"
+  - "animation should take 600ms"
+  - "demonstrates alpha update transition"
+---
+states:
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Fading Text"
+        x: 250
+        y: 250
+        alpha: 1
+        style:
+          fontSize: 36
+          fill: "#f39c12"
+          fontFamily: "Arial"
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Fading Text"
+        x: 250
+        y: 250
+        alpha: 0.5
+        style:
+          fontSize: 36
+          fill: "#f39c12"
+          fontFamily: "Arial"
+    transitions:
+      - id: 'text-fade'
+        elementId: 'text1'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 600
+                value: 0.5
+                easing: linear

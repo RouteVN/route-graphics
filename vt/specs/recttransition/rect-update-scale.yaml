@@ -1,0 +1,45 @@
+---
+title: Rect Update Scale Transition
+description: A rect scaling up during update
+template: "route-graphics.html"
+specs:
+  - "rect should scale from 1 to 1.5 on both axes"
+  - "animation should take 800ms"
+  - "uses scaleX and scaleY properties"
+---
+states:
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 300
+        y: 200
+        width: 200
+        height: 200
+        fill: "#e67e22"
+        scaleX: 1
+        scaleY: 1
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 300
+        y: 200
+        width: 200
+        height: 200
+        fill: "#e67e22"
+        scaleX: 1.5
+        scaleY: 1.5
+    transitions:
+      - id: 'rect-scale'
+        elementId: 'rect1'
+        type: keyframes
+        properties:
+          scaleX:
+            keyframes:
+              - duration: 800
+                value: 1.5
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 800
+                value: 1.5
+                easing: linear

@@ -1,0 +1,61 @@
+---
+title: Container Update Position Transition
+description: A container animating position during update
+template: "route-graphics.html"
+specs:
+  - "container should move from (100, 100) to (400, 250)"
+  - "all children should move with container"
+  - "animation should take 1 second"
+---
+states:
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 100
+        y: 100
+        direction: "horizontal"
+        gap: 20
+        children:
+          - id: 'rect1'
+            type: "rect"
+            width: 60
+            height: 60
+            fill: "#e74c3c"
+          - id: 'rect2'
+            type: "rect"
+            width: 60
+            height: 60
+            fill: "#3498db"
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 400
+        y: 250
+        direction: "horizontal"
+        gap: 20
+        children:
+          - id: 'rect1'
+            type: "rect"
+            width: 60
+            height: 60
+            fill: "#e74c3c"
+          - id: 'rect2'
+            type: "rect"
+            width: 60
+            height: 60
+            fill: "#3498db"
+    transitions:
+      - id: 'container-move'
+        elementId: 'container1'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 400
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 250
+                easing: linear

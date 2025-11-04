@@ -1,17 +1,30 @@
 import { Container } from "pixi.js";
+import transitionElements from "../transition/index.js";
+
 /**
  * @typedef {import('../types.js').ASTNode} ASTNode
  */
 
 /**
  *
- * @param {Container} container
- * @param {ASTNode} deletedASTNode
+ * @param {Object} params
+ * @param {import('../types.js').Application} params.app
+ * @param {Container} params.parent
+ * @param {ASTNode} params.containerASTNode
+ * @param {Object[]} params.transitions
+ * @param {AbortSignal} params.signal
  */
-export function deleteContainer(container,deletedASTNode){
-    const containerElement = container.getChildByLabel(deletedASTNode.id)
+export async function deleteContainer({app, parent, containerASTNode, transitions, signal}){
+    if (signal?.aborted) {
+        return;
+    }
+
+    const containerElement = parent.getChildByLabel(containerASTNode.id)
 
     if(containerElement){
+        if (transitions && transitions.length > 0) {
+            await transitionElements(containerASTNode.id, {app, sprite: containerElement, transitions, signal});
+        }
         containerElement.destroy({children: true})
     }
 }

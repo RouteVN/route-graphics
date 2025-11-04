@@ -1,0 +1,36 @@
+---
+title: Text Slide Out Down
+description: A text element sliding down while fading out
+template: "route-graphics.html"
+specs:
+  - "text should slide from y: 200 to y: 600"
+  - "text should fade out while sliding"
+  - "animation should complete in 800ms"
+---
+states:
+  - elements:
+      - id: 'text1'
+        type: "text"
+        text: "Sliding Down..."
+        x: 250
+        y: 200
+        style:
+          fontSize: 32
+          fill: "#3498db"
+          fontFamily: "Arial"
+  - elements: []
+    transitions:
+      - id: 'text-slide-down'
+        elementId: 'text1'
+        type: keyframes
+        properties:
+          y:
+            keyframes:
+              - duration: 800
+                value: 600
+                easing: linear
+          alpha:
+            keyframes:
+              - duration: 800
+                value: 0
+                easing: linear
