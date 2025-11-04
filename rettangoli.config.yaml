@@ -27,6 +27,9 @@ vt:
         - title: "Sprite"
           files: "sprite"
           description: "Sprite rendering test"
+        - title: "Sprite Transitions"
+          files: "spritetransitions"
+          description: "Sprite transitions rendering test"
     - title: "Route Graphics"
       type: "groupLabel"
       items:

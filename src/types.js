@@ -76,6 +76,15 @@
  */
 
 /**
+ * @typedef {Object} RenderElementOptions
+ * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
+ * @property {Container} parent
+ * @property {SpriteASTNode} spriteASTNode
+ * @property {Object[]} transitions
+ * @property {AbortSignal} signal
+ */
+
+/**
  * @typedef {Object} RectASTProps
  * @property {'rect'} type
  * @property {string} fill - Fill color (e.g., "red")
@@ -149,7 +158,7 @@
  * @readonly 
  * @enum {string}
  */
-export const WhtieListTransitionProps = {
+export const WhiteListTransitionProps = {
   alpha: "alpha",
   x: "x",
   y: "y",

@@ -1,4 +1,4 @@
-import { WhtieListTransitionProps, TRANSITION_PROPERTY_PATH_MAP } from "../types";
+import { WhiteListTransitionProps, TRANSITION_PROPERTY_PATH_MAP } from "../types";
 
 const easings = {
   linear: (x) => x,
@@ -131,7 +131,7 @@ export default async function keyFrameTransition (app, sprite, transition, signa
     const animationProperties = Array.isArray(propertiesArrayOrObject)
       ? propertiesArrayOrObject
       : Object.entries(propertiesArrayOrObject).map(([property, value]) =>{
-        if(!WhtieListTransitionProps[property]) throw new Error(`${property} is not a supported property for transition.`)
+        if(!WhiteListTransitionProps[property]) throw new Error(`${property} is not a supported property for transition.`)
         return {
           ...value,
           property,

@@ -1,16 +1,20 @@
 import { Sprite, Texture } from "pixi.js";
+import transitionElements from "../transition/index.js";
 
 /**
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').SpriteASTNode} SpriteASTNode
+ * @typedef {import('../types.js').RenderElementOptions} RenderElementOptions
  */
 
 /**
  *
- * @param {Container} parent
- * @param {SpriteASTNode} spriteASTNode
+ * @param {RenderElementOptions} params
  */
-export async function renderSprite(parent, spriteASTNode) {
+export async function renderSprite({app, parent, spriteASTNode, transitions, signal}) {
+  if (signal?.aborted) {
+    reject(new DOMException("Operation aborted", "AbortError"));
+    return;
+  }
+
   const {
     id,
     x,
@@ -37,4 +41,6 @@ export async function renderSprite(parent, spriteASTNode) {
   sprite.label = id;
 
   parent.addChild(sprite);
+
+  await transitionElements( id, {app, sprite, transitions, signal})
 }
