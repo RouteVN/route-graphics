@@ -1,0 +1,62 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Container Element
+description: Schema for container element raw input
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    description: Unique identifier for the container element
+  type:
+    const: container
+    description: Element type, must be 'container'
+  width:
+    type: number
+    description: Width of the container in pixels. If not set, will be calculated from children.
+  height:
+    type: number
+    description: Height of the container in pixels. If not set, will be calculated from children.
+  x:
+    type: number
+    description: X position of the container
+    default: 0
+  y:
+    type: number
+    description: Y position of the container
+    default: 0
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). For containers, must be 0, 0.5, or 1.
+    enum: [0, 0.5, 1]
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). For containers, must be 0, 0.5, or 1.
+    enum: [0, 0.5, 1]
+  children:
+    type: array
+    description: Child elements contained within this container
+    items:
+      oneOf:
+        - $ref: "./sprite.element.yaml"
+        - $ref: "./text.element.yaml"
+        - $ref: "./rect.element.yaml"
+        - $ref: "./container.element.yaml"
+  direction:
+    type: string
+    enum: [horizontal, vertical]
+    description: Layout direction for children. Horizontal arranges left-to-right, vertical arranges top-to-bottom.
+  gap:
+    type: number
+    description: Spacing between child elements in pixels
+    default: 0
+  rotation:
+    type: number
+    description: Rotation in degrees
+    default: 0
+  # check if we need to split horizontal and vertical scroll
+  # scroll:
+  #   type: boolean
+  #   description: Enable scrolling for overflow content
+  #   default: false

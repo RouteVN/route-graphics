@@ -1,0 +1,117 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Text Element
+description: Schema for text element raw input
+type: object
+required:
+  - id
+  - type
+  - text
+$def:
+  textStyle:
+    type: object
+    properties:
+      fill:
+        type: string
+        description: Text color
+        default: black
+      fontFamily:
+        type: string
+        description: Font family
+        default: Arial
+      fontSize:
+        type: number
+        description: Font size in pixels
+        default: 16
+      align:
+        type: string
+        enum: [left, center, right]
+        description: Text alignment
+      lineHeight:
+        type: number
+        description: Line height in pixels
+      wordWrap:
+        type: boolean
+        description: Enable word wrapping
+      wordWrapWidth:
+        type: number
+        description: Width at which to wrap text
+      breakWords:
+        type: boolean
+        description: Allow breaking words when wrapping
+      strokeColor:
+        type: string
+        description: Text stroke/outline color
+      strokeWidth:
+        type: number
+        description: Text stroke/outline width
+properties:
+  id:
+    type: string
+    description: Unique identifier for the text element
+  type:
+    const: text
+    description: Element type, must be 'text'
+  text:
+    type: string
+    description: The text content to display
+  width:
+    type: number
+    description: Width constraint for text wrapping. When set, enables word wrap.
+  x:
+    type: number
+    description: X position of the text
+    default: 0
+  y:
+    type: number
+    description: Y position of the text
+    default: 0
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+  scaleX:
+    type: number
+    description: Horizontal scale factor
+  scaleY:
+    type: number
+    description: Vertical scale factor
+  z:
+    type: number
+    description: Z-index for layering elements
+  cursor:
+    type: string
+    description: CSS cursor style when hovering over the text
+  eventName:
+    type: string
+    description: Event name to fire when text is clicked
+  eventPayload:
+    description: Payload data to send with the event
+  textStyle:
+    "$ref": "#/$def/textStyle"
+  hover:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      cursor:
+        type: string
+        description: CSS cursor style when hovering
+      soundSrc:
+        type: string
+        description: URL to sound file to play on hover
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      soundSrc:
+        type: string
+        description: URL to sound file to play on click
+      actionPayload:
+        type: object
+        description: Payload for click action event
