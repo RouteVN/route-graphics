@@ -1,0 +1,77 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Sprite Element
+description: Schema for sprite element raw input
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - width
+  - height
+properties:
+  id:
+    type: string
+    description: Unique identifier for the sprite element
+  type:
+    type: string
+    const: sprite
+    description: Element type, must be 'sprite'
+  x:
+    type: number
+    description: X position of the sprite
+  y:
+    type: number
+    description: Y position of the sprite
+  width:
+    type: number
+    description: Width of the sprite in pixels
+  height:
+    type: number
+    description: Height of the sprite in pixels
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+    default: 0
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+    default: 0
+  scaleX:
+    type: number
+    description: Horizontal scale factor
+    default: 1
+  scaleY:
+    type: number
+    description: Vertical scale factor
+    default: 1
+  src:
+    type: string
+    description: src of the sprite image. the alias of the pre loaded asset. can be empty
+  alpha:
+    type: number
+    description: Opacity/transparency of the sprite (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
+  hover:
+    type: object
+    properties:
+      src:
+        type: string
+        description: source of the sprite image when hovered
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the sprite
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the sprite
+  click:
+    type: object
+    properties:
+      src:
+        type: string
+        description: src of the sprite image when clicked
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is clicked
