@@ -61,7 +61,7 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
                 renderContainer(parent,element)
                 break;
             case "sprite":
-                asyncActions.push(()=>renderSprite({app,parent,spriteASTNode: element,transitions,signal}))
+                asyncActions.push(renderSprite({app,parent,spriteASTNode: element,transitions,signal})
                 break;
             default:
         }
