@@ -1,0 +1,113 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Text AST Node
+description: Schema for text AST node after parsing
+type: object
+$def:
+  textStyle:
+    type: object
+    properties:
+      fill:
+        type: string
+        description: Text color
+        default: black
+      fontFamily:
+        type: string
+        description: Font family
+        default:
+      fontSize:
+        type: number
+        description: Font size in pixels
+        default: 16
+      align:
+        type: string
+        enum: [left, center, right]
+        default: left
+        description: Text alignment
+      lineHeight:
+        type: number
+        description: Line height in pixels
+        default: 1.2
+      wordWrap:
+        type: boolean
+        description: Enable word wrapping
+        default: true
+      wordWrapWidth:
+        type: number
+        description: Word wrap width
+      breakWords:
+        type: boolean
+        description: Allow breaking words when wrapping
+        default: true
+      strokeColor:
+        type: string
+        description: Text stroke/outline color
+      strokeWidth:
+        type: number
+        description: Text stroke/outline width
+required:
+  - id
+  - type
+  - content
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - z
+  - style
+properties:
+  id:
+    type: string
+    description: Unique identifier for the text element
+  type:
+    const: text
+    description: Element type, must be 'text'
+  content:
+    type: string
+    description: The text content to display
+  width:
+    type: number
+    description: Calculated width of the text based on content and style
+  height:
+    type: number
+    description: Calculated height of the text based on content and style
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  textStyle:
+    "$ref": "#/$def/textStyle"
+  hover:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      cursor:
+        type: string
+        description: CSS cursor style when hovering
+      soundSrc:
+        type: string
+        description: URL to sound file to play on hover
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      soundSrc:
+        type: string
+        description: URL to sound file to play on click
+      actionPayload:
+        type: object
+        description: Payload for click action event

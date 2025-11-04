@@ -1,0 +1,66 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Container AST Node
+description: Schema for container AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - children
+  - direction
+  - gap
+  - scroll
+  - rotation
+properties:
+  id:
+    type: string
+    description: Unique identifier for the container element
+  type:
+    const: container
+    description: Element type, must be 'container'
+  width:
+    type: number
+    description: Width of the container (calculated from children if not provided)
+  height:
+    type: number
+    description: Height of the container (calculated from children if not provided)
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  children:
+    type: array
+    description: Parsed child elements with positions adjusted based on direction and gap
+    items:
+      oneOf:
+        - $ref: "./sprite.ast.yaml"
+        - $ref: "./text.ast.yaml"
+        - $ref: "./rect.ast.yaml"
+        - $ref: "./container.ast.yaml"
+  direction:
+    type: string
+    enum: [horizontal, vertical]
+    description: Layout direction for children
+  gap:
+    type: number
+    description: Spacing between child elements in pixels
+    default: 0
+  scroll:
+    type: boolean
+    description: Enable scrolling for overflow content. Scroll direction will follow direction property
+  rotation:
+    type: number
+    description: Rotation in degrees

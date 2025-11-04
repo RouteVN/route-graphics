@@ -1,0 +1,81 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Rect AST Node
+description: Schema for rectangle AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+properties:
+  id:
+    type: string
+    description: Unique identifier for the rect element
+  type:
+    const: rect
+    description: Element type, must be 'rect'
+  width:
+    type: number
+    description: Width of the rectangle after scale is applied
+  height:
+    type: number
+    description: Height of the rectangle after scale is applied
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  fill:
+    type: string
+    description: Fill color of the rectangle
+  border:
+    type: object
+    description: Border properties
+    properties:
+      width:
+        type: number
+        description: Border width in pixels
+      color:
+        type: string
+        description: Border color
+      alpha:
+        type: number
+        description: Border opacity (0-1)
+        minimum: 0
+        maximum: 1
+  rotation:
+    type: number
+    description: Rotation in degrees
+    default: 0
+  hover:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the sprite
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the sprite
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is clicked
+      actionPayload:
+        type: object
+        description: Payload for click action event

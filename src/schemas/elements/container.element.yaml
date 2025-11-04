@@ -65,5 +65,5 @@ properties:
     default: 0
   scroll:
     type: boolean
-    description: Enable scrolling for overflow content
+    description: Enable scrolling for overflow content. Scroll direction will follow direction property
     default: false
