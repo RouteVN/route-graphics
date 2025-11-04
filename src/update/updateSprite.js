@@ -29,7 +29,7 @@ export async function updateSprite({app, parent, prevAST, nextAST, transitions, 
       await transitionElements(prevAST.id, {app, sprite: spriteElement, transitions, signal});
     }
     
-    if (JSON.stringify(prevAST) === JSON.stringify(nextAST)) {
+    if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
       if (prevAST.url !== nextAST.url) {
         const texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
         spriteElement.texture = texture;

@@ -27,12 +27,13 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
         if (transitions && transitions.length > 0) {
             await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signal});
         }
-        
-        if (JSON.stringify(prevRectASTNode) === JSON.stringify(nextRectASTNode)) {
+        if (JSON.stringify(prevRectASTNode) !== JSON.stringify(nextRectASTNode)) {
             rectElement.clear();
     
-            rectElement.rect(nextRectASTNode.x, nextRectASTNode.y, nextRectASTNode.width, nextRectASTNode.height)
+            rectElement.rect(0, 0, nextRectASTNode.width, nextRectASTNode.height)
                 .fill(nextRectASTNode.fill);
+            rectElement.x = nextRectASTNode.x;
+            rectElement.y = nextRectASTNode.y;
     
             if (nextRectASTNode.border) {
                 rectElement.stroke({
@@ -43,6 +44,9 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
             }
     
             rectElement.zIndex = nextRectASTNode.zIndex;
+            console.log("PrevNode", prevRectASTNode)
+            console.log("Nextnode", nextRectASTNode)
         }
+        console.log(rectElement)
     }
 }

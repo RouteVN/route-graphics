@@ -19,8 +19,8 @@ states:
   - elements:
       - id: 'rect1'
         type: "rect"
-        x: 500
-        y: 300
+        x: 150
+        y: 150
         width: 200
         height: 200
         fill: "#1abc9c"
