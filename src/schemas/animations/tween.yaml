@@ -6,7 +6,6 @@ required:
   - id
   - targetId
   - type
-  - trigger
   - properties
 $def:
   keyframe:
@@ -53,10 +52,6 @@ properties:
     type: string
     const: tween
     description: Type of animation
-  trigger:
-    type: string
-    description: When this animation should start
-    enum: [enter, exit, update]
   properties:
     type: object
     description: Object defining which properties to animate
