@@ -54,8 +54,7 @@ required:
   - y
   - originX
   - originY
-  - z
-  - style
+  - textStyle
 properties:
   id:
     type: string
