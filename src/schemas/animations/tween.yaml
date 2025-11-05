@@ -6,7 +6,7 @@ required:
   - id
   - targetId
   - type
-  - event
+  - eventType
   - properties
 $def:
   keyframe:
@@ -53,9 +53,9 @@ properties:
     type: string
     const: tween
     description: Type of animation
-  event:
+  eventType:
     type: string
-    description: When this transition should be triggered
+    description: When this animation should be triggered
     enum: [add, remove, update]
   properties:
     type: object
