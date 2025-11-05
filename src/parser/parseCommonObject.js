@@ -60,20 +60,11 @@ export function parseCommonObject(state){
 
   
   if(state.hover){
-    astObj.hover = {}
-    const { soundSrc, cursor, actionPayload } = state.hover
-
-    if(soundSrc) astObj.hover.soundSrc = soundSrc
-    if(cursor) astObj.hover.cursor = cursor
-    if(actionPayload) astObj.hover.actionPayload = actionPayload 
+    astObj.hover = state.hover
   }
 
   if(state.click){
-    astObj.click = {}
-    const { soundSrc, actionPayload } = state.click
-
-    if(soundSrc) astObj.click.soundSrc = soundSrc
-    if(actionPayload) astObj.click.actionPayload = actionPayload 
+    astObj.click = state.click
   }
 
   return astObj

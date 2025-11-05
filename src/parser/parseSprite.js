@@ -12,13 +12,6 @@ import { parseCommonObject } from './parseCommonObject.js';
 export function parseSprite(state) {
 
   let astObj = parseCommonObject(state)
-  if(state?.hover?.src){
-    astObj.hover.src = state.hover.src
-  }
-
-  if(state?.click?.src){
-    astObj.click.src = state.click.src
-  }
 
   return {
     ...astObj,
