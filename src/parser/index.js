@@ -1,7 +1,7 @@
-import { parseContainer } from "./parseContainer"
-import { parseRect } from "./parseRect"
-import { parseSprite } from "./parseSprite"
-import { parseText } from "./parseText"
+import { parseContainer } from "./parseContainer.js"
+import { parseRect } from "./parseRect.js"
+import { parseSprite } from "./parseSprite.js"
+import { parseText } from "./parseText.js"
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement

@@ -46,7 +46,7 @@ export function parseCommonObject(state){
     anchorY: state.anchorY
   });
 
-  const astObj = {
+  let astObj = {
     id: state.id,
     type: state.type,
     width: widthAfterScale,
@@ -56,6 +56,24 @@ export function parseCommonObject(state){
     originX,
     originY,
     zIndex: state.zIndex || 0
+  }
+
+  
+  if(state.hover){
+    astObj.hover = {}
+    const { soundSrc, cursor, actionPayload } = state.hover
+
+    if(soundSrc) astObj.hover.soundSrc = soundSrc
+    if(cursor) astObj.hover.cursor = cursor
+    if(actionPayload) astObj.hover.actionPayload = actionPayload 
+  }
+
+  if(state.click){
+    astObj.click = {}
+    const { soundSrc, actionPayload } = state.click
+
+    if(soundSrc) astObj.click.soundSrc = soundSrc
+    if(actionPayload) astObj.click.actionPayload = actionPayload 
   }
 
   return astObj

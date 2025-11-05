@@ -30,7 +30,16 @@ export function parseText(state) {
 
   const { width, height } = CanvasTextMetrics.measureText(state.text, new TextStyle(textStyle));
 
-  const astObj = parseCommonObject({ ...state, width, height })
+  let astObj = parseCommonObject({ ...state, width, height })
+
+  if(state?.hover?.textStyle){
+    astObj.hover.textStyle = state.hover.textStyle
+  }
+
+  if(state?.click?.textStyle){
+    astObj.click.textStyle = state.hover.textStyle
+  }
+
   return {
     ...astObj,
     text: state.text ?? "",

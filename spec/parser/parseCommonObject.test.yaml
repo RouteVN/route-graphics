@@ -17,6 +17,17 @@ in:
     scaleY: 1.5
     width: 483.94921875
     height: 29
+    hover:
+      soundSrc: "sound-1"
+      cursor: "cursor-1"
+      actionPayload:
+        prop1: "44"
+        prop2: "55"
+    click:
+      soundSrc: "sound-2"
+      actionPayload:
+        prop3: "00"
+        prop4: "22"
 out:
   id: "tl"
   type: "text"
@@ -27,6 +38,17 @@ out:
   zIndex: 0
   originX: 362.9619140625
   originY: 21.75
+  hover:
+    soundSrc: "sound-1"
+    cursor: "cursor-1"
+    actionPayload:
+      prop1: "44"
+      prop2: "55"
+  click:
+    soundSrc: "sound-2"
+    actionPayload:
+      prop3: "00"
+      prop4: "22"
 ---
 case: Parsing object with no width or height
 in: 
