@@ -1,0 +1,77 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Tween Animation
+description: Schema for tween animations
+type: object
+required:
+  - id
+  - targetId
+  - type
+  - event
+  - properties
+$def:
+  keyframe:
+    type: object
+    required:
+      - value
+      - duration
+      - easing
+    properties:
+      value:
+        type: number
+        description: The target value for this keyframe
+      duration:
+        type: number
+        description: Duration to reach this value in milliseconds
+      easing:
+        type: string
+        description: Easing function to use
+        enum: [linear]
+      relative:
+        type: boolean
+        description: Whether the value is relative to the previous keyframe value
+        default: false
+  tweenProperty:
+    type: object
+    properties:
+      initialValue:
+        type: number
+        description: Initial value for the property (defaults to current element value if not specified)
+      keyframes:
+        type: array
+        description: Array of keyframes defining the animation
+        items:
+          "$ref": "#/$def/keyframe"
+        minItems: 1
+properties:
+  id:
+    type: string
+    description: Unique identifier for this transition
+  targetId:
+    type: string
+    description: ID of the element this transition applies to
+  type:
+    type: string
+    const: tween
+    description: Type of animation
+  event:
+    type: string
+    description: When this transition should be triggered
+    enum: [add, remove, update]
+  properties:
+    type: object
+    description: Object defining which properties to animate
+    properties:
+      alpha:
+        "$ref": "#/$def/tweenProperty"
+      x:
+        "$ref": "#/$def/tweenProperty"
+      y:
+        "$ref": "#/$def/tweenProperty"
+      scaleX:
+        "$ref": "#/$def/tweenProperty"
+      scaleY:
+        "$ref": "#/$def/tweenProperty"
+      rotation:
+        "$ref": "#/$def/tweenProperty"
+    additionalProperties: false
+    minProperties: 1
