@@ -40,9 +40,18 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, sig
 
   sprite.label = id;
 
+  const abortCb = () => {
+    sprite.x = x;
+    sprite.y = y;
+    sprite.width = width;
+    sprite.height = height;
+    sprite.alpha = alpha;
+    sprite.zIndex = zIndex;
+  }
+
   parent.addChild(sprite);
 
   if (transitions && transitions.length > 0) {
-    await transitionElements( id, {app, sprite, transitions, signal})
+    await transitionElements( id, {app, sprite, transitions, signalAbortCb: abortCb, signal})
   }
 }

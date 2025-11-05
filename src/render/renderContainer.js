@@ -78,10 +78,16 @@ export async function renderContainer({app, parent, containerASTNode, transition
         })
     }
 
+    const abortCb = () => {
+        container.x = x;
+        container.y = y;
+        container.zIndex = zIndex;
+    }
+
     parent.addChild(container);
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(id, {app, sprite: container, transitions, signal});
+        await transitionElements(id, {app, sprite: container, transitions, signalAbortCb: abortCb, signal});
     }
 }
 
