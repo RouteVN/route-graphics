@@ -28,6 +28,19 @@
  * @property {number} providedHeight
  */
 
+/**
+ * @typedef {Object} HoverProps
+ * @property {string} soundSrc
+ * @property {string} cursor
+ * @property {Object} actionPayload
+ */
+
+/**
+ * @typedef {Object} ClickProps
+ * @property {string} soundSrc
+ * @property {Object} actionPayload
+ */
+
 /** 
  * @typedef {Object} ASTNode
  * @property {string} type - Type of the AST node
@@ -53,6 +66,18 @@
  */
 
 /**
+ * @typedef SpriteHoverProps
+ * @property {string} src
+ * @typedef {(SpriteHoverProps & HoverProps)} SpriteHover
+ */
+
+/**
+ * @typedef SpriteClickProps
+ * @property {string} src
+ * @typedef {(SpriteClickProps & HoverProps)} SpriteClick
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
@@ -60,6 +85,8 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {SpriteHover} hover
+ * @property {SpriteClick} click
  * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
  */
 
@@ -97,8 +124,21 @@
  * @property {string} pointerUp - Event name for pointer up
  * @property {string} pointerMove - Event name for pointer move
  * @property {number} rotation - Rotation in degrees
- *
+ * @property {HoverProps} hover
+ * @property {ClickProps} click
  * @typedef {(ASTNode & RectASTProps)} RectASTNode
+ */
+
+/**
+ * @typedef TextHoverProps
+ * @property {Object} textStyle
+ * @typedef {(TextHoverProps & HoverProps)} TextHover
+ */
+
+/**
+ * @typedef TextClickProps
+ * @property {Object} textStyle
+ * @typedef {(TextClickProps & HoverProps)} TextClick
  */
 
 /**
@@ -108,7 +148,8 @@
  * @property {boolean} breakWords
  * @property {number} width
  * @property {Object} [style] - Textstyle
- * 
+ * @property {TextHover} hover
+ * @property {TextClick} click
  * @typedef {ASTNode & TextASTProps} TextASTNode
  */
 

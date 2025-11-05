@@ -11,14 +11,12 @@ import { parseCommonObject } from './parseCommonObject.js';
  */
 export function parseSprite(state) {
 
-  const astObj = parseCommonObject(state)
+  let astObj = parseCommonObject(state)
 
   return {
     ...astObj,
     url: state.url ?? "",
     alpha: state.alpha ?? 1,
     cursor: state.cursor ?? "",
-    clickUrl: state.clickUrl ?? "",
-    hoverUrl: state.hoverUrl ?? ""
   };
 }

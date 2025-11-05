@@ -18,21 +18,59 @@ in:
       fontSize: 24
       fontFamily: "Arial"
       fill: "white"
+    hover:
+      soundSrc: "sound-1"
+      cursor: "cursor-1"
+      actionPayload:
+        prop1: "44"
+        prop2: "55"
+      textStyle:
+        fontSize: 16
+        fontFamily: "Arial"
+        fill: "black"
+    click:
+      soundSrc: "sound-2"
+      actionPayload:
+        prop3: "00"
+        prop4: "22"
+      textStyle:
+        fontSize: 16
+        fontFamily: "Arial"
+        fill: "black"
 out:
   id: "tl"
   type: "text"
   text: "This text is aligned to the top left corner"
-  width: 483.94921875
-  height: 29
-  x: 418.025390625
-  y: 225.5
+  width: 418.89453125
+  height: 27
+  x: 450.552734375
+  y: 226.5
   zIndex: 0
-  originX: 241.974609375
-  originY: 14.5
-  style: 
+  originX: 209.447265625
+  originY: 13.5
+  style:
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
+  hover:
+      soundSrc: "sound-1"
+      cursor: "cursor-1"
+      actionPayload:
+        prop1: "44"
+        prop2: "55"
+      textStyle:
+        fontSize: 16
+        fontFamily: "Arial"
+        fill: "black"
+  click:
+    soundSrc: "sound-2"
+    actionPayload:
+      prop3: "00"
+      prop4: "22"
+    textStyle:
+      fontSize: 16
+      fontFamily: "Arial"
+      fill: "black"
 ---
 case: Test parsing with word wrap
 in: 
@@ -53,14 +91,14 @@ out:
   id: "tl"
   type: "text"
   text: "This text is wrap"
-  width: 197.90625
-  height: 29
-  x: 561.046875
-  y: 225.5
+  width: 173.37890625
+  height: 27
+  x: 573.310546875
+  y: 226.5
   zIndex: 0
-  originX: 98.953125
-  originY: 14.5
-  style: 
+  originX: 86.689453125
+  originY: 13.5
+  style:
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
@@ -81,14 +119,14 @@ out:
   id: "tl"
   type: "text"
   text: "This text is aligned to the top left corner"
-  width: 322.6328125
-  height: 19
-  x: 498.68359375
-  y: 230.5
+  width: 279.9296875
+  height: 18
+  x: 520.03515625
+  y: 231
   zIndex: 0
-  originX: 161.31640625
-  originY: 9.5
-  style: 
+  originX: 139.96484375
+  originY: 9
+  style:
     fontSize: 16
     fontFamily: "Arial"
     fill: "black"
@@ -105,14 +143,14 @@ out:
   id: "tl"
   type: "text"
   text: ""
-  width: 5.0859375
-  height: 19
-  x: 657.45703125
-  y: 230.5
+  width: 4.4453125
+  height: 18
+  x: 657.77734375
+  y: 231
   zIndex: 0
-  originX: 2.54296875
-  originY: 9.5
-  style: 
+  originX: 2.22265625
+  originY: 9
+  style:
     fontSize: 16
     fontFamily: "Arial"
     fill: "black"

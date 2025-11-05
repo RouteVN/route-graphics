@@ -8,7 +8,7 @@ import {
   Texture,
 } from "pixi.js";
 import "@pixi/unsafe-eval";
-import { BaseRouteGraphics } from "./types";
+import { BaseRouteGraphics } from "./types.js";
 import { AudioStage, AudioAsset } from "./AudioStage.js";
 import { renderApp } from "./render/renderApp.js";
 import parseJSONToAST from "./parser/index.js";
