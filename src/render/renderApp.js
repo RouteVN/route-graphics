@@ -25,9 +25,10 @@ import { updateContainer } from '../update/updateContainer.js';
  * @param {ASTNode[]} prevASTTree 
  * @param {ASTNode[]} nextASTTree 
  * @param {Object[]} transitions 
+ * @param {Function} eventHandler
  * @param {AbortSignal[]} signal 
 */
-export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,signal){
+export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,eventHandler,signal){
     const {toAddElement,toDeleteElement,toUpdateElement} = diffElements(prevASTTree,nextASTTree,transitions)
     const asyncActions = []
 
@@ -52,16 +53,16 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
     for (const element of toAddElement) {
         switch(element.type){
             case "rect":
-                asyncActions.push(renderRect({app, parent, rectASTNode: element, transitions, signal}));
+                asyncActions.push(renderRect({app, parent, rectASTNode: element, transitions, eventHandler, signal}));
                 break;
             case "text":
-                asyncActions.push(renderText({app, parent, textASTNode: element, transitions, signal}));
+                asyncActions.push(renderText({app, parent, textASTNode: element, transitions, eventHandler, signal}));
                 break;
             case "container":
                 asyncActions.push(renderContainer({app, parent, containerASTNode: element, transitions, signal}));
                 break;
             case "sprite":
-                asyncActions.push(renderSprite({app, parent, spriteASTNode: element, transitions, signal}));
+                asyncActions.push(renderSprite({app, parent, spriteASTNode: element, transitions, eventHandler, signal}));
                 break;
             default:
         }

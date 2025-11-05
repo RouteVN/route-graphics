@@ -1,6 +1,9 @@
 /**
  * @typedef {import("../types.js").ASTNode} ASTNode
  * @typedef {import("../types.js").DiffElementResult} DiffElementResult
+ * @typedef {import("../types.js").HoverProps} HoverPops
+ * @typedef {import("../types.js").ClickProps} ClickProps
+ * @typedef {import("../types.js").Application} App
  */
 
 /**
@@ -51,4 +54,44 @@ export function diffElements(prevElements, nextElements, transitions = []){
         }
     }
     return {toAddElement,toDeleteElement,toUpdateElement}
+}
+
+/**
+ * @param {App} app
+ * @param {*} element 
+ * @param {Function} eventHandler
+ * @param {HoverPops} hover
+ */
+export function subscribeHoverEvents(app,element,eventHandler,hover){
+    const { cursor, soundSrc, actionPayload } = hover
+    element.eventMode = "static"
+    
+    if(actionPayload) element.on("pointerover",()=>{
+        eventHandler(`${element.label}-pointer-over`,actionPayload)
+    })
+
+    if(cursor){
+        element.on("pointerover",()=>{
+            element.cursor = cursor
+        })
+
+        element.on("pointerout",()=>{
+            element.cursor = "auto"
+        })
+    }
+}
+
+/**
+ * 
+ * @param {App} app 
+ * @param {*} element 
+ * @param {Function} eventHandler 
+ * @param {ClickProps} click 
+ */
+export function subscribeClickEvents(app,element,eventHandler,click){
+    const {soundSrc, actionPayload} = click
+        
+    if(actionPayload) element.on("pointerup",()=>{
+        eventHandler(`${element.label}-pointer-up`,actionPayload)
+    })
 }

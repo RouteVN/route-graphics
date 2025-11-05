@@ -1,5 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
 import transitionElements from "../transition/index.js";
+import { subscribeClickEvents, subscribeHoverEvents } from "./common.js";
 
 /**
  * @typedef {import('../types.js').RenderElementOptions} RenderElementOptions
@@ -9,7 +10,7 @@ import transitionElements from "../transition/index.js";
  *
  * @param {RenderElementOptions} params
  */
-export async function renderSprite({app, parent, spriteASTNode, transitions, signal}) {
+export async function renderSprite({app, parent, spriteASTNode, transitions, eventHandler, signal}) {
   if (signal?.aborted) {
     reject(new DOMException("Operation aborted", "AbortError"));
     return;
@@ -39,6 +40,34 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, sig
   sprite.zIndex = zIndex;
 
   sprite.label = id;
+
+  const hoverEvents = spriteASTNode?.hover
+  const clickEvents = spriteASTNode?.click
+  if(eventHandler && hoverEvents){
+    subscribeHoverEvents(app,sprite,eventHandler,hoverEvents)
+  }
+
+  if(eventHandler && clickEvents){
+    subscribeClickEvents(app,sprite,eventHandler,clickEvents)
+  }
+
+  if(clickEvents?.src){
+    sprite.on("pointerup",()=>{
+      const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+      sprite.texture = clickTexture;
+    })
+  }
+
+  if(hoverEvents?.src){
+    sprite.on("pointerover",()=>{
+      const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
+      sprite.texture = hoverTexture;
+    })
+
+    sprite.on("pointerout",()=>{
+      sprite.texture = texture;
+    })
+  }
 
   parent.addChild(sprite);
 

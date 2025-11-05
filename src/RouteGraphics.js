@@ -415,7 +415,7 @@ class RouteGraphics extends BaseRouteGraphics {
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
     const signal = this._currentAbortController.signal;
-    await renderApp(app, parent, prevState.elements, nextState.elements, nextState.transitions, signal)
+    await renderApp(app, parent, prevState.elements, nextState.elements, nextState.transitions,eventHandler, signal)
   };
 }
 

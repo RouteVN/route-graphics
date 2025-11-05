@@ -61,7 +61,8 @@
  * @property {'sprite'} type
  * @property {number} alpha
  * @property {string} url
- * 
+ * @property {SpriteHover} hover
+ * @property {SpriteClick} click
  * @typedef {ASTNode & SpriteASTProps } SpriteASTNode
  */
 
@@ -85,8 +86,6 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
- * @property {SpriteHover} hover
- * @property {SpriteClick} click
  * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
  */
 
