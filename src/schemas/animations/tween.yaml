@@ -45,17 +45,17 @@ $def:
 properties:
   id:
     type: string
-    description: Unique identifier for this transition
+    description: Unique identifier for this animation
   targetId:
     type: string
-    description: ID of the element this transition applies to
+    description: ID of the element this animation applies to
   type:
     type: string
     const: tween
     description: Type of animation
   trigger:
     type: string
-    description: When this animation should be triggered
+    description: When this animation should start
     enum: [enter, exit, update]
   properties:
     type: object
