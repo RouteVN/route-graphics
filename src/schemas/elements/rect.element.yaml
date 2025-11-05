@@ -1,0 +1,89 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Rect Element
+description: Schema for rectangle element raw input
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+properties:
+  id:
+    type: string
+    description: Unique identifier for the rect element
+  type:
+    const: rect
+    description: Element type, must be 'rect'
+  width:
+    type: number
+    description: Width of the rectangle in pixels
+  height:
+    type: number
+    description: Height of the rectangle in pixels
+  x:
+    type: number
+    description: X position of the rectangle
+    default: 0
+  y:
+    type: number
+    description: Y position of the rectangle
+    default: 0
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+  alpha:
+    type: number
+    description: Opacity/transparency of the rectangle (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
+  fill:
+    type: string
+    description: Fill color of the rectangle
+    default: white
+  border:
+    type: object
+    description: Border properties
+    properties:
+      width:
+        type: number
+        description: Border width in pixels
+        default: 0
+      color:
+        type: string
+        description: Border color
+        default: black
+      alpha:
+        type: number
+        description: Border opacity (0-1)
+        minimum: 0
+        maximum: 1
+        default: 1
+  rotation:
+    type: number
+    description: Rotation in degrees
+    default: 0
+  hover:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the sprite
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the sprite
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is clicked
+      actionPayload:
+        type: object
+        description: Payload for click action event

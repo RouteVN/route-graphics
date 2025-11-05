@@ -1,0 +1,75 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Sprite AST Node
+description: Schema for sprite AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - src
+  - alpha
+properties:
+  id:
+    type: string
+    description: Unique identifier for the sprite element
+  type:
+    const: sprite
+    description: Element type, must be 'sprite'
+  width:
+    type: number
+    description: Width of the sprite after scale is applied
+  height:
+    type: number
+    description: Height of the sprite after scale is applied
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  src:
+    type: string
+    description: URL of the sprite image
+  alpha:
+    type: number
+    description: Opacity/transparency of the sprite (0-1)
+    minimum: 0
+    maximum: 1
+  hover:
+    type: object
+    properties:
+      src:
+        type: string
+        description: source of the sprite image when hovered
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the sprite
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the sprite
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      src:
+        type: string
+        description: src of the sprite image when clicked
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is clicked
+      actionPayload:
+        type: object
+        description: Payload for click action event
