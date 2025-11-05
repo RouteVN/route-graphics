@@ -108,6 +108,7 @@
  * @property {Container} parent
  * @property {SpriteASTNode} spriteASTNode
  * @property {Object[]} transitions
+ * @property {Function} signalAbortCb
  * @property {AbortSignal} signal
  */
 

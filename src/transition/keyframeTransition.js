@@ -119,9 +119,10 @@ function getMaxOfArray(numArray) {
   return Math.max.apply(null, numArray);
 }
 
-export default async function keyframeTransition (app, sprite, transition, signal) {
+export default async function keyframeTransition (app, sprite, transition, signalAbortCb, signal) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
+      cleanup()
       reject(new DOMException("Operation aborted", "AbortError"));
       return;
     }
@@ -191,6 +192,7 @@ export default async function keyframeTransition (app, sprite, transition, signa
       app.ticker.remove(effect);
       // Set to final state when torn down
       applyAnimationState(maxDuration);
+      signalAbortCb()
     };
 
     // Register abort handler for immediate cleanup

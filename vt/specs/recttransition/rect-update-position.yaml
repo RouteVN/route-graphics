@@ -19,7 +19,7 @@ states:
   - elements:
       - id: 'rect1'
         type: "rect"
-        x: 150
+        x: 1000
         y: 150
         width: 200
         height: 200
@@ -31,11 +31,40 @@ states:
         properties:
           x:
             keyframes:
+              - duration: 500
+                value: 200
+                easing: linear
               - duration: 1000
-                value: 500
+                value: 350
                 easing: linear
           y:
             keyframes:
+              - duration: 500
+                value: 200
+                easing: linear
               - duration: 1000
-                value: 300
+                value: 350
+                easing: linear
+  - elements:
+      - id: 'rect1'
+        type: "rect"
+        x: 700
+        y: 500
+        width: 200
+        height: 200
+        fill: "#1abc9c"
+    transitions:
+      - id: 'rect-move'
+        elementId: 'rect1'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 500
+                value: 700
+                easing: linear
+          y:
+            keyframes:
+              - duration: 500
+                value: 500
                 easing: linear
