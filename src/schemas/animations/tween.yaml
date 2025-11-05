@@ -40,7 +40,6 @@ $def:
         description: Array of keyframes defining the animation
         items:
           "$ref": "#/$def/keyframe"
-        minItems: 1
 properties:
   id:
     type: string
