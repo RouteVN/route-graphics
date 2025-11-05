@@ -53,7 +53,7 @@ properties:
     type: string
     const: tween
     description: Type of animation
-  eventType:
+  event:
     type: string
     description: When this animation should be triggered
     enum: [add, remove, update]
