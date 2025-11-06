@@ -1,5 +1,4 @@
 import { Text } from 'pixi.js'
-import transitionElements from "../transition/index.js";
 import applyTextStyle from '../util/applyTextStyle.js';
 
 /**
@@ -16,8 +15,9 @@ import applyTextStyle from '../util/applyTextStyle.js';
  * @param {TextASTNode} params.textASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export default async function renderText({app, parent, textASTNode, transitions, eventHandler, signal}){
+export default async function renderText({app, parent, textASTNode, transitions, eventHandler, transitionElements, signal}){
     if (signal?.aborted) {
         return;
     }

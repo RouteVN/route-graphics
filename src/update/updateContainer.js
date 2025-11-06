@@ -1,6 +1,5 @@
 import { Container } from "pixi.js";
 import { renderApp } from '../render/renderApp.js';
-import transitionElements from "../transition/index.js";
 
 /**
  * Update function for Container elements
@@ -16,8 +15,9 @@ import transitionElements from "../transition/index.js";
  * @param {ContainerASTNode} params.nextAST
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export async function updateContainer({app, parent, prevAST, nextAST, eventHandler, transitions, signal}) {
+export async function updateContainer({app, parent, prevAST, nextAST, eventHandler, transitions, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -32,7 +32,15 @@ export async function updateContainer({app, parent, prevAST, nextAST, eventHandl
             containerElement.label = nextAST.id;
     
             if(JSON.stringify(prevAST.children) !== JSON.stringify(nextAST.children)) {
-                await renderApp(app, containerElement, prevAST.children, nextAST.children, transitions, eventHandler, signal);
+                await renderApp({app, 
+                    parent: containerElement, 
+                    nextASTTree: prevAST.children, 
+                    prevASTTree: nextAST.children, 
+                    transitions, 
+                    eventHandler, 
+                    signal,
+                    transitionElements
+                });
             }
         }
     }

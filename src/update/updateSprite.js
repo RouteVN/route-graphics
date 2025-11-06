@@ -1,5 +1,4 @@
 import { Texture } from "pixi.js";
-import transitionElements from "../transition/index.js";
 
 /**
  * Update function for Sprite elements
@@ -16,8 +15,9 @@ import transitionElements from "../transition/index.js";
  * @param {Object[]} params.transitions
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export async function updateSprite({app, parent, prevAST, nextAST, eventHandler, transitions, signal}) {
+export async function updateSprite({app, parent, prevAST, nextAST, eventHandler, transitions, transitionElements, signal}) {
   if (signal?.aborted) {
     return;
   }

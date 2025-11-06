@@ -2,7 +2,6 @@ import { Container, Graphics } from "pixi.js";
 import { renderRect } from './renderRect.js';
 import renderText from './renderText.js';
 import { renderSprite } from './renderSprite.js';
-import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -18,9 +17,10 @@ import transitionElements from "../transition/index.js";
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.containerASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderContainer({app, parent, containerASTNode, transitions, eventHandler, signal}) {
+export async function renderContainer({app, parent, containerASTNode, transitions, eventHandler, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }

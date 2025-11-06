@@ -1,5 +1,3 @@
-import transitionElements from "../transition/index.js";
-
 /**
  * Update function for Rectangle elements
  * @typedef {import('../types.js').RectASTNode} RectASTNode
@@ -15,8 +13,9 @@ import transitionElements from "../transition/index.js";
  * @param {Object[]} params.transitions
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, eventHandler, transitions, signal}) {
+export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, eventHandler, transitions, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }

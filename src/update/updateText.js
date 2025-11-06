@@ -1,4 +1,3 @@
-import transitionElements from "../transition/index.js";
 import applyTextStyle from "../util/applyTextStyle.js";
 
 /**
@@ -15,8 +14,9 @@ import applyTextStyle from "../util/applyTextStyle.js";
  * @param {TextASTNode} params.nextTextASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export async function updateText({app, parent, prevTextASTNode, nextTextASTNode, eventHandler, transitions, signal}) {
+export async function updateText({app, parent, prevTextASTNode, nextTextASTNode, eventHandler, transitions, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }

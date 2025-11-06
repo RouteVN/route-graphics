@@ -12,7 +12,8 @@
     <script type="module">
         import RouteGraphics, {
             Assets,
-            AudioAsset
+            AudioAsset,
+            transitionElements
         } from "/RouteGraphics.js"
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
@@ -41,6 +42,7 @@
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
+            transitionElements
         })
         document.body.appendChild(app.canvas);
         let index = 0

@@ -1,5 +1,4 @@
 import { Graphics } from "pixi.js";
-import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -14,9 +13,10 @@ import transitionElements from "../transition/index.js";
  * @param {Container} params.parent
  * @param {RectASTNode} params.rectASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderRect({app, parent, rectASTNode, transitions, eventHandler, signal}){
+export async function renderRect({app, parent, rectASTNode, transitions, eventHandler, transitionElements, signal}){
     if (signal?.aborted) {
         return;
     }

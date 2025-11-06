@@ -13,6 +13,7 @@ import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js"
 import parseJSONToAST from "./parser/index.js";
 import { AudioAsset } from "./AudioStage.js";
+import transitionElements from "./transition/index.js"
 
 export default RouteGraphics;
 
@@ -32,4 +33,5 @@ export {
   parse,
   parseJSONToAST,
   createAssetBufferManager,
+  transitionElements
 };

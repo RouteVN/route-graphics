@@ -112,6 +112,11 @@ class RouteGraphics extends BaseRouteGraphics {
   _eventHandler;
 
   /**
+   * @type {Function}
+   */
+  _transitionElements
+
+  /**
    * @type {BaseRendererPlugin[]}
    */
   _plugins;
@@ -136,7 +141,7 @@ class RouteGraphics extends BaseRouteGraphics {
    * @returns
    */
   init = async (options) => {
-    const { eventHandler, plugins, width, height, backgroundColor } = options;
+    const { eventHandler, plugins, width, height, backgroundColor, transitionElements } = options;
 
     for (const plugin of plugins) {
       if (plugin.rendererName !== RouteGraphics.rendererName) {
@@ -146,6 +151,7 @@ class RouteGraphics extends BaseRouteGraphics {
 
     this._plugins = plugins;
     this._eventHandler = eventHandler;
+    this._transitionElements = transitionElements;
 
     /**
      * @type {ApplicationWithAudioStage}
@@ -325,6 +331,7 @@ class RouteGraphics extends BaseRouteGraphics {
       this._state,
       parsedState,
       this._eventHandler,
+      this._transitionElements
     );
     this._state = parsedState;
   };
@@ -401,8 +408,9 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {RouteGraphicsState} prevState
    * @param {RouteGraphicsState} nextState
    * @param {Function} eventHandler
+   * @param {Function} transitionelements
    */
-  _render = async (app, parent, prevState, nextState, eventHandler) => {
+  _render = async (app, parent, prevState, nextState, eventHandler,transitionElements) => {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
 
@@ -415,7 +423,15 @@ class RouteGraphics extends BaseRouteGraphics {
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
     const signal = this._currentAbortController.signal;
-    await renderApp(app, parent, prevState.elements, nextState.elements, nextState.transitions,eventHandler, signal)
+    await renderApp({app, 
+      parent, 
+      prevASTTree: prevState.elements, 
+      nextASTTree: nextState.elements, 
+      transitions: nextState.transitions,
+      eventHandler, 
+      transitionElements, 
+      signal
+    })
   };
 }
 
