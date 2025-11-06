@@ -1,59 +1,56 @@
 ---
-title: Text Style Change on Hover
-description: Test textStyle property in hover event changing text appearance
+title: Text Style Change on Click
+description: Test textStyle property in click event changing text appearance
 template: "route-graphics.html"
 specs:
-  - "text style should change on hover"
-  - "text style should revert on pointer out"
+  - "text style should change on click"
+  - "style persists after click"
   - "color, font, and size can all change"
 ---
 states:
   - elements:
-      - id: 'text-hover-color'
+      - id: 'text-click-color'
         type: "text"
         x: 200
         y: 100
-        text: "Hover to change color"
+        text: "Click to change color"
         style:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
-        interactive: true
-        hover:
+        click:
           cursor: "pointer"
           textStyle:
             fill: "#e74c3c"
             fontSize: 42
             fontFamily: "Arial"
-      - id: 'text-hover-size'
+      - id: 'text-click-size'
         type: "text"
         x: 200
         y: 200
-        text: "Hover to get bigger"
+        text: "Click to grow larger"
         style:
           fontFamily: "Arial"
-          fontSize: 36
+          fontSize: 32
           fill: "#2ecc71"
-        interactive: true
-        hover:
+        click:
           cursor: "pointer"
           textStyle:
             fill: "#2ecc71"
-            fontSize: 52
+            fontSize: 56
             fontFamily: "Arial"
-      - id: 'text-hover-all'
+      - id: 'text-click-all'
         type: "text"
         x: 200
-        y: 300
-        text: "Hover for complete transformation"
+        y: 320
+        text: "Click for complete makeover"
         style:
           fontFamily: "Arial"
-          fontSize: 38
+          fontSize: 36
           fill: "#9b59b6"
-        interactive: true
-        hover:
+        click:
           cursor: "pointer"
           textStyle:
             fill: "#f39c12"
-            fontSize: 48
-            fontFamily: "Georgia"
+            fontSize: 52
+            fontFamily: "Courier New"

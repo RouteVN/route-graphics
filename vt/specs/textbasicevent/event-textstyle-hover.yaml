@@ -1,58 +1,57 @@
 ---
-title: Text Style Change on Click
-description: Test textStyle property in click event changing text appearance
+title: Text Style Change on Hover
+description: Test textStyle property in hover event changing text appearance
 template: "route-graphics.html"
 specs:
-  - "text style should change on click"
-  - "style persists after click"
+  - "text style should change on hover"
+  - "text style should revert on pointer out"
   - "color, font, and size can all change"
 ---
 states:
   - elements:
-      - id: 'text-click-color'
+      - id: 'text-hover-color'
         type: "text"
         x: 200
         y: 100
-        text: "Click to change color"
+        text: "Hover to change color"
         style:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
-        click:
+        hover:
           cursor: "pointer"
           textStyle:
             fill: "#e74c3c"
             fontSize: 42
             fontFamily: "Arial"
-      - id: 'text-click-size'
+      - id: 'text-hover-size'
         type: "text"
         x: 200
         y: 200
-        text: "Click to grow larger"
-        style:
-          fontFamily: "Arial"
-          fontSize: 32
-          fill: "#2ecc71"
-        interactive: true
-        click:
-          cursor: "pointer"
-          textStyle:
-            fill: "#2ecc71"
-            fontSize: 56
-            fontFamily: "Arial"
-      - id: 'text-click-all'
-        type: "text"
-        x: 200
-        y: 320
-        text: "Click for complete makeover"
+        text: "Hover to get bigger"
         style:
           fontFamily: "Arial"
           fontSize: 36
+          fill: "#2ecc71"
+        hover:
+          cursor: "pointer"
+          textStyle:
+            fill: "#2ecc71"
+            fontSize: 52
+            fontFamily: "Arial"
+      - id: 'text-hover-all'
+        type: "text"
+        x: 200
+        y: 300
+        text: "Hover for complete transformation"
+        style:
+          fontFamily: "Arial"
+          fontSize: 38
           fill: "#9b59b6"
-        interactive: true
-        click:
+        
+        hover:
           cursor: "pointer"
           textStyle:
             fill: "#f39c12"
-            fontSize: 52
-            fontFamily: "Courier New"
+            fontSize: 48
+            fontFamily: "Georgia"

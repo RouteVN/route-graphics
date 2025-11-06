@@ -12,6 +12,9 @@ vt:
         - title: "Text Basic Transitions"
           files: "textbasictransition"
           description: "Basic text transition tests"
+        - title: "Text Basic Events"
+          files: "textbasicevent"
+          description: "Text event interaction tests"
     - title: "Container"
       type: "groupLabel"
       items:
@@ -30,6 +33,9 @@ vt:
         - title: "Rect Transitions"
           files: "recttransition"
           description: "Rect transition test"
+        - title: "Rect Events"
+          files: "rectevent"
+          description: "Rect event interaction tests"
     - title: "Sprite"
       type: "groupLabel"
       items:
@@ -39,6 +45,9 @@ vt:
         - title: "Sprite Transitions"
           files: "spritetransition"
           description: "Sprite transitions rendering test"
+        - title: "Sprite Events"
+          files: "spriteevent"
+          description: "Sprite event interaction tests"
     - title: "Route Graphics"
       type: "groupLabel"
       items:

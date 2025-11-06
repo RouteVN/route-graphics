@@ -1,41 +1,38 @@
 ---
-title: Sprite Click Event Audio
-description: Test audio playback when clicking on sprite elements
+title: Sprite Src Change on Click
+description: Test src property in click event changing sprite texture
 template: "route-graphics.html"
 specs:
-  - "sprite should play audio on click"
-  - "different sprite elements play different sounds"
-  - "audio should play once per click"
+  - "sprite texture should change on click"
+  - "texture persists after click"
+  - "different sprites can have different click textures"
 ---
 states:
   - elements:
       - id: 'sprite-click-1'
         type: "sprite"
         x: 150
-        y: 100
+        y: 150
         width: 150
         height: 150
         url: "circle-blue"
-        interactive: true
         click:
-          soundSrc: "bgm-1"
+          src: "circle-red"
       - id: 'sprite-click-2'
         type: "sprite"
         x: 400
-        y: 100
+        y: 150
         width: 150
         height: 150
         url: "circle-red"
-        interactive: true
         click:
-          soundSrc: "bgm-2"
+          src: "circle-green"
       - id: 'sprite-click-3'
         type: "sprite"
         x: 650
-        y: 100
+        y: 150
         width: 150
         height: 150
         url: "circle-green"
-        interactive: true
         click:
-          soundSrc: "bgm-3"
+          src: "circle-blue"

@@ -18,7 +18,6 @@ states:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
-        interactive: true
         hover:
           cursor: "pointer"
           textStyle:
@@ -39,7 +38,6 @@ states:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"
-        interactive: true
         hover:
           cursor: "pointer"
           textStyle:

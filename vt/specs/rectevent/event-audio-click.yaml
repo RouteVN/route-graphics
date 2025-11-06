@@ -16,7 +16,6 @@ states:
         width: 300
         height: 100
         fill: "#3498db"
-        interactive: true
         click:
           soundSrc: "bgm-1"
       - id: 'rect-click-2'
@@ -26,7 +25,6 @@ states:
         width: 300
         height: 100
         fill: "#e74c3c"
-        interactive: true
         click:
           soundSrc: "bgm-2"
       - id: 'rect-click-3'
@@ -36,6 +34,5 @@ states:
         width: 300
         height: 100
         fill: "#2ecc71"
-        interactive: true
         click:
           soundSrc: "bgm-3"

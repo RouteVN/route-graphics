@@ -16,7 +16,6 @@ states:
         width: 200
         height: 200
         url: "circle-blue"
-        interactive: true
         hover:
           soundSrc: "bgm-1"
       - id: 'sprite-hover-click'
@@ -26,7 +25,6 @@ states:
         width: 200
         height: 200
         url: "circle-red"
-        interactive: true
         hover:
           soundSrc: "bgm-2"
         click:

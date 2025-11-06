@@ -16,7 +16,6 @@ states:
         width: 150
         height: 150
         url: "circle-blue"
-        interactive: true
         hover:
           cursor: "pointer"
       - id: 'sprite-cursor-grab'
@@ -26,7 +25,6 @@ states:
         width: 150
         height: 150
         url: "circle-red"
-        interactive: true
         hover:
           cursor: "grab"
       - id: 'sprite-cursor-crosshair'
@@ -36,7 +34,6 @@ states:
         width: 150
         height: 150
         url: "circle-green"
-        interactive: true
         hover:
           cursor: "crosshair"
       - id: 'sprite-cursor-help'
@@ -46,6 +43,5 @@ states:
         width: 150
         height: 150
         url: "circle-blue"
-        interactive: true
         hover:
           cursor: "help"

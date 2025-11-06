@@ -18,7 +18,6 @@ states:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#9b59b6"
-        interactive: true
         hover:
           soundSrc: "bgm-1"
       - id: 'text-hover-click'
@@ -30,7 +29,6 @@ states:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#f39c12"
-        interactive: true
         hover:
           soundSrc: "bgm-2"
         click:

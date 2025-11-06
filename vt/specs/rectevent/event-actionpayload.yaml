@@ -16,7 +16,6 @@ states:
         width: 400
         height: 80
         fill: "#3498db"
-        interactive: true
         click:
           actionPayload:
             action: "rect-clicked"
@@ -30,7 +29,6 @@ states:
         width: 400
         height: 80
         fill: "#e74c3c"
-        interactive: true
         hover:
           actionPayload:
             action: "rect-hovered"
@@ -43,7 +41,6 @@ states:
         width: 400
         height: 80
         fill: "#2ecc71"
-        interactive: true
         hover:
           actionPayload:
             event: "hover"

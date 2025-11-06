@@ -47,9 +47,9 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
   const clickEvents = spriteASTNode?.click
 
   const overCb = ()=>{
-    if(clickEvents?.src){
-      const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
-      sprite.texture = clickTexture;
+    if(hoverEvents?.src){
+      const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
+      sprite.texture = hoverTexture;
     }
   }
 

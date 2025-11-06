@@ -16,7 +16,6 @@ states:
         width: 400
         height: 70
         fill: "#3498db"
-        interactive: true
         hover:
           cursor: "pointer"
       - id: 'rect-cursor-move'
@@ -26,7 +25,6 @@ states:
         width: 400
         height: 70
         fill: "#e74c3c"
-        interactive: true
         hover:
           cursor: "move"
       - id: 'rect-cursor-not-allowed'
@@ -36,7 +34,6 @@ states:
         width: 400
         height: 70
         fill: "#95a5a6"
-        interactive: true
         hover:
           cursor: "not-allowed"
       - id: 'rect-cursor-text'
@@ -46,6 +43,5 @@ states:
         width: 400
         height: 70
         fill: "#f39c12"
-        interactive: true
         hover:
           cursor: "text"

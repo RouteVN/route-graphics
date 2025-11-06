@@ -18,7 +18,6 @@ states:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#3498db"
-        interactive: true
         hover:
           cursor: "pointer"
       - id: 'text-cursor-grab'
@@ -30,7 +29,6 @@ states:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#e74c3c"
-        interactive: true
         hover:
           cursor: "grab"
       - id: 'text-cursor-help'
@@ -42,7 +40,6 @@ states:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"
-        interactive: true
         hover:
           cursor: "help"
       - id: 'text-cursor-crosshair'
@@ -54,6 +51,5 @@ states:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#9b59b6"
-        interactive: true
         hover:
           cursor: "crosshair"

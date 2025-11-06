@@ -18,7 +18,6 @@ states:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
-        interactive: true
         click:
           soundSrc: "bgm-1"
       - id: 'text-click-2'
@@ -30,7 +29,6 @@ states:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#e74c3c"
-        interactive: true
         click:
           soundSrc: "bgm-2"
       - id: 'text-click-3'
@@ -42,6 +40,5 @@ states:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#2ecc71"
-        interactive: true
         click:
           soundSrc: "bgm-3"

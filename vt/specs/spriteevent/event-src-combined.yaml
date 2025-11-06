@@ -16,7 +16,6 @@ states:
         width: 180
         height: 180
         url: "circle-blue"
-        interactive: true
         hover:
           cursor: "pointer"
           src: "circle-red"
@@ -29,7 +28,6 @@ states:
         width: 180
         height: 180
         url: "circle-green"
-        interactive: true
         hover:
           cursor: "pointer"
           src: "circle-blue"

@@ -16,7 +16,6 @@ states:
         width: 150
         height: 150
         url: "circle-blue"
-        interactive: true
         click:
           actionPayload:
             action: "sprite-clicked"
@@ -29,7 +28,6 @@ states:
         width: 150
         height: 150
         url: "circle-red"
-        interactive: true
         hover:
           actionPayload:
             action: "sprite-hovered"
@@ -42,7 +40,6 @@ states:
         width: 150
         height: 150
         url: "circle-green"
-        interactive: true
         hover:
           actionPayload:
             event: "hover"
