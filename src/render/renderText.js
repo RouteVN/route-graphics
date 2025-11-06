@@ -38,9 +38,22 @@ export default async function renderText({app, parent, textASTNode, transitions,
     text.y = textASTNode.y
     text.zIndex = textASTNode.zIndex
 
+    const abortCb = () => {
+        text.text = textASTNode.text;
+        text.style.fill = textASTNode.style.fill;
+        text.style.fontFamily = textASTNode.style.fontFamily;
+        text.style.fontSize = textASTNode.style.fontSize;
+        text.style.wordWrap = textASTNode.style.wordWrap;
+        text.style.breakWords = textASTNode.style.breakWords;
+        text.style.wordWrapWidth = textASTNode.style.wordWrapWidth;
+        text.x = textASTNode.x;
+        text.y = textASTNode.y;
+        text.zIndex = textASTNode.zIndex;
+    }
+
     parent.addChild(text)
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal})
-    }
+        await transitionElements(textASTNode.id, {app, sprite: text, transitions, signalAbortCb: abortCb, signal})
+j    }
 }   

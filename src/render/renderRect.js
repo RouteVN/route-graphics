@@ -52,9 +52,25 @@ export async function renderRect({app, parent, rectASTNode, transitions, signal}
     // rect.rotation = (rotation * Math.PI) / 180
     rect.zIndex = zIndex
 
+    const abortCb = () => {
+        rect.clear();
+        rect.rect(0, 0, width, height).fill(fill);
+        rect.x = x;
+        rect.y = y;
+        if(border){
+            rect.stroke({
+                color: border.color,
+                alpha: border.alpha,
+                width: border.width
+            })
+        }
+
+        rect.zIndex = zIndex;
+    }
+
     parent.addChild(rect)
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(id, {app, sprite: rect, transitions, signal})
+        await transitionElements(id, {app, sprite: rect, transitions, signalAbortCb: abortCb, signal})
     }
 }
