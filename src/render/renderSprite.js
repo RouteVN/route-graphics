@@ -58,7 +58,7 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
       })
       if(cursor) sprite.cursor = cursor
       if(soundSrc) app.audioStage.add({
-        id: `${Date.now()}-hover`,
+        id: `hover-${Date.now()}`,
         url: soundSrc,
         loop: false,
       })
@@ -94,7 +94,7 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
         ...actionPayload
       })
       if(soundSrc) app.audioStage.add({
-        id: `${Date.now()}-click`,
+        id: `click-${Date.now()}`,
         url: soundSrc,
         loop: false,
       })

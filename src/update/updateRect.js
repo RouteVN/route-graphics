@@ -61,7 +61,7 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
                     })
                     if(cursor) rectElement.cursor = cursor
                     if(soundSrc) app.audioStage.add({
-                        id: `${Date.now()}-hover`,
+                        id: `hover-${Date.now()}`,
                         url: soundSrc,
                         loop: false,
                     })
@@ -92,7 +92,7 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
                         ...actionPayload
                     })
                     if(soundSrc) app.audioStage.add({
-                        id: `${Date.now()}-click`,
+                        id: `click-${Date.now()}`,
                         url: soundSrc,
                         loop: false,
                     })

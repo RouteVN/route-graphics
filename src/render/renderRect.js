@@ -74,7 +74,7 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
             })
             if(cursor) rect.cursor = cursor
             if(soundSrc) app.audioStage.add({
-                id: `${Date.now()}-hover`,
+                id: `hover-${Date.now()}`,
                 url: soundSrc,
                 loop: false,
             })
@@ -105,7 +105,7 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
                 ...actionPayload
             })
             if(soundSrc) app.audioStage.add({
-                id: `${Date.now()}-click`,
+                id: `click-${Date.now()}`,
                 url: soundSrc,
                 loop: false,
             })

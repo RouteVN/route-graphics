@@ -51,7 +51,7 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
                     })
                     if(cursor) textElement.cursor = cursor
                     if(soundSrc) app.audioStage.add({
-                        id: `${Date.now()}-hover`,
+                        id: `hover-${Date.now()}`,
                         url: soundSrc,
                         loop: false,
                     })
@@ -84,7 +84,7 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
                         ...actionPayload
                     })
                     if(soundSrc) app.audioStage.add({
-                        id: `${Date.now()}-click`,
+                        id: `click-${Date.now()}`,
                         url: soundSrc,
                         loop: false,
                     })

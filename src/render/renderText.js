@@ -52,7 +52,7 @@ export default async function renderText({app, parent, textASTNode, transitions,
             })
             if(cursor) text.cursor = cursor
             if(soundSrc) app.audioStage.add({
-                id: `${Date.now()}-hover`,
+                id: `hover-${Date.now()}`,
                 url: soundSrc,
                 loop: false,
             })
@@ -85,7 +85,7 @@ export default async function renderText({app, parent, textASTNode, transitions,
                 ...actionPayload
             })
             if(soundSrc) app.audioStage.add({
-                id: `${Date.now()}-click`,
+                id: `click-${Date.now()}`,
                 url: soundSrc,
                 loop: false,
             })
