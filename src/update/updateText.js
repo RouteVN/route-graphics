@@ -1,4 +1,5 @@
 import transitionElements from "../transition/index.js";
+import applyTextStyle from "../util/applyTextStyle.js";
 
 /**
  * Update function for Text elements
@@ -15,7 +16,7 @@ import transitionElements from "../transition/index.js";
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  */
-export async function updateText({app, parent, prevTextASTNode, nextTextASTNode, transitions, signal}) {
+export async function updateText({app, parent, prevTextASTNode, nextTextASTNode, eventHandler, transitions, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -25,19 +26,36 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
     const updateElement = ()=>{
         if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
             textElement.text = nextTextASTNode.text;
-    
-            textElement.style = {
-                fill: nextTextASTNode.style.fill,
-                fontFamily: nextTextASTNode.style.fontFamily,
-                fontSize: nextTextASTNode.style.fontSize,
-                wordWrap: nextTextASTNode.style.wordWrap,
-                breakWords: nextTextASTNode.style.breakWords,
-                wordWrapWidth: nextTextASTNode.style.wordWrapWidth
-            };
+            applyTextStyle(textElement,nextTextASTNode.style)
     
             textElement.x = nextTextASTNode.x;
             textElement.y = nextTextASTNode.y;
             textElement.zIndex = nextTextASTNode.zIndex;
+
+            if(textElement._hoverCleanupCb) textElement._hoverCleanupCb()
+            if(textElement._clickCleanupCb) textElement._clickCleanupCb()
+            const hoverEvents = nextTextASTNode?.hover
+            const clickEvents = nextTextASTNode?.click
+        
+            const overCb = ()=>{
+                if(hoverEvents?.textStyle) applyTextStyle(textElement,hoverEvents.textStyle)
+            }
+        
+            const outCb = ()=>{
+                applyTextStyle(textElement,nextTextASTNode.style)
+            }
+        
+            const clickCb = ()=>{
+                if(clickEvents?.textStyle) applyTextStyle(textElement,clickEvents.textStyle)
+            }
+        
+            if(eventHandler && hoverEvents){
+                subscribeHoverEvents(app,textElement,eventHandler,hoverEvents,{overCb,outCb})
+            }
+        
+            if(eventHandler && clickEvents){
+                subscribeClickEvents(app,textElement,eventHandler,clickEvents,{clickCb})
+            }
         }
     }
     signal.addEventListener("abort",()=>{updateElement()})

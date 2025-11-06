@@ -17,7 +17,7 @@ import transitionElements from "../transition/index.js";
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  */
-export async function updateContainer({app, parent, prevAST, nextAST, transitions, signal}) {
+export async function updateContainer({app, parent, prevAST, nextAST, eventHandler, transitions, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -32,7 +32,7 @@ export async function updateContainer({app, parent, prevAST, nextAST, transition
             containerElement.label = nextAST.id;
     
             if(JSON.stringify(prevAST.children) !== JSON.stringify(nextAST.children)) {
-                await renderApp(app, containerElement, prevAST.children, nextAST.children, transitions, signal);
+                await renderApp(app, containerElement, prevAST.children, nextAST.children, transitions, eventHandler, signal);
             }
         }
     }

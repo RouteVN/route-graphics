@@ -1,6 +1,7 @@
 import { Text } from 'pixi.js'
 import transitionElements from "../transition/index.js";
 import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
+import applyTextStyle from '../util/applyTextStyle.js';
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -26,21 +27,9 @@ export default async function renderText({app, parent, textASTNode, transitions,
         label: textASTNode.id
     })
 
-    const applyTextStyle = (style)=>{
-        const appliedStyle = {
-            fill: style.fill,
-            fontFamily: style.fontFamily,
-            fontSize: style.fontSize,
-            wordWrap: style.wordWrap,
-            breakWords: style.breakWords,
-            wordWrapWidth: style.wordWrapWidth
-        }
-        text.style = appliedStyle
-    }
-
     const drawText = () => {
         text.text = textASTNode.text;
-        applyTextStyle(textASTNode.style)
+        applyTextStyle(text,textASTNode.style)
         text.x = textASTNode.x;
         text.y = textASTNode.y;
         text.zIndex = textASTNode.zIndex;
@@ -52,15 +41,15 @@ export default async function renderText({app, parent, textASTNode, transitions,
     const clickEvents = textASTNode?.click
 
     const overCb = ()=>{
-        if(hoverEvents?.textStyle) applyTextStyle(hoverEvents.textStyle)
+        if(hoverEvents?.textStyle) applyTextStyle(text,hoverEvents.textStyle)
     }
 
     const outCb = ()=>{
-        applyTextStyle(textASTNode.style)
+        applyTextStyle(text,textASTNode.style)
     }
 
     const clickCb = ()=>{
-        if(clickEvents?.textStyle) applyTextStyle(clickEvents.textStyle)
+        if(clickEvents?.textStyle) applyTextStyle(text,clickEvents.textStyle)
     }
 
     if(eventHandler && hoverEvents){

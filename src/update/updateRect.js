@@ -1,4 +1,5 @@
 import transitionElements from "../transition/index.js";
+import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * Update function for Rectangle elements
@@ -13,9 +14,10 @@ import transitionElements from "../transition/index.js";
  * @param {RectASTNode} params.prevRectASTNode
  * @param {RectASTNode} params.nextRectASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
  */
-export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, transitions, signal}) {
+export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, eventHandler, transitions, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -41,6 +43,19 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
             }
     
             rectElement.zIndex = nextRectASTNode.zIndex;
+
+            if(rectElement._hoverCleanupCb) rectElement._hoverCleanupCb()
+            if(rectElement._clickCleanupCb) rectElement._clickCleanupCb()
+
+            const hoverEvents = nextRectASTNode?.hover
+            const clickEvents = nextRectASTNode?.click
+            if(eventHandler && hoverEvents){
+                subscribeHoverEvents(app,rectElement,eventHandler,hoverEvents)
+            }
+        
+            if(eventHandler && clickEvents){
+                subscribeClickEvents(app,rectElement,eventHandler,clickEvents)
+            }
         }
     }
 

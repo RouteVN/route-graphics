@@ -14,9 +14,10 @@ import transitionElements from "../transition/index.js";
  * @param {SpriteASTNode} params.prevAST
  * @param {SpriteASTNode} params.nextAST
  * @param {Object[]} params.transitions
+ * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
  */
-export async function updateSprite({app, parent, prevAST, nextAST, transitions, signal}) {
+export async function updateSprite({app, parent, prevAST, nextAST, eventHandler, transitions, signal}) {
   if (signal?.aborted) {
     return;
   }
@@ -38,6 +39,38 @@ export async function updateSprite({app, parent, prevAST, nextAST, transitions, 
   
       spriteElement.alpha = nextAST.alpha;
       spriteElement.zIndex = nextAST.zIndex;
+
+      if(spriteElement._hoverCleanupCb) spriteElement._hoverCleanupCb()
+      if(spriteElement._clickCleanupCb) spriteElement._clickCleanupCb()
+      const hoverEvents = nextAST?.hover
+      const clickEvents = nextAST?.click
+
+      const overCb = ()=>{
+        if(hoverEvents?.src){
+          const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
+          sprite.texture = hoverTexture;
+        }
+      }
+
+      const outCb = ()=>{sprite.texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;}
+
+      const clickCb = ()=>{
+        if(clickEvents?.src){
+          const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+          sprite.texture = clickTexture;
+        }
+      }
+
+      if(eventHandler && hoverEvents){
+        subscribeHoverEvents(app,sprite,eventHandler,hoverEvents,{
+          overCb,
+          outCb
+        })
+      }
+
+      if(eventHandler && clickEvents){
+        subscribeClickEvents(app,sprite,eventHandler,clickEvents,{clickCb})
+      }
     }
   }
   signal.addEventListener("abort",()=>{updateElement()})

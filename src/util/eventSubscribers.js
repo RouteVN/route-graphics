@@ -11,8 +11,8 @@ export function subscribeHoverEvents(app,element,eventHandler,hover,cbs={}){
     const { cursor, soundSrc, actionPayload } = hover
 
     element.eventMode = "static"
-    
-    element.on("pointerover",()=>{
+
+    const overListener = ()=>{
         if(actionPayload) eventHandler(`${element.label}-pointer-over`,actionPayload)
         if(cursor)  element.cursor = cursor
         if(soundSrc) app.audioStage.add({
@@ -21,12 +21,19 @@ export function subscribeHoverEvents(app,element,eventHandler,hover,cbs={}){
           loop: false,
         })
         if(cbs.overCb) cbs.overCb()
-    })
-
-    element.on("pointerout",()=>{
+    }
+    
+    const outListener = ()=>{
         element.cursor = "auto"
         if(cbs.outCb) cbs.outCb()
-    })
+    }
+    element.on("pointerover",overListener)
+
+    element.on("pointerout",outListener)
+    element._hoverCleanupCb = () => {
+        element.off("pointerover", overListener)
+        element.off("pointerout", outListener)
+    }
 }
 
 /**
@@ -42,7 +49,7 @@ export function subscribeClickEvents(app,element,eventHandler, click, cbs={}){
     const {soundSrc, actionPayload} = click
     element.eventMode = "static"
 
-    element.on("pointerup",()=>{
+    const clickListner = ()=>{
         if(actionPayload) eventHandler(`${element.label}-click`,actionPayload)
         if(soundSrc) app.audioStage.add({
           id: `${element.label}-click`,
@@ -50,5 +57,10 @@ export function subscribeClickEvents(app,element,eventHandler, click, cbs={}){
           loop: false,
         })
         if(cbs.clickCb) cbs.clickCb()
-    })
+    }
+    element.on("pointerup",clickListner)
+
+    element._clickCleanupCb = ()=>{
+        element.off("pointerup",clickListner)
+    }
 }

@@ -59,7 +59,7 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,e
                 asyncActions.push(renderText({app, parent, textASTNode: element, transitions, eventHandler, signal}));
                 break;
             case "container":
-                asyncActions.push(renderContainer({app, parent, containerASTNode: element, transitions, signal}));
+                asyncActions.push(renderContainer({app, parent, containerASTNode: element, transitions, eventHandler, signal}));
                 break;
             case "sprite":
                 asyncActions.push(renderSprite({app, parent, spriteASTNode: element, transitions, eventHandler, signal}));
@@ -71,16 +71,16 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,e
     for (const {prev, next} of toUpdateElement) {
         switch(next.type) {
             case "rect":
-                asyncActions.push(updateRect({app, parent, prevRectASTNode: prev, nextRectASTNode: next, transitions, signal}));
+                asyncActions.push(updateRect({app, parent, prevRectASTNode: prev, nextRectASTNode: next, transitions, eventHandler, signal}));
                 break;
             case "text":
-                asyncActions.push(updateText({app, parent, prevTextASTNode: prev, nextTextASTNode: next, transitions, signal}));
+                asyncActions.push(updateText({app, parent, prevTextASTNode: prev, nextTextASTNode: next, transitions, eventHandler, signal}));
                 break;
             case "container":
-                asyncActions.push(updateContainer({app, parent, prevAST: prev, nextAST: next, transitions, signal}));
+                asyncActions.push(updateContainer({app, parent, prevAST: prev, nextAST: next, transitions, eventHandler, signal}));
                 break;
             case "sprite":
-                asyncActions.push(updateSprite({app, parent, prevAST: prev, nextAST: next, transitions, signal}));
+                asyncActions.push(updateSprite({app, parent, prevAST: prev, nextAST: next, transitions, eventHandler, signal}));
                 break;
             default:
         }
