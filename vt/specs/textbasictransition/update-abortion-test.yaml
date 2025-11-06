@@ -1,0 +1,64 @@
+---
+title: Text Update Abortion Test
+description: Test abortion callback during text update with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "text should update with 3 keyframe animation"
+  - "abortion callback should be testable during update"
+  - "element position differs from animation end position"
+---
+states:
+  - elements:
+      - id: 'text-update-test'
+        type: "text"
+        x: 100
+        y: 100
+        text: "Initial Text"
+        style:
+          fontFamily: "Arial"
+          fontSize: 32
+          fill: "#3498db"
+        alpha: 1
+  - elements:
+      - id: 'text-update-test'
+        type: "text"
+        x: 200
+        y: 150
+        text: "Updating Text"
+        style:
+          fontFamily: "Arial"
+          fontSize: 38
+          fill: "#e74c3c"
+        alpha: 1
+    transitions:
+      - id: 'text-update-abortion'
+        elementId: 'text-update-test'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 250
+                easing: linear
+              - duration: 1000
+                value: 350
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear
+              - duration: 1000
+                value: 280
+                easing: linear
+  - elements:
+      - id: 'text-update-test'
+        type: "text"
+        x: 500
+        y: 400
+        text: "Final Text"
+        style:
+          fontFamily: "Arial"
+          fontSize: 52
+          fill: "#9b59b6"
+        alpha: 1

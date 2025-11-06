@@ -1,0 +1,84 @@
+---
+title: Rect Render Abortion Test
+description: Test abortion callback during rect render with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "rect should render with 3 keyframe animation"
+  - "abortion callback should be testable during render"
+  - "element props differ from animation final state"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'rect-render-test'
+        type: "rect"
+        x: 100
+        y: 100
+        width: 200
+        height: 200
+        fill: "#3498db"
+        alpha: 1
+    transitions:
+      - id: 'rect-render-abortion'
+        elementId: 'rect-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 150
+                easing: linear
+              - duration: 1000
+                value: 250
+                easing: linear
+          y:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 150
+                easing: linear
+              - duration: 1000
+                value: 250
+                easing: linear
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 0.5
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear
+  - elements:
+      - id: 'rect-render-test'
+        type: "rect"
+        x: 400
+        y: 300
+        width: 300
+        height: 250
+        fill: "#e74c3c"
+        alpha: 1
+    transitions:
+      - id: 'rect-render-abortion-2'
+        elementId: 'rect-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 250
+            keyframes:
+              - duration: 1000
+                value: 350
+                easing: linear
+              - duration: 1000
+                value: 400
+                easing: linear
+          alpha:
+            initialValue: 0.3
+            keyframes:
+              - duration: 1000
+                value: 0.7
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear

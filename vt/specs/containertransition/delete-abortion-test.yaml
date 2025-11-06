@@ -1,0 +1,62 @@
+---
+title: Container Delete Abortion Test
+description: Test abortion callback during container deletion with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "container should delete with 3 keyframe animation"
+  - "abortion callback should be testable during deletion"
+  - "new element added in third state"
+---
+states:
+  - elements:
+      - id: 'container-delete-test'
+        type: "container"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        direction: "vertical"
+        alpha: 1
+        children:
+          - id: 'child-rect-1'
+            type: "rect"
+            width: 300
+            height: 80
+            fill: "#2ecc71"
+          - id: 'child-rect-2'
+            type: "rect"
+            width: 300
+            height: 80
+            fill: "#f39c12"
+  - elements: []
+    transitions:
+      - id: 'container-delete-abortion'
+        elementId: 'container-delete-test'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0.7
+                easing: linear
+              - duration: 1000
+                value: 0.3
+                easing: linear
+              - duration: 1000
+                value: 0
+                easing: linear
+  - elements:
+      - id: 'container-new-element'
+        type: "container"
+        x: 300
+        y: 200
+        width: 350
+        height: 250
+        direction: "horizontal"
+        alpha: 1
+        children:
+          - id: 'new-child-rect'
+            type: "rect"
+            width: 80
+            height: 180
+            fill: "#9b59b6"

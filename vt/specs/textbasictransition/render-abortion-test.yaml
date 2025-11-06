@@ -1,0 +1,88 @@
+---
+title: Text Render Abortion Test
+description: Test abortion callback during text render with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "text should render with 3 keyframe animation"
+  - "abortion callback should be testable during render"
+  - "element props differ from animation final state"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'text-render-test'
+        type: "text"
+        x: 100
+        y: 100
+        text: "Render Test"
+        style:
+          fontFamily: "Arial"
+          fontSize: 32
+          fill: "#3498db"
+        alpha: 1
+    transitions:
+      - id: 'text-render-abortion'
+        elementId: 'text-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 150
+                easing: linear
+              - duration: 1000
+                value: 250
+                easing: linear
+          y:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 120
+                easing: linear
+              - duration: 1000
+                value: 200
+                easing: linear
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 0.5
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear
+  - elements:
+      - id: 'text-render-test'
+        type: "text"
+        x: 400
+        y: 300
+        text: "Continued Render"
+        style:
+          fontFamily: "Arial"
+          fontSize: 48
+          fill: "#e74c3c"
+        alpha: 1
+    transitions:
+      - id: 'text-render-abortion-2'
+        elementId: 'text-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 250
+            keyframes:
+              - duration: 1000
+                value: 350
+                easing: linear
+              - duration: 1000
+                value: 400
+                easing: linear
+          alpha:
+            initialValue: 0.3
+            keyframes:
+              - duration: 1000
+                value: 0.7
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear

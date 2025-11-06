@@ -22,9 +22,17 @@ export async function deleteText({app, parent, textASTNode, transitions, signal}
     const text = parent.getChildByLabel(textASTNode.id)
 
     if(text){
+        const deleteElement = () => {
+            if (text && !text.destroyed) {
+                text.destroy()
+            }
+        }
+
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
             await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal});
         }
-        text.destroy()
+        deleteElement()
     }
 }

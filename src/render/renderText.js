@@ -22,25 +22,27 @@ export default async function renderText({app, parent, textASTNode, transitions,
     }
 
     const text = new Text({
-        text: textASTNode.text,
-        style: {
-            fill: textASTNode.style.fill,
-            fontFamily: textASTNode.style.fontFamily,
-            fontSize: textASTNode.style.fontSize,
-            wordWrap: textASTNode.style.wordWrap,
-            breakWords: textASTNode.style.breakWords,
-            wordWrapWidth: textASTNode.style.wordWrapWidth
-        },
         label: textASTNode.id
     })
 
-    text.x = textASTNode.x
-    text.y = textASTNode.y
-    text.zIndex = textASTNode.zIndex
+    const drawText = () => {
+        text.text = textASTNode.text;
+        text.style.fill = textASTNode.style.fill;
+        text.style.fontFamily = textASTNode.style.fontFamily;
+        text.style.fontSize = textASTNode.style.fontSize;
+        text.style.wordWrap = textASTNode.style.wordWrap;
+        text.style.breakWords = textASTNode.style.breakWords;
+        text.style.wordWrapWidth = textASTNode.style.wordWrapWidth;
+        text.x = textASTNode.x;
+        text.y = textASTNode.y;
+        text.zIndex = textASTNode.zIndex;
+    }
 
+    signal.addEventListener("abort",()=>{drawText()})
+    drawText()
     parent.addChild(text)
 
     if (transitions && transitions.length > 0) {
         await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal})
-    }
+j    }
 }   

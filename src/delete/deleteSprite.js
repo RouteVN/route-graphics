@@ -22,9 +22,17 @@ export async function deleteSprite({app, parent, spriteASTNode, transitions, sig
     const sprite = parent.getChildByLabel(spriteASTNode.id)
 
     if(sprite){
+        const deleteElement = () => {
+            if (sprite && !sprite.destroyed) {
+                sprite.destroy()
+            }
+        }
+
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
             await transitionElements(spriteASTNode.id, {app, sprite, transitions, signal});
         }
-        sprite.destroy()
+        deleteElement()
     }
 }
