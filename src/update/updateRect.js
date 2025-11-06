@@ -1,5 +1,4 @@
 import transitionElements from "../transition/index.js";
-import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * Update function for Rectangle elements
@@ -49,12 +48,62 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
 
             const hoverEvents = nextRectASTNode?.hover
             const clickEvents = nextRectASTNode?.click
+
             if(eventHandler && hoverEvents){
-                subscribeHoverEvents(app,rectElement,eventHandler,hoverEvents)
+                const { cursor, soundSrc, actionPayload } = hoverEvents
+                rectElement.eventMode = "static"
+
+                const overListener = ()=>{
+                    if(actionPayload) eventHandler(`${rectElement.label}-pointer-over`,{
+                        _event :{
+                            id: rectElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(cursor) rectElement.cursor = cursor
+                    if(soundSrc) app.audioStage.add({
+                        id: `${Date.now()}-hover`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                }
+
+                const outListener = ()=>{
+                    rectElement.cursor = "auto"
+                }
+
+                rectElement.on("pointerover", overListener)
+                rectElement.on("pointerout", outListener)
+
+                rectElement._hoverCleanupCb = () => {
+                    rectElement.off("pointerover", overListener)
+                    rectElement.off("pointerout", outListener)
+                }
             }
-        
+
             if(eventHandler && clickEvents){
-                subscribeClickEvents(app,rectElement,eventHandler,clickEvents)
+                const {soundSrc, actionPayload} = clickEvents
+                rectElement.eventMode = "static"
+
+                const clickListener = ()=>{
+                    if(actionPayload) eventHandler(`${rectElement.label}-click`,{
+                        _event :{
+                            id: rectElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(soundSrc) app.audioStage.add({
+                        id: `${Date.now()}-click`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                }
+
+                rectElement.on("pointerup", clickListener)
+
+                rectElement._clickCleanupCb = () => {
+                    rectElement.off("pointerup", clickListener)
+                }
             }
         }
     }

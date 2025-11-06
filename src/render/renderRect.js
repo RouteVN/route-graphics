@@ -1,6 +1,5 @@
 import { Graphics } from "pixi.js";
 import transitionElements from "../transition/index.js";
-import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -55,20 +54,70 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
         rect.zIndex = zIndex;
     }
 
-    
+
     signal.addEventListener("abort",()=>{drawRect()})
     drawRect()
-    
+
     const hoverEvents = rectASTNode?.hover
     const clickEvents = rectASTNode?.click
+
     if(eventHandler && hoverEvents){
-        subscribeHoverEvents(app,rect,eventHandler,hoverEvents)
+        const { cursor, soundSrc, actionPayload } = hoverEvents
+        rect.eventMode = "static"
+
+        const overListener = ()=>{
+            if(actionPayload) eventHandler(`${rect.label}-pointer-over`,{
+                _event :{
+                    id: rect.label,
+                },
+                ...actionPayload
+            })
+            if(cursor) rect.cursor = cursor
+            if(soundSrc) app.audioStage.add({
+                id: `${Date.now()}-hover`,
+                url: soundSrc,
+                loop: false,
+            })
+        }
+
+        const outListener = ()=>{
+            rect.cursor = "auto"
+        }
+
+        rect.on("pointerover", overListener)
+        rect.on("pointerout", outListener)
+
+        rect._hoverCleanupCb = () => {
+            rect.off("pointerover", overListener)
+            rect.off("pointerout", outListener)
+        }
     }
 
     if(eventHandler && clickEvents){
-        subscribeClickEvents(app,rect,eventHandler,clickEvents)
+        const {soundSrc, actionPayload} = clickEvents
+        rect.eventMode = "static"
+
+        const clickListener = ()=>{
+            if(actionPayload) eventHandler(`${rect.label}-click`,{
+                _event :{
+                    id: rect.label,
+                },
+                ...actionPayload
+            })
+            if(soundSrc) app.audioStage.add({
+                id: `${Date.now()}-click`,
+                url: soundSrc,
+                loop: false,
+            })
+        }
+
+        rect.on("pointerup", clickListener)
+
+        rect._clickCleanupCb = () => {
+            rect.off("pointerup", clickListener)
+        }
     }
-    
+
     parent.addChild(rect)
 
     if (transitions && transitions.length > 0) {

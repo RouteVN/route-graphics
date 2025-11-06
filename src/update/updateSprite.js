@@ -45,31 +45,70 @@ export async function updateSprite({app, parent, prevAST, nextAST, eventHandler,
       const hoverEvents = nextAST?.hover
       const clickEvents = nextAST?.click
 
-      const overCb = ()=>{
-        if(hoverEvents?.src){
-          const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
-          sprite.texture = hoverTexture;
-        }
-      }
-
-      const outCb = ()=>{sprite.texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;}
-
-      const clickCb = ()=>{
-        if(clickEvents?.src){
-          const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
-          sprite.texture = clickTexture;
-        }
-      }
-
       if(eventHandler && hoverEvents){
-        subscribeHoverEvents(app,sprite,eventHandler,hoverEvents,{
-          overCb,
-          outCb
-        })
+        const { cursor, soundSrc, actionPayload } = hoverEvents
+        spriteElement.eventMode = "static"
+
+        const overListener = ()=>{
+          if(actionPayload) eventHandler(`${spriteElement.label}-pointer-over`,{
+            _event :{
+              id: spriteElement.label,
+            },
+            ...actionPayload
+          })
+          if(cursor) spriteElement.cursor = cursor
+          if(soundSrc) app.audioStage.add({
+            id: `${Date.now()}-hover`,
+            url: soundSrc,
+            loop: false,
+          })
+          if(hoverEvents?.src){
+            const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
+            spriteElement.texture = hoverTexture;
+          }
+        }
+
+        const outListener = ()=>{
+          spriteElement.cursor = "auto"
+          spriteElement.texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
+        }
+
+        spriteElement.on("pointerover", overListener)
+        spriteElement.on("pointerout", outListener)
+
+        spriteElement._hoverCleanupCb = () => {
+          spriteElement.off("pointerover", overListener)
+          spriteElement.off("pointerout", outListener)
+        }
       }
 
       if(eventHandler && clickEvents){
-        subscribeClickEvents(app,sprite,eventHandler,clickEvents,{clickCb})
+        const {soundSrc, actionPayload} = clickEvents
+        spriteElement.eventMode = "static"
+
+        const clickListener = ()=>{
+          if(actionPayload) eventHandler(`${spriteElement.label}-click`,{
+            _event :{
+              id: spriteElement.label,
+            },
+            ...actionPayload
+          })
+          if(soundSrc) app.audioStage.add({
+            id: `${Date.now()}-click`,
+            url: soundSrc,
+            loop: false,
+          })
+          if(clickEvents?.src){
+            const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+            spriteElement.texture = clickTexture;
+          }
+        }
+
+        spriteElement.on("pointerup", clickListener)
+
+        spriteElement._clickCleanupCb = () => {
+          spriteElement.off("pointerup", clickListener)
+        }
       }
     }
   }

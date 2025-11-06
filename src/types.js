@@ -102,6 +102,17 @@
  */
 
 /**
+ * @typedef {Object} RenderAppOptions
+ * @property {Application} app
+ * @property {Container} parent
+ * @property {ASTNode[]} prevASTTree
+ * @property {ASTNode[]} nextASTTree
+ * @property {Object[]} transitions
+ * @property {Function} eventHandler
+ * @property {AbortSignal[]} signal
+ */
+
+/**
  * @typedef {Object} RenderElementOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent

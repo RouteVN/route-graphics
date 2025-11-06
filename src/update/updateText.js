@@ -36,25 +36,66 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
             if(textElement._clickCleanupCb) textElement._clickCleanupCb()
             const hoverEvents = nextTextASTNode?.hover
             const clickEvents = nextTextASTNode?.click
-        
-            const overCb = ()=>{
-                if(hoverEvents?.textStyle) applyTextStyle(textElement,hoverEvents.textStyle)
-            }
-        
-            const outCb = ()=>{
-                applyTextStyle(textElement,nextTextASTNode.style)
-            }
-        
-            const clickCb = ()=>{
-                if(clickEvents?.textStyle) applyTextStyle(textElement,clickEvents.textStyle)
-            }
-        
+
+
             if(eventHandler && hoverEvents){
-                subscribeHoverEvents(app,textElement,eventHandler,hoverEvents,{overCb,outCb})
+                const { cursor, soundSrc, actionPayload } = hoverEvents
+                textElement.eventMode = "static"
+
+                const overListener = ()=>{
+                    if(actionPayload) eventHandler(`${textElement.label}-pointer-over`,{
+                        _event :{
+                            id: textElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(cursor) textElement.cursor = cursor
+                    if(soundSrc) app.audioStage.add({
+                        id: `${Date.now()}-hover`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                    if(hoverEvents?.textStyle) applyTextStyle(textElement,hoverEvents.textStyle)
+                }
+
+                const outListener = ()=>{
+                    textElement.cursor = "auto"
+                    applyTextStyle(textElement,nextTextASTNode.style)
+                }
+
+                textElement.on("pointerover", overListener)
+                textElement.on("pointerout", outListener)
+
+                textElement._hoverCleanupCb = () => {
+                    textElement.off("pointerover", overListener)
+                    textElement.off("pointerout", outListener)
+                }
             }
-        
+
             if(eventHandler && clickEvents){
-                subscribeClickEvents(app,textElement,eventHandler,clickEvents,{clickCb})
+                const {soundSrc, actionPayload} = clickEvents
+                textElement.eventMode = "static"
+
+                const clickListener = ()=>{
+                    if(actionPayload) eventHandler(`${textElement.label}-click`,{
+                        _event :{
+                            id: textElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(soundSrc) app.audioStage.add({
+                        id: `${Date.now()}-click`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                    if(clickEvents?.textStyle) applyTextStyle(textElement,clickEvents.textStyle)
+                }
+
+                textElement.on("pointerup", clickListener)
+
+                textElement._clickCleanupCb = () => {
+                    textElement.off("pointerup", clickListener)
+                }
             }
         }
     }

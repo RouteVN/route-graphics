@@ -16,19 +16,21 @@ import { updateContainer } from '../update/updateContainer.js';
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
  * @typedef {import('../types.js').Container} Container
+ * @typedef {import('../types.js').RenderAppOptions} RenderAppOptions
  */
 
 
 /**
- * @param {Application} app
- * @param {Container} parent 
- * @param {ASTNode[]} prevASTTree 
- * @param {ASTNode[]} nextASTTree 
- * @param {Object[]} transitions 
- * @param {Function} eventHandler
- * @param {AbortSignal[]} signal 
+ * @param {Object} renderOptions
+ * @property {Application} renderOptions.app
+ * @property {Container} renderOptions.parent 
+ * @property {ASTNode[]} renderOptions.prevASTTree 
+ * @property {ASTNode[]} renderOptions.nextASTTree 
+ * @property {Object[]} renderOptions.transitions 
+ * @property {Function} renderOptions.eventHandler
+ * @property {AbortSignal[]} renderOptions.signal 
 */
-export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,eventHandler,signal){
+export async function renderApp({app,parent,prevASTTree,nextASTTree,transitions,eventHandler,signal}){
     const {toAddElement,toDeleteElement,toUpdateElement} = diffElements(prevASTTree,nextASTTree,transitions)
     const asyncActions = []
 
