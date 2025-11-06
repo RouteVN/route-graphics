@@ -1,0 +1,103 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Slider Element
+description: Schema for slider element raw input
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - direction
+  - thumbSrc
+  - barSrc
+properties:
+  id:
+    type: string
+    description: Unique identifier for the slider element
+  type:
+    const: slider
+    description: Element type, must be 'slider'
+  x:
+    type: number
+    description: X position of the slider
+  y:
+    type: number
+    description: Y position of the slider
+  direction:
+    type: string
+    enum: [horizontal, vertical]
+    description: Direction of the slider movement
+  thumbSrc:
+    type: string
+    description: Source of the thumb sprite
+  barSrc:
+    type: string
+    description: Source of the bar sprite
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+    default: 0
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+    default: 0
+  alpha:
+    type: number
+    description: Opacity/transparency of the slider (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
+  min:
+    type: number
+    description: Minimum value of the slider
+    default: 0
+  max:
+    type: number
+    description: Maximum value of the slider
+    default: 100
+  step:
+    type: number
+    description: Step increment for slider value changes
+    default: 1
+    minimum: 0
+  initialValue:
+    type: number
+    description: Initial value of the slider
+    default: 0
+  hover:
+    type: object
+    description: Configuration for hover behavior
+    properties:
+      thumbSrc:
+        type: string
+        description: Source of the thumb sprite when hovered
+      barSrc:
+        type: string
+        description: Source of the bar sprite when hovered
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the slider
+      soundSrc:
+        type: string
+        description: Source of sound to play when hovering over the slider
+  drag:
+    type: object
+    description: Configuration for dragging behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag action event. Typically contains actions like variable updates with "{{ value }}" template for current slider value.
+  dragStart:
+    type: object
+    description: Configuration for drag start behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag start action event
+  dragEnd:
+    type: object
+    description: Configuration for drag end behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag end action event

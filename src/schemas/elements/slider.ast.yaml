@@ -1,0 +1,103 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Slider AST Node
+description: Schema for slider AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - originX
+  - originY
+  - direction
+  - thumbSrc
+  - barSrc
+  - alpha
+  - min
+  - max
+  - step
+  - initialValue
+properties:
+  id:
+    type: string
+    description: Unique identifier for the slider element
+  type:
+    const: slider
+    description: Element type, must be 'slider'
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  direction:
+    type: string
+    enum: [horizontal, vertical]
+    description: Direction of the slider movement
+  thumbSrc:
+    type: string
+    description: URL of the thumb sprite
+  barSrc:
+    type: string
+    description: URL of the bar sprite
+  alpha:
+    type: number
+    description: Opacity/transparency of the slider (0-1)
+    minimum: 0
+    maximum: 1
+  min:
+    type: number
+    description: Minimum value of the slider
+  max:
+    type: number
+    description: Maximum value of the slider
+  step:
+    type: number
+    description: Step increment for slider value changes
+    minimum: 0
+  initialValue:
+    type: number
+    description: Initial value of the slider
+  hover:
+    type: object
+    description: Configuration for hover behavior
+    properties:
+      thumbSrc:
+        type: string
+        description: URL of the thumb sprite when hovered
+      barSrc:
+        type: string
+        description: URL of the bar sprite when hovered
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the slider
+      soundSrc:
+        type: string
+        description: URL of sound to play when hovering over the slider
+  drag:
+    type: object
+    description: Configuration for dragging behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag action event. Typically contains actions like variable updates with "{{ value }}" template for current slider value.
+  dragStart:
+    type: object
+    description: Configuration for drag start behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag start action event
+  dragEnd:
+    type: object
+    description: Configuration for drag end behavior
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for drag end action event

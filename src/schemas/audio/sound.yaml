@@ -1,0 +1,32 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Sound
+description: Schema for sound
+type: object
+required:
+  - id
+  - type
+  - src
+properties:
+  id:
+    type: string
+    description: Unique identifier
+  type:
+    const: sound
+    description: Sound
+  src:
+    type: string
+    description: Source of the sound
+  volume:
+    type: number
+    description: Volume. 0 means muted. 1000 means original full volume. It can go above 1000, but there is no guarantee that it won't be clipped.
+    default: 800
+    minimum: 0
+  loop:
+    type: boolean
+    description: Loop
+    default: false
+  delay:
+    type: number
+    description: Delay in milliseconds before playing the sound
+    default: 0
+    minimum: 0
