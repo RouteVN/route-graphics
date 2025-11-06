@@ -86,11 +86,6 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
 
         rect.on("pointerover", overListener)
         rect.on("pointerout", outListener)
-
-        rect._hoverCleanupCb = () => {
-            rect.off("pointerover", overListener)
-            rect.off("pointerout", outListener)
-        }
     }
 
     if(eventHandler && clickEvents){
@@ -112,10 +107,6 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
         }
 
         rect.on("pointerup", clickListener)
-
-        rect._clickCleanupCb = () => {
-            rect.off("pointerup", clickListener)
-        }
     }
 
     parent.addChild(rect)

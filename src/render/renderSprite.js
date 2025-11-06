@@ -75,11 +75,6 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
 
     sprite.on("pointerover", overListener)
     sprite.on("pointerout", outListener)
-
-    sprite._hoverCleanupCb = () => {
-      sprite.off("pointerover", overListener)
-      sprite.off("pointerout", outListener)
-    }
   }
 
   if(eventHandler && clickEvents){
@@ -105,10 +100,6 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
     }
 
     sprite.on("pointerup", clickListener)
-
-    sprite._clickCleanupCb = () => {
-      sprite.off("pointerup", clickListener)
-    }
   }
 
   parent.addChild(sprite);

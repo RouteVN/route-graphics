@@ -40,8 +40,10 @@ export async function updateSprite({app, parent, prevAST, nextAST, eventHandler,
       spriteElement.alpha = nextAST.alpha;
       spriteElement.zIndex = nextAST.zIndex;
 
-      if(spriteElement._hoverCleanupCb) spriteElement._hoverCleanupCb()
-      if(spriteElement._clickCleanupCb) spriteElement._clickCleanupCb()
+      spriteElement.removeAllListeners("pointerover")
+      spriteElement.removeAllListeners("pointerout")
+      spriteElement.removeAllListeners("pointerup")
+      
       const hoverEvents = nextAST?.hover
       const clickEvents = nextAST?.click
 

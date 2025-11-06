@@ -42,8 +42,9 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
     
             rectElement.zIndex = nextRectASTNode.zIndex;
 
-            if(rectElement._hoverCleanupCb) rectElement._hoverCleanupCb()
-            if(rectElement._clickCleanupCb) rectElement._clickCleanupCb()
+            rectElement.removeAllListeners("pointerover")
+            rectElement.removeAllListeners("pointerout")
+            rectElement.removeAllListeners("pointerup")
 
             const hoverEvents = nextRectASTNode?.hover
             const clickEvents = nextRectASTNode?.click

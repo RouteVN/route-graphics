@@ -66,11 +66,6 @@ export default async function renderText({app, parent, textASTNode, transitions,
 
         text.on("pointerover", overListener)
         text.on("pointerout", outListener)
-
-        text._hoverCleanupCb = () => {
-            text.off("pointerover", overListener)
-            text.off("pointerout", outListener)
-        }
     }
 
     if(eventHandler && clickEvents){
@@ -93,10 +88,6 @@ export default async function renderText({app, parent, textASTNode, transitions,
         }
 
         text.on("pointerup", clickListener)
-
-        text._clickCleanupCb = () => {
-            text.off("pointerup", clickListener)
-        }
     }
 
     parent.addChild(text)

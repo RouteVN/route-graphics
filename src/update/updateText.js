@@ -32,8 +32,10 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
             textElement.y = nextTextASTNode.y;
             textElement.zIndex = nextTextASTNode.zIndex;
 
-            if(textElement._hoverCleanupCb) textElement._hoverCleanupCb()
-            if(textElement._clickCleanupCb) textElement._clickCleanupCb()
+            textElement.removeAllListeners("pointerover")
+            textElement.removeAllListeners("pointerout")
+            textElement.removeAllListeners("pointerup")
+            
             const hoverEvents = nextTextASTNode?.hover
             const clickEvents = nextTextASTNode?.click
 
