@@ -122,6 +122,7 @@ function getMaxOfArray(numArray) {
 export default async function keyframeTransition (app, sprite, transition, signal) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
+      app.ticker.remove(effect);
       reject(new DOMException("Operation aborted", "AbortError"));
       return;
     }
