@@ -62,11 +62,11 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
     const hoverEvents = rectASTNode?.hover
     const clickEvents = rectASTNode?.click
     if(eventHandler && hoverEvents){
-        subscribeHoverEvents(rect,eventHandler,hoverEvents)
+        subscribeHoverEvents(app,rect,eventHandler,hoverEvents)
     }
 
     if(eventHandler && clickEvents){
-        subscribeClickEvents(rect,eventHandler,clickEvents)
+        subscribeClickEvents(app,rect,eventHandler,clickEvents)
     }
     
     parent.addChild(rect)

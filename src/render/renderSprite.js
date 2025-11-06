@@ -63,14 +63,14 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
   }
 
   if(eventHandler && hoverEvents){
-    subscribeHoverEvents(sprite,eventHandler,hoverEvents,{
+    subscribeHoverEvents(app,sprite,eventHandler,hoverEvents,{
       overCb,
       outCb
     })
   }
 
   if(eventHandler && clickEvents){
-    subscribeClickEvents(sprite,eventHandler,clickEvents,{clickCb})
+    subscribeClickEvents(app,sprite,eventHandler,clickEvents,{clickCb})
   }
 
   parent.addChild(sprite);
