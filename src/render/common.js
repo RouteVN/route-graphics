@@ -1,6 +1,9 @@
 /**
  * @typedef {import("../types.js").ASTNode} ASTNode
  * @typedef {import("../types.js").DiffElementResult} DiffElementResult
+ * @typedef {import("../types.js").HoverProps} HoverPops
+ * @typedef {import("../types.js").ClickProps} ClickProps
+ * @typedef {import("../types.js").Application} App
  */
 
 /**

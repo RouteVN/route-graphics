@@ -61,7 +61,8 @@
  * @property {'sprite'} type
  * @property {number} alpha
  * @property {string} url
- * 
+ * @property {SpriteHover} hover
+ * @property {SpriteClick} click
  * @typedef {ASTNode & SpriteASTProps } SpriteASTNode
  */
 
@@ -85,8 +86,6 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
- * @property {SpriteHover} hover
- * @property {SpriteClick} click
  * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
  */
 
@@ -103,11 +102,23 @@
  */
 
 /**
+ * @typedef {Object} RenderAppOptions
+ * @property {Application} app
+ * @property {Container} parent
+ * @property {ASTNode[]} prevASTTree
+ * @property {ASTNode[]} nextASTTree
+ * @property {Object[]} transitions
+ * @property {Function} eventHandler
+ * @property {AbortSignal[]} signal
+ */
+
+/**
  * @typedef {Object} RenderElementOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
  * @property {SpriteASTNode} spriteASTNode
  * @property {Object[]} transitions
+ * @param {Function} params.transitionElements
  * @property {Function} signalAbortCb
  * @property {AbortSignal} signal
  */

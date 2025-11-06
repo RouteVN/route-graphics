@@ -1,0 +1,38 @@
+---
+title: Sprite Click Event Audio
+description: Test audio playback when clicking on sprite elements
+template: "route-graphics.html"
+specs:
+  - "sprite should play audio on click"
+  - "different sprite elements play different sounds"
+  - "audio should play once per click"
+---
+states:
+  - elements:
+      - id: 'sprite-click-1'
+        type: "sprite"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        url: "circle-blue"
+        click:
+          soundSrc: "bgm-1"
+      - id: 'sprite-click-2'
+        type: "sprite"
+        x: 400
+        y: 100
+        width: 150
+        height: 150
+        url: "circle-red"
+        click:
+          soundSrc: "bgm-2"
+      - id: 'sprite-click-3'
+        type: "sprite"
+        x: 650
+        y: 100
+        width: 150
+        height: 150
+        url: "circle-green"
+        click:
+          soundSrc: "bgm-3"

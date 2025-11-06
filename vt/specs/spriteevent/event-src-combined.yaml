@@ -1,0 +1,35 @@
+---
+title: Sprite Src Change on Hover AND Click
+description: Test src in both hover and click events working together
+template: "route-graphics.html"
+specs:
+  - "hover src should work"
+  - "click src should work"
+  - "both events can have different src values"
+---
+states:
+  - elements:
+      - id: 'sprite-both-1'
+        type: "sprite"
+        x: 200
+        y: 150
+        width: 180
+        height: 180
+        url: "circle-blue"
+        hover:
+          cursor: "pointer"
+          src: "circle-red"
+        click:
+          src: "circle-green"
+      - id: 'sprite-both-2'
+        type: "sprite"
+        x: 500
+        y: 150
+        width: 180
+        height: 180
+        url: "circle-green"
+        hover:
+          cursor: "pointer"
+          src: "circle-blue"
+        click:
+          src: "circle-red"

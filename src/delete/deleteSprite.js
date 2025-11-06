@@ -1,5 +1,4 @@
 import { Container } from "pixi.js";
-import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').ASTNode} ASTNode
@@ -12,9 +11,10 @@ import transitionElements from "../transition/index.js";
  * @param {Container} params.parent
  * @param {ASTNode} params.spriteASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function deleteSprite({app, parent, spriteASTNode, transitions, signal}){
+export async function deleteSprite({app, parent, spriteASTNode, transitions, transitionElements, signal}){
     if (signal?.aborted) {
         return;
     }

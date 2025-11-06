@@ -1,5 +1,3 @@
-import transitionElements from "../transition/index.js";
-
 /**
  * Update function for Rectangle elements
  * @typedef {import('../types.js').RectASTNode} RectASTNode
@@ -13,9 +11,11 @@ import transitionElements from "../transition/index.js";
  * @param {RectASTNode} params.prevRectASTNode
  * @param {RectASTNode} params.nextRectASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
+ * @param {Function} params.transitionElements
  */
-export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, transitions, signal}) {
+export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode, eventHandler, transitions, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -41,6 +41,70 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
             }
     
             rectElement.zIndex = nextRectASTNode.zIndex;
+
+            rectElement.removeAllListeners("pointerover")
+            rectElement.removeAllListeners("pointerout")
+            rectElement.removeAllListeners("pointerup")
+
+            const hoverEvents = nextRectASTNode?.hover
+            const clickEvents = nextRectASTNode?.click
+
+            if(eventHandler && hoverEvents){
+                const { cursor, soundSrc, actionPayload } = hoverEvents
+                rectElement.eventMode = "static"
+
+                const overListener = ()=>{
+                    if(actionPayload) eventHandler(`${rectElement.label}-pointer-over`,{
+                        _event :{
+                            id: rectElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(cursor) rectElement.cursor = cursor
+                    if(soundSrc) app.audioStage.add({
+                        id: `hover-${Date.now()}`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                }
+
+                const outListener = ()=>{
+                    rectElement.cursor = "auto"
+                }
+
+                rectElement.on("pointerover", overListener)
+                rectElement.on("pointerout", outListener)
+
+                rectElement._hoverCleanupCb = () => {
+                    rectElement.off("pointerover", overListener)
+                    rectElement.off("pointerout", outListener)
+                }
+            }
+
+            if(eventHandler && clickEvents){
+                const {soundSrc, actionPayload} = clickEvents
+                rectElement.eventMode = "static"
+
+                const clickListener = ()=>{
+                    if(actionPayload) eventHandler(`${rectElement.label}-click`,{
+                        _event :{
+                            id: rectElement.label,
+                        },
+                        ...actionPayload
+                    })
+                    if(soundSrc) app.audioStage.add({
+                        id: `click-${Date.now()}`,
+                        url: soundSrc,
+                        loop: false,
+                    })
+                }
+
+                rectElement.on("pointerup", clickListener)
+
+                rectElement._clickCleanupCb = () => {
+                    rectElement.off("pointerup", clickListener)
+                }
+            }
         }
     }
 

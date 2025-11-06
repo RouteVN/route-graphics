@@ -1,0 +1,35 @@
+---
+title: Text Hover Event Audio
+description: Test audio playback when hovering over text elements
+template: "route-graphics.html"
+specs:
+  - "text should play audio on hover"
+  - "audio should play when mouse enters text area"
+  - "hover and click events can coexist"
+---
+states:
+  - elements:
+      - id: 'text-hover-1'
+        type: "text"
+        x: 200
+        y: 150
+        text: "Hover over me"
+        style:
+          fontFamily: "Arial"
+          fontSize: 48
+          fill: "#9b59b6"
+        hover:
+          soundSrc: "bgm-1"
+      - id: 'text-hover-click'
+        type: "text"
+        x: 200
+        y: 300
+        text: "Hover AND click me"
+        style:
+          fontFamily: "Arial"
+          fontSize: 48
+          fill: "#f39c12"
+        hover:
+          soundSrc: "bgm-2"
+        click:
+          soundSrc: "bgm-3"

@@ -1,0 +1,31 @@
+---
+title: Sprite Hover Event Audio
+description: Test audio playback when hovering over sprite elements
+template: "route-graphics.html"
+specs:
+  - "sprite should play audio on hover"
+  - "audio should play when mouse enters sprite area"
+  - "hover and click events can coexist"
+---
+states:
+  - elements:
+      - id: 'sprite-hover-1'
+        type: "sprite"
+        x: 200
+        y: 150
+        width: 200
+        height: 200
+        url: "circle-blue"
+        hover:
+          soundSrc: "bgm-1"
+      - id: 'sprite-hover-click'
+        type: "sprite"
+        x: 500
+        y: 150
+        width: 200
+        height: 200
+        url: "circle-red"
+        hover:
+          soundSrc: "bgm-2"
+        click:
+          soundSrc: "bgm-3"

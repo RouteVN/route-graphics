@@ -16,34 +16,38 @@ import { updateContainer } from '../update/updateContainer.js';
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
  * @typedef {import('../types.js').Container} Container
+ * @typedef {import('../types.js').RenderAppOptions} RenderAppOptions
  */
 
 
 /**
- * @param {Application} app
- * @param {Container} parent 
- * @param {ASTNode[]} prevASTTree 
- * @param {ASTNode[]} nextASTTree 
- * @param {Object[]} transitions 
- * @param {AbortSignal[]} signal 
+ * @param {Object} renderOptions
+ * @property {Application} renderOptions.app
+ * @property {Container} renderOptions.parent 
+ * @property {ASTNode[]} renderOptions.prevASTTree 
+ * @property {ASTNode[]} renderOptions.nextASTTree 
+ * @property {Object[]} renderOptions.transitions 
+ * @property {Function} renderOptions.eventHandler
+ * @property {Function} renderOptions.transitionElements
+ * @property {AbortSignal[]} renderOptions.signal 
 */
-export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,signal){
+export async function renderApp({app,parent,prevASTTree,nextASTTree,transitions,eventHandler,transitionElements,signal}){
     const {toAddElement,toDeleteElement,toUpdateElement} = diffElements(prevASTTree,nextASTTree,transitions)
     const asyncActions = []
 
     for (const element of toDeleteElement){
         switch(element.type){
             case "rect":
-                asyncActions.push(deleteRect({app, parent, rectASTNode: element, transitions, signal}));
+                asyncActions.push(deleteRect({app, parent, rectASTNode: element, transitions, transitionElements, signal}));
                 break;
             case "text":
-                asyncActions.push(deleteText({app, parent, textASTNode: element, transitions, signal}));
+                asyncActions.push(deleteText({app, parent, textASTNode: element, transitions, transitionElements, signal}));
                 break;
             case "container":
-                asyncActions.push(deleteContainer({app, parent, containerASTNode: element, transitions, signal}));
+                asyncActions.push(deleteContainer({app, parent, containerASTNode: element, transitions, transitionElements, signal}));
                 break;
             case "sprite":
-                asyncActions.push(deleteSprite({app, parent, spriteASTNode: element, transitions, signal}));
+                asyncActions.push(deleteSprite({app, parent, spriteASTNode: element, transitions, transitionElements, signal}));
                 break;
             default:
         }
@@ -52,16 +56,16 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
     for (const element of toAddElement) {
         switch(element.type){
             case "rect":
-                asyncActions.push(renderRect({app, parent, rectASTNode: element, transitions, signal}));
+                asyncActions.push(renderRect({app, parent, rectASTNode: element, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "text":
-                asyncActions.push(renderText({app, parent, textASTNode: element, transitions, signal}));
+                asyncActions.push(renderText({app, parent, textASTNode: element, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "container":
-                asyncActions.push(renderContainer({app, parent, containerASTNode: element, transitions, signal}));
+                asyncActions.push(renderContainer({app, parent, containerASTNode: element, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "sprite":
-                asyncActions.push(renderSprite({app, parent, spriteASTNode: element, transitions, signal}));
+                asyncActions.push(renderSprite({app, parent, spriteASTNode: element, transitions, transitionElements, eventHandler, signal}));
                 break;
             default:
         }
@@ -70,16 +74,16 @@ export async function renderApp(app,parent,prevASTTree,nextASTTree,transitions,s
     for (const {prev, next} of toUpdateElement) {
         switch(next.type) {
             case "rect":
-                asyncActions.push(updateRect({app, parent, prevRectASTNode: prev, nextRectASTNode: next, transitions, signal}));
+                asyncActions.push(updateRect({app, parent, prevRectASTNode: prev, nextRectASTNode: next, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "text":
-                asyncActions.push(updateText({app, parent, prevTextASTNode: prev, nextTextASTNode: next, transitions, signal}));
+                asyncActions.push(updateText({app, parent, prevTextASTNode: prev, nextTextASTNode: next, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "container":
-                asyncActions.push(updateContainer({app, parent, prevAST: prev, nextAST: next, transitions, signal}));
+                asyncActions.push(updateContainer({app, parent, prevAST: prev, nextAST: next, transitions, transitionElements, eventHandler, signal}));
                 break;
             case "sprite":
-                asyncActions.push(updateSprite({app, parent, prevAST: prev, nextAST: next, transitions, signal}));
+                asyncActions.push(updateSprite({app, parent, prevAST: prev, nextAST: next, transitions, transitionElements, eventHandler, signal}));
                 break;
             default:
         }

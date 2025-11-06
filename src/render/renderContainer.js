@@ -2,7 +2,6 @@ import { Container, Graphics } from "pixi.js";
 import { renderRect } from './renderRect.js';
 import renderText from './renderText.js';
 import { renderSprite } from './renderSprite.js';
-import transitionElements from "../transition/index.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -18,9 +17,10 @@ import transitionElements from "../transition/index.js";
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.containerASTNode
  * @param {Object[]} params.transitions
+ * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderContainer({app, parent, containerASTNode, transitions, signal}) {
+export async function renderContainer({app, parent, containerASTNode, transitions, eventHandler, transitionElements, signal}) {
     if (signal?.aborted) {
         return;
     }
@@ -42,16 +42,16 @@ export async function renderContainer({app, parent, containerASTNode, transition
     for (const child of children) {
       switch (child.type) {
         case "rect":
-            childPromises.push(renderRect({app, parent: container, rectASTNode: child, transitions, signal}));
+            childPromises.push(renderRect({app, parent: container, rectASTNode: child, transitions, eventHandler, signal}));
             break;
         case "text":
-            childPromises.push(renderText({app, parent: container, textASTNode: child, transitions, signal}));
+            childPromises.push(renderText({app, parent: container, textASTNode: child, transitions, eventHandler, signal}));
             break;
         case "sprite":
-            childPromises.push(renderSprite({app, parent: container, spriteASTNode: child, transitions, signal}));
+            childPromises.push(renderSprite({app, parent: container, spriteASTNode: child, transitions, eventHandler, signal}));
             break;
         case "container":
-            childPromises.push(renderContainer({app, parent: container, containerASTNode: child, transitions, signal}));
+            childPromises.push(renderContainer({app, parent: container, containerASTNode: child, transitions, eventHandler, signal}));
             break;
         default:
             throw new Error("Unkown types")
