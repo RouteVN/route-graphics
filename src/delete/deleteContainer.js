@@ -28,8 +28,10 @@ export async function deleteContainer({app, parent, containerASTNode, transition
             }
         }
 
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
-            await transitionElements(containerASTNode.id, {app, sprite: containerElement, transitions, signalAbortCb: deleteElement, signal});
+            await transitionElements(containerASTNode.id, {app, sprite: containerElement, transitions, signal});
         }
         deleteElement()
     }

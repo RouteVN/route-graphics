@@ -49,9 +49,11 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, sig
     sprite.zIndex = zIndex;
   }
 
+  signal.addEventListener("abort",()=>{abortCb()})
+
   parent.addChild(sprite);
 
   if (transitions && transitions.length > 0) {
-    await transitionElements( id, {app, sprite, transitions, signalAbortCb: abortCb, signal})
+    await transitionElements( id, {app, sprite, transitions, signal})
   }
 }

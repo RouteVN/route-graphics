@@ -24,7 +24,7 @@ export async function updateSprite({app, parent, prevAST, nextAST, transitions, 
   
   const spriteElement = parent.children.find(child => child.label === prevAST.id);
 
-  const update = ()=>{
+  const updateElement = ()=>{
     if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
       if (prevAST.url !== nextAST.url) {
         const texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
@@ -40,12 +40,13 @@ export async function updateSprite({app, parent, prevAST, nextAST, transitions, 
       spriteElement.zIndex = nextAST.zIndex;
     }
   }
-    
-    if (spriteElement) {
-      if (transitions && transitions.length > 0) {
-        await transitionElements(prevAST.id, {app, sprite: spriteElement, transitions, signalAbortCb: update, signal});
-      }
-      update()
+  signal.addEventListener("abort",()=>{updateElement()})
+
+  if (spriteElement) {
+    if (transitions && transitions.length > 0) {
+      await transitionElements(prevAST.id, {app, sprite: spriteElement, transitions, signal});
     }
+    updateElement()
+  }
     
 }

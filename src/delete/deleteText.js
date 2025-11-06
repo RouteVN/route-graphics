@@ -28,8 +28,10 @@ export async function deleteText({app, parent, textASTNode, transitions, signal}
             }
         }
 
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
-            await transitionElements(textASTNode.id, {app, sprite: text, transitions, signalAbortCb: deleteElement, signal});
+            await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal});
         }
         deleteElement()
     }

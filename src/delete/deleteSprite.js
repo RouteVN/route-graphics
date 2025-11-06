@@ -28,8 +28,10 @@ export async function deleteSprite({app, parent, spriteASTNode, transitions, sig
             }
         }
 
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
-            await transitionElements(spriteASTNode.id, {app, sprite, transitions, signalAbortCb: deleteElement, signal});
+            await transitionElements(spriteASTNode.id, {app, sprite, transitions, signal});
         }
         deleteElement()
     }

@@ -28,8 +28,10 @@ export async function deleteRect({app, parent, rectASTNode, transitions, signal}
             }
         }
 
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
-            await transitionElements(rectASTNode.id, {app, sprite: rect, transitions, signalAbortCb: deleteElement, signal});
+            await transitionElements(rectASTNode.id, {app, sprite: rect, transitions, signal});
         }
         deleteElement()
     }

@@ -72,22 +72,24 @@ export async function renderContainer({app, parent, containerASTNode, transition
     await Promise.all(childPromises);
 
     if(scroll){
-        setupScrolling({
-            container,
-            element: containerASTNode,
-        })
+      setupScrolling({
+        container,
+        element: containerASTNode,
+      })
     }
 
     const abortCb = () => {
-        container.x = x;
-        container.y = y;
-        container.zIndex = zIndex;
+      container.x = x;
+      container.y = y;
+      container.zIndex = zIndex;
     }
+
+    signal.addEventListener("abort",()=>{abortCb()})
 
     parent.addChild(container);
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(id, {app, sprite: container, transitions, signalAbortCb: abortCb, signal});
+        await transitionElements(id, {app, sprite: container, transitions, signal});
     }
 }
 

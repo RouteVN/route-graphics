@@ -51,9 +51,11 @@ export default async function renderText({app, parent, textASTNode, transitions,
         text.zIndex = textASTNode.zIndex;
     }
 
+    signal.addEventListener("abort",()=>{abortCb()})
+
     parent.addChild(text)
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(textASTNode.id, {app, sprite: text, transitions, signalAbortCb: abortCb, signal})
+        await transitionElements(textASTNode.id, {app, sprite: text, transitions, signal})
 j    }
 }   

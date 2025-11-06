@@ -68,9 +68,11 @@ export async function renderRect({app, parent, rectASTNode, transitions, signal}
         rect.zIndex = zIndex;
     }
 
+    signal.addEventListener("abort",()=>{abortCb()})
+
     parent.addChild(rect)
 
     if (transitions && transitions.length > 0) {
-        await transitionElements(id, {app, sprite: rect, transitions, signalAbortCb: abortCb, signal})
+        await transitionElements(id, {app, sprite: rect, transitions, signal})
     }
 }

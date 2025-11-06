@@ -44,12 +44,12 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
         }
     }
 
-    signal.addEventListener("abort",()=>{update()})
+    signal.addEventListener("abort",()=>{updateElement()})
     
     if (rectElement) {
         if (transitions && transitions.length > 0) {
             await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signal});
         }
-        update()
+        updateElement()
     }
 }
