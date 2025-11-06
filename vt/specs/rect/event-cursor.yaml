@@ -1,0 +1,51 @@
+---
+title: Rect Hover Cursor Change
+description: Test cursor changes when hovering over rect elements
+template: "route-graphics.html"
+specs:
+  - "rect should change cursor on hover"
+  - "cursor should return to auto on pointer out"
+  - "different cursors can be set"
+---
+states:
+  - elements:
+      - id: 'rect-cursor-pointer'
+        type: "rect"
+        x: 200
+        y: 80
+        width: 400
+        height: 70
+        fill: "#3498db"
+        interactive: true
+        hover:
+          cursor: "pointer"
+      - id: 'rect-cursor-move'
+        type: "rect"
+        x: 200
+        y: 180
+        width: 400
+        height: 70
+        fill: "#e74c3c"
+        interactive: true
+        hover:
+          cursor: "move"
+      - id: 'rect-cursor-not-allowed'
+        type: "rect"
+        x: 200
+        y: 280
+        width: 400
+        height: 70
+        fill: "#95a5a6"
+        interactive: true
+        hover:
+          cursor: "not-allowed"
+      - id: 'rect-cursor-text'
+        type: "rect"
+        x: 200
+        y: 380
+        width: 400
+        height: 70
+        fill: "#f39c12"
+        interactive: true
+        hover:
+          cursor: "text"

@@ -1,0 +1,47 @@
+---
+title: Text Click Event Audio
+description: Test audio playback when clicking on text elements
+template: "route-graphics.html"
+specs:
+  - "text should play audio on click"
+  - "different text elements play different sounds"
+  - "audio should play once per click"
+---
+states:
+  - elements:
+      - id: 'text-click-1'
+        type: "text"
+        x: 200
+        y: 150
+        text: "Click me for sound 1"
+        style:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#3498db"
+        interactive: true
+        click:
+          soundSrc: "bgm-1"
+      - id: 'text-click-2'
+        type: "text"
+        x: 200
+        y: 250
+        text: "Click me for sound 2"
+        style:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#e74c3c"
+        interactive: true
+        click:
+          soundSrc: "bgm-2"
+      - id: 'text-click-3'
+        type: "text"
+        x: 200
+        y: 350
+        text: "Click me for sound 3"
+        style:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#2ecc71"
+        interactive: true
+        click:
+          soundSrc: "bgm-3"

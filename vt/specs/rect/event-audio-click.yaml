@@ -1,0 +1,41 @@
+---
+title: Rect Click Event Audio
+description: Test audio playback when clicking on rect elements
+template: "route-graphics.html"
+specs:
+  - "rect should play audio on click"
+  - "different rect elements play different sounds"
+  - "audio should play once per click"
+---
+states:
+  - elements:
+      - id: 'rect-click-1'
+        type: "rect"
+        x: 200
+        y: 100
+        width: 300
+        height: 100
+        fill: "#3498db"
+        interactive: true
+        click:
+          soundSrc: "bgm-1"
+      - id: 'rect-click-2'
+        type: "rect"
+        x: 200
+        y: 250
+        width: 300
+        height: 100
+        fill: "#e74c3c"
+        interactive: true
+        click:
+          soundSrc: "bgm-2"
+      - id: 'rect-click-3'
+        type: "rect"
+        x: 200
+        y: 400
+        width: 300
+        height: 100
+        fill: "#2ecc71"
+        interactive: true
+        click:
+          soundSrc: "bgm-3"

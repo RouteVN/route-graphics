@@ -1,0 +1,64 @@
+---
+title: Text Event ActionPayload
+description: Test actionPayload being sent through eventHandler on click and hover
+template: "route-graphics.html"
+specs:
+  - "text should send actionPayload on click"
+  - "text should send actionPayload on hover"
+  - "actionPayload should contain custom data"
+---
+states:
+  - elements:
+      - id: 'text-payload-click'
+        type: "text"
+        x: 200
+        y: 150
+        text: "Click me - check console for payload"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#3498db"
+        interactive: true
+        click:
+          actionPayload:
+            action: "text-clicked"
+            value: "button-1"
+            data:
+              score: 100
+              level: 5
+      - id: 'text-payload-hover'
+        type: "text"
+        x: 200
+        y: 250
+        text: "Hover over me - check console for payload"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#e74c3c"
+        interactive: true
+        hover:
+          actionPayload:
+            action: "text-hovered"
+            itemId: "item-123"
+            metadata:
+              category: "weapon"
+              rarity: "legendary"
+      - id: 'text-payload-both'
+        type: "text"
+        x: 200
+        y: 350
+        text: "Both hover AND click - check console"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#2ecc71"
+        interactive: true
+        hover:
+          actionPayload:
+            event: "hover"
+            elementId: "text-payload-both"
+        click:
+          actionPayload:
+            event: "click"
+            elementId: "text-payload-both"
+            timestamp: 123456789

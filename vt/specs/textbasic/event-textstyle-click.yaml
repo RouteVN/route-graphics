@@ -1,0 +1,58 @@
+---
+title: Text Style Change on Click
+description: Test textStyle property in click event changing text appearance
+template: "route-graphics.html"
+specs:
+  - "text style should change on click"
+  - "style persists after click"
+  - "color, font, and size can all change"
+---
+states:
+  - elements:
+      - id: 'text-click-color'
+        type: "text"
+        x: 200
+        y: 100
+        text: "Click to change color"
+        style:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#3498db"
+        click:
+          cursor: "pointer"
+          textStyle:
+            fill: "#e74c3c"
+            fontSize: 42
+            fontFamily: "Arial"
+      - id: 'text-click-size'
+        type: "text"
+        x: 200
+        y: 200
+        text: "Click to grow larger"
+        style:
+          fontFamily: "Arial"
+          fontSize: 32
+          fill: "#2ecc71"
+        interactive: true
+        click:
+          cursor: "pointer"
+          textStyle:
+            fill: "#2ecc71"
+            fontSize: 56
+            fontFamily: "Arial"
+      - id: 'text-click-all'
+        type: "text"
+        x: 200
+        y: 320
+        text: "Click for complete makeover"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#9b59b6"
+        interactive: true
+        click:
+          cursor: "pointer"
+          textStyle:
+            fill: "#f39c12"
+            fontSize: 52
+            fontFamily: "Courier New"

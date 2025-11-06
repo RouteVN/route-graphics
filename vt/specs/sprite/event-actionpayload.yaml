@@ -1,0 +1,54 @@
+---
+title: Sprite Event ActionPayload
+description: Test actionPayload being sent through eventHandler on click and hover
+template: "route-graphics.html"
+specs:
+  - "sprite should send actionPayload on click"
+  - "sprite should send actionPayload on hover"
+  - "actionPayload should contain custom data"
+---
+states:
+  - elements:
+      - id: 'sprite-payload-click'
+        type: "sprite"
+        x: 150
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-blue"
+        interactive: true
+        click:
+          actionPayload:
+            action: "sprite-clicked"
+            spriteType: "character"
+            characterId: "player-1"
+      - id: 'sprite-payload-hover'
+        type: "sprite"
+        x: 400
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-red"
+        interactive: true
+        hover:
+          actionPayload:
+            action: "sprite-hovered"
+            itemName: "Health Potion"
+            price: 50
+      - id: 'sprite-payload-both'
+        type: "sprite"
+        x: 650
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-green"
+        interactive: true
+        hover:
+          actionPayload:
+            event: "hover"
+            objectId: "chest-789"
+        click:
+          actionPayload:
+            event: "click"
+            objectId: "chest-789"
+            opened: true

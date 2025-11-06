@@ -1,0 +1,41 @@
+---
+title: Sprite Src Change on Click
+description: Test src property in click event changing sprite texture
+template: "route-graphics.html"
+specs:
+  - "sprite texture should change on click"
+  - "texture persists after click"
+  - "different sprites can have different click textures"
+---
+states:
+  - elements:
+      - id: 'sprite-click-1'
+        type: "sprite"
+        x: 150
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-blue"
+        interactive: true
+        click:
+          src: "circle-red"
+      - id: 'sprite-click-2'
+        type: "sprite"
+        x: 400
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-red"
+        interactive: true
+        click:
+          src: "circle-green"
+      - id: 'sprite-click-3'
+        type: "sprite"
+        x: 650
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-green"
+        interactive: true
+        click:
+          src: "circle-blue"

@@ -1,0 +1,55 @@
+---
+title: Rect Event ActionPayload
+description: Test actionPayload being sent through eventHandler on click and hover
+template: "route-graphics.html"
+specs:
+  - "rect should send actionPayload on click"
+  - "rect should send actionPayload on hover"
+  - "actionPayload should contain custom data"
+---
+states:
+  - elements:
+      - id: 'rect-payload-click'
+        type: "rect"
+        x: 200
+        y: 100
+        width: 400
+        height: 80
+        fill: "#3498db"
+        interactive: true
+        click:
+          actionPayload:
+            action: "rect-clicked"
+            buttonType: "primary"
+            data:
+              menuIndex: 1
+      - id: 'rect-payload-hover'
+        type: "rect"
+        x: 200
+        y: 220
+        width: 400
+        height: 80
+        fill: "#e74c3c"
+        interactive: true
+        hover:
+          actionPayload:
+            action: "rect-hovered"
+            tooltip: "This is a hover tooltip"
+            zoneId: "zone-42"
+      - id: 'rect-payload-both'
+        type: "rect"
+        x: 200
+        y: 340
+        width: 400
+        height: 80
+        fill: "#2ecc71"
+        interactive: true
+        hover:
+          actionPayload:
+            event: "hover"
+            message: "Hovering"
+        click:
+          actionPayload:
+            event: "click"
+            message: "Clicked"
+            confirmed: true

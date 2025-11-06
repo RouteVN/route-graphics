@@ -13,19 +13,17 @@ export function subscribeHoverEvents(element,eventHandler,hover,{ overCb=()=>{},
     const { cursor, soundSrc, actionPayload } = hover
     element.eventMode = "static"
     
-    if(cursor || soundSrc || actionPayload || overCb || outCb){
-        element.on("pointerover",()=>{
-            if(actionPayload) eventHandler(`${element.label}-pointer-over`,actionPayload)
-            if(cursor)  element.cursor = cursor
-            if(soundSrc) playAudio(soundSrc)
-            if(overCb) overCb()
-        })
-    
-        element.on("pointerout",()=>{
-            element.cursor = "auto"
-            if(outCb) outCb()
-        })
-    }
+    element.on("pointerover",()=>{
+        if(actionPayload) eventHandler(`${element.label}-pointer-over`,actionPayload)
+        if(cursor)  element.cursor = cursor
+        if(soundSrc) playAudio(soundSrc)
+        if(overCb) overCb()
+    })
+
+    element.on("pointerout",()=>{
+        element.cursor = "auto"
+        if(outCb) outCb()
+    })
 }
 
 /**

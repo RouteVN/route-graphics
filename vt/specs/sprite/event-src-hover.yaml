@@ -1,0 +1,44 @@
+---
+title: Sprite Src Change on Hover
+description: Test src property in hover event changing sprite texture
+template: "route-graphics.html"
+specs:
+  - "sprite texture should change on hover"
+  - "sprite texture should revert on pointer out"
+  - "different sprites can have different hover textures"
+---
+states:
+  - elements:
+      - id: 'sprite-hover-1'
+        type: "sprite"
+        x: 150
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-blue"
+        interactive: true
+        hover:
+          cursor: "pointer"
+          src: "circle-red"
+      - id: 'sprite-hover-2'
+        type: "sprite"
+        x: 400
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-red"
+        interactive: true
+        hover:
+          cursor: "pointer"
+          src: "circle-green"
+      - id: 'sprite-hover-3'
+        type: "sprite"
+        x: 650
+        y: 150
+        width: 150
+        height: 150
+        url: "circle-green"
+        interactive: true
+        hover:
+          cursor: "pointer"
+          src: "circle-blue"

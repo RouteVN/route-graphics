@@ -12,6 +12,7 @@ import { renderApp } from "./render/renderApp.js";
 import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js"
 import parseJSONToAST from "./parser/index.js";
+import { AudioAsset } from "./AudioStage.js";
 
 export default RouteGraphics;
 
@@ -26,6 +27,7 @@ export {
   SliderRendererPlugin,
   Application,
   Assets,
+  AudioAsset,
   renderApp,
   parse,
   parseJSONToAST,

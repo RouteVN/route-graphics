@@ -11,19 +11,36 @@
     </script>
     <script type="module">
         import RouteGraphics, {
-            Assets
+            Assets,
+            AudioAsset
         } from "/RouteGraphics.js"
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
         await Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' });
         await Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' });
 
+        // Pre-load audio files
+        const audio1 = await fetch('/public/bgm-1.mp3');
+        const audio1Buffer = await audio1.arrayBuffer();
+        await AudioAsset.load('bgm-1', audio1Buffer);
+
+        const audio2 = await fetch('/public/bgm-2.mp3');
+        const audio2Buffer = await audio2.arrayBuffer();
+        await AudioAsset.load('bgm-2', audio2Buffer);
+
+        const audio3 = await fetch('/public/bgm-3.mp3');
+        const audio3Buffer = await audio3.arrayBuffer();
+        await AudioAsset.load('bgm-3', audio3Buffer);
+
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = new RouteGraphics();
         await app.init({
             width: 1280, 
             height: 720,
-            plugins: []
+            plugins: [],
+            eventHandler: (eventName, payload) => {
+                console.log('eventHandler', eventName, payload)
+            },
         })
         document.body.appendChild(app.canvas);
         let index = 0

@@ -1,0 +1,33 @@
+---
+title: Rect Hover Event Audio
+description: Test audio playback when hovering over rect elements
+template: "route-graphics.html"
+specs:
+  - "rect should play audio on hover"
+  - "audio should play when mouse enters rect area"
+  - "hover and click events can coexist"
+---
+states:
+  - elements:
+      - id: 'rect-hover-1'
+        type: "rect"
+        x: 200
+        y: 100
+        width: 350
+        height: 120
+        fill: "#9b59b6"
+        interactive: true
+        hover:
+          soundSrc: "bgm-1"
+      - id: 'rect-hover-click'
+        type: "rect"
+        x: 200
+        y: 300
+        width: 350
+        height: 120
+        fill: "#f39c12"
+        interactive: true
+        hover:
+          soundSrc: "bgm-2"
+        click:
+          soundSrc: "bgm-3"

@@ -1,0 +1,59 @@
+---
+title: Text Hover Cursor Change
+description: Test cursor changes when hovering over text elements
+template: "route-graphics.html"
+specs:
+  - "text should change cursor on hover"
+  - "cursor should return to auto on pointer out"
+  - "different cursors can be set"
+---
+states:
+  - elements:
+      - id: 'text-cursor-pointer'
+        type: "text"
+        x: 200
+        y: 100
+        text: "Hover me - cursor: pointer"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#3498db"
+        interactive: true
+        hover:
+          cursor: "pointer"
+      - id: 'text-cursor-grab'
+        type: "text"
+        x: 200
+        y: 200
+        text: "Hover me - cursor: grab"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#e74c3c"
+        interactive: true
+        hover:
+          cursor: "grab"
+      - id: 'text-cursor-help'
+        type: "text"
+        x: 200
+        y: 300
+        text: "Hover me - cursor: help"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#2ecc71"
+        interactive: true
+        hover:
+          cursor: "help"
+      - id: 'text-cursor-crosshair'
+        type: "text"
+        x: 200
+        y: 400
+        text: "Hover me - cursor: crosshair"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#9b59b6"
+        interactive: true
+        hover:
+          cursor: "crosshair"

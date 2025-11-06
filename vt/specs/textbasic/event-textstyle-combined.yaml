@@ -1,0 +1,53 @@
+---
+title: Text Style Change on Hover AND Click
+description: Test textStyle in both hover and click events working together
+template: "route-graphics.html"
+specs:
+  - "hover textStyle should work"
+  - "click textStyle should work"
+  - "both events can have different textStyles"
+---
+states:
+  - elements:
+      - id: 'text-both-1'
+        type: "text"
+        x: 200
+        y: 150
+        text: "Hover (red) then Click (orange)"
+        style:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#3498db"
+        interactive: true
+        hover:
+          cursor: "pointer"
+          textStyle:
+            fill: "#e74c3c"
+            fontSize: 42
+            fontFamily: "Arial"
+        click:
+          textStyle:
+            fill: "#f39c12"
+            fontSize: 48
+            fontFamily: "Arial"
+      - id: 'text-both-2'
+        type: "text"
+        x: 200
+        y: 300
+        text: "Hover grows, Click changes font"
+        style:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#2ecc71"
+        interactive: true
+        hover:
+          cursor: "pointer"
+          textStyle:
+            fill: "#2ecc71"
+            fontSize: 52
+            fontFamily: "Arial"
+        click:
+          textStyle:
+            fill: "#9b59b6"
+            fontSize: 48
+            fontFamily: "Georgia"
