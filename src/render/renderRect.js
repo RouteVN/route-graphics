@@ -36,23 +36,9 @@ export async function renderRect({app, parent, rectASTNode, transitions, signal}
     } = rectASTNode
 
     const rect = new Graphics()
-        .rect(x,y,width,height)
-        .fill(fill)
-
-    if(border){
-        rect.stroke({
-            color: border.color,
-            alpha: border.alpha,
-            width: border.width
-        })
-    }
-
     rect.label = id
-    // rect.pivot.set(originX,originY)
-    // rect.rotation = (rotation * Math.PI) / 180
-    rect.zIndex = zIndex
 
-    const abortCb = () => {
+    const drawRect = () => {
         rect.clear();
         rect.rect(0, 0, width, height).fill(fill);
         rect.x = x;
@@ -68,8 +54,8 @@ export async function renderRect({app, parent, rectASTNode, transitions, signal}
         rect.zIndex = zIndex;
     }
 
-    signal.addEventListener("abort",()=>{abortCb()})
-
+    signal.addEventListener("abort",()=>{drawRect()})
+    drawRect()
     parent.addChild(rect)
 
     if (transitions && transitions.length > 0) {

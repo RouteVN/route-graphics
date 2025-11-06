@@ -35,18 +35,7 @@ export async function renderContainer({app, parent, containerASTNode, transition
     } = containerASTNode;
 
     const container = new Container();
-
-    container.x = x;
-    container.y = y;
-
-    // container.pivot.set(originX, originY);
-
-    // if (rotation !== undefined) {
-    //     container.rotation = (rotation * Math.PI) / 180;
-    // }
-
-    container.zIndex = zIndex;
-
+    drawContainer()
     container.label = id;
 
     const childPromises = [];
@@ -78,14 +67,13 @@ export async function renderContainer({app, parent, containerASTNode, transition
       })
     }
 
-    const abortCb = () => {
+    const drawContainer = () => {
       container.x = x;
       container.y = y;
       container.zIndex = zIndex;
     }
 
-    signal.addEventListener("abort",()=>{abortCb()})
-
+    signal.addEventListener("abort",()=>{drawContainer()})
     parent.addChild(container);
 
     if (transitions && transitions.length > 0) {
