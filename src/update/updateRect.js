@@ -23,7 +23,7 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
     
     const rectElement = parent.children.find(child => child.label === prevRectASTNode.id);
 
-    const update = ()=>{
+    const updateElement = ()=>{
         if (JSON.stringify(prevRectASTNode) !== JSON.stringify(nextRectASTNode)) {
             rectElement.clear();
     
