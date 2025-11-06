@@ -1,6 +1,6 @@
 import { Graphics } from "pixi.js";
 import transitionElements from "../transition/index.js";
-import { subscribeClickEvents, subscribeHoverEvents } from "./common.js";
+import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -62,11 +62,11 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
     const hoverEvents = rectASTNode?.hover
     const clickEvents = rectASTNode?.click
     if(eventHandler && hoverEvents){
-        subscribeHoverEvents(app,rect,eventHandler,hoverEvents)
+        subscribeHoverEvents(rect,eventHandler,hoverEvents)
     }
 
     if(eventHandler && clickEvents){
-        subscribeClickEvents(app,rect,eventHandler,clickEvents)
+        subscribeClickEvents(rect,eventHandler,clickEvents)
     }
     
     parent.addChild(rect)

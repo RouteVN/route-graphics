@@ -1,6 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
 import transitionElements from "../transition/index.js";
-import { subscribeClickEvents, subscribeHoverEvents } from "./common.js";
+import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * @typedef {import('../types.js').RenderElementOptions} RenderElementOptions
@@ -45,31 +45,34 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
 
   const hoverEvents = spriteASTNode?.hover
   const clickEvents = spriteASTNode?.click
+
+  const overCb = ()=>{
+    if(clickEvents?.src){
+      const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+      sprite.texture = clickTexture;
+    }
+  }
+
+  const outCb = ()=>{sprite.texture = texture;}
+
+  const clickCb = ()=>{
+    if(clickEvents?.src){
+      const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+      sprite.texture = clickTexture;
+    }
+  }
+
   if(eventHandler && hoverEvents){
-    subscribeHoverEvents(app,sprite,eventHandler,hoverEvents)
+    subscribeHoverEvents(sprite,eventHandler,hoverEvents,{
+      overCb,
+      outCb
+    })
   }
 
   if(eventHandler && clickEvents){
-    subscribeClickEvents(app,sprite,eventHandler,clickEvents)
+    subscribeClickEvents(sprite,eventHandler,clickEvents,{clickCb})
   }
 
-  if(clickEvents?.src){
-    sprite.on("pointerup",()=>{
-      const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
-      sprite.texture = clickTexture;
-    })
-  }
-
-  if(hoverEvents?.src){
-    sprite.on("pointerover",()=>{
-      const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
-      sprite.texture = hoverTexture;
-    })
-
-    sprite.on("pointerout",()=>{
-      sprite.texture = texture;
-    })
-  }
   parent.addChild(sprite);
 
   if (transitions && transitions.length > 0) {

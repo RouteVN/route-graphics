@@ -26,14 +26,21 @@ export default async function renderText({app, parent, textASTNode, transitions,
         label: textASTNode.id
     })
 
+    const applyTextStyle = (style)=>{
+        const appliedStyle = {
+            fill: style.fill,
+            fontFamily: style.fontFamily,
+            fontSize: style.fontSize,
+            wordWrap: style.wordWrap,
+            breakWords: style.breakWords,
+            wordWrapWidth: style.wordWrapWidth
+        }
+        text.style = appliedStyle
+    }
+
     const drawText = () => {
         text.text = textASTNode.text;
-        text.style.fill = textASTNode.style.fill;
-        text.style.fontFamily = textASTNode.style.fontFamily;
-        text.style.fontSize = textASTNode.style.fontSize;
-        text.style.wordWrap = textASTNode.style.wordWrap;
-        text.style.breakWords = textASTNode.style.breakWords;
-        text.style.wordWrapWidth = textASTNode.style.wordWrapWidth;
+        applyTextStyle(textASTNode.style)
         text.x = textASTNode.x;
         text.y = textASTNode.y;
         text.zIndex = textASTNode.zIndex;
@@ -43,52 +50,27 @@ export default async function renderText({app, parent, textASTNode, transitions,
     drawText()
     const hoverEvents = textASTNode?.hover
     const clickEvents = textASTNode?.click
+
+    const overCb = ()=>{
+        if(hoverEvents?.textStyle) applyTextStyle(hoverEvents.textStyle)
+    }
+
+    const outCb = ()=>{
+        applyTextStyle(textASTNode.style)
+    }
+
+    const clickCb = ()=>{
+        if(clickEvents?.textStyle) applyTextStyle(clickEvents.textStyle)
+    }
+
     if(eventHandler && hoverEvents){
-        subscribeHoverEvents(app,text,eventHandler,hoverEvents)
+        subscribeHoverEvents(app,text,eventHandler,hoverEvents,{overCb,outCb})
     }
 
     if(eventHandler && clickEvents){
-        subscribeClickEvents(app,text,eventHandler,clickEvents)
+        subscribeClickEvents(app,text,eventHandler,clickEvents,{clickCb})
     }
 
-    if(clickEvents?.textStyle){
-        text.on("pointerup",()=>{
-            const style = {
-                fill: clickEvents.textStyle.fill,
-                fontFamily: clickEvents.textStyle.fontFamily,
-                fontSize: clickEvents.textStyle.fontSize,
-                wordWrap: clickEvents.textStyle.wordWrap,
-                breakWords: clickEvents.textStyle.breakWords,
-                wordWrapWidth: clickEvents.textStyle.wordWrapWidth
-            }
-            text.style = style
-        })
-    }
-
-    if(hoverEvents?.textStyle){
-        text.on("pointerover",()=>{
-            const style = {
-                fill: hoverEvents.textStyle.fill,
-                fontFamily: hoverEvents.textStyle.fontFamily,
-                fontSize: hoverEvents.textStyle.fontSize,
-                wordWrap: hoverEvents.textStyle.wordWrap,
-                breakWords: hoverEvents.textStyle.breakWords,
-                wordWrapWidth: hoverEvents.textStyle.wordWrapWidth
-            }
-            text.style = style
-        })
-        text.on("pointerout",()=>{
-            const style = {
-                fill: textASTNode.style.fill,
-                fontFamily: textASTNode.style.fontFamily,
-                fontSize: textASTNode.style.fontSize,
-                wordWrap: textASTNode.style.wordWrap,
-                breakWords: textASTNode.style.breakWords,
-                wordWrapWidth: textASTNode.style.wordWrapWidth
-            }
-            text.style = style
-        })
-    }
     parent.addChild(text)
 
     if (transitions && transitions.length > 0) {
