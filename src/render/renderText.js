@@ -1,6 +1,6 @@
 import { Text } from 'pixi.js'
 import transitionElements from "../transition/index.js";
-import { subscribeClickEvents, subscribeHoverEvents } from "./common.js";
+import { subscribeClickEvents, subscribeHoverEvents } from "../util/eventSubscribers.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
