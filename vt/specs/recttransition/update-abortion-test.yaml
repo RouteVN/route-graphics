@@ -1,0 +1,79 @@
+---
+title: Rect Update Abortion Test
+description: Test abortion callback during rect update with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "rect should update with 3 keyframe animation"
+  - "abortion callback should be testable during update"
+  - "element position differs from animation end position"
+---
+states:
+  - elements:
+      - id: 'rect-update-test'
+        type: "rect"
+        x: 100
+        y: 100
+        width: 200
+        height: 200
+        fill: "#3498db"
+        alpha: 1
+  - elements:
+      - id: 'rect-update-test'
+        type: "rect"
+        x: 700
+        y: 150
+        width: 250
+        height: 220
+        fill: "#e74c3c"
+        alpha: 1
+    transitions:
+      - id: 'rect-update-abortion'
+        elementId: 'rect-update-test'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 250
+                easing: linear
+              - duration: 1000
+                value: 350
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear
+              - duration: 1000
+                value: 280
+                easing: linear
+  - elements:
+      - id: 'rect-update-test'
+        type: "rect"
+        x: 500
+        y: 400
+        width: 180
+        height: 180
+        fill: "#9b59b6"
+        alpha: 1
+    transitions:
+      - id: 'rect-update-abortion'
+        elementId: 'rect-update-test'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 600
+                easing: linear
+              - duration: 1000
+                value: 500
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear
+              - duration: 1000
+                value: 280
+                easing: linear

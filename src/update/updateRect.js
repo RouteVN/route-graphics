@@ -22,11 +22,8 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
 
     
     const rectElement = parent.children.find(child => child.label === prevRectASTNode.id);
-    
-    if (rectElement) {
-        if (transitions && transitions.length > 0) {
-            await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signal});
-        }
+
+    const updateElement = ()=>{
         if (JSON.stringify(prevRectASTNode) !== JSON.stringify(nextRectASTNode)) {
             rectElement.clear();
     
@@ -44,9 +41,15 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
             }
     
             rectElement.zIndex = nextRectASTNode.zIndex;
-            console.log("PrevNode", prevRectASTNode)
-            console.log("Nextnode", nextRectASTNode)
         }
-        console.log(rectElement)
+    }
+
+    signal.addEventListener("abort",()=>{updateElement()})
+    
+    if (rectElement) {
+        if (transitions && transitions.length > 0) {
+            await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signal});
+        }
+        updateElement()
     }
 }

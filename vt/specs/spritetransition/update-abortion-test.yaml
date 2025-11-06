@@ -1,0 +1,79 @@
+---
+title: Sprite Update Abortion Test
+description: Test abortion callback during sprite update with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "sprite should update with 3 keyframe animation"
+  - "abortion callback should be testable during update"
+  - "element position differs from animation end position"
+---
+states:
+  - elements:
+      - id: 'sprite-update-test'
+        type: "sprite"
+        x: 100
+        y: 100
+        width: 150
+        height: 150
+        url: "circle-blue"
+        alpha: 1
+  - elements:
+      - id: 'sprite-update-test'
+        type: "sprite"
+        x: 700
+        y: 150
+        width: 180
+        height: 180
+        url: "circle-green"
+        alpha: 1
+    transitions:
+      - id: 'sprite-update-abortion'
+        elementId: 'sprite-update-test'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 250
+                easing: linear
+              - duration: 1000
+                value: 350
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear
+              - duration: 1000
+                value: 280
+                easing: linear
+  - elements:
+      - id: 'sprite-update-test'
+        type: "sprite"
+        x: 500
+        y: 400
+        width: 200
+        height: 200
+        url: "circle-red"
+        alpha: 1
+    transitions:
+      - id: 'sprite-update-abortion'
+        elementId: 'sprite-update-test'
+        type: keyframes
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 600
+                easing: linear
+              - duration: 1000
+                value: 500
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear
+              - duration: 1000
+                value: 280
+                easing: linear

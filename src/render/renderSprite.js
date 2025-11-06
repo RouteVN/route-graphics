@@ -28,18 +28,20 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
   } = spriteASTNode;
   const texture = url ? Texture.from(url) : Texture.EMPTY;
   const sprite = new Sprite(texture);
-
-  sprite.x = x;
-  sprite.y = y;
-
-  sprite.width = width;
-  sprite.height = height;
-
-  sprite.alpha = alpha;
-
-  sprite.zIndex = zIndex;
-
   sprite.label = id;
+
+  
+  const drawSprite = () => {
+    sprite.x = x;
+    sprite.y = y;
+    sprite.width = width;
+    sprite.height = height;
+    sprite.alpha = alpha;
+    sprite.zIndex = zIndex;
+  }
+
+  signal.addEventListener("abort",()=>{drawSprite()})
+  drawSprite()
 
   const hoverEvents = spriteASTNode?.hover
   const clickEvents = spriteASTNode?.click
@@ -68,7 +70,6 @@ export async function renderSprite({app, parent, spriteASTNode, transitions, eve
       sprite.texture = texture;
     })
   }
-
   parent.addChild(sprite);
 
   if (transitions && transitions.length > 0) {

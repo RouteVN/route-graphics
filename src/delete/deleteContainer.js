@@ -22,9 +22,17 @@ export async function deleteContainer({app, parent, containerASTNode, transition
     const containerElement = parent.getChildByLabel(containerASTNode.id)
 
     if(containerElement){
+        const deleteElement = () => {
+            if (containerElement && !containerElement.destroyed) {
+                containerElement.destroy({children: true})
+            }
+        }
+
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
             await transitionElements(containerASTNode.id, {app, sprite: containerElement, transitions, signal});
         }
-        containerElement.destroy({children: true})
+        deleteElement()
     }
 }

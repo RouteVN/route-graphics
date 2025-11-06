@@ -1,0 +1,45 @@
+---
+title: Rect Delete Abortion Test
+description: Test abortion callback during rect deletion with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "rect should delete with 3 keyframe animation"
+  - "abortion callback should be testable during deletion"
+  - "new element added in third state"
+---
+states:
+  - elements:
+      - id: 'rect-delete-test'
+        type: "rect"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        fill: "#e74c3c"
+        alpha: 1
+  - elements: []
+    transitions:
+      - id: 'rect-delete-abortion'
+        elementId: 'rect-delete-test'
+        type: keyframes
+        properties:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0.7
+                easing: linear
+              - duration: 1000
+                value: 0.3
+                easing: linear
+              - duration: 1000
+                value: 0
+                easing: linear
+  - elements:
+      - id: 'rect-new-element'
+        type: "rect"
+        x: 300
+        y: 200
+        width: 250
+        height: 200
+        fill: "#2ecc71"
+        alpha: 1

@@ -22,12 +22,7 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
 
     
     const textElement = parent.children.find(child => child.label === prevTextASTNode.id);
-    
-    if (textElement) {
-        if (transitions && transitions.length > 0) {
-            await transitionElements(prevTextASTNode.id, {app, sprite: textElement, transitions, signal});
-        }
-        
+    const updateElement = ()=>{
         if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
             textElement.text = nextTextASTNode.text;
     
@@ -44,5 +39,13 @@ export async function updateText({app, parent, prevTextASTNode, nextTextASTNode,
             textElement.y = nextTextASTNode.y;
             textElement.zIndex = nextTextASTNode.zIndex;
         }
+    }
+    signal.addEventListener("abort",()=>{updateElement()})
+
+    if (textElement) {
+        if (transitions && transitions.length > 0) {
+            await transitionElements(prevTextASTNode.id, {app, sprite: textElement, transitions, signal});
+        }
+        updateElement()
     }
 }

@@ -37,22 +37,28 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
     } = rectASTNode
 
     const rect = new Graphics()
-        .rect(x,y,width,height)
-        .fill(fill)
+    rect.label = id
 
-    if(border){
-        rect.stroke({
-            color: border.color,
-            alpha: border.alpha,
-            width: border.width
-        })
+    const drawRect = () => {
+        rect.clear();
+        rect.rect(0, 0, width, height).fill(fill);
+        rect.x = x;
+        rect.y = y;
+        if(border){
+            rect.stroke({
+                color: border.color,
+                alpha: border.alpha,
+                width: border.width
+            })
+        }
+
+        rect.zIndex = zIndex;
     }
 
-    rect.label = id
-    // rect.pivot.set(originX,originY)
-    // rect.rotation = (rotation * Math.PI) / 180
-    rect.zIndex = zIndex
-
+    
+    signal.addEventListener("abort",()=>{drawRect()})
+    drawRect()
+    
     const hoverEvents = rectASTNode?.hover
     const clickEvents = rectASTNode?.click
     if(eventHandler && hoverEvents){
@@ -62,7 +68,7 @@ export async function renderRect({app, parent, rectASTNode, transitions, eventHa
     if(eventHandler && clickEvents){
         subscribeClickEvents(app,rect,eventHandler,clickEvents)
     }
-
+    
     parent.addChild(rect)
 
     if (transitions && transitions.length > 0) {

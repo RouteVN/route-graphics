@@ -22,9 +22,17 @@ export async function deleteRect({app, parent, rectASTNode, transitions, signal}
     const rect = parent.getChildByLabel(rectASTNode.id)
 
     if(rect){
+        const deleteElement = () => {
+            if (rect && !rect.destroyed) {
+                rect.destroy()
+            }
+        }
+
+        signal.addEventListener("abort",()=>{deleteElement()})
+
         if (transitions && transitions.length > 0) {
             await transitionElements(rectASTNode.id, {app, sprite: rect, transitions, signal});
         }
-        rect.destroy()
+        deleteElement()
     }
 }

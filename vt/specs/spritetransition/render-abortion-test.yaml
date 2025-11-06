@@ -1,0 +1,84 @@
+---
+title: Sprite Render Abortion Test
+description: Test abortion callback during sprite render with 3 keyframes
+template: "route-graphics.html"
+specs:
+  - "sprite should render with 3 keyframe animation"
+  - "abortion callback should be testable during render"
+  - "element props differ from animation final state"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'sprite-render-test'
+        type: "sprite"
+        x: 100
+        y: 100
+        width: 150
+        height: 150
+        url: "circle-blue"
+        alpha: 1
+    transitions:
+      - id: 'sprite-render-abortion'
+        elementId: 'sprite-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 150
+                easing: linear
+              - duration: 1000
+                value: 250
+                easing: linear
+          y:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 150
+                easing: linear
+              - duration: 1000
+                value: 250
+                easing: linear
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 0.5
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear
+  - elements:
+      - id: 'sprite-render-test'
+        type: "sprite"
+        x: 400
+        y: 300
+        width: 200
+        height: 200
+        url: "circle-red"
+        alpha: 1
+    transitions:
+      - id: 'sprite-render-abortion-2'
+        elementId: 'sprite-render-test'
+        type: keyframes
+        properties:
+          x:
+            initialValue: 250
+            keyframes:
+              - duration: 1000
+                value: 350
+                easing: linear
+              - duration: 1000
+                value: 400
+                easing: linear
+          alpha:
+            initialValue: 0.3
+            keyframes:
+              - duration: 1000
+                value: 0.7
+                easing: linear
+              - duration: 1000
+                value: 1
+                easing: linear
