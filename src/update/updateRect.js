@@ -43,10 +43,12 @@ export async function updateRect({app, parent, prevRectASTNode, nextRectASTNode,
             rectElement.zIndex = nextRectASTNode.zIndex;
         }
     }
+
+    signal.addEventListener("abort",()=>{update()})
     
     if (rectElement) {
         if (transitions && transitions.length > 0) {
-            await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signalAbortCb: update, signal});
+            await transitionElements(prevRectASTNode.id, {app, sprite: rectElement, transitions, signal});
         }
         update()
     }
