@@ -1,4 +1,7 @@
-import { WhiteListTransitionProps, TRANSITION_PROPERTY_PATH_MAP } from "../types";
+import {
+  WhiteListTransitionProps,
+  TRANSITION_PROPERTY_PATH_MAP,
+} from "../types";
 
 const easings = {
   linear: (x) => x,
@@ -7,7 +10,6 @@ const easings = {
 const interpolate = (start, end, t, easing) => {
   return start + (end - start) * easings[easing](t);
 };
-
 
 // Get function with camelCase to nested path support
 function getTransitionProperty(object, path, defaultValue) {
@@ -119,7 +121,12 @@ function getMaxOfArray(numArray) {
   return Math.max.apply(null, numArray);
 }
 
-export default async function keyframeTransition (app, sprite, transition, signal) {
+export default async function keyframeTransition(
+  app,
+  sprite,
+  transition,
+  signal,
+) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       app.ticker.remove(effect);
@@ -129,13 +136,18 @@ export default async function keyframeTransition (app, sprite, transition, signa
 
     const { properties } = transition;
 
-    const animationProperties = Object.entries(properties).map(([property, value]) =>{
-        if(!WhiteListTransitionProps[property]) throw new Error(`${property} is not a supported property for transition.`)
+    const animationProperties = Object.entries(properties).map(
+      ([property, value]) => {
+        if (!WhiteListTransitionProps[property])
+          throw new Error(
+            `${property} is not a supported property for transition.`,
+          );
         return {
           ...value,
           property,
         };
-      })
+      },
+    );
 
     // Calculate max duration
     const accumulatedDurations = animationProperties.map(
@@ -218,4 +230,4 @@ export default async function keyframeTransition (app, sprite, transition, signa
 
     app.ticker.add(effect);
   });
-};
+}

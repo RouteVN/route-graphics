@@ -1,17 +1,15 @@
-import { parseCommonObject } from './parseCommonObject.js';
+import { parseCommonObject } from "./parseCommonObject.js";
 /**
  *  @typedef {import('../types.js').BaseElement} BaseElement
  *  @typedef {import('../types.js').SpriteASTNode} SpriteASTNode
  */
-
 
 /**
  * @param {BaseElement} state
  * @return {SpriteASTNode}
  */
 export function parseSprite(state) {
-
-  let astObj = parseCommonObject(state)
+  let astObj = parseCommonObject(state);
 
   return {
     ...astObj,

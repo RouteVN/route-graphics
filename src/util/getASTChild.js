@@ -3,20 +3,20 @@
  */
 
 /**
- * 
- * @param {string} id 
+ *
+ * @param {string} id
  * @param {ASTNode} ASTNode
- * @returns {ASTNode} 
+ * @returns {ASTNode}
  */
-export function getASTChild(id,ASTNode){
-    if(ASTNode.id === id) return ASTNode
+export function getASTChild(id, ASTNode) {
+  if (ASTNode.id === id) return ASTNode;
 
-    if(ASTNode.type === "container"){
-        for(const child of ASTNode.children){
-            const returnChild = getASTChild(id,child)
-            if(returnChild) return returnChild
-        }
+  if (ASTNode.type === "container") {
+    for (const child of ASTNode.children) {
+      const returnChild = getASTChild(id, child);
+      if (returnChild) return returnChild;
     }
+  }
 
-    return null;
+  return null;
 }

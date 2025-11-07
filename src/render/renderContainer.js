@@ -1,7 +1,7 @@
 import { Container, Graphics } from "pixi.js";
-import { renderRect } from './renderRect.js';
-import renderText from './renderText.js';
-import { renderSprite } from './renderSprite.js';
+import { renderRect } from "./renderRect.js";
+import renderText from "./renderText.js";
+import { renderSprite } from "./renderSprite.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -20,163 +20,204 @@ import { renderSprite } from './renderSprite.js';
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderContainer({app, parent, containerASTNode, transitions, eventHandler, transitionElements, signal}) {
-    if (signal?.aborted) {
-        return;
+export async function renderContainer({
+  app,
+  parent,
+  containerASTNode,
+  transitions,
+  eventHandler,
+  transitionElements,
+  signal,
+}) {
+  if (signal?.aborted) {
+    return;
+  }
+
+  const { id, x, y, children, scroll, zIndex } = containerASTNode;
+
+  const container = new Container();
+  drawContainer();
+  container.label = id;
+
+  const childPromises = [];
+  for (const child of children) {
+    switch (child.type) {
+      case "rect":
+        childPromises.push(
+          renderRect({
+            app,
+            parent: container,
+            rectASTNode: child,
+            transitions,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
+      case "text":
+        childPromises.push(
+          renderText({
+            app,
+            parent: container,
+            textASTNode: child,
+            transitions,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
+      case "sprite":
+        childPromises.push(
+          renderSprite({
+            app,
+            parent: container,
+            spriteASTNode: child,
+            transitions,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
+      case "container":
+        childPromises.push(
+          renderContainer({
+            app,
+            parent: container,
+            containerASTNode: child,
+            transitions,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
+      default:
+        throw new Error("Unkown types");
     }
+  }
 
-    const {
-        id,
-        x,
-        y,
-        children,
-        scroll,
-        zIndex,
-    } = containerASTNode;
+  await Promise.all(childPromises);
 
-    const container = new Container();
-    drawContainer()
-    container.label = id;
+  if (scroll) {
+    setupScrolling({
+      container,
+      element: containerASTNode,
+    });
+  }
 
-    const childPromises = [];
-    for (const child of children) {
-      switch (child.type) {
-        case "rect":
-            childPromises.push(renderRect({app, parent: container, rectASTNode: child, transitions, eventHandler, signal}));
-            break;
-        case "text":
-            childPromises.push(renderText({app, parent: container, textASTNode: child, transitions, eventHandler, signal}));
-            break;
-        case "sprite":
-            childPromises.push(renderSprite({app, parent: container, spriteASTNode: child, transitions, eventHandler, signal}));
-            break;
-        case "container":
-            childPromises.push(renderContainer({app, parent: container, containerASTNode: child, transitions, eventHandler, signal}));
-            break;
-        default:
-            throw new Error("Unkown types")
-      }
-    }
+  const drawContainer = () => {
+    container.x = x;
+    container.y = y;
+    container.zIndex = zIndex;
+  };
 
-    await Promise.all(childPromises);
+  signal.addEventListener("abort", () => {
+    drawContainer();
+  });
+  parent.addChild(container);
 
-    if(scroll){
-      setupScrolling({
-        container,
-        element: containerASTNode,
-      })
-    }
-
-    const drawContainer = () => {
-      container.x = x;
-      container.y = y;
-      container.zIndex = zIndex;
-    }
-
-    signal.addEventListener("abort",()=>{drawContainer()})
-    parent.addChild(container);
-
-    if (transitions && transitions.length > 0) {
-        await transitionElements(id, {app, sprite: container, transitions, signal});
-    }
+  if (transitions && transitions.length > 0) {
+    await transitionElements(id, {
+      app,
+      sprite: container,
+      transitions,
+      signal,
+    });
+  }
 }
 
 /**
  * @param {SetupScrollingOptions} params
  * @returns
  */
-export function setupScrolling({
-    container,
-    element,
-}) {
-    let totalWidth = 0;
-    let totalHeight = 0;
+export function setupScrolling({ container, element }) {
+  let totalWidth = 0;
+  let totalHeight = 0;
 
-    element.children.forEach(child=>{
-        totalWidth = Math.max(child.width + child.x,totalWidth)
-        totalHeight = Math.max(child.height + child.y, totalHeight)
-    })
+  element.children.forEach((child) => {
+    totalWidth = Math.max(child.width + child.x, totalWidth);
+    totalHeight = Math.max(child.height + child.y, totalHeight);
+  });
 
-    // Only apply scrolling if scroll is enabled and content overflows
-    const needsVerticalScroll =
-      element.scroll && element.height && totalHeight > element.height;
-    const needsHorizontalScroll =
-      element.scroll && element.width && totalWidth > element.width;
+  // Only apply scrolling if scroll is enabled and content overflows
+  const needsVerticalScroll =
+    element.scroll && element.height && totalHeight > element.height;
+  const needsHorizontalScroll =
+    element.scroll && element.width && totalWidth > element.width;
 
-    if (needsVerticalScroll || needsHorizontalScroll) {
-      // Create a content container that will hold all the children
-      const contentContainer = new Container();
+  if (needsVerticalScroll || needsHorizontalScroll) {
+    // Create a content container that will hold all the children
+    const contentContainer = new Container();
 
-      // Move all children from the main container to the content container
-      const children = [...container.children];
-      children.forEach(child => {
-        contentContainer.addChild(child);
-      });
+    // Move all children from the main container to the content container
+    const children = [...container.children];
+    children.forEach((child) => {
+      contentContainer.addChild(child);
+    });
 
-      // Add the content container back to the main container
-      container.addChild(contentContainer);
+    // Add the content container back to the main container
+    container.addChild(contentContainer);
 
-      // Create clipping mask
-      const clip = new Graphics()
-        .rect(0, 0, element.width || totalWidth, element.height || totalHeight)
-        .fill({ color: 0xFF0000, alpha: 0 }); // Transparent mask
-      container.addChild(clip);
+    // Create clipping mask
+    const clip = new Graphics()
+      .rect(0, 0, element.width || totalWidth, element.height || totalHeight)
+      .fill({ color: 0xff0000, alpha: 0 }); // Transparent mask
+    container.addChild(clip);
 
-      // Apply the mask to the content container
-      contentContainer.mask = clip;
+    // Apply the mask to the content container
+    contentContainer.mask = clip;
 
-      // Enable mouse events on the container
-      container.eventMode = "static";
+    // Enable mouse events on the container
+    container.eventMode = "static";
 
-      let scrollYOffset = 0;
-      let scrollXOffset = 0;
-      let minScrollY = -(totalHeight - (element.height || totalHeight));
-      let minScrollX = -(totalWidth - (element.width || totalWidth));
+    let scrollYOffset = 0;
+    let scrollXOffset = 0;
+    let minScrollY = -(totalHeight - (element.height || totalHeight));
+    let minScrollX = -(totalWidth - (element.width || totalWidth));
 
-      container.on("wheel", (e) => {
-        e.preventDefault(); // Prevent page scrolling
+    container.on("wheel", (e) => {
+      e.preventDefault(); // Prevent page scrolling
 
-        // Handle vertical scrolling
-        if (needsVerticalScroll && e.deltaY !== 0) {
-          const newScrollY = scrollYOffset - e.deltaY;
+      // Handle vertical scrolling
+      if (needsVerticalScroll && e.deltaY !== 0) {
+        const newScrollY = scrollYOffset - e.deltaY;
 
-          // Boundary checking
-          if (newScrollY > 0) {
-            // At top edge
-            scrollYOffset = 0;
-          } else if (newScrollY < minScrollY) {
-            // At bottom edge
-            scrollYOffset = minScrollY;
-          } else {
-            // Normal scrolling
-            scrollYOffset = newScrollY;
-          }
-
-          contentContainer.y = scrollYOffset;
+        // Boundary checking
+        if (newScrollY > 0) {
+          // At top edge
+          scrollYOffset = 0;
+        } else if (newScrollY < minScrollY) {
+          // At bottom edge
+          scrollYOffset = minScrollY;
+        } else {
+          // Normal scrolling
+          scrollYOffset = newScrollY;
         }
 
-        // Handle horizontal scrolling (shift+wheel or deltaX)
-        if (
-          needsHorizontalScroll &&
-          (e.deltaX !== 0 || (e.shiftKey && e.deltaY !== 0))
-        ) {
-          const deltaX = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-          const newScrollX = scrollXOffset - deltaX;
+        contentContainer.y = scrollYOffset;
+      }
 
-          // Boundary checking
-          if (newScrollX > 0) {
-            // At left edge
-            scrollXOffset = 0;
-          } else if (newScrollX < minScrollX) {
-            // At right edge
-            scrollXOffset = minScrollX;
-          } else {
-            // Normal scrolling
-            scrollXOffset = newScrollX;
-          }
+      // Handle horizontal scrolling (shift+wheel or deltaX)
+      if (
+        needsHorizontalScroll &&
+        (e.deltaX !== 0 || (e.shiftKey && e.deltaY !== 0))
+      ) {
+        const deltaX = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        const newScrollX = scrollXOffset - deltaX;
 
-          contentContainer.x = scrollXOffset;
+        // Boundary checking
+        if (newScrollX > 0) {
+          // At left edge
+          scrollXOffset = 0;
+        } else if (newScrollX < minScrollX) {
+          // At right edge
+          scrollXOffset = minScrollX;
+        } else {
+          // Normal scrolling
+          scrollXOffset = newScrollX;
         }
-      });
-    }
+
+        contentContainer.x = scrollXOffset;
+      }
+    });
+  }
 }

@@ -114,7 +114,7 @@ class RouteGraphics extends BaseRouteGraphics {
   /**
    * @type {Function}
    */
-  _transitionElements
+  _transitionElements;
 
   /**
    * @type {BaseRendererPlugin[]}
@@ -141,7 +141,14 @@ class RouteGraphics extends BaseRouteGraphics {
    * @returns
    */
   init = async (options) => {
-    const { eventHandler, plugins, width, height, backgroundColor, transitionElements } = options;
+    const {
+      eventHandler,
+      plugins,
+      width,
+      height,
+      backgroundColor,
+      transitionElements,
+    } = options;
 
     for (const plugin of plugins) {
       if (plugin.rendererName !== RouteGraphics.rendererName) {
@@ -323,15 +330,15 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {RouteGraphicsState} state
    */
   render = (state) => {
-    const parsedElements = parseJSONToAST(state.elements)
-    const parsedState = { ...state, elements: parsedElements }
+    const parsedElements = parseJSONToAST(state.elements);
+    const parsedState = { ...state, elements: parsedElements };
     this._render(
       this._app,
       this._app.stage,
       this._state,
       parsedState,
       this._eventHandler,
-      this._transitionElements
+      this._transitionElements,
     );
     this._state = parsedState;
   };
@@ -410,28 +417,35 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {Function} eventHandler
    * @param {Function} transitionelements
    */
-  _render = async (app, parent, prevState, nextState, eventHandler,transitionElements) => {
+  _render = async (
+    app,
+    parent,
+    prevState,
+    nextState,
+    eventHandler,
+    transitionElements,
+  ) => {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
 
-    
     // Cancel any previous render operations
     if (this._currentAbortController) {
       this._currentAbortController.abort();
     }
-    
+
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
     const signal = this._currentAbortController.signal;
-    await renderApp({app, 
-      parent, 
-      prevASTTree: prevState.elements, 
-      nextASTTree: nextState.elements, 
+    await renderApp({
+      app,
+      parent,
+      prevASTTree: prevState.elements,
+      nextASTTree: nextState.elements,
       transitions: nextState.transitions,
-      eventHandler, 
-      transitionElements, 
-      signal
-    })
+      eventHandler,
+      transitionElements,
+      signal,
+    });
   };
 }
 

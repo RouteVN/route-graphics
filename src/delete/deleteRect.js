@@ -14,25 +14,39 @@ import { Container } from "pixi.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function deleteRect({app, parent, rectASTNode, transitions, transitionElements, signal}){
-    if (signal?.aborted) {
-        return;
+export async function deleteRect({
+  app,
+  parent,
+  rectASTNode,
+  transitions,
+  transitionElements,
+  signal,
+}) {
+  if (signal?.aborted) {
+    return;
+  }
+
+  const rect = parent.getChildByLabel(rectASTNode.id);
+
+  if (rect) {
+    const deleteElement = () => {
+      if (rect && !rect.destroyed) {
+        rect.destroy();
+      }
+    };
+
+    signal.addEventListener("abort", () => {
+      deleteElement();
+    });
+
+    if (transitions && transitions.length > 0) {
+      await transitionElements(rectASTNode.id, {
+        app,
+        sprite: rect,
+        transitions,
+        signal,
+      });
     }
-
-    const rect = parent.getChildByLabel(rectASTNode.id)
-
-    if(rect){
-        const deleteElement = () => {
-            if (rect && !rect.destroyed) {
-                rect.destroy()
-            }
-        }
-
-        signal.addEventListener("abort",()=>{deleteElement()})
-
-        if (transitions && transitions.length > 0) {
-            await transitionElements(rectASTNode.id, {app, sprite: rect, transitions, signal});
-        }
-        deleteElement()
-    }
+    deleteElement();
+  }
 }

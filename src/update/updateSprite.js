@@ -17,110 +17,136 @@ import { Texture } from "pixi.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateSprite({app, parent, prevAST, nextAST, eventHandler, transitions, transitionElements, signal}) {
+export async function updateSprite({
+  app,
+  parent,
+  prevAST,
+  nextAST,
+  eventHandler,
+  transitions,
+  transitionElements,
+  signal,
+}) {
   if (signal?.aborted) {
     return;
   }
 
-  
-  const spriteElement = parent.children.find(child => child.label === prevAST.id);
+  const spriteElement = parent.children.find(
+    (child) => child.label === prevAST.id,
+  );
 
-  const updateElement = ()=>{
+  const updateElement = () => {
     if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
       if (prevAST.url !== nextAST.url) {
         const texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
         spriteElement.texture = texture;
       }
-  
+
       spriteElement.x = nextAST.x;
       spriteElement.y = nextAST.y;
       spriteElement.width = nextAST.width;
       spriteElement.height = nextAST.height;
-  
+
       spriteElement.alpha = nextAST.alpha;
       spriteElement.zIndex = nextAST.zIndex;
 
-      spriteElement.removeAllListeners("pointerover")
-      spriteElement.removeAllListeners("pointerout")
-      spriteElement.removeAllListeners("pointerup")
-      
-      const hoverEvents = nextAST?.hover
-      const clickEvents = nextAST?.click
+      spriteElement.removeAllListeners("pointerover");
+      spriteElement.removeAllListeners("pointerout");
+      spriteElement.removeAllListeners("pointerup");
 
-      if(eventHandler && hoverEvents){
-        const { cursor, soundSrc, actionPayload } = hoverEvents
-        spriteElement.eventMode = "static"
+      const hoverEvents = nextAST?.hover;
+      const clickEvents = nextAST?.click;
 
-        const overListener = ()=>{
-          if(actionPayload) eventHandler(`${spriteElement.label}-pointer-over`,{
-            _event :{
-              id: spriteElement.label,
-            },
-            ...actionPayload
-          })
-          if(cursor) spriteElement.cursor = cursor
-          if(soundSrc) app.audioStage.add({
-            id: `hover-${Date.now()}`,
-            url: soundSrc,
-            loop: false,
-          })
-          if(hoverEvents?.src){
-            const hoverTexture = hoverEvents.src ? Texture.from(hoverEvents.src) : Texture.EMPTY;
+      if (eventHandler && hoverEvents) {
+        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        spriteElement.eventMode = "static";
+
+        const overListener = () => {
+          if (actionPayload)
+            eventHandler(`${spriteElement.label}-pointer-over`, {
+              _event: {
+                id: spriteElement.label,
+              },
+              ...actionPayload,
+            });
+          if (cursor) spriteElement.cursor = cursor;
+          if (soundSrc)
+            app.audioStage.add({
+              id: `hover-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+          if (hoverEvents?.src) {
+            const hoverTexture = hoverEvents.src
+              ? Texture.from(hoverEvents.src)
+              : Texture.EMPTY;
             spriteElement.texture = hoverTexture;
           }
-        }
+        };
 
-        const outListener = ()=>{
-          spriteElement.cursor = "auto"
-          spriteElement.texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
-        }
+        const outListener = () => {
+          spriteElement.cursor = "auto";
+          spriteElement.texture = nextAST.url
+            ? Texture.from(nextAST.url)
+            : Texture.EMPTY;
+        };
 
-        spriteElement.on("pointerover", overListener)
-        spriteElement.on("pointerout", outListener)
+        spriteElement.on("pointerover", overListener);
+        spriteElement.on("pointerout", outListener);
 
         spriteElement._hoverCleanupCb = () => {
-          spriteElement.off("pointerover", overListener)
-          spriteElement.off("pointerout", outListener)
-        }
+          spriteElement.off("pointerover", overListener);
+          spriteElement.off("pointerout", outListener);
+        };
       }
 
-      if(eventHandler && clickEvents){
-        const {soundSrc, actionPayload} = clickEvents
-        spriteElement.eventMode = "static"
+      if (eventHandler && clickEvents) {
+        const { soundSrc, actionPayload } = clickEvents;
+        spriteElement.eventMode = "static";
 
-        const clickListener = ()=>{
-          if(actionPayload) eventHandler(`${spriteElement.label}-click`,{
-            _event :{
-              id: spriteElement.label,
-            },
-            ...actionPayload
-          })
-          if(soundSrc) app.audioStage.add({
-            id: `click-${Date.now()}`,
-            url: soundSrc,
-            loop: false,
-          })
-          if(clickEvents?.src){
-            const clickTexture = clickEvents.src ? Texture.from(clickEvents.src) : Texture.EMPTY;
+        const clickListener = () => {
+          if (actionPayload)
+            eventHandler(`${spriteElement.label}-click`, {
+              _event: {
+                id: spriteElement.label,
+              },
+              ...actionPayload,
+            });
+          if (soundSrc)
+            app.audioStage.add({
+              id: `click-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+          if (clickEvents?.src) {
+            const clickTexture = clickEvents.src
+              ? Texture.from(clickEvents.src)
+              : Texture.EMPTY;
             spriteElement.texture = clickTexture;
           }
-        }
+        };
 
-        spriteElement.on("pointerup", clickListener)
+        spriteElement.on("pointerup", clickListener);
 
         spriteElement._clickCleanupCb = () => {
-          spriteElement.off("pointerup", clickListener)
-        }
+          spriteElement.off("pointerup", clickListener);
+        };
       }
     }
-  }
-  signal.addEventListener("abort",()=>{updateElement()})
+  };
+  signal.addEventListener("abort", () => {
+    updateElement();
+  });
 
   if (spriteElement) {
     if (transitions && transitions.length > 0) {
-      await transitionElements(prevAST.id, {app, sprite: spriteElement, transitions, signal});
+      await transitionElements(prevAST.id, {
+        app,
+        sprite: spriteElement,
+        transitions,
+        signal,
+      });
     }
-    updateElement()
+    updateElement();
   }
-    
 }
