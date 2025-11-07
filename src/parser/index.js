@@ -1,7 +1,7 @@
-import { parseContainer } from "./parseContainer.js"
-import { parseRect } from "./parseRect.js"
-import { parseSprite } from "./parseSprite.js"
-import { parseText } from "./parseText.js"
+import { parseContainer } from "./parseContainer.js";
+import { parseRect } from "./parseRect.js";
+import { parseSprite } from "./parseSprite.js";
+import { parseText } from "./parseText.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -9,25 +9,25 @@ import { parseText } from "./parseText.js"
  */
 
 /**
- * 
- * @param {BaseElement} JSONObject 
+ *
+ * @param {BaseElement} JSONObject
  * @returns {ASTNode}
  */
-export default function parseJSONToAST(JSONObject){
-    const parsedASTTree = JSONObject.map(node=>{
-        switch(node.type){
-            case "rect":
-                return parseRect(node)
-            case "container":
-                return parseContainer(node)
-            case "text":
-                return parseText(node)
-            case "sprite":
-                return parseSprite(node)
-            default:
-                throw new Error(`Unsupported element type: ${node.type}`)
-        }
-    })
+export default function parseJSONToAST(JSONObject) {
+  const parsedASTTree = JSONObject.map((node) => {
+    switch (node.type) {
+      case "rect":
+        return parseRect(node);
+      case "container":
+        return parseContainer(node);
+      case "text":
+        return parseText(node);
+      case "sprite":
+        return parseSprite(node);
+      default:
+        throw new Error(`Unsupported element type: ${node.type}`);
+    }
+  });
 
-    return parsedASTTree
+  return parsedASTTree;
 }

@@ -41,7 +41,7 @@
  * @property {Object} actionPayload
  */
 
-/** 
+/**
  * @typedef {Object} ASTNode
  * @property {string} type - Type of the AST node
  * @property {string} id - ID of the AST node
@@ -208,7 +208,7 @@
  * @typedef {BaseElement & ContainerElementOptions} ContainerElement
  */
 /**
- * @readonly 
+ * @readonly
  * @enum {string}
  */
 export const WhiteListTransitionProps = {
@@ -217,8 +217,8 @@ export const WhiteListTransitionProps = {
   y: "y",
   scaleX: "scaleX",
   scaleY: "scaleY",
-  rotation: "rotation"
-}
+  rotation: "rotation",
+};
 
 /**
  * @readonly

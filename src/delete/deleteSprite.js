@@ -14,25 +14,39 @@ import { Container } from "pixi.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function deleteSprite({app, parent, spriteASTNode, transitions, transitionElements, signal}){
-    if (signal?.aborted) {
-        return;
+export async function deleteSprite({
+  app,
+  parent,
+  spriteASTNode,
+  transitions,
+  transitionElements,
+  signal,
+}) {
+  if (signal?.aborted) {
+    return;
+  }
+
+  const sprite = parent.getChildByLabel(spriteASTNode.id);
+
+  if (sprite) {
+    const deleteElement = () => {
+      if (sprite && !sprite.destroyed) {
+        sprite.destroy();
+      }
+    };
+
+    signal.addEventListener("abort", () => {
+      deleteElement();
+    });
+
+    if (transitions && transitions.length > 0) {
+      await transitionElements(spriteASTNode.id, {
+        app,
+        sprite,
+        transitions,
+        signal,
+      });
     }
-
-    const sprite = parent.getChildByLabel(spriteASTNode.id)
-
-    if(sprite){
-        const deleteElement = () => {
-            if (sprite && !sprite.destroyed) {
-                sprite.destroy()
-            }
-        }
-
-        signal.addEventListener("abort",()=>{deleteElement()})
-
-        if (transitions && transitions.length > 0) {
-            await transitionElements(spriteASTNode.id, {app, sprite, transitions, signal});
-        }
-        deleteElement()
-    }
+    deleteElement();
+  }
 }

@@ -126,7 +126,7 @@ export class TextRendererPlugin {
         newText.isOver = false;
       })
       .on("pointerupoutside", () => {
-        newText.style = textStyle
+        newText.style = textStyle;
       })
       .on("pointerup", () => {
         newText.style = textStyle;
