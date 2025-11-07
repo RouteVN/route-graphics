@@ -1,6 +1,7 @@
 ---
 title: Text Revealing Showcase
 description: Showcasing text-revealing element with multiple styled content segments and furigana
+template: "route-graphics.html"
 specs:
   - "Multiple text segments should display with different styles"
   - "Furigana should appear above parent text"
@@ -11,7 +12,6 @@ states:
   - elements:
       - id: 'showcase-text'
         type: "text-revealing"
-        displaySpeed: 20
         content:
           - text: "Hello"
             textStyle:
@@ -19,7 +19,6 @@ states:
               fill: "#e74c3c"
               fontFamily: "Arial"
               fontWeight: "bold"
-          - text: " "
           - text: "世界"
             textStyle:
               fontSize: 36

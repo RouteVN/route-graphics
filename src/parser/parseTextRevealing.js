@@ -37,11 +37,13 @@ function createTextChunks(segments, wordWrapWidth) {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
     };
+    console.log(styleWithWordWrap)
+    // debugger;
     let measurements;
     try{
       measurements = CanvasTextMetrics.measureText(
         segment.text,
-        new TextStyle(styleWithWordWrap),
+        new TextStyle(styleWithWordWrap)
       );
     }
     catch(err){
