@@ -37,11 +37,17 @@ function createTextChunks(segments, wordWrapWidth) {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
     };
-
-    const measurements = CanvasTextMetrics.measureText(
-      segment.text,
-      new TextStyle(styleWithWordWrap),
-    );
+    let measurements;
+    try{
+      measurements = CanvasTextMetrics.measureText(
+        segment.text,
+        new TextStyle(styleWithWordWrap),
+      );
+    }
+    catch(err){
+      console.log(err)
+      throw new Error(err)
+    }
 
     // Check if text fits on current line
     if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {

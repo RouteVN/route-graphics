@@ -11,6 +11,7 @@ import { updateRect } from "../update/updateRect.js";
 import { updateText } from "../update/updateText.js";
 import { updateSprite } from "../update/updateSprite.js";
 import { updateContainer } from "../update/updateContainer.js";
+import { renderTextRevealing } from "./renderTextRevealing.js";
 /**
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
@@ -96,6 +97,13 @@ export async function renderApp({
           }),
         );
         break;
+      case "text-revealing":
+        asyncActions.push(renderTextRevealing({
+          app,
+          parent,
+          element,
+          signal
+        }))
       default:
     }
   }

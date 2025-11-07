@@ -1,0 +1,242 @@
+file: '../../src/parser/parseTextRevealing.js'
+group: parser
+suites: [parseTextRevealing]
+---
+suite: parseTextRevealing
+exportName: parseTextRevealing
+---
+case: Test parsing simple text-revealing object with single content
+in:
+  - id: 'tr1'
+    type: "text-revealing"
+    content:
+      - text: "This is a simple text revealing example"
+    x: 100
+    y: 100
+    textStyle:
+      fontSize: 24
+      fill: "#333333"
+      fontFamily: "Arial"
+out:
+  id: "tr1"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "This is a simple text revealing example"
+          style:
+            fontSize: 24
+            fill: "#333333"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 28.8
+  width: 447.84375
+  height: 28.8
+  x: 100
+  y: 100
+  zIndex: 0
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    fontSize: 24
+    fill: "#333333"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: true
+---
+case: Test parsing text-revealing with word wrapping
+in:
+  - id: 'tr2'
+    type: "text-revealing"
+    content:
+      - text: "This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration."
+    x: 50
+    y: 50
+    width: 300
+    textStyle:
+      fontSize: 20
+      fill: "#2c3e50"
+      fontFamily: "Arial"
+out:
+  id: "tr2"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "This is a longer text that should"
+          style:
+            fontSize: 20
+            fill: "#2c3e50"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 300
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 24
+    - lineParts:
+        - text: "wrap to multiple lines when it"
+          style:
+            fontSize: 20
+            fill: "#2c3e50"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 300
+          x: 0
+          y: 0
+      y: 24
+      lineMaxHeight: 24
+    - lineParts:
+        - text: "exceeds the specified width constraint"
+          style:
+            fontSize: 20
+            fill: "#2c3e50"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 300
+          x: 0
+          y: 0
+      y: 48
+      lineMaxHeight: 24
+    - lineParts:
+        - text: "for proper text layout demonstration."
+          style:
+            fontSize: 20
+            fill: "#2c3e50"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 300
+          x: 0
+          y: 0
+      y: 72
+      lineMaxHeight: 24
+  width: 300
+  height: 96
+  x: 50
+  y: 50
+  zIndex: 0
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    fontSize: 20
+    fill: "#2c3e50"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: true
+---
+case: Test parsing text-revealing with multiple styled content segments
+in:
+  - id: 'tr4'
+    type: "text-revealing"
+    content:
+      - text: "Hello"
+        textStyle:
+          fontSize: 24
+          fill: "#e74c3c"
+      - text: " "
+      - text: "World"
+        textStyle:
+          fontSize: 32
+          fill: "#3498db"
+          fontWeight: "bold"
+      - text: "!"
+        textStyle:
+          fontSize: 28
+          fill: "#27ae60"
+    x: 200
+    y: 200
+    width: 200
+out:
+  id: "tr4"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "Hello"
+          style:
+            fontSize: 24
+            fill: "#e74c3c"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 200
+          x: 0
+          y: 0
+        - text: " "
+          style:
+            fontSize: 24
+            fill: "#333333"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 200
+          x: 57.65625
+          y: 0
+        - text: "World"
+          style:
+            fontSize: 32
+            fill: "#3498db"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            fontWeight: "bold"
+            wordWrapWidth: 200
+          x: 73.65625
+          y: 0
+        - text: "!"
+          style:
+            fontSize: 28
+            fill: "#27ae60"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            breakWords: true
+            wordWrapWidth: 200
+          x: 173.65625
+          y: 0
+      y: 0
+      lineMaxHeight: 38.4
+  width: 200
+  height: 38.4
+  x: 200
+  y: 200
+  zIndex: 0
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: true
