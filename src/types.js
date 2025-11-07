@@ -167,16 +167,36 @@
 
 /**
  * @typedef {Object} TextRevealingASTProps
- * @property {Array<Object>} content - Array of text content with styles
- * @property {string} content[].text - Text content
- * @property {Object} content[].textStyle - Style for this text segment
- * @property {Object} [content[].furigana] - Optional furigana annotation
- * @property {string} content[].furigana.text - Furigana text
- * @property {Object} content[].furigana.textStyle - Style for furigana text
+ * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
+ */
+
+/**
+ * @typedef {Object} TextChunk
+ * @property {Array<TextPart|FuriganaPart>} lineParts - Text and furigana parts in this line
+ * @property {number} y - Vertical position of this line
+ * @property {number} lineMaxHeight - Maximum height of text in this line
+ */
+
+/**
+ * @typedef {Object} TextPart
+ * @property {string} text - Text content
+ * @property {Object} style - Text style
+ * @property {number} x - Horizontal position
+ * @property {number} y - Vertical position (relative to line, usually 0)
+ */
+
+/**
+ * @typedef {Object} FuriganaPart
+ * @property {string} text - Furigana text
+ * @property {Object} style - Furigana text style
+ * @property {number} x - Horizontal position (centered above parent)
+ * @property {number} y - Vertical position (negative, above parent text)
+ * @property {number} parentX - Parent text's horizontal position
+ * @property {number} parentWidth - Parent text's width
  */
 
 /**
