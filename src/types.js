@@ -166,6 +166,20 @@
  */
 
 /**
+ * @typedef {Object} TextRevealingASTProps
+ * @property {Array<Object>} content - Array of text content with styles
+ * @property {string} content[].text - Text content
+ * @property {Object} content[].textStyle - Style for this text segment
+ * @property {Object} [content[].furigana] - Optional furigana annotation
+ * @property {string} content[].furigana.text - Furigana text
+ * @property {Object} content[].furigana.textStyle - Style for furigana text
+ * @property {number} [width] - Width constraint for text wrapping
+ * @property {number} alpha - Opacity/transparency (0-1)
+ * @property {Object} textStyle - Default text style
+ * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
+ */
+
+/**
  * @typedef {Object} PositionAfterAnchorOptions
  * @property {number} positionX
  * @property {number} positionY

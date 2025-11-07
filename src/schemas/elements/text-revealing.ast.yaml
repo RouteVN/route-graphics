@@ -69,6 +69,12 @@ properties:
           type: string
         textStyle:
           "$ref": "#/$def/textStyle"
+        x:
+          type: number
+          description: X position adjusted for anchor point
+        y:
+          type: number
+          description: Y position adjusted for anchor point
         furigana:
           type: object
           properties:
