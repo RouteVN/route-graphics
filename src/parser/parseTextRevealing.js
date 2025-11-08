@@ -37,19 +37,11 @@ function createTextChunks(segments, wordWrapWidth) {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
     };
-    console.log(styleWithWordWrap)
-    // debugger;
-    let measurements;
-    try{
-      measurements = CanvasTextMetrics.measureText(
-        segment.text,
-        new TextStyle(styleWithWordWrap)
-      );
-    }
-    catch(err){
-      console.log(err)
-      throw new Error(err)
-    }
+    
+    const measurements = CanvasTextMetrics.measureText(
+      segment.text,
+      new TextStyle(styleWithWordWrap)
+    )
 
     // Check if text fits on current line
     if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {
@@ -85,7 +77,7 @@ function createTextChunks(segments, wordWrapWidth) {
       text: textPart,
       style: styleWithWordWrap,
       x,
-      y: 0,
+      y,
     };
 
     lineParts.push(newTextPart);
@@ -114,7 +106,7 @@ function createTextChunks(segments, wordWrapWidth) {
       lineParts.push(furiganaPart);
     }
 
-    lineMaxHeight = Math.max(lineMaxHeight, measurements.lineHeight);
+    lineMaxHeight = Math.max(lineMaxHeight, measurements.height);
 
     // Update horizontal position and track max width
     x += measurements.lineWidths[0];
@@ -162,7 +154,6 @@ export function parseTextRevealing(state) {
     align: "left",
     lineHeight: 1.2,
     wordWrap: true,
-    breakWords: true,
   };
 
   const processedContent = (state.content || []).map(item => {

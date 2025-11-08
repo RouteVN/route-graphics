@@ -21,14 +21,12 @@ export async function renderTextRevealing(params) {
   if (element.x !== undefined) container.x = element.x;
   if (element.y !== undefined) container.y = element.y;
   if (element.alpha !== undefined) container.alpha = element.alpha;
+  console.log(element)
 
   // Render each chunk (line)
   element.content.forEach((chunk) => {
     // Check if aborted during iteration
     if (signal?.aborted) return;
-
-    const lineContainer = new Container();
-    lineContainer.y = chunk.y;
 
     // Calculate max height for alignment in this line
     let maxHeight = 0;
@@ -73,7 +71,7 @@ export async function renderTextRevealing(params) {
           width: measurements.width
         });
 
-        lineContainer.addChild(text);
+        container.addChild(text);
       }
     });
 
@@ -99,11 +97,9 @@ export async function renderTextRevealing(params) {
           y: part.y,
         });
 
-        lineContainer.addChild(furiganaText);
+        container.addChild(furiganaText);
       }
     });
-
-    container.addChild(lineContainer);
   });
 
   // Final check before adding to parent

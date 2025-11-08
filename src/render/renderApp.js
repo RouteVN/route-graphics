@@ -97,13 +97,6 @@ export async function renderApp({
           }),
         );
         break;
-      case "text-revealing":
-        asyncActions.push(renderTextRevealing({
-          app,
-          parent,
-          element,
-          signal
-        }))
       default:
     }
   }
@@ -162,6 +155,13 @@ export async function renderApp({
           }),
         );
         break;
+      case "text-revealing":
+        asyncActions.push(renderTextRevealing({
+          app,
+          parent,
+          element,
+          signal
+        }))
       default:
     }
   }
