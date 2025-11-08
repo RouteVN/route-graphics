@@ -2,7 +2,10 @@ import { parseContainer } from "./parseContainer.js";
 import { parseRect } from "./parseRect.js";
 import { parseSprite } from "./parseSprite.js";
 import { parseText } from "./parseText.js";
+<<<<<<< HEAD
 import { parseTextRevealing } from "./parseTextRevealing.js";
+=======
+>>>>>>> main
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
