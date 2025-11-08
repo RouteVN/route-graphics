@@ -149,7 +149,7 @@ function createTextChunks(segments, wordWrapWidth) {
 export function parseTextRevealing(state) {
   const defaultTextStyle = {
     fill: "black",
-    fontFamily: "Arial",
+    fontFamily: "Roboto",
     fontSize: 16,
     align: "left",
     lineHeight: 1.2,
