@@ -1,6 +1,13 @@
 import { Text, TextStyle, Container } from "pixi.js";
 
 /**
+ * Sleep utility for delays
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise} Promise that resolves after delay
+ */
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
  * Simple render function for text-revealing elements
  * @param {Object} params - Render parameters
  * @param {Object} params.app - PIXI application
@@ -9,7 +16,7 @@ import { Text, TextStyle, Container } from "pixi.js";
  * @param {AbortSignal} params.signal - Optional abort signal
  */
 export async function renderTextRevealing(params) {
-  const { app, parent, element, signal } = params;
+  const { app, parent, element, signal, charDelay = 50, chunkDelay = 200 } = params;
 
   // Check if aborted
   if (signal?.aborted) return;
@@ -17,93 +24,75 @@ export async function renderTextRevealing(params) {
   const container = new Container();
   container.label = element.id;
 
-  // Set container position
   if (element.x !== undefined) container.x = element.x;
   if (element.y !== undefined) container.y = element.y;
   if (element.alpha !== undefined) container.alpha = element.alpha;
-  console.log(element)
 
-  // Render each chunk (line)
-  element.content.forEach((chunk) => {
-    // Check if aborted during iteration
+  // Add container to parent immediately so it's visible
+  parent.addChild(container);
+
+  // Process each chunk sequentially
+  for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
     if (signal?.aborted) return;
 
-    // Calculate max height for alignment in this line
-    let maxHeight = 0;
-    const textPositions = new Map();
+    const chunk = element.content[chunkIndex];
 
-    // First pass: render regular text and store positions
-    chunk.lineParts.forEach((part) => {
+    // Process each line part in the chunk
+    for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
       if (signal?.aborted) return;
 
-      if (!part.isFurigana) {
-        const textStyle = new TextStyle({
-          wordWrap: false,
-          align: "left",
-          fill: part.style.fill,
-          fontSize: part.style.fontSize,
-          fontFamily: part.style.fontFamily || "Arial",
-          lineHeight: part.style.lineHeight,
-          whiteSpace: "pre",
-          trim: false,
-          stroke: part.style.strokeColor
-            ? {
-                color: part.style.strokeColor,
-                width: part.style.strokeWidth,
-              }
-            : undefined,
+      const part = chunk.lineParts[partIndex];
+
+      // Create text objects for this part
+      const textStyle = new TextStyle(part.textStyle);
+      const text = new Text({
+        text: "",
+        style: textStyle,
+        x: part.x,
+        y: part.y,
+      });
+
+      let furiganaText = null;
+      if (part.furigana) {
+        const furiganaTextStyle = new TextStyle(part.furigana.textStyle);
+        furiganaText = new Text({
+          text: "", 
+          style: furiganaTextStyle,
+          x: part.furigana.x,
+          y: part.furigana.y, 
         });
-
-        const text = new Text({
-          text: part.text,
-          style: textStyle,
-          x: part.x,
-          y: part.y,
-        });
-
-        const measurements = text.getBounds();
-        maxHeight = Math.max(maxHeight, measurements.height);
-
-        // Store position for furigana calculation
-        textPositions.set(part.x, {
-          yOffset: part.y,
-          height: measurements.height,
-          width: measurements.width
-        });
-
-        container.addChild(text);
-      }
-    });
-
-    // Second pass: render furigana
-    chunk.lineParts.forEach((part) => {
-      if (signal?.aborted) return;
-
-      if (part.isFurigana) {
-        const textStyle = new TextStyle({
-          wordWrap: false,
-          align: "left",
-          fill: part.style.fill,
-          fontSize: part.style.fontSize,
-          fontFamily: part.style.fontFamily || "Arial",
-          whiteSpace: "pre",
-          trim: false,
-        });
-
-        const furiganaText = new Text({
-          text: part.text,
-          style: textStyle,
-          x: part.x,
-          y: part.y,
-        });
-
         container.addChild(furiganaText);
       }
-    });
-  });
 
-  // Final check before adding to parent
-  if (!signal?.aborted) {
-    parent.addChild(container);
+      container.addChild(text);
+
+      // Reveal text character by character
+      const fullText = part.text;
+      const fullFurigana = part.furigana?.text || "";
+      const furiganaLength = fullFurigana.length;
+
+      for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
+        if (signal?.aborted) return;
+
+        // Add current character to text
+        text.text = fullText.substring(0, charIndex + 1);
+
+        // Calculate how much furigana to show based on text progress
+        const furiganaProgress = Math.round((charIndex + 1) / fullText.length * furiganaLength);
+        if (furiganaText) {
+          furiganaText.text = fullFurigana.substring(0, furiganaProgress);
+        }
+
+        // Wait before adding next character
+        if (charIndex < fullText.length - 1) { // Don't wait after last character
+          await sleep(charDelay);
+        }
+      }
+    }
+
+    // Wait before processing next chunk (except for the last chunk)
+    if (chunkIndex < element.content.length - 1) {
+      await sleep(chunkDelay);
+    }
   }
 }

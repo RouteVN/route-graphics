@@ -75,12 +75,11 @@ function createTextChunks(segments, wordWrapWidth) {
     // Create text part object
     const newTextPart = {
       text: textPart,
-      style: styleWithWordWrap,
+      textStyle: styleWithWordWrap,
       x,
       y,
     };
 
-    lineParts.push(newTextPart);
 
     // Add furigana if present and not already added for this segment
     if (segment.furigana && !segmentFuriganaAdded.has(segment)) {
@@ -92,19 +91,20 @@ function createTextChunks(segments, wordWrapWidth) {
       );
 
       // Calculate furigana position relative to current line's max height
-      const furiganaYOffset = -furiganaMeasurements.height - 2; // 2px gap above text
+      const furiganaYOffset = -furiganaMeasurements.height + y; // 2px gap above text
 
       const furiganaPart = {
         text: segment.furigana.text,
-        style: segment.furigana.textStyle,
+        textStyle: segment.furigana.textStyle,
         x: x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2,
         y: furiganaYOffset,
         parentX: x,
         parentWidth: measurements.lineWidths[0],
       };
 
-      lineParts.push(furiganaPart);
+      newTextPart.furigana = furiganaPart;
     }
+    lineParts.push(newTextPart);
 
     lineMaxHeight = Math.max(lineMaxHeight, measurements.height);
 

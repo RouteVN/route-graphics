@@ -176,7 +176,7 @@
 
 /**
  * @typedef {Object} TextChunk
- * @property {Array<TextPart|FuriganaPart>} lineParts - Text and furigana parts in this line
+ * @property {Array<TextPart>} lineParts - Text and furigana parts in this line
  * @property {number} y - Vertical position of this line
  * @property {number} lineMaxHeight - Maximum height of text in this line
  */
@@ -184,15 +184,16 @@
 /**
  * @typedef {Object} TextPart
  * @property {string} text - Text content
- * @property {Object} style - Text style
+* @property {Object} textStyle - Text style
  * @property {number} x - Horizontal position
  * @property {number} y - Vertical position (relative to line, usually 0)
+ * @property {FuriganaPart} furigana
  */
 
 /**
  * @typedef {Object} FuriganaPart
  * @property {string} text - Furigana text
- * @property {Object} style - Furigana text style
+ * @property {Object} textStyle - Furigana text style
  * @property {number} x - Horizontal position (centered above parent)
  * @property {number} y - Vertical position (negative, above parent text)
  * @property {number} parentX - Parent text's horizontal position
