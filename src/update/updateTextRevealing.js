@@ -29,7 +29,7 @@ export async function updateTextRevealing(params) {
   if (signal?.aborted) return;
 
   const textRevealingElement = parent.children.find(
-    (child) => child.label === prevTextASTNode.id,
+    (child) => child.label === textRevealingASTNode.id,
   );
   if(textRevealingElement){
     textRevealingElement.removeChildren()
@@ -72,7 +72,10 @@ export async function updateTextRevealing(params) {
         }
   
         textRevealingElement.addChild(text);
-  
+        // Reveal text character by character or all at once if skipping animations
+        const fullText = part.text;
+        const fullFurigana = part.furigana?.text || "";
+        
        if (skipAnimations) {
             text.text = fullText;
             if (furiganaText) {

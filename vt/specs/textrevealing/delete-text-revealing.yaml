@@ -1,0 +1,55 @@
+---
+title: Delete Text Revealing Elements
+description: Tests deletion of text-revealing elements while keeping other elements intact
+template: "route-graphics.html"
+specs:
+  - "First text-revealing element should be deleted"
+  - "Second text-revealing element should remain visible"
+  - "Other element types should remain unaffected"
+  - "Container should update properly after deletion"
+---
+states:
+  - elements:
+      - id: 'text-revealing-delete-1'
+        type: "text-revealing"
+        content:
+          - text: "This text will be deleted"
+            textStyle:
+              fontSize: 24
+              fill: "#e74c3c"
+              fontFamily: "Arial"
+        x: 50
+        y: 50
+        width: 300
+        alpha: 1
+        speed: 50
+        skipAnimations: false
+      - id: 'text-revealing-keep-1'
+        type: "text-revealing"
+        content:
+          - text: "This text should remain"
+            textStyle:
+              fontSize: 20
+              fill: "blue"
+              fontFamily: "Arial"
+        x: 50
+        y: 150
+        width: 300
+        alpha: 1
+        speed: 30
+        skipAnimations: false
+  - elements:
+      - id: 'text-revealing-keep-1'
+        type: "text-revealing"
+        content:
+          - text: "This text should remain"
+            textStyle:
+              fontSize: 20
+              fill: "blue"
+              fontFamily: "Arial"
+        x: 50
+        y: 150
+        width: 300
+        alpha: 1
+        speed: 30
+        skipAnimations: false
