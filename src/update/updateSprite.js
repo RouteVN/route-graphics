@@ -56,6 +56,8 @@ export async function updateSprite({
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");
+      spriteElement.removeAllListeners("pointerdown");
+      spriteElement.removeAllListeners("pointerout");
       spriteElement.removeAllListeners("pointerup");
 
       const hoverEvents = nextSpriteASTNode?.hover;
@@ -97,11 +99,6 @@ export async function updateSprite({
 
         spriteElement.on("pointerover", overListener);
         spriteElement.on("pointerout", outListener);
-
-        spriteElement._hoverCleanupCb = () => {
-          spriteElement.off("pointerover", overListener);
-          spriteElement.off("pointerout", outListener);
-        };
       }
 
       if (eventHandler && clickEvents) {
@@ -109,6 +106,22 @@ export async function updateSprite({
         spriteElement.eventMode = "static";
 
         const clickListener = () => {
+          // Apply click texture during pointerdown
+          if (clickEvents?.src) {
+            const clickTexture = clickEvents.src
+              ? Texture.from(clickEvents.src)
+              : Texture.EMPTY;
+            spriteElement.texture = clickTexture;
+          }
+        };
+
+        const releaseListener = () => {
+          // Restore original texture on pointerup
+          spriteElement.texture = nextSpriteASTNode.url
+            ? Texture.from(nextSpriteASTNode.url)
+            : Texture.EMPTY;
+
+          // Trigger event and sound on pointerup
           if (actionPayload)
             eventHandler(`${spriteElement.label}-click`, {
               _event: {
@@ -122,19 +135,18 @@ export async function updateSprite({
               url: soundSrc,
               loop: false,
             });
-          if (clickEvents?.src) {
-            const clickTexture = clickEvents.src
-              ? Texture.from(clickEvents.src)
-              : Texture.EMPTY;
-            spriteElement.texture = clickTexture;
-          }
         };
 
-        spriteElement.on("pointerup", clickListener);
-
-        spriteElement._clickCleanupCb = () => {
-          spriteElement.off("pointerup", clickListener);
+        const outListener = () => {
+          // Restore original texture on pointerout
+          spriteElement.texture = nextSpriteASTNode.url
+            ? Texture.from(nextSpriteASTNode.url)
+            : Texture.EMPTY;
         };
+
+        spriteElement.on("pointerdown", clickListener);
+        spriteElement.on("pointerup", releaseListener);
+        spriteElement.on("pointerout", outListener);
       }
     }
   };

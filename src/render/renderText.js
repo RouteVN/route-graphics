@@ -84,6 +84,15 @@ export default async function renderText({
     text.eventMode = "static";
 
     const clickListener = () => {
+      // Apply click style during pointerdown
+      if (clickEvents?.textStyle) applyTextStyle(text, clickEvents.textStyle);
+    };
+
+    const releaseListener = () => {
+      // Restore original style on pointerup
+      applyTextStyle(text, textASTNode.style);
+
+      // Trigger event and sound on pointerup
       if (actionPayload)
         eventHandler(`${text.label}-click`, {
           _event: {
@@ -97,10 +106,16 @@ export default async function renderText({
           url: soundSrc,
           loop: false,
         });
-      if (clickEvents?.textStyle) applyTextStyle(text, clickEvents.textStyle);
     };
 
-    text.on("pointerup", clickListener);
+    const outListener = () => {
+      // Restore original style on pointerout
+      applyTextStyle(text, textASTNode.style);
+    };
+
+    text.on("pointerdown", clickListener);
+    text.on("pointerup", releaseListener);
+    text.on("pointerout", outListener);
   }
 
   parent.addChild(text);

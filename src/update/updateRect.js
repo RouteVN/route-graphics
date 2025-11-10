@@ -87,11 +87,6 @@ export async function updateRect({
 
         rectElement.on("pointerover", overListener);
         rectElement.on("pointerout", outListener);
-
-        rectElement._hoverCleanupCb = () => {
-          rectElement.off("pointerover", overListener);
-          rectElement.off("pointerout", outListener);
-        };
       }
 
       if (eventHandler && clickEvents) {
@@ -116,9 +111,6 @@ export async function updateRect({
 
         rectElement.on("pointerup", clickListener);
 
-        rectElement._clickCleanupCb = () => {
-          rectElement.off("pointerup", clickListener);
-        };
       }
     }
   };
