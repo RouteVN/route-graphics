@@ -5,7 +5,7 @@ import { Text, TextStyle, Container } from "pixi.js";
  * @param {number} ms - Milliseconds to sleep
  * @returns {Promise} Promise that resolves after delay
  */
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Simple render function for text-revealing elements
@@ -19,10 +19,10 @@ export async function renderTextRevealing(params) {
   const { app, parent, textRevealingASTNode, signal } = params;
 
   const speed = textRevealingASTNode.speed ?? 50;
-  const revealEffect = textRevealingASTNode.revealEffect ?? 'typewriter';
+  const revealEffect = textRevealingASTNode.revealEffect ?? "typewriter";
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
-  const skipAnimations = revealEffect === 'none';
+  const skipAnimations = revealEffect === "none";
   const charDelay = skipAnimations ? 0 : Math.max(1, Math.floor(1000 / speed));
   const chunkDelay = skipAnimations ? 0 : Math.max(1, Math.floor(4000 / speed));
 
@@ -32,14 +32,21 @@ export async function renderTextRevealing(params) {
   const container = new Container();
   container.label = textRevealingASTNode.id;
 
-  if (textRevealingASTNode.x !== undefined) container.x = textRevealingASTNode.x;
-  if (textRevealingASTNode.y !== undefined) container.y = textRevealingASTNode.y;
-  if (textRevealingASTNode.alpha !== undefined) container.alpha = textRevealingASTNode.alpha;
+  if (textRevealingASTNode.x !== undefined)
+    container.x = textRevealingASTNode.x;
+  if (textRevealingASTNode.y !== undefined)
+    container.y = textRevealingASTNode.y;
+  if (textRevealingASTNode.alpha !== undefined)
+    container.alpha = textRevealingASTNode.alpha;
   // Add container to parent immediately so it's visible
   parent.addChild(container);
 
   // Process each chunk sequentially
-  for (let chunkIndex = 0; chunkIndex < textRevealingASTNode.content.length; chunkIndex++) {
+  for (
+    let chunkIndex = 0;
+    chunkIndex < textRevealingASTNode.content.length;
+    chunkIndex++
+  ) {
     if (signal?.aborted) return;
 
     const chunk = textRevealingASTNode.content[chunkIndex];
@@ -56,17 +63,17 @@ export async function renderTextRevealing(params) {
         text: "",
         style: textStyle,
         x: part.x,
-        y: part.y
+        y: part.y,
       });
 
       let furiganaText = null;
       if (part.furigana) {
         const furiganaTextStyle = new TextStyle(part.furigana.textStyle);
         furiganaText = new Text({
-          text: "", 
+          text: "",
           style: furiganaTextStyle,
           x: part.furigana.x,
-          y: part.furigana.y, 
+          y: part.furigana.y,
         });
         container.addChild(furiganaText);
       }
@@ -93,13 +100,16 @@ export async function renderTextRevealing(params) {
           text.text = fullText.substring(0, charIndex + 1);
 
           // Calculate how much furigana to show based on text progress
-          const furiganaProgress = Math.round((charIndex + 1) / fullText.length * furiganaLength);
+          const furiganaProgress = Math.round(
+            ((charIndex + 1) / fullText.length) * furiganaLength,
+          );
           if (furiganaText) {
             furiganaText.text = fullFurigana.substring(0, furiganaProgress);
           }
 
           // Wait before adding next character
-          if (charIndex < fullText.length - 1) { // Don't wait after last character
+          if (charIndex < fullText.length - 1) {
+            // Don't wait after last character
             await sleep(charDelay);
           }
         }

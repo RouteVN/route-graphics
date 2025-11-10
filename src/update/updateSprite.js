@@ -36,9 +36,13 @@ export async function updateSprite({
   );
 
   const updateElement = () => {
-    if (JSON.stringify(prevSpriteASTNode) !== JSON.stringify(nextSpriteASTNode)) {
+    if (
+      JSON.stringify(prevSpriteASTNode) !== JSON.stringify(nextSpriteASTNode)
+    ) {
       if (prevSpriteASTNode.url !== nextSpriteASTNode.url) {
-        const texture = nextSpriteASTNode.url ? Texture.from(nextSpriteASTNode.url) : Texture.EMPTY;
+        const texture = nextSpriteASTNode.url
+          ? Texture.from(nextSpriteASTNode.url)
+          : Texture.EMPTY;
         spriteElement.texture = texture;
       }
 

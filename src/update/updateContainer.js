@@ -35,14 +35,18 @@ export async function updateContainer({
     (child) => child.label === prevContainerASTNode.id,
   );
   const updateElement = async () => {
-    if (JSON.stringify(prevContainerASTNode) !== JSON.stringify(nextContainerASTNode)) {
+    if (
+      JSON.stringify(prevContainerASTNode) !==
+      JSON.stringify(nextContainerASTNode)
+    ) {
       containerElement.x = nextContainerASTNode.x;
       containerElement.y = nextContainerASTNode.y;
       containerElement.zIndex = nextContainerASTNode.zIndex;
       containerElement.label = nextContainerASTNode.id;
 
       if (
-        JSON.stringify(prevContainerASTNode.children) !== JSON.stringify(nextContainerASTNode.children)
+        JSON.stringify(prevContainerASTNode.children) !==
+        JSON.stringify(nextContainerASTNode.children)
       ) {
         await renderApp({
           app,

@@ -105,9 +105,9 @@ export async function renderApp({
             app,
             parent,
             textRevealingASTNode: element,
-            signal
-          })
-        )
+            signal,
+          }),
+        );
       default:
     }
   }
@@ -167,12 +167,14 @@ export async function renderApp({
         );
         break;
       case "text-revealing":
-        asyncActions.push(renderTextRevealing({
-          app,
-          parent,
-          textRevealingASTNode: element,
-          signal
-        }))
+        asyncActions.push(
+          renderTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: element,
+            signal,
+          }),
+        );
       default:
     }
   }
@@ -235,12 +237,14 @@ export async function renderApp({
           }),
         );
       case "text-revealing":
-        asyncActions.push(updateTextRevealing({
-          app,
-          parent,
-          textRevealingASTNode: next,
-          signal
-        }))
+        asyncActions.push(
+          updateTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: next,
+            signal,
+          }),
+        );
         break;
       default:
     }

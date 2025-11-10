@@ -96,8 +96,8 @@ export async function renderContainer({
           app,
           parent,
           textRevealingASTNode: child,
-          signal
-        })
+          signal,
+        });
       default:
         throw new Error("Unkown types");
     }

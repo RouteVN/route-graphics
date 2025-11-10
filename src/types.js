@@ -186,7 +186,7 @@
 /**
  * @typedef {Object} TextPart
  * @property {string} text - Text content
-* @property {Object} textStyle - Text style
+ * @property {Object} textStyle - Text style
  * @property {number} x - Horizontal position
  * @property {number} y - Vertical position (relative to line, usually 0)
  * @property {FuriganaPart} furigana

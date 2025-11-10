@@ -37,11 +37,11 @@ function createTextChunks(segments, wordWrapWidth) {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
     };
-    
+
     const measurements = CanvasTextMetrics.measureText(
       segment.text,
-      new TextStyle(styleWithWordWrap)
-    )
+      new TextStyle(styleWithWordWrap),
+    );
 
     // Check if text fits on current line
     if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {
@@ -78,9 +78,9 @@ function createTextChunks(segments, wordWrapWidth) {
       new TextStyle({
         ...segment.textStyle,
         wordWrap: false,
-        breakWords: false
-      })
-    )
+        breakWords: false,
+      }),
+    );
 
     // Create text part object
     const newTextPart = {
@@ -90,7 +90,6 @@ function createTextChunks(segments, wordWrapWidth) {
       x,
       y,
     };
-
 
     // Add furigana if present and not already added for this segment
     if (segment.furigana && !segmentFuriganaAdded.has(segment)) {
@@ -102,7 +101,7 @@ function createTextChunks(segments, wordWrapWidth) {
       );
 
       // Calculate furigana position relative to current line's max height
-      const furiganaYOffset = -furiganaMeasurements.height + y + 2; 
+      const furiganaYOffset = -furiganaMeasurements.height + y + 2;
 
       const furiganaPart = {
         text: segment.furigana.text,
@@ -140,34 +139,36 @@ function createTextChunks(segments, wordWrapWidth) {
   }
 
   //Align them to the bottom
-  for(let i=0; i<chunks.length; i++){
-    const tallestHeight = chunks[i].lineMaxHeight
-    chunks[i].lineParts = chunks[i].lineParts.map(part=>{
-      const partHeight = part.height
-      if(part.height) delete part.height
-      const bottomAlignYPos =  part.y + (tallestHeight - partHeight)
-      
-      let furigana = part.furigana
-      if(furigana){
-        furigana.y = (furigana.y - part.y) + bottomAlignYPos
+  for (let i = 0; i < chunks.length; i++) {
+    const tallestHeight = chunks[i].lineMaxHeight;
+    chunks[i].lineParts = chunks[i].lineParts.map((part) => {
+      const partHeight = part.height;
+      if (part.height) delete part.height;
+      const bottomAlignYPos = part.y + (tallestHeight - partHeight);
+
+      let furigana = part.furigana;
+      if (furigana) {
+        furigana.y = furigana.y - part.y + bottomAlignYPos;
       }
 
       return {
         ...part,
-        ...(furigana && {furigana}),
-        y: bottomAlignYPos
-      }
-    })
+        ...(furigana && { furigana }),
+        y: bottomAlignYPos,
+      };
+    });
   }
 
   // Calculate final height
-  const finalHeight = chunks.length > 0 ?
-    chunks[chunks.length - 1].y + chunks[chunks.length - 1].lineMaxHeight : 0;
+  const finalHeight =
+    chunks.length > 0
+      ? chunks[chunks.length - 1].y + chunks[chunks.length - 1].lineMaxHeight
+      : 0;
 
   return {
     chunks,
     width: Math.max(maxTotalWidth, wordWrapWidth),
-    height: finalHeight
+    height: finalHeight,
   };
 }
 
@@ -186,7 +187,7 @@ export function parseTextRevealing(state) {
     wordWrap: true,
   };
 
-  const processedContent = (state.content || []).map(item => {
+  const processedContent = (state.content || []).map((item) => {
     const itemTextStyle = {
       ...defaultTextStyle,
       ...(item.textStyle || {}),
@@ -217,9 +218,7 @@ export function parseTextRevealing(state) {
 
     // Replace trailing spaces with non-breaking spaces
     return {
-      text: item.text.replace(/ +$/, (match) =>
-        "\u00A0".repeat(match.length),
-      ),
+      text: item.text.replace(/ +$/, (match) => "\u00A0".repeat(match.length)),
       textStyle: itemTextStyle,
       ...(furigana && { furigana }),
     };
@@ -227,7 +226,11 @@ export function parseTextRevealing(state) {
 
   // Calculate text dimensions using unified chunk approach
   const wordWrapWidth = state.width || 500;
-  const { chunks, width: calculatedWidth, height: calculatedHeight } = createTextChunks(processedContent, wordWrapWidth);
+  const {
+    chunks,
+    width: calculatedWidth,
+    height: calculatedHeight,
+  } = createTextChunks(processedContent, wordWrapWidth);
 
   const finalWidth = state.width || calculatedWidth;
   const finalHeight = calculatedHeight;
@@ -235,7 +238,7 @@ export function parseTextRevealing(state) {
   let astObj = parseCommonObject({
     ...state,
     width: finalWidth,
-    height: finalHeight
+    height: finalHeight,
   });
 
   astObj.alpha = state.alpha ?? 1;
@@ -248,7 +251,7 @@ export function parseTextRevealing(state) {
       ...(state.textStyle || {}),
     },
     speed: state.speed ?? 50,
-    revealEffect: state.revealEffect ?? 'typewriter',
+    revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
   };
 }
