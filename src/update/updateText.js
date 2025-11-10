@@ -81,7 +81,6 @@ export async function updateText({
 
         textElement.on("pointerover", overListener);
         textElement.on("pointerout", outListener);
-
       }
 
       if (eventHandler && clickEvents) {
@@ -90,7 +89,8 @@ export async function updateText({
 
         const clickListener = () => {
           // Apply click style during pointerdown
-          if (clickEvents?.textStyle) applyTextStyle(textElement, clickEvents.textStyle);
+          if (clickEvents?.textStyle)
+            applyTextStyle(textElement, clickEvents.textStyle);
         };
 
         const releaseListener = () => {

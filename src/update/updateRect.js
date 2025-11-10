@@ -110,7 +110,6 @@ export async function updateRect({
         };
 
         rectElement.on("pointerup", clickListener);
-
       }
     }
   };
