@@ -1,0 +1,45 @@
+---
+title: Update Text Revealing Content and Properties
+description: Tests updating text-revealing elements with different content, positions, and properties
+template: "route-graphics.html"
+specs:
+  - "Text content should update from original to new text"
+  - "Position should update from original to new coordinates"
+  - "Text style should update properly"
+  - "Speed property should affect animation timing"
+  - "Width constraint should be respected after update"
+---
+states:
+  - elements:
+      - id: 'text-revealing-1'
+        type: "text-revealing"
+        content:
+          - text: "Original text content"
+            textStyle:
+              fontSize: 20
+              fill: "#3498db"
+              fontFamily: "Arial"
+        x: 50
+        y: 50
+        width: 300
+        alpha: 1
+        speed: 50
+  - elements:
+      - id: 'text-revealing-1'
+        type: "text-revealing"
+        content:
+          - text: "Updated content with new text"
+            textStyle:
+              fontSize: 24
+              fill: "#e74c3c"
+              fontFamily: "Georgia"
+          - text: " Additional segment"
+            textStyle:
+              fontSize: 18
+              fill: "#27ae60"
+              fontFamily: "Arial"
+        x: 100
+        y: 100
+        width: 400
+        alpha: 0.8
+        speed: 100

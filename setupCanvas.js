@@ -12,7 +12,9 @@ global.HTMLElement = dom.window.HTMLElement
 // Patch <canvas> to use node-canvas
 global.HTMLCanvasElement.prototype.getContext = function (type) {
   if (type === '2d') {
-    const canvas = createCanvas(this.width, this.height)
+    const width = this.width || 1280
+    const height = this.height || 720
+    const canvas = createCanvas(width, height)
     return canvas.getContext('2d')
   }
   return null

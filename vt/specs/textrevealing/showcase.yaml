@@ -1,0 +1,76 @@
+---
+title: Text Revealing Showcase
+description: Showcasing text-revealing element with multiple styled content segments and furigana
+template: "route-graphics.html"
+specs:
+  - "Multiple text segments should display with different styles"
+  - "Furigana should appear above parent text"
+  - "Text should wrap properly within width constraint"
+  - "Different font sizes and colors should be preserved"
+---
+states:
+  - elements:
+      - id: 'showcase-text'
+        type: "text-revealing"
+        content:
+          - text: "Hello"
+            textStyle:
+              fontSize: 32
+              fill: "#e74c3c"
+              fontFamily: "Arial"
+              fontWeight: "bold"
+          - text: "jhlasdfa"
+            textStyle:
+              fontSize: 36
+              fill: "#3498db"
+              fontFamily: "Arial"
+            furigana:
+              text: "asll;ajs;foga"
+              textStyle:
+                fontSize: 14
+                fill: "#f39c12"
+                fontFamily: "Arial"
+          - text: "!"
+            textStyle:
+              fontSize: 28
+              fill: "#27ae60"
+              fontFamily: "Arial"
+              fontStyle: "italic"
+          - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
+            textStyle:
+              fontSize: 20
+              fill: "#2c3e50"
+              fontFamily: "Georgia"
+              lineHeight: 1.4
+          - text: " Different colors"
+            textStyle:
+              fontSize: 24
+              fill: "#9b59b6"
+              fontFamily: "Arial"
+          - text: " sizes"
+            textStyle:
+              fontSize: 18
+              fill: "#e67e22"
+              fontFamily: "Arial"
+          - text: " and fonts"
+            textStyle:
+              fontSize: 22
+              fill: "#16a085"
+              fontFamily: "Courier New"
+            furigana:
+              text: "fonts"
+              textStyle:
+                fontSize: 10
+                fill: "#95a5a6"
+                fontFamily: "Arial"
+          - text: " can all be mixed together in a single text-revealing element."
+            textStyle:
+              fontSize: 20
+              fill: "#34495e"
+              fontFamily: "Georgia"
+              fontStyle: "italic"
+              lineHeight: 1.4
+        x: 50
+        y: 50
+        width: 600
+        alpha: 1

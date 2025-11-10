@@ -11,8 +11,8 @@ import { renderApp } from "../render/renderApp.js";
  * @param {Object} params
  * @param {import('pixi.js').Application} params.app
  * @param {Container} params.parent
- * @param {ContainerASTNode} params.prevAST
- * @param {ContainerASTNode} params.nextAST
+ * @param {ContainerASTNode} params.prevContainerASTNode
+ * @param {ContainerASTNode} params.nextContainerASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
@@ -20,8 +20,8 @@ import { renderApp } from "../render/renderApp.js";
 export async function updateContainer({
   app,
   parent,
-  prevAST,
-  nextAST,
+  prevContainerASTNode,
+  nextContainerASTNode,
   eventHandler,
   transitions,
   transitionElements,
@@ -32,23 +32,27 @@ export async function updateContainer({
   }
 
   const containerElement = parent.children.find(
-    (child) => child.label === prevAST.id,
+    (child) => child.label === prevContainerASTNode.id,
   );
   const updateElement = async () => {
-    if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
-      containerElement.x = nextAST.x;
-      containerElement.y = nextAST.y;
-      containerElement.zIndex = nextAST.zIndex;
-      containerElement.label = nextAST.id;
+    if (
+      JSON.stringify(prevContainerASTNode) !==
+      JSON.stringify(nextContainerASTNode)
+    ) {
+      containerElement.x = nextContainerASTNode.x;
+      containerElement.y = nextContainerASTNode.y;
+      containerElement.zIndex = nextContainerASTNode.zIndex;
+      containerElement.label = nextContainerASTNode.id;
 
       if (
-        JSON.stringify(prevAST.children) !== JSON.stringify(nextAST.children)
+        JSON.stringify(prevContainerASTNode.children) !==
+        JSON.stringify(nextContainerASTNode.children)
       ) {
         await renderApp({
           app,
           parent: containerElement,
-          nextASTTree: prevAST.children,
-          prevASTTree: nextAST.children,
+          nextASTTree: prevContainerASTNode.children,
+          prevASTTree: nextContainerASTNode.children,
           transitions,
           eventHandler,
           signal,
@@ -63,7 +67,7 @@ export async function updateContainer({
 
   if (containerElement) {
     if (transitions && transitions.length > 0) {
-      await transitionElements(prevAST.id, {
+      await transitionElements(prevContainerASTNode.id, {
         app,
         sprite: containerElement,
         transitions,

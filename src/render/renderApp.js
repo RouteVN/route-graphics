@@ -11,6 +11,9 @@ import { updateRect } from "../update/updateRect.js";
 import { updateText } from "../update/updateText.js";
 import { updateSprite } from "../update/updateSprite.js";
 import { updateContainer } from "../update/updateContainer.js";
+import { renderTextRevealing } from "./renderTextRevealing.js";
+import { updateTextRevealing } from "../update/updateTextRevealing.js";
+import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
 /**
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
@@ -96,6 +99,15 @@ export async function renderApp({
           }),
         );
         break;
+      case "text-revealing":
+        asyncActions.push(
+          deleteTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: element,
+            signal,
+          }),
+        );
       default:
     }
   }
@@ -154,6 +166,15 @@ export async function renderApp({
           }),
         );
         break;
+      case "text-revealing":
+        asyncActions.push(
+          renderTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: element,
+            signal,
+          }),
+        );
       default:
     }
   }
@@ -193,8 +214,8 @@ export async function renderApp({
           updateContainer({
             app,
             parent,
-            prevAST: prev,
-            nextAST: next,
+            prevContainerASTNode: prev,
+            nextContainerASTNode: next,
             transitions,
             transitionElements,
             eventHandler,
@@ -207,11 +228,20 @@ export async function renderApp({
           updateSprite({
             app,
             parent,
-            prevAST: prev,
-            nextAST: next,
+            prevSpriteASTNode: prev,
+            nextSpriteASTNode: next,
             transitions,
             transitionElements,
             eventHandler,
+            signal,
+          }),
+        );
+      case "text-revealing":
+        asyncActions.push(
+          updateTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: next,
             signal,
           }),
         );

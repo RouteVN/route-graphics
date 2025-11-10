@@ -48,6 +48,12 @@ vt:
         - title: "Sprite Events"
           files: "spriteevent"
           description: "Sprite event interaction tests"
+    - title: "Text revealing"
+      type: "groupLabel"
+      items:
+        - title: "TextRevealing"
+          files: "textrevealing"
+          description: "Using textrevealing"
     - title: "Route Graphics"
       type: "groupLabel"
       items:

@@ -2,6 +2,7 @@ import { parseCommonObject } from "./parseCommonObject.js";
 import { parseRect } from "./parseRect.js";
 import { parseText } from "./parseText.js";
 import { parseSprite } from "./parseSprite.js";
+import { parseTextRevealing } from "./parseTextRevealing.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -59,6 +60,9 @@ export function parseContainer(state) {
         break;
       case "text":
         child = parseText(child);
+        break;
+      case "text-revealing":
+        child = parseTextRevealing(child);
         break;
       case "sprite":
         child = parseSprite(child);

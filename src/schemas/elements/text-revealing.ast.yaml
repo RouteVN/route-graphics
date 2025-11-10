@@ -62,20 +62,43 @@ properties:
     description: The text content to display. It is an array so we can support multiple rich text in different styles.
     items:
       type: object
-      required:
-        - text
       properties:
-        text:
-          type: string
-        textStyle:
-          "$ref": "#/$def/textStyle"
-        furigana:
-          type: object
-          properties:
-            text:
-              type: string
-            textStyle:
-              "$ref": "#/$def/textStyle"
+        y:
+          type: number
+          description: Y position of the line
+        lineParts:
+          type: array
+          description: Array of text and furigana parts in this line
+          items:
+            type: object
+            properties:
+              text: 
+                type: string
+                description: The text content
+              textStyle: 
+                "$ref": "#/$def/textStyle"
+              x:
+                type: number
+                description: Horizontal position (centered above parent)
+              y:
+                type: number
+                description: Vertical position (negative, above parent text)
+              furigana:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  textStyle:
+                    "$ref": "#/$def/textStyle"
+                  x:
+                    type: number
+                    description: Horizontal position (centered above parent)
+                  y:
+                    type: number
+                    description: Vertical position (negative, above parent text)
+        lineMaxHeight:
+          type: number
+          description: Maximum height of text in this line
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.
@@ -98,3 +121,12 @@ properties:
     maximum: 1
   textStyle:
     "$ref": "#/$def/textStyle"
+  speed:
+    type: number
+    description: Animation speed for text revealing
+    default: 50
+  revealEffect:
+    type: string
+    enum: [typewriter,none]
+    description: Text animation.
+    default: typewriter

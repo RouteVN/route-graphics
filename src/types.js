@@ -166,6 +166,41 @@
  */
 
 /**
+ * @typedef {Object} TextRevealingASTProps
+ * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
+ * @property {number} [width] - Width constraint for text wrapping
+ * @property {number} alpha - Opacity/transparency (0-1)
+ * @property {Object} textStyle - Default text style
+ * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {'typewriter' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = normal animation, none = skip animation)
+ * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
+ */
+
+/**
+ * @typedef {Object} TextChunk
+ * @property {Array<TextPart>} lineParts - Text and furigana parts in this line
+ * @property {number} y - Vertical position of this line
+ * @property {number} lineMaxHeight - Maximum height of text in this line
+ */
+
+/**
+ * @typedef {Object} TextPart
+ * @property {string} text - Text content
+ * @property {Object} textStyle - Text style
+ * @property {number} x - Horizontal position
+ * @property {number} y - Vertical position (relative to line, usually 0)
+ * @property {FuriganaPart} furigana
+ */
+
+/**
+ * @typedef {Object} FuriganaPart
+ * @property {string} text - Furigana text
+ * @property {Object} textStyle - Furigana text style
+ * @property {number} x - Horizontal position (centered above parent)
+ * @property {number} y - Vertical position (negative, above parent text)
+ */
+
+/**
  * @typedef {Object} PositionAfterAnchorOptions
  * @property {number} positionX
  * @property {number} positionY

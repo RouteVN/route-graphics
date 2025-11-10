@@ -1,0 +1,77 @@
+---
+title: Test Skip Animation Property
+description: Tests the revealEffect property to ensure text appears immediately when typewriter
+template: "route-graphics.html"
+specs:
+  - "Text should animate character by character when revealEffect is none"
+  - "Text should appear immediately when revealEffect is typewriter"
+  - "Speed property should still be respected in AST but ignored when revealEffect is typewriter"
+  - "Furigana should appear immediately when revealEffect is typewriter"
+  - "Multiple content segments should appear immediately when revealEffect is typewriter"
+---
+states:
+  - elements:
+      - id: 'text-revealing-animate'
+        type: "text-revealing"
+        content:
+          - text: "This text will animate"
+            textStyle:
+              fontSize: 24
+              fill: "#3498db"
+              fontFamily: "Arial"
+          - text: " character by character"
+            textStyle:
+              fontSize: 20
+              fill: "#e74c3c"
+              fontFamily: "Georgia"
+            furigana:
+              text: "animation"
+              textStyle:
+                fontSize: 12
+                fill: "#f39c12"
+                fontFamily: "Arial"
+        x: 50
+        y: 50
+        width: 400
+        alpha: 1
+        speed: 30
+  - elements:
+      - id: 'text-revealing-animate'
+        type: "text-revealing"
+        content:
+          - text: "This text will animate"
+            textStyle:
+              fontSize: 24
+              fill: "#3498db"
+              fontFamily: "Arial"
+          - text: " character by character"
+            textStyle:
+              fontSize: 20
+              fill: "#e74c3c"
+              fontFamily: "Georgia"
+            furigana:
+              text: "animation"
+              textStyle:
+                fontSize: 12
+                fill: "#f39c12"
+                fontFamily: "Arial"
+        x: 50
+        y: 50
+        width: 400
+        alpha: 1
+        speed: 30
+  - elements:
+      - id: 'text-revealing-animate'
+        type: "text-revealing"
+        content:
+          - text: "Now this skips animation"
+            textStyle:
+              fontSize: 24
+              fill: "#e67e22"
+              fontFamily: "Arial"
+        x: 50
+        y: 50
+        width: 400
+        alpha: 1
+        speed: 30
+        revealEffect: none

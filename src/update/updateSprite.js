@@ -10,8 +10,8 @@ import { Texture } from "pixi.js";
  * @param {Object} params
  * @param {import('../types.js').Application} params.app
  * @param {Container} params.parent
- * @param {SpriteASTNode} params.prevAST
- * @param {SpriteASTNode} params.nextAST
+ * @param {SpriteASTNode} params.prevSpriteASTNode
+ * @param {SpriteASTNode} params.nextSpriteASTNode
  * @param {Object[]} params.transitions
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
@@ -20,8 +20,8 @@ import { Texture } from "pixi.js";
 export async function updateSprite({
   app,
   parent,
-  prevAST,
-  nextAST,
+  prevSpriteASTNode,
+  nextSpriteASTNode,
   eventHandler,
   transitions,
   transitionElements,
@@ -32,30 +32,34 @@ export async function updateSprite({
   }
 
   const spriteElement = parent.children.find(
-    (child) => child.label === prevAST.id,
+    (child) => child.label === prevSpriteASTNode.id,
   );
 
   const updateElement = () => {
-    if (JSON.stringify(prevAST) !== JSON.stringify(nextAST)) {
-      if (prevAST.url !== nextAST.url) {
-        const texture = nextAST.url ? Texture.from(nextAST.url) : Texture.EMPTY;
+    if (
+      JSON.stringify(prevSpriteASTNode) !== JSON.stringify(nextSpriteASTNode)
+    ) {
+      if (prevSpriteASTNode.url !== nextSpriteASTNode.url) {
+        const texture = nextSpriteASTNode.url
+          ? Texture.from(nextSpriteASTNode.url)
+          : Texture.EMPTY;
         spriteElement.texture = texture;
       }
 
-      spriteElement.x = nextAST.x;
-      spriteElement.y = nextAST.y;
-      spriteElement.width = nextAST.width;
-      spriteElement.height = nextAST.height;
+      spriteElement.x = nextSpriteASTNode.x;
+      spriteElement.y = nextSpriteASTNode.y;
+      spriteElement.width = nextSpriteASTNode.width;
+      spriteElement.height = nextSpriteASTNode.height;
 
-      spriteElement.alpha = nextAST.alpha;
-      spriteElement.zIndex = nextAST.zIndex;
+      spriteElement.alpha = nextSpriteASTNode.alpha;
+      spriteElement.zIndex = nextSpriteASTNode.zIndex;
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");
       spriteElement.removeAllListeners("pointerup");
 
-      const hoverEvents = nextAST?.hover;
-      const clickEvents = nextAST?.click;
+      const hoverEvents = nextSpriteASTNode?.hover;
+      const clickEvents = nextSpriteASTNode?.click;
 
       if (eventHandler && hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -86,8 +90,8 @@ export async function updateSprite({
 
         const outListener = () => {
           spriteElement.cursor = "auto";
-          spriteElement.texture = nextAST.url
-            ? Texture.from(nextAST.url)
+          spriteElement.texture = nextSpriteASTNode.url
+            ? Texture.from(nextSpriteASTNode.url)
             : Texture.EMPTY;
         };
 
@@ -140,7 +144,7 @@ export async function updateSprite({
 
   if (spriteElement) {
     if (transitions && transitions.length > 0) {
-      await transitionElements(prevAST.id, {
+      await transitionElements(prevSpriteASTNode.id, {
         app,
         sprite: spriteElement,
         transitions,
