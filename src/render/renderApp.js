@@ -12,6 +12,8 @@ import { updateText } from "../update/updateText.js";
 import { updateSprite } from "../update/updateSprite.js";
 import { updateContainer } from "../update/updateContainer.js";
 import { renderTextRevealing } from "./renderTextRevealing.js";
+import { updateTextRevealing } from "../update/updateTextRevealing.js";
+import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
 /**
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
@@ -97,6 +99,15 @@ export async function renderApp({
           }),
         );
         break;
+      case "text-revealing":
+        asyncActions.push(
+          deleteTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: element,
+            signal
+          })
+        )
       default:
     }
   }
@@ -223,6 +234,13 @@ export async function renderApp({
             signal,
           }),
         );
+      case "text-revealing":
+        asyncActions.push(updateTextRevealing({
+          app,
+          parent,
+          textRevealingASTNode: next,
+          signal
+        }))
         break;
       default:
     }
