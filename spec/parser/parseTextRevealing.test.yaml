@@ -43,6 +43,8 @@ out:
   originX: 0
   originY: 0
   alpha: 1
+  speed: 50
+  skipAnimations: false
   textStyle:
     fontSize: 24
     fill: "#333333"
@@ -92,7 +94,7 @@ out:
           x: 253.828125
           y: 0
       y: 0
-      lineMaxHeight: 37
+      lineMaxHeight: 19
     - lineParts:
         - text: "to multiple lines when it exceeds the"
           textStyle:
@@ -104,9 +106,9 @@ out:
             wordWrap: true
             wordWrapWidth: 300
           x: 0
-          y: 37
-      y: 37
-      lineMaxHeight: 21.4
+          y: 19
+      y: 19
+      lineMaxHeight: 19
     - lineParts:
         - text: "specified width constraint for proper"
           textStyle:
@@ -118,9 +120,9 @@ out:
             wordWrap: true
             wordWrapWidth: 300
           x: 0
-          y: 58.4
-      y: 58.4
-      lineMaxHeight: 20.2
+          y: 38
+      y: 38
+      lineMaxHeight: 19
     - lineParts:
         - text: "text layout demonstration."
           textStyle:
@@ -132,17 +134,19 @@ out:
             wordWrap: true
             wordWrapWidth: 300
           x: 0
-          y: 78.6
-      y: 78.6
+          y: 57
+      y: 57
       lineMaxHeight: 19
   width: 300
-  height: 97.6
+  height: 76
   x: 50
   y: 50
   zIndex: 0
   originX: 0
   originY: 0
   alpha: 1
+  speed: 50
+  skipAnimations: false
   textStyle:
     fontSize: 20
     fill: "#2c3e50"
@@ -188,7 +192,7 @@ out:
             wordWrap: true
             wordWrapWidth: 200
           x: 0
-          y: 0
+          y: 10
         - text: " "
           textStyle:
             fontSize: 16
@@ -199,7 +203,7 @@ out:
             wordWrap: true
             wordWrapWidth: 137.8515625
           x: 62.1484375
-          y: 0
+          y: 20
         - text: "World"
           textStyle:
             fontSize: 32
@@ -222,7 +226,7 @@ out:
             wordWrap: true
             wordWrapWidth: 26.96875
           x: 173.03125
-          y: 0
+          y: 5
       y: 0
       lineMaxHeight: 39
   width: 200
@@ -233,6 +237,8 @@ out:
   originX: 0
   originY: 0
   alpha: 1
+  speed: 50
+  skipAnimations: false
   textStyle:
     fontSize: 16
     fill: "black"

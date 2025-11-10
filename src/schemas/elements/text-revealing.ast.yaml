@@ -118,3 +118,11 @@ properties:
     maximum: 1
   textStyle:
     "$ref": "#/$def/textStyle"
+  speed:
+    type: number
+    description: Animation speed for text revealing
+    default: 50
+  skipAnimations:
+    type: boolean
+    description: Whether to skip text revealing animations
+    default: false

@@ -171,6 +171,8 @@
  * @property {number} [width] - Width constraint for text wrapping
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
+ * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {boolean} [skipAnimations=false] - Whether to skip animations (default: false)
  * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
  */
 

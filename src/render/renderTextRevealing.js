@@ -17,8 +17,13 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  */
 export async function renderTextRevealing(params) {
   const { app, parent, textRevealingASTNode, signal } = params;
-  const charDelay = 50;
-  const chunkDelay = 200;
+
+  const speed = textRevealingASTNode.speed ?? 50;
+  const skipAnimations = textRevealingASTNode.skipAnimations ?? false;
+
+  // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
+  const charDelay = skipAnimations ? 0 : Math.max(1, Math.floor(1000 / speed));
+  const chunkDelay = skipAnimations ? 0 : Math.max(1, Math.floor(4000 / speed));
 
   // Check if aborted
   if (signal?.aborted) return;
@@ -67,26 +72,35 @@ export async function renderTextRevealing(params) {
 
       container.addChild(text);
 
-      // Reveal text character by character
+      // Reveal text character by character or all at once if skipping animations
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
-      const furiganaLength = fullFurigana.length;
 
-      for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
-        if (signal?.aborted) return;
-
-        // Add current character to text
-        text.text = fullText.substring(0, charIndex + 1);
-
-        // Calculate how much furigana to show based on text progress
-        const furiganaProgress = Math.round((charIndex + 1) / fullText.length * furiganaLength);
+      if (skipAnimations) {
+        text.text = fullText;
         if (furiganaText) {
-          furiganaText.text = fullFurigana.substring(0, furiganaProgress);
+          furiganaText.text = fullFurigana;
         }
+      } else {
+        // Animate character by character
+        const furiganaLength = fullFurigana.length;
 
-        // Wait before adding next character
-        if (charIndex < fullText.length - 1) { // Don't wait after last character
-          await sleep(charDelay);
+        for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
+          if (signal?.aborted) return;
+
+          // Add current character to text
+          text.text = fullText.substring(0, charIndex + 1);
+
+          // Calculate how much furigana to show based on text progress
+          const furiganaProgress = Math.round((charIndex + 1) / fullText.length * furiganaLength);
+          if (furiganaText) {
+            furiganaText.text = fullFurigana.substring(0, furiganaProgress);
+          }
+
+          // Wait before adding next character
+          if (charIndex < fullText.length - 1) { // Don't wait after last character
+            await sleep(charDelay);
+          }
         }
       }
     }

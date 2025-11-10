@@ -247,6 +247,8 @@ export function parseTextRevealing(state) {
       ...defaultTextStyle,
       ...(state.textStyle || {}),
     },
+    speed: state.speed ?? 50,
+    skipAnimations: state.skipAnimations ?? false,
     ...(state.width !== undefined && { width: state.width }),
   };
 }
