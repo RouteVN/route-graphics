@@ -62,39 +62,17 @@ properties:
     description: The text content to display. It is an array so we can support multiple rich text in different styles.
     items:
       type: object
-      required:
-        - text
       properties:
-        text:
-          type: string
-        textStyle:
-          "$ref": "#/$def/textStyle"
-        x:
-          type: number
-          description: X position adjusted for anchor point
         y:
           type: number
-          description: Y position adjusted for anchor point
-        parentX:
-          type: number
-          description: Parent text's horizontal position (for furigana)
-        parentWidth:
-          type: number
-          description: Parent text's width (for furigana)
+          description: Y position of the line
         lineParts:
           type: array
           description: Array of text and furigana parts in this line
           items:
             type: object
-        lineMaxHeight:
-          type: number
-          description: Maximum height of text in this line
-        furigana:
-          type: object
-          properties:
-            text:
-              type: string
-            textStyle:
+            text: string
+            textStyle: 
               "$ref": "#/$def/textStyle"
             x:
               type: number
@@ -102,12 +80,22 @@ properties:
             y:
               type: number
               description: Vertical position (negative, above parent text)
-            parentX:
-              type: number
-              description: Parent text's horizontal position
-            parentWidth:
-              type: number
-              description: Parent text's width
+            furigana:
+              type: object
+              properties:
+                text:
+                  type: string
+                textStyle:
+                  "$ref": "#/$def/textStyle"
+                x:
+                  type: number
+                  description: Horizontal position (centered above parent)
+                y:
+                  type: number
+                  description: Vertical position (negative, above parent text)
+        lineMaxHeight:
+          type: number
+          description: Maximum height of text in this line
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.

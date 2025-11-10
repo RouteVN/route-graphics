@@ -196,8 +196,6 @@
  * @property {Object} textStyle - Furigana text style
  * @property {number} x - Horizontal position (centered above parent)
  * @property {number} y - Vertical position (negative, above parent text)
- * @property {number} parentX - Parent text's horizontal position
- * @property {number} parentWidth - Parent text's width
  */
 
 /**

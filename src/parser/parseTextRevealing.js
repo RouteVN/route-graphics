@@ -76,6 +76,7 @@ function createTextChunks(segments, wordWrapWidth) {
     const newTextPart = {
       text: textPart,
       textStyle: styleWithWordWrap,
+      height: measurements.height,
       x,
       y,
     };
@@ -91,15 +92,13 @@ function createTextChunks(segments, wordWrapWidth) {
       );
 
       // Calculate furigana position relative to current line's max height
-      const furiganaYOffset = -furiganaMeasurements.height + y; // 2px gap above text
+      const furiganaYOffset = -furiganaMeasurements.height + y + 2; 
 
       const furiganaPart = {
         text: segment.furigana.text,
         textStyle: segment.furigana.textStyle,
         x: x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2,
         y: furiganaYOffset,
-        parentX: x,
-        parentWidth: measurements.lineWidths[0],
       };
 
       newTextPart.furigana = furiganaPart;
@@ -128,6 +127,27 @@ function createTextChunks(segments, wordWrapWidth) {
       y,
       lineMaxHeight,
     });
+  }
+
+  //Align them to the bottom
+  for(let i=0; i<chunks.length; i++){
+    const tallestHeight = chunks[i].lineMaxHeight
+    chunks[i].lineParts = chunks[i].lineParts.map(part=>{
+      const partHeight = part.height
+      if(part.height) delete part.height
+      const bottomAlignYPos =  part.y + (tallestHeight - partHeight)
+      
+      let furigana = part.furigana
+      if(furigana){
+        furigana.y = (furigana.y - part.y) + bottomAlignYPos
+      }
+
+      return {
+        ...part,
+        ...(furigana && {furigana}),
+        y: bottomAlignYPos
+      }
+    })
   }
 
   // Calculate final height
