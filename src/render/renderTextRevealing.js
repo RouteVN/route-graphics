@@ -29,7 +29,6 @@ export async function renderTextRevealing(params) {
   if (textRevealingASTNode.x !== undefined) container.x = textRevealingASTNode.x;
   if (textRevealingASTNode.y !== undefined) container.y = textRevealingASTNode.y;
   if (textRevealingASTNode.alpha !== undefined) container.alpha = textRevealingASTNode.alpha;
-  console.log(textRevealingASTNode)
   // Add container to parent immediately so it's visible
   parent.addChild(container);
 

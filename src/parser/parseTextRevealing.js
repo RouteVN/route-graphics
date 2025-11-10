@@ -72,11 +72,21 @@ function createTextChunks(segments, wordWrapWidth) {
       textPart += " ";
     }
 
+    //Get the height with now wrapping
+    const measurementsWithNoWrapping = CanvasTextMetrics.measureText(
+      textPart,
+      new TextStyle({
+        ...segment.textStyle,
+        wordWrap: false,
+        breakWords: false
+      })
+    )
+
     // Create text part object
     const newTextPart = {
       text: textPart,
       textStyle: styleWithWordWrap,
-      height: measurements.height,
+      height: measurementsWithNoWrapping.height,
       x,
       y,
     };
@@ -105,7 +115,7 @@ function createTextChunks(segments, wordWrapWidth) {
     }
     lineParts.push(newTextPart);
 
-    lineMaxHeight = Math.max(lineMaxHeight, measurements.height);
+    lineMaxHeight = Math.max(lineMaxHeight, measurementsWithNoWrapping.height);
 
     // Update horizontal position and track max width
     x += measurements.lineWidths[0];

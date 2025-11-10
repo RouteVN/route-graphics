@@ -95,5 +95,3 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
-  textStyle:
-    "$ref": "#/$def/textStyle"
