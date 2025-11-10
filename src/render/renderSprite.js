@@ -86,6 +86,20 @@ export async function renderSprite({
     sprite.eventMode = "static";
 
     const clickListener = () => {
+      // Apply click texture during pointerdown
+      if (clickEvents?.src) {
+        const clickTexture = clickEvents.src
+          ? Texture.from(clickEvents.src)
+          : Texture.EMPTY;
+        sprite.texture = clickTexture;
+      }
+    };
+
+    const releaseListener = () => {
+      // Restore original texture on pointerup
+      sprite.texture = texture;
+
+      // Trigger event and sound on pointerup
       if (actionPayload)
         eventHandler(`${sprite.label}-click`, {
           _event: {
@@ -99,15 +113,16 @@ export async function renderSprite({
           url: soundSrc,
           loop: false,
         });
-      if (clickEvents?.src) {
-        const clickTexture = clickEvents.src
-          ? Texture.from(clickEvents.src)
-          : Texture.EMPTY;
-        sprite.texture = clickTexture;
-      }
     };
 
-    sprite.on("pointerup", clickListener);
+    const outListener = () => {
+      // Restore original texture on pointerout
+      sprite.texture = texture;
+    };
+
+    sprite.on("pointerdown", clickListener);
+    sprite.on("pointerup", releaseListener);
+    sprite.on("pointerout", outListener);
   }
 
   parent.addChild(sprite);
