@@ -64,6 +64,12 @@ properties:
     type: number
     description: Initial value of the slider
     default: 0
+  width:
+    type: number
+    description: Width of the sprite in pixels
+  height:
+    type: number
+    description: Height of the sprite in pixels
   hover:
     type: object
     description: Configuration for hover behavior

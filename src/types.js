@@ -79,6 +79,47 @@
  */
 
 /**
+ * @typedef {Object} SliderASTProps
+ * @property {'slider'} type
+ * @property {number} alpha
+ * @property {string} direction
+ * @property {string} thumbSrc
+ * @property {string} barSrc
+ * @property {number} min
+ * @property {number} max
+ * @property {number} step
+ * @property {number} initialValue
+ * @property {SliderHover} hover
+ * @property {SliderDrag} drag
+ * @property {SliderDragStart} dragStart
+ * @property {SliderDragEnd} dragEnd
+ * @typedef {ASTNode & SliderASTProps} SliderASTNode
+ */
+
+/**
+ * @typedef {Object} SliderHover
+ * @property {string} thumbSrc
+ * @property {string} barSrc
+ * @property {string} cursor
+ * @property {string} soundSrc
+ */
+
+/**
+ * @typedef {Object} SliderDrag
+ * @property {Object} actionPayload
+ */
+
+/**
+ * @typedef {Object} SliderDragStart
+ * @property {Object} actionPayload
+ */
+
+/**
+ * @typedef {Object} SliderDragEnd
+ * @property {Object} actionPayload
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
