@@ -26,7 +26,7 @@ export async function deleteTextRevealing({
   if (textRevealing) {
     const deleteElement = () => {
       if (textRevealing && !textRevealing.destroyed) {
-        textRevealing.destroy();
+        textRevealing.destroy({ children: true });
       }
     };
 
