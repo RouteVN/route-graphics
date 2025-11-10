@@ -248,7 +248,7 @@ export function parseTextRevealing(state) {
       ...(state.textStyle || {}),
     },
     speed: state.speed ?? 50,
-    skipAnimations: state.skipAnimations ?? false,
+    revealEffect: state.revealEffect ?? 'typewriter',
     ...(state.width !== undefined && { width: state.width }),
   };
 }

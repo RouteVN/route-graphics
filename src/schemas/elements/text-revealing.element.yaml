@@ -95,3 +95,13 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
+  speed:
+    type: number
+    description: Animation speed for text revealing
+    default: 50
+  revealEffect:
+    type: string
+    enum: [typewriter,none]
+    description: Text animation.
+    default: typewriter
+  textStyle:

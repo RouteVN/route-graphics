@@ -23,7 +23,7 @@ states:
         width: 300
         alpha: 1
         speed: 50
-        skipAnimations: false
+        revealEffect: none
       - id: 'text-revealing-keep-1'
         type: "text-revealing"
         content:
@@ -37,7 +37,7 @@ states:
         width: 300
         alpha: 1
         speed: 30
-        skipAnimations: false
+        revealEffect: none
   - elements:
       - id: 'text-revealing-keep-1'
         type: "text-revealing"
@@ -52,4 +52,4 @@ states:
         width: 300
         alpha: 1
         speed: 30
-        skipAnimations: false
+        revealEffect: none

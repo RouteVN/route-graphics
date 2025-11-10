@@ -172,7 +172,7 @@
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed (default: 50)
- * @property {boolean} [skipAnimations=false] - Whether to skip animations (default: false)
+ * @property {'typewriter' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = normal animation, none = skip animation)
  * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
  */
 

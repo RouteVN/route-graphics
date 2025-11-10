@@ -16,11 +16,7 @@ jobs:
 
       # Install dependencies from root
       - name: Install Dependencies
-<<<<<<< HEAD
-        run: bun install 
-=======
         run: bun install --frozen-lockfile
->>>>>>> main
 
       - name: Lint
         run: bun run lint

@@ -24,7 +24,6 @@ states:
         width: 300
         alpha: 1
         speed: 50
-        skipAnimations: false
   - elements:
       - id: 'text-revealing-1'
         type: "text-revealing"
@@ -44,4 +43,3 @@ states:
         width: 400
         alpha: 0.8
         speed: 100
-        skipAnimations: false

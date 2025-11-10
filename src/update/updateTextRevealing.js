@@ -19,9 +19,10 @@ export async function updateTextRevealing(params) {
   const { app, parent, textRevealingASTNode, signal } = params;
 
   const speed = textRevealingASTNode.speed ?? 50;
-  const skipAnimations = textRevealingASTNode.skipAnimations ?? false;
+  const revealEffect = textRevealingASTNode.revealEffect ?? 'typewriter';
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
+  const skipAnimations = revealEffect === 'none';
   const charDelay = skipAnimations ? 0 : Math.max(1, Math.floor(1000 / speed));
   const chunkDelay = skipAnimations ? 0 : Math.max(1, Math.floor(4000 / speed));
 

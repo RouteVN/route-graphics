@@ -1,13 +1,13 @@
 ---
 title: Test Skip Animation Property
-description: Tests the skipAnimations property to ensure text appears immediately when true
+description: Tests the revealEffect property to ensure text appears immediately when typewriter
 template: "route-graphics.html"
 specs:
-  - "Text should animate character by character when skipAnimations is false"
-  - "Text should appear immediately when skipAnimations is true"
-  - "Speed property should still be respected in AST but ignored when skipAnimations is true"
-  - "Furigana should appear immediately when skipAnimations is true"
-  - "Multiple content segments should appear immediately when skipAnimations is true"
+  - "Text should animate character by character when revealEffect is none"
+  - "Text should appear immediately when revealEffect is typewriter"
+  - "Speed property should still be respected in AST but ignored when revealEffect is typewriter"
+  - "Furigana should appear immediately when revealEffect is typewriter"
+  - "Multiple content segments should appear immediately when revealEffect is typewriter"
 ---
 states:
   - elements:
@@ -35,7 +35,6 @@ states:
         width: 400
         alpha: 1
         speed: 30
-        skipAnimations: false
   - elements:
       - id: 'text-revealing-animate'
         type: "text-revealing"
@@ -61,7 +60,6 @@ states:
         width: 400
         alpha: 1
         speed: 30
-        skipAnimations: false
   - elements:
       - id: 'text-revealing-animate'
         type: "text-revealing"
@@ -76,4 +74,4 @@ states:
         width: 400
         alpha: 1
         speed: 30
-        skipAnimations: true
+        revealEffect: none

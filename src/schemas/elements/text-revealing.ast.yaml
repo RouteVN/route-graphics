@@ -71,28 +71,31 @@ properties:
           description: Array of text and furigana parts in this line
           items:
             type: object
-            text: string
-            textStyle: 
-              "$ref": "#/$def/textStyle"
-            x:
-              type: number
-              description: Horizontal position (centered above parent)
-            y:
-              type: number
-              description: Vertical position (negative, above parent text)
-            furigana:
-              type: object
-              properties:
-                text:
-                  type: string
-                textStyle:
-                  "$ref": "#/$def/textStyle"
-                x:
-                  type: number
-                  description: Horizontal position (centered above parent)
-                y:
-                  type: number
-                  description: Vertical position (negative, above parent text)
+            properties:
+              text: 
+                type: string
+                description: The text content
+              textStyle: 
+                "$ref": "#/$def/textStyle"
+              x:
+                type: number
+                description: Horizontal position (centered above parent)
+              y:
+                type: number
+                description: Vertical position (negative, above parent text)
+              furigana:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  textStyle:
+                    "$ref": "#/$def/textStyle"
+                  x:
+                    type: number
+                    description: Horizontal position (centered above parent)
+                  y:
+                    type: number
+                    description: Vertical position (negative, above parent text)
         lineMaxHeight:
           type: number
           description: Maximum height of text in this line
@@ -122,7 +125,8 @@ properties:
     type: number
     description: Animation speed for text revealing
     default: 50
-  skipAnimations:
-    type: boolean
-    description: Whether to skip text revealing animations
-    default: false
+  revealEffect:
+    type: string
+    enum: [typewriter,none]
+    description: Text animation.
+    default: typewriter
