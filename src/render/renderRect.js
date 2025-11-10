@@ -102,7 +102,8 @@ export async function renderRect({
     const { soundSrc, actionPayload } = clickEvents;
     rect.eventMode = "static";
 
-    const clickListener = () => {
+    const releaseListener = () => {
+      // Trigger event and sound on pointerup
       if (actionPayload)
         eventHandler(`${rect.label}-click`, {
           _event: {
@@ -118,7 +119,7 @@ export async function renderRect({
         });
     };
 
-    rect.on("pointerup", clickListener);
+    rect.on("pointerup", releaseListener);
   }
 
   parent.addChild(rect);

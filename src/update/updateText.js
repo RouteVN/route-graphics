@@ -44,6 +44,8 @@ export async function updateText({
 
       textElement.removeAllListeners("pointerover");
       textElement.removeAllListeners("pointerout");
+      textElement.removeAllListeners("pointerdown");
+      textElement.removeAllListeners("pointerout");
       textElement.removeAllListeners("pointerup");
 
       const hoverEvents = nextTextASTNode?.hover;
@@ -79,11 +81,6 @@ export async function updateText({
 
         textElement.on("pointerover", overListener);
         textElement.on("pointerout", outListener);
-
-        textElement._hoverCleanupCb = () => {
-          textElement.off("pointerover", overListener);
-          textElement.off("pointerout", outListener);
-        };
       }
 
       if (eventHandler && clickEvents) {
@@ -91,6 +88,16 @@ export async function updateText({
         textElement.eventMode = "static";
 
         const clickListener = () => {
+          // Apply click style during pointerdown
+          if (clickEvents?.textStyle)
+            applyTextStyle(textElement, clickEvents.textStyle);
+        };
+
+        const releaseListener = () => {
+          // Restore original style on pointerup
+          applyTextStyle(textElement, nextTextASTNode.style);
+
+          // Trigger event and sound on pointerup
           if (actionPayload)
             eventHandler(`${textElement.label}-click`, {
               _event: {
@@ -104,15 +111,16 @@ export async function updateText({
               url: soundSrc,
               loop: false,
             });
-          if (clickEvents?.textStyle)
-            applyTextStyle(textElement, clickEvents.textStyle);
         };
 
-        textElement.on("pointerup", clickListener);
-
-        textElement._clickCleanupCb = () => {
-          textElement.off("pointerup", clickListener);
+        const outListener = () => {
+          // Restore original style on pointerout
+          applyTextStyle(textElement, nextTextASTNode.style);
         };
+
+        textElement.on("pointerdown", clickListener);
+        textElement.on("pointerup", releaseListener);
+        textElement.on("pointerout", outListener);
       }
     }
   };
