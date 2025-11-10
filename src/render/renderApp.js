@@ -159,7 +159,7 @@ export async function renderApp({
         asyncActions.push(renderTextRevealing({
           app,
           parent,
-          element,
+          textRevealingASTNode: element,
           signal
         }))
       default:
@@ -201,8 +201,8 @@ export async function renderApp({
           updateContainer({
             app,
             parent,
-            prevAST: prev,
-            nextAST: next,
+            prevContainerASTNode: prev,
+            nextContainerASTNode: next,
             transitions,
             transitionElements,
             eventHandler,
@@ -215,8 +215,8 @@ export async function renderApp({
           updateSprite({
             app,
             parent,
-            prevAST: prev,
-            nextAST: next,
+            prevSpriteASTNode: prev,
+            nextSpriteASTNode: next,
             transitions,
             transitionElements,
             eventHandler,

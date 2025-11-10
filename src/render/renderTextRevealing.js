@@ -12,30 +12,32 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  * @param {Object} params - Render parameters
  * @param {Object} params.app - PIXI application
  * @param {Object} params.parent - Parent container
- * @param {Object} params.element - Text-revealing element with parsed content chunks
+ * @param {Object} params.textRevealingASTNode - Text-revealing element with parsed content chunks
  * @param {AbortSignal} params.signal - Optional abort signal
  */
 export async function renderTextRevealing(params) {
-  const { app, parent, element, signal, charDelay = 50, chunkDelay = 200 } = params;
+  const { app, parent, textRevealingASTNode, signal } = params;
+  const charDelay = 50;
+  const chunkDelay = 200;
 
   // Check if aborted
   if (signal?.aborted) return;
 
   const container = new Container();
-  container.label = element.id;
+  container.label = textRevealingASTNode.id;
 
-  if (element.x !== undefined) container.x = element.x;
-  if (element.y !== undefined) container.y = element.y;
-  if (element.alpha !== undefined) container.alpha = element.alpha;
+  if (textRevealingASTNode.x !== undefined) container.x = textRevealingASTNode.x;
+  if (textRevealingASTNode.y !== undefined) container.y = textRevealingASTNode.y;
+  if (textRevealingASTNode.alpha !== undefined) container.alpha = textRevealingASTNode.alpha;
 
   // Add container to parent immediately so it's visible
   parent.addChild(container);
 
   // Process each chunk sequentially
-  for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
+  for (let chunkIndex = 0; chunkIndex < textRevealingASTNode.content.length; chunkIndex++) {
     if (signal?.aborted) return;
 
-    const chunk = element.content[chunkIndex];
+    const chunk = textRevealingASTNode.content[chunkIndex];
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
@@ -91,7 +93,7 @@ export async function renderTextRevealing(params) {
     }
 
     // Wait before processing next chunk (except for the last chunk)
-    if (chunkIndex < element.content.length - 1) {
+    if (chunkIndex < textRevealingASTNode.content.length - 1) {
       await sleep(chunkDelay);
     }
   }

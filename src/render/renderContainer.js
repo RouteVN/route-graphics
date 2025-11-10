@@ -2,6 +2,7 @@ import { Container, Graphics } from "pixi.js";
 import { renderRect } from "./renderRect.js";
 import renderText from "./renderText.js";
 import { renderSprite } from "./renderSprite.js";
+import { renderTextRevealing } from "./renderTextRevealing.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -90,6 +91,13 @@ export async function renderContainer({
           }),
         );
         break;
+      case "text-revealing":
+        renderTextRevealing({
+          app,
+          parent,
+          textRevealingASTNode: child,
+          signal
+        })
       default:
         throw new Error("Unkown types");
     }
