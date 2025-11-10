@@ -23,20 +23,20 @@ out:
   content:
     - lineParts:
         - text: "This is a simple text revealing example"
-          style:
-            fontSize: 24
-            fill: "#333333"
-            fontFamily: "Arial"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
+            wordWrapWidth: 500
           x: 0
           y: 0
       y: 0
-      lineMaxHeight: 28.8
-  width: 447.84375
-  height: 28.8
+      lineMaxHeight: 19
+  width: 500
+  height: 19
   x: 100
   y: 100
   zIndex: 0
@@ -50,7 +50,6 @@ out:
     align: "left"
     lineHeight: 1.2
     wordWrap: true
-    breakWords: true
 ---
 case: Test parsing text-revealing with word wrapping
 in:
@@ -71,66 +70,73 @@ out:
   content:
     - lineParts:
         - text: "This is a longer text that should"
-          style:
-            fontSize: 20
-            fill: "#2c3e50"
-            fontFamily: "Arial"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             wordWrapWidth: 300
           x: 0
+          y: 0
+        - text: "wrap"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            wordWrapWidth: 46.171875
+          x: 253.828125
           y: 0
       y: 0
-      lineMaxHeight: 24
+      lineMaxHeight: 37
     - lineParts:
-        - text: "wrap to multiple lines when it"
-          style:
-            fontSize: 20
-            fill: "#2c3e50"
-            fontFamily: "Arial"
+        - text: "to multiple lines when it exceeds the"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             wordWrapWidth: 300
           x: 0
-          y: 0
-      y: 24
-      lineMaxHeight: 24
+          y: 37
+      y: 37
+      lineMaxHeight: 21.4
     - lineParts:
-        - text: "exceeds the specified width constraint"
-          style:
-            fontSize: 20
-            fill: "#2c3e50"
-            fontFamily: "Arial"
+        - text: "specified width constraint for proper"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             wordWrapWidth: 300
           x: 0
-          y: 0
-      y: 48
-      lineMaxHeight: 24
+          y: 58.4
+      y: 58.4
+      lineMaxHeight: 20.2
     - lineParts:
-        - text: "for proper text layout demonstration."
-          style:
-            fontSize: 20
-            fill: "#2c3e50"
-            fontFamily: "Arial"
+        - text: "text layout demonstration."
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             wordWrapWidth: 300
           x: 0
-          y: 0
-      y: 72
-      lineMaxHeight: 24
+          y: 78.6
+      y: 78.6
+      lineMaxHeight: 19
   width: 300
-  height: 96
+  height: 97.6
   x: 50
   y: 50
   zIndex: 0
@@ -144,7 +150,6 @@ out:
     align: "left"
     lineHeight: 1.2
     wordWrap: true
-    breakWords: true
 ---
 case: Test parsing text-revealing with multiple styled content segments
 in:
@@ -174,58 +179,54 @@ out:
   content:
     - lineParts:
         - text: "Hello"
-          style:
+          textStyle:
             fontSize: 24
             fill: "#e74c3c"
-            fontFamily: "Arial"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             wordWrapWidth: 200
           x: 0
           y: 0
-        - text: " "
-          style:
-            fontSize: 24
-            fill: "#333333"
-            fontFamily: "Arial"
+        - text: " "
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
-            wordWrapWidth: 200
-          x: 57.65625
+            wordWrapWidth: 137.8515625
+          x: 62.1484375
           y: 0
         - text: "World"
-          style:
+          textStyle:
             fontSize: 32
             fill: "#3498db"
-            fontFamily: "Arial"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
             fontWeight: "bold"
-            wordWrapWidth: 200
-          x: 73.65625
+            wordWrapWidth: 132.765625
+          x: 67.234375
           y: 0
         - text: "!"
-          style:
+          textStyle:
             fontSize: 28
             fill: "#27ae60"
-            fontFamily: "Arial"
+            fontFamily: "Roboto"
             align: "left"
             lineHeight: 1.2
             wordWrap: true
-            breakWords: true
-            wordWrapWidth: 200
-          x: 173.65625
+            wordWrapWidth: 26.96875
+          x: 173.03125
           y: 0
       y: 0
-      lineMaxHeight: 38.4
+      lineMaxHeight: 39
   width: 200
-  height: 38.4
+  height: 39
   x: 200
   y: 200
   zIndex: 0
@@ -235,8 +236,7 @@ out:
   textStyle:
     fontSize: 16
     fill: "black"
-    fontFamily: "Arial"
+    fontFamily: "Roboto"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
-    breakWords: true
