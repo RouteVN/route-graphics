@@ -88,8 +88,8 @@ export async function renderSlider({
     bar.width = width;
     bar.height = height;
 
-    thumb.width = direction === "horizontal" ? height * 0.8 : width * 0.8;
-    thumb.height = direction === "horizontal" ? height * 0.8 : width * 0.8;
+    thumb.width = direction === "horizontal" ? (height - 4 * 2) : (width - 4 * 2);
+    thumb.height = direction === "horizontal" ? (height - 4 * 2) : (width - 4 * 2);
 
     updateThumbPosition(currentValue);
   };
