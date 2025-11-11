@@ -45,11 +45,16 @@ export async function updateSlider({
       sliderElement.alpha = nextSliderASTNode.alpha;
       sliderElement.zIndex = nextSliderASTNode.zIndex;
       sliderElement.label = nextSliderASTNode.id;
-      sliderElement.pivot.set(nextSliderASTNode.originX, nextSliderASTNode.originY);
+      sliderElement.pivot.set(
+        nextSliderASTNode.originX,
+        nextSliderASTNode.originY,
+      );
 
       // Get bar and thumb sprites
       const bar = sliderElement.getChildByLabel(`${nextSliderASTNode.id}-bar`);
-      const thumb = sliderElement.getChildByLabel(`${nextSliderASTNode.id}-thumb`);
+      const thumb = sliderElement.getChildByLabel(
+        `${nextSliderASTNode.id}-thumb`,
+      );
 
       if (bar && thumb) {
         // Update bar properties
@@ -58,12 +63,15 @@ export async function updateSlider({
 
         // Update thumb dimensions maintaining aspect ratio with margin (like renderSlider)
         const barPadding = 0;
-        const maxThumbSize = nextSliderASTNode.direction === "horizontal"
-          ? (nextSliderASTNode.height - barPadding * 2)
-          : (nextSliderASTNode.width - barPadding * 2);
+        const maxThumbSize =
+          nextSliderASTNode.direction === "horizontal"
+            ? nextSliderASTNode.height - barPadding * 2
+            : nextSliderASTNode.width - barPadding * 2;
 
         // Get original texture dimensions
-        const thumbTexture = nextSliderASTNode.thumbSrc ? Texture.from(nextSliderASTNode.thumbSrc) : Texture.EMPTY;
+        const thumbTexture = nextSliderASTNode.thumbSrc
+          ? Texture.from(nextSliderASTNode.thumbSrc)
+          : Texture.EMPTY;
         const originalWidth = thumbTexture.width || 16;
         const originalHeight = thumbTexture.height || 16;
 
@@ -93,7 +101,8 @@ export async function updateSlider({
 
         // Update thumb position based on new value
         const valueRange = nextSliderASTNode.max - nextSliderASTNode.min;
-        const normalizedValue = (nextSliderASTNode.initialValue - nextSliderASTNode.min) / valueRange;
+        const normalizedValue =
+          (nextSliderASTNode.initialValue - nextSliderASTNode.min) / valueRange;
 
         if (nextSliderASTNode.direction === "horizontal") {
           thumb.x = normalizedValue * (bar.width - thumb.width);
@@ -146,10 +155,16 @@ export async function updateSlider({
 
           if (direction === "horizontal") {
             const relativeX = position.x - thumb.width / 2;
-            normalizedValue = Math.max(0, Math.min(1, relativeX / (bar.width - thumb.width)));
+            normalizedValue = Math.max(
+              0,
+              Math.min(1, relativeX / (bar.width - thumb.width)),
+            );
           } else {
             const relativeY = position.y - thumb.height / 2;
-            normalizedValue = Math.max(0, Math.min(1, relativeY / (bar.height - thumb.height)));
+            normalizedValue = Math.max(
+              0,
+              Math.min(1, relativeY / (bar.height - thumb.height)),
+            );
           }
 
           let newValue = min + normalizedValue * valueRange;
@@ -165,8 +180,6 @@ export async function updateSlider({
         // Store original textures for hover
         const originalThumbTexture = thumb.texture;
         const originalBarTexture = bar.texture;
-
-        
 
         // Handle drag events
         let isDragging = false;
@@ -232,7 +245,13 @@ export async function updateSlider({
         sliderElement.on("pointerupoutside", dragEndListener);
 
         if (hover) {
-          const { cursor, soundSrc, actionPayload, thumbSrc: hoverThumbSrc, barSrc: hoverBarSrc } = hover;
+          const {
+            cursor,
+            soundSrc,
+            actionPayload,
+            thumbSrc: hoverThumbSrc,
+            barSrc: hoverBarSrc,
+          } = hover;
 
           const overListener = () => {
             if (actionPayload)
