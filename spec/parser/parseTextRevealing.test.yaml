@@ -44,7 +44,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  skipAnimations: false
+  revealEffect: typewriter
   textStyle:
     fontSize: 24
     fill: "#333333"
@@ -146,7 +146,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  skipAnimations: false
+  revealEffect: typewriter
   textStyle:
     fontSize: 20
     fill: "#2c3e50"
@@ -238,7 +238,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  skipAnimations: false
+  revealEffect: typewriter
   textStyle:
     fontSize: 16
     fill: "black"
