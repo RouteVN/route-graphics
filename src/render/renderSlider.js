@@ -98,8 +98,8 @@ export async function renderSlider({
 
     // Get original texture dimensions
     const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
-    const originalWidth = thumbTexture.width ?? 16;
-    const originalHeight = thumbTexture.height ?? 16;
+    const originalWidth = thumbTexture.width;
+    const originalHeight = thumbTexture.height;
 
     // Calculate scale to fit within maxThumbSize while maintaining aspect ratio
     const scaleX = maxThumbSize / originalWidth;
@@ -166,8 +166,7 @@ export async function renderSlider({
 
       if (dragStart?.actionPayload) {
         eventHandler(`${id}-drag-start`, {
-          _event: { id },
-          value: currentValue,
+          _event: { id, value: currentValue },
           ...dragStart.actionPayload,
         });
       }
@@ -186,8 +185,7 @@ export async function renderSlider({
 
       if (drag?.actionPayload) {
         eventHandler(`${id}-drag`, {
-          _event: { id },
-          value: currentValue,
+          _event: { id, value: currentValue },
           ...drag.actionPayload,
           currentValue,
         });
@@ -201,8 +199,7 @@ export async function renderSlider({
 
       if (dragEnd?.actionPayload) {
         eventHandler(`${id}-drag-end`, {
-          _event: { id },
-          value: currentValue,
+          _event: { id, value: currentValue },
           ...dragEnd.actionPayload,
         });
       }
@@ -219,17 +216,11 @@ export async function renderSlider({
     const {
       cursor,
       soundSrc,
-      actionPayload,
       thumbSrc: hoverThumbSrc,
       barSrc: hoverBarSrc,
     } = hover;
 
     const overListener = () => {
-      if (actionPayload && eventHandler)
-        eventHandler(`${id}-pointer-over`, {
-          _event: { id },
-          ...actionPayload,
-        });
       if (cursor) {
         bar.cursor = cursor;
         thumb.cursor = cursor;
