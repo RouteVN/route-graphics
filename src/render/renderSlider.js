@@ -59,6 +59,7 @@ export async function renderSlider({
   const barTexture = barSrc ? Texture.from(barSrc) : Texture.EMPTY;
   const bar = new Sprite(barTexture);
   bar.label = `${id}-bar`;
+  bar.eventMode = "static";
 
   // Create thumb sprite
   const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
@@ -67,7 +68,7 @@ export async function renderSlider({
   thumb.eventMode = "static";
 
   // Calculate slider value and thumb position
-  let currentValue = initialValue || min;
+  let currentValue = initialValue ?? min;
   const valueRange = max - min;
 
   const updateThumbPosition = (value) => {
@@ -84,18 +85,12 @@ export async function renderSlider({
 
   // Setup dimensions and positions
   const setupSlider = () => {
-    // Set bar dimensions
     bar.width = width;
     bar.height = height;
 
-    // Set thumb dimensions (smaller than bar)
     thumb.width = direction === "horizontal" ? height * 0.8 : width * 0.8;
     thumb.height = direction === "horizontal" ? height * 0.8 : width * 0.8;
 
-    // Set origin point
-    sliderContainer.pivot.set(originX, originY);
-
-    // Update thumb position based on current value
     updateThumbPosition(currentValue);
   };
 
@@ -172,11 +167,15 @@ export async function renderSlider({
     return newValue;
   };
 
-  // Handle drag events
-  if (eventHandler) {
-    const dragStartListener = (event) => {
-      isDragging = true;
+  const barClickListener = (event) => {
+    const clickPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(clickPosition);
 
+    if (newValue !== currentValue) {
+      currentValue = newValue;
+      updateThumbPosition(currentValue);
+
+      // Trigger drag events for immediate value change
       if (dragStart?.actionPayload) {
         eventHandler(`${id}-drag-start`, {
           _event: { id },
@@ -184,48 +183,72 @@ export async function renderSlider({
           ...dragStart.actionPayload,
         });
       }
-    };
 
-    const dragMoveListener = (event) => {
-      if (!isDragging) return;
-
-      const newPosition = thumb.parent.toLocal(event.global);
-      const newValue = getValueFromPosition(newPosition);
-
-      if (newValue !== currentValue) {
-        currentValue = newValue;
-        updateThumbPosition(currentValue);
-
-        if (drag?.actionPayload) {
-          eventHandler(`${id}-drag`, {
-            _event: { id },
-            value: currentValue,
-            ...drag.actionPayload,
-            currentValue
-          });
-        }
+      if (drag?.actionPayload) {
+        eventHandler(`${id}-drag`, {
+          _event: { id },
+          value: currentValue,
+          ...drag.actionPayload,
+          currentValue
+        });
       }
-    };
+    }
+  };
 
-    const dragEndListener = () => {
-      if (isDragging) {
-        isDragging = false;
+  bar.on("pointerdown", barClickListener);
 
-        if (dragEnd?.actionPayload) {
-          eventHandler(`${id}-drag-end`, {
-            _event: { id },
-            value: currentValue,
-            ...dragEnd.actionPayload,
-          });
-        }
+  // Handle drag events
+  const dragStartListener = (event) => {
+    isDragging = true;
+
+    if (dragStart?.actionPayload) {
+      eventHandler(`${id}-drag-start`, {
+        _event: { id },
+        value: currentValue,
+        ...dragStart.actionPayload,
+      });
+    }
+  };
+
+  const dragMoveListener = (event) => {
+    if (!isDragging) return;
+
+    const newPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(newPosition);
+
+    if (newValue !== currentValue) {
+      currentValue = newValue;
+      updateThumbPosition(currentValue);
+
+      if (drag?.actionPayload) {
+        eventHandler(`${id}-drag`, {
+          _event: { id },
+          value: currentValue,
+          ...drag.actionPayload,
+          currentValue
+        });
       }
-    };
+    }
+  };
 
-    thumb.on("pointerdown", dragStartListener);
-    thumb.on("globalpointermove", dragMoveListener);
-    thumb.on("pointerup", dragEndListener);
-    thumb.on("pointerupoutside", dragEndListener);
-  }
+  const dragEndListener = () => {
+    if (isDragging) {
+      isDragging = false;
+
+      if (dragEnd?.actionPayload) {
+        eventHandler(`${id}-drag-end`, {
+          _event: { id },
+          value: currentValue,
+          ...dragEnd.actionPayload,
+        });
+      }
+    }
+  };
+
+  thumb.on("pointerdown", dragStartListener);
+  thumb.on("globalpointermove", dragMoveListener);
+  thumb.on("pointerup", dragEndListener);
+  thumb.on("pointerupoutside", dragEndListener);
 
   // Add sprites to container
   sliderContainer.addChild(bar);

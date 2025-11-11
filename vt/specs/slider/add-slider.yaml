@@ -7,8 +7,8 @@ states:
       - id: "slider-horizontal"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-blue"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 200
         height: 20
         x: 50
@@ -25,8 +25,8 @@ states:
       - id: "slider-vertical"
         type: "slider"
         direction: "vertical"
-        thumbSrc: "circle-red"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 20
         height: 150
         x: 300
@@ -43,8 +43,8 @@ states:
       - id: "slider-with-steps"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-green"
-        barSrc: "slider-bar"
+        thumbSrc: "vertical-idle-thumb"
+        barSrc: "vertical-idle-bar"
         width: 180
         height: 25
         x: 50
