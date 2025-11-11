@@ -91,9 +91,10 @@ export async function renderSlider({
     bar.height = height;
 
     // Calculate thumb dimensions maintaining aspect ratio with margin
-    const maxThumbSize = direction === "horizontal"
-      ? (height - barPadding * 2)
-      : (width - barPadding * 2);
+    const maxThumbSize =
+      direction === "horizontal"
+        ? height - barPadding * 2
+        : width - barPadding * 2;
 
     // Get original texture dimensions
     const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
@@ -122,8 +123,6 @@ export async function renderSlider({
 
   // Dragging state
   let isDragging = false;
-
-  
 
   // Calculate value from position
   const getValueFromPosition = (position) => {
@@ -231,7 +230,7 @@ export async function renderSlider({
           _event: { id },
           ...actionPayload,
         });
-      if (cursor){ 
+      if (cursor) {
         bar.cursor = cursor;
         thumb.cursor = cursor;
       }
@@ -252,10 +251,10 @@ export async function renderSlider({
     };
 
     const outListener = () => {
-      if(!isDragging){
+      if (!isDragging) {
         bar.cursor = "auto";
         thumb.cursor = "auto";
-  
+
         // Restore original textures
         thumb.texture = originalThumbTexture;
         bar.texture = originalBarTexture;
@@ -264,7 +263,7 @@ export async function renderSlider({
 
     // Set container to handle hover events (covers both bar and thumb area)
     sliderContainer.on("pointerover", overListener);
-    sliderContainer.on("pointerout",outListener);
+    sliderContainer.on("pointerout", outListener);
     sliderContainer.on("pointerupoutside", outListener);
   }
 
