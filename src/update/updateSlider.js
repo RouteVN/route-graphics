@@ -94,10 +94,10 @@ export async function updateSlider({
 
       // Remove all existing event listeners
       thumb.removeAllListeners("pointerover");
-      thumb.removeAllListeners("pointerout");
       thumb.removeAllListeners("pointerdown");
       thumb.removeAllListeners("globalpointermove");
       thumb.removeAllListeners("pointerup");
+      thumb.removeAllListeners("pointerupoutside");
       thumb.removeAllListeners("pointerupoutside");
       bar.removeAllListeners("pointerdown");
 
@@ -180,14 +180,15 @@ export async function updateSlider({
             }
           };
 
-          const outListener = () => {
+          const upListener = () => {
             thumb.cursor = "auto";
             thumb.texture = originalThumbTexture;
             bar.texture = originalBarTexture;
           };
 
           thumb.on("pointerover", overListener);
-          thumb.on("pointerout", outListener);
+          thumb.on("pointerup", upListener);
+          thumb.on("pointerupoutside", upListener);
         }
 
         // Handle drag events

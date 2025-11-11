@@ -137,7 +137,7 @@ export async function renderSlider({
       }
     };
 
-    const outListener = () => {
+    const upListener = () => {
       thumb.cursor = "auto";
 
       // Restore original textures
@@ -146,7 +146,8 @@ export async function renderSlider({
     };
 
     thumb.on("pointerover", overListener);
-    thumb.on("pointerout", outListener);
+    thumb.on("pointerup", upListener);
+    thumb.on("pointerupoutside", upListener);
   }
 
   // Calculate value from position
