@@ -197,16 +197,11 @@ export async function renderSlider({
         updateThumbPosition(currentValue);
 
         if (drag?.actionPayload) {
-          const payload = { ...drag.actionPayload };
-          // Replace {{ value }} template with actual value
-          const payloadString = JSON.stringify(payload);
-          const replacedString = payloadString.replace(/\{\{\s*value\s*\}\}/g, currentValue);
-          const finalPayload = JSON.parse(replacedString);
-
           eventHandler(`${id}-drag`, {
             _event: { id },
             value: currentValue,
-            ...finalPayload,
+            ...drag.actionPayload,
+            currentValue
           });
         }
       }
