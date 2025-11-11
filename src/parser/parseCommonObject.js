@@ -1,4 +1,5 @@
 import { calculatePositionAfterAnchor } from "./common.js";
+import { ASTNodeType } from "../types.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -16,18 +17,10 @@ export function parseCommonObject(state) {
   if (!(typeof state.width === "number") || !(typeof state.height === "number"))
     throw new Error("Input Error: Width or height is missing");
 
-  if (
-    ![
-      "rect",
-      "text",
-      "container",
-      "sprite",
-      "text-revealing",
-      "slider",
-    ].includes(state.type)
-  )
+  if (!Object.values(ASTNodeType).includes(state.type))
     throw new Error(
-      "Input Error: Type must be one of rect, text, container, sprite, text-revealing, slider",
+      "Input Error: Type must be one of " +
+        Object.values(ASTNodeType).join(", "),
     );
 
   if (!state.id) throw new Error("Input Error: Id is missing");
@@ -38,7 +31,7 @@ export function parseCommonObject(state) {
     : state.height;
 
   //We don't let scale affect container type for now
-  if (state.type === "container") {
+  if (state.type === ASTNodeType.CONTAINER) {
     widthAfterScale = state.width;
     heightAfterScale = state.height;
   }

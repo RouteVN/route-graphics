@@ -54,6 +54,12 @@ vt:
         - title: "TextRevealing"
           files: "textrevealing"
           description: "Using textrevealing"
+    - title: "Slider"
+      type: "groupLabel"
+      items:
+        - title: "Slider"
+          files: "slider"
+          description: "Slider rendering test"
     - title: "Route Graphics"
       type: "groupLabel"
       items:

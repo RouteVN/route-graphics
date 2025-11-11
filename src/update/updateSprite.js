@@ -57,7 +57,7 @@ export async function updateSprite({
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");
       spriteElement.removeAllListeners("pointerdown");
-      spriteElement.removeAllListeners("pointerout");
+      spriteElement.removeAllListeners("pointerupoutside");
       spriteElement.removeAllListeners("pointerup");
 
       const hoverEvents = nextSpriteASTNode?.hover;
@@ -146,7 +146,7 @@ export async function updateSprite({
 
         spriteElement.on("pointerdown", clickListener);
         spriteElement.on("pointerup", releaseListener);
-        spriteElement.on("pointerout", outListener);
+        spriteElement.on("pointerupoutside", outListener);
       }
     }
   };

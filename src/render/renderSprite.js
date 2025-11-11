@@ -122,7 +122,7 @@ export async function renderSprite({
 
     sprite.on("pointerdown", clickListener);
     sprite.on("pointerup", releaseListener);
-    sprite.on("pointerout", outListener);
+    sprite.on("pointerupoutside", outListener);
   }
 
   parent.addChild(sprite);

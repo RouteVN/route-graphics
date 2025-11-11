@@ -1,0 +1,145 @@
+---
+title: Slider Elements
+template: "route-graphics.html"
+---
+states:
+  - elements:
+      - id: "slider-horizontal"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 200
+        height: 20
+        x: 50
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 30
+        hover:
+          thumbSrc: "horizontal-hover-thumb"
+          barSrc: "horizontal-hover-bar"
+          cursor: "pointer"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            initialValue: 30
+            component: "volume-control"
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            component: "volume-control"
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            component: "volume-control"
+
+      - id: "slider-vertical"
+        type: "slider"
+        direction: "vertical"
+        thumbSrc: "vertical-idle-thumb"
+        barSrc: "vertical-idle-bar"
+        width: 20
+        height: 150
+        x: 300
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+        hover:
+          thumbSrc: "vertical-hover-thumb"
+          barSrc: "vertical-hover-bar"
+          cursor: "ew-resize"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            initialValue: 25
+            component: "brightness-control"
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            component: "brightness-control"
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            component: "brightness-control"
+
+      - id: "slider-with-steps"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 180
+        height: 25
+        x: 50
+        y: 150
+        alpha: 0.9
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 10
+        step: 2
+        initialValue: 4
+        hover:
+          thumbSrc: "horizontal-hover-thumb"
+          barSrc: "horizontal-hover-bar"
+          cursor: "grab"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            message: "Step slider with 2-unit increments"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            initialValue: 4
+            component: "progress-control"
+            snapToGrid: true
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            component: "progress-control"
+            snapToGrid: true
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            component: "progress-control"
+            snapToGrid: true
+            locked: true
