@@ -15,6 +15,8 @@ import { renderTextRevealing } from "./renderTextRevealing.js";
 import { updateTextRevealing } from "../update/updateTextRevealing.js";
 import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
 import { renderSlider } from "./renderSlider.js";
+import { deleteSlider } from "../delete/deleteSlider.js";
+import { updateSlider } from "../update/updateSlider.js";
 import { ASTNodeType } from "../types.js";
 /**
  * @typedef {import('../types.js').Application} Application
@@ -110,6 +112,19 @@ export async function renderApp({
             signal,
           }),
         );
+        break;
+      case ASTNodeType.SLIDER:
+        asyncActions.push(
+          deleteSlider({
+            app,
+            parent,
+            sliderASTNode: element,
+            transitions,
+            transitionElements,
+            signal,
+          }),
+        );
+        break;
       default:
     }
   }
@@ -258,6 +273,20 @@ export async function renderApp({
             app,
             parent,
             textRevealingASTNode: next,
+            signal,
+          }),
+        );
+        break;
+      case ASTNodeType.SLIDER:
+        asyncActions.push(
+          updateSlider({
+            app,
+            parent,
+            prevSliderASTNode: prev,
+            nextSliderASTNode: next,
+            transitions,
+            transitionElements,
+            eventHandler,
             signal,
           }),
         );
