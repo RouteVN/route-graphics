@@ -13,7 +13,10 @@ export function parseSlider(state) {
   let astObj = parseCommonObject(state);
   const defaultMin = state.min ?? 0;
   const defaultMax = state.max ?? 100;
-  if(defaultMax<=defaultMin) throw new Error("Input error: the max value of a slider must be larger than the min value")
+  if (defaultMax <= defaultMin)
+    throw new Error(
+      "Input error: the max value of a slider must be larger than the min value",
+    );
 
   return {
     ...astObj,

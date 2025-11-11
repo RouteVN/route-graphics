@@ -17,11 +17,10 @@ export function parseCommonObject(state) {
   if (!(typeof state.width === "number") || !(typeof state.height === "number"))
     throw new Error("Input Error: Width or height is missing");
 
-  if (
-    !Object.values(ASTNodeType).includes(state.type)
-  )
+  if (!Object.values(ASTNodeType).includes(state.type))
     throw new Error(
-      "Input Error: Type must be one of " + Object.values(ASTNodeType).join(", "),
+      "Input Error: Type must be one of " +
+        Object.values(ASTNodeType).join(", "),
     );
 
   if (!state.id) throw new Error("Input Error: Id is missing");

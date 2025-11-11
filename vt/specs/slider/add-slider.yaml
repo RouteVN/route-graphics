@@ -21,6 +21,14 @@ states:
         max: 100
         step: 1
         initialValue: 30
+        hover:
+          thumbSrc: "horizontal-hover-thumb"
+          barSrc: "horizontal-hover-bar"
+          cursor: "pointer"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
 
       - id: "slider-vertical"
         type: "slider"
@@ -39,6 +47,14 @@ states:
         max: 50
         step: 5
         initialValue: 25
+        hover:
+          thumbSrc: "vertical-hover-thumb"
+          barSrc: "vertical-hover-bar"
+          cursor: "ew-resize"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-vertical"
+            direction: "vertical"
 
       - id: "slider-with-steps"
         type: "slider"
@@ -57,3 +73,12 @@ states:
         max: 10
         step: 2
         initialValue: 4
+        hover:
+          thumbSrc: "horizontal-hover-thumb"
+          barSrc: "horizontal-hover-bar"
+          cursor: "grab"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            message: "Step slider with 2-unit increments"

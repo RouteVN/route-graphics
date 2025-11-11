@@ -88,8 +88,8 @@ export async function renderSlider({
     bar.width = width;
     bar.height = height;
 
-    thumb.width = direction === "horizontal" ? (height - 4 * 2) : (width - 4 * 2);
-    thumb.height = direction === "horizontal" ? (height - 4 * 2) : (width - 4 * 2);
+    thumb.width = direction === "horizontal" ? height - 4 * 2 : width - 4 * 2;
+    thumb.height = direction === "horizontal" ? height - 4 * 2 : width - 4 * 2;
 
     updateThumbPosition(currentValue);
   };
@@ -107,7 +107,13 @@ export async function renderSlider({
 
   // Handle hover events
   if (eventHandler && hover) {
-    const { cursor, soundSrc, actionPayload, thumbSrc: hoverThumbSrc, barSrc: hoverBarSrc } = hover;
+    const {
+      cursor,
+      soundSrc,
+      actionPayload,
+      thumbSrc: hoverThumbSrc,
+      barSrc: hoverBarSrc,
+    } = hover;
 
     const overListener = () => {
       if (actionPayload)
@@ -150,10 +156,16 @@ export async function renderSlider({
 
     if (direction === "horizontal") {
       const relativeX = position.x - thumb.width / 2;
-      normalizedValue = Math.max(0, Math.min(1, relativeX / (bar.width - thumb.width)));
+      normalizedValue = Math.max(
+        0,
+        Math.min(1, relativeX / (bar.width - thumb.width)),
+      );
     } else {
       const relativeY = position.y - thumb.height / 2;
-      normalizedValue = Math.max(0, Math.min(1, relativeY / (bar.height - thumb.height)));
+      normalizedValue = Math.max(
+        0,
+        Math.min(1, relativeY / (bar.height - thumb.height)),
+      );
     }
 
     let newValue = min + normalizedValue * valueRange;
@@ -189,7 +201,7 @@ export async function renderSlider({
           _event: { id },
           value: currentValue,
           ...drag.actionPayload,
-          currentValue
+          currentValue,
         });
       }
     }
@@ -225,7 +237,7 @@ export async function renderSlider({
           _event: { id },
           value: currentValue,
           ...drag.actionPayload,
-          currentValue
+          currentValue,
         });
       }
     }
@@ -258,6 +270,11 @@ export async function renderSlider({
 
   // Apply transitions if any
   if (transitions && transitions.length > 0) {
-    await transitionElements(id, { app, sprite: sliderContainer, transitions, signal });
+    await transitionElements(id, {
+      app,
+      sprite: sliderContainer,
+      transitions,
+      signal,
+    });
   }
 }
