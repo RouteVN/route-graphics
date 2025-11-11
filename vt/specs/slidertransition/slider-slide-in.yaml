@@ -1,0 +1,41 @@
+---
+title: Slider Slide In Transition
+description: A slider sliding in from the left side
+template: "route-graphics.html"
+specs:
+  - "slider should slide from x: -200 to x: 200"
+  - "animation should take 1 second"
+  - "slider should maintain normal alpha during slide"
+  - "thumb should remain correctly positioned on bar"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-green"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 200
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 25
+    transitions:
+      - id: 'slider-slide-in'
+        elementId: 'slider1'
+        type: keyframes
+        properties:
+          x:
+            initialValue: -200
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: easeOut

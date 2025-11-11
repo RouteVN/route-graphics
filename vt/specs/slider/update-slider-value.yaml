@@ -1,0 +1,47 @@
+---
+title: Update Slider Value
+description: Test updating slider initial value and position
+template: "route-graphics.html"
+specs:
+  - "slider should update its thumb position when initialValue changes"
+  - "slider should maintain the same bar properties"
+  - "slider should recalculate normalized value correctly"
+---
+states:
+  - elements:
+      - id: "slider-update-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 50
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 25
+
+  - elements:
+      - id: "slider-update-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 50
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 75

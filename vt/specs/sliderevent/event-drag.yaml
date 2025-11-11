@@ -1,0 +1,47 @@
+---
+title: Slider Drag Events
+description: Test drag, dragStart, and dragEnd events with actionPayload
+template: "route-graphics.html"
+specs:
+  - "slider should send dragStart event when thumb is pressed"
+  - "slider should send drag event during thumb movement"
+  - "slider should send dragEnd event when thumb is released"
+  - "drag events should include current slider value"
+  - "actionPayload should include custom data"
+---
+states:
+  - elements:
+      - id: 'slider-drag-test'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 300
+        height: 25
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 25
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            component: "volume-slider"
+            initialState: 25
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            component: "volume-slider"
+            currentValue: "{{ value }}"
+            timestamp: "{{ timestamp }}"
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            component: "volume-slider"
+            finalValue: "{{ value }}"
+            completed: true

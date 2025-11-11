@@ -1,0 +1,60 @@
+---
+title: Slider Fade Out Transition
+description: A slider element fading out with alpha animation before deletion
+template: "route-graphics.html"
+specs:
+  - "slider should fade from 1 to 0 alpha"
+  - "slider should disappear gradually over 1 second"
+  - "slider should be removed after fade out"
+  - "both bar and thumb should fade together"
+---
+states:
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-red"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 200
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-red"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 200
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+    transitions:
+      - id: 'slider-fade-out'
+        elementId: 'slider1'
+        type: keyframes
+        event: remove
+        properties:
+          alpha:
+            initialValue: 1
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear
+  - elements: []

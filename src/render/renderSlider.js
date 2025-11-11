@@ -201,7 +201,6 @@ export async function renderSlider({
             _event: { id },
             value: currentValue,
             ...drag.actionPayload,
-            currentValue
           });
         }
       }

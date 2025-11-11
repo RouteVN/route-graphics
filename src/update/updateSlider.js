@@ -220,7 +220,6 @@ export async function updateSlider({
                 _event: { id: nextSliderASTNode.id },
                 value: currentValue,
                 ...drag.actionPayload,
-                currentValue
               });
             }
           }

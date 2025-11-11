@@ -1,0 +1,30 @@
+---
+title: Delete Slider
+description: Test deleting slider elements
+template: "route-graphics.html"
+specs:
+  - "slider should be removed from the container"
+  - "slider container and all children should be destroyed"
+  - "other elements should remain unaffected"
+---
+states:
+  - elements:
+      - id: "slider-delete-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-green"
+        barSrc: "slider-bar"
+        width: 180
+        height: 20
+        x: 50
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+
+  - elements: []

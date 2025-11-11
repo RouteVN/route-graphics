@@ -1,0 +1,63 @@
+---
+title: Slider Update Position Transition
+description: A slider animating its position when updated
+template: "route-graphics.html"
+specs:
+  - "slider should move from (100, 100) to (400, 200)"
+  - "animation should take 1 second"
+  - "slider should remain visible throughout"
+  - "thumb should maintain relative position on bar"
+---
+states:
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 180
+        height: 20
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 180
+        height: 20
+        x: 400
+        y: 200
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+    transitions:
+      - id: 'slider-move'
+        elementId: 'slider1'
+        type: keyframes
+        event: update
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 400
+                easing: linear
+          y:
+            keyframes:
+              - duration: 1000
+                value: 200
+                easing: linear

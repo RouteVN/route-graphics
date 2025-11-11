@@ -42,7 +42,7 @@ class App {
   _initPixiCanvas = async () => {
     const assets = {
       "file:bg1": {
-        url: "/public/background-1-1.png",
+        url: "/public/slider-bar.png",
         type: "image/png",
       },
       "file:circle-red": {
