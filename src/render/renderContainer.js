@@ -3,6 +3,8 @@ import { renderRect } from "./renderRect.js";
 import renderText from "./renderText.js";
 import { renderSprite } from "./renderSprite.js";
 import { renderTextRevealing } from "./renderTextRevealing.js";
+import { renderSlider } from "./renderSlider.js";
+import { ASTNodeType } from "../types.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -43,7 +45,7 @@ export async function renderContainer({
   const childPromises = [];
   for (const child of children) {
     switch (child.type) {
-      case "rect":
+      case ASTNodeType.RECT:
         childPromises.push(
           renderRect({
             app,
@@ -55,7 +57,7 @@ export async function renderContainer({
           }),
         );
         break;
-      case "text":
+      case ASTNodeType.TEXT:
         childPromises.push(
           renderText({
             app,
@@ -67,7 +69,7 @@ export async function renderContainer({
           }),
         );
         break;
-      case "sprite":
+      case ASTNodeType.SPRITE:
         childPromises.push(
           renderSprite({
             app,
@@ -79,7 +81,7 @@ export async function renderContainer({
           }),
         );
         break;
-      case "container":
+      case ASTNodeType.CONTAINER:
         childPromises.push(
           renderContainer({
             app,
@@ -91,13 +93,28 @@ export async function renderContainer({
           }),
         );
         break;
-      case "text-revealing":
-        renderTextRevealing({
-          app,
-          parent,
-          textRevealingASTNode: child,
-          signal,
-        });
+      case ASTNodeType.TEXT_REVEALING:
+        childPromises.push(
+          renderTextRevealing({
+            app,
+            parent,
+            textRevealingASTNode: child,
+            signal,
+          }),
+        );
+        break;
+      case ASTNodeType.SLIDER:
+        childPromises.push(
+          renderSlider({
+            app,
+            parent,
+            sliderASTNode: child,
+            transitions,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
       default:
         throw new Error("Unkown types");
     }

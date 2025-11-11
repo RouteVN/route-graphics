@@ -45,7 +45,7 @@ export async function updateText({
       textElement.removeAllListeners("pointerover");
       textElement.removeAllListeners("pointerout");
       textElement.removeAllListeners("pointerdown");
-      textElement.removeAllListeners("pointerout");
+      textElement.removeAllListeners("pointerupoutside");
       textElement.removeAllListeners("pointerup");
 
       const hoverEvents = nextTextASTNode?.hover;
@@ -120,7 +120,7 @@ export async function updateText({
 
         textElement.on("pointerdown", clickListener);
         textElement.on("pointerup", releaseListener);
-        textElement.on("pointerout", outListener);
+        textElement.on("pointerupoutside", outListener);
       }
     }
   };

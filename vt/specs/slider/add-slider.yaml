@@ -1,0 +1,59 @@
+---
+title: Slider Elements
+template: "route-graphics.html"
+---
+states:
+  - elements:
+      - id: "slider-horizontal"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "slider-bar"
+        width: 200
+        height: 20
+        x: 50
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 30
+
+      - id: "slider-vertical"
+        type: "slider"
+        direction: "vertical"
+        thumbSrc: "circle-red"
+        barSrc: "slider-bar"
+        width: 20
+        height: 150
+        x: 300
+        y: 50
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+
+      - id: "slider-with-steps"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-green"
+        barSrc: "slider-bar"
+        width: 180
+        height: 25
+        x: 50
+        y: 150
+        alpha: 0.9
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 10
+        step: 2
+        initialValue: 4

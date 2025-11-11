@@ -3,6 +3,8 @@ import { parseRect } from "./parseRect.js";
 import { parseSprite } from "./parseSprite.js";
 import { parseText } from "./parseText.js";
 import { parseTextRevealing } from "./parseTextRevealing.js";
+import { parseSlider } from "./parseSlider.js";
+import { ASTNodeType } from "../types.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -17,16 +19,18 @@ import { parseTextRevealing } from "./parseTextRevealing.js";
 export default function parseJSONToAST(JSONObject) {
   const parsedASTTree = JSONObject.map((node) => {
     switch (node.type) {
-      case "rect":
+      case ASTNodeType.RECT:
         return parseRect(node);
-      case "container":
+      case ASTNodeType.CONTAINER:
         return parseContainer(node);
-      case "text":
+      case ASTNodeType.TEXT:
         return parseText(node);
-      case "text-revealing":
+      case ASTNodeType.TEXT_REVEALING:
         return parseTextRevealing(node);
-      case "sprite":
+      case ASTNodeType.SPRITE:
         return parseSprite(node);
+      case ASTNodeType.SLIDER:
+        return parseSlider(node);
       default:
         throw new Error(`Unsupported element type: ${node.type}`);
     }

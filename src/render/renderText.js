@@ -115,7 +115,7 @@ export default async function renderText({
 
     text.on("pointerdown", clickListener);
     text.on("pointerup", releaseListener);
-    text.on("pointerout", outListener);
+    text.on("pointerupoutside", outListener);
   }
 
   parent.addChild(text);

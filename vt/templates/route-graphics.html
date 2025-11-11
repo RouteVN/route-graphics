@@ -19,6 +19,7 @@
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
         await Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' });
         await Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' });
+        await Assets.load({ alias: 'slider-bar', src: '/public/slider.png' });
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -42,6 +43,7 @@
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
+            backgroundColor: "white",
             transitionElements
         })
         document.body.appendChild(app.canvas);

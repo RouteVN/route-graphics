@@ -320,6 +320,19 @@ export const TransitionEvent = {
 };
 
 /**
+ * @readonly
+ * @enum {string}
+ */
+export const ASTNodeType = {
+  RECT: "rect",
+  TEXT: "text",
+  CONTAINER: "container",
+  SPRITE: "sprite",
+  TEXT_REVEALING: "text-revealing",
+  SLIDER: "slider",
+};
+
+/**
  * @typedef {Object} BaseTransition
  * @property {string} type - Type of the transition
  * @property {string} elementId - ID of the element

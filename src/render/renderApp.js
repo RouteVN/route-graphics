@@ -14,6 +14,8 @@ import { updateContainer } from "../update/updateContainer.js";
 import { renderTextRevealing } from "./renderTextRevealing.js";
 import { updateTextRevealing } from "../update/updateTextRevealing.js";
 import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
+import { renderSlider } from "./renderSlider.js";
+import { ASTNodeType } from "../types.js";
 /**
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
@@ -51,7 +53,7 @@ export async function renderApp({
 
   for (const element of toDeleteElement) {
     switch (element.type) {
-      case "rect":
+      case ASTNodeType.RECT:
         asyncActions.push(
           deleteRect({
             app,
@@ -63,7 +65,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "text":
+      case ASTNodeType.TEXT:
         asyncActions.push(
           deleteText({
             app,
@@ -75,7 +77,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "container":
+      case ASTNodeType.CONTAINER:
         asyncActions.push(
           deleteContainer({
             app,
@@ -87,7 +89,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "sprite":
+      case ASTNodeType.SPRITE:
         asyncActions.push(
           deleteSprite({
             app,
@@ -99,7 +101,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "text-revealing":
+      case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
           deleteTextRevealing({
             app,
@@ -114,7 +116,7 @@ export async function renderApp({
 
   for (const element of toAddElement) {
     switch (element.type) {
-      case "rect":
+      case ASTNodeType.RECT:
         asyncActions.push(
           renderRect({
             app,
@@ -127,7 +129,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "text":
+      case ASTNodeType.TEXT:
         asyncActions.push(
           renderText({
             app,
@@ -140,7 +142,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "container":
+      case ASTNodeType.CONTAINER:
         asyncActions.push(
           renderContainer({
             app,
@@ -153,7 +155,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "sprite":
+      case ASTNodeType.SPRITE:
         asyncActions.push(
           renderSprite({
             app,
@@ -166,7 +168,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "text-revealing":
+      case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
           renderTextRevealing({
             app,
@@ -175,13 +177,27 @@ export async function renderApp({
             signal,
           }),
         );
+        break;
+      case ASTNodeType.SLIDER:
+        asyncActions.push(
+          renderSlider({
+            app,
+            parent,
+            sliderASTNode: element,
+            transitions,
+            transitionElements,
+            eventHandler,
+            signal,
+          }),
+        );
+        break;
       default:
     }
   }
 
   for (const { prev, next } of toUpdateElement) {
     switch (next.type) {
-      case "rect":
+      case ASTNodeType.RECT:
         asyncActions.push(
           updateRect({
             app,
@@ -195,7 +211,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "text":
+      case ASTNodeType.TEXT:
         asyncActions.push(
           updateText({
             app,
@@ -209,7 +225,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "container":
+      case ASTNodeType.CONTAINER:
         asyncActions.push(
           updateContainer({
             app,
@@ -223,7 +239,7 @@ export async function renderApp({
           }),
         );
         break;
-      case "sprite":
+      case ASTNodeType.SPRITE:
         asyncActions.push(
           updateSprite({
             app,
@@ -236,7 +252,7 @@ export async function renderApp({
             signal,
           }),
         );
-      case "text-revealing":
+      case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
           updateTextRevealing({
             app,
