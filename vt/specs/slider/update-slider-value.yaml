@@ -12,8 +12,8 @@ states:
       - id: "slider-update-test"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-blue"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 200
         height: 20
         x: 50
@@ -31,8 +31,8 @@ states:
       - id: "slider-update-test"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-blue"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 200
         height: 20
         x: 50

@@ -54,6 +54,8 @@ export async function renderSlider({
   sliderContainer.alpha = alpha;
   sliderContainer.zIndex = zIndex;
   sliderContainer.sortableChildren = true;
+  sliderContainer.eventMode = "static";
+  const barPadding = 0;
 
   // Create bar sprite
   const barTexture = barSrc ? Texture.from(barSrc) : Texture.EMPTY;

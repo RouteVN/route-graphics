@@ -13,8 +13,8 @@ states:
       - id: 'slider-template-test'
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-green"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 200
         height: 20
         x: 100

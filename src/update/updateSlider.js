@@ -1,4 +1,4 @@
-import { Sprite, Texture } from "pixi.js";
+import { Sprite, Texture, Container } from "pixi.js";
 
 /**
  * Update function for Slider elements
@@ -56,13 +56,25 @@ export async function updateSlider({
         bar.width = nextSliderASTNode.width;
         bar.height = nextSliderASTNode.height;
 
-        // Update thumb dimensions based on direction
-        thumb.width = nextSliderASTNode.direction === "horizontal"
-          ? nextSliderASTNode.height * 0.8
-          : nextSliderASTNode.width * 0.8;
-        thumb.height = nextSliderASTNode.direction === "horizontal"
-          ? nextSliderASTNode.height * 0.8
-          : nextSliderASTNode.width * 0.8;
+        // Update thumb dimensions maintaining aspect ratio with margin (like renderSlider)
+        const barPadding = 0;
+        const maxThumbSize = nextSliderASTNode.direction === "horizontal"
+          ? (nextSliderASTNode.height - barPadding * 2)
+          : (nextSliderASTNode.width - barPadding * 2);
+
+        // Get original texture dimensions
+        const thumbTexture = nextSliderASTNode.thumbSrc ? Texture.from(nextSliderASTNode.thumbSrc) : Texture.EMPTY;
+        const originalWidth = thumbTexture.width || 16;
+        const originalHeight = thumbTexture.height || 16;
+
+        // Calculate scale to fit within maxThumbSize while maintaining aspect ratio
+        const scaleX = maxThumbSize / originalWidth;
+        const scaleY = maxThumbSize / originalHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        // Apply scaled dimensions
+        thumb.width = originalWidth * scale;
+        thumb.height = originalHeight * scale;
 
         // Update textures if they changed
         if (prevSliderASTNode.barSrc !== nextSliderASTNode.barSrc) {
@@ -92,14 +104,13 @@ export async function updateSlider({
         }
       }
 
-      // Remove all existing event listeners
-      thumb.removeAllListeners("pointerover");
-      thumb.removeAllListeners("pointerdown");
-      thumb.removeAllListeners("globalpointermove");
-      thumb.removeAllListeners("pointerup");
-      thumb.removeAllListeners("pointerupoutside");
-      thumb.removeAllListeners("pointerupoutside");
-      bar.removeAllListeners("pointerdown");
+      // Remove all existing event listeners from container, bar, and thumb
+      sliderElement.removeAllListeners("pointerover");
+      sliderElement.removeAllListeners("pointerout");
+      sliderElement.removeAllListeners("pointerup");
+      sliderElement.removeAllListeners("pointerupoutside");
+      sliderElement.removeAllListeners("pointerdown");
+      sliderElement.removeAllListeners("globalpointermove");
 
       // Re-attach event handlers if they exist
       if (eventHandler) {
@@ -115,8 +126,9 @@ export async function updateSlider({
           initialValue,
         } = nextSliderASTNode;
 
-        let currentValue = initialValue || min;
+        let currentValue = initialValue ?? min;
         const valueRange = max - min;
+        sliderElement.eventMode = "static";
 
         const updateThumbPosition = (value) => {
           const normalizedValue = (value - min) / valueRange;
@@ -154,62 +166,35 @@ export async function updateSlider({
         const originalThumbTexture = thumb.texture;
         const originalBarTexture = bar.texture;
 
-        // Handle hover events
-        if (hover) {
-          const { cursor, soundSrc, actionPayload, thumbSrc: hoverThumbSrc, barSrc: hoverBarSrc } = hover;
-
-          const overListener = () => {
-            if (actionPayload)
-              eventHandler(`${nextSliderASTNode.id}-pointer-over`, {
-                _event: { id: nextSliderASTNode.id },
-                ...actionPayload,
-              });
-            if (cursor) thumb.cursor = cursor;
-            if (soundSrc)
-              app.audioStage.add({
-                id: `hover-${Date.now()}`,
-                url: soundSrc,
-                loop: false,
-              });
-
-            if (hoverThumbSrc) {
-              thumb.texture = Texture.from(hoverThumbSrc);
-            }
-            if (hoverBarSrc) {
-              bar.texture = Texture.from(hoverBarSrc);
-            }
-          };
-
-          const upListener = () => {
-            thumb.cursor = "auto";
-            thumb.texture = originalThumbTexture;
-            bar.texture = originalBarTexture;
-          };
-
-          thumb.on("pointerover", overListener);
-          thumb.on("pointerup", upListener);
-          thumb.on("pointerupoutside", upListener);
-        }
+        
 
         // Handle drag events
         let isDragging = false;
 
-        const dragStartListener = () => {
+        const dragStartListener = (event) => {
           isDragging = true;
 
-          if (dragStart?.actionPayload) {
-            eventHandler(`${nextSliderASTNode.id}-drag-start`, {
-              _event: { id: nextSliderASTNode.id },
-              value: currentValue,
-              ...dragStart.actionPayload,
-            });
+          const newPosition = sliderElement.toLocal(event.global);
+          const newValue = getValueFromPosition(newPosition);
+
+          if (newValue !== currentValue) {
+            currentValue = newValue;
+            updateThumbPosition(currentValue);
+
+            if (dragStart?.actionPayload) {
+              eventHandler(`${nextSliderASTNode.id}-drag-start`, {
+                _event: { id: nextSliderASTNode.id },
+                value: currentValue,
+                ...dragStart.actionPayload,
+              });
+            }
           }
         };
 
         const dragMoveListener = (event) => {
           if (!isDragging) return;
 
-          const newPosition = thumb.parent.toLocal(event.global);
+          const newPosition = sliderElement.toLocal(event.global);
           const newValue = getValueFromPosition(newPosition);
 
           if (newValue !== currentValue) {
@@ -221,6 +206,7 @@ export async function updateSlider({
                 _event: { id: nextSliderASTNode.id },
                 value: currentValue,
                 ...drag.actionPayload,
+                currentValue,
               });
             }
           }
@@ -240,10 +226,66 @@ export async function updateSlider({
           }
         };
 
-        thumb.on("pointerdown", dragStartListener);
-        thumb.on("globalpointermove", dragMoveListener);
-        thumb.on("pointerup", dragEndListener);
-        thumb.on("pointerupoutside", dragEndListener);
+        sliderElement.on("pointerdown", dragStartListener);
+        sliderElement.on("globalpointermove", dragMoveListener);
+        sliderElement.on("pointerup", dragEndListener);
+        sliderElement.on("pointerupoutside", dragEndListener);
+
+        if (hover) {
+          const { cursor, soundSrc, actionPayload, thumbSrc: hoverThumbSrc, barSrc: hoverBarSrc } = hover;
+
+          const overListener = () => {
+            if (actionPayload)
+              eventHandler(`${nextSliderASTNode.id}-pointer-over`, {
+                _event: { id: nextSliderASTNode.id },
+                ...actionPayload,
+              });
+            if (cursor) {
+              sliderElement.cursor = cursor;
+              thumb.cursor = cursor;
+            }
+            if (soundSrc)
+              app.audioStage.add({
+                id: `hover-${Date.now()}`,
+                url: soundSrc,
+                loop: false,
+              });
+
+            // Apply hover textures
+            if (hoverThumbSrc) {
+              thumb.texture = Texture.from(hoverThumbSrc);
+            }
+            if (hoverBarSrc) {
+              bar.texture = Texture.from(hoverBarSrc);
+            }
+          };
+
+          const outListener = () => {
+            sliderElement.cursor = "auto";
+            thumb.cursor = "auto";
+
+            // Restore original textures
+            thumb.texture = originalThumbTexture;
+            bar.texture = originalBarTexture;
+          };
+
+          const pointeroutListener = () => {
+            // Only restore original textures if not dragging
+            if (!isDragging) {
+              sliderElement.cursor = "auto";
+              thumb.cursor = "auto";
+
+              // Restore original textures
+              thumb.texture = originalThumbTexture;
+              bar.texture = originalBarTexture;
+            }
+          };
+
+          sliderElement.on("pointerover", overListener);
+          sliderElement.on("pointerout", pointeroutListener);
+          sliderElement.on("pointerup", outListener);
+          sliderElement.on("pointerupoutside", outListener);
+        }
       }
     }
   };

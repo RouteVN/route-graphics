@@ -1,0 +1,98 @@
+---
+title: Update Slider Sources
+description: Test updating slider thumbSrc and barSrc dynamically
+template: "route-graphics.html"
+specs:
+  - "slider should update thumbSrc when changed"
+  - "slider should update barSrc when changed"
+  - "slider should maintain position after source changes"
+  - "slider should support switching between different asset types"
+---
+states:
+  - elements:
+      - id: "slider-source-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 200
+        height: 20
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+        hover:
+          thumbSrc: "horizontal-hover-thumb"
+          barSrc: "horizontal-hover-bar"
+          cursor: "pointer"
+
+  - elements:
+      - id: "slider-source-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "vertical-idle-thumb"
+        barSrc: "vertical-idle-bar"
+        width: 200
+        height: 20
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+        hover:
+          thumbSrc: "vertical-hover-thumb"
+          barSrc: "vertical-hover-bar"
+          cursor: "pointer"
+
+  - elements:
+      - id: "slider-source-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "slider"
+        barSrc: "slider"
+        width: 200
+        height: 20
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+
+  - elements:
+      - id: "slider-source-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "circle-blue"
+        barSrc: "horizontal-idle-bar"
+        width: 200
+        height: 20
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+        hover:
+          thumbSrc: "circle-red"
+          barSrc: "horizontal-hover-bar"
+          cursor: "pointer"

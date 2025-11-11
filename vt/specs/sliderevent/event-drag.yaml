@@ -14,8 +14,8 @@ states:
       - id: 'slider-drag-test'
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-blue"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 300
         height: 25
         x: 100

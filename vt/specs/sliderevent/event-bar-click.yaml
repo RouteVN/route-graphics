@@ -14,8 +14,8 @@ states:
       - id: 'slider-bar-click-test'
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-red"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 300
         height: 25
         x: 100

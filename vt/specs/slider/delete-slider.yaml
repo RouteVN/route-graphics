@@ -12,8 +12,8 @@ states:
       - id: "slider-delete-test"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "circle-green"
-        barSrc: "slider-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 180
         height: 20
         x: 50
