@@ -11,6 +11,12 @@ import { parseCommonObject } from "./parseCommonObject.js";
  */
 export function parseSlider(state) {
   let astObj = parseCommonObject(state);
+  const defaultMin = state.min ?? 0;
+  const defaultMax = state.max ?? 100;
+  if (defaultMax <= defaultMin)
+    throw new Error(
+      "Input error: the max value of a slider must be larger than the min value",
+    );
 
   return {
     ...astObj,
@@ -18,8 +24,8 @@ export function parseSlider(state) {
     thumbSrc: state.thumbSrc ?? "",
     barSrc: state.barSrc ?? "",
     alpha: state.alpha ?? 1,
-    min: state.min ?? 0,
-    max: state.max ?? 100,
+    min: defaultMin,
+    max: defaultMax,
     step: state.step ?? 1,
     initialValue: state.initialValue ?? 0,
     ...(state.hover && { hover: state.hover }),

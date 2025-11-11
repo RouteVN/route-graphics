@@ -59,6 +59,7 @@ export async function renderSlider({
   const barTexture = barSrc ? Texture.from(barSrc) : Texture.EMPTY;
   const bar = new Sprite(barTexture);
   bar.label = `${id}-bar`;
+  bar.eventMode = "static";
 
   // Create thumb sprite
   const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
@@ -67,7 +68,7 @@ export async function renderSlider({
   thumb.eventMode = "static";
 
   // Calculate slider value and thumb position
-  let currentValue = initialValue || min;
+  let currentValue = initialValue ?? min;
   const valueRange = max - min;
 
   const updateThumbPosition = (value) => {
@@ -84,18 +85,29 @@ export async function renderSlider({
 
   // Setup dimensions and positions
   const setupSlider = () => {
-    // Set bar dimensions
     bar.width = width;
     bar.height = height;
 
-    // Set thumb dimensions (smaller than bar)
-    thumb.width = direction === "horizontal" ? height * 0.8 : width * 0.8;
-    thumb.height = direction === "horizontal" ? height * 0.8 : width * 0.8;
+    // Calculate thumb dimensions maintaining aspect ratio with margin
+    const maxThumbSize =
+      direction === "horizontal"
+        ? height - barPadding * 2
+        : width - barPadding * 2;
 
-    // Set origin point
-    sliderContainer.pivot.set(originX, originY);
+    // Get original texture dimensions
+    const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
+    const originalWidth = thumbTexture.width;
+    const originalHeight = thumbTexture.height;
 
-    // Update thumb position based on current value
+    // Calculate scale to fit within maxThumbSize while maintaining aspect ratio
+    const scaleX = maxThumbSize / originalWidth;
+    const scaleY = maxThumbSize / originalHeight;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Apply scaled dimensions
+    thumb.width = originalWidth * scale;
+    thumb.height = originalHeight * scale;
+
     updateThumbPosition(currentValue);
   };
 
@@ -110,17 +122,107 @@ export async function renderSlider({
   // Dragging state
   let isDragging = false;
 
+  // Calculate value from position
+  const getValueFromPosition = (position) => {
+    let normalizedValue;
+
+    if (direction === "horizontal") {
+      const relativeX = position.x - thumb.width / 2;
+      normalizedValue = Math.max(
+        0,
+        Math.min(1, relativeX / (bar.width - thumb.width)),
+      );
+    } else {
+      const relativeY = position.y - thumb.height / 2;
+      normalizedValue = Math.max(
+        0,
+        Math.min(1, relativeY / (bar.height - thumb.height)),
+      );
+    }
+
+    let newValue = min + normalizedValue * valueRange;
+
+    // Apply step if specified
+    if (step > 0) {
+      newValue = Math.round((newValue - min) / step) * step + min;
+      newValue = Math.max(min, Math.min(max, newValue));
+    }
+
+    return newValue;
+  };
+
+  // Handle drag events
+  const dragStartListener = (event) => {
+    isDragging = true;
+
+    const newPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(newPosition);
+
+    if (newValue !== currentValue) {
+      currentValue = newValue;
+      updateThumbPosition(currentValue);
+
+      if (dragStart?.actionPayload) {
+        eventHandler(`${id}-drag-start`, {
+          _event: { id, value: currentValue },
+          ...dragStart.actionPayload,
+        });
+      }
+    }
+  };
+
+  const dragMoveListener = (event) => {
+    if (!isDragging) return;
+
+    const newPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(newPosition);
+
+    if (newValue !== currentValue) {
+      currentValue = newValue;
+      updateThumbPosition(currentValue);
+
+      if (drag?.actionPayload) {
+        eventHandler(`${id}-drag`, {
+          _event: { id, value: currentValue },
+          ...drag.actionPayload,
+          currentValue,
+        });
+      }
+    }
+  };
+
+  const dragEndListener = () => {
+    if (isDragging) {
+      isDragging = false;
+
+      if (dragEnd?.actionPayload) {
+        eventHandler(`${id}-drag-end`, {
+          _event: { id, value: currentValue },
+          ...dragEnd.actionPayload,
+        });
+      }
+    }
+  };
+
+  sliderContainer.on("pointerdown", dragStartListener);
+  sliderContainer.on("globalpointermove", dragMoveListener);
+  sliderContainer.on("pointerup", dragEndListener);
+  sliderContainer.on("pointerupoutside", dragEndListener);
+
   // Handle hover events
-  if (eventHandler && hover) {
-    const { cursor, soundSrc, actionPayload, thumbSrc: hoverThumbSrc, barSrc: hoverBarSrc } = hover;
+  if (hover) {
+    const {
+      cursor,
+      soundSrc,
+      thumbSrc: hoverThumbSrc,
+      barSrc: hoverBarSrc,
+    } = hover;
 
     const overListener = () => {
-      if (actionPayload)
-        eventHandler(`${id}-pointer-over`, {
-          _event: { id },
-          ...actionPayload,
-        });
-      if (cursor) thumb.cursor = cursor;
+      if (cursor) {
+        bar.cursor = cursor;
+        thumb.cursor = cursor;
+      }
       if (soundSrc)
         app.audioStage.add({
           id: `hover-${Date.now()}`,
@@ -137,94 +239,21 @@ export async function renderSlider({
       }
     };
 
-    const upListener = () => {
-      thumb.cursor = "auto";
+    const outListener = () => {
+      if (!isDragging) {
+        bar.cursor = "auto";
+        thumb.cursor = "auto";
 
-      // Restore original textures
-      thumb.texture = originalThumbTexture;
-      bar.texture = originalBarTexture;
-    };
-
-    thumb.on("pointerover", overListener);
-    thumb.on("pointerup", upListener);
-    thumb.on("pointerupoutside", upListener);
-  }
-
-  // Calculate value from position
-  const getValueFromPosition = (position) => {
-    let normalizedValue;
-
-    if (direction === "horizontal") {
-      const relativeX = position.x - thumb.width / 2;
-      normalizedValue = Math.max(0, Math.min(1, relativeX / (bar.width - thumb.width)));
-    } else {
-      const relativeY = position.y - thumb.height / 2;
-      normalizedValue = Math.max(0, Math.min(1, relativeY / (bar.height - thumb.height)));
-    }
-
-    let newValue = min + normalizedValue * valueRange;
-
-    // Apply step if specified
-    if (step > 0) {
-      newValue = Math.round((newValue - min) / step) * step + min;
-      newValue = Math.max(min, Math.min(max, newValue));
-    }
-
-    return newValue;
-  };
-
-  // Handle drag events
-  if (eventHandler) {
-    const dragStartListener = (event) => {
-      isDragging = true;
-
-      if (dragStart?.actionPayload) {
-        eventHandler(`${id}-drag-start`, {
-          _event: { id },
-          value: currentValue,
-          ...dragStart.actionPayload,
-        });
+        // Restore original textures
+        thumb.texture = originalThumbTexture;
+        bar.texture = originalBarTexture;
       }
     };
 
-    const dragMoveListener = (event) => {
-      if (!isDragging) return;
-
-      const newPosition = thumb.parent.toLocal(event.global);
-      const newValue = getValueFromPosition(newPosition);
-
-      if (newValue !== currentValue) {
-        currentValue = newValue;
-        updateThumbPosition(currentValue);
-
-        if (drag?.actionPayload) {
-          eventHandler(`${id}-drag`, {
-            _event: { id },
-            value: currentValue,
-            ...drag.actionPayload,
-          });
-        }
-      }
-    };
-
-    const dragEndListener = () => {
-      if (isDragging) {
-        isDragging = false;
-
-        if (dragEnd?.actionPayload) {
-          eventHandler(`${id}-drag-end`, {
-            _event: { id },
-            value: currentValue,
-            ...dragEnd.actionPayload,
-          });
-        }
-      }
-    };
-
-    thumb.on("pointerdown", dragStartListener);
-    thumb.on("globalpointermove", dragMoveListener);
-    thumb.on("pointerup", dragEndListener);
-    thumb.on("pointerupoutside", dragEndListener);
+    // Set container to handle hover events (covers both bar and thumb area)
+    sliderContainer.on("pointerover", overListener);
+    sliderContainer.on("pointerout", outListener);
+    sliderContainer.on("pointerupoutside", outListener);
   }
 
   // Add sprites to container
@@ -235,6 +264,11 @@ export async function renderSlider({
 
   // Apply transitions if any
   if (transitions && transitions.length > 0) {
-    await transitionElements(id, { app, sprite: sliderContainer, transitions, signal });
+    await transitionElements(id, {
+      app,
+      sprite: sliderContainer,
+      transitions,
+      signal,
+    });
   }
 }
