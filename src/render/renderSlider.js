@@ -54,6 +54,8 @@ export async function renderSlider({
   sliderContainer.alpha = alpha;
   sliderContainer.zIndex = zIndex;
   sliderContainer.sortableChildren = true;
+  sliderContainer.eventMode = "static";
+  const barPadding = 0;
 
   // Create bar sprite
   const barTexture = barSrc ? Texture.from(barSrc) : Texture.EMPTY;
@@ -88,8 +90,24 @@ export async function renderSlider({
     bar.width = width;
     bar.height = height;
 
-    thumb.width = direction === "horizontal" ? height - 4 * 2 : width - 4 * 2;
-    thumb.height = direction === "horizontal" ? height - 4 * 2 : width - 4 * 2;
+    // Calculate thumb dimensions maintaining aspect ratio with margin
+    const maxThumbSize = direction === "horizontal"
+      ? (height - barPadding * 2)
+      : (width - barPadding * 2);
+
+    // Get original texture dimensions
+    const thumbTexture = thumbSrc ? Texture.from(thumbSrc) : Texture.EMPTY;
+    const originalWidth = thumbTexture.width ?? 16;
+    const originalHeight = thumbTexture.height ?? 16;
+
+    // Calculate scale to fit within maxThumbSize while maintaining aspect ratio
+    const scaleX = maxThumbSize / originalWidth;
+    const scaleY = maxThumbSize / originalHeight;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Apply scaled dimensions
+    thumb.width = originalWidth * scale;
+    thumb.height = originalHeight * scale;
 
     updateThumbPosition(currentValue);
   };
@@ -105,50 +123,7 @@ export async function renderSlider({
   // Dragging state
   let isDragging = false;
 
-  // Handle hover events
-  if (eventHandler && hover) {
-    const {
-      cursor,
-      soundSrc,
-      actionPayload,
-      thumbSrc: hoverThumbSrc,
-      barSrc: hoverBarSrc,
-    } = hover;
-
-    const overListener = () => {
-      if (actionPayload)
-        eventHandler(`${id}-pointer-over`, {
-          _event: { id },
-          ...actionPayload,
-        });
-      if (cursor) thumb.cursor = cursor;
-      if (soundSrc)
-        app.audioStage.add({
-          id: `hover-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-        });
-
-      // Apply hover textures
-      if (hoverThumbSrc) {
-        thumb.texture = Texture.from(hoverThumbSrc);
-      }
-      if (hoverBarSrc) {
-        bar.texture = Texture.from(hoverBarSrc);
-      }
-    };
-
-    const outListener = () => {
-      thumb.cursor = "auto";
-
-      // Restore original textures
-      thumb.texture = originalThumbTexture;
-      bar.texture = originalBarTexture;
-    };
-
-    thumb.on("pointerover", overListener);
-    thumb.on("pointerout", outListener);
-  }
+  
 
   // Calculate value from position
   const getValueFromPosition = (position) => {
@@ -179,15 +154,17 @@ export async function renderSlider({
     return newValue;
   };
 
-  const barClickListener = (event) => {
-    const clickPosition = sliderContainer.toLocal(event.global);
-    const newValue = getValueFromPosition(clickPosition);
+  // Handle drag events
+  const dragStartListener = (event) => {
+    isDragging = true;
+
+    const newPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(newPosition);
 
     if (newValue !== currentValue) {
       currentValue = newValue;
       updateThumbPosition(currentValue);
 
-      // Trigger drag events for immediate value change
       if (dragStart?.actionPayload) {
         eventHandler(`${id}-drag-start`, {
           _event: { id },
@@ -195,30 +172,6 @@ export async function renderSlider({
           ...dragStart.actionPayload,
         });
       }
-
-      if (drag?.actionPayload) {
-        eventHandler(`${id}-drag`, {
-          _event: { id },
-          value: currentValue,
-          ...drag.actionPayload,
-          currentValue,
-        });
-      }
-    }
-  };
-
-  bar.on("pointerdown", barClickListener);
-
-  // Handle drag events
-  const dragStartListener = (event) => {
-    isDragging = true;
-
-    if (dragStart?.actionPayload) {
-      eventHandler(`${id}-drag-start`, {
-        _event: { id },
-        value: currentValue,
-        ...dragStart.actionPayload,
-      });
     }
   };
 
@@ -257,10 +210,63 @@ export async function renderSlider({
     }
   };
 
-  thumb.on("pointerdown", dragStartListener);
-  thumb.on("globalpointermove", dragMoveListener);
-  thumb.on("pointerup", dragEndListener);
-  thumb.on("pointerupoutside", dragEndListener);
+  sliderContainer.on("pointerdown", dragStartListener);
+  sliderContainer.on("globalpointermove", dragMoveListener);
+  sliderContainer.on("pointerup", dragEndListener);
+  sliderContainer.on("pointerupoutside", dragEndListener);
+
+  // Handle hover events
+  if (hover) {
+    const {
+      cursor,
+      soundSrc,
+      actionPayload,
+      thumbSrc: hoverThumbSrc,
+      barSrc: hoverBarSrc,
+    } = hover;
+
+    const overListener = () => {
+      if (actionPayload && eventHandler)
+        eventHandler(`${id}-pointer-over`, {
+          _event: { id },
+          ...actionPayload,
+        });
+      if (cursor){ 
+        bar.cursor = cursor;
+        thumb.cursor = cursor;
+      }
+      if (soundSrc)
+        app.audioStage.add({
+          id: `hover-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+
+      // Apply hover textures
+      if (hoverThumbSrc) {
+        thumb.texture = Texture.from(hoverThumbSrc);
+      }
+      if (hoverBarSrc) {
+        bar.texture = Texture.from(hoverBarSrc);
+      }
+    };
+
+    const outListener = () => {
+      if(!isDragging){
+        bar.cursor = "auto";
+        thumb.cursor = "auto";
+  
+        // Restore original textures
+        thumb.texture = originalThumbTexture;
+        bar.texture = originalBarTexture;
+      }
+    };
+
+    // Set container to handle hover events (covers both bar and thumb area)
+    sliderContainer.on("pointerover", overListener);
+    sliderContainer.on("pointerout",outListener);
+    sliderContainer.on("pointerupoutside", outListener);
+  }
 
   // Add sprites to container
   sliderContainer.addChild(bar);

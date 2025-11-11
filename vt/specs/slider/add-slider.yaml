@@ -29,12 +29,31 @@ states:
             event: "slider-hover"
             sliderId: "slider-horizontal"
             direction: "horizontal"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            initialValue: 30
+            component: "volume-control"
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            component: "volume-control"
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+            component: "volume-control"
 
       - id: "slider-vertical"
         type: "slider"
         direction: "vertical"
-        thumbSrc: "horizontal-idle-thumb"
-        barSrc: "horizontal-idle-bar"
+        thumbSrc: "vertical-idle-thumb"
+        barSrc: "vertical-idle-bar"
         width: 20
         height: 150
         x: 300
@@ -55,12 +74,31 @@ states:
             event: "slider-hover"
             sliderId: "slider-vertical"
             direction: "vertical"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            initialValue: 25
+            component: "brightness-control"
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            component: "brightness-control"
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-vertical"
+            direction: "vertical"
+            component: "brightness-control"
 
       - id: "slider-with-steps"
         type: "slider"
         direction: "horizontal"
-        thumbSrc: "vertical-idle-thumb"
-        barSrc: "vertical-idle-bar"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
         width: 180
         height: 25
         x: 50
@@ -82,3 +120,26 @@ states:
             sliderId: "slider-with-steps"
             stepSize: 2
             message: "Step slider with 2-unit increments"
+        dragStart:
+          actionPayload:
+            action: "slider-drag-start"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            initialValue: 4
+            component: "progress-control"
+            snapToGrid: true
+        drag:
+          actionPayload:
+            action: "slider-drag"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            component: "progress-control"
+            snapToGrid: true
+        dragEnd:
+          actionPayload:
+            action: "slider-drag-end"
+            sliderId: "slider-with-steps"
+            stepSize: 2
+            component: "progress-control"
+            snapToGrid: true
+            locked: true
