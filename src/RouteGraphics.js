@@ -12,6 +12,7 @@ import { BaseRouteGraphics } from "./types.js";
 import { AudioStage, AudioAsset } from "./AudioStage.js";
 import { renderApp } from "./render/renderApp.js";
 import parseJSONToAST from "./parser/index.js";
+import { renderAudio } from "./render/renderAudio.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -104,6 +105,7 @@ class RouteGraphics extends BaseRouteGraphics {
   _state = {
     elements: [],
     transitions: [],
+    audio: [],
   };
 
   /**
@@ -444,6 +446,13 @@ class RouteGraphics extends BaseRouteGraphics {
       transitions: nextState.transitions,
       eventHandler,
       transitionElements,
+      signal,
+    });
+
+    await renderAudio({
+      app,
+      prevAudioTree: prevState.audio,
+      nextAudioTree: nextState.audio,
       signal,
     });
   };

@@ -271,6 +271,16 @@
  */
 
 /**
+ * @typedef {Object} SoundElement
+ * @property {string} id - Unique identifier
+ * @property {string} type - Should be "sound"
+ * @property {string} src - Source of the sound
+ * @property {number} [volume=800] - Volume (0-1000+, 800 default)
+ * @property {boolean} [loop=false] - Whether to loop the sound
+ * @property {number} [delay=0] - Delay in milliseconds before playing
+ */
+
+/**
  * @typedef {Object} ContainerElementOptions
  * @property {number} [x] - The x-coordinate
  * @property {number} [y] - The y-coordinate
@@ -330,6 +340,14 @@ export const ASTNodeType = {
   SPRITE: "sprite",
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
+};
+
+/**
+ * @readonly
+ * @enum {string}
+ */
+export const AudioType = {
+  SOUND: "sound",
 };
 
 /**
