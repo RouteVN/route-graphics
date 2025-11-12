@@ -59,7 +59,7 @@ export async function renderContainer({
     eventHandler,
     transitionElements,
     signal,
-  })
+  });
 
   if (scroll) {
     setupScrolling({
@@ -67,8 +67,6 @@ export async function renderContainer({
       element: containerASTNode,
     });
   }
-
-
 
   signal.addEventListener("abort", () => {
     drawContainer();
