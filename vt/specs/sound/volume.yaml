@@ -1,0 +1,51 @@
+---
+title: Sound Volume Control
+description: Test sound volume control functionality
+template: "route-graphics.html"
+specs:
+  - "sound should respect volume changes"
+  - "volume should update correctly in real-time"
+  - "default volume should be 800 (0.8 normalized)"
+---
+states:
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 1000
+        loop: true
+
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 500
+        loop: true
+
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 200
+        loop: true
+
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 0
+        loop: true
+
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 800
+        loop: true
+
+  - audio:
+      - id: "sound-full"
+        type: "sound"
+        src: "bgm-1"
+        volume: 2000
+        loop: true

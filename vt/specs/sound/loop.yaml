@@ -1,0 +1,31 @@
+---
+title: Sound Loop Control
+description: Test sound loop functionality
+template: "route-graphics.html"
+specs:
+  - "sound should loop when loop is true"
+  - "sound should play once when loop is false"
+  - "default loop should be false"
+---
+states:
+  - audio:
+      - id: "looping-sound"
+        type: "sound"
+        src: "bgm-1"
+        volume: 700
+        loop: true
+
+  - audio:
+      - id: "non-looping-sound"
+        type: "sound"
+        src: "bgm-2"
+        volume: 700
+        loop: false
+
+  - audio:
+      - id: "default-loop-sound"
+        type: "sound"
+        src: "bgm-3"
+        volume: 700
+
+  - audio: []

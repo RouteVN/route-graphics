@@ -1,0 +1,32 @@
+---
+title: Sound with Delay
+description: Test sound with delay functionality
+template: "route-graphics.html"
+specs:
+  - "sound should respect delay before playing"
+  - "delay should be measured in milliseconds"
+  - "sound with delay should be cancelable"
+---
+states:
+  - audio:
+      - id: "sfx-1"
+        type: "sound"
+        src: "bgm-1"
+        volume: 600
+        delay: 1000
+
+  - audio:
+      - id: "sfx-2"
+        type: "sound"
+        src: "bgm-2"
+        volume: 400
+        delay: 2000
+
+  - audio:
+      - id: "sfx-3"
+        type: "sound"
+        src: "bgm-3"
+        volume: 1000
+        delay: 500
+
+  - audio: []

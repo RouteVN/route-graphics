@@ -67,7 +67,7 @@ export function diffAudio(prevElements = [], nextElements = []) {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();
-
+  
   const toAddElement = [];
   const toDeleteElement = [];
   const toUpdateElement = [];
@@ -87,10 +87,8 @@ export function diffAudio(prevElements = [], nextElements = []) {
     const nextEl = nextElementMap.get(id);
 
     if (!prevEl && nextEl) {
-      // New element
       toAddElement.push(nextEl);
     } else if (prevEl && !nextEl) {
-      // Element is deleted
       toDeleteElement.push(prevEl);
     } else if (
       prevEl.src !== nextEl.src ||

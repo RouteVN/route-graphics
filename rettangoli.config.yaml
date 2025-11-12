@@ -66,6 +66,12 @@ vt:
         - title: "Slider Events"
           files: "sliderevent"
           description: "Slider event test"
+    - title: "Audio"
+      type: "groupLabel"
+      items:
+        - title: "Sound"
+          files: "sound"
+          description: "Sound playback tests"
     - title: "Route Graphics"
       type: "groupLabel"
       items:
