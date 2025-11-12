@@ -104,6 +104,7 @@ class RouteGraphics extends BaseRouteGraphics {
   _state = {
     elements: [],
     transitions: [],
+    audio: []
   };
 
   /**
