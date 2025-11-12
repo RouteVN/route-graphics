@@ -74,7 +74,7 @@ in:
 throws: "Input Error: Id is missing"
 ---
 case: Parsing object with incorrect type
-in: 
+in:
     - type: "blob"
       x: 660
       y: 240
@@ -84,4 +84,95 @@ in:
       scaleY: 1.5
       width: 483.94921875
       height: 29
-throws: "Input Error: Type must be one of rect, text, container, sprite"
+throws: "Input Error: Type must be one of rect, text, container, sprite, text-revealing, slider"
+---
+case: Parsing object with hover property only
+in:
+  - id: 'obj-with-hover'
+    type: "rect"
+    x: 100
+    y: 200
+    width: 50
+    height: 60
+    hover:
+      soundSrc: "hover-sound"
+      cursor: "pointer"
+      actionPayload:
+        hoverAction: true
+out:
+  id: "obj-with-hover"
+  type: "rect"
+  width: 50
+  height: 60
+  x: 100
+  y: 200
+  zIndex: 0
+  originX: 0
+  originY: 0
+  hover:
+    soundSrc: "hover-sound"
+    cursor: "pointer"
+    actionPayload:
+      hoverAction: true
+---
+case: Parsing object with click property only
+in:
+  - id: 'obj-with-click'
+    type: "sprite"
+    x: 50
+    y: 75
+    width: 100
+    height: 120
+    click:
+      soundSrc: "click-sound"
+      actionPayload:
+        clickAction: "test-click"
+        value: 42
+out:
+  id: "obj-with-click"
+  type: "sprite"
+  width: 100
+  height: 120
+  x: 50
+  y: 75
+  zIndex: 0
+  originX: 0
+  originY: 0
+  click:
+    soundSrc: "click-sound"
+    actionPayload:
+      clickAction: "test-click"
+      value: 42
+---
+case: Parsing object with both hover and click properties
+in:
+  - id: 'obj-with-both'
+    type: "container"
+    x: 0
+    y: 0
+    width: 300
+    height: 400
+    hover:
+      soundSrc: "hover-bg"
+      cursor: "move"
+    click:
+      soundSrc: "click-bg"
+      actionPayload:
+        containerClicked: true
+out:
+  id: "obj-with-both"
+  type: "container"
+  width: 300
+  height: 400
+  x: 0
+  y: 0
+  zIndex: 0
+  originX: 0
+  originY: 0
+  hover:
+    soundSrc: "hover-bg"
+    cursor: "move"
+  click:
+    soundSrc: "click-bg"
+    actionPayload:
+      containerClicked: true
