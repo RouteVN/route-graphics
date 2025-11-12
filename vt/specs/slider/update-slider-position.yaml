@@ -1,0 +1,47 @@
+---
+title: Update Slider Position
+description: Test updating slider position and dimensions
+template: "route-graphics.html"
+specs:
+  - "slider should update its x and y position"
+  - "slider should update its width and height"
+  - "slider thumb should maintain correct relative position"
+---
+states:
+  - elements:
+      - id: "slider-position-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 150
+        height: 15
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+
+  - elements:
+      - id: "slider-position-test"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 250
+        height: 25
+        x: 300
+        y: 200
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25

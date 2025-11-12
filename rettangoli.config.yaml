@@ -60,6 +60,12 @@ vt:
         - title: "Slider"
           files: "slider"
           description: "Slider rendering test"
+        - title: "Slider Transitions"
+          files: "slidertransition"
+          description: "Slider transitions rendering test"
+        - title: "Slider Events"
+          files: "sliderevent"
+          description: "Slider event test"
     - title: "Route Graphics"
       type: "groupLabel"
       items:

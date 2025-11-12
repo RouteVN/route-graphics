@@ -1,0 +1,42 @@
+---
+title: Slider Bar Click Events
+description: Test click events on slider bar to move thumb directly
+template: "route-graphics.html"
+specs:
+  - "clicking bar should move thumb to click position"
+  - "bar click should trigger dragStart and drag events"
+  - "thumb should move to exact click position"
+  - "value should be calculated based on click position"
+  - "step functionality should work with bar clicks"
+---
+states:
+  - elements:
+      - id: 'slider-bar-click-test'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 300
+        height: 25
+        x: 100
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 10
+        initialValue: 20
+        dragStart:
+          actionPayload:
+            action: "bar-click-start"
+            component: "progress-slider"
+            trigger: "bar-click"
+        drag:
+          actionPayload:
+            action: "bar-click-drag"
+            component: "progress-slider"
+            currentValue: "{{ value }}"
+            trigger: "bar-click"
+            snapToStep: true

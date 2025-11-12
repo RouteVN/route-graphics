@@ -1,0 +1,39 @@
+---
+title: Slider Hover Events
+description: Test hover events with cursor and texture changes
+template: "route-graphics.html"
+specs:
+  - "slider thumb should change cursor on hover"
+  - "slider thumb should change texture on hover"
+  - "slider bar should change texture on thumb hover"
+  - "hover event should send actionPayload"
+  - "textures should revert when hover ends"
+---
+states:
+  - elements:
+      - id: 'slider-hover-test'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 250
+        height: 20
+        x: 150
+        y: 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+        hover:
+          thumbSrc: "circle-red"
+          barSrc: "slider"
+          cursor: "pointer"
+          actionPayload:
+            action: "slider-hover"
+            component: "brightness-slider"
+            status: "hovering"
+            currentValue: 50

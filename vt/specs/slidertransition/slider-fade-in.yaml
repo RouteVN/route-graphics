@@ -1,0 +1,41 @@
+---
+title: Slider Fade In Transition
+description: A slider element fading in with alpha animation
+template: "route-graphics.html"
+specs:
+  - "slider should fade from 0 to 1 alpha"
+  - "slider should appear gradually over 1 second"
+  - "slider should use linear easing"
+  - "both bar and thumb should fade together"
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'slider1'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 200
+        height: 20
+        x: 200
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 30
+    transitions:
+      - id: 'slider-fade-in'
+        elementId: 'slider1'
+        type: keyframes
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

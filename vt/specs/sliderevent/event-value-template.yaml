@@ -1,0 +1,42 @@
+---
+title: Slider Value Template Replacement
+description: Test palyload return
+template: "route-graphics.html"
+specs:
+  - "drag event should return the current value of the thumb and the action payload"
+  - "template should work for both min and max values"
+  - "template should work for intermediate values"
+  - "actionPayload should contain properly formatted value"
+---
+states:
+  - elements:
+      - id: 'slider-template-test'
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb"
+        barSrc: "horizontal-idle-bar"
+        width: 200
+        height: 20
+        x: 100
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 10
+        max: 50
+        step: 2
+        initialValue: 30
+        drag:
+          actionPayload:
+            action: "volume-change"
+            sliderId: "main-volume"
+            status: "adjusting"
+            range: "10-50"
+        dragStart:
+          actionPayload:
+            action: "volume-start"
+        dragEnd:
+          actionPayload:
+            action: "volume-end"
+            saved: true
