@@ -29,7 +29,7 @@
         const states = parse(window.vtState).states
         let prevASTTree = []
         let nextASTTree = parseJSONToAST(states[index].elements);
-        renderApp(app,app.stage,prevASTTree,nextASTTree)
+        renderApp({app,parent: app.stage,prevASTTree,nextASTTree})
         prevASTTree = nextASTTree
 
         const listenEvents = () => {
@@ -38,14 +38,14 @@
                     if(states.length > index+1){
                         index++
                         nextASTTree = parseJSONToAST(states[index].elements);
-                        renderApp(app,app.stage,prevASTTree,nextASTTree)
+                        renderApp({app,parent: app.stage,prevASTTree,nextASTTree})
                         prevASTTree = nextASTTree
                     }
                 } else if (e.key === "b") {
                     if(index - 1 >= 0 ){
                         index--;
                         nextASTTree = parseJSONToAST(states[index].elements);
-                        renderApp(app,app.stage,prevASTTree,nextASTTree)
+                        renderApp({app, parent: app.stage,prevASTTree,nextASTTree})
                         prevASTTree = nextASTTree
                     }
                 }

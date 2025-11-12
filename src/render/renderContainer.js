@@ -5,6 +5,7 @@ import { renderSprite } from "./renderSprite.js";
 import { renderTextRevealing } from "./renderTextRevealing.js";
 import { renderSlider } from "./renderSlider.js";
 import { ASTNodeType } from "../types.js";
+import { renderApp } from "./renderApp.js";
 
 /**
  * @typedef {import('../types.js').Container} Container
@@ -39,88 +40,26 @@ export async function renderContainer({
   const { id, x, y, children, scroll, zIndex } = containerASTNode;
 
   const container = new Container();
-  drawContainer();
+
   container.label = id;
+  const drawContainer = () => {
+    container.x = x;
+    container.y = y;
+    container.zIndex = zIndex;
+  };
 
-  const childPromises = [];
-  for (const child of children) {
-    switch (child.type) {
-      case ASTNodeType.RECT:
-        childPromises.push(
-          renderRect({
-            app,
-            parent: container,
-            rectASTNode: child,
-            transitions,
-            eventHandler,
-            signal,
-          }),
-        );
-        break;
-      case ASTNodeType.TEXT:
-        childPromises.push(
-          renderText({
-            app,
-            parent: container,
-            textASTNode: child,
-            transitions,
-            eventHandler,
-            signal,
-          }),
-        );
-        break;
-      case ASTNodeType.SPRITE:
-        childPromises.push(
-          renderSprite({
-            app,
-            parent: container,
-            spriteASTNode: child,
-            transitions,
-            eventHandler,
-            signal,
-          }),
-        );
-        break;
-      case ASTNodeType.CONTAINER:
-        childPromises.push(
-          renderContainer({
-            app,
-            parent: container,
-            containerASTNode: child,
-            transitions,
-            eventHandler,
-            signal,
-          }),
-        );
-        break;
-      case ASTNodeType.TEXT_REVEALING:
-        childPromises.push(
-          renderTextRevealing({
-            app,
-            parent,
-            textRevealingASTNode: child,
-            signal,
-          }),
-        );
-        break;
-      case ASTNodeType.SLIDER:
-        childPromises.push(
-          renderSlider({
-            app,
-            parent,
-            sliderASTNode: child,
-            transitions,
-            eventHandler,
-            signal,
-          }),
-        );
-        break;
-      default:
-        throw new Error("Unkown types");
-    }
-  }
+  drawContainer();
 
-  await Promise.all(childPromises);
+  await renderApp({
+    app,
+    parent: container,
+    nextASTTree: children,
+    prevASTTree: [],
+    transitions,
+    eventHandler,
+    transitionElements,
+    signal,
+  })
 
   if (scroll) {
     setupScrolling({
@@ -129,11 +68,7 @@ export async function renderContainer({
     });
   }
 
-  const drawContainer = () => {
-    container.x = x;
-    container.y = y;
-    container.zIndex = zIndex;
-  };
+
 
   signal.addEventListener("abort", () => {
     drawContainer();

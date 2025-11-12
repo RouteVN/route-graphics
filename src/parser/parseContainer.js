@@ -3,6 +3,7 @@ import { parseRect } from "./parseRect.js";
 import { parseText } from "./parseText.js";
 import { parseSprite } from "./parseSprite.js";
 import { parseTextRevealing } from "./parseTextRevealing.js";
+import parseJSONToAST from "./index.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -54,24 +55,7 @@ export function parseContainer(state) {
       child.y = 0;
     }
 
-    switch (child.type) {
-      case "rect":
-        child = parseRect(child);
-        break;
-      case "text":
-        child = parseText(child);
-        break;
-      case "text-revealing":
-        child = parseTextRevealing(child);
-        break;
-      case "sprite":
-        child = parseSprite(child);
-        break;
-      case "container":
-        child = parseContainer(child);
-        break;
-      default:
-    }
+    child = parseJSONToAST([child])[0];
 
     if (direction === "horizontal") {
       if (
