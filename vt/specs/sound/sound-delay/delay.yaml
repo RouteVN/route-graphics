@@ -1,7 +1,6 @@
 ---
 title: Sound with Delay
 description: Test sound with delay functionality
-template: "route-graphics.html"
 specs:
   - "sound should respect delay before playing"
   - "delay should be measured in milliseconds"

@@ -1,7 +1,6 @@
 ---
 title: Text Style Change on Click
 description: Test textStyle property in click event changing text appearance
-template: "route-graphics.html"
 specs:
   - "text style should change on click"
   - "style persists after click"

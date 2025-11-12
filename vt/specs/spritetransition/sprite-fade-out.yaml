@@ -1,7 +1,6 @@
 ---
 title: Sprite Fade Out Transition
 description: A sprite element fading out when removed
-template: "route-graphics.html"
 specs:
   - "sprite should fade from 1 to 0 alpha"
   - "sprite should disappear gradually"

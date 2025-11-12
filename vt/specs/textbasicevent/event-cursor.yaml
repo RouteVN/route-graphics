@@ -1,7 +1,6 @@
 ---
 title: Text Hover Cursor Change
 description: Test cursor changes when hovering over text elements
-template: "route-graphics.html"
 specs:
   - "text should change cursor on hover"
   - "cursor should return to auto on pointer out"

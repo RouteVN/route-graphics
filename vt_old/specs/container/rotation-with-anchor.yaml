@@ -1,7 +1,6 @@
 ---
 title: Rotation with Anchor
-description: Container rotation with different anchor points
-specs:
+description: Container rotation with different anchor pointsspecs:
   - "Container rotates around different anchor points correctly"
 ---
 states:

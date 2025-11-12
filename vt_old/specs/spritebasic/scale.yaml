@@ -1,7 +1,6 @@
 ---
 title: Scale
-description: A sprite's scale transformation
-specs:
+description: A sprite's scale transformationspecs:
   - "`scaleX` should be correct"
   - "`scaleY` should be correct"
 ---

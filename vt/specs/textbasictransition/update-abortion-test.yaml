@@ -1,7 +1,6 @@
 ---
 title: Text Update Abortion Test
 description: Test abortion callback during text update with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "text should update with 3 keyframe animation"
   - "abortion callback should be testable during update"

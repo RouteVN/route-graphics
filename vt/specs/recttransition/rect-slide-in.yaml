@@ -1,7 +1,6 @@
 ---
 title: Rect Slide In Transition
 description: A rect element sliding in from the left
-template: "route-graphics.html"
 specs:
   - "rect should slide from x: -100 to x: 300"
   - "rect should take 1.5 seconds"

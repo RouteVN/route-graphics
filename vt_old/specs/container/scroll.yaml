@@ -1,7 +1,6 @@
 ---
 title: Scroll
-description: A container's scroll
-specs:
+description: A container's scrollspecs:
   - "`scroll` should be correct"
 ---
 states:

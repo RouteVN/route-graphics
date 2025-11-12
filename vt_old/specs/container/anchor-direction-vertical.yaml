@@ -1,7 +1,6 @@
 ---
 title: Anchor - Direction Vertical
-description: A container's anchor
-specs:
+description: A container's anchorspecs:
   - "`anchor` should be correct"
 ---
 states:

@@ -1,7 +1,6 @@
 ---
 title: Sprite Src Change on Click
 description: Test src property in click event changing sprite texture
-template: "route-graphics.html"
 specs:
   - "sprite texture should change on click"
   - "texture persists after click"

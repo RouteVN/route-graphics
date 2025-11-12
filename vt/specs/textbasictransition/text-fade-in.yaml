@@ -1,7 +1,6 @@
 ---
 title: Text Fade In Transition
 description: A text element fading in with alpha animation
-template: "route-graphics.html"
 specs:
   - "text should fade from 0 to 1 alpha"
   - "text should appear gradually over 1 second"

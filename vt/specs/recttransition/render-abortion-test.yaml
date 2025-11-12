@@ -1,7 +1,6 @@
 ---
 title: Rect Render Abortion Test
 description: Test abortion callback during rect render with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "rect should render with 3 keyframe animation"
   - "abortion callback should be testable during render"

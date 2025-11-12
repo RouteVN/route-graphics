@@ -1,7 +1,6 @@
 ---
 title: Layout order
-description: Check layout order
-specs:
+description: Check layout orderspecs:
   - container b should display above container a
 ---
 states:

@@ -1,7 +1,6 @@
 ---
 title: Sprite Scale In Transition
 description: A sprite scaling up from zero when added
-template: "route-graphics.html"
 specs:
   - "sprite should scale from 0 to 1 on both axes"
   - "sprite should appear to grow from center"

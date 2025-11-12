@@ -1,7 +1,6 @@
 ---
 title: Scale
-description: Container scaling with scaleX and scaleY
-specs:
+description: Container scaling with scaleX and scaleYspecs:
   - "Container scales correctly with scaleX and scaleY"
 ---
 states:

@@ -1,7 +1,6 @@
 ---
 title: Container Fade Out Transition
 description: A container with children fading out when removed
-template: "route-graphics.html"
 specs:
   - "container should fade from 1 to 0 alpha"
   - "all children should fade out with container"

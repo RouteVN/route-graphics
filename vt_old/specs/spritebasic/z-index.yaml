@@ -1,7 +1,6 @@
 ---
 title: Z-Index
-description: A sprite's z-index
-specs:
+description: A sprite's z-indexspecs:
   - "`zIndex` should be correct"
 ---
 states:

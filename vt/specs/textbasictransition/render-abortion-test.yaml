@@ -1,7 +1,6 @@
 ---
 title: Text Render Abortion Test
 description: Test abortion callback during text render with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "text should render with 3 keyframe animation"
   - "abortion callback should be testable during render"

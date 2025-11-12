@@ -1,7 +1,6 @@
 ---
 title: Rotation
-description: Container rotation angles
-specs:
+description: Container rotation anglesspecs:
   - "Container rotates correctly at various angles"
 ---
 states:

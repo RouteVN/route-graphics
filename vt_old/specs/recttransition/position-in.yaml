@@ -1,7 +1,6 @@
 ---
 title: Rect Position In
-description: A rect's position transition
-specs:
+description: A rect's position transitionspecs:
   - "`y` should be correct"
   - "`x` should be correct"
   - "rect should move from initial position to target"

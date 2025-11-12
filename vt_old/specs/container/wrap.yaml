@@ -1,7 +1,6 @@
 ---
 title: Wrap
-description: A container's wrap
-specs:
+description: A container's wrapspecs:
   - "`wrap` should be correct"
 ---
 states:

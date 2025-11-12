@@ -1,7 +1,6 @@
 ---
 title: Sprite Scale Out Transition
 description: A sprite scaling down to zero when removed
-template: "route-graphics.html"
 specs:
   - "sprite should scale from 1 to 0 on both axes"
   - "sprite should shrink to center"

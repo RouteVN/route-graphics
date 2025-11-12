@@ -1,7 +1,6 @@
 ---
 title: Text Style Change on Hover
 description: Test textStyle property in hover event changing text appearance
-template: "route-graphics.html"
 specs:
   - "text style should change on hover"
   - "text style should revert on pointer out"

@@ -1,7 +1,6 @@
 ---
 title: Rect Position Out Relative
-description: A rect's position out transition with relative values
-specs:
+description: A rect's position out transition with relative valuesspecs:
   - "rect should move relative to current position"
   - "`x` should be offset by relative value"
   - "`y` should be offset by relative value"

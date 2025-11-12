@@ -1,7 +1,6 @@
 ---
 title: Update Slider Sources
 description: Test updating slider thumbSrc and barSrc dynamically
-template: "route-graphics.html"
 specs:
   - "slider should update thumbSrc when changed"
   - "slider should update barSrc when changed"

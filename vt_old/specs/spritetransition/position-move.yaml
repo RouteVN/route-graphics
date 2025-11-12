@@ -1,7 +1,6 @@
 ---
 title: Sprite Position Move
-description: A sprite moving between positions without add/remove
-specs:
+description: A sprite moving between positions without add/removespecs:
   - "sprite should animate from one position to another"
   - "sprite should remain visible throughout"
   - "smooth transition between states"

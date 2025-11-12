@@ -1,7 +1,6 @@
 ---
 title: Dimensions
-description: A sprite's dimensions
-specs:
+description: A sprite's dimensionsspecs:
   - "`width` should be correct"
   - "`height` should be correct"
 ---

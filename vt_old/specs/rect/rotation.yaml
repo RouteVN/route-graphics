@@ -1,7 +1,6 @@
 ---
 title: Rotation
-description: A rect's rotation property
-specs:
+description: A rect's rotation propertyspecs:
   - "`rotation` should control rotation in degrees"
   - "Rotation should be around the rect's origin point"
 ---

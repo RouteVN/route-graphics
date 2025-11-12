@@ -1,7 +1,6 @@
 ---
 title: Text Update Position Transition
 description: A text element animating position during update
-template: "route-graphics.html"
 specs:
   - "text should move from (100, 100) to (400, 300)"
   - "text content remains the same"

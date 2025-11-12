@@ -1,7 +1,6 @@
 ---
 title: Text Update Alpha Transition
 description: A text element transitioning alpha during update
-template: "route-graphics.html"
 specs:
   - "text should fade from full opacity to 50%"
   - "animation should take 600ms"

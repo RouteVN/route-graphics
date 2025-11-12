@@ -1,7 +1,6 @@
 ---
 title: Alpha
-description: A sprite's alpha
-specs:
+description: A sprite's alphaspecs:
   - "`alpha` should be correct"
 ---
 states:

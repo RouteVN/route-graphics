@@ -1,7 +1,6 @@
 ---
 title: Container Update Scale Transition
 description: A container scaling during update
-template: "route-graphics.html"
 specs:
   - "container should scale from 1 to 1.5 on both axes"
   - "children should scale with container"

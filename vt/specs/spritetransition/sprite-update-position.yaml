@@ -1,7 +1,6 @@
 ---
 title: Sprite Update Position Transition
 description: A sprite animating position during update
-template: "route-graphics.html"
 specs:
   - "sprite should move from (100, 100) to (500, 350)"
   - "animation should take 1 second"

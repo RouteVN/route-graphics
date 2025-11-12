@@ -1,7 +1,6 @@
 ---
 title: Test Skip Animation Property
 description: Tests the revealEffect property to ensure text appears immediately when typewriter
-template: "route-graphics.html"
 specs:
   - "Text should animate character by character when revealEffect is none"
   - "Text should appear immediately when revealEffect is typewriter"

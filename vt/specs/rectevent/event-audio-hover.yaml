@@ -1,7 +1,6 @@
 ---
 title: Rect Hover Event Audio
 description: Test audio playback when hovering over rect elements
-template: "route-graphics.html"
 specs:
   - "rect should play audio on hover"
   - "audio should play when mouse enters rect area"

@@ -1,7 +1,6 @@
 ---
 title: Children Position
-description: should be correct
-specs:
+description: should be correctspecs:
   - "Test different anchor combinations"
 ---
 states:

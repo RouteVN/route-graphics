@@ -1,7 +1,6 @@
 ---
 title: Empty to Image Test
-description: Test sprite creation without URL then adding URL
-specs:
+description: Test sprite creation without URL then adding URLspecs:
   - "Sprite created without URL should accept image later"
 ---
 states:

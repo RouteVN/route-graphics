@@ -1,7 +1,6 @@
 ---
 title: Text Slide In From Bottom
 description: A text element sliding up from below
-template: "route-graphics.html"
 specs:
   - "text should slide from y: 600 to y: 250"
   - "text should also fade in during slide"

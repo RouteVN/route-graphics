@@ -1,7 +1,6 @@
 ---
 title: Update Text Revealing Content and Properties
 description: Tests updating text-revealing elements with different content, positions, and properties
-template: "route-graphics.html"
 specs:
   - "Text content should update from original to new text"
   - "Position should update from original to new coordinates"

@@ -1,7 +1,6 @@
 ---
 title: Sound Volume Control
 description: Test sound volume control functionality
-template: "route-graphics.html"
 specs:
   - "sound should respect volume changes"
   - "volume should update correctly in real-time"

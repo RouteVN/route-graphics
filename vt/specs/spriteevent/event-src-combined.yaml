@@ -1,7 +1,6 @@
 ---
 title: Sprite Src Change on Hover AND Click
 description: Test src in both hover and click events working together
-template: "route-graphics.html"
 specs:
   - "hover src should work"
   - "click src should work"

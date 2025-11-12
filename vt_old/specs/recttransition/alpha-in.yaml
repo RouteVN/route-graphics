@@ -1,7 +1,6 @@
 ---
 title: Rect Alpha In
-description: A rect's alpha fade in transition
-specs:
+description: A rect's alpha fade in transitionspecs:
   - "alpha should fade from 0 to 1"
   - "rect should appear gradually"
 ---

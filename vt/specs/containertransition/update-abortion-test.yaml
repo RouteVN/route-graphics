@@ -1,7 +1,6 @@
 ---
 title: Container Update Abortion Test
 description: Test abortion callback during container update with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "container should update with 3 keyframe animation"
   - "abortion callback should be testable during update"

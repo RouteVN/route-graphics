@@ -1,7 +1,6 @@
 ---
 title: Text
-description: A text-revealing's text
-specs:
+description: A text-revealing's textspecs:
   - "`text` should be correct"
 ---
 states:

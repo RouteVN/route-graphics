@@ -1,7 +1,6 @@
 ---
 title: Gap
-description: A container's gap
-specs:
+description: A container's gapspecs:
   - "`gap` should be correct"
 ---
 states:

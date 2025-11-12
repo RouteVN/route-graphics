@@ -1,7 +1,6 @@
 ---
 title: Delete Slider
 description: Test deleting slider elements
-template: "route-graphics.html"
 specs:
   - "slider should be removed from the container"
   - "slider container and all children should be destroyed"
