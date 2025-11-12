@@ -67,7 +67,7 @@ export function diffAudio(prevElements = [], nextElements = []) {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();
-  
+
   const toAddElement = [];
   const toDeleteElement = [];
   const toUpdateElement = [];

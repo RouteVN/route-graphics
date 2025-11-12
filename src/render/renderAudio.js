@@ -22,10 +22,15 @@ import { AudioType } from "../types.js";
  * @param {RenderAudioOptions} options
  * @returns {Promise<void>}
  */
-export async function renderAudio({ app, prevAudioTree, nextAudioTree, signal }) {
+export async function renderAudio({
+  app,
+  prevAudioTree,
+  nextAudioTree,
+  signal,
+}) {
   const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
     prevAudioTree,
-    nextAudioTree
+    nextAudioTree,
   );
 
   const asyncActions = [];
@@ -39,7 +44,7 @@ export async function renderAudio({ app, prevAudioTree, nextAudioTree, signal })
             app,
             soundASTNode: element,
             signal,
-          })
+          }),
         );
         break;
       default:
@@ -56,7 +61,7 @@ export async function renderAudio({ app, prevAudioTree, nextAudioTree, signal })
             app,
             soundASTNode: element,
             signal,
-          })
+          }),
         );
         break;
       default:
@@ -74,7 +79,7 @@ export async function renderAudio({ app, prevAudioTree, nextAudioTree, signal })
             prevSoundASTNode: prev,
             nextSoundASTNode: next,
             signal,
-          })
+          }),
         );
         break;
       default:

@@ -16,7 +16,12 @@
  * @param {UpdateSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function updateSound({ app, prevSoundASTNode, nextSoundASTNode, signal }) {
+export async function updateSound({
+  app,
+  prevSoundASTNode,
+  nextSoundASTNode,
+  signal,
+}) {
   if (signal?.aborted) {
     return;
   }

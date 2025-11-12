@@ -24,7 +24,7 @@ export async function renderSound({ app, soundASTNode, signal }) {
     id: soundASTNode.id,
     url: soundASTNode.src,
     loop: soundASTNode.loop ?? false,
-    volume: (soundASTNode.volume ?? 800) / 1000, 
+    volume: (soundASTNode.volume ?? 800) / 1000,
   };
 
   if (soundASTNode.delay && soundASTNode.delay > 0) {

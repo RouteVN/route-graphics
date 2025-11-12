@@ -105,7 +105,7 @@ class RouteGraphics extends BaseRouteGraphics {
   _state = {
     elements: [],
     transitions: [],
-    audio: []
+    audio: [],
   };
 
   /**
@@ -449,7 +449,12 @@ class RouteGraphics extends BaseRouteGraphics {
       signal,
     });
 
-    await renderAudio({app, prevAudioTree: prevState.audio, nextAudioTree: nextState.audio, signal});
+    await renderAudio({
+      app,
+      prevAudioTree: prevState.audio,
+      nextAudioTree: nextState.audio,
+      signal,
+    });
   };
 }
 
