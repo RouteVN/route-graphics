@@ -109,6 +109,10 @@ bun run lint
 # to test it
 bun run test
 
+# or 
+bun run test:coverage
+
+
 ```
 
 
