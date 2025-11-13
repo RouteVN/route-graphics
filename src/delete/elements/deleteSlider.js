@@ -49,4 +49,4 @@ export const deleteSlider = async ({
     }
     deleteElement();
   }
-}
+};

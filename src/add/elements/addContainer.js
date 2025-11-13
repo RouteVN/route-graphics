@@ -76,7 +76,7 @@ export const addContainer = async ({
       signal,
     });
   }
-}
+};
 
 /**
  * @param {SetupScrollingOptions} params
@@ -173,4 +173,4 @@ export const setupScrolling = ({ container, element }) => {
       }
     });
   }
-}
+};

@@ -50,4 +50,4 @@ export const diffAudio = (prevElements = [], nextElements = []) => {
     }
   }
   return { toAddElement, toDeleteElement, toUpdateElement };
-}
+};

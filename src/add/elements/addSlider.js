@@ -272,4 +272,4 @@ export const addSlider = async ({
       signal,
     });
   }
-}
+};

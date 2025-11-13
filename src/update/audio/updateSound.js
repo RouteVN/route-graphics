@@ -37,4 +37,4 @@ export const updateSound = ({
       audioElement.volume = (nextSoundASTNode.volume ?? 800) / 1000;
     }
   }
-}
+};

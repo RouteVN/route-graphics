@@ -36,4 +36,4 @@ export const addSound = ({ app, soundASTNode, signal }) => {
   } else {
     app.audioStage.add(audioElement);
   }
-}
+};

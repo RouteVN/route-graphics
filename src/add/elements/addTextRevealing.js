@@ -122,4 +122,4 @@ export const addTextRevealing = async (params) => {
       await sleep(chunkDelay);
     }
   }
-}
+};

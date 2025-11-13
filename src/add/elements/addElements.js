@@ -35,7 +35,7 @@ import { ASTNodeType } from "../../types.js";
  * @property {Function} addElementsOptions.transitionElements
  * @property {AbortSignal[]} addElementsOptions.signal
  */
-export const addElements = async({
+export const addElements = async ({
   app,
   parent,
   prevASTTree,
@@ -296,7 +296,7 @@ export const addElements = async({
   }
   await Promise.all(asyncActions);
   sortContainerChildren(parent, nextASTTree);
-}
+};
 
 const sortContainerChildren = (container, nextAST) => {
   container.children.sort((a, b) => {
@@ -313,4 +313,4 @@ const sortContainerChildren = (container, nextAST) => {
     if (aIndex === -1) return -1;
     if (bIndex === -1) return 1;
   });
-}
+};

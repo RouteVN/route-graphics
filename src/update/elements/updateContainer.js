@@ -77,4 +77,4 @@ export const updateContainer = async ({
 
     await updateElement();
   }
-}
+};

@@ -49,4 +49,4 @@ export const deleteContainer = async ({
     }
     deleteElement();
   }
-}
+};

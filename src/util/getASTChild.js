@@ -19,4 +19,4 @@ export const getASTChild = (id, ASTNode) => {
   }
 
   return null;
-}
+};

@@ -88,4 +88,4 @@ export const addAudio = async ({
   }
 
   await Promise.all(asyncActions);
-}
+};

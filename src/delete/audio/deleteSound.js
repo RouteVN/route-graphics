@@ -21,4 +21,4 @@ export const deleteSound = ({ app, soundASTNode, signal }) => {
   }
 
   app.audioStage.remove(soundASTNode.id);
-}
+};

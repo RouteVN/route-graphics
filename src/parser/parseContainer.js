@@ -114,4 +114,4 @@ export const parseContainer = (state) => {
     scroll,
     rotation: state.rotation ?? 0,
   };
-}
+};

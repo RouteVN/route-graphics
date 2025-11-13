@@ -170,7 +170,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
     width: Math.max(maxTotalWidth, wordWrapWidth),
     height: finalHeight,
   };
-}
+};
 
 /**
  * Parse text-revealing object and calculate final position after anchor adjustment
@@ -254,4 +254,4 @@ export const parseTextRevealing = (state) => {
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
   };
-}
+};
