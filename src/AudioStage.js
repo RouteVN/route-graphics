@@ -21,7 +21,7 @@ export const createAudioPlayer = (id, options) => {
     id,
     url: options.url,
     loop: options.loop || false,
-    volume: options.volume ?? 1.0
+    volume: options.volume ?? 1.0,
   };
 
   const play = () => {
@@ -55,8 +55,12 @@ export const createAudioPlayer = (id, options) => {
   const getUrl = () => state.url;
   const getLoop = () => state.loop;
   const getVolume = () => state.volume;
-  const setUrl = (url) => { state.url = url; };
-  const setLoop = (loop) => { state.loop = loop; };
+  const setUrl = (url) => {
+    state.url = url;
+  };
+  const setLoop = (loop) => {
+    state.loop = loop;
+  };
   const setVolume = (volume) => {
     state.volume = volume;
     gainNode.gain.value = volume;
@@ -77,7 +81,7 @@ export const createAudioPlayer = (id, options) => {
     url: state.url,
     loop: state.loop,
     volume: state.volume,
-    gainNode
+    gainNode,
   };
 };
 
@@ -111,9 +115,7 @@ export const createAudioStage = () => {
 
   const tick = () => {
     for (const audio of stageAudios) {
-      const audioPlayer = audioPlayers.find(
-        (player) => player.id === audio.id,
-      );
+      const audioPlayer = audioPlayers.find((player) => player.id === audio.id);
 
       // add
       if (!audioPlayer) {
@@ -166,7 +168,7 @@ export const createAudioStage = () => {
     remove,
     getById,
     tick,
-    destroy
+    destroy,
   };
 };
 
