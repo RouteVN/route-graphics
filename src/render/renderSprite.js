@@ -130,4 +130,4 @@ export const renderSprite = async ({
   if (transitions && transitions.length > 0) {
     await transitionElements(id, { app, sprite, transitions, signal });
   }
-}
+};

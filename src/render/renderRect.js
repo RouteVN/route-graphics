@@ -129,4 +129,4 @@ export const renderRect = async ({
   if (transitions && transitions.length > 0) {
     await transitionElements(id, { app, sprite: rect, transitions, signal });
   }
-}
+};

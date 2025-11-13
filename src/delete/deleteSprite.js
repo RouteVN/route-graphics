@@ -49,4 +49,4 @@ export const deleteSprite = async ({
     }
     deleteElement();
   }
-}
+};
