@@ -165,4 +165,4 @@ export const updateSprite = async ({
     }
     updateElement();
   }
-}
+};
