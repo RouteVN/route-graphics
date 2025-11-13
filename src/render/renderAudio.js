@@ -22,12 +22,12 @@ import { AudioType } from "../types.js";
  * @param {RenderAudioOptions} options
  * @returns {Promise<void>}
  */
-export async function renderAudio({
+export const renderAudio = async ({
   app,
   prevAudioTree,
   nextAudioTree,
   signal,
-}) {
+}) => {
   const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
     prevAudioTree,
     nextAudioTree,

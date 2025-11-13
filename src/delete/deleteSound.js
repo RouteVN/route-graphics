@@ -15,7 +15,7 @@
  * @param {DeleteSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function deleteSound({ app, soundASTNode, signal }) {
+export const deleteSound = ({ app, soundASTNode, signal }) => {
   if (signal?.aborted) {
     return;
   }

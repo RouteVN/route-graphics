@@ -10,7 +10,7 @@ import { Sprite, Texture, Container } from "pixi.js";
  * @param {Function} params.eventHandler
  * @param {Function} params.transitionElements
  */
-export async function renderSlider({
+export const renderSlider = async ({
   app,
   parent,
   sliderASTNode,
@@ -18,7 +18,7 @@ export async function renderSlider({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }

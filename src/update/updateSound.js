@@ -16,12 +16,12 @@
  * @param {UpdateSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function updateSound({
+export const updateSound = ({
   app,
   prevSoundASTNode,
   nextSoundASTNode,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }

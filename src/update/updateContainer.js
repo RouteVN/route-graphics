@@ -17,7 +17,7 @@ import { renderApp } from "../render/renderApp.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateContainer({
+export const updateContainer = async ({
   app,
   parent,
   prevContainerASTNode,
@@ -26,7 +26,7 @@ export async function updateContainer({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }

@@ -36,7 +36,7 @@ import { ASTNodeType } from "../types.js";
  * @property {Function} renderOptions.transitionElements
  * @property {AbortSignal[]} renderOptions.signal
  */
-export async function renderApp({
+export const renderApp = async({
   app,
   parent,
   prevASTTree,
@@ -45,7 +45,7 @@ export async function renderApp({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
     prevASTTree,
     nextASTTree,

@@ -17,7 +17,7 @@ import { Sprite, Texture, Container } from "pixi.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateSlider({
+export const updateSlider = async({
   app,
   parent,
   prevSliderASTNode,
@@ -26,7 +26,7 @@ export async function updateSlider({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }

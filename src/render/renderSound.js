@@ -15,7 +15,7 @@
  * @param {AddSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function renderSound({ app, soundASTNode, signal }) {
+export const renderSound = ({ app, soundASTNode, signal }) => {
   if (signal?.aborted) {
     return;
   }

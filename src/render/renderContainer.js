@@ -18,7 +18,7 @@ import { renderApp } from "./renderApp.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderContainer({
+export const renderContainer = async ({
   app,
   parent,
   containerASTNode,
@@ -26,7 +26,7 @@ export async function renderContainer({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -82,7 +82,7 @@ export async function renderContainer({
  * @param {SetupScrollingOptions} params
  * @returns
  */
-export function setupScrolling({ container, element }) {
+export const setupScrolling = ({ container, element }) => {
   let totalWidth = 0;
   let totalHeight = 0;
 

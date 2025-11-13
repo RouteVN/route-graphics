@@ -14,7 +14,7 @@
  * @param {Object[]} transitions
  * @returns {DiffElementResult}
  */
-export function diffElements(prevElements, nextElements, transitions = []) {
+export const diffElements = (prevElements, nextElements, transitions = []) => {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();
@@ -63,7 +63,7 @@ export function diffElements(prevElements, nextElements, transitions = []) {
  * @param {SoundElement[]} nextElements
  * @returns {DiffElementResult}
  */
-export function diffAudio(prevElements = [], nextElements = []) {
+export const diffAudio = (prevElements = [], nextElements = []) => {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();

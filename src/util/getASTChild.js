@@ -8,7 +8,7 @@
  * @param {ASTNode} ASTNode
  * @returns {ASTNode}
  */
-export function getASTChild(id, ASTNode) {
+export const getASTChild = (id, ASTNode) => {
   if (ASTNode.id === id) return ASTNode;
 
   if (ASTNode.type === "container") {
