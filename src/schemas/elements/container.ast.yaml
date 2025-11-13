@@ -54,6 +54,12 @@ properties:
     type: string
     enum: [horizontal, vertical]
     description: Layout direction for children
+  alpha:
+    type: number
+    description: Opacity/transparency of the container (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
   gap:
     type: number
     description: Spacing between child elements in pixels

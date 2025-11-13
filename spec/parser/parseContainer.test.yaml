@@ -56,6 +56,7 @@ out:
   scroll: false
   rotation: 90
   zIndex: 0
+  alpha: 1
   children:
     - id: 'rect-1'
       type: "rect"
@@ -72,6 +73,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-2'
       type: "rect"
       width: 120
@@ -87,6 +89,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-3'
       type: "rect"
       width: 96
@@ -102,6 +105,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
 ---
 case: Test parsing container with no width or height vertically
 in:
@@ -154,6 +158,7 @@ out:
   scroll: false
   rotation: 90
   zIndex: 0
+  alpha: 1
   children:
     - id: 'rect-1'
       type: "rect"
@@ -170,6 +175,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-2'
       type: "rect"
       width: 100
@@ -185,6 +191,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-3'
       type: "rect"
       width: 80
@@ -200,6 +207,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
 ---
 case: Test parsing container with no width or height and width overflow-horizontal
 in:
@@ -245,6 +253,7 @@ out:
   scroll: false
   rotation: 90
   zIndex: 0
+  alpha: 1
   children:
     - id: 'rect-1'
       type: "rect"
@@ -261,6 +270,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-2'
       type: "rect"
       width: 120
@@ -276,6 +286,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
 ---
 case: Test parsing container with no width or height and width overflow-vertical
 in:
@@ -329,6 +340,7 @@ out:
   scroll: false
   rotation: 90
   zIndex: 0
+  alpha: 1
   children:
     - id: 'rect-1'
       type: "rect"
@@ -345,6 +357,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-2'
       type: "rect"
       width: 120
@@ -360,6 +373,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
     - id: 'rect-3'
       type: "rect"
       width: 120
@@ -375,6 +389,7 @@ out:
       pointerMove: ""
       rotation: 90
       zIndex: 0
+      alpha: 1
 ---
 case: Test parsing empty container
 in:
@@ -402,4 +417,5 @@ out:
   scroll: false
   rotation: 90
   zIndex: 0
+  alpha: 1
   children: []

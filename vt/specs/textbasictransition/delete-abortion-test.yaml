@@ -13,7 +13,7 @@ states:
         x: 200
         y: 150
         content: "Deleting Text"
-        textstyle:
+        textStyle:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#e74c3c"
@@ -41,7 +41,7 @@ states:
         x: 300
         y: 200
         content: "New Text Element"
-        textstyle:
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#2ecc71"

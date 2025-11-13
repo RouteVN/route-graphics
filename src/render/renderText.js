@@ -35,9 +35,11 @@ export const renderText = async ({
   const drawText = () => {
     text.text = textASTNode.content;
     applyTextStyle(text, textASTNode.textStyle);
+    text.alpha = textASTNode.alpha;
     text.x = textASTNode.x;
     text.y = textASTNode.y;
     text.zIndex = textASTNode.zIndex;
+    console.log("Rendered text:", textASTNode.alpha);
   };
 
   signal.addEventListener("abort", () => {

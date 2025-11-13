@@ -31,7 +31,7 @@ export async function renderContainer({
     return;
   }
 
-  const { id, x, y, children, scroll, zIndex } = containerASTNode;
+  const { id, x, y, children, scroll, zIndex, alpha } = containerASTNode;
 
   const container = new Container();
 
@@ -39,6 +39,7 @@ export async function renderContainer({
   const drawContainer = () => {
     container.x = x;
     container.y = y;
+    container.alpha = alpha;
     container.zIndex = zIndex;
   };
 

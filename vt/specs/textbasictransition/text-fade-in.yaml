@@ -14,7 +14,7 @@ states:
         content: "Hello World!"
         x: 250
         y: 200
-        textstyle:
+        textStyle:
           fontSize: 48
           fill: "#2ecc71"
           fontFamily: "Arial"
