@@ -9,10 +9,11 @@ import {
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { BaseRouteGraphics } from "./types.js";
-import { AudioStage, AudioAsset } from "./AudioStage.js";
+import { createAudioStage } from "./AudioStage.js";
 import parseJSONToAST from "./parser/index.js";
 import { addElements } from "./add/elements/addElements.js";
 import { addAudio } from "./add/audio/addAudio.js";
+import { AudioAsset } from "./AudioAsset.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -97,7 +98,7 @@ class RouteGraphics extends BaseRouteGraphics {
   /**
    * @type {AudioStage}
    */
-  _audioStage = new AudioStage();
+  _audioStage = createAudioStage();
 
   /**
    * @type {RouteGraphicsState}

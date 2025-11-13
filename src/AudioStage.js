@@ -1,119 +1,89 @@
+import { AudioAsset } from "./AudioAsset";
+
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 /**
- * Manage audio assets
+ * Creates an audio player instance
+ * @param {string} id
+ * @param {Object} options
+ * @param {string} options.url
+ * @param {boolean} [options.loop=false]
+ * @param {number} [options.volume=1.0]
+ * @returns {Object} Audio player instance
  */
-export class AudioAsset {
-  /**
-   * @type {Object.<string, AudioBuffer>}
-   */
-  static loadedAssets = {};
+export const createAudioPlayer = (id, options) => {
+  let audioSource;
+  const gainNode = audioContext.createGain();
+  gainNode.gain.value = options.volume ?? 1.0;
+  gainNode.connect(audioContext.destination);
 
-  /**
-   * @param {string} key
-   * @param {ArrayBuffer} arrayBuffer
-   * @returns {Promise<undefined>}
-   */
-  static load = async (key, arrayBuffer) => {
-    if (AudioAsset.loadedAssets[key]) {
-      return;
-    }
-    if (arrayBuffer.byteLength === 0) {
-      return;
-    }
-    try {
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      AudioAsset.loadedAssets[key] = audioBuffer;
-    } catch (error) {
-      console.error(`AudioAsset.load: Failed to decode ${key}:`, error);
-    }
+  let state = {
+    id,
+    url: options.url,
+    loop: options.loop || false,
+    volume: options.volume ?? 1.0,
   };
 
-  /**
-   *
-   * @param {string} url
-   * @returns {AudioBuffer | undefined}
-   */
-  static getAsset = (url) => {
-    const arrayBuffer = AudioAsset.loadedAssets[url];
-    return arrayBuffer;
-  };
-}
-
-class AudioPlayer {
-  /**
-   * @type {AudioBufferSourceNode}
-   */
-  _audioSource;
-
-  /**
-   * @type {GainNode}
-   */
-  _gainNode;
-
-  /**
-   * @type {number}
-   */
-  volume = 1.0;
-
-  /**
-   * @type {string}
-   */
-  id;
-
-  /**
-   * @type {string}
-   */
-  url;
-
-  /**
-   * @type {boolean}
-   */
-  loop = false;
-
-  /**
-   *
-   * @param {string} id;
-   * @param {Object} options
-   * @param {string} options.url
-   * @param {boolean} [options.loop=false]
-   * @param {number} [options.volume=1.0]
-   */
-  constructor(id, options) {
-    this.id = id;
-    this.url = options.url;
-    this.loop = options.loop || false;
-    this.volume = options.volume ?? 1.0;
-    this._gainNode = audioContext.createGain();
-    this._gainNode.gain.value = this.volume;
-    this._gainNode.connect(audioContext.destination);
-  }
-
-  play = () => {
-    const audioBuffer = AudioAsset.getAsset(this.url);
+  const play = () => {
+    const audioBuffer = AudioAsset.getAsset(state.url);
     if (!audioBuffer) {
-      console.warn("AudioPlayer.play: Asset not found", this.url);
+      console.warn("AudioPlayer.play: Asset not found", state.url);
       return;
     }
-    this._audioSource = audioContext.createBufferSource();
-    this._audioSource.buffer = audioBuffer;
-    this._audioSource.loop = this.loop;
-    this._gainNode.gain.setValueAtTime(this.volume, audioContext.currentTime);
-    this._audioSource.connect(this._gainNode);
-    this._audioSource.start(0);
+    audioSource = audioContext.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.loop = state.loop;
+    gainNode.gain.setValueAtTime(state.volume, audioContext.currentTime);
+    audioSource.connect(gainNode);
+    audioSource.start(0);
   };
 
-  stop = () => {
-    if (this._audioSource) {
-      this._audioSource.stop();
-      this._audioSource.disconnect();
-      this._gainNode.disconnect();
-      this._gainNode = audioContext.createGain();
-      this._gainNode.gain.value = this.volume;
-      this._gainNode.connect(audioContext.destination);
+  const stop = () => {
+    if (audioSource) {
+      audioSource.stop();
+      audioSource.disconnect();
+      gainNode.disconnect();
+      gainNode.connect(audioContext.destination);
     }
   };
-}
+
+  const update = (newState) => {
+    state = { ...state, ...newState };
+  };
+
+  const getId = () => state.id;
+  const getUrl = () => state.url;
+  const getLoop = () => state.loop;
+  const getVolume = () => state.volume;
+  const setUrl = (url) => {
+    state.url = url;
+  };
+  const setLoop = (loop) => {
+    state.loop = loop;
+  };
+  const setVolume = (volume) => {
+    state.volume = volume;
+    gainNode.gain.value = volume;
+  };
+
+  return {
+    play,
+    stop,
+    update,
+    getId,
+    getUrl,
+    getLoop,
+    getVolume,
+    setUrl,
+    setLoop,
+    setVolume,
+    id: state.id,
+    url: state.url,
+    loop: state.loop,
+    volume: state.volume,
+    gainNode,
+  };
+};
 
 /**
  * @typedef {Object} AudioElement
@@ -124,61 +94,37 @@ class AudioPlayer {
  */
 
 /**
- * Manage audio elements
+ * Creates an audio stage instance
+ * @returns {Object} Audio stage instance
  */
-export class AudioStage {
-  /**
-   * @type {AudioPlayer[]}
-   */
-  audioPlayers = [];
+export const createAudioStage = () => {
+  let audioPlayers = [];
+  let stageAudios = [];
 
-  /**
-   * @type {AudioElement[]}
-   */
-  stageAudios = [];
-
-  /**
-   *
-   * @param {AudioElement} element
-   */
-  add = (element) => {
-    this.stageAudios.push(element);
+  const add = (element) => {
+    stageAudios.push(element);
   };
 
-  /**
-   *
-   * @param {string} id
-   */
-  remove = (id) => {
-    this.stageAudios = this.stageAudios.filter((audio) => audio.id !== id);
+  const remove = (id) => {
+    stageAudios = stageAudios.filter((audio) => audio.id !== id);
   };
 
-  /**
-   *
-   * @param {string} id
-   * @returns {AudioElement | undefined}
-   */
-  getById = (id) => {
-    return this.stageAudios.find((audio) => audio.id === id);
+  const getById = (id) => {
+    return stageAudios.find((audio) => audio.id === id);
   };
 
-  /**
-   * Tick
-   */
-  tick = () => {
-    for (const audio of this.stageAudios) {
-      const audioPlayer = this.audioPlayers.find(
-        (player) => player.id === audio.id,
-      );
+  const tick = () => {
+    for (const audio of stageAudios) {
+      const audioPlayer = audioPlayers.find((player) => player.id === audio.id);
 
       // add
       if (!audioPlayer) {
-        const player = new AudioPlayer(audio.id, {
+        const player = createAudioPlayer(audio.id, {
           url: audio.url,
           loop: audio.loop,
           volume: audio.volume ?? 1.0,
         });
-        this.audioPlayers.push(player);
+        audioPlayers.push(player);
         player.play();
         return;
       }
@@ -186,35 +132,44 @@ export class AudioStage {
       // check if need update
       if (audioPlayer.url !== audio.url || audioPlayer.loop !== audio.loop) {
         audioPlayer.stop();
-        audioPlayer.url = audio.url;
-        audioPlayer.loop = audio.loop ?? false;
+        audioPlayer.setUrl(audio.url);
+        audioPlayer.setLoop(audio.loop ?? false);
         audioPlayer.play();
       }
 
-      if (audioPlayer.volume !== (audio.volume ?? 1.0)) {
-        audioPlayer.volume = audio.volume ?? 1.0;
-        audioPlayer._gainNode.gain.value = audioPlayer.volume;
+      if (audioPlayer.getVolume() !== (audio.volume ?? 1.0)) {
+        audioPlayer.setVolume(audio.volume ?? 1.0);
       }
     }
 
     // to be removed
     const toRemoveAudioPlayerIds = [];
-    for (const player of this.audioPlayers) {
-      if (!this.stageAudios.find((audio) => audio.id === player.id)) {
+    for (const player of audioPlayers) {
+      if (!stageAudios.find((audio) => audio.id === player.id)) {
         player.stop();
         toRemoveAudioPlayerIds.push(player.id);
       }
     }
-    this.audioPlayers = this.audioPlayers.filter(
+    audioPlayers = audioPlayers.filter(
       (player) => !toRemoveAudioPlayerIds.includes(player.id),
     );
   };
 
-  destroy = () => {
-    for (const player of this.audioPlayers) {
+  const destroy = () => {
+    for (const player of audioPlayers) {
       player.stop();
     }
-    this.audioPlayers = [];
-    this.stageAudios = [];
+    audioPlayers = [];
+    stageAudios = [];
   };
-}
+
+  return {
+    add,
+    remove,
+    getById,
+    tick,
+    destroy,
+  };
+};
+
+export const AudioStage = createAudioStage;
