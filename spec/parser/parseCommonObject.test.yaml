@@ -180,3 +180,24 @@ out:
     soundSrc: "click-bg"
     actionPayload:
       containerClicked: true
+---
+case: Parsing object with custom alpha value
+in:
+  - id: 'semi-transparent-rect'
+    type: "rect"
+    x: 100
+    y: 100
+    width: 200
+    height: 150
+    alpha: 0.75
+out:
+  id: "semi-transparent-rect"
+  type: "rect"
+  width: 200
+  height: 150
+  x: 100
+  y: 100
+  zIndex: 0
+  originX: 0
+  originY: 0
+  alpha: 0.75

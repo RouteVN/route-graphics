@@ -43,6 +43,7 @@ export async function updateContainer({
       containerElement.y = nextContainerASTNode.y;
       containerElement.zIndex = nextContainerASTNode.zIndex;
       containerElement.label = nextContainerASTNode.id;
+      containerElement.alpha = nextContainerASTNode.alpha;
 
       if (
         JSON.stringify(prevContainerASTNode.children) !==
