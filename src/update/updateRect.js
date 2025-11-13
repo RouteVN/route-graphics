@@ -15,7 +15,7 @@
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateRect({
+export const updateRect = async ({
   app,
   parent,
   prevRectASTNode,
@@ -24,7 +24,7 @@ export async function updateRect({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -42,6 +42,7 @@ export async function updateRect({
         .fill(nextRectASTNode.fill);
       rectElement.x = nextRectASTNode.x;
       rectElement.y = nextRectASTNode.y;
+      rectElement.alpha = nextRectASTNode.alpha;
 
       if (nextRectASTNode.border) {
         rectElement.stroke({
