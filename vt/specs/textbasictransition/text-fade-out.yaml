@@ -10,10 +10,10 @@ states:
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Goodbye!"
+        content: "Goodbye!"
         x: 300
         y: 250
-        style:
+        textstyle:
           fontSize: 42
           fill: "#9b59b6"
           fontFamily: "Arial"

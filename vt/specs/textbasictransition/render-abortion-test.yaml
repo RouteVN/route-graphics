@@ -13,8 +13,8 @@ states:
         type: "text"
         x: 100
         y: 100
-        text: "Render Test"
-        style:
+        content: "Render Test"
+        textstyle:
           fontFamily: "Arial"
           fontSize: 32
           fill: "#3498db"
@@ -56,8 +56,8 @@ states:
         type: "text"
         x: 400
         y: 300
-        text: "Continued Render"
-        style:
+        content: "Continued Render"
+        textstyle:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#e74c3c"

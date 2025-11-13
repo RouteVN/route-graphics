@@ -10,10 +10,10 @@ states:
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Sliding Down..."
+        content: "Sliding Down..."
         x: 250
         y: 200
-        style:
+        textstyle:
           fontSize: 32
           fill: "#3498db"
           fontFamily: "Arial"

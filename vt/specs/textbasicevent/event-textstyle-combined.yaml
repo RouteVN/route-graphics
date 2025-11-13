@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 150
-        text: "Hover (red) then Click (orange)"
-        style:
+        content: "Hover (red) then Click (orange)"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
@@ -32,8 +32,8 @@ states:
         type: "text"
         x: 200
         y: 300
-        text: "Hover grows, Click changes font"
-        style:
+        content: "Hover grows, Click changes font"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"

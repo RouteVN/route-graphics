@@ -11,10 +11,10 @@ states:
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Hello World!"
+        content: "Hello World!"
         x: 250
         y: 200
-        style:
+        textstyle:
           fontSize: 48
           fill: "#2ecc71"
           fontFamily: "Arial"

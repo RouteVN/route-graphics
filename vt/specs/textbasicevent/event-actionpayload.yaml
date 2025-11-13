@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 150
-        text: "Click me - check console for payload"
-        style:
+        content: "Click me - check console for payload"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#3498db"
@@ -28,8 +28,8 @@ states:
         type: "text"
         x: 200
         y: 250
-        text: "Hover over me - check console for payload"
-        style:
+        content: "Hover over me - check console for payload"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#e74c3c"
@@ -44,8 +44,8 @@ states:
         type: "text"
         x: 200
         y: 350
-        text: "Both hover AND click - check console"
-        style:
+        content: "Both hover AND click - check console"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"

@@ -31,13 +31,13 @@ in:
 out:
   id: "tl"
   type: "text"
-  width: 725.923828125
-  height: 43.5
-  x: 297.0380859375
-  y: 218.25
+  width: 726
+  height: 44
+  x: 297
+  y: 218
   zIndex: 0
-  originX: 362.9619140625
-  originY: 21.75
+  originX: 363
+  originY: 22
   hover:
     soundSrc: "sound-1"
     cursor: "cursor-1"

@@ -10,20 +10,20 @@ states:
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Moving Text"
+        content: "Moving Text"
         x: 100
         y: 100
-        style:
+        textStyle:
           fontSize: 28
           fill: "#1abc9c"
           fontFamily: "Arial"
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Moving Text"
+        content: "Moving Text"
         x: 400
         y: 300
-        style:
+        textStyle:
           fontSize: 28
           fill: "#1abc9c"
           fontFamily: "Arial"

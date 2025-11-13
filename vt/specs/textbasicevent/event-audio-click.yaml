@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 150
-        text: "Click me for sound 1"
-        style:
+        content: "Click me for sound 1"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
@@ -23,8 +23,8 @@ states:
         type: "text"
         x: 200
         y: 250
-        text: "Click me for sound 2"
-        style:
+        content: "Click me for sound 2"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#e74c3c"
@@ -34,8 +34,8 @@ states:
         type: "text"
         x: 200
         y: 350
-        text: "Click me for sound 3"
-        style:
+        content: "Click me for sound 3"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#2ecc71"

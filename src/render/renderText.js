@@ -16,7 +16,7 @@ import applyTextStyle from "../util/applyTextStyle.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export default async function renderText({
+export const renderText = async ({
   app,
   parent,
   textASTNode,
@@ -24,7 +24,7 @@ export default async function renderText({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -32,10 +32,9 @@ export default async function renderText({
   const text = new Text({
     label: textASTNode.id,
   });
-
   const drawText = () => {
-    text.text = textASTNode.text;
-    applyTextStyle(text, textASTNode.style);
+    text.text = textASTNode.content;
+    applyTextStyle(text, textASTNode.textStyle);
     text.x = textASTNode.x;
     text.y = textASTNode.y;
     text.zIndex = textASTNode.zIndex;
@@ -72,7 +71,7 @@ export default async function renderText({
 
     const outListener = () => {
       text.cursor = "auto";
-      applyTextStyle(text, textASTNode.style);
+      applyTextStyle(text, textASTNode.textStyle);
     };
 
     text.on("pointerover", overListener);
@@ -90,7 +89,7 @@ export default async function renderText({
 
     const releaseListener = () => {
       // Restore original style on pointerup
-      applyTextStyle(text, textASTNode.style);
+      applyTextStyle(text, textASTNode.textStyle);
 
       // Trigger event and sound on pointerup
       if (actionPayload)
@@ -110,7 +109,7 @@ export default async function renderText({
 
     const outListener = () => {
       // Restore original style on pointerout
-      applyTextStyle(text, textASTNode.style);
+      applyTextStyle(text, textASTNode.textStyle);
     };
 
     text.on("pointerdown", clickListener);
@@ -127,6 +126,5 @@ export default async function renderText({
       transitions,
       signal,
     });
-    j;
   }
 }

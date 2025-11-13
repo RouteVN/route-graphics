@@ -5,18 +5,18 @@ states:
   - elements:
       - id: 'text-1'
         type: "text"
-        text: "Original text"
+        content: "Original text"
         x: 20
         y: 20
-        style:
+        textStyle:
           fontSize: 24
           fill: "white"
   - elements:
       - id: 'text-1'
         type: "text"
-        text: "Updated text content"
+        content: "Updated text content"
         x: 100
         y: 80
-        style:
+        textStyle:
           fontSize: 24
           fill: "white"

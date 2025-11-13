@@ -1,10 +1,4 @@
 import { Container, Graphics } from "pixi.js";
-import { renderRect } from "./renderRect.js";
-import renderText from "./renderText.js";
-import { renderSprite } from "./renderSprite.js";
-import { renderTextRevealing } from "./renderTextRevealing.js";
-import { renderSlider } from "./renderSlider.js";
-import { ASTNodeType } from "../types.js";
 import { renderApp } from "./renderApp.js";
 
 /**

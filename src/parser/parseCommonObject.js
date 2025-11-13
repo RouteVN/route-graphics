@@ -13,7 +13,7 @@ import { ASTNodeType } from "../types.js";
  * @param {ParseCommonObjectOption} option
  * @returns  {ASTNode}
  */
-export function parseCommonObject(state) {
+export const parseCommonObject = (state) => {
   if (!(typeof state.width === "number") || !(typeof state.height === "number"))
     throw new Error("Input Error: Width or height is missing");
 
@@ -50,15 +50,16 @@ export function parseCommonObject(state) {
     anchorY: state.anchorY,
   });
 
+  // Round all pixel calculations
   let astObj = {
     id: state.id,
     type: state.type,
-    width: widthAfterScale,
-    height: heightAfterScale,
-    x: adjustedPositionX,
-    y: adjustedPositionY,
-    originX,
-    originY,
+    width: Math.round(widthAfterScale),
+    height: Math.round(heightAfterScale),
+    x: Math.round(adjustedPositionX),
+    y: Math.round(adjustedPositionY),
+    originX: Math.round(originX),
+    originY: Math.round(originY),
     zIndex: state.zIndex || 0,
   };
 
