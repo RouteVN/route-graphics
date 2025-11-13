@@ -1,5 +1,5 @@
 import { Text } from "pixi.js";
-import applyTextStyle from "../util/applyTextStyle.js";
+import applyTextStyle from "../../util/applyTextStyle.js";
 
 /**
  * @typedef {import('../../types.js').Container} Container

@@ -1,37 +1,37 @@
 import { Container } from "pixi.js";
 
 /**
- * @typedef {import('../types.js').ASTNode} ASTNode
+ * @typedef {import('../../types.js').ASTNode} ASTNode
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
- * @param {ASTNode} params.spriteASTNode
+ * @param {ASTNode} params.containerASTNode
  * @param {Object[]} params.transitions
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export const deleteSprite = async ({
+export const deleteContainer = async ({
   app,
   parent,
-  spriteASTNode,
-  transitions,
+  containerASTNode,
   transitionElements,
+  transitions,
   signal,
 }) => {
   if (signal?.aborted) {
     return;
   }
 
-  const sprite = parent.getChildByLabel(spriteASTNode.id);
+  const containerElement = parent.getChildByLabel(containerASTNode.id);
 
-  if (sprite) {
+  if (containerElement) {
     const deleteElement = () => {
-      if (sprite && !sprite.destroyed) {
-        sprite.destroy();
+      if (containerElement && !containerElement.destroyed) {
+        containerElement.destroy({ children: true });
       }
     };
 
@@ -40,13 +40,13 @@ export const deleteSprite = async ({
     });
 
     if (transitions && transitions.length > 0) {
-      await transitionElements(spriteASTNode.id, {
+      await transitionElements(containerASTNode.id, {
         app,
-        sprite,
+        sprite: containerElement,
         transitions,
         signal,
       });
     }
     deleteElement();
   }
-};
+}

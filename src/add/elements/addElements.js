@@ -1,24 +1,27 @@
-import { addRect, addText, addSprite, addContainer } from "../add/index.js";
-import { diffElements } from "../util/diffElements.js";
-import { deleteRect } from "../delete/deleteRect.js";
-import { deleteText } from "../delete/deleteText.js";
-import { deleteContainer } from "../delete/deleteContainer.js";
-import { deleteSprite } from "../delete/deleteSprite.js";
-import { updateRect } from "../update/updateRect.js";
-import { updateText } from "../update/updateText.js";
-import { updateSprite } from "../update/updateSprite.js";
-import { updateContainer } from "../update/updateContainer.js";
-import { addTextRevealing } from "../add/index.js";
-import { updateTextRevealing } from "../update/updateTextRevealing.js";
-import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
-import { addSlider } from "../add/index.js";
-import { deleteSlider } from "../delete/deleteSlider.js";
-import { updateSlider } from "../update/updateSlider.js";
-import { ASTNodeType } from "../types.js";
+import { diffElements } from "../../util/diffElements.js";
+import { deleteRect } from "../../delete/elements/deleteRect.js";
+import { deleteText } from "../../delete/elements/deleteText.js";
+import { deleteContainer } from "../../delete/elements/deleteContainer.js";
+import { deleteSprite } from "../../delete/elements/deleteSprite.js";
+import { updateRect } from "../../update/elements/updateRect.js";
+import { updateText } from "../../update/elements/updateText.js";
+import { updateSprite } from "../../update/elements/updateSprite.js";
+import { updateContainer } from "../../update/elements/updateContainer.js";
+import { updateTextRevealing } from "../../update/elements/updateTextRevealing.js";
+import { deleteTextRevealing } from "../../delete/elements/deleteTextRevealing.js";
+import { deleteSlider } from "../../delete/elements/deleteSlider.js";
+import { updateSlider } from "../../update/elements/updateSlider.js";
+import { addRect } from "./addRect.js";
+import { addText } from "./addText.js";
+import { addContainer } from "./addContainer.js";
+import { addSprite } from "./addSprite.js";
+import { addTextRevealing } from "./addTextRevealing.js";
+import { addSlider } from "./addSlider.js";
+import { ASTNodeType } from "../../types.js";
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').ASTNode} ASTNode
- * @typedef {import('../types.js').Container} Container
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').ASTNode} ASTNode
+ * @typedef {import('../../types.js').Container} Container
  */
 
 /**

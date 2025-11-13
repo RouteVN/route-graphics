@@ -2,13 +2,13 @@ import { Sprite, Texture, Container } from "pixi.js";
 
 /**
  * Update function for Slider elements
- * @typedef {import('../types.js').SliderASTNode} SliderASTNode
+ * @typedef {import('../../types.js').SliderASTNode} SliderASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {SliderASTNode} params.prevSliderASTNode
  * @param {SliderASTNode} params.nextSliderASTNode

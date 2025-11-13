@@ -1,8 +1,8 @@
 import { Container, Graphics } from "pixi.js";
-/** @typedef {import('"../../types.js"').Container} Container
 import { addElements } from "./addElements.js";
 
 /**
+ * @typedef {import("../../types.js").Container} Container
  * @typedef {import('../../types.js').Container} Container
  * @typedef {import('../../types.js').ContainerASTNode} ContainerASTNode
  * @typedef {import('../../types.js').SetupScrollingOptions} SetupScrollingOptions

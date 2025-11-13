@@ -1,9 +1,9 @@
 import { Container } from "pixi.js";
-import { addElements } from "../render/addElements.js";
+import { addElements } from "../../add/elements/addElements.js";
 
 /**
  * Update function for Container elements
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../types.js').ContainerASTNode} ContainerASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 

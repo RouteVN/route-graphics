@@ -1,23 +1,23 @@
 import { Container } from "pixi.js";
 
 /**
- * @typedef {import('../types.js').ASTNode} ASTNode
+ * @typedef {import('../../types.js').ASTNode} ASTNode
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
- * @param {ASTNode} params.sliderASTNode
+ * @param {ASTNode} params.spriteASTNode
  * @param {Object[]} params.transitions
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export const deleteSlider = async ({
+export const deleteSprite = async ({
   app,
   parent,
-  sliderASTNode,
+  spriteASTNode,
   transitions,
   transitionElements,
   signal,
@@ -26,12 +26,12 @@ export const deleteSlider = async ({
     return;
   }
 
-  const sliderContainer = parent.getChildByLabel(sliderASTNode.id);
+  const sprite = parent.getChildByLabel(spriteASTNode.id);
 
-  if (sliderContainer) {
+  if (sprite) {
     const deleteElement = () => {
-      if (sliderContainer && !sliderContainer.destroyed) {
-        sliderContainer.destroy({ children: true });
+      if (sprite && !sprite.destroyed) {
+        sprite.destroy();
       }
     };
 
@@ -40,13 +40,13 @@ export const deleteSlider = async ({
     });
 
     if (transitions && transitions.length > 0) {
-      await transitionElements(sliderASTNode.id, {
+      await transitionElements(spriteASTNode.id, {
         app,
-        sprite: sliderContainer,
+        sprite,
         transitions,
         signal,
       });
     }
     deleteElement();
   }
-}
+};

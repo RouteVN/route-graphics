@@ -1,7 +1,7 @@
 import { addSound } from "./addSound.js";
-import { updateSound } from "../update/updateSound.js";
-import { deleteSound } from "../delete/deleteSound.js";
-import { AudioType } from "../types.js";
+import { updateSound } from "../../update/audio/updateSound.js";
+import { deleteSound } from "../../delete/audio/deleteSound.js";
+import { AudioType } from "../../types.js";
 import { diffAudio } from "../../util/diffAudio.js";
 
 /**

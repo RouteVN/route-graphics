@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').SoundElement} SoundElement
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').SoundElement} SoundElement
  */
 
 /**
