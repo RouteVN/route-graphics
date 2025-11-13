@@ -3,8 +3,8 @@ import { createAssetBufferManager } from "./utils.js";
 import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js";
 import parseJSONToAST from "./parser/index.js";
-import { AudioAsset } from "./AudioStage.js";
 import transitionElements from "./transition/index.js";
+import { AudioAsset } from "./AudioAsset.js";
 
 export default RouteGraphics;
 
