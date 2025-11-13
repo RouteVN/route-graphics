@@ -30,7 +30,6 @@ export const renderSlider = async ({
     width,
     height,
     alpha,
-    zIndex,
     thumbSrc,
     barSrc,
     direction,
@@ -52,7 +51,6 @@ export const renderSlider = async ({
   sliderContainer.x = x;
   sliderContainer.y = y;
   sliderContainer.alpha = alpha;
-  sliderContainer.zIndex = zIndex;
   sliderContainer.sortableChildren = true;
   sliderContainer.eventMode = "static";
   const barPadding = 0;

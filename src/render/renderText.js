@@ -38,8 +38,6 @@ export const renderText = async ({
     text.alpha = textASTNode.alpha;
     text.x = textASTNode.x;
     text.y = textASTNode.y;
-    text.zIndex = textASTNode.zIndex;
-    console.log("Rendered text:", textASTNode.alpha);
   };
 
   signal.addEventListener("abort", () => {

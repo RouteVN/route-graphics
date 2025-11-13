@@ -29,7 +29,6 @@ cases:
       y: 50
       originX: 0
       originY: 0
-      zIndex: 0
       direction: 'horizontal'
       thumbSrc: 'https://example.com/thumb.png'
       barSrc: 'https://example.com/bar.png'
@@ -58,7 +57,6 @@ cases:
       y: 0
       originX: 0
       originY: 0
-      zIndex: 0
       direction: 'horizontal'
       thumbSrc: 'thumb-idle.png'
       barSrc: 'bar-idle.png'
@@ -93,7 +91,6 @@ cases:
       y: 100
       originX: 0
       originY: 0
-      zIndex: 0
       direction: 'vertical'
       thumbSrc: 'vertical-thumb.png'
       barSrc: 'vertical-bar.png'
@@ -125,7 +122,6 @@ cases:
       y: 137.5
       originX: 90
       originY: 12.5
-      zIndex: 0
       direction: 'horizontal'
       thumbSrc: 'thumb.png'
       barSrc: 'bar.png'
@@ -160,7 +156,6 @@ cases:
       y: 200
       originX: 0
       originY: 0
-      zIndex: 0
       direction: 'horizontal'
       thumbSrc: 'thumb-idle.png'
       barSrc: 'bar-idle.png'
@@ -208,7 +203,6 @@ cases:
       y: 250
       originX: 0
       originY: 0
-      zIndex: 0
       direction: 'horizontal'
       thumbSrc: 'thumb.png'
       barSrc: 'bar.png'

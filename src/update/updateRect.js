@@ -52,8 +52,6 @@ export const updateRect = async ({
         });
       }
 
-      rectElement.zIndex = nextRectASTNode.zIndex;
-
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");

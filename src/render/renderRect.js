@@ -38,7 +38,6 @@ export const renderRect = async ({
     border,
     originX,
     originY,
-    zIndex,
     rotation,
     alpha,
   } = rectASTNode;
@@ -52,7 +51,6 @@ export const renderRect = async ({
     rect.x = x;
     rect.y = y;
     rect.alpha = alpha;
-    rect.zIndex = zIndex;
 
     if (border) {
       rect.stroke({

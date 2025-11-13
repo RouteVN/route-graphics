@@ -41,7 +41,6 @@ export const updateContainer = async ({
     ) {
       containerElement.x = nextContainerASTNode.x;
       containerElement.y = nextContainerASTNode.y;
-      containerElement.zIndex = nextContainerASTNode.zIndex;
       containerElement.label = nextContainerASTNode.id;
       containerElement.alpha = nextContainerASTNode.alpha;
 

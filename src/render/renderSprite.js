@@ -23,7 +23,7 @@ export const renderSprite = async ({
     return;
   }
 
-  const { id, x, y, width, height, src, alpha, zIndex } = spriteASTNode;
+  const { id, x, y, width, height, src, alpha } = spriteASTNode;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
@@ -34,7 +34,6 @@ export const renderSprite = async ({
     sprite.width = width;
     sprite.height = height;
     sprite.alpha = alpha;
-    sprite.zIndex = zIndex;
   };
 
   signal.addEventListener("abort", () => {

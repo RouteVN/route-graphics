@@ -52,7 +52,6 @@ export const updateSprite = async ({
       spriteElement.height = nextSpriteASTNode.height;
 
       spriteElement.alpha = nextSpriteASTNode.alpha;
-      spriteElement.zIndex = nextSpriteASTNode.zIndex;
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");

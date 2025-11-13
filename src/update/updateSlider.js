@@ -43,7 +43,6 @@ export const updateSlider = async({
       sliderElement.x = nextSliderASTNode.x;
       sliderElement.y = nextSliderASTNode.y;
       sliderElement.alpha = nextSliderASTNode.alpha;
-      sliderElement.zIndex = nextSliderASTNode.zIndex;
       sliderElement.label = nextSliderASTNode.id;
       sliderElement.pivot.set(
         nextSliderASTNode.originX,
