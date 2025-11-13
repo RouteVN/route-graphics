@@ -72,4 +72,4 @@ export const parseCommonObject = (state) => {
   }
 
   return astObj;
-}
+};

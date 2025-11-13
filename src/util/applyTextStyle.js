@@ -12,4 +12,4 @@ export default (element, style) => {
     strokeWidth: style.strokeWidth,
   };
   element.style = appliedStyle;
-}
+};

@@ -49,7 +49,7 @@ export const parseText = (state) => {
     width: roundedWidth,
     height: roundedHeight,
     // Include alpha property for text elements
-    alpha: state.alpha ?? 1
+    alpha: state.alpha ?? 1,
   });
 
   return {
@@ -59,4 +59,4 @@ export const parseText = (state) => {
       ...textStyle,
     },
   };
-}
+};

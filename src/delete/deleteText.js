@@ -49,4 +49,4 @@ export const deleteText = async ({
     }
     deleteElement();
   }
-}
+};

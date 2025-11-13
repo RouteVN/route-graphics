@@ -139,4 +139,4 @@ export const updateText = async ({
     }
     updateElement();
   }
-}
+};

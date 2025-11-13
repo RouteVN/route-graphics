@@ -127,4 +127,4 @@ export const renderText = async ({
       signal,
     });
   }
-}
+};
