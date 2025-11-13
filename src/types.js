@@ -49,7 +49,6 @@
  * @property {number} y - Y position of the AST node
  * @property {number} width - Width of the AST node
  * @property {number} height - Height of the AST node
- * @property {number} zIndex
  * @property {number} originX
  * @property {number} originY
  * @property {number} scaleX

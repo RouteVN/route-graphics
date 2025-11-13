@@ -1,42 +1,41 @@
-import { renderRect } from "./renderRect.js";
-import { renderText } from "./renderText.js";
-import { renderSprite } from "./renderSprite.js";
-import { renderContainer } from "./renderContainer.js";
-import { diffElements } from "./common.js";
-import { deleteRect } from "../delete/deleteRect.js";
-import { deleteText } from "../delete/deleteText.js";
-import { deleteContainer } from "../delete/deleteContainer.js";
-import { deleteSprite } from "../delete/deleteSprite.js";
-import { updateRect } from "../update/updateRect.js";
-import { updateText } from "../update/updateText.js";
-import { updateSprite } from "../update/updateSprite.js";
-import { updateContainer } from "../update/updateContainer.js";
-import { renderTextRevealing } from "./renderTextRevealing.js";
-import { updateTextRevealing } from "../update/updateTextRevealing.js";
-import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
-import { renderSlider } from "./renderSlider.js";
-import { deleteSlider } from "../delete/deleteSlider.js";
-import { updateSlider } from "../update/updateSlider.js";
-import { ASTNodeType } from "../types.js";
+import { diffElements } from "../../util/diffElements.js";
+import { deleteRect } from "../../delete/elements/deleteRect.js";
+import { deleteText } from "../../delete/elements/deleteText.js";
+import { deleteContainer } from "../../delete/elements/deleteContainer.js";
+import { deleteSprite } from "../../delete/elements/deleteSprite.js";
+import { updateRect } from "../../update/elements/updateRect.js";
+import { updateText } from "../../update/elements/updateText.js";
+import { updateSprite } from "../../update/elements/updateSprite.js";
+import { updateContainer } from "../../update/elements/updateContainer.js";
+import { updateTextRevealing } from "../../update/elements/updateTextRevealing.js";
+import { deleteTextRevealing } from "../../delete/elements/deleteTextRevealing.js";
+import { deleteSlider } from "../../delete/elements/deleteSlider.js";
+import { updateSlider } from "../../update/elements/updateSlider.js";
+import { addRect } from "./addRect.js";
+import { addText } from "./addText.js";
+import { addContainer } from "./addContainer.js";
+import { addSprite } from "./addSprite.js";
+import { addTextRevealing } from "./addTextRevealing.js";
+import { addSlider } from "./addSlider.js";
+import { ASTNodeType } from "../../types.js";
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').ASTNode} ASTNode
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').RenderAppOptions} RenderAppOptions
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').ASTNode} ASTNode
+ * @typedef {import('../../types.js').Container} Container
  */
 
 /**
- * @param {Object} renderOptions
- * @property {Application} renderOptions.app
- * @property {Container} renderOptions.parent
- * @property {ASTNode[]} renderOptions.prevASTTree
- * @property {ASTNode[]} renderOptions.nextASTTree
- * @property {Object[]} renderOptions.transitions
- * @property {Function} renderOptions.eventHandler
- * @property {Function} renderOptions.transitionElements
- * @property {AbortSignal[]} renderOptions.signal
+ * @param {Object} addElementsOptions
+ * @property {Application} addElementsOptions.app
+ * @property {Container} addElementsOptions.parent
+ * @property {ASTNode[]} addElementsOptions.prevASTTree
+ * @property {ASTNode[]} addElementsOptions.nextASTTree
+ * @property {Object[]} addElementsOptions.transitions
+ * @property {Function} addElementsOptions.eventHandler
+ * @property {Function} addElementsOptions.transitionElements
+ * @property {AbortSignal[]} addElementsOptions.signal
  */
-export async function renderApp({
+export const addElements = async ({
   app,
   parent,
   prevASTTree,
@@ -45,7 +44,7 @@ export async function renderApp({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
     prevASTTree,
     nextASTTree,
@@ -133,7 +132,7 @@ export async function renderApp({
     switch (element.type) {
       case ASTNodeType.RECT:
         asyncActions.push(
-          renderRect({
+          addRect({
             app,
             parent,
             rectASTNode: element,
@@ -146,7 +145,7 @@ export async function renderApp({
         break;
       case ASTNodeType.TEXT:
         asyncActions.push(
-          renderText({
+          addText({
             app,
             parent,
             textASTNode: element,
@@ -159,7 +158,7 @@ export async function renderApp({
         break;
       case ASTNodeType.CONTAINER:
         asyncActions.push(
-          renderContainer({
+          addContainer({
             app,
             parent,
             containerASTNode: element,
@@ -172,7 +171,7 @@ export async function renderApp({
         break;
       case ASTNodeType.SPRITE:
         asyncActions.push(
-          renderSprite({
+          addSprite({
             app,
             parent,
             spriteASTNode: element,
@@ -185,7 +184,7 @@ export async function renderApp({
         break;
       case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
-          renderTextRevealing({
+          addTextRevealing({
             app,
             parent,
             textRevealingASTNode: element,
@@ -195,7 +194,7 @@ export async function renderApp({
         break;
       case ASTNodeType.SLIDER:
         asyncActions.push(
-          renderSlider({
+          addSlider({
             app,
             parent,
             sliderASTNode: element,
@@ -297,30 +296,21 @@ export async function renderApp({
   }
   await Promise.all(asyncActions);
   sortContainerChildren(parent, nextASTTree);
-}
+};
 
-function sortContainerChildren(container, nextAST) {
+const sortContainerChildren = (container, nextAST) => {
   container.children.sort((a, b) => {
-    const aElement = nextAST.find((element) => element.id === a.label);
-    const bElement = nextAST.find((element) => element.id === b.label);
+    const aIndex = nextAST.findIndex((element) => element.id === a.label);
+    const bIndex = nextAST.findIndex((element) => element.id === b.label);
 
-    if (aElement && bElement) {
-      // First, sort by zIndex if specified
-      const aZIndex = aElement.zIndex ?? 0;
-      const bZIndex = bElement.zIndex ?? 0;
-      if (aZIndex !== bZIndex) {
-        return aZIndex - bZIndex;
-      }
-
-      // If zIndex is the same or not specified, maintain order from nextState.elements
-      const aIndex = nextAST.findIndex((element) => element.id === a.label);
-      const bIndex = nextAST.findIndex((element) => element.id === b.label);
+    // If both elements are in nextAST, maintain order from nextASTTree
+    if (aIndex !== -1 && bIndex !== -1) {
       return aIndex - bIndex;
     }
 
-    // Keep elements that aren't in nextState.elements at their current position
-    if (!aElement && !bElement) return 0;
-    if (!aElement) return -1;
-    if (!bElement) return 1;
+    // Keep elements that aren't in nextAST at their current position
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return -1;
+    if (bIndex === -1) return 1;
   });
-}
+};

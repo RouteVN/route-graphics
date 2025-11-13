@@ -10,9 +10,9 @@ import {
 import "@pixi/unsafe-eval";
 import { BaseRouteGraphics } from "./types.js";
 import { AudioStage, AudioAsset } from "./AudioStage.js";
-import { renderApp } from "./render/renderApp.js";
 import parseJSONToAST from "./parser/index.js";
-import { renderAudio } from "./render/renderAudio.js";
+import { addElements } from "./add/elements/addElements.js";
+import { addAudio } from "./add/audio/addAudio.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -438,7 +438,7 @@ class RouteGraphics extends BaseRouteGraphics {
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
     const signal = this._currentAbortController.signal;
-    await renderApp({
+    await addElements({
       app,
       parent,
       prevASTTree: prevState.elements,
@@ -449,7 +449,7 @@ class RouteGraphics extends BaseRouteGraphics {
       signal,
     });
 
-    await renderAudio({
+    await addAudio({
       app,
       prevAudioTree: prevState.audio,
       nextAudioTree: nextState.audio,

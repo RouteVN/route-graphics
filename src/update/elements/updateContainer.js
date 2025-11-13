@@ -1,9 +1,9 @@
 import { Container } from "pixi.js";
-import { renderApp } from "../render/renderApp.js";
+import { addElements } from "../../add/elements/addElements.js";
 
 /**
  * Update function for Container elements
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../types.js').ContainerASTNode} ContainerASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
@@ -17,7 +17,7 @@ import { renderApp } from "../render/renderApp.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateContainer({
+export const updateContainer = async ({
   app,
   parent,
   prevContainerASTNode,
@@ -26,7 +26,7 @@ export async function updateContainer({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -41,7 +41,6 @@ export async function updateContainer({
     ) {
       containerElement.x = nextContainerASTNode.x;
       containerElement.y = nextContainerASTNode.y;
-      containerElement.zIndex = nextContainerASTNode.zIndex;
       containerElement.label = nextContainerASTNode.id;
       containerElement.alpha = nextContainerASTNode.alpha;
 
@@ -49,7 +48,7 @@ export async function updateContainer({
         JSON.stringify(prevContainerASTNode.children) !==
         JSON.stringify(nextContainerASTNode.children)
       ) {
-        await renderApp({
+        await addElements({
           app,
           parent: containerElement,
           nextASTTree: prevContainerASTNode.children,
@@ -78,4 +77,4 @@ export async function updateContainer({
 
     await updateElement();
   }
-}
+};

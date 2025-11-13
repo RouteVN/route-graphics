@@ -1,21 +1,22 @@
 import { Graphics } from "pixi.js";
 
 /**
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').RectASTNode} RectASTNode
+ * @typedef {import('../../types.js').Container} Container
+ * @typedef {import('../../types.js').RectASTNode} RectASTNode
  */
 
 /**
+ * Add a rectangle element to the stage
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {RectASTNode} params.rectASTNode
  * @param {Object[]} params.transitions
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export const renderRect = async ({
+export const addRect = async ({
   app,
   parent,
   rectASTNode,
@@ -38,7 +39,6 @@ export const renderRect = async ({
     border,
     originX,
     originY,
-    zIndex,
     rotation,
     alpha,
   } = rectASTNode;
@@ -52,7 +52,6 @@ export const renderRect = async ({
     rect.x = x;
     rect.y = y;
     rect.alpha = alpha;
-    rect.zIndex = zIndex;
 
     if (border) {
       rect.stroke({

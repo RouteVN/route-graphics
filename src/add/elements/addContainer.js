@@ -1,24 +1,25 @@
 import { Container, Graphics } from "pixi.js";
-import { renderApp } from "./renderApp.js";
+import { addElements } from "./addElements.js";
 
 /**
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
- * @typedef {import('../types.js').SetupScrollingOptions} SetupScrollingOptions
- * @typedef {import('../types.js').SetupClipping} SetupClipping
+ * @typedef {import("../../types.js").Container} Container
+ * @typedef {import('../../types.js').Container} Container
+ * @typedef {import('../../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../types.js').SetupScrollingOptions} SetupScrollingOptions
+ * @typedef {import('../../types.js').SetupClipping} SetupClipping
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.containerASTNode
  * @param {Object[]} params.transitions
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderContainer({
+export const addContainer = async ({
   app,
   parent,
   containerASTNode,
@@ -26,12 +27,12 @@ export async function renderContainer({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
 
-  const { id, x, y, children, scroll, zIndex, alpha } = containerASTNode;
+  const { id, x, y, children, scroll, alpha } = containerASTNode;
 
   const container = new Container();
 
@@ -40,12 +41,11 @@ export async function renderContainer({
     container.x = x;
     container.y = y;
     container.alpha = alpha;
-    container.zIndex = zIndex;
   };
 
   drawContainer();
 
-  await renderApp({
+  await addElements({
     app,
     parent: container,
     nextASTTree: children,
@@ -76,13 +76,13 @@ export async function renderContainer({
       signal,
     });
   }
-}
+};
 
 /**
  * @param {SetupScrollingOptions} params
  * @returns
  */
-export function setupScrolling({ container, element }) {
+export const setupScrolling = ({ container, element }) => {
   let totalWidth = 0;
   let totalHeight = 0;
 
@@ -173,4 +173,4 @@ export function setupScrolling({ container, element }) {
       }
     });
   }
-}
+};

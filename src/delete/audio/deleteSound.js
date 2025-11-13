@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').SoundElement} SoundElement
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').SoundElement} SoundElement
  */
 
 /**
@@ -15,10 +15,10 @@
  * @param {DeleteSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function deleteSound({ app, soundASTNode, signal }) {
+export const deleteSound = ({ app, soundASTNode, signal }) => {
   if (signal?.aborted) {
     return;
   }
 
   app.audioStage.remove(soundASTNode.id);
-}
+};

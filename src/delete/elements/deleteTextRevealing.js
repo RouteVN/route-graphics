@@ -1,22 +1,22 @@
 import { Container } from "pixi.js";
 
 /**
- * @typedef {import('../types.js').ASTNode} ASTNode
+ * @typedef {import('../../types.js').ASTNode} ASTNode
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ASTNode} params.textRevealingASTNode
  * @param {AbortSignal} params.signal
  */
-export async function deleteTextRevealing({
+export const deleteTextRevealing = async ({
   parent,
   textRevealingASTNode,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -32,4 +32,4 @@ export async function deleteTextRevealing({
 
     deleteElement();
   }
-}
+};

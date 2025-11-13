@@ -2,13 +2,13 @@ import { Texture } from "pixi.js";
 
 /**
  * Update function for Sprite elements
- * @typedef {import('../types.js').SpriteASTNode} SpriteASTNode
+ * @typedef {import('../../types.js').SpriteASTNode} SpriteASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {SpriteASTNode} params.prevSpriteASTNode
  * @param {SpriteASTNode} params.nextSpriteASTNode
@@ -52,7 +52,6 @@ export const updateSprite = async ({
       spriteElement.height = nextSpriteASTNode.height;
 
       spriteElement.alpha = nextSpriteASTNode.alpha;
-      spriteElement.zIndex = nextSpriteASTNode.zIndex;
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");

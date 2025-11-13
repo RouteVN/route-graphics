@@ -12,7 +12,7 @@ import { parseCommonObject } from "./parseCommonObject.js";
  * @param {number} wordWrapWidth - Maximum width for wrapping
  * @returns {Object} Object containing chunks and dimensions
  */
-function createTextChunks(segments, wordWrapWidth) {
+const createTextChunks = (segments, wordWrapWidth) => {
   const chunks = [];
   let lineParts = [];
   let x = 0;
@@ -170,14 +170,14 @@ function createTextChunks(segments, wordWrapWidth) {
     width: Math.max(maxTotalWidth, wordWrapWidth),
     height: finalHeight,
   };
-}
+};
 
 /**
  * Parse text-revealing object and calculate final position after anchor adjustment
  * @param {BaseElement} state
  * @returns {TextRevealingASTNode}
  */
-export function parseTextRevealing(state) {
+export const parseTextRevealing = (state) => {
   const defaultTextStyle = {
     fill: "black",
     fontFamily: "Roboto",
@@ -254,4 +254,4 @@ export function parseTextRevealing(state) {
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
   };
-}
+};

@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').SoundElement} SoundElement
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').SoundElement} SoundElement
  */
 
 /**
@@ -16,12 +16,12 @@
  * @param {UpdateSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function updateSound({
+export const updateSound = ({
   app,
   prevSoundASTNode,
   nextSoundASTNode,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -37,4 +37,4 @@ export async function updateSound({
       audioElement.volume = (nextSoundASTNode.volume ?? 800) / 1000;
     }
   }
-}
+};

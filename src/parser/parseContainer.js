@@ -16,7 +16,7 @@ import parseJSONToAST from "./index.js";
  * If the direction has horizontal/vertical, it will reposition the children to be horizontal/vertical
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
  */
-export function parseContainer(state) {
+export const parseContainer = (state) => {
   const direction = state.direction;
   const scroll = state.scroll ? true : false;
   const gap = state.gap || 0;
@@ -114,4 +114,4 @@ export function parseContainer(state) {
     scroll,
     rotation: state.rotation ?? 0,
   };
-}
+};

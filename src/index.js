@@ -1,6 +1,5 @@
 import RouteGraphics from "./RouteGraphics";
 import { createAssetBufferManager } from "./utils.js";
-import { renderApp } from "./render/renderApp.js";
 import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js";
 import parseJSONToAST from "./parser/index.js";
@@ -13,7 +12,6 @@ export {
   Application,
   Assets,
   AudioAsset,
-  renderApp,
   parse,
   parseJSONToAST,
   createAssetBufferManager,

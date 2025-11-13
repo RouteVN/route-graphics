@@ -1,14 +1,14 @@
-import applyTextStyle from "../util/applyTextStyle.js";
+import applyTextStyle from "../../util/applyTextStyle.js";
 
 /**
  * Update function for Text elements
- * @typedef {import('../types.js').TextASTNode} TextASTNode
+ * @typedef {import('../../types.js').TextASTNode} TextASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {TextASTNode} params.prevTextASTNode
  * @param {TextASTNode} params.nextTextASTNode
@@ -41,7 +41,6 @@ export const updateText = async ({
       textElement.x = nextTextASTNode.x;
       textElement.y = nextTextASTNode.y;
       textElement.alpha = nextTextASTNode.alpha;
-      textElement.zIndex = nextTextASTNode.zIndex;
 
       textElement.removeAllListeners("pointerover");
       textElement.removeAllListeners("pointerout");

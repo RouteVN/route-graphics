@@ -46,7 +46,6 @@ out:
   pointerUp: "pointerUp-123"
   pointerMove: "pointerMove-123"
   rotation: 90
-  zIndex: 0
   alpha: 1
 ---
 case: Test parsing rect with no border
@@ -82,7 +81,6 @@ out:
   pointerUp: "pointerUp-123"
   pointerMove: "pointerMove-123"
   rotation: 90
-  zIndex: 0
   alpha: 1
 ---
 case: Test parsing rect with border property but only have alpha value
@@ -124,7 +122,6 @@ out:
   pointerUp: "pointerUp-123"
   pointerMove: "pointerMove-123"
   rotation: 90
-  zIndex: 0
   alpha: 1
 ---
 case: Test parsing rect default to see the default values for cursor, fill, rotation and interactive props
@@ -160,5 +157,4 @@ out:
   pointerUp: ""
   pointerMove: ""
   rotation: 0
-  zIndex: 0
   alpha: 1

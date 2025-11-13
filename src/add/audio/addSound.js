@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').SoundElement} SoundElement
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').SoundElement} SoundElement
  */
 
 /**
@@ -15,7 +15,7 @@
  * @param {AddSoundOptions} options
  * @returns {Promise<void>}
  */
-export async function renderSound({ app, soundASTNode, signal }) {
+export const addSound = ({ app, soundASTNode, signal }) => {
   if (signal?.aborted) {
     return;
   }
@@ -36,4 +36,4 @@ export async function renderSound({ app, soundASTNode, signal }) {
   } else {
     app.audioStage.add(audioElement);
   }
-}
+};

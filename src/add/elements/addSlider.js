@@ -1,16 +1,17 @@
 import { Sprite, Texture, Container } from "pixi.js";
+/** @typedef {import('"../../types.js"').Container} Container
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
- * @param {import('../types.js').Container} params.parent
+ * @param {import('../../types.js').Application} params.app
+ * @param {import('../../types.js').Container} params.parent
  * @property {SliderASTNode} sliderASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  * @param {Function} params.eventHandler
  * @param {Function} params.transitionElements
  */
-export async function renderSlider({
+export const addSlider = async ({
   app,
   parent,
   sliderASTNode,
@@ -18,7 +19,7 @@ export async function renderSlider({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -30,7 +31,6 @@ export async function renderSlider({
     width,
     height,
     alpha,
-    zIndex,
     thumbSrc,
     barSrc,
     direction,
@@ -52,7 +52,6 @@ export async function renderSlider({
   sliderContainer.x = x;
   sliderContainer.y = y;
   sliderContainer.alpha = alpha;
-  sliderContainer.zIndex = zIndex;
   sliderContainer.sortableChildren = true;
   sliderContainer.eventMode = "static";
   const barPadding = 0;
@@ -273,4 +272,4 @@ export async function renderSlider({
       signal,
     });
   }
-}
+};

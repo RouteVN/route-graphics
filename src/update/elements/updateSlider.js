@@ -2,13 +2,13 @@ import { Sprite, Texture, Container } from "pixi.js";
 
 /**
  * Update function for Slider elements
- * @typedef {import('../types.js').SliderASTNode} SliderASTNode
+ * @typedef {import('../../types.js').SliderASTNode} SliderASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {SliderASTNode} params.prevSliderASTNode
  * @param {SliderASTNode} params.nextSliderASTNode
@@ -17,7 +17,7 @@ import { Sprite, Texture, Container } from "pixi.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateSlider({
+export const updateSlider = async ({
   app,
   parent,
   prevSliderASTNode,
@@ -26,7 +26,7 @@ export async function updateSlider({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -43,7 +43,6 @@ export async function updateSlider({
       sliderElement.x = nextSliderASTNode.x;
       sliderElement.y = nextSliderASTNode.y;
       sliderElement.alpha = nextSliderASTNode.alpha;
-      sliderElement.zIndex = nextSliderASTNode.zIndex;
       sliderElement.label = nextSliderASTNode.id;
       sliderElement.pivot.set(
         nextSliderASTNode.originX,
@@ -325,4 +324,4 @@ export async function updateSlider({
 
     updateElement();
   }
-}
+};

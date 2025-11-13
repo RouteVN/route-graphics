@@ -1,12 +1,12 @@
 /**
  * Update function for Rectangle elements
- * @typedef {import('../types.js').RectASTNode} RectASTNode
+ * @typedef {import('../../types.js').RectASTNode} RectASTNode
  * @typedef {import('pixi.js').Container} Container
  */
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {RectASTNode} params.prevRectASTNode
  * @param {RectASTNode} params.nextRectASTNode
@@ -51,8 +51,6 @@ export const updateRect = async ({
           width: nextRectASTNode.border.width,
         });
       }
-
-      rectElement.zIndex = nextRectASTNode.zIndex;
 
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
