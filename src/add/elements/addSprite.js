@@ -1,15 +1,20 @@
 import { Sprite, Texture } from "pixi.js";
 
 /**
+ * @typedef {import('../../types.js').Container} Container
+ * @typedef {import('../../types.js').SpriteASTNode} SpriteASTNode
+ */
+
+/**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @property {SpriteASTNode} spriteASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export const renderSprite = async ({
+export const addSprite = async ({
   app,
   parent,
   spriteASTNode,
@@ -19,7 +24,6 @@ export const renderSprite = async ({
   signal,
 }) => {
   if (signal?.aborted) {
-    reject(new DOMException("Operation aborted", "AbortError"));
     return;
   }
 

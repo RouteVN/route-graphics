@@ -1,16 +1,17 @@
 import { Sprite, Texture, Container } from "pixi.js";
+/** @typedef {import('"../../types.js"').Container} Container
 
 /**
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
- * @param {import('../types.js').Container} params.parent
+ * @param {import('../../types.js').Application} params.app
+ * @param {import('../../types.js').Container} params.parent
  * @property {SliderASTNode} sliderASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  * @param {Function} params.eventHandler
  * @param {Function} params.transitionElements
  */
-export const renderSlider = async ({
+export const addSlider = async ({
   app,
   parent,
   sliderASTNode,

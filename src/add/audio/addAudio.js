@@ -1,12 +1,12 @@
-import { diffAudio } from "./common.js";
-import { renderSound } from "./renderSound.js";
+import { addSound } from "./addSound.js";
 import { updateSound } from "../update/updateSound.js";
 import { deleteSound } from "../delete/deleteSound.js";
 import { AudioType } from "../types.js";
+import { diffAudio } from "../../util/diffAudio.js";
 
 /**
- * @typedef {import('../types.js').Application} Application
- * @typedef {import('../types.js').SoundElement} SoundElement
+ * @typedef {import('../../types.js').Application} Application
+ * @typedef {import('../../types.js').SoundElement} SoundElement
  */
 
 /**
@@ -22,7 +22,7 @@ import { AudioType } from "../types.js";
  * @param {RenderAudioOptions} options
  * @returns {Promise<void>}
  */
-export const renderAudio = async ({
+export const addAudio = async ({
   app,
   prevAudioTree,
   nextAudioTree,
@@ -57,7 +57,7 @@ export const renderAudio = async ({
     switch (element.type) {
       case AudioType.SOUND:
         asyncActions.push(
-          renderSound({
+          addSound({
             app,
             soundASTNode: element,
             signal,

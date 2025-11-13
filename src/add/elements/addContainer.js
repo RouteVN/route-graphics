@@ -1,24 +1,25 @@
 import { Container, Graphics } from "pixi.js";
-import { renderApp } from "./renderApp.js";
+/** @typedef {import('"../../types.js"').Container} Container
+import { addElements } from "./addElements.js";
 
 /**
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
- * @typedef {import('../types.js').SetupScrollingOptions} SetupScrollingOptions
- * @typedef {import('../types.js').SetupClipping} SetupClipping
+ * @typedef {import('../../types.js').Container} Container
+ * @typedef {import('../../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../types.js').SetupScrollingOptions} SetupScrollingOptions
+ * @typedef {import('../../types.js').SetupClipping} SetupClipping
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.containerASTNode
  * @param {Object[]} params.transitions
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export const renderContainer = async ({
+export const addContainer = async ({
   app,
   parent,
   containerASTNode,
@@ -44,7 +45,7 @@ export const renderContainer = async ({
 
   drawContainer();
 
-  await renderApp({
+  await addElements({
     app,
     parent: container,
     nextASTTree: children,

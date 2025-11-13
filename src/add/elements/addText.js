@@ -2,21 +2,21 @@ import { Text } from "pixi.js";
 import applyTextStyle from "../util/applyTextStyle.js";
 
 /**
- * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').TextASTNode} TextASTNode
+ * @typedef {import('../../types.js').Container} Container
+ * @typedef {import('../../types.js').TextASTNode} TextASTNode
  */
 
 /**
  *
  * @param {Object} params
- * @param {import('../types.js').Application} params.app
+ * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {TextASTNode} params.textASTNode
  * @param {Object[]} params.transitions
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export const renderText = async ({
+export const addText = async ({
   app,
   parent,
   textASTNode,

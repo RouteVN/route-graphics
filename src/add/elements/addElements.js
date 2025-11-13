@@ -1,8 +1,5 @@
-import { renderRect } from "./renderRect.js";
-import { renderText } from "./renderText.js";
-import { renderSprite } from "./renderSprite.js";
-import { renderContainer } from "./renderContainer.js";
-import { diffElements } from "./common.js";
+import { addRect, addText, addSprite, addContainer } from "../add/index.js";
+import { diffElements } from "../util/diffElements.js";
 import { deleteRect } from "../delete/deleteRect.js";
 import { deleteText } from "../delete/deleteText.js";
 import { deleteContainer } from "../delete/deleteContainer.js";
@@ -11,10 +8,10 @@ import { updateRect } from "../update/updateRect.js";
 import { updateText } from "../update/updateText.js";
 import { updateSprite } from "../update/updateSprite.js";
 import { updateContainer } from "../update/updateContainer.js";
-import { renderTextRevealing } from "./renderTextRevealing.js";
+import { addTextRevealing } from "../add/index.js";
 import { updateTextRevealing } from "../update/updateTextRevealing.js";
 import { deleteTextRevealing } from "../delete/deleteTextRevealing.js";
-import { renderSlider } from "./renderSlider.js";
+import { addSlider } from "../add/index.js";
 import { deleteSlider } from "../delete/deleteSlider.js";
 import { updateSlider } from "../update/updateSlider.js";
 import { ASTNodeType } from "../types.js";
@@ -22,21 +19,20 @@ import { ASTNodeType } from "../types.js";
  * @typedef {import('../types.js').Application} Application
  * @typedef {import('../types.js').ASTNode} ASTNode
  * @typedef {import('../types.js').Container} Container
- * @typedef {import('../types.js').RenderAppOptions} RenderAppOptions
  */
 
 /**
- * @param {Object} renderOptions
- * @property {Application} renderOptions.app
- * @property {Container} renderOptions.parent
- * @property {ASTNode[]} renderOptions.prevASTTree
- * @property {ASTNode[]} renderOptions.nextASTTree
- * @property {Object[]} renderOptions.transitions
- * @property {Function} renderOptions.eventHandler
- * @property {Function} renderOptions.transitionElements
- * @property {AbortSignal[]} renderOptions.signal
+ * @param {Object} addElementsOptions
+ * @property {Application} addElementsOptions.app
+ * @property {Container} addElementsOptions.parent
+ * @property {ASTNode[]} addElementsOptions.prevASTTree
+ * @property {ASTNode[]} addElementsOptions.nextASTTree
+ * @property {Object[]} addElementsOptions.transitions
+ * @property {Function} addElementsOptions.eventHandler
+ * @property {Function} addElementsOptions.transitionElements
+ * @property {AbortSignal[]} addElementsOptions.signal
  */
-export const renderApp = async({
+export const addElements = async({
   app,
   parent,
   prevASTTree,
@@ -133,7 +129,7 @@ export const renderApp = async({
     switch (element.type) {
       case ASTNodeType.RECT:
         asyncActions.push(
-          renderRect({
+          addRect({
             app,
             parent,
             rectASTNode: element,
@@ -146,7 +142,7 @@ export const renderApp = async({
         break;
       case ASTNodeType.TEXT:
         asyncActions.push(
-          renderText({
+          addText({
             app,
             parent,
             textASTNode: element,
@@ -159,7 +155,7 @@ export const renderApp = async({
         break;
       case ASTNodeType.CONTAINER:
         asyncActions.push(
-          renderContainer({
+          addContainer({
             app,
             parent,
             containerASTNode: element,
@@ -172,7 +168,7 @@ export const renderApp = async({
         break;
       case ASTNodeType.SPRITE:
         asyncActions.push(
-          renderSprite({
+          addSprite({
             app,
             parent,
             spriteASTNode: element,
@@ -185,7 +181,7 @@ export const renderApp = async({
         break;
       case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
-          renderTextRevealing({
+          addTextRevealing({
             app,
             parent,
             textRevealingASTNode: element,
@@ -195,7 +191,7 @@ export const renderApp = async({
         break;
       case ASTNodeType.SLIDER:
         asyncActions.push(
-          renderSlider({
+          addSlider({
             app,
             parent,
             sliderASTNode: element,

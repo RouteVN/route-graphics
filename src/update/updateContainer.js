@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { renderApp } from "../render/renderApp.js";
+import { addElements } from "../render/addElements.js";
 
 /**
  * Update function for Container elements
@@ -48,7 +48,7 @@ export const updateContainer = async ({
         JSON.stringify(prevContainerASTNode.children) !==
         JSON.stringify(nextContainerASTNode.children)
       ) {
-        await renderApp({
+        await addElements({
           app,
           parent: containerElement,
           nextASTTree: prevContainerASTNode.children,

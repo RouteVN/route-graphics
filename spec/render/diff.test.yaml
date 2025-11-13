@@ -1,4 +1,4 @@
-file: '../../src/render/common.js'
+file: '../../src/util/diffElements.js'
 group: render
 suites: [diffElements]
 ---

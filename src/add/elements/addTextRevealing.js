@@ -1,4 +1,5 @@
 import { Text, TextStyle, Container } from "pixi.js";
+/** @typedef {import('"../../types.js"').Container} Container
 
 /**
  * Sleep utility for delays
@@ -15,7 +16,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param {Object} params.textRevealingASTNode - Text-revealing element with parsed content chunks
  * @param {AbortSignal} params.signal - Optional abort signal
  */
-export const renderTextRevealing = async (params) => {
+export const addTextRevealing = async (params) => {
   const { app, parent, textRevealingASTNode, signal } = params;
 
   const speed = textRevealingASTNode.speed ?? 50;
