@@ -15,7 +15,7 @@ import { Graphics } from "pixi.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function renderRect({
+export const renderRect = async ({
   app,
   parent,
   rectASTNode,
@@ -23,7 +23,7 @@ export async function renderRect({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -40,6 +40,7 @@ export async function renderRect({
     originY,
     zIndex,
     rotation,
+    alpha,
   } = rectASTNode;
 
   const rect = new Graphics();
@@ -50,6 +51,9 @@ export async function renderRect({
     rect.rect(0, 0, width, height).fill(fill);
     rect.x = x;
     rect.y = y;
+    rect.alpha = alpha;
+    rect.zIndex = zIndex;
+
     if (border) {
       rect.stroke({
         color: border.color,
@@ -57,8 +61,6 @@ export async function renderRect({
         width: border.width,
       });
     }
-
-    rect.zIndex = zIndex;
   };
 
   signal.addEventListener("abort", () => {
@@ -127,4 +129,4 @@ export async function renderRect({
   if (transitions && transitions.length > 0) {
     await transitionElements(id, { app, sprite: rect, transitions, signal });
   }
-}
+};

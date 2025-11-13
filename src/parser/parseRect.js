@@ -8,22 +8,24 @@ import { parseCommonObject } from "./parseCommonObject.js";
  * @param {BaseElement} state
  * @return {RectASTNode}
  */
-export function parseRect(state) {
-  let astObj = parseCommonObject(state);
+export const parseRect = (state) => {
+  const astObj = parseCommonObject(state);
+
+  let finalObj = astObj;
 
   if (state.border) {
-    astObj = {
+    finalObj = {
       ...astObj,
       border: {
-        alpha: state?.border?.alpha ?? 1,
-        color: state?.border?.color ?? "black",
-        width: state?.border?.width ?? 0,
+        alpha: state.border?.alpha ?? 1,
+        color: state.border?.color ?? "black",
+        width: state.border?.width ?? 0,
       },
     };
   }
 
   return {
-    ...astObj,
+    ...finalObj,
     cursor: state.cursor ?? "",
     fill: state.fill ?? "white",
     pointerDown: state.pointerDown ?? "",
@@ -31,4 +33,4 @@ export function parseRect(state) {
     pointerUp: state.pointerUp ?? "",
     rotation: state.rotation ?? 0,
   };
-}
+};
