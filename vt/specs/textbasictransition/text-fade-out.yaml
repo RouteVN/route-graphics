@@ -13,7 +13,7 @@ states:
         content: "Goodbye!"
         x: 300
         y: 250
-        textstyle:
+        textStyle:
           fontSize: 42
           fill: "#9b59b6"
           fontFamily: "Arial"

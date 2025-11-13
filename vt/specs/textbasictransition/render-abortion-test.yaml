@@ -14,7 +14,7 @@ states:
         x: 100
         y: 100
         content: "Render Test"
-        textstyle:
+        textSyle:
           fontFamily: "Arial"
           fontSize: 32
           fill: "#3498db"
@@ -57,7 +57,7 @@ states:
         x: 400
         y: 300
         content: "Continued Render"
-        textstyle:
+        textSyle:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#e74c3c"

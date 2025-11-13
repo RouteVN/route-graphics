@@ -48,8 +48,6 @@ export const parseText = (state) => {
     ...state,
     width: roundedWidth,
     height: roundedHeight,
-    // Include alpha property for text elements
-    alpha: state.alpha ?? 1,
   });
 
   return {

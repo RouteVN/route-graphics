@@ -13,7 +13,7 @@ states:
         content: "Sliding Down..."
         x: 250
         y: 200
-        textstyle:
+        textStyle:
           fontSize: 32
           fill: "#3498db"
           fontFamily: "Arial"

@@ -14,7 +14,7 @@ states:
         content: "Sliding Up!"
         x: 200
         y: 250
-        textstyle:
+        textStyle:
           fontSize: 36
           fill: "#e74c3c"
           fontFamily: "Arial"

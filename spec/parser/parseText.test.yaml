@@ -48,6 +48,7 @@ out:
   zIndex: 0
   originX: 46
   originY: 87
+  alpha: 1
   textStyle:
     fontSize: 24
     fontFamily: "Arial"
@@ -102,6 +103,7 @@ out:
   zIndex: 0
   originX: 87
   originY: 15
+  alpha: 1
   textStyle:
     fontSize: 24
     fontFamily: "Arial"
@@ -132,6 +134,7 @@ out:
   zIndex: 0
   originX: 48
   originY: 38
+  alpha: 1
   textStyle:
     fill: "black"
     fontFamily: "Arial"
@@ -160,6 +163,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 10
+  alpha: 1
   textStyle:
     fill: "black"
     fontFamily: "Arial"
@@ -191,6 +195,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 0
+  alpha: 0.5
   textStyle:
     fontSize: 20
     fill: "blue"
@@ -228,6 +233,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 0
+  alpha: 1
   textStyle:
     fontSize: 18
     fontFamily: "Times New Roman"

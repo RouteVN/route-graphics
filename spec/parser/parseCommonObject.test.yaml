@@ -38,6 +38,7 @@ out:
   zIndex: 0
   originX: 363
   originY: 22
+  alpha: 1
   hover:
     soundSrc: "sound-1"
     cursor: "cursor-1"
@@ -109,6 +110,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 0
+  alpha: 1
   hover:
     soundSrc: "hover-sound"
     cursor: "pointer"
@@ -138,6 +140,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 0
+  alpha: 1
   click:
     soundSrc: "click-sound"
     actionPayload:
@@ -169,6 +172,7 @@ out:
   zIndex: 0
   originX: 0
   originY: 0
+  alpha: 1
   hover:
     soundSrc: "hover-bg"
     cursor: "move"

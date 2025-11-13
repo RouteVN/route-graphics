@@ -77,6 +77,12 @@ properties:
   y:
     type: number
     description: Y position adjusted for anchor point
+  alpha:
+    type: number
+    description: Opacity/transparency of the text (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
   originX:
     type: number
     description: Calculated origin X coordinate based on anchor
