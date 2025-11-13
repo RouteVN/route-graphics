@@ -1,7 +1,6 @@
 ---
 title: Rect Fade In Transition
 description: A rect element fading in with alpha animation
-template: "route-graphics.html"
 specs:
   - "rect should fade from 0 to 1 alpha"
   - "rect should appear gradually over 1 second"

@@ -1,7 +1,6 @@
 ---
 title: Rect Position Out
-description: A rect's position out transition
-specs:
+description: A rect's position out transitionspecs:
   - "rect should move out with animation"
   - "`x` should animate to target"
   - "`y` should animate to target"

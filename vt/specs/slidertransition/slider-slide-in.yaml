@@ -1,7 +1,6 @@
 ---
 title: Slider Slide In Transition
 description: A slider sliding in from the left side
-template: "route-graphics.html"
 specs:
   - "slider should slide from x: -200 to x: 200"
   - "animation should take 1 second"

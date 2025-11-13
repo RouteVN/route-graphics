@@ -1,7 +1,6 @@
 ---
 title: Rect Alpha Out
-description: A rect's alpha fade out transition
-specs:
+description: A rect's alpha fade out transitionspecs:
   - "alpha should fade from 1 to 0"
   - "rect should disappear gradually"
 ---

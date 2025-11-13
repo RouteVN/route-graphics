@@ -1,7 +1,6 @@
 ---
 title: Update Slider Value
 description: Test updating slider initial value and position
-template: "route-graphics.html"
 specs:
   - "slider should update its thumb position when initialValue changes"
   - "slider should maintain the same bar properties"

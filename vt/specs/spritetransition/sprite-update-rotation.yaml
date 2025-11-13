@@ -1,7 +1,6 @@
 ---
 title: Sprite Update Rotation Transition
 description: A sprite rotating during update
-template: "route-graphics.html"
 specs:
   - "sprite should rotate from 0 to 360 degrees"
   - "animation should take 1.5 seconds"

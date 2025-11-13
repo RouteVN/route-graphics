@@ -1,7 +1,6 @@
 ---
 title: Sound Loop Control
 description: Test sound loop functionality
-template: "route-graphics.html"
 specs:
   - "sound should loop when loop is true"
   - "sound should play once when loop is false"

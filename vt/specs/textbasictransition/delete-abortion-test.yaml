@@ -1,7 +1,6 @@
 ---
 title: Text Delete Abortion Test
 description: Test abortion callback during text deletion with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "text should delete with 3 keyframe animation"
   - "abortion callback should be testable during deletion"

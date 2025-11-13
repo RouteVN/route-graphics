@@ -1,7 +1,6 @@
 ---
 title: Slider Bar Click Events
 description: Test click events on slider bar to move thumb directly
-template: "route-graphics.html"
 specs:
   - "clicking bar should move thumb to click position"
   - "bar click should trigger dragStart and drag events"

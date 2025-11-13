@@ -1,7 +1,6 @@
 ---
 title: Fill
-description: A rect's fill color property
-specs:
+description: A rect's fill color propertyspecs:
   - "`fill` should set the rect's color"
   - "Named colors should work"
   - "Hex colors should work"

@@ -1,7 +1,6 @@
 ---
 title: Rect Delete Abortion Test
 description: Test abortion callback during rect deletion with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "rect should delete with 3 keyframe animation"
   - "abortion callback should be testable during deletion"

@@ -1,7 +1,6 @@
 ---
 title: Rect Update Scale Transition
 description: A rect scaling up during update
-template: "route-graphics.html"
 specs:
   - "rect should scale from 1 to 1.5 on both axes"
   - "animation should take 800ms"

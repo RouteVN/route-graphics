@@ -1,7 +1,6 @@
 ---
 title: Slider Fade Out Transition
 description: A slider element fading out with alpha animation before deletion
-template: "route-graphics.html"
 specs:
   - "slider should fade from 1 to 0 alpha"
   - "slider should disappear gradually over 1 second"

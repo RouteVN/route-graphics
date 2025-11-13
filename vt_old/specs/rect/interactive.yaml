@@ -1,7 +1,6 @@
 ---
 title: Interactive
-description: Interactive
-specs:
+description: Interactivespecs:
   - "Cursor should display on hover"
   - "pointer events should log events"
 ---

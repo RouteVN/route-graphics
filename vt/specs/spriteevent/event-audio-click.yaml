@@ -1,7 +1,6 @@
 ---
 title: Sprite Click Event Audio
 description: Test audio playback when clicking on sprite elements
-template: "route-graphics.html"
 specs:
   - "sprite should play audio on click"
   - "different sprite elements play different sounds"

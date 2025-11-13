@@ -1,7 +1,6 @@
 ---
 title: Position Out
-description: A sprite's position
-specs:
+description: A sprite's positionspecs:
   - "`y` should be correct"
   - "`x` should be correct"
   - default position should be 0

@@ -1,7 +1,6 @@
 ---
 title: Sprite Src Change on Hover
 description: Test src property in hover event changing sprite texture
-template: "route-graphics.html"
 specs:
   - "sprite texture should change on hover"
   - "sprite texture should revert on pointer out"

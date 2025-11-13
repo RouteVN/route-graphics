@@ -1,7 +1,6 @@
 ---
 title: Text Click Event Audio
 description: Test audio playback when clicking on text elements
-template: "route-graphics.html"
 specs:
   - "text should play audio on click"
   - "different text elements play different sounds"

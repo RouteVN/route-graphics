@@ -1,7 +1,6 @@
 ---
 title: Sprite Image Update Fix
-description: Test that sprite image updates work correctly without layer issues
-specs:
+description: Test that sprite image updates work correctly without layer issuesspecs:
   - "Empty sprite should display image immediately when URL is added"
   - "Sprite should maintain layer order when image is changed"
   - "Multiple sprites should maintain relative z-index when updated"

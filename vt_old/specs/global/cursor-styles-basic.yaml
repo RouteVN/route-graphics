@@ -1,7 +1,6 @@
 ---
 title: Global Cursor Styles Basic
-description: Test basic global cursor styles functionality
-specs:
+description: Test basic global cursor styles functionalityspecs:
   - "Global default cursor style should be applied"
   - "Global hover cursor style should be applied"
 ---

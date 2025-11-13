@@ -1,7 +1,6 @@
 ---
 title: Slider Hover Events
 description: Test hover events with cursor and texture changes
-template: "route-graphics.html"
 specs:
   - "slider thumb should change cursor on hover"
   - "slider thumb should change texture on hover"

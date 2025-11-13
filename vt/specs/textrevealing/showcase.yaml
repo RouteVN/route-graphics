@@ -1,7 +1,6 @@
 ---
 title: Text Revealing Showcase
 description: Showcasing text-revealing element with multiple styled content segments and furigana
-template: "route-graphics.html"
 specs:
   - "Multiple text segments should display with different styles"
   - "Furigana should appear above parent text"

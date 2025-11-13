@@ -1,7 +1,6 @@
 ---
 title: Slider Fade In Transition
 description: A slider element fading in with alpha animation
-template: "route-graphics.html"
 specs:
   - "slider should fade from 0 to 1 alpha"
   - "slider should appear gradually over 1 second"

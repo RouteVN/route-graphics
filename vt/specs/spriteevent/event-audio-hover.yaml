@@ -1,7 +1,6 @@
 ---
 title: Sprite Hover Event Audio
 description: Test audio playback when hovering over sprite elements
-template: "route-graphics.html"
 specs:
   - "sprite should play audio on hover"
   - "audio should play when mouse enters sprite area"

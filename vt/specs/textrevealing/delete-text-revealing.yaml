@@ -1,7 +1,6 @@
 ---
 title: Delete Text Revealing Elements
 description: Tests deletion of text-revealing elements while keeping other elements intact
-template: "route-graphics.html"
 specs:
   - "First text-revealing element should be deleted"
   - "Second text-revealing element should remain visible"

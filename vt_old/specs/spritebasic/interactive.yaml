@@ -1,7 +1,6 @@
 ---
 title: Interactive
-description: A sprite's interactive
-specs:
+description: A sprite's interactivespecs:
   - hover on sprite should change the sprite's texture
   - click on sprite should change the sprite's texture
 ---

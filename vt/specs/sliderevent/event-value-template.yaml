@@ -1,7 +1,6 @@
 ---
 title: Slider Value Template Replacement
 description: Test palyload return
-template: "route-graphics.html"
 specs:
   - "drag event should return the current value of the thumb and the action payload"
   - "template should work for both min and max values"

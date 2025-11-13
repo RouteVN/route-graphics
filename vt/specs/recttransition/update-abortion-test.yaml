@@ -1,7 +1,6 @@
 ---
 title: Rect Update Abortion Test
 description: Test abortion callback during rect update with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "rect should update with 3 keyframe animation"
   - "abortion callback should be testable during update"

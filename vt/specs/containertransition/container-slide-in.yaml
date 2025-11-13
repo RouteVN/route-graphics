@@ -1,7 +1,6 @@
 ---
 title: Container Slide In Transition
 description: A container sliding in from the left with children
-template: "route-graphics.html"
 specs:
   - "container should slide from x: -200 to x: 200"
   - "all children should move with container"

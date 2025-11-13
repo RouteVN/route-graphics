@@ -1,7 +1,6 @@
 ---
 title: Anchor
-description: A sprite's anchor
-specs:
+description: A sprite's anchorspecs:
   - "`anchorX` should be correct"
   - "`anchorY` should be correct"
 ---

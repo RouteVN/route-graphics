@@ -1,7 +1,6 @@
 ---
 title: Slider Update Position Transition
 description: A slider animating its position when updated
-template: "route-graphics.html"
 specs:
   - "slider should move from (100, 100) to (400, 200)"
   - "animation should take 1 second"

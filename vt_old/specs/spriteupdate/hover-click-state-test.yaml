@@ -1,7 +1,6 @@
 ---
 title: Hover Click State Test
-description: Test adding hover and click states to sprites
-specs:
+description: Test adding hover and click states to spritesspecs:
   - "Sprite with main image should accept hover state"
   - "Sprite with main image should accept click state"
   - "Empty sprite getting all states at once should work"

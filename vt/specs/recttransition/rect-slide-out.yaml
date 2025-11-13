@@ -1,7 +1,6 @@
 ---
 title: Rect Slide Out Transition
 description: A rect element sliding out to the right when removed
-template: "route-graphics.html"
 specs:
   - "rect should slide from current position to x: 800"
   - "rect should fade out simultaneously"

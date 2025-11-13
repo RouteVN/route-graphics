@@ -1,7 +1,6 @@
 ---
 title: Sprite Scale and Rotate
-description: A sprite's scale and rotation transition
-specs:
+description: A sprite's scale and rotation transitionspecs:
   - "sprite should scale smoothly"
   - "sprite should rotate smoothly"
   - "combined transformations should work"

@@ -1,7 +1,6 @@
 ---
 title: Anchor
-description: A rect's anchor properties for pivot point control
-specs:
+description: A rect's anchor properties for pivot point controlspecs:
   - "`anchorX` should control horizontal pivot (0=left, 0.5=center, 1=right)"
   - "`anchorY` should control vertical pivot (0=top, 0.5=center, 1=bottom)"
   - "Anchor values should affect rotation and scaling origin"

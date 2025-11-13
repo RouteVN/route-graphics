@@ -1,7 +1,6 @@
 ---
 title: Text Fade Out Transition
 description: A text element fading out when removed
-template: "route-graphics.html"
 specs:
   - "text should fade from 1 to 0 alpha"
   - "text should disappear gradually"

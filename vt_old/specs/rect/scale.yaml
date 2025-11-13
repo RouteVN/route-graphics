@@ -1,7 +1,6 @@
 ---
 title: Scale
-description: A rect's scale properties
-specs:
+description: A rect's scale propertiesspecs:
   - "`scaleX` should control horizontal scale"
   - "`scaleY` should control vertical scale"
   - "Scale values should multiply dimensions"

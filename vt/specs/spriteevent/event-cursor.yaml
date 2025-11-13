@@ -1,7 +1,6 @@
 ---
 title: Sprite Hover Cursor Change
 description: Test cursor changes when hovering over sprite elements
-template: "route-graphics.html"
 specs:
   - "sprite should change cursor on hover"
   - "cursor should return to auto on pointer out"

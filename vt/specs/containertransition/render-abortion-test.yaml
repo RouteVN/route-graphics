@@ -1,7 +1,6 @@
 ---
 title: Container Render Abortion Test
 description: Test abortion callback during container render with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "container should render with 3 keyframe animation"
   - "abortion callback should be testable during render"

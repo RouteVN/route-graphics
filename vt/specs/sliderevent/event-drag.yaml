@@ -1,7 +1,6 @@
 ---
 title: Slider Drag Events
 description: Test drag, dragStart, and dragEnd events with actionPayload
-template: "route-graphics.html"
 specs:
   - "slider should send dragStart event when thumb is pressed"
   - "slider should send drag event during thumb movement"

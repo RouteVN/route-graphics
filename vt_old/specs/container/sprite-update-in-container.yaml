@@ -1,7 +1,6 @@
 ---
 title: Sprite Update in Container
-description: Test that sprites inside containers update correctly without layer issues
-specs:
+description: Test that sprites inside containers update correctly without layer issuesspecs:
   - "Sprites in containers should update without changing layer order"
   - "Empty sprites in containers should display images immediately"
   - "Container hierarchy should be maintained during sprite updates"

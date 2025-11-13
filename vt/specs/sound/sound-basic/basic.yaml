@@ -1,7 +1,6 @@
 ---
 title: Basic Sound
 description: Test basic sound playback functionality
-template: "route-graphics.html"
 specs:
   - "sound should play when added"
   - "sound should use default volume when not specified"

@@ -1,7 +1,6 @@
 ---
 title: Rect Click Event Audio
 description: Test audio playback when clicking on rect elements
-template: "route-graphics.html"
 specs:
   - "rect should play audio on click"
   - "different rect elements play different sounds"

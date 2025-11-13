@@ -1,7 +1,6 @@
 ---
 title: Position
-description: A container's position
-specs:
+description: A container's positionspecs:
   - "`x`, `y` should be correct"
 ---
 states:

@@ -1,7 +1,6 @@
 ---
 title: Rect Event ActionPayload
 description: Test actionPayload being sent through eventHandler on click and hover
-template: "route-graphics.html"
 specs:
   - "rect should send actionPayload on click"
   - "rect should send actionPayload on hover"

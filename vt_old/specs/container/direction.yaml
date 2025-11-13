@@ -1,7 +1,6 @@
 ---
 title: Direction 
-description: A container's direction
-specs:
+description: A container's directionspecs:
   - "`direction` should be correct"
 ---
 states:

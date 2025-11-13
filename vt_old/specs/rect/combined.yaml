@@ -1,7 +1,6 @@
 ---
 title: Combined Properties
-description: Testing multiple rect properties together
-specs:
+description: Testing multiple rect properties togetherspecs:
   - "Multiple properties should work together correctly"
   - "Anchor should affect rotation and scaling origin"
   - "Position, size, rotation, scale and anchor should combine properly"

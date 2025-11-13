@@ -1,7 +1,6 @@
 ---
 title: Container Scale Out Transition
 description: A container scaling down when removed
-template: "route-graphics.html"
 specs:
   - "container should scale from 1 to 0 on both axes"
   - "children should scale down with container"

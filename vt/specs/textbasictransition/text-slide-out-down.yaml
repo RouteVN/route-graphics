@@ -1,7 +1,6 @@
 ---
 title: Text Slide Out Down
 description: A text element sliding down while fading out
-template: "route-graphics.html"
 specs:
   - "text should slide from y: 200 to y: 600"
   - "text should fade out while sliding"

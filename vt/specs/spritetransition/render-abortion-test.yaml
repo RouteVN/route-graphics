@@ -1,7 +1,6 @@
 ---
 title: Sprite Render Abortion Test
 description: Test abortion callback during sprite render with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "sprite should render with 3 keyframe animation"
   - "abortion callback should be testable during render"

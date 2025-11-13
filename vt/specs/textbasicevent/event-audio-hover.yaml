@@ -1,7 +1,6 @@
 ---
 title: Text Hover Event Audio
 description: Test audio playback when hovering over text elements
-template: "route-graphics.html"
 specs:
   - "text should play audio on hover"
   - "audio should play when mouse enters text area"

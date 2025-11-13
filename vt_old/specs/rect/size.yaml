@@ -1,7 +1,6 @@
 ---
 title: Size
-description: A rect's width and height properties
-specs:
+description: A rect's width and height propertiesspecs:
   - "`width`, `height` should set rect dimensions"
 ---
 states:

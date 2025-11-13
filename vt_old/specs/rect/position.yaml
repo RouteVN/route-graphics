@@ -1,7 +1,6 @@
 ---
 title: Position
-description: A rect's position
-specs:
+description: A rect's positionspecs:
   - "`x`, `y` should position rect correctly"
   - "Multiple rects should be positioned independently"
 ---

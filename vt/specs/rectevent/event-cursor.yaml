@@ -1,7 +1,6 @@
 ---
 title: Rect Hover Cursor Change
 description: Test cursor changes when hovering over rect elements
-template: "route-graphics.html"
 specs:
   - "rect should change cursor on hover"
   - "cursor should return to auto on pointer out"

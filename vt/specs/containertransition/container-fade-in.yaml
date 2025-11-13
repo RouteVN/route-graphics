@@ -1,7 +1,6 @@
 ---
 title: Container Fade In Transition
 description: A container with children fading in together
-template: "route-graphics.html"
 specs:
   - "container should fade from 0 to 1 alpha"
   - "all children should fade in with container"

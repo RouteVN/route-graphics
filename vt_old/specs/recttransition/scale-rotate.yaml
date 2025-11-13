@@ -1,7 +1,6 @@
 ---
 title: Rect Scale and Rotate
-description: A rect's scale and rotation transition
-specs:
+description: A rect's scale and rotation transitionspecs:
   - "rect should scale smoothly"
   - "rect should rotate smoothly"
   - "combined transformations should work"

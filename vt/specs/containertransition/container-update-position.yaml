@@ -1,7 +1,6 @@
 ---
 title: Container Update Position Transition
 description: A container animating position during update
-template: "route-graphics.html"
 specs:
   - "container should move from (100, 100) to (400, 250)"
   - "all children should move with container"

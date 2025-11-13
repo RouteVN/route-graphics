@@ -1,7 +1,6 @@
 ---
 title: Update Slider Position
 description: Test updating slider position and dimensions
-template: "route-graphics.html"
 specs:
   - "slider should update its x and y position"
   - "slider should update its width and height"

@@ -1,7 +1,6 @@
 ---
 title: Sprite Update Abortion Test
 description: Test abortion callback during sprite update with 3 keyframes
-template: "route-graphics.html"
 specs:
   - "sprite should update with 3 keyframe animation"
   - "abortion callback should be testable during update"

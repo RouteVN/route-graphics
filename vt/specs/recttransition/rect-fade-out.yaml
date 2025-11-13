@@ -1,7 +1,6 @@
 ---
 title: Rect Fade Out Transition
 description: A rect element fading out when removed
-template: "route-graphics.html"
 specs:
   - "rect should fade from 1 to 0 alpha"
   - "rect should disappear gradually"

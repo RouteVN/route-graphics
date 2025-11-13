@@ -1,7 +1,6 @@
 ---
 title: Parse Slider Element Tests
 description: Tests the parseSlider function with various slider configurations
-template: "route-graphics.html"
 specs:
   - "Parser should handle basic slider with required properties"
   - "Parser should apply default values for optional properties"

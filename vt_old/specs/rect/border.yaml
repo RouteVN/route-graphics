@@ -1,7 +1,6 @@
 ---
 title: Border
-description: A rect's border properties
-specs:
+description: A rect's border propertiesspecs:
   - "`border` should be drawn"
 ---
 states:
