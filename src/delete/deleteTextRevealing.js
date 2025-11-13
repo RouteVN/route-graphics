@@ -12,7 +12,7 @@ import { Container } from "pixi.js";
  * @param {ASTNode} params.textRevealingASTNode
  * @param {AbortSignal} params.signal
  */
-export const deleteTextRevealing = ({
+export const deleteTextRevealing = async ({
   parent,
   textRevealingASTNode,
   signal,

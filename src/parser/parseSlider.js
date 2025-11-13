@@ -9,8 +9,8 @@ import { parseCommonObject } from "./parseCommonObject.js";
  * @param {BaseElement} state
  * @return {SliderASTNode}
  */
-export function parseSlider(state) {
-  let astObj = parseCommonObject(state);
+export const parseSlider = (state) => {
+  const astObj = parseCommonObject(state);
   const defaultMin = state.min ?? 0;
   const defaultMax = state.max ?? 100;
   if (defaultMax <= defaultMin)
@@ -33,4 +33,4 @@ export function parseSlider(state) {
     ...(state.dragStart && { dragStart: state.dragStart }),
     ...(state.dragEnd && { dragEnd: state.dragEnd }),
   };
-}
+};
