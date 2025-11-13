@@ -14,7 +14,7 @@ states:
         y: 150
         width: 180
         height: 180
-        url: "circle-blue"
+        src: "circle-blue"
         hover:
           cursor: "pointer"
           src: "circle-red"
@@ -26,7 +26,7 @@ states:
         y: 150
         width: 180
         height: 180
-        url: "circle-green"
+        src: "circle-green"
         hover:
           cursor: "pointer"
           src: "circle-blue"

@@ -14,7 +14,7 @@ states:
         y: 100
         width: 150
         height: 150
-        url: "circle-blue"
+        src: "circle-blue"
         hover:
           cursor: "pointer"
       - id: 'sprite-cursor-grab'
@@ -23,7 +23,7 @@ states:
         y: 100
         width: 150
         height: 150
-        url: "circle-red"
+        src: "circle-red"
         hover:
           cursor: "grab"
       - id: 'sprite-cursor-crosshair'
@@ -32,7 +32,7 @@ states:
         y: 100
         width: 150
         height: 150
-        url: "circle-green"
+        src: "circle-green"
         hover:
           cursor: "crosshair"
       - id: 'sprite-cursor-help'
@@ -41,6 +41,6 @@ states:
         y: 350
         width: 150
         height: 150
-        url: "circle-blue"
+        src: "circle-blue"
         hover:
           cursor: "help"

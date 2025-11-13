@@ -8,13 +8,13 @@ import { parseCommonObject } from "./parseCommonObject.js";
  * @param {BaseElement} state
  * @return {SpriteASTNode}
  */
-export function parseSprite(state) {
-  let astObj = parseCommonObject(state);
+export const parseSprite = (state) => {
+  const astObj = parseCommonObject(state);
 
   return {
     ...astObj,
-    url: state.url ?? "",
+    src: state.src ?? state.url ?? "",
     alpha: state.alpha ?? 1,
     cursor: state.cursor ?? "",
   };
-}
+};

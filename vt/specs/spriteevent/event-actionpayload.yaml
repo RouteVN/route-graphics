@@ -14,7 +14,7 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-blue"
+        src: "circle-blue"
         click:
           actionPayload:
             action: "sprite-clicked"
@@ -26,7 +26,7 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-red"
+        src: "circle-red"
         hover:
           actionPayload:
             action: "sprite-hovered"
@@ -38,7 +38,7 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-green"
+        src: "circle-green"
         hover:
           actionPayload:
             event: "hover"

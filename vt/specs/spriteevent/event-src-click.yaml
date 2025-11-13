@@ -14,7 +14,7 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-blue"
+        src: "circle-blue"
         click:
           src: "circle-red"
       - id: 'sprite-click-2'
@@ -23,7 +23,7 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-red"
+        src: "circle-red"
         click:
           src: "circle-green"
       - id: 'sprite-click-3'
@@ -32,6 +32,6 @@ states:
         y: 150
         width: 150
         height: 150
-        url: "circle-green"
+        src: "circle-green"
         click:
           src: "circle-blue"

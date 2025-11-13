@@ -11,7 +11,7 @@ states:
   - elements:
       - id: 'sprite1'
         type: "sprite"
-        url: "circle-blue"
+        src: "circle-blue"
         x: 300
         y: 200
         width: 150

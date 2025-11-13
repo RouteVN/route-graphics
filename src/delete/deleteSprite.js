@@ -14,14 +14,14 @@ import { Container } from "pixi.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function deleteSprite({
+export const deleteSprite = async ({
   app,
   parent,
   spriteASTNode,
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }

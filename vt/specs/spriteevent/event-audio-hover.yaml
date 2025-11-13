@@ -14,7 +14,7 @@ states:
         y: 150
         width: 200
         height: 200
-        url: "circle-blue"
+        src: "circle-blue"
         hover:
           soundSrc: "bgm-1"
       - id: 'sprite-hover-click'
@@ -23,7 +23,7 @@ states:
         y: 150
         width: 200
         height: 200
-        url: "circle-red"
+        src: "circle-red"
         hover:
           soundSrc: "bgm-2"
         click:

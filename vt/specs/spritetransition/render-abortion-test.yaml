@@ -15,7 +15,7 @@ states:
         y: 100
         width: 150
         height: 150
-        url: "circle-blue"
+        src: "circle-blue"
         alpha: 1
     transitions:
       - id: 'sprite-render-abortion'
@@ -56,7 +56,7 @@ states:
         y: 300
         width: 200
         height: 200
-        url: "circle-red"
+        src: "circle-red"
         alpha: 1
     transitions:
       - id: 'sprite-render-abortion-2'
