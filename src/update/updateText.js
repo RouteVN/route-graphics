@@ -16,7 +16,7 @@ import applyTextStyle from "../util/applyTextStyle.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateText({
+export const updateText = async ({
   app,
   parent,
   prevTextASTNode,
@@ -25,7 +25,7 @@ export async function updateText({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -35,8 +35,8 @@ export async function updateText({
   );
   const updateElement = () => {
     if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
-      textElement.text = nextTextASTNode.text;
-      applyTextStyle(textElement, nextTextASTNode.style);
+      textElement.text = nextTextASTNode.content;
+      applyTextStyle(textElement, nextTextASTNode.textStyle);
 
       textElement.x = nextTextASTNode.x;
       textElement.y = nextTextASTNode.y;
@@ -76,7 +76,7 @@ export async function updateText({
 
         const outListener = () => {
           textElement.cursor = "auto";
-          applyTextStyle(textElement, nextTextASTNode.style);
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
         };
 
         textElement.on("pointerover", overListener);
@@ -95,7 +95,7 @@ export async function updateText({
 
         const releaseListener = () => {
           // Restore original style on pointerup
-          applyTextStyle(textElement, nextTextASTNode.style);
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
 
           // Trigger event and sound on pointerup
           if (actionPayload)
@@ -115,7 +115,7 @@ export async function updateText({
 
         const outListener = () => {
           // Restore original style on pointerout
-          applyTextStyle(textElement, nextTextASTNode.style);
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
         };
 
         textElement.on("pointerdown", clickListener);
@@ -139,4 +139,4 @@ export async function updateText({
     }
     updateElement();
   }
-}
+};

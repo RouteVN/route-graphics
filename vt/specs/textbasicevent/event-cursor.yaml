@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 100
-        text: "Hover me - cursor: pointer"
-        style:
+        content: "Hover me - cursor: pointer"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#3498db"
@@ -23,8 +23,8 @@ states:
         type: "text"
         x: 200
         y: 200
-        text: "Hover me - cursor: grab"
-        style:
+        content: "Hover me - cursor: grab"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#e74c3c"
@@ -34,8 +34,8 @@ states:
         type: "text"
         x: 200
         y: 300
-        text: "Hover me - cursor: help"
-        style:
+        content: "Hover me - cursor: help"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"
@@ -45,8 +45,8 @@ states:
         type: "text"
         x: 200
         y: 400
-        text: "Hover me - cursor: crosshair"
-        style:
+        content: "Hover me - cursor: crosshair"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#9b59b6"

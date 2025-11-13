@@ -11,10 +11,10 @@ states:
   - elements:
       - id: 'text1'
         type: "text"
-        text: "Sliding Up!"
+        content: "Sliding Up!"
         x: 200
         y: 250
-        style:
+        textstyle:
           fontSize: 36
           fill: "#e74c3c"
           fontFamily: "Arial"

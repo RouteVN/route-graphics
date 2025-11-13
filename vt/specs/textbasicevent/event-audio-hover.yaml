@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 150
-        text: "Hover over me"
-        style:
+        content: "Hover over me"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#9b59b6"
@@ -23,8 +23,8 @@ states:
         type: "text"
         x: 200
         y: 300
-        text: "Hover AND click me"
-        style:
+        content: "Hover AND click me"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 48
           fill: "#f39c12"

@@ -1,5 +1,5 @@
 import { renderRect } from "./renderRect.js";
-import renderText from "./renderText.js";
+import { renderText } from "./renderText.js";
 import { renderSprite } from "./renderSprite.js";
 import { renderContainer } from "./renderContainer.js";
 import { diffElements } from "./common.js";

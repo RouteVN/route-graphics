@@ -1,8 +1,4 @@
 import { parseCommonObject } from "./parseCommonObject.js";
-import { parseRect } from "./parseRect.js";
-import { parseText } from "./parseText.js";
-import { parseSprite } from "./parseSprite.js";
-import { parseTextRevealing } from "./parseTextRevealing.js";
 import parseJSONToAST from "./index.js";
 
 /**

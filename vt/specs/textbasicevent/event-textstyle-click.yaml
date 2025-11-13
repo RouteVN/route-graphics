@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 100
-        text: "Click to change color"
-        style:
+        content: "Click to change color"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
@@ -27,8 +27,8 @@ states:
         type: "text"
         x: 200
         y: 200
-        text: "Click to grow larger"
-        style:
+        content: "Click to grow larger"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 32
           fill: "#2ecc71"
@@ -42,8 +42,8 @@ states:
         type: "text"
         x: 200
         y: 320
-        text: "Click for complete makeover"
-        style:
+        content: "Click for complete makeover"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#9b59b6"

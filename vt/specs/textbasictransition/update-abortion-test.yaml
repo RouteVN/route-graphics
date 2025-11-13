@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 100
         y: 100
-        text: "Initial Text"
-        style:
+        content: "Initial Text"
+        textstyle:
           fontFamily: "Arial"
           fontSize: 32
           fill: "#3498db"
@@ -23,8 +23,8 @@ states:
         type: "text"
         x: 200
         y: 150
-        text: "Updating Text"
-        style:
+        content: "Updating Text"
+        textstyle:
           fontFamily: "Arial"
           fontSize: 38
           fill: "#e74c3c"
@@ -55,8 +55,8 @@ states:
         type: "text"
         x: 500
         y: 400
-        text: "Final Text"
-        style:
+        content: "Final Text"
+        textstyle:
           fontFamily: "Arial"
           fontSize: 52
           fill: "#9b59b6"

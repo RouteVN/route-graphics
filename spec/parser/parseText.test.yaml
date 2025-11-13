@@ -6,15 +6,15 @@ suite: parseText
 exportName: parseText
 ---
 case: Test parsing simple text object
-in: 
+in:
   - id: 'tl'
     type: "text"
-    text: "This text is aligned to the top left corner"
+    content: "This text is aligned to the top left corner"
     x: 660
     y: 240
     anchorX: 0.5
     anchorY: 0.5
-    style: 
+    textStyle:
       fontSize: 24
       fontFamily: "Arial"
       fill: "white"
@@ -40,18 +40,22 @@ in:
 out:
   id: "tl"
   type: "text"
-  text: "This text is aligned to the top left corner"
-  width: 418.89453125
-  height: 27
-  x: 450.552734375
-  y: 226.5
+  content: "This text is aligned to the top left corner"
+  width: 91
+  height: 174
+  x: 615
+  y: 153
   zIndex: 0
-  originX: 209.447265625
-  originY: 13.5
-  style:
+  originX: 46
+  originY: 87
+  textStyle:
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
+    align: "left"
+    lineHeight: 29
+    wordWrap: true
+    breakWords: true
   hover:
       soundSrc: "sound-1"
       cursor: "cursor-1"
@@ -73,16 +77,16 @@ out:
       fill: "black"
 ---
 case: Test parsing with word wrap
-in: 
+in:
   - id: 'tl'
     type: "text"
-    text: "This text is wrap"
+    content: "This text is wrap"
     x: 660
     y: 240
     anchorX: 0.5
     anchorY: 0.5
     width: 200
-    style: 
+    textStyle:
       fontSize: 24
       fontFamily: "Arial"
       fill: "white"
@@ -90,27 +94,29 @@ in:
 out:
   id: "tl"
   type: "text"
-  text: "This text is wrap"
-  width: 173.37890625
-  height: 27
-  x: 573.310546875
-  y: 226.5
+  content: "This text is wrap"
+  width: 173
+  height: 29
+  x: 574
+  y: 226
   zIndex: 0
-  originX: 86.689453125
-  originY: 13.5
-  style:
+  originX: 87
+  originY: 15
+  textStyle:
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
-    breakWords: true
+    align: "left"
+    lineHeight: 29
     wordWrap: true
+    breakWords: true
     wordWrapWidth: 200
 ---
-case: Test parsing simple text object with no style
-in: 
+case: Test parsing simple text object with no textStyle
+in:
   - id: 'tl'
     type: "text"
-    text: "This text is aligned to the top left corner"
+    content: "This text is aligned to the top left corner"
     x: 660
     y: 240
     anchorX: 0.5
@@ -118,21 +124,25 @@ in:
 out:
   id: "tl"
   type: "text"
-  text: "This text is aligned to the top left corner"
-  width: 279.9296875
-  height: 18
-  x: 520.03515625
-  y: 231
+  content: "This text is aligned to the top left corner"
+  width: 96
+  height: 76
+  x: 612
+  y: 202
   zIndex: 0
-  originX: 139.96484375
-  originY: 9
-  style:
-    fontSize: 16
-    fontFamily: "Arial"
+  originX: 48
+  originY: 38
+  textStyle:
     fill: "black"
+    fontFamily: "Arial"
+    fontSize: 16
+    align: "left"
+    lineHeight: 19
+    wordWrap: true
+    breakWords: true
 ---
-case: Test parsing simple text object with no text
-in: 
+case: Test parsing simple text object with no content
+in:
   - id: 'tl'
     type: "text"
     x: 660
@@ -142,15 +152,89 @@ in:
 out:
   id: "tl"
   type: "text"
-  text: ""
-  width: 4.4453125
-  height: 18
-  x: 657.77734375
+  content: ""
+  width: 0
+  height: 19
+  x: 660
   y: 231
   zIndex: 0
-  originX: 2.22265625
-  originY: 9
-  style:
-    fontSize: 16
-    fontFamily: "Arial"
+  originX: 0
+  originY: 10
+  textStyle:
     fill: "black"
+    fontFamily: "Arial"
+    fontSize: 16
+    align: "left"
+    lineHeight: 19
+    wordWrap: true
+    breakWords: true
+---
+case: Test parsing text with alpha property
+in:
+  - id: 'transparent-text'
+    type: "text"
+    content: "Semi-transparent text"
+    x: 100
+    y: 50
+    alpha: 0.5
+    textStyle:
+      fontSize: 20
+      fill: "blue"
+out:
+  id: "transparent-text"
+  type: "text"
+  content: "Semi-transparent text"
+  width: 87
+  height: 72
+  x: 100
+  y: 50
+  zIndex: 0
+  originX: 0
+  originY: 0
+  textStyle:
+    fontSize: 20
+    fill: "blue"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 24
+    wordWrap: true
+    breakWords: true
+---
+case: Test parsing text with all textStyle properties
+in:
+  - id: 'full-style-text'
+    type: "text"
+    content: "Fully styled text"
+    x: 50
+    y: 100
+    textStyle:
+      fontSize: 18
+      fontFamily: "Times New Roman"
+      fill: "#FF5733"
+      align: "center"
+      lineHeight: 1.5
+      wordWrap: false
+      breakWords: false
+      strokeColor: "#000000"
+      strokeWidth: 1
+out:
+  id: "full-style-text"
+  type: "text"
+  content: "Fully styled text"
+  width: 117
+  height: 27
+  x: 50
+  y: 100
+  zIndex: 0
+  originX: 0
+  originY: 0
+  textStyle:
+    fontSize: 18
+    fontFamily: "Times New Roman"
+    fill: "#FF5733"
+    align: "center"
+    lineHeight: 27
+    wordWrap: false
+    breakWords: false
+    strokeColor: "#000000"
+    strokeWidth: 1

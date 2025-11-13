@@ -12,8 +12,8 @@ states:
         type: "text"
         x: 200
         y: 100
-        text: "Hover to change color"
-        style:
+        content: "Hover to change color"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 42
           fill: "#3498db"
@@ -27,8 +27,8 @@ states:
         type: "text"
         x: 200
         y: 200
-        text: "Hover to get bigger"
-        style:
+        content: "Hover to get bigger"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 36
           fill: "#2ecc71"
@@ -42,12 +42,12 @@ states:
         type: "text"
         x: 200
         y: 300
-        text: "Hover for complete transformation"
-        style:
+        content: "Hover for complete transformation"
+        textStyle:
           fontFamily: "Arial"
           fontSize: 38
           fill: "#9b59b6"
-        
+
         hover:
           cursor: "pointer"
           textStyle:

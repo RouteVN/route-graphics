@@ -5,25 +5,25 @@ states:
   - elements:
       - id: 'a'
         type: "text"
-        text: "Hello World"
+        content: "Hello World"
         x: 20
         y: 20
-        style: 
+        textStyle:
           fontSize: 24
           fill: "white"
       - id: 'b'
         type: "text"
-        text: "Hello World"
+        content: "Hello World"
         x: 100
         y: 100
-        style: 
+        textStyle:
           fontSize: 24
           fill: "white"
       - id: 'c'
         type: "text"
-        text: "Hello World"
+        content: "Hello World"
         x: 200
         y: 200
-        style: 
+        textStyle:
           fontSize: 24
           fill: "white"

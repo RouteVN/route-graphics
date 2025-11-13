@@ -195,14 +195,25 @@
  */
 
 /**
+ * @typedef {Object} TextStyle
+ * @property {string} fill - Text color
+ * @property {string} fontFamily - Font family
+ * @property {number} fontSize - Font size in pixels
+ * @property {'left' | 'center' | 'right'} align - Text alignment
+ * @property {number} lineHeight - Line height multiplier
+ * @property {boolean} wordWrap - Enable word wrapping
+ * @property {boolean} breakWords - Allow breaking words when wrapping
+ * @property {number} wordWrapWidth - Word wrap width
+ * @property {string} [strokeColor] - Text stroke/outline color
+ * @property {number} [strokeWidth] - Text stroke/outline width
+ */
+
+/**
  * @typedef {Object} TextASTProps
- * @property {string} text
- * @property {number} wordWrapWidth
- * @property {boolean} breakWords
- * @property {number} width
- * @property {Object} [style] - Textstyle
- * @property {TextHover} hover
- * @property {TextClick} click
+ * @property {string} content - The text content to display
+ * @property {Object} textStyle - Text style object
+ * @property {TextHover} [hover]
+ * @property {TextClick} [click]
  * @typedef {ASTNode & TextASTProps} TextASTNode
  */
 

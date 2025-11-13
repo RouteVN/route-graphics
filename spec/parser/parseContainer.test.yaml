@@ -239,9 +239,9 @@ out:
   width: 200
   height: 181
   x: 140
-  y: 149.5
+  y: 150
   originX: 100
-  originY: 90.5
+  originY: 91
   scroll: false
   rotation: 90
   zIndex: 0
@@ -322,9 +322,9 @@ out:
   gap: 5
   width: 245
   height: 200
-  x: 117.5
+  x: 118
   y: 140
-  originX: 122.5
+  originX: 123
   originY: 100
   scroll: false
   rotation: 90

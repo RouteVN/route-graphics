@@ -14,14 +14,14 @@ import { Container } from "pixi.js";
  * @param {Function} params.transitionElements
  * @param {AbortSignal} params.signal
  */
-export async function deleteText({
+export const deleteText = async ({
   app,
   parent,
   textASTNode,
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -49,4 +49,4 @@ export async function deleteText({
     }
     deleteElement();
   }
-}
+};
