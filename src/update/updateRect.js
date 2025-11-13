@@ -130,4 +130,4 @@ export const updateRect = async ({
     }
     updateElement();
   }
-}
+};

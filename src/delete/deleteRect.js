@@ -49,4 +49,4 @@ export const deleteRect = async ({
     }
     deleteElement();
   }
-}
+};
