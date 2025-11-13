@@ -9,7 +9,7 @@ import { Sprite, Texture } from "pixi.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function renderSprite({
+export const renderSprite = async ({
   app,
   parent,
   spriteASTNode,
@@ -17,14 +17,14 @@ export async function renderSprite({
   eventHandler,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     reject(new DOMException("Operation aborted", "AbortError"));
     return;
   }
 
-  const { id, x, y, width, height, url, alpha, zIndex } = spriteASTNode;
-  const texture = url ? Texture.from(url) : Texture.EMPTY;
+  const { id, x, y, width, height, src, alpha, zIndex } = spriteASTNode;
+  const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
 
@@ -130,4 +130,4 @@ export async function renderSprite({
   if (transitions && transitions.length > 0) {
     await transitionElements(id, { app, sprite, transitions, signal });
   }
-}
+};

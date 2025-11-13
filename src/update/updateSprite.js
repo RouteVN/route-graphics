@@ -17,7 +17,7 @@ import { Texture } from "pixi.js";
  * @param {AbortSignal} params.signal
  * @param {Function} params.transitionElements
  */
-export async function updateSprite({
+export const updateSprite = async ({
   app,
   parent,
   prevSpriteASTNode,
@@ -26,7 +26,7 @@ export async function updateSprite({
   transitions,
   transitionElements,
   signal,
-}) {
+}) => {
   if (signal?.aborted) {
     return;
   }
@@ -39,9 +39,9 @@ export async function updateSprite({
     if (
       JSON.stringify(prevSpriteASTNode) !== JSON.stringify(nextSpriteASTNode)
     ) {
-      if (prevSpriteASTNode.url !== nextSpriteASTNode.url) {
-        const texture = nextSpriteASTNode.url
-          ? Texture.from(nextSpriteASTNode.url)
+      if (prevSpriteASTNode.src !== nextSpriteASTNode.src) {
+        const texture = nextSpriteASTNode.src
+          ? Texture.from(nextSpriteASTNode.src)
           : Texture.EMPTY;
         spriteElement.texture = texture;
       }
@@ -92,8 +92,8 @@ export async function updateSprite({
 
         const outListener = () => {
           spriteElement.cursor = "auto";
-          spriteElement.texture = nextSpriteASTNode.url
-            ? Texture.from(nextSpriteASTNode.url)
+          spriteElement.texture = nextSpriteASTNode.src
+            ? Texture.from(nextSpriteASTNode.src)
             : Texture.EMPTY;
         };
 
@@ -117,8 +117,8 @@ export async function updateSprite({
 
         const releaseListener = () => {
           // Restore original texture on pointerup
-          spriteElement.texture = nextSpriteASTNode.url
-            ? Texture.from(nextSpriteASTNode.url)
+          spriteElement.texture = nextSpriteASTNode.src
+            ? Texture.from(nextSpriteASTNode.src)
             : Texture.EMPTY;
 
           // Trigger event and sound on pointerup
@@ -139,8 +139,8 @@ export async function updateSprite({
 
         const outListener = () => {
           // Restore original texture on pointerout
-          spriteElement.texture = nextSpriteASTNode.url
-            ? Texture.from(nextSpriteASTNode.url)
+          spriteElement.texture = nextSpriteASTNode.src
+            ? Texture.from(nextSpriteASTNode.src)
             : Texture.EMPTY;
         };
 
@@ -165,4 +165,4 @@ export async function updateSprite({
     }
     updateElement();
   }
-}
+};

@@ -267,6 +267,7 @@ export async function renderApp({
             signal,
           }),
         );
+        break;
       case ASTNodeType.TEXT_REVEALING:
         asyncActions.push(
           updateTextRevealing({

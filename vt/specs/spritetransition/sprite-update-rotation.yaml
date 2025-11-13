@@ -10,7 +10,7 @@ states:
   - elements:
       - id: 'sprite1'
         type: "sprite"
-        url: "circle-red"
+        src: "circle-red"
         x: 350
         y: 250
         width: 150
@@ -19,7 +19,7 @@ states:
   - elements:
       - id: 'sprite1'
         type: "sprite"
-        url: "circle-red"
+        src: "circle-red"
         x: 350
         y: 250
         width: 150

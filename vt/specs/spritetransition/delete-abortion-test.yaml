@@ -14,7 +14,7 @@ states:
         y: 150
         width: 200
         height: 200
-        url: "circle-red"
+        src: "circle-red"
         alpha: 1
   - elements: []
     transitions:
@@ -40,5 +40,5 @@ states:
         y: 200
         width: 180
         height: 180
-        url: "circle-green"
+        src: "circle-green"
         alpha: 1

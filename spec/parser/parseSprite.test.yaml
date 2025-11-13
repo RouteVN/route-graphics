@@ -9,7 +9,7 @@ case: Test parsing sprite
 in:
   - id: "circle-red"
     type: "sprite"
-    url: "file:circle-red"
+    src: "file:circle-red"
     alpha: 0.8
     width: 80
     height: 100
@@ -44,7 +44,7 @@ out:
   originY: 40
   alpha: 0.8
   zIndex: 0
-  url: "file:circle-red"
+  src: "file:circle-red"
   cursor: pointer
   hover:
       soundSrc: "sound-1"
@@ -83,5 +83,5 @@ out:
   originY: 40
   alpha: 1
   zIndex: 0
-  url: ""
+  src: ""
   cursor: ""

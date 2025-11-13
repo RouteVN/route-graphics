@@ -16,7 +16,7 @@ import { ASTNodeType } from "../types.js";
  * @param {BaseElement} JSONObject
  * @returns {ASTNode}
  */
-export default function parseJSONToAST(JSONObject) {
+const parseJSONToAST = (JSONObject) => {
   const parsedASTTree = JSONObject.map((node) => {
     switch (node.type) {
       case ASTNodeType.RECT:
@@ -37,4 +37,6 @@ export default function parseJSONToAST(JSONObject) {
   });
 
   return parsedASTTree;
-}
+};
+
+export default parseJSONToAST;

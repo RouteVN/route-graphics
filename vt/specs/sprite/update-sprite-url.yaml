@@ -1,11 +1,11 @@
 ---
-title: Update Sprite URL
+title: Update Sprite Src
 ---
 states:
   - elements:
       - id: "sprite-1"
         type: "sprite"
-        url: "circle-blue"
+        src: "circle-blue"
         width: 100
         height: 100
         x: 50
@@ -15,7 +15,7 @@ states:
   - elements:
       - id: "sprite-1"
         type: "sprite"
-        url: "circle-red"
+        src: "circle-red"
         width: 100
         height: 100
         x: 50
