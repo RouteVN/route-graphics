@@ -25,7 +25,7 @@ states:
         height: 180
         src: "circle-green"
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-update-abortion'
         elementId: 'sprite-update-test'
         type: keyframes
@@ -55,7 +55,7 @@ states:
         height: 200
         src: "circle-red"
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-update-abortion'
         elementId: 'sprite-update-test'
         type: keyframes

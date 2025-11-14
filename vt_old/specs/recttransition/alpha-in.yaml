@@ -15,7 +15,7 @@ states:
         height: 200
         fill: "#0000ff"
         alpha: 1
-    transitions:
+    animations:
       - id: 'rect-alpha-in'
         elementId: 'rect1'
         type: keyframes

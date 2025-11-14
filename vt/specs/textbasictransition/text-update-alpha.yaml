@@ -29,7 +29,7 @@ states:
           fontSize: 36
           fill: "#f39c12"
           fontFamily: "Arial"
-    transitions:
+    animations:
       - id: 'text-fade'
         elementId: 'text1'
         type: keyframes

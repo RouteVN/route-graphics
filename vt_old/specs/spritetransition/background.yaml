@@ -13,7 +13,7 @@ states:
       - id: "b"
         type: "sprite"
         url: "file:circle-red"
-    transitions:
+    animations:
       - id: "a"
         elementId: "a"
         type: keyframes

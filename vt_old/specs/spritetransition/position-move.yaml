@@ -18,7 +18,7 @@ states:
         url: "file:circle-red"
         x: 400
         y: 300
-    transitions:
+    animations:
       - id: 'sprite-move-1'
         elementId: 'sprite1'
         type: keyframes
@@ -40,7 +40,7 @@ states:
         url: "file:circle-red"
         x: 200
         y: 50
-    transitions:
+    animations:
       - id: 'sprite-move-2'
         elementId: 'sprite1'
         type: keyframes

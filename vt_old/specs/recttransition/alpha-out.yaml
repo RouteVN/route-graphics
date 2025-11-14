@@ -15,7 +15,7 @@ states:
         fill: "#ffff00"
         alpha: 1
   - elements: []
-    transitions:
+    animations:
       - id: 'rect-alpha-out'
         elementId: 'rect1'
         type: keyframes

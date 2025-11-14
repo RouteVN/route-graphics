@@ -32,7 +32,7 @@ states:
             width: 60
             height: 60
   - elements: []
-    transitions:
+    animations:
       - id: 'container-fade-out'
         elementId: 'container1'
         type: keyframes

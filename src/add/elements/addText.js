@@ -12,17 +12,17 @@ import applyTextStyle from "../../util/applyTextStyle.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {TextASTNode} params.textASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const addText = async ({
   app,
   parent,
   textASTNode,
-  transitions,
+  animations,
   eventHandler,
-  transitionElements,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -119,11 +119,11 @@ export const addText = async ({
 
   parent.addChild(text);
 
-  if (transitions && transitions.length > 0) {
-    await transitionElements(textASTNode.id, {
+  if (animations && animations.length > 0) {
+    await animateElements(textASTNode.id, {
       app,
-      sprite: text,
-      transitions,
+      displayObject: text,
+      animations,
       signal,
     });
   }

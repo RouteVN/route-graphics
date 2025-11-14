@@ -25,7 +25,7 @@ states:
         width: 120
         height: 120
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-move'
         elementId: 'sprite1'
         type: keyframes

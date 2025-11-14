@@ -28,7 +28,7 @@ states:
             height: 80
             fill: "#f39c12"
   - elements: []
-    transitions:
+    animations:
       - id: 'container-delete-abortion'
         elementId: 'container-delete-test'
         type: keyframes

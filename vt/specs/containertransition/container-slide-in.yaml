@@ -34,7 +34,7 @@ states:
             style:
               fontSize: 24
               fill: "#ffffff"
-    transitions:
+    animations:
       - id: 'container-slide-in'
         elementId: 'container1'
         type: keyframes

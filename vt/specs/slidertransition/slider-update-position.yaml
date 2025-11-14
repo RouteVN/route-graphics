@@ -44,7 +44,7 @@ states:
         max: 50
         step: 5
         initialValue: 25
-    transitions:
+    animations:
       - id: 'slider-move'
         elementId: 'slider1'
         type: keyframes

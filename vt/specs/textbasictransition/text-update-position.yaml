@@ -27,7 +27,7 @@ states:
           fontSize: 28
           fill: "#1abc9c"
           fontFamily: "Arial"
-    transitions:
+    animations:
       - id: 'text-move'
         elementId: 'text1'
         type: keyframes

@@ -10,16 +10,16 @@ import { Container } from "pixi.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ASTNode} params.rectASTNode
- * @param {Object[]} params.transitions
- * @param {Function} params.transitionElements
+ * @param {Object[]} params.animations
+ * @param {Function} params.animateElements
  * @param {AbortSignal} params.signal
  */
 export const deleteRect = async ({
   app,
   parent,
   rectASTNode,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -39,11 +39,11 @@ export const deleteRect = async ({
       deleteElement();
     });
 
-    if (transitions && transitions.length > 0) {
-      await transitionElements(rectASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(rectASTNode.id, {
         app,
-        sprite: rect,
-        transitions,
+        displayObject: rect,
+        animations,
         signal,
       });
     }

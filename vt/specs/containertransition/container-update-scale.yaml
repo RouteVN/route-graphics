@@ -49,7 +49,7 @@ states:
             width: 100
             height: 50
             fill: "#f39c12"
-    transitions:
+    animations:
       - id: 'container-scale'
         elementId: 'container1'
         type: keyframes

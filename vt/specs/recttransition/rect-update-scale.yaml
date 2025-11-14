@@ -27,7 +27,7 @@ states:
         fill: "#e67e22"
         scaleX: 1.5
         scaleY: 1.5
-    transitions:
+    animations:
       - id: 'rect-scale'
         elementId: 'rect1'
         type: keyframes

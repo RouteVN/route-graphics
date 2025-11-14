@@ -105,7 +105,7 @@ class RouteGraphics extends BaseRouteGraphics {
    */
   _state = {
     elements: [],
-    transitions: [],
+    animations: [],
     audio: [],
   };
 
@@ -117,7 +117,7 @@ class RouteGraphics extends BaseRouteGraphics {
   /**
    * @type {Function}
    */
-  _transitionElements;
+  _animateElements;
 
   /**
    * @type {BaseRendererPlugin[]}
@@ -150,7 +150,7 @@ class RouteGraphics extends BaseRouteGraphics {
       width,
       height,
       backgroundColor,
-      transitionElements,
+      animateElements,
     } = options;
 
     for (const plugin of plugins) {
@@ -161,7 +161,7 @@ class RouteGraphics extends BaseRouteGraphics {
 
     this._plugins = plugins;
     this._eventHandler = eventHandler;
-    this._transitionElements = transitionElements;
+    this._animateElements = animateElements;
 
     /**
      * @type {ApplicationWithAudioStage}
@@ -341,7 +341,7 @@ class RouteGraphics extends BaseRouteGraphics {
       this._state,
       parsedState,
       this._eventHandler,
-      this._transitionElements,
+      this._animateElements,
     );
     this._state = parsedState;
   };
@@ -418,7 +418,7 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {RouteGraphicsState} prevState
    * @param {RouteGraphicsState} nextState
    * @param {Function} eventHandler
-   * @param {Function} transitionelements
+   * @param {Function} animateElements
    */
   _render = async (
     app,
@@ -426,7 +426,7 @@ class RouteGraphics extends BaseRouteGraphics {
     prevState,
     nextState,
     eventHandler,
-    transitionElements,
+    animateElements,
   ) => {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
@@ -444,9 +444,9 @@ class RouteGraphics extends BaseRouteGraphics {
       parent,
       prevASTTree: prevState.elements,
       nextASTTree: nextState.elements,
-      transitions: nextState.transitions,
+      animations: nextState.animations,
       eventHandler,
-      transitionElements,
+      animateElements,
       signal,
     });
 

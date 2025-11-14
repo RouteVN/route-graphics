@@ -17,7 +17,7 @@ states:
         height: 150
         src: "circle-blue"
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-render-abortion'
         elementId: 'sprite-render-test'
         type: keyframes
@@ -58,7 +58,7 @@ states:
         height: 200
         src: "circle-red"
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-render-abortion-2'
         elementId: 'sprite-render-test'
         type: keyframes

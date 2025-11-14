@@ -6,18 +6,18 @@ import { Sprite, Texture, Container } from "pixi.js";
  * @param {import('../../types.js').Application} params.app
  * @param {import('../../types.js').Container} params.parent
  * @property {SliderASTNode} sliderASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {AbortSignal} params.signal
  * @param {Function} params.eventHandler
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const addSlider = async ({
   app,
   parent,
   sliderASTNode,
-  transitions,
+  animations,
   eventHandler,
-  transitionElements,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -263,12 +263,12 @@ export const addSlider = async ({
 
   parent.addChild(sliderContainer);
 
-  // Apply transitions if any
-  if (transitions && transitions.length > 0) {
-    await transitionElements(id, {
+  // Apply animations if any
+  if (animations && animations.length > 0) {
+    await animateElements(id, {
       app,
-      sprite: sliderContainer,
-      transitions,
+      displayObject: sliderContainer,
+      animations,
       signal,
     });
   }

@@ -13,9 +13,9 @@ import { addElements } from "../../add/elements/addElements.js";
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.prevContainerASTNode
  * @param {ContainerASTNode} params.nextContainerASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const updateContainer = async ({
   app,
@@ -23,8 +23,8 @@ export const updateContainer = async ({
   prevContainerASTNode,
   nextContainerASTNode,
   eventHandler,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -53,10 +53,10 @@ export const updateContainer = async ({
           parent: containerElement,
           nextASTTree: prevContainerASTNode.children,
           prevASTTree: nextContainerASTNode.children,
-          transitions,
+          animations,
           eventHandler,
           signal,
-          transitionElements,
+          animateElements,
         });
       }
     }
@@ -66,11 +66,11 @@ export const updateContainer = async ({
   });
 
   if (containerElement) {
-    if (transitions && transitions.length > 0) {
-      await transitionElements(prevContainerASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(prevContainerASTNode.id, {
         app,
-        sprite: containerElement,
-        transitions,
+        displayObject: containerElement,
+        animations,
         signal,
       });
     }

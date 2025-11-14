@@ -15,17 +15,17 @@ import { addElements } from "./addElements.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ContainerASTNode} params.containerASTNode
- * @param {Object[]} params.transitions
- * @param {Function} params.transitionElements
+ * @param {Object[]} params.animations
+ * @param {Function} params.animateElements
  * @param {AbortSignal} params.signal
  */
 export const addContainer = async ({
   app,
   parent,
   containerASTNode,
-  transitions,
+  animations,
   eventHandler,
-  transitionElements,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -50,9 +50,9 @@ export const addContainer = async ({
     parent: container,
     nextASTTree: children,
     prevASTTree: [],
-    transitions,
+    animations,
     eventHandler,
-    transitionElements,
+    animateElements,
     signal,
   });
 
@@ -68,11 +68,11 @@ export const addContainer = async ({
   });
   parent.addChild(container);
 
-  if (transitions && transitions.length > 0) {
-    await transitionElements(id, {
+  if (animations && animations.length > 0) {
+    await animateElements(id, {
       app,
-      sprite: container,
-      transitions,
+      displayObject: container,
+      animations,
       signal,
     });
   }

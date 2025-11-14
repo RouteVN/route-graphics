@@ -19,7 +19,7 @@ states:
           fontSize: 32
           fill: "#3498db"
         alpha: 1
-    transitions:
+    animations:
       - id: 'text-render-abortion'
         elementId: 'text-render-test'
         type: keyframes
@@ -62,7 +62,7 @@ states:
           fontSize: 48
           fill: "#e74c3c"
         alpha: 1
-    transitions:
+    animations:
       - id: 'text-render-abortion-2'
         elementId: 'text-render-test'
         type: keyframes

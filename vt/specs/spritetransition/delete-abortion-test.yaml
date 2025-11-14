@@ -17,7 +17,7 @@ states:
         src: "circle-red"
         alpha: 1
   - elements: []
-    transitions:
+    animations:
       - id: 'sprite-delete-abortion'
         elementId: 'sprite-delete-test'
         type: keyframes

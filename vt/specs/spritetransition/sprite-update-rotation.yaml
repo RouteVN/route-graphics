@@ -25,7 +25,7 @@ states:
         width: 150
         height: 150
         rotation: 6.28318
-    transitions:
+    animations:
       - id: 'sprite-rotate'
         elementId: 'sprite1'
         type: keyframes

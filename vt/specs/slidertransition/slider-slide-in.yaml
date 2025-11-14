@@ -27,7 +27,7 @@ states:
         max: 100
         step: 1
         initialValue: 25
-    transitions:
+    animations:
       - id: 'slider-slide-in'
         elementId: 'slider1'
         type: keyframes

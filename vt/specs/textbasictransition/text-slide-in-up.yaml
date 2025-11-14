@@ -18,7 +18,7 @@ states:
           fontSize: 36
           fill: "#e74c3c"
           fontFamily: "Arial"
-    transitions:
+    animations:
       - id: 'text-slide-up'
         elementId: 'text1'
         type: keyframes

@@ -153,14 +153,11 @@
  */
 
 /**
- * @typedef {Object} RenderElementOptions
+ * @typedef {Object} AnimateElementsOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
- * @property {SpriteASTNode} spriteASTNode
- * @property {Object[]} transitions
- * @param {Function} params.transitionElements
- * @property {Function} signalAbortCb
- * @property {AbortSignal} signal
+ * @property {Object} displayObject
+ * @property {Object[]} animations
  */
 
 /**

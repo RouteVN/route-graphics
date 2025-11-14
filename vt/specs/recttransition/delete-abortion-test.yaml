@@ -17,7 +17,7 @@ states:
         fill: "#e74c3c"
         alpha: 1
   - elements: []
-    transitions:
+    animations:
       - id: 'rect-delete-abortion'
         elementId: 'rect-delete-test'
         type: keyframes
