@@ -21,7 +21,7 @@ states:
     animations:
       - id: 'sprite-scale-out'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         properties:
           scaleX:
             keyframes:

@@ -22,7 +22,7 @@ states:
     animations:
       - id: 'text-delete-abortion'
         elementId: 'text-delete-test'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             keyframes:

@@ -28,7 +28,7 @@ states:
     animations:
       - id: 'sprite-move'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:

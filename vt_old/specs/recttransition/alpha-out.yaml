@@ -18,7 +18,7 @@ states:
     animations:
       - id: 'rect-alpha-out'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         event: remove
         properties:
           alpha:

@@ -40,7 +40,7 @@ states:
     animations:
       - id: 'container-update-abortion'
         elementId: 'container-update-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:

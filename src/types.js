@@ -156,9 +156,10 @@
  * @typedef {Object} AnimateElementsOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
- * @property {Object} displayObject
+ * @property {Object} element
  * @property {Object[]} animations
- */
+ * @property {Object} signal
+*/
 
 /**
  * @typedef {Object} RectASTProps
@@ -390,6 +391,13 @@ export const AudioType = {
  * @property {string} backgroundColor - Background color of the renderer
  * @property {Function} eventHandler - Event handler function
  * @property {BaseRendererPlugin[]} plugins - Array of renderer plugins
+ */
+
+/**
+ * @typedef {Object} RouteGraphicsPlugins
+ * @property {import('./plugins/elements/elementPlugin').ElementPlugin[]} elementPlugins
+ * @property {import('./plugins/animations/animationPlugin').AnimationPlugin[]} animationPlugins
+ * @property {import('./plugins/audio/audioPlugin').AudioPlugin[]} audioPlugins
  */
 
 /**

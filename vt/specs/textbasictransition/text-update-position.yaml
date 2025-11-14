@@ -30,7 +30,7 @@ states:
     animations:
       - id: 'text-move'
         elementId: 'text1'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:

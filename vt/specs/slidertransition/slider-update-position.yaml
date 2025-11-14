@@ -47,7 +47,7 @@ states:
     animations:
       - id: 'slider-move'
         elementId: 'slider1'
-        type: keyframes
+        type: tween
         event: update
         properties:
           x:

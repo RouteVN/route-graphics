@@ -13,7 +13,14 @@
         import RouteGraphics, {
             Assets,
             AudioAsset,
-            animateElements
+            textPlugin,
+            rectPlugin,
+            spritePlugin,
+            sliderPlugin,
+            containerPlugin,
+            textRevealingPlugin,
+            tweenPlugin,
+            soundPlugin,
         } from "/RouteGraphics.js"
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
@@ -45,14 +52,30 @@
 
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = new RouteGraphics();
+
+        const plugins = {
+            elements: [
+                textPlugin,
+                rectPlugin,
+                spritePlugin,
+                sliderPlugin,
+                containerPlugin,
+                textRevealingPlugin
+            ],
+            animations: [
+                tweenPlugin
+            ],
+            audios: [
+                soundPlugin
+            ]  
+        }
         await app.init({
-            width: 1280, 
+            width: 1280,
             height: 720,
-            plugins: [],
+            plugins,
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
-            animateElements
         })
         document.body.appendChild(app.canvas);
         let index = 0

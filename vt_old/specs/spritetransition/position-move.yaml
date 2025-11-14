@@ -21,7 +21,7 @@ states:
     animations:
       - id: 'sprite-move-1'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         event: update
         properties:
           x:
@@ -43,7 +43,7 @@ states:
     animations:
       - id: 'sprite-move-2'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         event: update
         properties:
           x:

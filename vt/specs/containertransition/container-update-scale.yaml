@@ -52,7 +52,7 @@ states:
     animations:
       - id: 'container-scale'
         elementId: 'container1'
-        type: keyframes
+        type: tween
         properties:
           scaleX:
             keyframes:

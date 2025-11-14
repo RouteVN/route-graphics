@@ -25,7 +25,7 @@ states:
     animations:
       - id: 'rect-move-1'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         event: update
         properties:
           x:
@@ -49,7 +49,7 @@ states:
     animations:
       - id: 'rect-move-2'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         event: update
         properties:
           x:

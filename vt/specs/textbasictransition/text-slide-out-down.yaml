@@ -21,7 +21,7 @@ states:
     animations:
       - id: 'text-slide-down'
         elementId: 'text1'
-        type: keyframes
+        type: tween
         properties:
           y:
             keyframes:

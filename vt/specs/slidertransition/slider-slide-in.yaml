@@ -30,7 +30,7 @@ states:
     animations:
       - id: 'slider-slide-in'
         elementId: 'slider1'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: -200

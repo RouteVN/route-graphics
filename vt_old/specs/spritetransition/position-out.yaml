@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'a'
         elementId: 'b'
-        type: keyframes
+        type: tween
         event: remove
         properties:
           x:

@@ -36,7 +36,7 @@ states:
     animations:
       - id: 'container-scale-out'
         elementId: 'container1'
-        type: keyframes
+        type: tween
         properties:
           scaleX:
             keyframes:

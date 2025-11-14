@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'rect-slide-out'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:

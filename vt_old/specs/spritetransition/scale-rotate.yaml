@@ -16,7 +16,7 @@ states:
     animations:
       - id: 'sprite-scale-rotate'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         event: add
         properties:
           scale.x:

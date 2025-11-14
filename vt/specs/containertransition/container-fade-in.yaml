@@ -35,7 +35,7 @@ states:
     animations:
       - id: 'container-fade-in'
         elementId: 'container1'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             initialValue: 0
