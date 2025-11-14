@@ -21,7 +21,7 @@ states:
     animations:
       - id: 'text-fade-in'
         elementId: 'text1'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             initialValue: 0

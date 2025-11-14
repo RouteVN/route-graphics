@@ -30,7 +30,7 @@ states:
     animations:
       - id: 'slider-fade-in'
         elementId: 'slider1'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             initialValue: 0

@@ -11,14 +11,14 @@ import "@pixi/unsafe-eval";
 import { BaseRouteGraphics } from "./types.js";
 import { createAudioStage } from "./AudioStage.js";
 import parseJSONToAST from "./parser/index.js";
-import { addElements } from "./add/elements/addElements.js";
-import { addAudio } from "./add/audio/addAudio.js";
 import { AudioAsset } from "./AudioAsset.js";
+import { renderElements } from "./plugins/renderElements.js";
+import { renderAudio } from "./plugins/renderAudio.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
  * @typedef {import('./types.js').RouteGraphicsState} RouteGraphicsState
- * @typedef {import('./types.js').BaseRendererPlugin} BaseRendererPlugin
+ * @typedef {import('./types.js').RouteGraphicsPlugins} RouteGraphicsPlugins
  * @typedef {import('./types.js').BaseElement} BaseElement
  */
 
@@ -115,14 +115,13 @@ class RouteGraphics extends BaseRouteGraphics {
   _eventHandler;
 
   /**
-   * @type {Function}
+   * @type {RouteGraphicsPlugins[]}
    */
-  _animateElements;
-
-  /**
-   * @type {BaseRendererPlugin[]}
-   */
-  _plugins;
+  _plugins = {
+    animations: [],
+    elements: [],
+    audios: [],
+  };
 
   /**
    * @type {AbortController}
@@ -144,24 +143,10 @@ class RouteGraphics extends BaseRouteGraphics {
    * @returns
    */
   init = async (options) => {
-    const {
-      eventHandler,
-      plugins,
-      width,
-      height,
-      backgroundColor,
-      animateElements,
-    } = options;
-
-    for (const plugin of plugins) {
-      if (plugin.rendererName !== RouteGraphics.rendererName) {
-        throw new Error("Plugin does not match renderer name");
-      }
-    }
+    const { eventHandler, plugins, width, height, backgroundColor } = options;
 
     this._plugins = plugins;
     this._eventHandler = eventHandler;
-    this._animateElements = animateElements;
 
     /**
      * @type {ApplicationWithAudioStage}
@@ -347,31 +332,6 @@ class RouteGraphics extends BaseRouteGraphics {
   };
 
   /**
-   *
-   * @param {BaseElement} element
-   * @returns
-   */
-  _getRendererByElement = (element) => {
-    for (const plugin of this._plugins) {
-      if (plugin.rendererType === element.type) {
-        return plugin;
-      }
-    }
-    throw new Error(`No renderer found for element type: ${element.type}`);
-  };
-
-  _getTransitionByType = (transitionType) => {
-    for (const plugin of this._plugins) {
-      if (plugin.transitionType === transitionType) {
-        return plugin;
-      }
-    }
-    throw new Error(
-      `No transition found for transition type: ${transitionType}`,
-    );
-  };
-
-  /**
    * Apply global cursor styles to the PixiJS application
    * @param {Application} app - The PixiJS application instance
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
@@ -420,14 +380,7 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {Function} eventHandler
    * @param {Function} animateElements
    */
-  _render = async (
-    app,
-    parent,
-    prevState,
-    nextState,
-    eventHandler,
-    animateElements,
-  ) => {
+  _render = async (app, parent, prevState, nextState, eventHandler) => {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
 
@@ -439,21 +392,23 @@ class RouteGraphics extends BaseRouteGraphics {
     // Create new AbortController for this render
     this._currentAbortController = new AbortController();
     const signal = this._currentAbortController.signal;
-    await addElements({
+    await renderElements({
       app,
       parent,
       prevASTTree: prevState.elements,
       nextASTTree: nextState.elements,
       animations: nextState.animations,
+      elementPlugins: this._plugins.elements,
+      animationPlugins: this._plugins.animations,
       eventHandler,
-      animateElements,
       signal,
     });
 
-    await addAudio({
+    await renderAudio({
       app,
       prevAudioTree: prevState.audio,
       nextAudioTree: nextState.audio,
+      audioPlugins: this._plugins.audios,
       signal,
     });
   };

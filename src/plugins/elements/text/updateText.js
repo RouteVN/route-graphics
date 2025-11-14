@@ -1,0 +1,132 @@
+import animateElements from "../../../util/animateElements.js";
+import applyTextStyle from "../../../util/applyTextStyle.js";
+
+/**
+ *
+ * @param {import("../elementPlugin.js").UpdateElementOptions} params
+ * @returns
+ */
+export const updateText = async ({
+  app,
+  parent,
+  prevElement: prevTextASTNode,
+  nextElement: nextTextASTNode,
+  eventHandler,
+  animations,
+  animationPlugins,
+  signal,
+}) => {
+  if (signal?.aborted) {
+    return;
+  }
+
+  const textElement = parent.children.find(
+    (child) => child.label === prevTextASTNode.id,
+  );
+  const updateElement = () => {
+    if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
+      textElement.text = nextTextASTNode.content;
+      applyTextStyle(textElement, nextTextASTNode.textStyle);
+
+      textElement.x = nextTextASTNode.x;
+      textElement.y = nextTextASTNode.y;
+      textElement.alpha = nextTextASTNode.alpha;
+
+      textElement.removeAllListeners("pointerover");
+      textElement.removeAllListeners("pointerout");
+      textElement.removeAllListeners("pointerdown");
+      textElement.removeAllListeners("pointerupoutside");
+      textElement.removeAllListeners("pointerup");
+
+      const hoverEvents = nextTextASTNode?.hover;
+      const clickEvents = nextTextASTNode?.click;
+
+      if (eventHandler && hoverEvents) {
+        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        textElement.eventMode = "static";
+
+        const overListener = () => {
+          if (actionPayload)
+            eventHandler(`${textElement.label}-pointer-over`, {
+              _event: {
+                id: textElement.label,
+              },
+              ...actionPayload,
+            });
+          if (cursor) textElement.cursor = cursor;
+          if (soundSrc)
+            app.audioStage.add({
+              id: `hover-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+          if (hoverEvents?.textStyle)
+            applyTextStyle(textElement, hoverEvents.textStyle);
+        };
+
+        const outListener = () => {
+          textElement.cursor = "auto";
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
+        };
+
+        textElement.on("pointerover", overListener);
+        textElement.on("pointerout", outListener);
+      }
+
+      if (eventHandler && clickEvents) {
+        const { soundSrc, actionPayload } = clickEvents;
+        textElement.eventMode = "static";
+
+        const clickListener = () => {
+          // Apply click style during pointerdown
+          if (clickEvents?.textStyle)
+            applyTextStyle(textElement, clickEvents.textStyle);
+        };
+
+        const releaseListener = () => {
+          // Restore original style on pointerup
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
+
+          // Trigger event and sound on pointerup
+          if (actionPayload)
+            eventHandler(`${textElement.label}-click`, {
+              _event: {
+                id: textElement.label,
+              },
+              ...actionPayload,
+            });
+          if (soundSrc)
+            app.audioStage.add({
+              id: `click-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+        };
+
+        const outListener = () => {
+          // Restore original style on pointerout
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
+        };
+
+        textElement.on("pointerdown", clickListener);
+        textElement.on("pointerup", releaseListener);
+        textElement.on("pointerupoutside", outListener);
+      }
+    }
+  };
+  signal.addEventListener("abort", () => {
+    updateElement();
+  });
+
+  if (textElement) {
+    if (animations && animations.length > 0) {
+      await animateElements(nextTextASTNode.id, animationPlugins, {
+        app,
+        element: textElement,
+        animations,
+        signal,
+      });
+    }
+    updateElement();
+  }
+};

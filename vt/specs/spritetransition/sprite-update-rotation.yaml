@@ -28,7 +28,7 @@ states:
     animations:
       - id: 'sprite-rotate'
         elementId: 'sprite1'
-        type: keyframes
+        type: tween
         properties:
           rotation:
             keyframes:

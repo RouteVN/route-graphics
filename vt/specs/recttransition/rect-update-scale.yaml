@@ -30,7 +30,7 @@ states:
     animations:
       - id: 'rect-scale'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         properties:
           scaleX:
             keyframes:

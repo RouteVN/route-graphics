@@ -81,9 +81,3 @@ vt:
         - title: "Sound Loop"
           files: "sound/sound-loop"
           description: "Sound loop functionality tests"
-    - title: "Route Graphics"
-      type: "groupLabel"
-      items:
-        - title: "RouteGraphics"
-          files: "routegraphics"
-          description: "Using RouteGraphics object with renderApp function"

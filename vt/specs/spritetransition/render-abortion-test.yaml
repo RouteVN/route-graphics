@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'sprite-render-abortion'
         elementId: 'sprite-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 50
@@ -61,7 +61,7 @@ states:
     animations:
       - id: 'sprite-render-abortion-2'
         elementId: 'sprite-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 250

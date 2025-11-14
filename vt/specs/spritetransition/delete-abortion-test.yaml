@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'sprite-delete-abortion'
         elementId: 'sprite-delete-test'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             keyframes:

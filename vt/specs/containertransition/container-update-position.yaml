@@ -46,7 +46,7 @@ states:
     animations:
       - id: 'container-move'
         elementId: 'container1'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:

@@ -26,7 +26,7 @@ states:
     animations:
       - id: 'container-render-abortion'
         elementId: 'container-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 50
@@ -78,7 +78,7 @@ states:
     animations:
       - id: 'container-render-abortion-2'
         elementId: 'container-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 250

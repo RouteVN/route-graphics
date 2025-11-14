@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'rect-fade-out'
         elementId: 'rect1'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             keyframes:

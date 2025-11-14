@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'rect-delete-abortion'
         elementId: 'rect-delete-test'
-        type: keyframes
+        type: tween
         properties:
           alpha:
             keyframes:

@@ -20,7 +20,7 @@ states:
     animations:
       - id: 'rect-render-abortion'
         elementId: 'rect-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 50
@@ -61,7 +61,7 @@ states:
     animations:
       - id: 'rect-render-abortion-2'
         elementId: 'rect-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 250

@@ -22,7 +22,7 @@ states:
     animations:
       - id: 'text-render-abortion'
         elementId: 'text-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 50
@@ -65,7 +65,7 @@ states:
     animations:
       - id: 'text-render-abortion-2'
         elementId: 'text-render-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             initialValue: 250

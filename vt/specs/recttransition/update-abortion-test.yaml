@@ -28,7 +28,7 @@ states:
     animations:
       - id: 'rect-update-abortion'
         elementId: 'rect-update-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:
@@ -58,7 +58,7 @@ states:
     animations:
       - id: 'rect-update-abortion'
         elementId: 'rect-update-test'
-        type: keyframes
+        type: tween
         properties:
           x:
             keyframes:
