@@ -6,13 +6,6 @@ priority: low
 
 # Description
 
-Naming consistency:
-
-use: `Add & Remove`  or `Create & Delete`. but don't use `Add & Delete`
-
----
-
-
 make it so we can add and delete plugins
 
 Benefits:
