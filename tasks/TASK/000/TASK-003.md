@@ -113,9 +113,9 @@ Elements, animations and audio are specifically different types.
 
 All elements have to follow specific interface, they have add, update, remove.
 
-All animations have different interface. 
+All animations have animations interface. 
 
-All audio also have different interface.
+All audio also have audio interface.
 
 
 
