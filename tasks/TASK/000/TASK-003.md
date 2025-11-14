@@ -111,14 +111,8 @@ We have 3 category types or how we should call it: `add`, `update`, `remove`
 
 Elements, animations and audio are specifically different types.
 
-All elements have to follow specific interface, they have add, update, remove.
-
-All animations have animations interface. 
-
-All audio also have audio interface.
-
-
-
+All elements have same interface, all animations have same interface, all audio have same interface.
+but interface of elements, animations, and audio are different.
 
 
 the above is just a draft code. we need to:
