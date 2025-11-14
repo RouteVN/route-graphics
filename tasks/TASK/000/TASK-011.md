@@ -1,6 +1,6 @@
 ---
 title: click should disapper
-status: todo
+status: done
 priority: low
 ---
 

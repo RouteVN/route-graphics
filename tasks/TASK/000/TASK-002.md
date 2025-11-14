@@ -1,6 +1,6 @@
 ---
 title: round all measurements to pixels
-status: todo
+status: done
 priority: low
 ---
 

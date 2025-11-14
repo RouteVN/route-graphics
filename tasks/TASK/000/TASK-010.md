@@ -1,6 +1,6 @@
 ---
 title: add slider
-status: todo
+status: done
 priority: low
 ---
 
