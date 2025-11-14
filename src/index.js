@@ -16,7 +16,10 @@ import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
 import { renderElements } from "./plugins/renderElements.js";
 import { renderAudio } from "./plugins/renderAudio.js";
+<<<<<<< HEAD
 import createRouteGraphics from "./RouteGraphics.js";
+=======
+>>>>>>> main
 
 export default createRouteGraphics;
 
