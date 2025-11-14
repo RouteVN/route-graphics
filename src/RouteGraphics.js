@@ -30,7 +30,6 @@ const createAdvancedBufferLoader = (bufferMap) => ({
   priority: 2,
   bufferMap,
 
-
   load: async (_url) => {
     // For file: URLs, use the full URL as key, otherwise use just the filename
     let url = _url.startsWith("file:") ? _url : getPathName(_url);
@@ -142,7 +141,6 @@ const createRouteGraphics = () => {
       return "font";
     }
 
-
     return "texture";
   };
 
@@ -172,12 +170,14 @@ const createRouteGraphics = () => {
       if (nextCursorStyles) {
         // Apply new cursor styles
         if (nextCursorStyles.default) {
-          appInstance.renderer.events.cursorStyles.default = nextCursorStyles.default;
+          appInstance.renderer.events.cursorStyles.default =
+            nextCursorStyles.default;
           // Also set canvas cursor directly
           appInstance.canvas.style.cursor = nextCursorStyles.default;
         }
         if (nextCursorStyles.hover) {
-          appInstance.renderer.events.cursorStyles.hover = nextCursorStyles.hover;
+          appInstance.renderer.events.cursorStyles.hover =
+            nextCursorStyles.hover;
         }
       } else if (prevCursorStyles) {
         // Reset to default cursor styles if global config was removed
@@ -194,7 +194,13 @@ const createRouteGraphics = () => {
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = async (appInstance, parent, prevState, nextState, handler) => {
+  const renderInternal = async (
+    appInstance,
+    parent,
+    prevState,
+    nextState,
+    handler,
+  ) => {
     // Apply global cursor styles if they exist and have changed
     applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
 
@@ -240,7 +246,13 @@ const createRouteGraphics = () => {
      * @returns
      */
     init: async (options) => {
-      const { eventHandler: handler, plugins: pluginConfig, width, height, backgroundColor } = options;
+      const {
+        eventHandler: handler,
+        plugins: pluginConfig,
+        width,
+        height,
+        backgroundColor,
+      } = options;
 
       plugins = pluginConfig;
       eventHandler = handler;
@@ -389,13 +401,7 @@ const createRouteGraphics = () => {
     render: (stateParam) => {
       const parsedElements = parseJSONToAST(stateParam.elements);
       const parsedState = { ...stateParam, elements: parsedElements };
-      renderInternal(
-        app,
-        app.stage,
-        state,
-        parsedState,
-        eventHandler,
-      );
+      renderInternal(app, app.stage, state, parsedState, eventHandler);
       state = parsedState;
     },
   };
