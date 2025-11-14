@@ -1,4 +1,4 @@
-import animateElements from "../../../animation";
+import animateElements from "../../../util/animateElements";
 
 /**
  * Delete text element
