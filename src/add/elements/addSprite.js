@@ -131,6 +131,11 @@ export const addSprite = async ({
   parent.addChild(sprite);
 
   if (animations && animations.length > 0) {
-    await animateElements(id, { app, displayObject: sprite, animations, signal });
+    await animateElements(id, {
+      app,
+      displayObject: sprite,
+      animations,
+      signal,
+    });
   }
 };

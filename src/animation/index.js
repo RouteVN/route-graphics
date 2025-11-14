@@ -1,8 +1,7 @@
-import animateTweenAnimation from './tweenAnimation.js';
+import animateTweenAnimation from "./tweenAnimation.js";
 /**
  * @typedef {import('../types.js').AnimateElementsOptions} AnimateElementsOptions
  */
-
 
 /**
  *
