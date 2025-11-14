@@ -1,5 +1,4 @@
-import RouteGraphics from "./RouteGraphics";
-import { createAssetBufferManager } from "./utils.js";
+import { createAssetBufferManager } from "./util/createAssetBufferManager.js";
 import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js";
 import parseJSONToAST from "./parser/index.js";
@@ -17,8 +16,9 @@ import { tweenPlugin } from "./plugins/animations/tween/index.js";
 import { soundPlugin } from "./plugins/audio/sound/soundPlugin.js";
 import { renderElements } from "./plugins/renderElements.js";
 import { renderAudio } from "./plugins/renderAudio.js";
+import createRouteGraphics from "./RouteGraphics.js";
 
-export default RouteGraphics;
+export default createRouteGraphics;
 
 export {
   Application,

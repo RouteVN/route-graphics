@@ -10,7 +10,7 @@
         `;
     </script>
     <script type="module">
-        import RouteGraphics, {
+        import createRouteGraphics, {
             Assets,
             AudioAsset,
             textPlugin,
@@ -51,7 +51,7 @@
         await AudioAsset.load('bgm-3', audio3Buffer);
 
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
-        const app = new RouteGraphics();
+        const app = createRouteGraphics();
 
         const plugins = {
             elements: [
