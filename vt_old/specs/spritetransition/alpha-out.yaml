@@ -15,7 +15,7 @@ states:
       - id: 'a'
         type: "sprite"
         url: "file:bg1"
-    transitions:
+    animations:
       - id: 'a'
         elementId: 'b'
         type: keyframes

@@ -15,7 +15,7 @@ states:
         height: 150
         fill: "#00ffff"
   - elements: []
-    transitions:
+    animations:
       - id: 'rect-position-out-relative'
         elementId: 'rect1'
         type: keyframes

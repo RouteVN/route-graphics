@@ -37,7 +37,7 @@ states:
             width: 280
             height: 70
             fill: "#e74c3c"
-    transitions:
+    animations:
       - id: 'container-update-abortion'
         elementId: 'container-update-test'
         type: keyframes

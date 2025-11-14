@@ -12,9 +12,9 @@ import applyTextStyle from "../../util/applyTextStyle.js";
  * @param {Container} params.parent
  * @param {TextASTNode} params.prevTextASTNode
  * @param {TextASTNode} params.nextTextASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const updateText = async ({
   app,
@@ -22,8 +22,8 @@ export const updateText = async ({
   prevTextASTNode,
   nextTextASTNode,
   eventHandler,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -129,11 +129,11 @@ export const updateText = async ({
   });
 
   if (textElement) {
-    if (transitions && transitions.length > 0) {
-      await transitionElements(prevTextASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(prevTextASTNode.id, {
         app,
-        sprite: textElement,
-        transitions,
+        displayObject: textElement,
+        animations,
         signal,
       });
     }

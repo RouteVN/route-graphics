@@ -33,7 +33,7 @@ states:
             height: 40
             fill: "#1abc9c"
   - elements: []
-    transitions:
+    animations:
       - id: 'container-scale-out'
         elementId: 'container1'
         type: keyframes

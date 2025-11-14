@@ -12,10 +12,10 @@ import { Texture } from "pixi.js";
  * @param {Container} params.parent
  * @param {SpriteASTNode} params.prevSpriteASTNode
  * @param {SpriteASTNode} params.nextSpriteASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const updateSprite = async ({
   app,
@@ -23,8 +23,8 @@ export const updateSprite = async ({
   prevSpriteASTNode,
   nextSpriteASTNode,
   eventHandler,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -154,11 +154,11 @@ export const updateSprite = async ({
   });
 
   if (spriteElement) {
-    if (transitions && transitions.length > 0) {
-      await transitionElements(prevSpriteASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(prevSpriteASTNode.id, {
         app,
-        sprite: spriteElement,
-        transitions,
+        displayObject: spriteElement,
+        animations,
         signal,
       });
     }

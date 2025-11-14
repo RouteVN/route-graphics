@@ -17,7 +17,7 @@ states:
         height: 200
         fill: "#3498db"
         alpha: 1
-    transitions:
+    animations:
       - id: 'rect-render-abortion'
         elementId: 'rect-render-test'
         type: keyframes
@@ -58,7 +58,7 @@ states:
         height: 250
         fill: "#e74c3c"
         alpha: 1
-    transitions:
+    animations:
       - id: 'rect-render-abortion-2'
         elementId: 'rect-render-test'
         type: keyframes

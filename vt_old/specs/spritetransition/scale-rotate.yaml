@@ -13,7 +13,7 @@ states:
         url: "file:circle-red"
         x: 300
         y: 200
-    transitions:
+    animations:
       - id: 'sprite-scale-rotate'
         elementId: 'sprite1'
         type: keyframes

@@ -18,7 +18,7 @@ states:
           fill: "#3498db"
           fontFamily: "Arial"
   - elements: []
-    transitions:
+    animations:
       - id: 'text-slide-down'
         elementId: 'text1'
         type: keyframes

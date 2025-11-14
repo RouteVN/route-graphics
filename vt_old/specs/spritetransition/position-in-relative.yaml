@@ -19,7 +19,7 @@ states:
         url: "file:circle-red"
         x: 200
         y: 200
-    transitions:
+    animations:
       - id: "a"
         elementId: "b"
         type: keyframes

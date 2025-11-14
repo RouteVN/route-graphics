@@ -12,17 +12,17 @@ import { Graphics } from "pixi.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {RectASTNode} params.rectASTNode
- * @param {Object[]} params.transitions
- * @param {Function} params.transitionElements
+ * @param {Object[]} params.animations
+ * @param {Function} params.animateElements
  * @param {AbortSignal} params.signal
  */
 export const addRect = async ({
   app,
   parent,
   rectASTNode,
-  transitions,
+  animations,
   eventHandler,
-  transitionElements,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -125,7 +125,7 @@ export const addRect = async ({
 
   parent.addChild(rect);
 
-  if (transitions && transitions.length > 0) {
-    await transitionElements(id, { app, sprite: rect, transitions, signal });
+  if (animations && animations.length > 0) {
+    await animateElements(id, { app, displayObject: rect, animations, signal });
   }
 };

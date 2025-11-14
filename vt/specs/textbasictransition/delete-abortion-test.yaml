@@ -19,7 +19,7 @@ states:
           fill: "#e74c3c"
         alpha: 1
   - elements: []
-    transitions:
+    animations:
       - id: 'text-delete-abortion'
         elementId: 'text-delete-test'
         type: keyframes

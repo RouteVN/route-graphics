@@ -23,7 +23,7 @@ states:
             width: 250
             height: 60
             fill: "#3498db"
-    transitions:
+    animations:
       - id: 'container-render-abortion'
         elementId: 'container-render-test'
         type: keyframes
@@ -75,7 +75,7 @@ states:
             width: 100
             height: 200
             fill: "#f39c12"
-    transitions:
+    animations:
       - id: 'container-render-abortion-2'
         elementId: 'container-render-test'
         type: keyframes

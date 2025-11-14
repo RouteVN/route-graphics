@@ -17,7 +17,7 @@ states:
         width: 150
         height: 150
         alpha: 1
-    transitions:
+    animations:
       - id: 'sprite-fade-in'
         elementId: 'sprite1'
         type: keyframes

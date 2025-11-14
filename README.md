@@ -80,7 +80,7 @@ app.render({
       y: 100,
     }
   ],
-  transitions: []
+  animations: []
 });
 ```
 

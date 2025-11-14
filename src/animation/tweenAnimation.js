@@ -121,9 +121,9 @@ function getMaxOfArray(numArray) {
   return Math.max.apply(null, numArray);
 }
 
-export default async function keyframeTransition(
+export default async function animateTweenAnimation(
   app,
-  sprite,
+  displayObject,
   transition,
   signal,
 ) {
@@ -159,11 +159,11 @@ export default async function keyframeTransition(
     );
     const maxDuration = getMaxOfArray(accumulatedDurations);
 
-    // Store initial sprite values
+    // Store initial displayObject values
     const initialProperties = {};
     animationProperties.forEach((animationProperty) => {
       initialProperties[animationProperty.property] = getTransitionProperty(
-        sprite,
+        displayObject,
         animationProperty.property,
       );
     });
@@ -194,8 +194,8 @@ export default async function keyframeTransition(
       propertyTimelines.forEach(({ property, timeline }) => {
         const value = getValueAtTime(timeline, timeDelta);
 
-        if (sprite && !sprite.destroyed) {
-          setTransitionProperty(sprite, property, value);
+        if (displayObject && !displayObject.destroyed) {
+          setTransitionProperty(displayObject, property, value);
         }
       });
     };

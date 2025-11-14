@@ -10,10 +10,10 @@
  * @param {Container} params.parent
  * @param {RectASTNode} params.prevRectASTNode
  * @param {RectASTNode} params.nextRectASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const updateRect = async ({
   app,
@@ -21,8 +21,8 @@ export const updateRect = async ({
   prevRectASTNode,
   nextRectASTNode,
   eventHandler,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -118,11 +118,11 @@ export const updateRect = async ({
   });
 
   if (rectElement) {
-    if (transitions && transitions.length > 0) {
-      await transitionElements(prevRectASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(prevRectASTNode.id, {
         app,
-        sprite: rectElement,
-        transitions,
+        displayObject: rectElement,
+        animations,
         signal,
       });
     }

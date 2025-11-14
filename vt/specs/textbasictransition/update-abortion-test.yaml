@@ -29,7 +29,7 @@ states:
           fontSize: 38
           fill: "#e74c3c"
         alpha: 1
-    transitions:
+    animations:
       - id: 'text-update-abortion'
         elementId: 'text-update-test'
         type: keyframes

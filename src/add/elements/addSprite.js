@@ -10,17 +10,17 @@ import { Sprite, Texture } from "pixi.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @property {SpriteASTNode} spriteASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const addSprite = async ({
   app,
   parent,
   spriteASTNode,
-  transitions,
+  animations,
   eventHandler,
-  transitionElements,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -130,7 +130,12 @@ export const addSprite = async ({
 
   parent.addChild(sprite);
 
-  if (transitions && transitions.length > 0) {
-    await transitionElements(id, { app, sprite, transitions, signal });
+  if (animations && animations.length > 0) {
+    await animateElements(id, {
+      app,
+      displayObject: sprite,
+      animations,
+      signal,
+    });
   }
 };

@@ -44,7 +44,7 @@ states:
         max: 100
         step: 1
         initialValue: 50
-    transitions:
+    animations:
       - id: 'slider-fade-out'
         elementId: 'slider1'
         type: keyframes

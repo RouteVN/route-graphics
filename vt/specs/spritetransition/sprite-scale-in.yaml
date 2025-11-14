@@ -18,7 +18,7 @@ states:
         height: 200
         scaleX: 1
         scaleY: 1
-    transitions:
+    animations:
       - id: 'sprite-scale-in'
         elementId: 'sprite1'
         type: keyframes

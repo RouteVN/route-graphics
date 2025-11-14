@@ -10,16 +10,16 @@ import { Container } from "pixi.js";
  * @param {import('../../types.js').Application} params.app
  * @param {Container} params.parent
  * @param {ASTNode} params.sliderASTNode
- * @param {Object[]} params.transitions
- * @param {Function} params.transitionElements
+ * @param {Object[]} params.animations
+ * @param {Function} params.animateElements
  * @param {AbortSignal} params.signal
  */
 export const deleteSlider = async ({
   app,
   parent,
   sliderASTNode,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -39,11 +39,11 @@ export const deleteSlider = async ({
       deleteElement();
     });
 
-    if (transitions && transitions.length > 0) {
-      await transitionElements(sliderASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(sliderASTNode.id, {
         app,
-        sprite: sliderContainer,
-        transitions,
+        displayObject: sliderContainer,
+        animations,
         signal,
       });
     }

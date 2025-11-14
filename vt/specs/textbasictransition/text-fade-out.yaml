@@ -18,7 +18,7 @@ states:
           fill: "#9b59b6"
           fontFamily: "Arial"
   - elements: []
-    transitions:
+    animations:
       - id: 'text-fade-out'
         elementId: 'text1'
         type: keyframes

@@ -12,10 +12,10 @@ import { Sprite, Texture, Container } from "pixi.js";
  * @param {Container} params.parent
  * @param {SliderASTNode} params.prevSliderASTNode
  * @param {SliderASTNode} params.nextSliderASTNode
- * @param {Object[]} params.transitions
+ * @param {Object[]} params.animations
  * @param {Function} eventHandler
  * @param {AbortSignal} params.signal
- * @param {Function} params.transitionElements
+ * @param {Function} params.animateElements
  */
 export const updateSlider = async ({
   app,
@@ -23,8 +23,8 @@ export const updateSlider = async ({
   prevSliderASTNode,
   nextSliderASTNode,
   eventHandler,
-  transitions,
-  transitionElements,
+  animations,
+  animateElements,
   signal,
 }) => {
   if (signal?.aborted) {
@@ -313,11 +313,11 @@ export const updateSlider = async ({
   });
 
   if (sliderElement) {
-    if (transitions && transitions.length > 0) {
-      await transitionElements(prevSliderASTNode.id, {
+    if (animations && animations.length > 0) {
+      await animateElements(prevSliderASTNode.id, {
         app,
-        sprite: sliderElement,
-        transitions,
+        displayObject: sliderElement,
+        animations,
         signal,
       });
     }

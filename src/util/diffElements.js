@@ -10,10 +10,10 @@
  *
  * @param {ASTNode} prevElements
  * @param {ASTNode} nextElements
- * @param {Object[]} transitions
+ * @param {Object[]} animations
  * @returns {DiffElementResult}
  */
-export const diffElements = (prevElements, nextElements, transitions = []) => {
+export const diffElements = (prevElements, nextElements, animations = []) => {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();
@@ -44,7 +44,7 @@ export const diffElements = (prevElements, nextElements, transitions = []) => {
       toDeleteElement.push(prevEl);
     } else if (
       JSON.stringify(prevEl) !== JSON.stringify(nextEl) ||
-      transitions.find((transition) => transition.elementId === nextEl.id)
+      animations.find((transition) => transition.elementId === nextEl.id)
     ) {
       //Update element
       toUpdateElement.push({

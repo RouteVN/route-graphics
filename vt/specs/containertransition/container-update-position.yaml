@@ -43,7 +43,7 @@ states:
             width: 60
             height: 60
             fill: "#3498db"
-    transitions:
+    animations:
       - id: 'container-move'
         elementId: 'container1'
         type: keyframes

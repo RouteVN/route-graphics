@@ -23,7 +23,7 @@ states:
         width: 200
         height: 200
         fill: "#1abc9c"
-    transitions:
+    animations:
       - id: 'rect-move'
         elementId: 'rect1'
         type: keyframes
@@ -52,7 +52,7 @@ states:
         width: 200
         height: 200
         fill: "#1abc9c"
-    transitions:
+    animations:
       - id: 'rect-move'
         elementId: 'rect1'
         type: keyframes

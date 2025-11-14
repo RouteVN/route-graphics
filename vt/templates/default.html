@@ -13,7 +13,7 @@
         import RouteGraphics, {
             Assets,
             AudioAsset,
-            transitionElements
+            animateElements
         } from "/RouteGraphics.js"
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
@@ -52,14 +52,14 @@
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
-            transitionElements
+            animateElements
         })
         document.body.appendChild(app.canvas);
         let index = 0
         const states = parse(window.vtState).states
         app.render({
             elements: states[index].elements ?? [],
-            transitions: states[index].transitions ?? [], 
+            animations: states[index].animations ?? [], 
             audio: states[index].audio ?? [],
             global: {}
         })
@@ -71,7 +71,7 @@
                         index++
                         app.render({
                             elements: states[index].elements ?? [],
-                            transitions: states[index].transitions ?? [], 
+                            animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
                             global: {}
                         })
@@ -81,7 +81,7 @@
                         index--;
                         app.render({
                             elements: states[index].elements ?? [],
-                            transitions: states[index].transitions ?? [], 
+                            animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
                             global: {}
                         })
