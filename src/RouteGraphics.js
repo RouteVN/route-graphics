@@ -8,7 +8,6 @@ import {
   Texture,
 } from "pixi.js";
 import "@pixi/unsafe-eval";
-import { BaseRouteGraphics } from "./types.js";
 import { createAudioStage } from "./AudioStage.js";
 import parseJSONToAST from "./parser/index.js";
 import { AudioAsset } from "./AudioAsset.js";
@@ -26,22 +25,15 @@ const getPathName = (url) => {
   return url.split("/").pop();
 };
 
-class AdvancedBufferLoader {
-  name = "advancedBufferLoader";
-  priority = 2;
+const createAdvancedBufferLoader = (bufferMap) => ({
+  name: "advancedBufferLoader",
+  priority: 2,
+  bufferMap,
 
-  constructor(bufferMap) {
-    this.bufferMap = bufferMap;
-  }
-
-  test(url) {
-    return true;
-  }
-
-  async load(_url) {
+  load: async (_url) => {
     // For file: URLs, use the full URL as key, otherwise use just the filename
     let url = _url.startsWith("file:") ? _url : getPathName(_url);
-    const blob = this.bufferMap[url];
+    const blob = bufferMap[url];
 
     if (!blob) {
       throw new Error(`Buffer not found for key: ${url}`);
@@ -54,14 +46,11 @@ class AdvancedBufferLoader {
     };
 
     return output;
-  }
+  },
 
-  async testParse(asset) {
-    return true;
-    // return asset?.data instanceof Blob;
-  }
+  testParse: async (asset) => true,
 
-  async parse(asset) {
+  parse: async (asset) => {
     // If asset is already a Texture, return it directly
     if (asset instanceof Texture) {
       return asset;
@@ -75,35 +64,32 @@ class AdvancedBufferLoader {
 
     // Create and return Texture
     return new Texture.from(imageBitmap);
-  }
+  },
 
-  async unload(texture) {
-    texture.destroy(true);
-  }
-}
+  unload: async (texture) => texture.destroy(true),
+});
 
 /**
  * @typedef {Object} ApplicationWithAudioStageOptions
  * @property {AudioStage} audioStage
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
-class RouteGraphics extends BaseRouteGraphics {
-  static rendererName = "pixi";
 
+const createRouteGraphics = () => {
   /**
    * @type {ApplicationWithAudioStage}
    */
-  _app;
+  let app;
 
   /**
    * @type {AudioStage}
    */
-  _audioStage = createAudioStage();
+  const audioStage = createAudioStage();
 
   /**
    * @type {RouteGraphicsState}
    */
-  _state = {
+  let state = {
     elements: [],
     animations: [],
     audio: [],
@@ -112,12 +98,12 @@ class RouteGraphics extends BaseRouteGraphics {
   /**
    * @type {Function}
    */
-  _eventHandler;
+  let eventHandler;
 
   /**
    * @type {RouteGraphicsPlugins[]}
    */
-  _plugins = {
+  let plugins = {
     animations: [],
     elements: [],
     audios: [],
@@ -126,61 +112,19 @@ class RouteGraphics extends BaseRouteGraphics {
   /**
    * @type {AbortController}
    */
-  _currentAbortController;
+  let currentAbortController;
 
   /**
-   * @type {AdvancedBufferLoader}
+   * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
    */
-  _advancedLoader;
-
-  get canvas() {
-    return this._app.canvas;
-  }
-
-  /**
-   *
-   * @param {RouteGraphicsInitOptions} options
-   * @returns
-   */
-  init = async (options) => {
-    const { eventHandler, plugins, width, height, backgroundColor } = options;
-
-    this._plugins = plugins;
-    this._eventHandler = eventHandler;
-
-    /**
-     * @type {ApplicationWithAudioStage}
-     */
-    this._app = new Application();
-    this._app.audioStage = this._audioStage;
-    await this._app.init({
-      width,
-      height,
-      backgroundColor,
-    });
-
-    const graphics = new Graphics();
-    graphics.rect(0, 0, width, height);
-    graphics.fill(backgroundColor || 0x000000);
-    this._app.stage.addChild(graphics);
-    this._app.stage.width = width;
-    this._app.stage.height = height;
-    this._app.ticker.add(this._app.audioStage.tick);
-
-    return this;
-  };
-
-  destroy = () => {
-    this._app.audioStage.destroy();
-    this._app.destroy();
-  };
+  let advancedLoader;
 
   /**
    * Classify asset by type
    * @param {string} mimeType - The MIME type of the asset
    * @returns {string} Asset category
    */
-  _classifyAsset = (mimeType) => {
+  const classifyAsset = (mimeType) => {
     if (!mimeType) return "texture";
 
     if (mimeType.startsWith("audio/")) return "audio";
@@ -197,156 +141,25 @@ class RouteGraphics extends BaseRouteGraphics {
       return "font";
     }
 
-    // Future: video support can be added here
-    // if (mimeType.startsWith('video/')) return 'video';
-
     return "texture";
   };
 
   /**
-   * Load assets using buffer data stored in memory
-   * @param {Object<string, {buffer: ArrayBuffer, type: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
-   * @returns {Promise<Array>} Promise that resolves to an array of loaded assets
-   */
-  loadAssets = async (assetBufferMap) => {
-    if (!assetBufferMap) {
-      throw new Error("assetBufferMap is required");
-    }
-
-    // Classify assets by type
-    const assetsByType = {
-      audio: {},
-      font: {},
-      texture: {}, // includes images and other PIXI-compatible assets
-    };
-
-    for (const [key, asset] of Object.entries(assetBufferMap)) {
-      const assetType = this._classifyAsset(asset.type);
-      assetsByType[assetType][key] = asset;
-    }
-
-    // Load audio assets using AudioAsset.load in parallel
-    await Promise.all(
-      Object.entries(assetsByType.audio).map(([key, asset]) =>
-        AudioAsset.load(key, asset.buffer),
-      ),
-    );
-
-    // Load font assets
-    await Promise.all(
-      Object.entries(assetsByType.font).map(async ([key, asset]) => {
-        const blob = new Blob([asset.buffer], { type: asset.type });
-        const url = URL.createObjectURL(blob);
-        // Use the key as font family name - this should match the fontFamily in text styles
-        const fontFace = new FontFace(key, `url(${url})`);
-        try {
-          await fontFace.load();
-          document.fonts.add(fontFace);
-        } catch (error) {
-          console.error(`Failed to load font ${key}:`, error);
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-      }),
-    );
-
-    if (!this._advancedLoader) {
-      this._advancedLoader = new AdvancedBufferLoader(assetsByType.texture);
-
-      Assets.loader.parsers.length = 0;
-      Assets.reset();
-      extensions.add({
-        name: "advanced-buffer-loader",
-        extension: ExtensionType.Asset,
-        priority: LoaderParserPriority.High,
-        loader: this._advancedLoader,
-      });
-
-      if (typeof Assets.registerPlugin === "function") {
-        Assets.registerPlugin(this._advancedLoader);
-      }
-    } else {
-      // Merge new texture assets into existing buffer map
-      Object.assign(this._advancedLoader.bufferMap, assetsByType.texture);
-    }
-
-    const urls = Object.keys(assetsByType.texture);
-    return Promise.all(urls.map((url) => Assets.load(url)));
-  };
-
-  loadAudioAssets = async (urls) => {
-    return Promise.all(
-      urls.map(async (url) => {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        return AudioAsset.load(url, arrayBuffer);
-      }),
-    );
-  };
-
-  /**
-   *
-   * @param {string} color
-   */
-  updatedBackgroundColor = (color) => {
-    this._app.renderer.background.color = color;
-  };
-
-  getStageElementBounds = () => {
-    const items = {};
-    const iterate = (children) => {
-      if (!children || children.length === 0) {
-        return;
-      }
-      for (const item of children) {
-        items[item.label] = {
-          x: item.groupTransform.tx,
-          y: item.groupTransform.ty,
-          width: item.width,
-          height: item.height,
-        };
-
-        iterate(item.children);
-      }
-    };
-    iterate(this._app.stage.children);
-    return items;
-  };
-
-  /**
-   *
-   * @param {RouteGraphicsState} state
-   */
-  render = (state) => {
-    const parsedElements = parseJSONToAST(state.elements);
-    const parsedState = { ...state, elements: parsedElements };
-    this._render(
-      this._app,
-      this._app.stage,
-      this._state,
-      parsedState,
-      this._eventHandler,
-      this._animateElements,
-    );
-    this._state = parsedState;
-  };
-
-  /**
    * Apply global cursor styles to the PixiJS application
-   * @param {Application} app - The PixiJS application instance
+   * @param {Application} appInstance - The PixiJS application instance
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
-  _applyGlobalCursorStyles = (app, prevGlobal, nextGlobal) => {
+  const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
     // Initialize default cursor styles if they don't exist
-    if (!app.renderer.events.cursorStyles) {
-      app.renderer.events.cursorStyles = {};
+    if (!appInstance.renderer.events.cursorStyles) {
+      appInstance.renderer.events.cursorStyles = {};
     }
-    if (!app.renderer.events.cursorStyles.default) {
-      app.renderer.events.cursorStyles.default = "default";
+    if (!appInstance.renderer.events.cursorStyles.default) {
+      appInstance.renderer.events.cursorStyles.default = "default";
     }
-    if (!app.renderer.events.cursorStyles.hover) {
-      app.renderer.events.cursorStyles.hover = "pointer";
+    if (!appInstance.renderer.events.cursorStyles.hover) {
+      appInstance.renderer.events.cursorStyles.hover = "pointer";
     }
 
     const prevCursorStyles = prevGlobal?.cursorStyles;
@@ -357,61 +170,243 @@ class RouteGraphics extends BaseRouteGraphics {
       if (nextCursorStyles) {
         // Apply new cursor styles
         if (nextCursorStyles.default) {
-          app.renderer.events.cursorStyles.default = nextCursorStyles.default;
+          appInstance.renderer.events.cursorStyles.default =
+            nextCursorStyles.default;
           // Also set canvas cursor directly
-          app.canvas.style.cursor = nextCursorStyles.default;
+          appInstance.canvas.style.cursor = nextCursorStyles.default;
         }
         if (nextCursorStyles.hover) {
-          app.renderer.events.cursorStyles.hover = nextCursorStyles.hover;
+          appInstance.renderer.events.cursorStyles.hover =
+            nextCursorStyles.hover;
         }
       } else if (prevCursorStyles) {
         // Reset to default cursor styles if global config was removed
-        app.renderer.events.cursorStyles.default = "default";
-        app.renderer.events.cursorStyles.hover = "pointer";
+        appInstance.renderer.events.cursorStyles.default = "default";
+        appInstance.renderer.events.cursorStyles.hover = "pointer";
       }
     }
   };
 
   /**
-   *
-   * @param {Application} app
+   * Render function
+   * @param {Application} appInstance
    * @param {RouteGraphicsState} prevState
    * @param {RouteGraphicsState} nextState
-   * @param {Function} eventHandler
-   * @param {Function} animateElements
+   * @param {Function} handler
    */
-  _render = async (app, parent, prevState, nextState, eventHandler) => {
+  const renderInternal = async (
+    appInstance,
+    parent,
+    prevState,
+    nextState,
+    handler,
+  ) => {
     // Apply global cursor styles if they exist and have changed
-    this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
+    applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
 
     // Cancel any previous render operations
-    if (this._currentAbortController) {
-      this._currentAbortController.abort();
+    if (currentAbortController) {
+      currentAbortController.abort();
     }
 
     // Create new AbortController for this render
-    this._currentAbortController = new AbortController();
-    const signal = this._currentAbortController.signal;
+    currentAbortController = new AbortController();
+    const signal = currentAbortController.signal;
     await renderElements({
-      app,
+      app: appInstance,
       parent,
       prevASTTree: prevState.elements,
       nextASTTree: nextState.elements,
       animations: nextState.animations,
-      elementPlugins: this._plugins.elements,
-      animationPlugins: this._plugins.animations,
-      eventHandler,
+      elementPlugins: plugins.elements,
+      animationPlugins: plugins.animations,
+      eventHandler: handler,
       signal,
     });
 
     await renderAudio({
-      app,
+      app: appInstance,
       prevAudioTree: prevState.audio,
       nextAudioTree: nextState.audio,
-      audioPlugins: this._plugins.audios,
+      audioPlugins: plugins.audios,
       signal,
     });
   };
-}
 
-export default RouteGraphics;
+  const routeGraphicsInstance = {
+    rendererName: "pixi",
+
+    get canvas() {
+      return app.canvas;
+    },
+
+    /**
+     *
+     * @param {RouteGraphicsInitOptions} options
+     * @returns
+     */
+    init: async (options) => {
+      const {
+        eventHandler: handler,
+        plugins: pluginConfig,
+        width,
+        height,
+        backgroundColor,
+      } = options;
+
+      plugins = pluginConfig;
+      eventHandler = handler;
+
+      /**
+       * @type {ApplicationWithAudioStage}
+       */
+      app = new Application();
+      app.audioStage = audioStage;
+      await app.init({
+        width,
+        height,
+        backgroundColor,
+      });
+
+      const graphics = new Graphics();
+      graphics.rect(0, 0, width, height);
+      graphics.fill(backgroundColor || 0x000000);
+      app.stage.addChild(graphics);
+      app.stage.width = width;
+      app.stage.height = height;
+      app.ticker.add(app.audioStage.tick);
+
+      return routeGraphicsInstance;
+    },
+
+    destroy: () => {
+      app.audioStage.destroy();
+      app.destroy();
+    },
+
+    /**
+     * Load assets using buffer data stored in memory
+     * @param {Object<string, {buffer: ArrayBuffer, type: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
+     * @returns {Promise<Array>} Promise that resolves to an array of loaded assets
+     */
+    loadAssets: async (assetBufferMap) => {
+      if (!assetBufferMap) {
+        throw new Error("assetBufferMap is required");
+      }
+
+      // Classify assets by type
+      const assetsByType = {
+        audio: {},
+        font: {},
+        texture: {}, // includes images and other PIXI-compatible assets
+      };
+
+      for (const [key, asset] of Object.entries(assetBufferMap)) {
+        const assetType = classifyAsset(asset.type);
+        assetsByType[assetType][key] = asset;
+      }
+
+      // Load audio assets using AudioAsset.load in parallel
+      await Promise.all(
+        Object.entries(assetsByType.audio).map(([key, asset]) =>
+          AudioAsset.load(key, asset.buffer),
+        ),
+      );
+
+      // Load font assets
+      await Promise.all(
+        Object.entries(assetsByType.font).map(async ([key, asset]) => {
+          const blob = new Blob([asset.buffer], { type: asset.type });
+          const url = URL.createObjectURL(blob);
+          // Use the key as font family name - this should match the fontFamily in text styles
+          const fontFace = new FontFace(key, `url(${url})`);
+          try {
+            await fontFace.load();
+            document.fonts.add(fontFace);
+          } catch (error) {
+            console.error(`Failed to load font ${key}:`, error);
+          } finally {
+            URL.revokeObjectURL(url);
+          }
+        }),
+      );
+
+      if (!advancedLoader) {
+        advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
+
+        Assets.loader.parsers.length = 0;
+        Assets.reset();
+        extensions.add({
+          name: "advanced-buffer-loader",
+          extension: ExtensionType.Asset,
+          priority: LoaderParserPriority.High,
+          loader: advancedLoader,
+        });
+
+        if (typeof Assets.registerPlugin === "function") {
+          Assets.registerPlugin(advancedLoader);
+        }
+      } else {
+        // Merge new texture assets into existing buffer map
+        Object.assign(advancedLoader.bufferMap, assetsByType.texture);
+      }
+
+      const urls = Object.keys(assetsByType.texture);
+      return Promise.all(urls.map((url) => Assets.load(url)));
+    },
+
+    loadAudioAssets: async (urls) => {
+      return Promise.all(
+        urls.map(async (url) => {
+          const response = await fetch(url);
+          const arrayBuffer = await response.arrayBuffer();
+          return AudioAsset.load(url, arrayBuffer);
+        }),
+      );
+    },
+
+    /**
+     *
+     * @param {string} color
+     */
+    updatedBackgroundColor: (color) => {
+      app.renderer.background.color = color;
+    },
+
+    getStageElementBounds: () => {
+      const items = {};
+      const iterate = (children) => {
+        if (!children || children.length === 0) {
+          return;
+        }
+        for (const item of children) {
+          items[item.label] = {
+            x: item.groupTransform.tx,
+            y: item.groupTransform.ty,
+            width: item.width,
+            height: item.height,
+          };
+
+          iterate(item.children);
+        }
+      };
+      iterate(app.stage.children);
+      return items;
+    },
+
+    /**
+     *
+     * @param {RouteGraphicsState} stateParam
+     */
+    render: (stateParam) => {
+      const parsedElements = parseJSONToAST(stateParam.elements);
+      const parsedState = { ...stateParam, elements: parsedElements };
+      renderInternal(app, app.stage, state, parsedState, eventHandler);
+      state = parsedState;
+    },
+  };
+
+  return routeGraphicsInstance;
+};
+
+export default createRouteGraphics;
