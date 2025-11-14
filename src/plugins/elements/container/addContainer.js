@@ -67,7 +67,12 @@ export const addContainer = async ({
   }
 
   if (animations && animations.length > 0) {
-    await animateElements(id, animationPlugins, { app, element: container, animations, signal });
+    await animateElements(id, animationPlugins, {
+      app,
+      element: container,
+      animations,
+      signal,
+    });
   }
 };
 

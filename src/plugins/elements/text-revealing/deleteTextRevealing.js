@@ -2,11 +2,7 @@
  * Delete text-revealing element
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
-export const deleteTextRevealing = async ({
-  parent,
-  element,
-  signal,
-}) => {
+export const deleteTextRevealing = async ({ parent, element, signal }) => {
   if (signal?.aborted) {
     return;
   }

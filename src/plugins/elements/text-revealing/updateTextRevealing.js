@@ -31,12 +31,9 @@ export const updateTextRevealing = async (params) => {
   if (textRevealingElement) {
     textRevealingElement.removeChildren();
 
-    if (element.x !== undefined)
-      textRevealingElement.x = element.x;
-    if (element.y !== undefined)
-      textRevealingElement.y = element.y;
-    if (element.alpha !== undefined)
-      textRevealingElement.alpha = element.alpha;
+    if (element.x !== undefined) textRevealingElement.x = element.x;
+    if (element.y !== undefined) textRevealingElement.y = element.y;
+    if (element.alpha !== undefined) textRevealingElement.alpha = element.alpha;
 
     // Process each chunk sequentially
     for (

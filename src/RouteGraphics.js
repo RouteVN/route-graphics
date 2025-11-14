@@ -120,7 +120,7 @@ class RouteGraphics extends BaseRouteGraphics {
   _plugins = {
     animations: [],
     elements: [],
-    audios: []
+    audios: [],
   };
 
   /**
@@ -143,13 +143,7 @@ class RouteGraphics extends BaseRouteGraphics {
    * @returns
    */
   init = async (options) => {
-    const {
-      eventHandler,
-      plugins,
-      width,
-      height,
-      backgroundColor,
-    } = options;
+    const { eventHandler, plugins, width, height, backgroundColor } = options;
 
     this._plugins = plugins;
     this._eventHandler = eventHandler;
@@ -338,31 +332,6 @@ class RouteGraphics extends BaseRouteGraphics {
   };
 
   /**
-   *
-   * @param {BaseElement} element
-   * @returns
-   */
-  _getRendererByElement = (element) => {
-    for (const plugin of this._plugins) {
-      if (plugin.rendererType === element.type) {
-        return plugin;
-      }
-    }
-    throw new Error(`No renderer found for element type: ${element.type}`);
-  };
-
-  _getTransitionByType = (transitionType) => {
-    for (const plugin of this._plugins) {
-      if (plugin.transitionType === transitionType) {
-        return plugin;
-      }
-    }
-    throw new Error(
-      `No transition found for transition type: ${transitionType}`,
-    );
-  };
-
-  /**
    * Apply global cursor styles to the PixiJS application
    * @param {Application} app - The PixiJS application instance
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
@@ -411,13 +380,7 @@ class RouteGraphics extends BaseRouteGraphics {
    * @param {Function} eventHandler
    * @param {Function} animateElements
    */
-  _render = async (
-    app,
-    parent,
-    prevState,
-    nextState,
-    eventHandler,
-  ) => {
+  _render = async (app, parent, prevState, nextState, eventHandler) => {
     // Apply global cursor styles if they exist and have changed
     this._applyGlobalCursorStyles(app, prevState.global, nextState.global);
 

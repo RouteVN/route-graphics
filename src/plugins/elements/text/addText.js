@@ -18,7 +18,7 @@ export const addText = async ({
   if (signal?.aborted) {
     return;
   }
-  
+
   const text = new Text({
     label: textASTNode.id,
   });

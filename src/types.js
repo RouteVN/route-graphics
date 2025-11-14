@@ -156,16 +156,12 @@
  * @typedef {Object} AnimateElementsOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
-<<<<<<< HEAD
- * @property {Object} element
- * @property {Object[]} animations
- * @property {Object} signal
-*/
-=======
- * @property {Object} displayObject
- * @property {Object[]} animations
+ * @property {SpriteASTNode} spriteASTNode
+ * @property {Object[]} transitions
+ * @param {Function} params.transitionElements
+ * @property {Function} signalAbortCb
+ * @property {AbortSignal} signal
  */
->>>>>>> main
 
 /**
  * @typedef {Object} RectASTProps

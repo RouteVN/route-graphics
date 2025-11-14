@@ -11,11 +11,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * Add text-revealing element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
  */
-export const addTextRevealing = async ({
-  parent,
-  element,
-  signal,
-}) => {
+export const addTextRevealing = async ({ parent, element, signal }) => {
   if (signal?.aborted) return;
 
   const speed = element.speed ?? 50;

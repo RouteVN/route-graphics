@@ -1,11 +1,10 @@
 import animateElements from "../../../util/animateElements.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 
-
 /**
- * 
- * @param {import("../elementPlugin.js").UpdateElementOptions} params 
- * @returns 
+ *
+ * @param {import("../elementPlugin.js").UpdateElementOptions} params
+ * @returns
  */
 export const updateText = async ({
   app,

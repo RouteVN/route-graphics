@@ -20,8 +20,10 @@ export default async function animateElements(
       const animationPlugin = animationPlugins.find(
         (p) => p.type === animation.type,
       );
-      if(!animationPlugin) {
-        throw new Error(`No animation plugin found for type: ${animation.type}`);
+      if (!animationPlugin) {
+        throw new Error(
+          `No animation plugin found for type: ${animation.type}`,
+        );
       }
       animatePromises.push(
         animationPlugin.animate({

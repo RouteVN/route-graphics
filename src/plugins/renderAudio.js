@@ -16,7 +16,10 @@ export const renderAudio = async ({
   audioPlugins,
   signal,
 }) => {
-  const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(prevAudioTree, nextAudioTree);
+  const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
+    prevAudioTree,
+    nextAudioTree,
+  );
 
   const asyncActions = [];
 

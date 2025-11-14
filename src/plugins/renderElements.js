@@ -65,7 +65,7 @@ export const renderElements = async ({
         app,
         parent,
         element,
-        animations, 
+        animations,
         eventHandler,
         signal,
         animationPlugins,
