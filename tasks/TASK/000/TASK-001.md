@@ -1,6 +1,6 @@
 ---
 title: arrow functions
-status: todo
+status: done
 priority: low
 ---
 
