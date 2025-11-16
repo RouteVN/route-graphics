@@ -7,51 +7,10 @@ import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
  */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Calculate and position indicator sprite (supports real-time updates)
- * @param {Sprite} indicatorSprite - The indicator sprite to position
- * @param {Array} completedChunks - Fully processed chunks
- * @param {Array} currentChunkParts - Current chunk parts with partially revealed text (optional)
- * @param {Object} textStyle - Default text style
- */
-const positionIndicator = (
-  indicatorSprite,
-  completedChunks,
-  currentChunkParts = [],
-  textStyle,
-) => {
-  if (!indicatorSprite) return;
-
-  // Calculate text bounds to position indicator at the end
-  let maxX = 0;
-  let maxY = 0;
-  let lineHeight = textStyle.fontSize * (textStyle.lineHeight || 1.2);
-
-  // Process completed chunks
-  completedChunks.forEach((chunk) => {
-    chunk.lineParts.forEach((part) => {
-      const partWidth = part.x + part.text.length * (textStyle.fontSize * 0.6); // Rough character width estimation
-      const partHeight = part.y + lineHeight;
-
-      if (partWidth > maxX) maxX = partWidth;
-      if (partHeight > maxY) maxY = partHeight;
-    });
-  });
-
-  // Process current chunk parts (for real-time animation)
-  currentChunkParts.forEach((part) => {
-    const partWidth = part.x + part.text.length * (textStyle.fontSize * 0.6);
-    const partHeight = part.y + lineHeight;
-
-    if (partWidth > maxX) maxX = partWidth;
-    if (partHeight > maxY) maxY = partHeight;
-  });
-
-  // Position indicator slightly to the right and bottom of text
-  indicatorSprite.x = Math.round(maxX + 10);
-  indicatorSprite.y = Math.round(maxY - indicatorSprite.height);
-};
-
+const spaceWidthBetweenWords = (textStyle)=>{
+  const spaceMetrics = TextMetrics.measureText(" ", new TextStyle(textStyle));
+  return spaceMetrics.width;
+}
 /**
  * Add text-revealing element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
@@ -61,6 +20,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
+  const indicatorGap = 5;
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
   const skipAnimations = revealEffect === "none";
@@ -73,43 +33,35 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
   const container = new Container();
   container.label = element.id;
 
+  let indicatorSprite = new Sprite(Texture.EMPTY);
+  if(element?.indicator?.revealing?.src){
+    const revealingTexture = element.indicator.revealing.src ? Texture.from(element.indicator.revealing.src) : Texture.EMPTY;
+    indicatorSprite = new Sprite(revealingTexture);
+    indicatorSprite.width = element.indicator.revealing.width ?? revealingTexture.width;
+    indicatorSprite.height = element.indicator.revealing.height ?? revealingTexture.height;
+  }
+  container.addChild(indicatorSprite);
+
   if (element.x !== undefined) container.x = Math.round(element.x);
   if (element.y !== undefined) container.y = Math.round(element.y);
   if (element.alpha !== undefined) container.alpha = element.alpha;
   // Add container to parent immediately so it's visible
   parent.addChild(container);
 
-  // Initialize indicator if specified
-  let indicatorSprite = null;
-  let isRevealing = !skipAnimations;
-  if (element.indicator) {
-    const { revealing } = element.indicator;
-    const initialTexture = revealing?.src
-      ? Texture.from(revealing.src)
-      : Texture.EMPTY;
-    indicatorSprite = new Sprite(initialTexture);
-
-    // Set dimensions if provided
-    if (revealing?.width) indicatorSprite.width = Math.round(revealing.width);
-    if (revealing?.height)
-      indicatorSprite.height = Math.round(revealing.height);
-
-    indicatorSprite.visible = isRevealing;
-    container.addChild(indicatorSprite);
-  }
-
   // Process each chunk sequentially
   for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
     if (signal?.aborted) return;
 
     const chunk = element.content[chunkIndex];
-    const currentChunkParts = [];
+    indicatorSprite.x = indicatorGap;
+    indicatorSprite.y = Math.round(chunk.y);
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
       if (signal?.aborted) return;
-
+      
       const part = chunk.lineParts[partIndex];
+      const widthSpace = spaceWidthBetweenWords(part.textStyle);
 
       // Create text objects for this part
       const textStyle = new TextStyle(part.textStyle);
@@ -143,14 +95,6 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
         if (furiganaText) {
           furiganaText.text = fullFurigana;
         }
-        // Store for final positioning
-        currentChunkParts.push({
-          ...part,
-          text: fullText,
-          furigana: part.furigana
-            ? { ...part.furigana, text: fullFurigana }
-            : undefined,
-        });
       } else {
         // Animate character by character
         const furiganaLength = fullFurigana.length;
@@ -159,35 +103,16 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
           if (signal?.aborted) return;
 
           // Add current character to text
-          const currentText = fullText.substring(0, charIndex + 1);
-          text.text = currentText;
+          text.text = fullText.substring(0, charIndex + 1);
+
+          indicatorSprite.x = part.x + widthSpace * (charIndex + 1) + indicatorGap;
 
           // Calculate how much furigana to show based on text progress
           const furiganaProgress = Math.round(
             ((charIndex + 1) / fullText.length) * furiganaLength,
           );
-          const currentFurigana = fullFurigana.substring(0, furiganaProgress);
           if (furiganaText) {
-            furiganaText.text = currentFurigana;
-          }
-
-          // Update indicator position to follow current text progress
-          if (indicatorSprite) {
-            positionIndicator(
-              indicatorSprite,
-              element.content.slice(0, chunkIndex),
-              [
-                ...currentChunkParts,
-                {
-                  ...part,
-                  text: currentText,
-                  furigana: part.furigana
-                    ? { ...part.furigana, text: currentFurigana }
-                    : undefined,
-                },
-              ],
-              element.textStyle || {},
-            );
+            furiganaText.text = fullFurigana.substring(0, furiganaProgress);
           }
 
           // Wait before adding next character
@@ -196,15 +121,6 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
             await sleep(charDelay);
           }
         }
-
-        // Store completed part for next iteration
-        currentChunkParts.push({
-          ...part,
-          text: fullText,
-          furigana: part.furigana
-            ? { ...part.furigana, text: fullFurigana }
-            : undefined,
-        });
       }
     }
 
@@ -212,34 +128,12 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
     if (chunkIndex < element.content.length - 1) {
       await sleep(chunkDelay);
     }
-  }
 
-  // Position and update indicator after all text is revealed
-  if (indicatorSprite && element.indicator) {
-    // Position the indicator relative to the final text layout
-    positionIndicator(
-      indicatorSprite,
-      element.content,
-      [],
-      element.textStyle || {},
-    );
-
-    // Update to finished state if complete texture is available
-    if (element.indicator.complete?.src) {
-      indicatorSprite.texture = Texture.from(element.indicator.complete.src);
-
-      // Update dimensions for complete state if provided
-      if (element.indicator.complete.width) {
-        indicatorSprite.width = Math.round(element.indicator.complete.width);
-      }
-      if (element.indicator.complete.height) {
-        indicatorSprite.height = Math.round(element.indicator.complete.height);
-      }
-    }
-
-    // Hide indicator if animations are skipped
-    if (skipAnimations) {
-      indicatorSprite.visible = false;
+    if(element?.indicator?.complete?.src){
+      const completeTexture = element.indicator.complete.src ? Texture.from(element.indicator.complete.src) : Texture.EMPTY;
+      indicatorSprite.texture = completeTexture;
+      indicatorSprite.width = element.indicator.complete.width ?? completeTexture.width;
+      indicatorSprite.height = element.indicator.complete.height ?? completeTexture.height;
     }
   }
 };

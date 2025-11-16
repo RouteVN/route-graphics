@@ -123,12 +123,26 @@ properties:
     type: object
     description: Settings for the text continuation indicator
     properties:
-      revealingSrc:
-        type: string
-        description: Source of the indicator image while text is revealing
-      finishedSrc:
-        type: string
-        description: Source of the indicator image when text revealing is finished
+      revealing:
+        src:
+          type: string
+          description: Source of the indicator image while text is revealing
+        width:
+          type: number
+          description: Width of the indicator image
+        height:
+          type: number
+        description: Height of the indicator image
+      complete:
+        src:
+          type: string
+          description: Source of the indicator image when text revealing is finished
+        width:
+          type: number
+          description: Width of the indicator image
+        height:
+          type: number
+          description: Height of the indicator image
   textStyle:
     "$ref": "#/$def/textStyle"
   speed:
