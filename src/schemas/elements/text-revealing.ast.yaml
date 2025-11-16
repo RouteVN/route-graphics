@@ -119,6 +119,16 @@ properties:
     description: Opacity/transparency of the text (0-1)
     minimum: 0
     maximum: 1
+  indicator:
+    type: object
+    description: Settings for the text continuation indicator
+    properties:
+      revealingSrc:
+        type: string
+        description: Source of the indicator image while text is revealing
+      finishedSrc:
+        type: string
+        description: Source of the indicator image when text revealing is finished
   textStyle:
     "$ref": "#/$def/textStyle"
   speed:

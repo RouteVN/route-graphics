@@ -243,6 +243,22 @@ export const parseTextRevealing = (state) => {
 
   astObj.alpha = state.alpha ?? 1;
 
+  if (state.indicator) {
+    const indicator = state.indicator;
+    astObj.indicator = {
+      revealing: {
+        src: indicator.revealing?.src ?? "",
+        width: indicator.revealing?.width ?? 12,
+        height: indicator.revealing?.height ?? 12,
+      },
+      complete: {
+        src: indicator.complete?.src ?? "",
+        width: indicator.complete?.width ?? 12,
+        height: indicator.complete?.height ?? 12,
+      },
+    };
+  }
+
   return {
     ...astObj,
     content: chunks,

@@ -223,6 +223,15 @@
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {Object} [indicator] - Settings for the text continuation indicator
+ * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
+ * @property {string} [indicator.revealing.src] - Source of the indicator image while text is revealing
+ * @property {number} [indicator.revealing.width] - Width of the indicator image while revealing
+ * @property {number} [indicator.revealing.height] - Height of the indicator image while revealing
+ * @property {Object} [indicator.complete] - Settings for the complete state indicator
+ * @property {string} [indicator.complete.src] - Source of the indicator image when text revealing is finished
+ * @property {number} [indicator.complete.width] - Width of the indicator image when complete
+ * @property {number} [indicator.complete.height] - Height of the indicator image when complete
  * @property {'typewriter' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = normal animation, none = skip animation)
  * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
  */
