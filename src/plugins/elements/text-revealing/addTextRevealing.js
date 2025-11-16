@@ -1,4 +1,11 @@
-import { Text, TextStyle, Container, Sprite, Texture, CanvasTextMetrics } from "pixi.js";
+import {
+  Text,
+  TextStyle,
+  Container,
+  Sprite,
+  Texture,
+  CanvasTextMetrics,
+} from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 
 /**
@@ -31,11 +38,15 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
   container.label = element.id;
 
   let indicatorSprite = new Sprite(Texture.EMPTY);
-  if(element?.indicator?.revealing?.src){
-    const revealingTexture = element.indicator.revealing.src ? Texture.from(element.indicator.revealing.src) : Texture.EMPTY;
+  if (element?.indicator?.revealing?.src) {
+    const revealingTexture = element.indicator.revealing.src
+      ? Texture.from(element.indicator.revealing.src)
+      : Texture.EMPTY;
     indicatorSprite = new Sprite(revealingTexture);
-    indicatorSprite.width = element.indicator.revealing.width ?? revealingTexture.width;
-    indicatorSprite.height = element.indicator.revealing.height ?? revealingTexture.height;
+    indicatorSprite.width =
+      element.indicator.revealing.width ?? revealingTexture.width;
+    indicatorSprite.height =
+      element.indicator.revealing.height ?? revealingTexture.height;
   }
   container.addChild(indicatorSprite);
 
@@ -49,11 +60,11 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
   for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
     const chunk = element.content[chunkIndex];
     indicatorSprite.x = indicatorGap;
-    indicatorSprite.y = chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
+    indicatorSprite.y =
+      chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
-      
       const part = chunk.lineParts[partIndex];
 
       // Create text objects for this part
@@ -85,7 +96,9 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
       if (skipAnimations || signal?.aborted) {
         text.text = fullText;
-        indicatorSprite.x = getCharacterXPositionInATextObject(text, fullText.length - 1) + indicatorGap;
+        indicatorSprite.x =
+          getCharacterXPositionInATextObject(text, fullText.length - 1) +
+          indicatorGap;
         if (furiganaText) {
           furiganaText.text = fullFurigana;
         }
@@ -99,7 +112,8 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
           // Add current character to text
           text.text = fullText.substring(0, charIndex + 1);
 
-          indicatorSprite.x = getCharacterXPositionInATextObject(text, charIndex) + indicatorGap;
+          indicatorSprite.x =
+            getCharacterXPositionInATextObject(text, charIndex) + indicatorGap;
 
           // Calculate how much furigana to show based on text progress
           const furiganaProgress = Math.round(
@@ -123,10 +137,14 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
       await sleep(chunkDelay);
     }
   }
-  if(element?.indicator?.complete?.src){
-    const completeTexture = element.indicator.complete.src ? Texture.from(element.indicator.complete.src) : Texture.EMPTY;
+  if (element?.indicator?.complete?.src) {
+    const completeTexture = element.indicator.complete.src
+      ? Texture.from(element.indicator.complete.src)
+      : Texture.EMPTY;
     indicatorSprite.texture = completeTexture;
-    indicatorSprite.width = element.indicator.complete.width ?? completeTexture.width;
-    indicatorSprite.height = element.indicator.complete.height ?? completeTexture.height;
+    indicatorSprite.width =
+      element.indicator.complete.width ?? completeTexture.width;
+    indicatorSprite.height =
+      element.indicator.complete.height ?? completeTexture.height;
   }
 };

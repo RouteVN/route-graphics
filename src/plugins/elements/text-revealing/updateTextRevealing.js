@@ -34,11 +34,15 @@ export const updateTextRevealing = async (params) => {
     textRevealingElement.removeChildren();
 
     let indicatorSprite = new Sprite(Texture.EMPTY);
-    if(element?.indicator?.revealing?.src){
-      const revealingTexture = element.indicator.revealing.src ? Texture.from(element.indicator.revealing.src) : Texture.EMPTY;
+    if (element?.indicator?.revealing?.src) {
+      const revealingTexture = element.indicator.revealing.src
+        ? Texture.from(element.indicator.revealing.src)
+        : Texture.EMPTY;
       indicatorSprite = new Sprite(revealingTexture);
-      indicatorSprite.width = element.indicator.revealing.width ?? revealingTexture.width;
-      indicatorSprite.height = element.indicator.revealing.height ?? revealingTexture.height;
+      indicatorSprite.width =
+        element.indicator.revealing.width ?? revealingTexture.width;
+      indicatorSprite.height =
+        element.indicator.revealing.height ?? revealingTexture.height;
     }
     textRevealingElement.addChild(indicatorSprite);
 
@@ -54,7 +58,8 @@ export const updateTextRevealing = async (params) => {
     ) {
       const chunk = element.content[chunkIndex];
       indicatorSprite.x = indicatorGap;
-      indicatorSprite.y = chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
+      indicatorSprite.y =
+        chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
       // Process each line part in the chunk
       for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
@@ -90,7 +95,9 @@ export const updateTextRevealing = async (params) => {
 
         if (skipAnimations || signal?.aborted) {
           text.text = fullText;
-          indicatorSprite.x = getCharacterXPositionInATextObject(text, fullText.length - 1) + indicatorGap;
+          indicatorSprite.x =
+            getCharacterXPositionInATextObject(text, fullText.length - 1) +
+            indicatorGap;
           if (furiganaText) {
             furiganaText.text = fullFurigana;
           }
@@ -102,7 +109,9 @@ export const updateTextRevealing = async (params) => {
             // Add current character to text
             text.text = fullText.substring(0, charIndex + 1);
 
-            indicatorSprite.x = getCharacterXPositionInATextObject(text, charIndex) + indicatorGap;
+            indicatorSprite.x =
+              getCharacterXPositionInATextObject(text, charIndex) +
+              indicatorGap;
 
             // Calculate how much furigana to show based on text progress
             const furiganaProgress = Math.round(
@@ -127,11 +136,15 @@ export const updateTextRevealing = async (params) => {
       }
     }
 
-    if(element?.indicator?.complete?.src){
-      const completeTexture = element.indicator.complete.src ? Texture.from(element.indicator.complete.src) : Texture.EMPTY;
+    if (element?.indicator?.complete?.src) {
+      const completeTexture = element.indicator.complete.src
+        ? Texture.from(element.indicator.complete.src)
+        : Texture.EMPTY;
       indicatorSprite.texture = completeTexture;
-      indicatorSprite.width = element.indicator.complete.width ?? completeTexture.width;
-      indicatorSprite.height = element.indicator.complete.height ?? completeTexture.height;
+      indicatorSprite.width =
+        element.indicator.complete.width ?? completeTexture.width;
+      indicatorSprite.height =
+        element.indicator.complete.height ?? completeTexture.height;
     }
   }
 };
