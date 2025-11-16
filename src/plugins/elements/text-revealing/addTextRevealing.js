@@ -1,4 +1,4 @@
-import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
+import { Text, TextStyle, Container, Sprite, Texture, CanvasTextMetrics } from "pixi.js";
 
 /**
  * Sleep utility for delays
@@ -7,10 +7,28 @@ import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
  */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const spaceWidthBetweenWords = (textStyle)=>{
-  const spaceMetrics = TextMetrics.measureText(" ", new TextStyle(textStyle));
-  return spaceMetrics.width;
+function getCharacterXPositionInATextObject(textObj, index) {
+    // If the index is out of bounds, return the text object's x position or handle as needed
+    if (index < 0 || index >= textObj.text.length) {
+        return textObj.x;
+    }
+
+    // Get the substring up to the target character
+    const subString = textObj.text.substring(0, index);
+
+    // Measure the width of the substring using TextMetrics
+    // We need to use the same style as the text object
+    const metrics = CanvasTextMetrics.measureText(subString, textObj.style);
+
+    // The width of the substring gives the local x offset of the character
+    const characterLocalX = metrics.width;
+
+    // To get the global x position, add the text object's x position
+    const characterGlobalX = textObj.x + characterLocalX;
+
+    return characterGlobalX;
 }
+
 /**
  * Add text-revealing element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
@@ -20,7 +38,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
-  const indicatorGap = 5;
+  const indicatorGap = 16;
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
   const skipAnimations = revealEffect === "none";
@@ -61,7 +79,6 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
       if (signal?.aborted) return;
       
       const part = chunk.lineParts[partIndex];
-      const widthSpace = spaceWidthBetweenWords(part.textStyle);
 
       // Create text objects for this part
       const textStyle = new TextStyle(part.textStyle);
@@ -105,7 +122,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
           // Add current character to text
           text.text = fullText.substring(0, charIndex + 1);
 
-          indicatorSprite.x = part.x + widthSpace * (charIndex + 1) + indicatorGap;
+          indicatorSprite.x = getCharacterXPositionInATextObject(text, charIndex) + indicatorGap;
 
           // Calculate how much furigana to show based on text progress
           const furiganaProgress = Math.round(
@@ -128,12 +145,11 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
     if (chunkIndex < element.content.length - 1) {
       await sleep(chunkDelay);
     }
-
-    if(element?.indicator?.complete?.src){
-      const completeTexture = element.indicator.complete.src ? Texture.from(element.indicator.complete.src) : Texture.EMPTY;
-      indicatorSprite.texture = completeTexture;
-      indicatorSprite.width = element.indicator.complete.width ?? completeTexture.width;
-      indicatorSprite.height = element.indicator.complete.height ?? completeTexture.height;
-    }
+  }
+  if(element?.indicator?.complete?.src){
+    const completeTexture = element.indicator.complete.src ? Texture.from(element.indicator.complete.src) : Texture.EMPTY;
+    indicatorSprite.texture = completeTexture;
+    indicatorSprite.width = element.indicator.complete.width ?? completeTexture.width;
+    indicatorSprite.height = element.indicator.complete.height ?? completeTexture.height;
   }
 };
