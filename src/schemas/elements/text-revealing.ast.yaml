@@ -143,6 +143,10 @@ properties:
         height:
           type: number
           description: Height of the indicator image
+      gap:
+        type: number
+        description: Gap between the text and the indicator
+        default: 10
   textStyle:
     "$ref": "#/$def/textStyle"
   speed:

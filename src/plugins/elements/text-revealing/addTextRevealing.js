@@ -1,4 +1,5 @@
 import { Text, TextStyle, Container, Sprite, Texture, CanvasTextMetrics } from "pixi.js";
+import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 
 /**
  * Sleep utility for delays
@@ -6,28 +7,6 @@ import { Text, TextStyle, Container, Sprite, Texture, CanvasTextMetrics } from "
  * @returns {Promise} Promise that resolves after delay
  */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function getCharacterXPositionInATextObject(textObj, index) {
-    // If the index is out of bounds, return the text object's x position or handle as needed
-    if (index < 0 || index >= textObj.text.length) {
-        return textObj.x;
-    }
-
-    // Get the substring up to the target character
-    const subString = textObj.text.substring(0, index);
-
-    // Measure the width of the substring using TextMetrics
-    // We need to use the same style as the text object
-    const metrics = CanvasTextMetrics.measureText(subString, textObj.style);
-
-    // The width of the substring gives the local x offset of the character
-    const characterLocalX = metrics.width;
-
-    // To get the global x position, add the text object's x position
-    const characterGlobalX = textObj.x + characterLocalX;
-
-    return characterGlobalX;
-}
 
 /**
  * Add text-revealing element to the stage
@@ -38,7 +17,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
-  const indicatorGap = 16;
+  const indicatorGap = element?.indicator?.gap ?? 10;
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
   const skipAnimations = revealEffect === "none";
@@ -68,15 +47,12 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
   // Process each chunk sequentially
   for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
-    if (signal?.aborted) return;
-
     const chunk = element.content[chunkIndex];
     indicatorSprite.x = indicatorGap;
-    indicatorSprite.y = Math.round(chunk.y);
+    indicatorSprite.y = chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
-      if (signal?.aborted) return;
       
       const part = chunk.lineParts[partIndex];
 
@@ -107,8 +83,9 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
 
-      if (skipAnimations) {
+      if (skipAnimations || signal?.aborted) {
         text.text = fullText;
+        indicatorSprite.x = getCharacterXPositionInATextObject(text, fullText.length - 1) + indicatorGap;
         if (furiganaText) {
           furiganaText.text = fullFurigana;
         }

@@ -45,14 +45,14 @@ states:
               fontFamily: "Arial"
           - text: " character by character"
             textStyle:
-              fontSize: 20
+              fontSize: 28
               fill: "#e74c3c"
               fontFamily: "Georgia"
             furigana:
               text: "animation"
               textStyle:
                 fontSize: 12
-                fill: "#f39c12"
+                fill: "violet"
                 fontFamily: "Arial"
         x: 50
         y: 50
@@ -63,14 +63,24 @@ states:
       - id: 'text-revealing-animate'
         type: "text-revealing"
         content:
-          - text: "Now this skips animation"
+          - text: "Now this text is going to skip animation."
             textStyle:
               fontSize: 24
               fill: "#e67e22"
               fontFamily: "Arial"
+          - text: "This part also appears immediately."
+            textStyle:
+              fontSize: 12
+              fill: "white"
+              fontFamily: "Arial"
+          - text: "This part too."
+            textStyle:
+              fontSize: 30
+              fill: "pink"
+              fontFamily: "Arial"
         x: 50
         y: 50
-        width: 400
+        width: 200
         alpha: 1
         speed: 30
         revealEffect: none

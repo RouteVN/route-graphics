@@ -71,9 +71,10 @@ states:
         indicator:
           revealing:
             src: "circle-red"
-            width: 20
-            height: 20
+            width: 14
+            height: 14
           complete:
             src: "circle-green"
-            width: 20
-            height: 20
+            width: 14
+            height: 14
+          gap: 14
