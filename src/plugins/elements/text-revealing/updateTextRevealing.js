@@ -1,4 +1,5 @@
-import { Text, TextStyle } from "pixi.js";
+import { Sprite, Text, TextStyle, Texture } from "pixi.js";
+import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 
 /**
  * Sleep utility for delays
@@ -16,6 +17,7 @@ export const updateTextRevealing = async (params) => {
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
+  const indicatorOffset = element?.indicator?.offset ?? 12;
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
   const skipAnimations = revealEffect === "none";
@@ -31,6 +33,19 @@ export const updateTextRevealing = async (params) => {
   if (textRevealingElement) {
     textRevealingElement.removeChildren();
 
+    let indicatorSprite = new Sprite(Texture.EMPTY);
+    if (element?.indicator?.revealing?.src) {
+      const revealingTexture = element.indicator.revealing.src
+        ? Texture.from(element.indicator.revealing.src)
+        : Texture.EMPTY;
+      indicatorSprite = new Sprite(revealingTexture);
+      indicatorSprite.width =
+        element.indicator.revealing.width ?? revealingTexture.width;
+      indicatorSprite.height =
+        element.indicator.revealing.height ?? revealingTexture.height;
+    }
+    textRevealingElement.addChild(indicatorSprite);
+
     if (element.x !== undefined) textRevealingElement.x = element.x;
     if (element.y !== undefined) textRevealingElement.y = element.y;
     if (element.alpha !== undefined) textRevealingElement.alpha = element.alpha;
@@ -41,9 +56,10 @@ export const updateTextRevealing = async (params) => {
       chunkIndex < element.content.length;
       chunkIndex++
     ) {
-      if (signal?.aborted) return;
-
       const chunk = element.content[chunkIndex];
+      indicatorSprite.x = indicatorOffset;
+      indicatorSprite.y =
+        chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
       // Process each line part in the chunk
       for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
@@ -77,8 +93,11 @@ export const updateTextRevealing = async (params) => {
         const fullText = part.text;
         const fullFurigana = part.furigana?.text || "";
 
-        if (skipAnimations) {
+        if (skipAnimations || signal?.aborted) {
           text.text = fullText;
+          indicatorSprite.x =
+            getCharacterXPositionInATextObject(text, fullText.length - 1) +
+            indicatorOffset;
           if (furiganaText) {
             furiganaText.text = fullFurigana;
           }
@@ -87,10 +106,12 @@ export const updateTextRevealing = async (params) => {
           const furiganaLength = fullFurigana.length;
 
           for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
-            if (signal?.aborted) return;
-
             // Add current character to text
             text.text = fullText.substring(0, charIndex + 1);
+
+            indicatorSprite.x =
+              getCharacterXPositionInATextObject(text, charIndex) +
+              indicatorOffset;
 
             // Calculate how much furigana to show based on text progress
             const furiganaProgress = Math.round(
@@ -113,6 +134,17 @@ export const updateTextRevealing = async (params) => {
       if (chunkIndex < element.content.length - 1) {
         await sleep(chunkDelay);
       }
+    }
+
+    if (element?.indicator?.complete?.src) {
+      const completeTexture = element.indicator.complete.src
+        ? Texture.from(element.indicator.complete.src)
+        : Texture.EMPTY;
+      indicatorSprite.texture = completeTexture;
+      indicatorSprite.width =
+        element.indicator.complete.width ?? completeTexture.width;
+      indicatorSprite.height =
+        element.indicator.complete.height ?? completeTexture.height;
     }
   }
 };

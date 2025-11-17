@@ -243,3 +243,124 @@ out:
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+---
+case: Test parsing text-revealing with indicator props
+in:
+  - id: 'tr5'
+    type: "text-revealing"
+    content:
+      - text: "Text with indicator"
+    x: 100
+    y: 100
+    indicator:
+      revealing:
+        src: "arrow-right"
+        width: 12
+        height: 12
+      complete:
+        src: "checkmark"
+        width: 14
+        height: 14
+      offset: 8
+out:
+  id: "tr5"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "Text with indicator"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            wordWrapWidth: 500
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: typewriter
+  indicator:
+    revealing:
+      src: "arrow-right"
+      width: 12
+      height: 12
+    complete:
+      src: "checkmark"
+      width: 14
+      height: 14
+    offset: 8
+  textStyle:
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Roboto"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+---
+case: Test parsing text-revealing with indicator default values
+in:
+  - id: 'tr6'
+    type: "text-revealing"
+    content:
+      - text: "Text with indicator defaults"
+    x: 50
+    y: 50
+    indicator:
+      revealing:
+        src: "circle-blue"
+      complete:
+        src: "circle-green"
+out:
+  id: "tr6"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "Text with indicator defaults"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Roboto"
+            align: "left"
+            lineHeight: 1.2
+            wordWrap: true
+            wordWrapWidth: 500
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 50
+  y: 50
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: typewriter
+  indicator:
+    revealing:
+      height: 12
+      width: 12
+      src: "circle-blue"
+    complete:
+      height: 12
+      width: 12
+      src: "circle-green"
+    offset: 12
+  textStyle:
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Roboto"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
