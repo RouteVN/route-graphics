@@ -119,10 +119,10 @@ properties:
         height:
           type: number
           description: Height of the indicator image
-      gap:
+      offset:
         type: number
-        description: Gap between the text and the indicator
-        default: 10
+        description: Offset between the text and the indicator
+        default: 12
   speed:
     type: number
     description: Animation speed for text revealing

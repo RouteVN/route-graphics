@@ -256,7 +256,7 @@ export const parseTextRevealing = (state) => {
         width: indicator.complete?.width ?? 12,
         height: indicator.complete?.height ?? 12,
       },
-      gap: indicator.gap ?? 10,
+      offset: indicator.offset ?? 12,
     };
   }
 

@@ -17,7 +17,7 @@ export const updateTextRevealing = async (params) => {
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
-  const indicatorGap = element?.indicator?.gap ?? 10;
+  const indicatorOffset = element?.indicator?.offset ?? 12;
 
   // Calculate delays based on speed (inverse relationship - higher speed = shorter delay)
   const skipAnimations = revealEffect === "none";
@@ -57,7 +57,7 @@ export const updateTextRevealing = async (params) => {
       chunkIndex++
     ) {
       const chunk = element.content[chunkIndex];
-      indicatorSprite.x = indicatorGap;
+      indicatorSprite.x = indicatorOffset;
       indicatorSprite.y =
         chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
@@ -97,7 +97,7 @@ export const updateTextRevealing = async (params) => {
           text.text = fullText;
           indicatorSprite.x =
             getCharacterXPositionInATextObject(text, fullText.length - 1) +
-            indicatorGap;
+            indicatorOffset;
           if (furiganaText) {
             furiganaText.text = fullFurigana;
           }
@@ -111,7 +111,7 @@ export const updateTextRevealing = async (params) => {
 
             indicatorSprite.x =
               getCharacterXPositionInATextObject(text, charIndex) +
-              indicatorGap;
+              indicatorOffset;
 
             // Calculate how much furigana to show based on text progress
             const furiganaProgress = Math.round(
