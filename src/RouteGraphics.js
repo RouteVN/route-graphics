@@ -244,15 +244,15 @@ const createRouteGraphics = () => {
       return app.ticker;
     },
 
-    get appStage(){
+    get appStage() {
       return app.stage;
     },
 
-    get appRenderer(){
+    get appRenderer() {
       return app.renderer;
     },
-    
-    get appStage(){
+
+    get appStage() {
       return app.stage;
     },
 
