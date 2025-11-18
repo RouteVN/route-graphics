@@ -256,7 +256,7 @@ const createRouteGraphics = () => {
       return null;
     },
 
-    extractBase64: async (element) =>{
+    extractBase64: async (element) => {
       await app.renderer.extract.base64(element);
     },
 
@@ -264,7 +264,6 @@ const createRouteGraphics = () => {
       app.stage.eventMode = "static";
       app.stage.on(eventType, callback);
     },
-
 
     /**
      *
