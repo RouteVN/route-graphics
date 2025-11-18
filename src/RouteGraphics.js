@@ -240,6 +240,10 @@ const createRouteGraphics = () => {
       return app.canvas;
     },
 
+    get app() {
+      return app;
+    },
+
     /**
      *
      * @param {RouteGraphicsInitOptions} options
