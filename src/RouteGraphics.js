@@ -244,17 +244,27 @@ const createRouteGraphics = () => {
       return app.ticker;
     },
 
-    get stage() {
-      return app.stage;
+    findElementByLabel: (targetLabel) => {
+      if (app.stage.children && app.stage.children.length > 0) {
+        for (const child of app.stage.children) {
+          const found = findElementByLabel(child, targetLabel);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
     },
 
-    get renderer() {
-      return app.renderer;
+    extractBase64: async (element) =>{
+      await app.renderer.extract.base64(element);
     },
 
-    get stage() {
-      return app.stage;
+    assignStageEvent: (eventType, callback) => {
+      app.stage.eventMode = "static";
+      app.stage.on(eventType, callback);
     },
+
 
     /**
      *
