@@ -240,19 +240,19 @@ const createRouteGraphics = () => {
       return app.canvas;
     },
 
-    get appTicker() {
+    get ticker() {
       return app.ticker;
     },
 
-    get appStage() {
+    get stage() {
       return app.stage;
     },
 
-    get appRenderer() {
+    get renderer() {
       return app.renderer;
     },
 
-    get appStage() {
+    get stage() {
       return app.stage;
     },
 
