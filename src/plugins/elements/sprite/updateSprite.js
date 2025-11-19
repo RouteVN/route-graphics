@@ -47,12 +47,12 @@ export const updateSprite = async ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
 
-      if (eventHandler && hoverEvents) {
+      if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
         spriteElement.eventMode = "static";
 
         const overListener = () => {
-          if (actionPayload)
+          if (actionPayload && eventHandler)
             eventHandler(`${spriteElement.label}-pointer-over`, {
               _event: {
                 id: spriteElement.label,
@@ -85,7 +85,7 @@ export const updateSprite = async ({
         spriteElement.on("pointerout", outListener);
       }
 
-      if (eventHandler && clickEvents) {
+      if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         spriteElement.eventMode = "static";
 
@@ -103,7 +103,7 @@ export const updateSprite = async ({
             ? Texture.from(nextElement.src)
             : Texture.EMPTY;
 
-          if (actionPayload)
+          if (actionPayload && eventHandler)
             eventHandler(`${spriteElement.label}-click`, {
               _event: {
                 id: spriteElement.label,
