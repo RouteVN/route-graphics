@@ -38,13 +38,14 @@ export const addSprite = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
-
-  if (eventHandler && hoverEvents) {
+  console.log("Adding sprite with hover events:", hoverEvents);
+  console.log("Adding sprite with click events:", clickEvents);
+  if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
     sprite.eventMode = "static";
 
     const overListener = () => {
-      if (actionPayload)
+      if (actionPayload && eventHandler)
         eventHandler(`${sprite.label}-pointer-over`, {
           _event: {
             id: sprite.label,
@@ -75,7 +76,7 @@ export const addSprite = async ({
     sprite.on("pointerout", outListener);
   }
 
-  if (eventHandler && clickEvents) {
+  if (clickEvents) {
     const { soundSrc, actionPayload } = clickEvents;
     sprite.eventMode = "static";
 
@@ -90,7 +91,7 @@ export const addSprite = async ({
 
     const releaseListener = () => {
       sprite.texture = texture;
-      if (actionPayload)
+      if (actionPayload && eventHandler)
         eventHandler(`${sprite.label}-click`, {
           _event: {
             id: sprite.label,
