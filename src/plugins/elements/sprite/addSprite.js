@@ -1,4 +1,4 @@
-import { Sprite, Texture } from "pixi.js";
+import { Assets, Sprite, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 
 /**

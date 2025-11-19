@@ -48,7 +48,9 @@ const createAdvancedBufferLoader = (bufferMap) => ({
     return output;
   },
 
-  testParse: async (asset) => true,
+  test: async (_) => true,
+
+  testParse: async (_) => true,
 
   parse: async (asset) => {
     // If asset is already a Texture, return it directly
@@ -291,6 +293,7 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
+        preference: 'webgl',
       });
 
       const graphics = new Graphics();
