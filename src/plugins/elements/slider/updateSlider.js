@@ -181,7 +181,7 @@ export const updateSlider = async ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (dragStart?.actionPayload) {
+            if (dragStart?.actionPayload && eventHandler) {
               eventHandler(`${nextSliderASTNode.id}-drag-start`, {
                 _event: { id: nextSliderASTNode.id },
                 value: currentValue,
@@ -201,7 +201,7 @@ export const updateSlider = async ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (drag?.actionPayload) {
+            if (drag?.actionPayload && eventHandler) {
               eventHandler(`${nextSliderASTNode.id}-drag`, {
                 _event: { id: nextSliderASTNode.id },
                 value: currentValue,
@@ -216,7 +216,7 @@ export const updateSlider = async ({
           if (isDragging) {
             isDragging = false;
 
-            if (dragEnd?.actionPayload) {
+            if (dragEnd?.actionPayload && eventHandler) {
               eventHandler(`${nextSliderASTNode.id}-drag-end`, {
                 _event: { id: nextSliderASTNode.id },
                 value: currentValue,

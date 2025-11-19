@@ -37,12 +37,12 @@ export const addText = async ({
   const hoverEvents = textASTNode?.hover;
   const clickEvents = textASTNode?.click;
 
-  if (eventHandler && hoverEvents) {
+  if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
     text.eventMode = "static";
 
     const overListener = () => {
-      if (actionPayload)
+      if (actionPayload && eventHandler)
         eventHandler(`${text.label}-pointer-over`, {
           _event: {
             id: text.label,
@@ -68,7 +68,7 @@ export const addText = async ({
     text.on("pointerout", outListener);
   }
 
-  if (eventHandler && clickEvents) {
+  if (clickEvents) {
     const { soundSrc, actionPayload } = clickEvents;
     text.eventMode = "static";
 
@@ -82,7 +82,7 @@ export const addText = async ({
       applyTextStyle(text, textASTNode.textStyle);
 
       // Trigger event and sound on pointerup
-      if (actionPayload)
+      if (actionPayload && eventHandler)
         eventHandler(`${text.label}-click`, {
           _event: {
             id: text.label,

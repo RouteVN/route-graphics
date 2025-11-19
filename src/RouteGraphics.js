@@ -48,7 +48,9 @@ const createAdvancedBufferLoader = (bufferMap) => ({
     return output;
   },
 
-  testParse: async (asset) => true,
+  test: async (_) => true,
+
+  testParse: async (_) => true,
 
   parse: async (asset) => {
     // If asset is already a Texture, return it directly
@@ -240,6 +242,31 @@ const createRouteGraphics = () => {
       return app.canvas;
     },
 
+    get ticker() {
+      return app.ticker;
+    },
+
+    findElementByLabel: (targetLabel) => {
+      if (app.stage.children && app.stage.children.length > 0) {
+        for (const child of app.stage.children) {
+          const found = findElementByLabel(child, targetLabel);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    },
+
+    extractBase64: async (element) => {
+      await app.renderer.extract.base64(element);
+    },
+
+    assignStageEvent: (eventType, callback) => {
+      app.stage.eventMode = "static";
+      app.stage.on(eventType, callback);
+    },
+
     /**
      *
      * @param {RouteGraphicsInitOptions} options
@@ -266,6 +293,7 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
+        preference: "webgl",
       });
 
       const graphics = new Graphics();

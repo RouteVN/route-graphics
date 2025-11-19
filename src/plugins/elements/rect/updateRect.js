@@ -53,12 +53,12 @@ export const updateRect = async ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
 
-      if (eventHandler && hoverEvents) {
+      if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
         rectElement.eventMode = "static";
 
         const overListener = () => {
-          if (actionPayload)
+          if (actionPayload && eventHandler)
             eventHandler(`${rectElement.label}-pointer-over`, {
               _event: {
                 id: rectElement.label,
@@ -82,12 +82,12 @@ export const updateRect = async ({
         rectElement.on("pointerout", outListener);
       }
 
-      if (eventHandler && clickEvents) {
+      if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         rectElement.eventMode = "static";
 
         const clickListener = () => {
-          if (actionPayload)
+          if (actionPayload && eventHandler)
             eventHandler(`${rectElement.label}-click`, {
               _event: {
                 id: rectElement.label,
