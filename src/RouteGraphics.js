@@ -242,10 +242,6 @@ const createRouteGraphics = () => {
       return app.canvas;
     },
 
-    get ticker() {
-      return app.ticker;
-    },
-
     findElementByLabel: (targetLabel) => {
       if (app.stage.children && app.stage.children.length > 0) {
         for (const child of app.stage.children) {
