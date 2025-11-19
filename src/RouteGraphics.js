@@ -293,7 +293,7 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
-        preference: 'webgl',
+        preference: "webgl",
       });
 
       const graphics = new Graphics();
