@@ -6,6 +6,11 @@ specs:
   - "Furigana should appear above parent text"
   - "Text should wrap properly within width constraint"
   - "Different font sizes and colors should be preserved"
+steps:
+  - wait 14000
+  - screenshot
+  - wait 14000
+  - screenshot
 ---
 states:
   - elements:

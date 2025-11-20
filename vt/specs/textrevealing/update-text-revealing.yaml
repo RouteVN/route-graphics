@@ -7,6 +7,12 @@ specs:
   - "Text style should update properly"
   - "Speed property should affect animation timing"
   - "Width constraint should be respected after update"
+steps:
+  - wait 2000
+  - screenshot
+  - keypress n
+  - wait 5000
+  - screenshot
 ---
 states:
   - elements:

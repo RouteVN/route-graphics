@@ -5,6 +5,12 @@ specs:
   - "sprite should scale from 0 to 1 on both axes"
   - "sprite should appear to grow from center"
   - "animation should take 1.2 seconds"
+steps:
+  - keypress n
+  - wait 600
+  - screenshot
+  - wait 600
+  - screenshot
 ---
 states:
   - elements: []

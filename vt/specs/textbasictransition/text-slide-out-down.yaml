@@ -5,6 +5,12 @@ specs:
   - "text should slide from y: 200 to y: 600"
   - "text should fade out while sliding"
   - "animation should complete in 800ms"
+steps:
+  - keypress n
+  - wait 400
+  - screenshot
+  - wait 400
+  - screenshot
 ---
 states:
   - elements:

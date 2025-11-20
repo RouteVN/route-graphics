@@ -5,6 +5,15 @@ specs:
   - "hover src should work"
   - "click src should work"
   - "both events can have different src values"
+steps:
+  - move 220 175
+  - screenshot
+  - click
+  - screenshot
+  - move 520 175
+  - screenshot
+  - click
+  - screenshot
 ---
 states:
   - elements:

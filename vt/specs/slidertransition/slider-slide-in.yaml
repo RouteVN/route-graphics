@@ -6,6 +6,12 @@ specs:
   - "animation should take 1 second"
   - "slider should maintain normal alpha during slide"
   - "thumb should remain correctly positioned on bar"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements: []

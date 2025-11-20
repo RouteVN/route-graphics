@@ -5,6 +5,12 @@ specs:
   - "container should scale from 1 to 0 on both axes"
   - "children should scale down with container"
   - "animation should take 800ms"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 1100
+  - screenshot
 ---
 states:
   - elements:

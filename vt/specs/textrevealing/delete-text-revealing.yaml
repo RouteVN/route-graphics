@@ -6,6 +6,11 @@ specs:
   - "Second text-revealing element should remain visible"
   - "Other element types should remain unaffected"
   - "Container should update properly after deletion"
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

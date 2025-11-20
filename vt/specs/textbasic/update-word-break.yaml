@@ -1,5 +1,10 @@
 ---
 title: Update Word Break Settings
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

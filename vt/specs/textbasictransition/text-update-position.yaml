@@ -5,6 +5,12 @@ specs:
   - "text should move from (100, 100) to (400, 300)"
   - "text content remains the same"
   - "animation should take 1 second"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements:

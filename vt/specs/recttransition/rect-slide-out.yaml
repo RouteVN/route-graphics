@@ -5,6 +5,12 @@ specs:
   - "rect should slide from current position to x: 800"
   - "rect should fade out simultaneously"
   - "both animations should complete in 1 second"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements:

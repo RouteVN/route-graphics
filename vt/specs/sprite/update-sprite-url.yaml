@@ -1,5 +1,10 @@
 ---
 title: Update Sprite Src
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:
