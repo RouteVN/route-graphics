@@ -5,6 +5,16 @@ specs:
   - "sprite texture should change on click"
   - "texture persists after click"
   - "different sprites can have different click textures"
+steps:
+  - move 175 175
+  - click
+  - screenshot
+  - move 425 175
+  - click
+  - screenshot
+  - move 675 175
+  - click
+  - screenshot
 ---
 states:
   - elements:
