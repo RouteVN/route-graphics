@@ -6,6 +6,15 @@ specs:
   - "slider should update barSrc when changed"
   - "slider should maintain position after source changes"
   - "slider should support switching between different asset types"
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
+  - keypress v
+  - screenshot
+  - keypress c
+  - screenshot
 ---
 states:
   - elements:

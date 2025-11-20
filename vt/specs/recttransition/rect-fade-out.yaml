@@ -5,6 +5,12 @@ specs:
   - "rect should fade from 1 to 0 alpha"
   - "rect should disappear gradually"
   - "rect should be destroyed after animation"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements:

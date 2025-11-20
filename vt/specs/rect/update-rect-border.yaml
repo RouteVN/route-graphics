@@ -1,5 +1,10 @@
 ---
 title: Update Rectangle Border
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

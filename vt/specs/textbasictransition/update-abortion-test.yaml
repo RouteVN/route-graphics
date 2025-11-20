@@ -5,6 +5,12 @@ specs:
   - "text should update with 3 keyframe animation"
   - "abortion callback should be testable during update"
   - "element position differs from animation end position"
+steps:
+  - keypress n
+  - wait 1200    
+  - screenshot
+  - keypress n       
+  - screenshot         
 ---
 states:
   - elements:

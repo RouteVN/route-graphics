@@ -5,6 +5,12 @@ specs:
   - "container should delete with 3 keyframe animation"
   - "abortion callback should be testable during deletion"
   - "new element added in third state"
+steps:
+  - keypress n
+  - wait 1500
+  - screenshot
+  - keypress n
+  - screenshot
 ---
 states:
   - elements:

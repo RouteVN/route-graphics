@@ -7,6 +7,14 @@ specs:
   - "Speed property should still be respected in AST but ignored when revealEffect is typewriter"
   - "Furigana should appear immediately when revealEffect is typewriter"
   - "Multiple content segments should appear immediately when revealEffect is typewriter"
+steps:
+  - wait 4000
+  - screenshot
+  - keypress n
+  - wait 6000
+  - screenshot
+  - keypress n
+  - screenshot
 ---
 states:
   - elements:

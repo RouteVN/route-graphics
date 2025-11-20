@@ -1,5 +1,10 @@
 ---
 title: Update to add nested Container
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

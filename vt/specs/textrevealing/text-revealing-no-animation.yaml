@@ -1,6 +1,11 @@
 ---
 title: Text Revealing - No Animation
 description: Testing text-revealing element with revealEffect set to none
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

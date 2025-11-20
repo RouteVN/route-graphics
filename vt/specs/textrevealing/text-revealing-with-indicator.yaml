@@ -1,6 +1,11 @@
 ---
 title: Text Revealing Showcase with indicator
 description: Showcasing text-revealing element with indicator
+steps:
+  - wait 14000
+  - screenshot
+  - wait 14000
+  - screenshot
 ---
 states:
   - elements:

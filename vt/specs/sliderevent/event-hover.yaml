@@ -7,6 +7,9 @@ specs:
   - "slider bar should change texture on thumb hover"
   - "hover event should send actionPayload"
   - "textures should revert when hover ends"
+steps:
+  - move 170 110
+  - screenshot
 ---
 states:
   - elements:

@@ -5,6 +5,11 @@ specs:
   - "slider should update its thumb position when initialValue changes"
   - "slider should maintain the same bar properties"
   - "slider should recalculate normalized value correctly"
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

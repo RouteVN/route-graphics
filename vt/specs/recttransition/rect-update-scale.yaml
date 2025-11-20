@@ -5,6 +5,12 @@ specs:
   - "rect should scale from 1 to 1.5 on both axes"
   - "animation should take 800ms"
   - "uses scaleX and scaleY properties"
+steps:
+  - keypress n
+  - wait 400
+  - screenshot
+  - wait 400
+  - screenshot
 ---
 states:
   - elements:

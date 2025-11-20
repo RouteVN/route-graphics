@@ -5,6 +5,14 @@ specs:
   - "rect should render with 3 keyframe animation"
   - "abortion callback should be testable during render"
   - "element props differ from animation final state"
+steps:
+  - keypress n          
+  - wait 1200         
+  - screenshot
+  - keypress n         
+  - screenshot
+  - wait 2000      
+  - screenshot        
 ---
 states:
   - elements: []

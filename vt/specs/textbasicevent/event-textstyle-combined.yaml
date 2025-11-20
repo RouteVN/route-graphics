@@ -5,6 +5,15 @@ specs:
   - "hover textStyle should work"
   - "click textStyle should work"
   - "both events can have different textStyles"
+steps:
+  - move 220 160
+  - screenshot
+  - click
+  - screenshot
+  - move 220 310
+  - screenshot
+  - click
+  - screenshot
 ---
 states:
   - elements:

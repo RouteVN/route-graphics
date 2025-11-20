@@ -5,6 +5,16 @@ specs:
   - "text style should change on click"
   - "style persists after click"
   - "color, font, and size can all change"
+steps:
+  - move 210 110
+  - click
+  - screenshot
+  - move 210 210
+  - click
+  - screenshot
+  - move 210 330
+  - click
+  - screenshot
 ---
 states:
   - elements:
