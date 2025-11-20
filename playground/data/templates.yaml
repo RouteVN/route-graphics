@@ -1,0 +1,377 @@
+- id: basic-shapes
+  name: Basic Shapes
+  description: Simple rectangles and text elements
+  content:
+    elements:
+      - id: bg-rect
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#1a1a2e"
+      - id: title
+        type: text
+        x: 640
+        y: 100
+        content: "Basic Shapes Demo"
+        anchorX: 0.5
+        anchorY: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 36
+          align: center
+      - id: red-rect
+        type: rect
+        x: 200
+        y: 250
+        width: 150
+        height: 150
+        fill: "#ff6b6b"
+      - id: blue-rect
+        type: rect
+        x: 565
+        y: 250
+        width: 150
+        height: 150
+        fill: "#4ecdc4"
+        anchorX: 0.5
+      - id: green-rect
+        type: rect
+        x: 930
+        y: 250
+        width: 150
+        height: 150
+        fill: "#45b7d1"
+        anchorX: 1
+      - id: info-text
+        type: text
+        x: 640
+        y: 500
+        content: "Colored rectangles with different anchor points"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 18
+          align: center
+
+- id: container-layout
+  name: Container Layout
+  description: Nested containers with different layouts
+  content:
+    elements:
+      - id: main-container
+        type: container
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        direction: vertical
+        gap: 20
+        children:
+          - id: header-container
+            type: container
+            width: 1280
+            height: 100
+            direction: horizontal
+            children:
+              - id: logo
+                type: rect
+                width: 80
+                height: 80
+                fill: "#ff6b6b"
+              - id: title-text
+                type: text
+                content: "Container Layout Demo"
+                textStyle:
+                  fill: "#ffffff"
+                  fontSize: 32
+          - id: content-container
+            type: container
+            width: 1280
+            height: 500
+            direction: horizontal
+            gap: 30
+            children:
+              - id: left-panel
+                type: container
+                width: 300
+                height: 500
+                direction: vertical
+                gap: 20
+                children:
+                  - id: nav-item-1
+                    type: text
+                    content: "Navigation Item 1"
+                    textStyle:
+                      fill: "#ffffff"
+                      fontSize: 18
+                  - id: nav-item-2
+                    type: text
+                    content: "Navigation Item 2"
+                    textStyle:
+                      fill: "#ffffff"
+                      fontSize: 18
+
+- id: interactive-elements
+  name: Interactive Elements
+  description: Sliders and hover effects
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#2c3e50"
+      - id: title
+        type: text
+        x: 640
+        y: 50
+        content: "Interactive Elements"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+          align: center
+      - id: hover-rect
+        type: rect
+        x: 300
+        y: 200
+        width: 200
+        height: 100
+        fill: "#3498db"
+        hover:
+          fill: "#e74c3c"
+        click:
+          fill: "#2ecc71"
+      - id: hover-text
+        type: text
+        x: 400
+        y: 250
+        content: "Hover & Click Me"
+        anchorX: 0.5
+        anchorY: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 16
+          align: center
+      - id: volume-slider
+        type: slider
+        x: 300
+        y: 400
+        width: 200
+        direction: horizontal
+        min: 0
+        max: 100
+        initialValue: 50
+
+- id: text-animations
+  name: Text Animations
+  description: Text revealing and typewriter effects
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#34495e"
+      - id: revealing-text
+        type: text-revealing
+        x: 640
+        y: 200
+        content:
+          - "Welcome to"
+          - "Text Animations"
+          - "Demo"
+        speed: 50
+        revealEffect: "typewriter"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 36
+          align: center
+      - id: instructions
+        type: text
+        x: 640
+        y: 500
+        content: "Watch as text animates in sequence"
+        anchorX: 0.5
+        textStyle:
+          fill: "#bdc3c7"
+          fontSize: 16
+          align: center
+
+- id: sprite-demo
+  name: Sprite Demo
+  description: Using public images as sprites
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#2c3e50"
+      - id: title
+        type: text
+        x: 640
+        y: 50
+        content: "Sprite Demo with Public Images"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 28
+          align: center
+      - id: image-1
+        type: sprite
+        x: 200
+        y: 150
+        width: 200
+        height: 200
+        src: "https://picsum.photos/200/200?random=1"
+        hover:
+          src: "https://picsum.photos/200/200?random=2"
+      - id: image-2
+        type: sprite
+        x: 540
+        y: 150
+        width: 200
+        height: 200
+        src: "https://picsum.photos/200/200?random=3"
+      - id: image-3
+        type: sprite
+        x: 880
+        y: 150
+        width: 200
+        height: 200
+        src: "https://picsum.photos/200/200?random=5"
+      - id: instruction-text
+        type: text
+        x: 640
+        y: 450
+        content: "Hover over images to change them"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 18
+          align: center
+
+- id: animations-showcase
+  name: Animation Showcase
+  description: Tween animations and keyframes
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#1a1a2e"
+      - id: title
+        type: text
+        x: 640
+        y: 50
+        content: "Animation Showcase"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+          align: center
+      - id: animated-rect
+        type: rect
+        x: 640
+        y: 360
+        width: 100
+        height: 100
+        fill: "#ff6b6b"
+        anchorX: 0.5
+        anchorY: 0.5
+    animations:
+      - id: fade-in
+        targetId: animated-rect
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+      - id: scale-animation
+        targetId: animated-rect
+        type: tween
+        properties:
+          scaleX:
+            initialValue: 1
+            keyframes:
+              - duration: 1000
+                value: 1.5
+              - duration: 1000
+                value: 1
+
+- id: multi-state-demo
+  name: Multi-State Demo
+  description: Navigation between different states
+  content:
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#e74c3c"
+        - id: state-text
+          type: text
+          x: 640
+          y: 360
+          content: "State 1: Red Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#3498db"
+        - id: state-text
+          type: text
+          x: 640
+          y: 360
+          content: "State 2: Blue Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#2ecc71"
+        - id: state-text
+          type: text
+          x: 640
+          y: 360
+          content: "State 3: Green Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center

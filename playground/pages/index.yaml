@@ -1,0 +1,30 @@
+---
+template: base
+title: Route-Graphics Playground
+---
+- body.dark:
+    - rtgl-view wh=f p=lg:
+        - rtgl-text flex=1 s="h2":
+            - "Route-Graphics Playground"
+        - rtgl-view d=h w="f" av=c:
+            - rtgl-text mr=md ellipsis: "Load Template"
+            - select#template-select:
+                - $for template in templates:
+                    - option value="${escapeJson(template)}": "${template.name}"
+        - rtgl-view d=h w="f" av=c m=lg:
+            - rtgl-text scene-info: "Use buttons below to navigate between scenes"
+            - button#prev-button: "← Previous"
+            - span#scene-indicator:
+            - button#next-button: "Next →"
+        - rtgl-view sm-d=v d=h wh=f g=lg:
+            - rtgl-view flex=1 w=f h=f sm-h=inherit:
+                - rtgl-text s=lg: "Template (YAML):"
+                - div class="highlighted-textarea":
+                    - textarea#input-template spellcheck="false" placeholder="Enter your YAML here with {elements, animations, audio}..." rows="10" cols="50":
+                    - pre#highlighted-input-template aria-hidden="true":
+                        - code#highlighted-input-template-content class="language-yaml":
+
+            - rtgl-view flex=1 w=f h=f sm-h=inherit:
+                - rtgl-text s="lg": "Visual Output:"
+                - rtgl-view#output-canvas width="":
+                - rtgl-view sm-show hide h=120:
