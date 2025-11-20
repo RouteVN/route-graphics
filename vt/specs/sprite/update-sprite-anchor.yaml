@@ -1,5 +1,10 @@
 ---
 title: Update Sprite Anchor and Dimensions
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

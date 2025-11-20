@@ -5,6 +5,12 @@ specs:
   - "sprite should rotate from 0 to 360 degrees"
   - "animation should take 1.5 seconds"
   - "demonstrates rotation property"
+steps:
+  - keypress n
+  - wait 750
+  - screenshot
+  - wait 750
+  - screenshot
 ---
 states:
   - elements:

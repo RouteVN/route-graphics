@@ -5,6 +5,12 @@ specs:
   - "rect should slide from x: -100 to x: 300"
   - "rect should take 1.5 seconds"
   - "rect uses initialValue to override starting position"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 1000
+  - screenshot
 ---
 states:
   - elements: []

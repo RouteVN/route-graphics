@@ -5,6 +5,12 @@ specs:
   - "rect should fade from 0 to 1 alpha"
   - "rect should appear gradually over 1 second"
   - "rect should use linear easing"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements: []

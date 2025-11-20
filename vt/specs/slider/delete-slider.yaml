@@ -5,6 +5,11 @@ specs:
   - "slider should be removed from the container"
   - "slider container and all children should be destroyed"
   - "other elements should remain unaffected"
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

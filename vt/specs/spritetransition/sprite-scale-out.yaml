@@ -5,6 +5,12 @@ specs:
   - "sprite should scale from 1 to 0 on both axes"
   - "sprite should shrink to center"
   - "animation should take 800ms"
+steps:
+  - keypress n
+  - wait 400
+  - screenshot
+  - wait 400
+  - screenshot
 ---
 states:
   - elements:

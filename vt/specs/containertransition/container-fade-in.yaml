@@ -5,6 +5,12 @@ specs:
   - "container should fade from 0 to 1 alpha"
   - "all children should fade in with container"
   - "animation should take 1 second"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements: []

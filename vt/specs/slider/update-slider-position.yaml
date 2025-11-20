@@ -5,6 +5,11 @@ specs:
   - "slider should update its x and y position"
   - "slider should update its width and height"
   - "slider thumb should maintain correct relative position"
+steps:
+  - keypress n
+  - screenshot
+  - keypress b
+  - screenshot
 ---
 states:
   - elements:

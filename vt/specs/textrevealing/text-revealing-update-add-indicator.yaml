@@ -1,6 +1,13 @@
 ---
 title: Text Revealing - Update with Indicator
 description: Testing text-revealing element when updating from no indicator to having an indicator
+steps:
+  - keypress n
+  - screenshot
+  - wait 1000
+  - screenshot
+  - wait 4000
+  - screenshot
 ---
 states:
   - elements:

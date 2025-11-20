@@ -6,6 +6,12 @@ specs:
   - "slider should appear gradually over 1 second"
   - "slider should use linear easing"
   - "both bar and thumb should fade together"
+steps:
+  - keypress n
+  - wait 500
+  - screenshot
+  - wait 500
+  - screenshot
 ---
 states:
   - elements: []
