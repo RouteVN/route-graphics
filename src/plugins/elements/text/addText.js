@@ -56,7 +56,7 @@ export const addText = async ({
           url: soundSrc,
           loop: false,
         });
-      if (hoverEvents?.textStyle) applyTextStyle(text, hoverEvents.textStyle);
+      if (hoverEvents?.textStyle) applyTextStyle(text, hoverEvents.textStyle, textASTNode.textStyle);
     };
 
     const outListener = () => {
@@ -74,7 +74,7 @@ export const addText = async ({
 
     const clickListener = () => {
       // Apply click style during pointerdown
-      if (clickEvents?.textStyle) applyTextStyle(text, clickEvents.textStyle);
+      if (clickEvents?.textStyle) applyTextStyle(text, clickEvents.textStyle, textASTNode.textStyle);
     };
 
     const releaseListener = () => {
