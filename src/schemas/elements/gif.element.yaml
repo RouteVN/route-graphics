@@ -1,0 +1,73 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: GIF Element
+description: Schema for GIF element raw input
+type: object
+required:
+  - id
+  - type
+  - src
+properties:
+  id:
+    type: string
+    description: Unique identifier for the GIF element
+  type:
+    type: string
+    const: gif
+    description: Element type, must be 'gif'
+  x:
+    type: number
+    description: X position of the GIF
+    default: 0
+  y:
+    type: number
+    description: Y position of the GIF
+    default: 0
+  width:
+    type: number
+    description: Width of the GIF in pixels
+  height:
+    type: number
+    description: Height of the GIF in pixels
+  anchorX:
+    type: number
+    description: Horizontal anchor point (0-1)
+    default: 0
+  anchorY:
+    type: number
+    description: Vertical anchor point (0-1)
+    default: 0
+  src:
+    type: string
+    description: Source URL/alias of the GIF
+  alpha:
+    type: number
+    description: Opacity (0-1)
+    default: 1
+  loop:
+    type: boolean
+    description: Whether the animation loops
+    default: true
+  autoPlay:
+    type: boolean
+    description: Whether to start playing immediately
+    default: true
+  animationSpeed:
+    type: number
+    description: Playback speed multiplier
+    default: 1
+  hover:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+      cursor:
+        type: string
+      actionPayload:
+        type: object
+  click:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+      actionPayload:
+        type: object

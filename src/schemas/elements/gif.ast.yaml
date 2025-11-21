@@ -1,0 +1,46 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: GIF AST Node
+description: Schema for GIF AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - src
+  - alpha
+properties:
+  id:
+    type: string
+  type:
+    const: gif
+  width:
+    type: number
+  height:
+    type: number
+  x:
+    type: number
+  y:
+    type: number
+  originX:
+    type: number
+  originY:
+    type: number
+  src:
+    type: string
+  alpha:
+    type: number
+  loop:
+    type: boolean
+  autoPlay:
+    type: boolean
+  animationSpeed:
+    type: number
+  hover:
+    type: object
+  click:
+    type: object

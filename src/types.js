@@ -119,6 +119,31 @@
  */
 
 /**
+ * @typedef {Object} GifASTProps
+ * @property {'gif'} type
+ * @property {number} alpha
+ * @property {string} src
+ * @property {boolean} [loop=true]
+ * @property {boolean} [autoPlay=true]
+ * @property {number} [animationSpeed=1]
+ * @property {GifHover} [hover]
+ * @property {GifClick} [click]
+ * @typedef {ASTNode & GifASTProps} GifASTNode
+ */
+
+/**
+ * @typedef GifHoverProps
+ * @property {string} src
+ * @typedef {(GifHoverProps & HoverProps)} GifHover
+ */
+
+/**
+ * @typedef GifClickProps
+ * @property {string} src
+ * @typedef {(GifClickProps & HoverProps)} GifClick
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction

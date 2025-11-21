@@ -1,0 +1,24 @@
+---
+title: Basic GIF Test
+description: Test GIF rendering and playback properties
+specs:
+  - "GIF should render from source"
+  - "GIF should support sizing and positioning"
+---
+states:
+  - elements:
+      - id: "gif-1"
+        type: "gif"
+        src: "example-gif"
+        x: 100
+        y: 100
+        width: 200
+        height: 200
+      - id: "gif-no-loop"
+        type: "gif"
+        src: "example-gif"
+        x: 400
+        y: 100
+        width: 100
+        height: 100
+        loop: false

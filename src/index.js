@@ -12,6 +12,7 @@ import { spritePlugin } from "./plugins/elements/sprite";
 import { sliderPlugin } from "./plugins/elements/slider";
 import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
+import { gifPlugin } from "./plugins/elements/gif/index.js";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
 import { renderElements } from "./plugins/renderElements.js";
@@ -36,6 +37,7 @@ export {
   sliderPlugin,
   containerPlugin,
   textRevealingPlugin,
+  gifPlugin,
   tweenPlugin,
   soundPlugin,
   renderElements,

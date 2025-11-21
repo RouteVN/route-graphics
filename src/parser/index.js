@@ -4,6 +4,7 @@ import { parseSprite } from "./parseSprite.js";
 import { parseText } from "./parseText.js";
 import { parseTextRevealing } from "./parseTextRevealing.js";
 import { parseSlider } from "./parseSlider.js";
+import { parseGif } from "./parseGif.js";
 import { ASTNodeType } from "../types.js";
 
 /**
@@ -31,6 +32,8 @@ const parseJSONToAST = (JSONObject) => {
         return parseSprite(node);
       case ASTNodeType.SLIDER:
         return parseSlider(node);
+      case ASTNodeType.GIF:
+        return parseGif(node);
       default:
         throw new Error(`Unsupported element type: ${node.type}`);
     }
