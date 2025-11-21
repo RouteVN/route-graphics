@@ -160,7 +160,6 @@ const loadTemplate = () => {
     let templateData = {}
     try {
         templateData = jsYaml.load(decodeURIComponent(selectedTemplate))
-        console.log("Loaded template data:", templateData)
     } catch (error) {
         console.error("Error parsing template data:", error)
         return
@@ -204,7 +203,6 @@ const renderCurrentState = async () => {
         audio: currentState.audio || [],
         global: {}
     }
-    console.log("Rendering state:", state)
     app.render(state)
 
     updateStateIndicator()
