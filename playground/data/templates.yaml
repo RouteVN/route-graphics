@@ -3,13 +3,6 @@
   description: Simple rectangles and text elements
   content:
     elements:
-      - id: bg-rect
-        type: rect
-        x: 0
-        y: 0
-        width: 1280
-        height: 720
-        fill: "#1a1a2e"
       - id: title
         type: text
         x: 64
@@ -79,81 +72,71 @@
             width: 800
             height: 600
             fill: "#34495e"
-          - id: content-container
+          - id: instruction-text
+            type: text
+            x: 100
+            y: 70
+            content: "Direction Vertical"
+            textStyle:
+              fill: "#ecf0f1"
+              fontSize: 16
+          - id: container-vertical
             type: container
-            width: 1280
+            width: 300
             height: 500
-            direction: horizontal
-            x: 20
-            y: 20
+            x: 100
+            y: 100
+            direction: vertical
             gap: 20
             children:
-              - id: container-vertical
-                type: container
-                width: 300
-                height: 500
-                direction: vertical
-                gap: 20
-                children:
-                  - id: nav-item-1
-                    type: text
-                    content: "Vertical item"
-                    textStyle:
-                      fill: "#ffffff"
-                      fontSize: 18
-                  - id: rect-1
-                    type: rect
-                    width: 100
-                    height: 100
-                    fill: "#e67e22"
-                  - id: nav-item-2
-                    type: text
-                    content: "Vertical item"
-                    textStyle:
-                      fill: "#ffffff"
-                      fontSize: 18
-                  - id: container-horizontal
-                    type: container
-                    width: 360
-                    height: 200
-                    direction: horizontal
-                    gap: 10
-                    children:
-                      - id: nav-item-3
-                        type: text
-                        content: "Horizontal Item"
-                        width: 80
-                        textStyle:
-                          fill: "#ffffff"
-                          fontSize: 16
-                      - id: rect-2
-                        type: rect
-                        width: 80
-                        height: 80
-                        fill: "#8e44ad"
-                      - id: rect-3
-                        type: rect
-                        width: 80
-                        height: 80
-                        fill: "#2980b9"
-                      - id: rect-4
-                        type: rect
-                        width: 80
-                        height: 80
-                        fill: "#27ae60"
+              - id: rect-1
+                type: rect
+                width: 80
+                height: 80
+                fill: "#e67e22"
+              - id: rect-2
+                type: rect
+                width: 80
+                height: 80
+                fill: "#e67e22"
+          - id: instruction-text-2
+            type: text
+            x: 300
+            y: 70
+            content: "Direction Horizontal"
+            textStyle:
+              fill: "#ecf0f1"
+              fontSize: 16
+          - id: container-horizontal
+            type: container
+            width: 360
+            height: 200
+            x: 300
+            y: 100
+            direction: horizontal
+            gap: 10
+            children:
+              - id: rect-3
+                type: rect
+                width: 80
+                height: 80
+                fill: "#e67e22"
+              - id: rect-4
+                type: rect
+                width: 80
+                height: 80
+                fill: "#e67e22"
+              - id: rect-5
+                type: rect
+                width: 80
+                height: 80
+                fill: "#e67e22"
 
 - id: interactive-elements
   name: Interactive Elements
-  description: Sliders and hover effects
+  description: Hover and click effects
   content:
     elements:
-      - id: bg
-        type: rect
-        x: 0
-        y: 0
-        width: 1280
-        height: 720
-        fill: "#2c3e50"
       - id: title
         type: text
         x: 64
@@ -207,13 +190,6 @@
   description: Text revealing and typewriter effects
   content:
     elements:
-      - id: bg
-        type: rect
-        x: 0
-        y: 0
-        width: 1280
-        height: 720
-        fill: "#34495e"
       - id: 'showcase-text'
         type: "text-revealing"
         content:
@@ -243,7 +219,7 @@
           - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
             textStyle:
               fontSize: 20
-              fill: "#000000"
+              fill: "#db34eb"
               fontFamily: "Georgia"
               lineHeight: 1.4
           - text: " Different colors"
@@ -270,11 +246,11 @@
           - text: " can all be mixed together in a single text-revealing element."
             textStyle:
               fontSize: 20
-              fill: "#ff0000"
+              fill: "#db34eb"
               fontFamily: "Georgia"
               fontStyle: "italic"
               lineHeight: 1.4
-        x: 50
+        x: 64
         y: 50
         width: 600
         alpha: 1
@@ -293,7 +269,6 @@
         x: 64
         y: 500
         content: "Watch as text animates in sequence"
-        anchorX: 0.5
         textStyle:
           fill: "#bdc3c7"
           fontSize: 16
@@ -304,13 +279,6 @@
   description: Using public images as sprites
   content:
     elements:
-      - id: bg
-        type: rect
-        x: 0
-        y: 0
-        width: 1280
-        height: 720
-        fill: "#2c3e50"
       - id: title
         type: text
         x: 64
@@ -346,31 +314,6 @@
   description: Tween animations and keyframes
   content:
     - elements:
-      - id: bg
-        type: rect
-        x: 0
-        y: 0
-        width: 1280
-        height: 720
-        fill: "#1a1a2e"
-      - id: title
-        type: text
-        x: 64
-        y: 50
-        content: "Animation Showcase"
-        anchorX: 0.5
-        textStyle:
-          fill: "#ffffff"
-          fontSize: 32
-          align: center
-    - elements:
-        - id: bg
-          type: rect
-          x: 0
-          y: 0
-          width: 1280
-          height: 720
-          fill: "#1a1a2e"
         - id: title
           type: text
           x: 64
@@ -402,7 +345,6 @@
                 - duration: 500
                   value: 64
                   easing: linear
-
 - id: multi-state-demo
   name: Multi-State Demo
   description: Navigation between different states
@@ -463,4 +405,89 @@
           textStyle:
             fill: "#ffffff"
             fontSize: 48
+            align: center
+- id: slider-demo
+  name: Slider Demo
+  description: Sliders and hover effects
+  content:
+    elements:
+      - id: title
+        type: text
+        x: 64
+        y: 50
+        content: "Slider Demo"
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+          align: center
+      - id: "slider"
+        type: "slider"
+        direction: "horizontal"
+        thumbSrc: "horizontal-idle-thumb" # This is our own private image asset, you can replace with any image URL
+        barSrc: "horizontal-idle-bar" # This is our own private image asset, you can replace with any image URL
+        width: 400
+        height: 20
+        x: 64
+        y: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 30
+        hover:
+          thumbSrc: "horizontal-hover-thumb" # This is our own private image asset, you can replace with any image URL
+          barSrc: "horizontal-hover-bar" # This is our own private image asset, you can replace with any image URL
+          cursor: "pointer"
+          actionPayload:
+            event: "slider-hover"
+            sliderId: "slider-horizontal"
+            direction: "horizontal"
+- id: sound-demo
+  name: Sound Demo
+  description: Playing sound
+  content:
+    - audio:
+      - id: sound-1
+        src: bgm-1
+        type: sound
+      elements:
+        - id: description-text
+          type: text
+          x: 64
+          y: 50
+          content: "Sound Demo - Playing Background Music"
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 20
+            align: center
+    - audio:
+      - id: sound-2
+        src: bgm-2
+        type: sound
+      elements:
+        - id: description-text
+          type: text
+          x: 64
+          y: 50
+          content: "Sound Demo - Playing Background Music"
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 20
+            align: center
+    - audio:
+      - id: sound-3
+        src: bgm-3
+        type: sound
+      elements:
+        - id: description-text
+          type: text
+          x: 64
+          y: 50
+          content: "Sound Demo - Playing Background Music"
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 20
             align: center
