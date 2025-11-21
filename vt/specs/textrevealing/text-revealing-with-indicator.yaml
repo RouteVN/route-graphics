@@ -38,7 +38,7 @@ states:
           - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
             textStyle:
               fontSize: 20
-              fill: "#2c3e50"
+              fill: "#000000"
               fontFamily: "Georgia"
               lineHeight: 1.4
           - text: " Different colors"
@@ -65,7 +65,7 @@ states:
           - text: " can all be mixed together in a single text-revealing element."
             textStyle:
               fontSize: 20
-              fill: "#34495e"
+              fill: "#ff0000"
               fontFamily: "Georgia"
               fontStyle: "italic"
               lineHeight: 1.4
@@ -82,4 +82,4 @@ states:
             src: "circle-green"
             width: 14
             height: 14
-          gap: 14
+          offset: 14

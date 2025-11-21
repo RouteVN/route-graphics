@@ -61,7 +61,11 @@ export const updateText = async ({
               loop: false,
             });
           if (hoverEvents?.textStyle)
-            applyTextStyle(textElement, hoverEvents.textStyle);
+            applyTextStyle(
+              textElement,
+              hoverEvents.textStyle,
+              nextTextASTNode.textStyle,
+            );
         };
 
         const outListener = () => {
@@ -80,7 +84,11 @@ export const updateText = async ({
         const clickListener = () => {
           // Apply click style during pointerdown
           if (clickEvents?.textStyle)
-            applyTextStyle(textElement, clickEvents.textStyle);
+            applyTextStyle(
+              textElement,
+              clickEvents.textStyle,
+              nextTextASTNode.textStyle,
+            );
         };
 
         const releaseListener = () => {

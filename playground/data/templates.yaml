@@ -1,0 +1,466 @@
+- id: basic-shapes
+  name: Basic Shapes
+  description: Simple rectangles and text elements
+  content:
+    elements:
+      - id: bg-rect
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#1a1a2e"
+      - id: title
+        type: text
+        x: 64
+        y: 100
+        content: "Basic Shapes Demo"
+        anchorX: 0.5
+        anchorY: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 36
+          align: center
+      - id: red-rect
+        type: rect
+        x: 200
+        y: 250
+        width: 150
+        height: 150
+        fill: "#ff6b6b"
+      - id: blue-rect
+        type: rect
+        x: 565
+        y: 250
+        width: 150
+        height: 150
+        fill: "#4ecdc4"
+        anchorX: 0.5
+      - id: green-rect
+        type: rect
+        x: 930
+        y: 250
+        width: 150
+        height: 150
+        fill: "#45b7d1"
+        anchorX: 1
+      - id: info-text
+        type: text
+        x: 64
+        y: 500
+        content: "Colored rectangles with different anchor points"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 18
+          align: center
+
+- id: container-layout
+  name: Container Layout
+  description: Nested containers with different layouts
+  content:
+    elements:
+      - id: title-text
+        type: text
+        content: "Container Layout Demo"
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+      - id: main-container
+        type: container
+        x: 0
+        y: 80
+        width: 800
+        height: 600
+        gap: 20
+        children:
+          - id: body-background
+            type: rect
+            width: 800
+            height: 600
+            fill: "#34495e"
+          - id: content-container
+            type: container
+            width: 1280
+            height: 500
+            direction: horizontal
+            x: 20
+            y: 20
+            gap: 20
+            children:
+              - id: container-vertical
+                type: container
+                width: 300
+                height: 500
+                direction: vertical
+                gap: 20
+                children:
+                  - id: nav-item-1
+                    type: text
+                    content: "Vertical item"
+                    textStyle:
+                      fill: "#ffffff"
+                      fontSize: 18
+                  - id: rect-1
+                    type: rect
+                    width: 100
+                    height: 100
+                    fill: "#e67e22"
+                  - id: nav-item-2
+                    type: text
+                    content: "Vertical item"
+                    textStyle:
+                      fill: "#ffffff"
+                      fontSize: 18
+                  - id: container-horizontal
+                    type: container
+                    width: 360
+                    height: 200
+                    direction: horizontal
+                    gap: 10
+                    children:
+                      - id: nav-item-3
+                        type: text
+                        content: "Horizontal Item"
+                        width: 80
+                        textStyle:
+                          fill: "#ffffff"
+                          fontSize: 16
+                      - id: rect-2
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#8e44ad"
+                      - id: rect-3
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#2980b9"
+                      - id: rect-4
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#27ae60"
+
+- id: interactive-elements
+  name: Interactive Elements
+  description: Sliders and hover effects
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#2c3e50"
+      - id: title
+        type: text
+        x: 64
+        y: 50
+        content: "Interactive Elements"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+          align: center
+      - id: hover-rect
+        type: rect
+        x: 300
+        y: 200
+        width: 200
+        height: 100
+        fill: "#3498db"
+      - id: hover-text
+        type: text
+        x: 400
+        y: 250
+        content: "Hover & Click Me"
+        anchorX: 0.5
+        anchorY: 0.5
+        hover:
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 16
+            align: center
+            fontFamily: "Times New Roman"
+            lineHeight: 16
+            wordWrap: false
+            breakWords: false
+            wordWrapWidth: 100
+            strokeColor: "transparent"
+            strokeWidth: 0
+        click:
+          textStyle:
+            fill: "#e74c3c"
+            fontSize: 20
+            align: center
+            fontFamily: "Verdana"
+            lineHeight: 20
+            wordWrap: false
+            breakWords: false
+            wordWrapWidth: 100
+            strokeColor: "transparent"
+            strokeWidth: 0
+- id: text-revealing
+  name: Text Revealing
+  description: Text revealing and typewriter effects
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#34495e"
+      - id: 'showcase-text'
+        type: "text-revealing"
+        content:
+          - text: "Hello"
+            textStyle:
+              fontSize: 32
+              fill: "#e74c3c"
+              fontFamily: "Arial"
+              fontWeight: "bold"
+          - text: ", world"
+            textStyle:
+              fontSize: 36
+              fill: "#3498db"
+              fontFamily: "Arial"
+            furigana:
+              text: "users"
+              textStyle:
+                fontSize: 14
+                fill: "#f39c12"
+                fontFamily: "Arial"
+          - text: "!"
+            textStyle:
+              fontSize: 28
+              fill: "#27ae60"
+              fontFamily: "Arial"
+              fontStyle: "italic"
+          - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
+            textStyle:
+              fontSize: 20
+              fill: "#000000"
+              fontFamily: "Georgia"
+              lineHeight: 1.4
+          - text: " Different colors"
+            textStyle:
+              fontSize: 24
+              fill: "#9b59b6"
+              fontFamily: "Arial"
+          - text: " sizes"
+            textStyle:
+              fontSize: 18
+              fill: "#e67e22"
+              fontFamily: "Arial"
+          - text: " and fonts"
+            textStyle:
+              fontSize: 22
+              fill: "#16a085"
+              fontFamily: "Courier New"
+            furigana:
+              text: "fonts"
+              textStyle:
+                fontSize: 10
+                fill: "#95a5a6"
+                fontFamily: "Arial"
+          - text: " can all be mixed together in a single text-revealing element."
+            textStyle:
+              fontSize: 20
+              fill: "#ff0000"
+              fontFamily: "Georgia"
+              fontStyle: "italic"
+              lineHeight: 1.4
+        x: 50
+        y: 50
+        width: 600
+        alpha: 1
+        indicator:
+          revealing:
+            src: "circle-red" # This is our own private image asset, you can replace with any image URL
+            width: 14
+            height: 14
+          complete: 
+            src: "circle-green" # This is our own private image asset, you can replace with any image URL
+            width: 14
+            height: 14
+          offset: 14
+      - id: instructions
+        type: text
+        x: 64
+        y: 500
+        content: "Watch as text animates in sequence"
+        anchorX: 0.5
+        textStyle:
+          fill: "#bdc3c7"
+          fontSize: 16
+          align: center
+
+- id: sprite-demo
+  name: Sprite Demo
+  description: Using public images as sprites
+  content:
+    elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#2c3e50"
+      - id: title
+        type: text
+        x: 64
+        y: 50
+        content: "Sprite Demo with Public Images"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 28
+          align: center
+      - id: image-1
+        type: sprite
+        x: 200
+        y: 150
+        width: 200
+        height: 200
+        src: "circle-red" # This is our own private image asset, you can replace with any image URL
+        hover:
+          src: "circle-blue" # This is our own private image asset, you can replace with any image URL
+      - id: instruction-text
+        type: text
+        x: 64
+        y: 450
+        content: "Hover over images to change them"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 18
+          align: center
+
+- id: animations-showcase
+  name: Animation Showcase
+  description: Tween animations and keyframes
+  content:
+    - elements:
+      - id: bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#1a1a2e"
+      - id: title
+        type: text
+        x: 64
+        y: 50
+        content: "Animation Showcase"
+        anchorX: 0.5
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
+          align: center
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#1a1a2e"
+        - id: title
+          type: text
+          x: 64
+          y: 50
+          content: "Animation Showcase"
+          anchorX: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 32
+            align: center
+        - id: animated-rect
+          type: rect
+          x: 64
+          y: 360
+          width: 100
+          height: 100
+          fill: "#ff6b6b"
+      animations:
+        - id: fade-in
+          elementId: animated-rect
+          type: tween
+          properties:
+            x:
+              initialValue: -100
+              keyframes:
+                - duration: 500
+                  value: 30
+                  easing: linear
+                - duration: 500
+                  value: 64
+                  easing: linear
+
+- id: multi-state-demo
+  name: Multi-State Demo
+  description: Navigation between different states
+  content:
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#e74c3c"
+        - id: state-text
+          type: text
+          x: 64
+          y: 360
+          content: "State 1: Red Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#3498db"
+        - id: state-text
+          type: text
+          x: 64
+          y: 360
+          content: "State 2: Blue Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#2ecc71"
+        - id: state-text
+          type: text
+          x: 64
+          y: 360
+          content: "State 3: Green Screen"
+          anchorX: 0.5
+          anchorY: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 48
+            align: center
