@@ -161,6 +161,18 @@
             wordWrapWidth: 100
             strokeColor: "transparent"
             strokeWidth: 0
+        click:
+          textStyle:
+            fill: "#e74c3c"
+            fontSize: 20
+            align: center
+            fontFamily: "Verdana"
+            lineHeight: 20
+            wordWrap: false
+            breakWords: false
+            wordWrapWidth: 100
+            strokeColor: "transparent"
+            strokeWidth: 0
 - id: text-animations
   name: Text Animations
   description: Text revealing and typewriter effects
