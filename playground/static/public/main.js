@@ -1,4 +1,5 @@
 import createRouteGraphics, {
+    Assets,
     textPlugin,
     rectPlugin,
     spritePlugin,
@@ -22,10 +23,68 @@ const prevButton = document.getElementById("prev-button")
 const nextButton = document.getElementById("next-button")
 const sceneIndicator = document.getElementById("scene-indicator")
 
+const errorOverlay = document.getElementById("error-overlay")
+const errorMessage = document.getElementById("error-message")
+
 let app
 let currentStates = []
 let currentStateIndex = 0
 let isInitialized = false
+const seenAssets = new Set()
+
+const recursivelyLoadAssets = (objects) => {
+    const assets = {}
+
+    const processObject = (obj) => {
+        if (!obj || typeof obj !== 'object') return
+
+        // Check all properties for src and soundSrc
+        if (obj.src && typeof obj.src === 'string' && !seenAssets.has(obj.src)) {
+            assets[obj.src] = { type: 'texture', url: obj.src }
+            seenAssets.add(obj.src)
+        }
+
+        if (obj.soundSrc && typeof obj.soundSrc === 'string' && !seenAssets.has(obj.soundSrc)) {
+            assets[obj.soundSrc] = { type: 'audio/', url: obj.soundSrc }
+            seenAssets.add(obj.soundSrc)
+        }
+
+        // Recursively process all object properties
+        for (const [key, value] of Object.entries(obj)) {
+            if (typeof value === 'object' && value !== null) {
+                if (Array.isArray(value)) {
+                    value.forEach(item => processObject(item))
+                } else {
+                    processObject(value)
+                }
+            }
+        }
+    }
+
+    if (Array.isArray(objects)) {
+        objects.forEach(obj => processObject(obj))
+    } else {
+        processObject(objects)
+    }
+
+    return assets
+}
+
+const loadAssets = async (assets) => {
+    await Promise.all(Object.entries(assets).map(async ([_, value]) => {
+        await Assets.load(value.url)
+    }))
+}
+
+const showError = (message) => {
+    errorOverlay.classList.add('show')
+    errorMessage.textContent = message
+}
+
+const hideError = () => {
+    errorOverlay.classList.remove('show')
+    errorMessage.textContent = ''
+}
 
 const initRouteGraphics = async () => {
     try {
@@ -94,58 +153,31 @@ const syncScroll = (highlightedElement, element) => {
     highlightedElement.scrollLeft = element.scrollLeft
 }
 
-const processAssetUrls = (elements) => {
-    if (!Array.isArray(elements)) return elements
-
-    return elements.map(element => {
-        const processed = { ...element }
-
-        if (element.type === 'sprite' && element.src) {
-            if (!element.src.startsWith('http')) {
-                processed.src = `https://via.placeholder.com/200x200/cccccc/000000?text=${encodeURIComponent(element.src)}`
-            }
-        }
-
-        if (element.type === 'slider') {
-            if (element.thumbSrc && !element.thumbSrc.startsWith('http')) {
-                processed.thumbSrc = 'https://via.placeholder.com/20x20/ffffff'
-            }
-            if (element.barSrc && !element.barSrc.startsWith('http')) {
-                processed.barSrc = 'https://via.placeholder.com/200x10/cccccc'
-            }
-        }
-
-        if (element.children && Array.isArray(element.children)) {
-            processed.children = processAssetUrls(element.children)
-        }
-
-        return processed
-    })
-}
-
-const renderCurrentState = () => {
+const renderCurrentState = async () => {
     if (!isInitialized || !app || currentStates.length === 0) {
         return
     }
 
-    try {
-        const currentState = currentStates[currentStateIndex]
+    const currentState = currentStates[currentStateIndex]
 
-        const state = {
-            elements: currentState.elements || [],
-            animations: currentState.animations || [],
-            audio: currentState.audio || [],
-            global: {}
-        }
-
-        state.elements = processAssetUrls(state.elements)
-        app.render(state)
-
-        updateSceneIndicator()
-
-    } catch (error) {
-        console.error('Rendering error:', error)
+    // Collect and load all assets from the current state
+    const allElements = [...(currentState.elements || [])]
+    const assets = recursivelyLoadAssets(allElements)
+    console.log('Assets to load:', assets)
+    if (Object.keys(assets).length > 0) {
+        await loadAssets(assets)
     }
+
+    const state = {
+        elements: currentState.elements || [],
+        animations: currentState.animations || [],
+        audio: currentState.audio || [],
+        global: {}
+    }
+
+    app.render(state)
+
+    updateSceneIndicator()
 }
 
 const updateSceneIndicator = () => {
@@ -164,39 +196,60 @@ const updateSceneIndicator = () => {
     }
 }
 
-const handleTextChange = () => {
+const handleTextChange = async () => {
     updateAndHighlight(highlightedTemplateInputContent, templateInput)
 
-    let data = {}
     try {
-        data = jsYaml.load(templateInput.value)
+        hideError() 
+
+        let data = {}
+        try {
+            data = jsYaml.load(templateInput.value)
+        } catch (error) {
+            console.error('Invalid YAML:', error.message)
+            showError(`Invalid YAML: ${error.message}`)
+            return
+        }
+
+        if (Array.isArray(data)) {
+            currentStates = data
+            currentStateIndex = 0
+        } else {
+            currentStates = [data]
+            currentStateIndex = 0
+        }
+
+        await renderCurrentState()
+
     } catch (error) {
-        console.error('Invalid YAML:', error.message)
-        return
+        console.error('Rendering error:', error)
+        showError(`Rendering failed: ${error.message}`)
     }
-
-    if (Array.isArray(data)) {
-        currentStates = data
-        currentStateIndex = 0
-    } else {
-        currentStates = [data]
-        currentStateIndex = 0
-    }
-
-    renderCurrentState()
 }
 
-const handlePrevScene = () => {
+const handlePrevScene = async () => {
     if (currentStateIndex > 0) {
         currentStateIndex--
-        renderCurrentState()
+        try {
+            hideError()
+            await renderCurrentState()
+        } catch (error) {
+            console.error('Rendering error:', error)
+            showError(`Rendering failed: ${error.message}`)
+        }
     }
 }
 
-const handleNextScene = () => {
+const handleNextScene = async () => {
     if (currentStateIndex < currentStates.length - 1) {
         currentStateIndex++
-        renderCurrentState()
+        try {
+            hideError()
+            await renderCurrentState()
+        } catch (error) {
+            console.error('Rendering error:', error)
+            showError(`Rendering failed: ${error.message}`)
+        }
     }
 }
 

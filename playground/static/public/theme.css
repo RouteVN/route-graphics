@@ -192,6 +192,7 @@ textarea {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
 }
 
 .highlighted-textarea pre,
@@ -289,4 +290,21 @@ textarea {
   color: var(--muted-foreground);
   font-size: var(--sm-font-size);
   align-self: center;
+}
+
+.error-overlay {
+  display: none;
+  background-color: var(--destructive);
+  background-opacity: 0.1;
+  border: var(--border-width-sm) solid var(--destructive);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  color: var(--destructive-foreground);
+  position: absolute;
+  height: 100%;
+  top: 0;
+}
+
+.error-overlay.show {
+  display: block;
 }

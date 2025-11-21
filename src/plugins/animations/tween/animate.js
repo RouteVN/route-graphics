@@ -65,7 +65,7 @@ const buildTimeline = (keyframesInput) => {
   let accumulatedTime = 0;
   let latestValue;
 
-  keyframesInput.forEach(({ value, duration, easing, relative }, index) => {
+  keyframesInput.forEach(({ value, duration, easing = "linear", relative }, index) => {
     if (index === 0) {
       latestValue = value;
       timeline.push({ time: accumulatedTime, value, easing: "linear" });

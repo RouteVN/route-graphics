@@ -12,7 +12,7 @@
         fill: "#1a1a2e"
       - id: title
         type: text
-        x: 640
+        x: 64
         y: 100
         content: "Basic Shapes Demo"
         anchorX: 0.5
@@ -46,7 +46,7 @@
         anchorX: 1
       - id: info-text
         type: text
-        x: 640
+        x: 64
         y: 500
         content: "Colored rectangles with different anchor points"
         anchorX: 0.5
@@ -127,7 +127,7 @@
         fill: "#2c3e50"
       - id: title
         type: text
-        x: 640
+        x: 64
         y: 50
         content: "Interactive Elements"
         anchorX: 0.5
@@ -142,10 +142,6 @@
         width: 200
         height: 100
         fill: "#3498db"
-        hover:
-          fill: "#e74c3c"
-        click:
-          fill: "#2ecc71"
       - id: hover-text
         type: text
         x: 400
@@ -153,19 +149,11 @@
         content: "Hover & Click Me"
         anchorX: 0.5
         anchorY: 0.5
-        textStyle:
-          fill: "#ffffff"
-          fontSize: 16
-          align: center
-      - id: volume-slider
-        type: slider
-        x: 300
-        y: 400
-        width: 200
-        direction: horizontal
-        min: 0
-        max: 100
-        initialValue: 50
+        hover:
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 16
+            align: center
 
 - id: text-animations
   name: Text Animations
@@ -179,24 +167,83 @@
         width: 1280
         height: 720
         fill: "#34495e"
-      - id: revealing-text
-        type: text-revealing
-        x: 640
-        y: 200
+      - id: 'showcase-text'
+        type: "text-revealing"
         content:
-          - "Welcome to"
-          - "Text Animations"
-          - "Demo"
-        speed: 50
-        revealEffect: "typewriter"
-        anchorX: 0.5
-        textStyle:
-          fill: "#ffffff"
-          fontSize: 36
-          align: center
+          - text: "Hello"
+            textStyle:
+              fontSize: 32
+              fill: "#e74c3c"
+              fontFamily: "Arial"
+              fontWeight: "bold"
+          - text: "jhlasdfa"
+            textStyle:
+              fontSize: 36
+              fill: "#3498db"
+              fontFamily: "Arial"
+            furigana:
+              text: "asll;ajs;foga"
+              textStyle:
+                fontSize: 14
+                fill: "#f39c12"
+                fontFamily: "Arial"
+          - text: "!"
+            textStyle:
+              fontSize: 28
+              fill: "#27ae60"
+              fontFamily: "Arial"
+              fontStyle: "italic"
+          - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
+            textStyle:
+              fontSize: 20
+              fill: "#000000"
+              fontFamily: "Georgia"
+              lineHeight: 1.4
+          - text: " Different colors"
+            textStyle:
+              fontSize: 24
+              fill: "#9b59b6"
+              fontFamily: "Arial"
+          - text: " sizes"
+            textStyle:
+              fontSize: 18
+              fill: "#e67e22"
+              fontFamily: "Arial"
+          - text: " and fonts"
+            textStyle:
+              fontSize: 22
+              fill: "#16a085"
+              fontFamily: "Courier New"
+            furigana:
+              text: "fonts"
+              textStyle:
+                fontSize: 10
+                fill: "#95a5a6"
+                fontFamily: "Arial"
+          - text: " can all be mixed together in a single text-revealing element."
+            textStyle:
+              fontSize: 20
+              fill: "#ff0000"
+              fontFamily: "Georgia"
+              fontStyle: "italic"
+              lineHeight: 1.4
+        x: 50
+        y: 50
+        width: 600
+        alpha: 1
+        indicator:
+          revealing:
+            src: "https://static.vecteezy.com/system/resources/thumbnails/066/477/265/small/red-paper-circle-and-shadow-png.png"
+            width: 14
+            height: 14
+          complete: 
+            src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Green_dot.svg/300px-Green_dot.svg.png"
+            width: 14
+            height: 14
+          offset: 14
       - id: instructions
         type: text
-        x: 640
+        x: 64
         y: 500
         content: "Watch as text animates in sequence"
         anchorX: 0.5
@@ -219,7 +266,7 @@
         fill: "#2c3e50"
       - id: title
         type: text
-        x: 640
+        x: 64
         y: 50
         content: "Sprite Demo with Public Images"
         anchorX: 0.5
@@ -233,26 +280,12 @@
         y: 150
         width: 200
         height: 200
-        src: "https://picsum.photos/200/200?random=1"
+        src: "https://images.pexels.com/photos/53435/tree-oak-landscape-view-53435.jpeg"
         hover:
-          src: "https://picsum.photos/200/200?random=2"
-      - id: image-2
-        type: sprite
-        x: 540
-        y: 150
-        width: 200
-        height: 200
-        src: "https://picsum.photos/200/200?random=3"
-      - id: image-3
-        type: sprite
-        x: 880
-        y: 150
-        width: 200
-        height: 200
-        src: "https://picsum.photos/200/200?random=5"
+          src: "https://images.pexels.com/photos/534174/pexels-photo-534174.jpeg"
       - id: instruction-text
         type: text
-        x: 640
+        x: 64
         y: 450
         content: "Hover over images to change them"
         anchorX: 0.5
@@ -265,7 +298,7 @@
   name: Animation Showcase
   description: Tween animations and keyframes
   content:
-    elements:
+    - elements:
       - id: bg
         type: rect
         x: 0
@@ -275,7 +308,7 @@
         fill: "#1a1a2e"
       - id: title
         type: text
-        x: 640
+        x: 64
         y: 50
         content: "Animation Showcase"
         anchorX: 0.5
@@ -283,36 +316,45 @@
           fill: "#ffffff"
           fontSize: 32
           align: center
-      - id: animated-rect
-        type: rect
-        x: 640
-        y: 360
-        width: 100
-        height: 100
-        fill: "#ff6b6b"
-        anchorX: 0.5
-        anchorY: 0.5
-    animations:
-      - id: fade-in
-        targetId: animated-rect
-        type: tween
-        properties:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 1
-      - id: scale-animation
-        targetId: animated-rect
-        type: tween
-        properties:
-          scaleX:
-            initialValue: 1
-            keyframes:
-              - duration: 1000
-                value: 1.5
-              - duration: 1000
-                value: 1
+    - elements:
+        - id: bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#1a1a2e"
+        - id: title
+          type: text
+          x: 64
+          y: 50
+          content: "Animation Showcase"
+          anchorX: 0.5
+          textStyle:
+            fill: "#ffffff"
+            fontSize: 32
+            align: center
+        - id: animated-rect
+          type: rect
+          x: 64
+          y: 360
+          width: 100
+          height: 100
+          fill: "#ff6b6b"
+      animations:
+        - id: fade-in
+          elementId: animated-rect
+          type: tween
+          properties:
+            x:
+              initialValue: -100
+              keyframes:
+                - duration: 500
+                  value: 30
+                  easing: linear
+                - duration: 500
+                  value: 64
+                  easing: linear
 
 - id: multi-state-demo
   name: Multi-State Demo
@@ -328,7 +370,7 @@
           fill: "#e74c3c"
         - id: state-text
           type: text
-          x: 640
+          x: 64
           y: 360
           content: "State 1: Red Screen"
           anchorX: 0.5
@@ -347,7 +389,7 @@
           fill: "#3498db"
         - id: state-text
           type: text
-          x: 640
+          x: 64
           y: 360
           content: "State 2: Blue Screen"
           anchorX: 0.5
@@ -366,7 +408,7 @@
           fill: "#2ecc71"
         - id: state-text
           type: text
-          x: 640
+          x: 64
           y: 360
           content: "State 3: Green Screen"
           anchorX: 0.5

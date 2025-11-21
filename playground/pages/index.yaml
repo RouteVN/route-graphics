@@ -27,4 +27,6 @@ title: Route-Graphics Playground
             - rtgl-view flex=1 w=f h=f sm-h=inherit:
                 - rtgl-text s="lg": "Visual Output:"
                 - rtgl-view#output-canvas width="":
-                - rtgl-view sm-show hide h=120:
+                    - rtgl-view#error-overlay class="error-overlay":
+                        - rtgl-text s="lg" c="red": "Error:"
+                        - rtgl-text#error-message:
