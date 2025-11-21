@@ -11,12 +11,6 @@ title: Route-Graphics Playground
             - select#template-select:
                 - $for template in templates:
                     - option value="${escapeJson(template)}": "${template.name}"
-        - rtgl-view w="f" av=c:
-            - rtgl-text: "Use buttons below to navigate between states"
-            - rtgl-view d="h":
-                - rtgl-button#prev-button s=sm: "← Previous"
-                - span#state-indicator:
-                - rtgl-button#next-button s=sm: "Next →"
         - rtgl-view sm-d=v d=h wh=f g=lg flex=1 p=md:
             - rtgl-view flex=1 w=f h=f sm-h=inherit:
                 - rtgl-text s=lg: "Template (YAML):"
@@ -26,7 +20,13 @@ title: Route-Graphics Playground
                         - code#highlighted-input-template-content class="language-yaml":
 
             - rtgl-view flex=1 w=f h=f sm-h=inherit:
-                - rtgl-text s="lg": "Visual Output:"
+                - rtgl-view w="f" av=c d=h:
+                    - rtgl-text s="lg": "Visual Output:"
+                    - rtgl-view flex=1:
+                    - rtgl-view d="h":
+                        - rtgl-button#prev-button s=sm v=se: "Previous"
+                        - span#state-indicator:
+                        - rtgl-button#next-button s=sm v=se: "Next"
                 - rtgl-view#output-canvas width="":
                     - rtgl-view#error-overlay class="error-overlay":
                         - rtgl-text s="lg" c="red": "Error:"

@@ -1,5 +1,5 @@
 import createRouteGraphics, {
-    Assets,
+    createAssetBufferManager,
     textPlugin,
     rectPlugin,
     spritePlugin,
@@ -31,19 +31,25 @@ let currentStates = []
 let currentStateIndex = 0
 let isInitialized = false
 const seenAssets = new Set()
+const assetBufferManager = createAssetBufferManager()
 
 //Preload private assets
 const privateAssets = {
     'circle-red': { type: 'texture', url: '/public/circle-red.png' },
     'circle-green': { type: 'texture', url: '/public/circle-green.png' },
-    'circle-blue': { type: 'texture', url: '/public/circle-blue.png' }
+    'circle-blue': { type: 'texture', url: '/public/circle-blue.png' },
+    'horizontal-idle-thumb': { type: 'texture', url: '/public/horizontal_idle_thumb.png' },
+    'horizontal-hover-thumb': { type: 'texture', url: '/public/horizontal_hover_thumb.png' },
+    'horizontal-idle-bar': { type: 'texture', url: '/public/vertical_idle_bar.png' },
+    'horizontal-hover-bar': { type: 'texture', url: '/public/vertical_hover_bar.png' },
+    'bgm-1': { type: 'audio/', url: '/public/bgm-1.mp3' },
+    'bgm-2': { type: 'audio/', url: '/public/bgm-2.mp3' },
+    'bgm-3': { type: 'audio/', url: '/public/bgm-3.mp3' }
 }
 
 const preloadPrivateAssets = async () => {
-    await Promise.all(Object.entries(privateAssets).map(async ([key, value]) => {
-        await Assets.load({alias: key, src: value.url})
-        seenAssets.add(key)
-    }))
+    await loadAssets(privateAssets)
+    Object.keys(privateAssets).forEach(key => seenAssets.add(key))
 }
 
 const recursivelyLoadAssets = (objects) => {
@@ -52,17 +58,28 @@ const recursivelyLoadAssets = (objects) => {
     const processObject = (obj) => {
         if (!obj || typeof obj !== 'object') return
 
+        const possibleTextureAssetKeys = ['src', 'thumbSrc', 'barSrc']
+
         // Check all properties for src and soundSrc
-        if (obj.src && typeof obj.src === 'string' && !seenAssets.has(obj.src)) {
-            assets[obj.src] = { type: 'texture', url: obj.src }
-            seenAssets.add(obj.src)
-        }
+        if(obj?.type !== 'sound'){
+                possibleTextureAssetKeys.forEach(key => {
+                    if (obj[key] && typeof obj[key] === 'string' && !seenAssets.has(obj[key])) {
+                        assets[obj[key]] = { type: 'texture', url: obj[key] }
+                        seenAssets.add(obj[key])
+                    }
+                })
 
-        if (obj.soundSrc && typeof obj.soundSrc === 'string' && !seenAssets.has(obj.soundSrc)) {
-            assets[obj.soundSrc] = { type: 'audio/', url: obj.soundSrc }
-            seenAssets.add(obj.soundSrc)
+            if (obj.soundSrc && typeof obj.soundSrc === 'string' && !seenAssets.has(obj.soundSrc)) {
+                assets[obj.soundSrc] = { type: 'audio/', url: obj.soundSrc }
+                seenAssets.add(obj.soundSrc)
+            }
         }
-
+        else if(obj?.type === "sound"){
+            if (obj.src && typeof obj.src === 'string' && !seenAssets.has(obj.src)) {
+                assets[obj.src] = { type: 'audio/', url: obj.src }
+                seenAssets.add(obj.src)
+            }
+        }
         // Recursively process all object properties
         for (const [key, value] of Object.entries(obj)) {
             if (typeof value === 'object' && value !== null) {
@@ -85,9 +102,8 @@ const recursivelyLoadAssets = (objects) => {
 }
 
 const loadAssets = async (assets) => {
-    await Promise.all(Object.entries(assets).map(async ([_, value]) => {
-        await Assets.load(value.url)
-    }))
+    await assetBufferManager.load(assets)
+    await app.loadAssets(assetBufferManager.getBufferMap())
 }
 
 const showError = (message) => {
@@ -119,6 +135,7 @@ const initRouteGraphics = async () => {
                 animations: [tweenPlugin],
                 audios: [soundPlugin]
             },
+            backgroundColor: "#1D1D1D",
             eventHandler: (eventName, payload) => {
                 console.log('Route-Graphics Event:', eventName, payload)
             }
@@ -143,7 +160,6 @@ const loadTemplate = () => {
     let templateData = {}
     try {
         templateData = jsYaml.load(decodeURIComponent(selectedTemplate))
-        console.log("Loaded template data:", templateData)
     } catch (error) {
         console.error("Error parsing template data:", error)
         return
@@ -177,7 +193,6 @@ const renderCurrentState = async () => {
     // Collect and load all assets from the current state
     const allElements = [...(currentState.elements || [])]
     const assets = recursivelyLoadAssets(allElements)
-    console.log('Assets to load:', assets)
     if (Object.keys(assets).length > 0) {
         await loadAssets(assets)
     }
@@ -188,7 +203,6 @@ const renderCurrentState = async () => {
         audio: currentState.audio || [],
         global: {}
     }
-
     app.render(state)
 
     updateStateIndicator()
@@ -196,7 +210,7 @@ const renderCurrentState = async () => {
 
 const updateStateIndicator = () => {
     if (currentStates.length > 1) {
-        stateIndicator.textContent = `State ${currentStateIndex + 1} of ${currentStates.length}`
+        stateIndicator.textContent = `${currentStateIndex + 1} of ${currentStates.length}`
         stateIndicator.style.display = 'inline'
         prevButton.style.display = 'inline-block'
         nextButton.style.display = 'inline-block'
@@ -310,8 +324,8 @@ const injectEventListeners = () => {
 }
 
 const init = async () => {
-    await preloadPrivateAssets()
     await initRouteGraphics()
+    await preloadPrivateAssets()
     injectEventListeners()
     initDefaultTemplate()
 }
