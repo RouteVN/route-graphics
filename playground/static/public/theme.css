@@ -249,32 +249,7 @@ textarea {
   font-weight: normal !important;
 }
 
-/* Navigation controls styling */
-#prev-button,
-#next-button {
-  display: none;
-  background-color: var(--accent);
-  color: var(--accent-foreground);
-  border: var(--border-width-sm) solid var(--border);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--sm-font-size);
-  transition: background-color 0.2s ease;
-}
 
-#prev-button:hover,
-#next-button:hover {
-  background-color: var(--muted);
-}
-
-#prev-button:disabled,
-#next-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background-color: var(--muted);
-}
 
 #prev-button {
   margin-right: 8px;
@@ -284,7 +259,7 @@ textarea {
   margin-left: 8px;
 }
 
-#scene-indicator {
+#state-indicator {
   display: none;
   margin: 0 12px;
   color: var(--muted-foreground);

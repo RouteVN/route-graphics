@@ -21,7 +21,7 @@ const exampleSelect = document.getElementById("template-select")
 
 const prevButton = document.getElementById("prev-button")
 const nextButton = document.getElementById("next-button")
-const sceneIndicator = document.getElementById("scene-indicator")
+const stateIndicator = document.getElementById("state-indicator")
 
 const errorOverlay = document.getElementById("error-overlay")
 const errorMessage = document.getElementById("error-message")
@@ -31,6 +31,20 @@ let currentStates = []
 let currentStateIndex = 0
 let isInitialized = false
 const seenAssets = new Set()
+
+//Preload private assets
+const privateAssets = {
+    'circle-red': { type: 'texture', url: '/public/circle-red.png' },
+    'circle-green': { type: 'texture', url: '/public/circle-green.png' },
+    'circle-blue': { type: 'texture', url: '/public/circle-blue.png' }
+}
+
+const preloadPrivateAssets = async () => {
+    await Promise.all(Object.entries(privateAssets).map(async ([key, value]) => {
+        await Assets.load({alias: key, src: value.url})
+        seenAssets.add(key)
+    }))
+}
 
 const recursivelyLoadAssets = (objects) => {
     const assets = {}
@@ -177,20 +191,20 @@ const renderCurrentState = async () => {
 
     app.render(state)
 
-    updateSceneIndicator()
+    updateStateIndicator()
 }
 
-const updateSceneIndicator = () => {
+const updateStateIndicator = () => {
     if (currentStates.length > 1) {
-        sceneIndicator.textContent = `Scene ${currentStateIndex + 1} of ${currentStates.length}`
-        sceneIndicator.style.display = 'inline'
+        stateIndicator.textContent = `State ${currentStateIndex + 1} of ${currentStates.length}`
+        stateIndicator.style.display = 'inline'
         prevButton.style.display = 'inline-block'
         nextButton.style.display = 'inline-block'
 
         prevButton.disabled = currentStateIndex === 0
         nextButton.disabled = currentStateIndex === currentStates.length - 1
     } else {
-        sceneIndicator.style.display = 'none'
+        stateIndicator.style.display = 'none'
         prevButton.style.display = 'none'
         nextButton.style.display = 'none'
     }
@@ -296,6 +310,7 @@ const injectEventListeners = () => {
 }
 
 const init = async () => {
+    await preloadPrivateAssets()
     await initRouteGraphics()
     injectEventListeners()
     initDefaultTemplate()

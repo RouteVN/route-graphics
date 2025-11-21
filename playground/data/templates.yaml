@@ -60,40 +60,35 @@
   description: Nested containers with different layouts
   content:
     elements:
+      - id: title-text
+        type: text
+        content: "Container Layout Demo"
+        textStyle:
+          fill: "#ffffff"
+          fontSize: 32
       - id: main-container
         type: container
         x: 0
-        y: 0
-        width: 1280
-        height: 720
-        direction: vertical
+        y: 80
+        width: 800
+        height: 600
         gap: 20
         children:
-          - id: header-container
-            type: container
-            width: 1280
-            height: 100
-            direction: horizontal
-            children:
-              - id: logo
-                type: rect
-                width: 80
-                height: 80
-                fill: "#ff6b6b"
-              - id: title-text
-                type: text
-                content: "Container Layout Demo"
-                textStyle:
-                  fill: "#ffffff"
-                  fontSize: 32
+          - id: body-background
+            type: rect
+            width: 800
+            height: 600
+            fill: "#34495e"
           - id: content-container
             type: container
             width: 1280
             height: 500
             direction: horizontal
-            gap: 30
+            x: 20
+            y: 20
+            gap: 20
             children:
-              - id: left-panel
+              - id: container-vertical
                 type: container
                 width: 300
                 height: 500
@@ -102,16 +97,50 @@
                 children:
                   - id: nav-item-1
                     type: text
-                    content: "Navigation Item 1"
+                    content: "Vertical item"
                     textStyle:
                       fill: "#ffffff"
                       fontSize: 18
+                  - id: rect-1
+                    type: rect
+                    width: 100
+                    height: 100
+                    fill: "#e67e22"
                   - id: nav-item-2
                     type: text
-                    content: "Navigation Item 2"
+                    content: "Vertical item"
                     textStyle:
                       fill: "#ffffff"
                       fontSize: 18
+                  - id: container-horizontal
+                    type: container
+                    width: 360
+                    height: 200
+                    direction: horizontal
+                    gap: 10
+                    children:
+                      - id: nav-item-3
+                        type: text
+                        content: "Horizontal Item"
+                        width: 80
+                        textStyle:
+                          fill: "#ffffff"
+                          fontSize: 16
+                      - id: rect-2
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#8e44ad"
+                      - id: rect-3
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#2980b9"
+                      - id: rect-4
+                        type: rect
+                        width: 80
+                        height: 80
+                        fill: "#27ae60"
 
 - id: interactive-elements
   name: Interactive Elements
@@ -173,8 +202,8 @@
             wordWrapWidth: 100
             strokeColor: "transparent"
             strokeWidth: 0
-- id: text-animations
-  name: Text Animations
+- id: text-revealing
+  name: Text Revealing
   description: Text revealing and typewriter effects
   content:
     elements:
@@ -194,13 +223,13 @@
               fill: "#e74c3c"
               fontFamily: "Arial"
               fontWeight: "bold"
-          - text: "jhlasdfa"
+          - text: ", world"
             textStyle:
               fontSize: 36
               fill: "#3498db"
               fontFamily: "Arial"
             furigana:
-              text: "asll;ajs;foga"
+              text: "users"
               textStyle:
                 fontSize: 14
                 fill: "#f39c12"
@@ -251,11 +280,11 @@
         alpha: 1
         indicator:
           revealing:
-            src: "https://static.vecteezy.com/system/resources/thumbnails/066/477/265/small/red-paper-circle-and-shadow-png.png"
+            src: "circle-red" # This is our own private image asset, you can replace with any image URL
             width: 14
             height: 14
           complete: 
-            src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Green_dot.svg/300px-Green_dot.svg.png"
+            src: "circle-green" # This is our own private image asset, you can replace with any image URL
             width: 14
             height: 14
           offset: 14
@@ -298,9 +327,9 @@
         y: 150
         width: 200
         height: 200
-        src: "https://images.pexels.com/photos/53435/tree-oak-landscape-view-53435.jpeg"
+        src: "circle-red" # This is our own private image asset, you can replace with any image URL
         hover:
-          src: "https://images.pexels.com/photos/534174/pexels-photo-534174.jpeg"
+          src: "circle-blue" # This is our own private image asset, you can replace with any image URL
       - id: instruction-text
         type: text
         x: 64

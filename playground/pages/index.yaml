@@ -3,7 +3,7 @@ template: base
 title: Route-Graphics Playground
 ---
 - body.dark:
-    - rtgl-view wh=f p=lg:
+    - rtgl-view wh=f p=lg d=v:
         - rtgl-text flex=1 s="h2":
             - "Route-Graphics Playground"
         - rtgl-view d=h w="f" av=c:
@@ -11,12 +11,13 @@ title: Route-Graphics Playground
             - select#template-select:
                 - $for template in templates:
                     - option value="${escapeJson(template)}": "${template.name}"
-        - rtgl-view d=h w="f" av=c m=lg:
-            - rtgl-text scene-info: "Use buttons below to navigate between scenes"
-            - button#prev-button: "← Previous"
-            - span#scene-indicator:
-            - button#next-button: "Next →"
-        - rtgl-view sm-d=v d=h wh=f g=lg:
+        - rtgl-view w="f" av=c:
+            - rtgl-text: "Use buttons below to navigate between states"
+            - rtgl-view d="h":
+                - rtgl-button#prev-button s=sm: "← Previous"
+                - span#state-indicator:
+                - rtgl-button#next-button s=sm: "Next →"
+        - rtgl-view sm-d=v d=h wh=f g=lg flex=1 p=md:
             - rtgl-view flex=1 w=f h=f sm-h=inherit:
                 - rtgl-text s=lg: "Template (YAML):"
                 - div class="highlighted-textarea":
