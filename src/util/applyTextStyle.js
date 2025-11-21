@@ -8,7 +8,8 @@ export default (element, style, fallBackStyle = {}) => {
     wordWrap: style.wordWrap ?? fallBackStyle.wordWrap ?? false,
     breakWords: style.breakWords ?? fallBackStyle.breakWords ?? false,
     wordWrapWidth: style.wordWrapWidth ?? fallBackStyle.wordWrapWidth ?? 100,
-    strokeColor: style.strokeColor ?? fallBackStyle.strokeColor ?? "transparent",
+    strokeColor:
+      style.strokeColor ?? fallBackStyle.strokeColor ?? "transparent",
     strokeWidth: style.strokeWidth ?? fallBackStyle.strokeWidth ?? 0,
   };
   element.style = appliedStyle;

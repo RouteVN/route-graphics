@@ -65,22 +65,24 @@ const buildTimeline = (keyframesInput) => {
   let accumulatedTime = 0;
   let latestValue;
 
-  keyframesInput.forEach(({ value, duration, easing = "linear", relative }, index) => {
-    if (index === 0) {
-      latestValue = value;
-      timeline.push({ time: accumulatedTime, value, easing: "linear" });
-    } else if (duration !== undefined && easing !== undefined) {
-      accumulatedTime += duration;
-
-      if (relative) {
-        latestValue = latestValue + value;
-      } else {
+  keyframesInput.forEach(
+    ({ value, duration, easing = "linear", relative }, index) => {
+      if (index === 0) {
         latestValue = value;
-      }
+        timeline.push({ time: accumulatedTime, value, easing: "linear" });
+      } else if (duration !== undefined && easing !== undefined) {
+        accumulatedTime += duration;
 
-      timeline.push({ time: accumulatedTime, value: latestValue, easing });
-    }
-  });
+        if (relative) {
+          latestValue = latestValue + value;
+        } else {
+          latestValue = value;
+        }
+
+        timeline.push({ time: accumulatedTime, value: latestValue, easing });
+      }
+    },
+  );
 
   return timeline;
 };
