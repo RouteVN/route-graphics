@@ -1,0 +1,30 @@
+---
+title: GIF Events
+description: Test GIF event properties configuration
+specs:
+  - "GIF should support hover properties"
+  - "GIF should support click properties"
+  - "Cursor should change on interaction"
+steps:
+  - move 200 200
+  - screenshot
+  - click
+  - screenshot
+---
+states:
+  - elements:
+      - id: "gif-interactive"
+        type: "gif"
+        src: "example-gif"
+        x: 100
+        y: 100
+        width: 200
+        height: 200
+        hover:
+          cursor: "pointer"
+          actionPayload:
+            type: "HOVER_GIF"
+        click:
+          cursor: "grab"
+          actionPayload:
+            type: "CLICK_GIF"
