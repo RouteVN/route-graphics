@@ -1,0 +1,56 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Particles Node
+description: Schema for particles AST after parsing
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - width
+  - height
+  - count
+  - speed
+  - alpha
+properties:
+  id:
+    type: string
+    description: Unique identifier
+
+  type:
+    const: particles
+    description: Element type
+
+  preset:
+    type: string
+    enum: [snow, rain]
+    description: Preset name used (if any)
+
+  x:
+    type: number
+    description: X position
+    default: 0
+
+  y:
+    type: number
+    description: Y position
+    default: 0
+
+  width:
+    type: number
+    description: Emission area width
+
+  height:
+    type: number
+    description: Emission area height
+
+  count:
+    type: number
+    description: Number of particles
+
+  alpha:
+    type: number
+    description: Overall opacity
+    minimum: 0
+    maximum: 1
+    default: 1

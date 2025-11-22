@@ -5,6 +5,7 @@ import { parseText } from "./parseText.js";
 import { parseTextRevealing } from "./parseTextRevealing.js";
 import { parseSlider } from "./parseSlider.js";
 import { ASTNodeType } from "../types.js";
+import { parseParticles } from "./parseParticles.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -31,6 +32,8 @@ const parseJSONToAST = (JSONObject) => {
         return parseSprite(node);
       case ASTNodeType.SLIDER:
         return parseSlider(node);
+      case ASTNodeType.PARTICLES:
+        return parseParticles(node);
       default:
         throw new Error(`Unsupported element type: ${node.type}`);
     }

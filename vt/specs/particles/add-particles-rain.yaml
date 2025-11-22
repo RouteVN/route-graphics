@@ -1,0 +1,9 @@
+---
+title: Particles rain
+---
+states:
+  - elements:
+      - id: 'particles-rain'
+        type: "particles_experimental"
+        preset: "rain"
+        count: 300
