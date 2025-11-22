@@ -3,9 +3,16 @@
  * This demonstrates all key concepts for weather effects
  */
 
-import { Application, ParticleContainer, Sprite, Texture, Graphics, Particle } from 'pixi.js';
-import { createSnowflakeTexture } from './snowTexture';
-import { createRaindropTexture } from './rainTexture';
+import {
+  Application,
+  ParticleContainer,
+  Sprite,
+  Texture,
+  Graphics,
+  Particle,
+} from "pixi.js";
+import { createSnowflakeTexture } from "./snowTexture";
+import { createRaindropTexture } from "./rainTexture";
 
 export const addParticle = async ({
   app,
@@ -14,7 +21,7 @@ export const addParticle = async ({
   animations,
   animationPlugins,
   eventHandler,
-  signal
+  signal,
 }) => {
   if (signal?.aborted) {
     return;
@@ -28,7 +35,6 @@ export const addParticle = async ({
       texture = createRaindropTexture(app);
   }
 
-
   const particleContainer = new ParticleContainer(500, {
     position: true,
     alpha: true,
@@ -39,12 +45,12 @@ export const addParticle = async ({
   app.stage.addChild(particleContainer);
 
   const particles = [];
-  const PARTICLE_COUNT = element.count;
+  const particleCount = element.count;
 
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const particle = createParticles(texture);
-    particles.push(particle);
-    particleContainer.addParticle(particle.particle);
+  for (let i = 0; i < particleCount; i++) {
+    const particleConf = createParticles(texture);
+    particles.push(particleConf);
+    particleContainer.addParticle(particleConf.particle);
   }
 
   function createParticles(texture) {
@@ -64,7 +70,7 @@ export const addParticle = async ({
     return {
       particle: particle,
       // Physics properties
-      speedY: Math.random() * 1 + 0.5,  // Fall speed (0.5 to 1.5)
+      speedY: Math.random() * 1 + 0.5, // Fall speed (0.5 to 1.5)
       speedX: Math.random() * 0.5 - 0.25, // Slight horizontal drift
       wobble: Math.random() * Math.PI * 2, // For sine wave motion
       wobbleSpeed: Math.random() * 0.05 + 0.02, // How fast it wobbles
@@ -72,10 +78,10 @@ export const addParticle = async ({
     };
   }
 
-  setInterval(() => {
+  app.ticker.add((ticker) => {
     particles.forEach((particle) => {
       const p = particle.particle;
-      const delta = 10
+      const delta = ticker.deltaTime;
 
       // Move down (falling)
       p.y += particle.speedY * delta;
@@ -100,7 +106,5 @@ export const addParticle = async ({
         p.x = app.screen.width;
       }
     });
-  }, 100);
-
-
+  });
 };
