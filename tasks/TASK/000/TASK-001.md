@@ -9,5 +9,3 @@ priority: low
 change all normal functions into arrow functions.
 
 motivation: https://yuusoft.com/handbook/code/arrow-functions
-
-

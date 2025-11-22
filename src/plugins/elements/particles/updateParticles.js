@@ -1,3 +1,1 @@
-export const updateParticles = () => {
-
-}
+export const updateParticles = () => {};

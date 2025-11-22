@@ -6,11 +6,10 @@ export const deleteParticles = async ({
   animations,
   signal,
 }) => {
-
   if (signal?.aborted) {
     return;
   }
-    
+
   const particleElement = parent.getChildByLabel(element.id);
 
   if (particleElement) {

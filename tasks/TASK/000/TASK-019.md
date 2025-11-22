@@ -6,7 +6,6 @@ priority: low
 
 # Description
 
-
 ## Context
 
 Currently, route-graphics supports mostly static assets, and some tween animations.
@@ -29,6 +28,7 @@ Research the following:
 
 Fill in here the implementation plan after the research has been conducted
 
-
-
-
+For snow and rain which is made of lots of particles, using Particle and ParticleContainer provided by PixiJS would be the best match, since already using PixiJS and we don't need to import new engines.
+Similar to other visual novel engines, we can provide presets while also opening the permission to modify detailed fields of particles (e.g. movement direction, speed).
+This ensures that it is easily extendable and easy for users to use.
+One limitation is that immersive secenes other than lots of particles may need to be implemented in another way.

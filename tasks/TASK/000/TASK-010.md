@@ -7,4 +7,3 @@ priority: low
 # Description
 
 implement the slider compoenent according to the schema
-

@@ -23,4 +23,3 @@ states:
     animations:
       - id: ...
 ```
-

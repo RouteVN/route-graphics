@@ -9,4 +9,3 @@ priority: low
 - only use a few standard colors. not random ones.
   - use https://catppuccin.com/palette/ `mocha` variant
 - have more reasonable patterns
-

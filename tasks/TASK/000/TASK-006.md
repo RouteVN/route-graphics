@@ -8,4 +8,3 @@ priority: low
 
 can refer to https://github.com/yuusoft-org/rettangoli/tree/main/apps/rettangoli.dev
 for how to setup a basic website. it uses `rtgl sites`
-
