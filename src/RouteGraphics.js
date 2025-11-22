@@ -7,6 +7,7 @@ import {
   ExtensionType,
   Texture,
 } from "pixi.js";
+import { GifSource } from "pixi.js/gif";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
 import parseJSONToAST from "./parser/index.js";
@@ -53,6 +54,11 @@ const createAdvancedBufferLoader = (bufferMap) => ({
   testParse: async (_) => true,
 
   parse: async (asset) => {
+    // Handle GIF
+    if (asset.type === "image/gif") {
+      return GifSource.from(asset.data);
+    }
+
     // If asset is already a Texture, return it directly
     if (asset instanceof Texture) {
       return asset;
@@ -68,7 +74,7 @@ const createAdvancedBufferLoader = (bufferMap) => ({
     return new Texture.from(imageBitmap);
   },
 
-  unload: async (texture) => texture.destroy(true),
+  unload: async (asset) => asset.destroy(true),
 });
 
 /**
@@ -130,6 +136,8 @@ const createRouteGraphics = () => {
     if (!mimeType) return "texture";
 
     if (mimeType.startsWith("audio/")) return "audio";
+
+    if (mimeType === "image/gif") return "gif";
 
     if (
       mimeType.startsWith("font/") ||
@@ -327,6 +335,7 @@ const createRouteGraphics = () => {
         audio: {},
         font: {},
         texture: {}, // includes images and other PIXI-compatible assets
+        gif: {},
       };
 
       for (const [key, asset] of Object.entries(assetBufferMap)) {
@@ -360,7 +369,11 @@ const createRouteGraphics = () => {
       );
 
       if (!advancedLoader) {
-        advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
+        const visualAssets = {
+          ...assetsByType.texture,
+          ...assetsByType.gif,
+        };
+        advancedLoader = createAdvancedBufferLoader(visualAssets);
 
         Assets.loader.parsers.length = 0;
         Assets.reset();
@@ -377,9 +390,13 @@ const createRouteGraphics = () => {
       } else {
         // Merge new texture assets into existing buffer map
         Object.assign(advancedLoader.bufferMap, assetsByType.texture);
+        Object.assign(advancedLoader.bufferMap, assetsByType.gif);
       }
 
-      const urls = Object.keys(assetsByType.texture);
+      const urls = [
+        ...Object.keys(assetsByType.texture),
+        ...Object.keys(assetsByType.gif),
+      ];
       return Promise.all(urls.map((url) => Assets.load(url)));
     },
 

@@ -19,6 +19,7 @@
             sliderPlugin,
             containerPlugin,
             textRevealingPlugin,
+            gifPlugin,
             tweenPlugin,
             soundPlugin,
         } from "/RouteGraphics.js"
@@ -35,6 +36,7 @@
         await Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' });
         await Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' });
         await Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' });
+        await Assets.load({ alias: 'example-gif', src: '/public/example.gif' });
 
 
         // Pre-load audio files
@@ -60,7 +62,8 @@
                 spritePlugin,
                 sliderPlugin,
                 containerPlugin,
-                textRevealingPlugin
+                textRevealingPlugin,
+                gifPlugin 
             ],
             animations: [
                 tweenPlugin
