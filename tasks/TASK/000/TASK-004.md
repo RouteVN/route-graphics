@@ -9,5 +9,3 @@ priority: low
 for AudioStage and RouteGraphics, convert from class to factory function.
 
 motivation: https://yuusoft.com/handbook/code/functional-programming#factory-functions
-
-

@@ -359,6 +359,7 @@ export const ASTNodeType = {
   SPRITE: "sprite",
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
+  PARTICLES: "particles_experimental",
 };
 
 /**

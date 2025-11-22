@@ -81,7 +81,7 @@ class App {
         url: "/public/bgm-2.mp3",
         type: "audio/mpeg",
       },
-      "Inkfree": {
+      Inkfree: {
         url: "/public/Inkfree.ttf",
         type: "application/x-font-ttf",
       },
@@ -95,7 +95,7 @@ class App {
       width: 1920,
       height: 1080,
       eventHandler: (eventName, payload) => {
-        console.log('eventHandler', eventName, payload)
+        console.log("eventHandler", eventName, payload);
       },
       plugins: [
         new SpriteRendererPlugin(),
@@ -119,8 +119,11 @@ class App {
   };
 
   _renderCanvas = () => {
-    const { elements = [], transitions = [], global } =
-      this._jsonContent.states[this._frameIndex];
+    const {
+      elements = [],
+      transitions = [],
+      global,
+    } = this._jsonContent.states[this._frameIndex];
     this._app.render({ elements, transitions, global });
   };
 

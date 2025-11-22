@@ -23,7 +23,7 @@ import RouteGraphics, {
   SliderRendererPlugin,
   KeyframeTransitionPlugin,
   createAssetBufferManager,
-} from 'route-graphics';
+} from "route-graphics";
 
 // Load assets
 const assets = {
@@ -78,9 +78,9 @@ app.render({
       texture: "file:circle-red",
       x: 100,
       y: 100,
-    }
+    },
   ],
-  animations: []
+  animations: [],
 });
 ```
 
@@ -109,10 +109,8 @@ bun run lint
 # to test it
 bun run test
 
-# or 
+# or
 bun run test:coverage
 
 
 ```
-
-

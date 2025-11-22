@@ -13,7 +13,7 @@ Benefits:
 user can import only the features it uses
 user can implement and bring their own element type
 
-## Example  implementation
+## Example implementation
 
 Example `rectPlugin.js`
 
@@ -33,9 +33,7 @@ export const delete = () => {
 };
 ```
 
-
 Example `containerPlugin.js`
-
 
 ```js
 export const type = 'container';
@@ -71,8 +69,7 @@ export const delete = () => {
 
 ```
 
-
-Usage: 
+Usage:
 
 ```js
 const routeGraphics = createRouteGraphics({
@@ -90,11 +87,10 @@ user can create its own implementatioon for a plugin. and then easilly add it. t
 
 It should be grouped by each plugin
 
-
 ```
 |- plugins
   |- elements
-  |  |- sprite 
+  |  |- sprite
   |  |  |- spritePlugin.js    // I think can put all in 1 file. potentially could split into 3 files add, update, remove.
         | - addSprite.js
         | - deleteSprite.js
@@ -102,9 +98,9 @@ It should be grouped by each plugin
       | ...
       | addElements.js
   |- animations
-  |  |- tween 
+  |  |- tween
   |     |- tweenPlugin.js
-  |- audio 
+  |- audio
      |- sound
         |- soundPlugins.js
         | - addSound.js
@@ -115,20 +111,17 @@ It should be grouped by each plugin
 
 We have 3 category types or how we should call it: `add`, `update`, `remove`
 
-
 Elements, animations and audio are specifically different types.
 
 All elements have same interface, all animations have same interface, all audio have same interface.
 but interface of elements, animations, and audio are different.
-
 
 the above is just a draft code. we need to:
 
 - design the interface for plugins. propose some best ways
 - once we approve the interface design, can go and implmenet it
 
-
-It should be this flow. 
+It should be this flow.
 First we created the routeGraphics via createRouteGraphics and pass in all the plugins.
 
 Then we we use the RouteGraphic to render it will pass the animation plugins and elements plugins into addElements. The addElements will use diffElements like right now to get the add/update/delete arrays. After that we will loop through the elementsPlugin to get the type and use the add/delete/update method respectively.They also passes in animationPlugin to play the animation.
