@@ -10,13 +10,13 @@
  */
 
 /**
- * 
+ *
  * @param {Object} Options
  * @param {String} Options.type
  * @param {Function} Options.parse
  * @returns {ParserPlugin}
  */
 export const createParserPlugin = ({ type, parse }) => ({
-    type,
-    parse
-})
+  type,
+  parse,
+});
