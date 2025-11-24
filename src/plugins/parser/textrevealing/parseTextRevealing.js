@@ -1,9 +1,9 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
-import { parseCommonObject } from "./parseCommonObject.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').TextRevealingASTNode} TextRevealingASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').TextRevealingASTNode} TextRevealingASTNode
  */
 
 /**

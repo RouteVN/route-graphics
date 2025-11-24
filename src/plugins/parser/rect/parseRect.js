@@ -1,7 +1,7 @@
-import { parseCommonObject } from "./parseCommonObject.js";
-/**
- *  @typedef {import('../types.js').BaseElement}
- *  @typedef {import('../types.js').RectASTNode}
+import { parseCommonObject } from "../util/parseCommonObject.js";
+n/**
+ *  @typedef {import('../../../types.js').BaseElement}
+ *  @typedef {import('../../../types.js').RectASTNode}
  */
 
 /**

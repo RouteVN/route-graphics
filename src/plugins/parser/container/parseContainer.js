@@ -1,9 +1,9 @@
-import { parseCommonObject } from "./parseCommonObject.js";
-import parseJSONToAST from "./index.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
+import { getParserPlugin } from "../parserRegistry.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').ContainerASTNode} ContainerASTNode
  */
 
 /**
@@ -51,7 +51,11 @@ export const parseContainer = (state) => {
       child.y = 0;
     }
 
-    child = parseJSONToAST([child])[0];
+    const plugin = getParserPlugin(child.type);
+    if (!plugin) {
+      throw new Error(`Unsupported element type: ${child.type}`);
+    }
+    child = plugin.parse(child);
 
     if (direction === "horizontal") {
       if (

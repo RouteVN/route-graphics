@@ -9,10 +9,10 @@ import {
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
-import parseJSONToAST from "./parser/index.js";
+import parseElements from "./plugins/parser/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
-import { renderElements } from "./plugins/renderElements.js";
-import { renderAudio } from "./plugins/renderAudio.js";
+import { renderElements } from "./plugins/elements/renderElements.js";
+import { renderAudio } from "./plugins/audio/renderAudio.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -427,7 +427,7 @@ const createRouteGraphics = () => {
      * @param {RouteGraphicsState} stateParam
      */
     render: (stateParam) => {
-      const parsedElements = parseJSONToAST(stateParam.elements);
+      const parsedElements = parseElements(stateParam.elements);
       const parsedState = { ...stateParam, elements: parsedElements };
       renderInternal(app, app.stage, state, parsedState, eventHandler);
       state = parsedState;

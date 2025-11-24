@@ -1,8 +1,8 @@
-import { parseCommonObject } from "./parseCommonObject.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').SliderASTNode} SliderASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').SliderASTNode} SliderASTNode
  */
 
 /**

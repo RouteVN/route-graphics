@@ -1,5 +1,5 @@
 import animateElements from "../../../util/animateElements.js";
-import { renderElements } from "../../renderElements.js";
+import { renderElements } from "../renderElements.js";
 
 /**
  * Update container element
