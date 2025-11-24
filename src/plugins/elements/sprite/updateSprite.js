@@ -53,11 +53,11 @@ export const updateSprite = async ({
 
         const overListener = () => {
           if (actionPayload && eventHandler)
-            eventHandler(`${spriteElement.label}-pointer-over`, {
+            eventHandler(`hover`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (cursor) spriteElement.cursor = cursor;
           if (soundSrc)
@@ -104,11 +104,11 @@ export const updateSprite = async ({
             : Texture.EMPTY;
 
           if (actionPayload && eventHandler)
-            eventHandler(`${spriteElement.label}-click`, {
+            eventHandler(`click`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (soundSrc)
             app.audioStage.add({

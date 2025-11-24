@@ -1,0 +1,18 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Drag End Event Return
+description: This event type is called "dragend" and will be invoked when the user stops dragging the slider.
+type: object
+properties:
+  _event:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+  payload:
+    type: object
+    description: Payload object that is passed through the dragEnd object in the input
+  sliderValue:
+    type: number
+    description: The final value of the slider when drag ends

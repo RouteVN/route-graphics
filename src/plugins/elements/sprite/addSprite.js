@@ -46,11 +46,11 @@ export const addSprite = async ({
 
     const overListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`${sprite.label}-pointer-over`, {
+        eventHandler(`hover`, {
           _event: {
             id: sprite.label,
           },
-          ...actionPayload,
+          payload: { ...actionPayload },
         });
       if (cursor) sprite.cursor = cursor;
       if (soundSrc)
@@ -92,11 +92,11 @@ export const addSprite = async ({
     const releaseListener = () => {
       sprite.texture = texture;
       if (actionPayload && eventHandler)
-        eventHandler(`${sprite.label}-click`, {
+        eventHandler(`click`, {
           _event: {
             id: sprite.label,
           },
-          ...actionPayload,
+          payload: { ...actionPayload },
         });
       if (soundSrc)
         app.audioStage.add({

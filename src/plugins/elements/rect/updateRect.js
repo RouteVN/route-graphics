@@ -59,11 +59,11 @@ export const updateRect = async ({
 
         const overListener = () => {
           if (actionPayload && eventHandler)
-            eventHandler(`${rectElement.label}-pointer-over`, {
+            eventHandler(`hover`, {
               _event: {
                 id: rectElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (cursor) rectElement.cursor = cursor;
           if (soundSrc)
@@ -88,11 +88,11 @@ export const updateRect = async ({
 
         const clickListener = () => {
           if (actionPayload && eventHandler)
-            eventHandler(`${rectElement.label}-click`, {
+            eventHandler(`click`, {
               _event: {
                 id: rectElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (soundSrc)
             app.audioStage.add({

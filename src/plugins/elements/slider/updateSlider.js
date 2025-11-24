@@ -182,10 +182,10 @@ export const updateSlider = async ({
             updateThumbPosition(currentValue);
 
             if (dragStart?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag-start`, {
+              eventHandler(`dragstart`, {
                 _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...dragStart.actionPayload,
+                payload: { ...dragStart.actionPayload },
+                sliderValue: currentValue,
               });
             }
           }
@@ -202,11 +202,10 @@ export const updateSlider = async ({
             updateThumbPosition(currentValue);
 
             if (drag?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag`, {
+              eventHandler(`drag`, {
                 _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...drag.actionPayload,
-                currentValue,
+                payload: { ...drag.actionPayload },
+                sliderValue: currentValue,
               });
             }
           }
@@ -217,10 +216,10 @@ export const updateSlider = async ({
             isDragging = false;
 
             if (dragEnd?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag-end`, {
+              eventHandler(`dragend`, {
                 _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...dragEnd.actionPayload,
+                payload: { ...dragEnd.actionPayload },
+                sliderValue: currentValue,
               });
             }
           }
@@ -235,17 +234,11 @@ export const updateSlider = async ({
           const {
             cursor,
             soundSrc,
-            actionPayload,
             thumbSrc: hoverThumbSrc,
             barSrc: hoverBarSrc,
           } = hover;
 
           const overListener = () => {
-            if (actionPayload)
-              eventHandler(`${nextSliderASTNode.id}-pointer-over`, {
-                _event: { id: nextSliderASTNode.id },
-                ...actionPayload,
-              });
             if (cursor) {
               sliderElement.cursor = cursor;
               thumb.cursor = cursor;
@@ -267,20 +260,10 @@ export const updateSlider = async ({
           };
 
           const outListener = () => {
-            sliderElement.cursor = "auto";
-            thumb.cursor = "auto";
-
-            // Restore original textures
-            thumb.texture = originalThumbTexture;
-            bar.texture = originalBarTexture;
-          };
-
-          const pointeroutListener = () => {
-            // Only restore original textures if not dragging
-            if (!isDragging) {
+            if(!isDragging){
               sliderElement.cursor = "auto";
               thumb.cursor = "auto";
-
+  
               // Restore original textures
               thumb.texture = originalThumbTexture;
               bar.texture = originalBarTexture;
@@ -288,8 +271,7 @@ export const updateSlider = async ({
           };
 
           sliderElement.on("pointerover", overListener);
-          sliderElement.on("pointerout", pointeroutListener);
-          sliderElement.on("pointerup", outListener);
+          sliderElement.on("pointerout", outListener);
           sliderElement.on("pointerupoutside", outListener);
         }
       }
