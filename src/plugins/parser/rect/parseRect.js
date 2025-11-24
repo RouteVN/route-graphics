@@ -1,14 +1,16 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
-n/**
+/**
  *  @typedef {import('../../../types.js').BaseElement}
  *  @typedef {import('../../../types.js').RectASTNode}
  */
 
 /**
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The rect state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @return {RectASTNode}
  */
-export const parseRect = (state) => {
+export const parseRect = ({ state }) => {
   const astObj = parseCommonObject(state);
 
   let finalObj = astObj;

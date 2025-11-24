@@ -1,46 +1,47 @@
-file: '../../src/plugins/parser/container/parseContainer.js'
+file: '../../src/plugins/parser/container/parseContainerForTestingPurposes.js'
 group: parser
 suites: [parseContainer]
 ---
-suite: parseContainer
-exportName: parseContainer
+suite: parseContainerForTesting
+exportName: parseContainerForTesting
 ---
 case: Test parsing container with no width or height horizontally
 in:
-  - id: 'container-1'
-    type: "container"
-    direction: "horizontal"
-    gap: 5
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    rotation: 90
-    children:
-      - id: 'rect-1'
-        type: "rect"
-        width: 80
-        height: 100
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: red
-        rotation: 90
-      - id: 'rect-2'
-        type: "rect"
-        width: 100
-        height: 120
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: blue
-        rotation: 90
-      - id: 'rect-3'
-        type: "rect"
-        width: 80
-        height: 100
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: red
-        rotation: 90
+  - state:
+      id: 'container-1'
+      type: "container"
+      direction: "horizontal"
+      gap: 5
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      rotation: 90
+      children:
+        - id: 'rect-1'
+          type: "rect"
+          width: 80
+          height: 100
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: red
+          rotation: 90
+        - id: 'rect-2'
+          type: "rect"
+          width: 100
+          height: 120
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: blue
+          rotation: 90
+        - id: 'rect-3'
+          type: "rect"
+          width: 80
+          height: 100
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: red
+          rotation: 90
 out:
   id: "container-1"
   type: "container"
@@ -104,40 +105,41 @@ out:
 ---
 case: Test parsing container with no width or height vertically
 in:
-  - id: 'container-1'
-    type: "container"
-    direction: "vertical"
-    gap: 5
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    rotation: 90
-    children:
-      - id: 'rect-1'
-        type: "rect"
-        width: 80
-        height: 100
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: red
-        rotation: 90
-      - id: 'rect-2'
-        type: "rect"
-        width: 100
-        height: 120
-        x: 240
-        y: 240
-        fill: blue
-        rotation: 90
-      - id: 'rect-3'
-        type: "rect"
-        width: 80
-        height: 100
-        x: 240
-        y: 240
-        fill: red
-        rotation: 90
+  - state:
+      id: 'container-1'
+      type: "container"
+      direction: "vertical"
+      gap: 5
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      rotation: 90
+      children:
+        - id: 'rect-1'
+          type: "rect"
+          width: 80
+          height: 100
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: red
+          rotation: 90
+        - id: 'rect-2'
+          type: "rect"
+          width: 100
+          height: 120
+          x: 240
+          y: 240
+          fill: blue
+          rotation: 90
+        - id: 'rect-3'
+          type: "rect"
+          width: 80
+          height: 100
+          x: 240
+          y: 240
+          fill: red
+          rotation: 90
 out:
   id: "container-1"
   type: "container"
@@ -201,33 +203,34 @@ out:
 ---
 case: Test parsing container with no width or height and width overflow-horizontal
 in:
-  - id: 'container-1'
-    type: "container"
-    direction: "horizontal"
-    width: 200
-    gap: 5
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    rotation: 90
-    children:
-      - id: 'rect-1'
-        type: "rect"
-        width: 80
-        height: 100
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: red
-        rotation: 90
-      - id: 'rect-2'
-        type: "rect"
-        width: 100
-        height: 120
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: blue
-        rotation: 90
+  - state:
+      id: 'container-1'
+      type: "container"
+      direction: "horizontal"
+      width: 200
+      gap: 5
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      rotation: 90
+      children:
+        - id: 'rect-1'
+          type: "rect"
+          width: 80
+          height: 100
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: red
+          rotation: 90
+        - id: 'rect-2'
+          type: "rect"
+          width: 100
+          height: 120
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: blue
+          rotation: 90
 out:
   id: "container-1"
   type: "container"
@@ -276,41 +279,42 @@ out:
 ---
 case: Test parsing container with no width or height and width overflow-vertical
 in:
-  - id: 'container-1'
-    type: "container"
-    direction: "vertical"
-    height: 200
-    gap: 5
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    rotation: 90
-    children:
-      - id: 'rect-1'
-        type: "rect"
-        width: 80
-        height: 100
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: red
-        rotation: 90
-      - id: 'rect-2'
-        type: "rect"
-        width: 100
-        height: 120
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: blue
-        rotation: 90
-      - id: 'rect-3'
-        type: "rect"
-        width: 100
-        height: 120
-        scaleX: 1.2
-        scaleY: 0.8
-        fill: blue
-        rotation: 90
+  - state:
+      id: 'container-1'
+      type: "container"
+      direction: "vertical"
+      height: 200
+      gap: 5
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      rotation: 90
+      children:
+        - id: 'rect-1'
+          type: "rect"
+          width: 80
+          height: 100
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: red
+          rotation: 90
+        - id: 'rect-2'
+          type: "rect"
+          width: 100
+          height: 120
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: blue
+          rotation: 90
+        - id: 'rect-3'
+          type: "rect"
+          width: 100
+          height: 120
+          scaleX: 1.2
+          scaleY: 0.8
+          fill: blue
+          rotation: 90
 out:
   id: "container-1"
   type: "container"
@@ -374,15 +378,16 @@ out:
 ---
 case: Test parsing empty container
 in:
-  - id: 'container-1'
-    type: "container"
-    direction: "vertical"
-    gap: 5
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    rotation: 90
+  - state:
+      id: 'container-1'
+      type: "container"
+      direction: "vertical"
+      gap: 5
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      rotation: 90
 out:
   id: "container-1"
   type: "container"

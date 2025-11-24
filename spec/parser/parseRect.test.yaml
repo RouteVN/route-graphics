@@ -6,27 +6,28 @@ suite: parseRect
 exportName: parseRect
 ---
 case: Test parsing rect
-in: 
-  - id: 'rect-1'
-    type: "rect"
-    width: 80
-    height: 100
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    fill: red
-    border: 
-      width: 15
-      color: blue
-      alpha: 0.25
-    cursor: pointer
-    pointerDown: "pointerDown-123"
-    pointerUp: "pointerUp-123"
-    pointerMove: "pointerMove-123"
-    rotation: 90
+in:
+  - state:
+      id: 'rect-1'
+      type: "rect"
+      width: 80
+      height: 100
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      fill: red
+      border:
+        width: 15
+        color: blue
+        alpha: 0.25
+      cursor: pointer
+      pointerDown: "pointerDown-123"
+      pointerUp: "pointerUp-123"
+      pointerMove: "pointerMove-123"
+      rotation: 90
 out:
   id: "rect-1"
   type: "rect"
@@ -49,23 +50,24 @@ out:
   alpha: 1
 ---
 case: Test parsing rect with no border
-in: 
-  - id: 'rect-1'
-    type: "rect"
-    width: 80
-    height: 100
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    fill: red
-    cursor: pointer
-    pointerDown: "pointerDown-123"
-    pointerUp: "pointerUp-123"
-    pointerMove: "pointerMove-123"
-    rotation: 90
+in:
+  - state:
+      id: 'rect-1'
+      type: "rect"
+      width: 80
+      height: 100
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      fill: red
+      cursor: pointer
+      pointerDown: "pointerDown-123"
+      pointerUp: "pointerUp-123"
+      pointerMove: "pointerMove-123"
+      rotation: 90
 out:
   id: "rect-1"
   type: "rect"
@@ -84,25 +86,26 @@ out:
   alpha: 1
 ---
 case: Test parsing rect with border property but only have alpha value
-in: 
-  - id: 'rect-1'
-    type: "rect"
-    width: 80
-    height: 100
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    border:
-      alpha: 0.8
-    fill: red
-    cursor: pointer
-    pointerDown: "pointerDown-123"
-    pointerUp: "pointerUp-123"
-    pointerMove: "pointerMove-123"
-    rotation: 90
+in:
+  - state:
+      id: 'rect-1'
+      type: "rect"
+      width: 80
+      height: 100
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      border:
+        alpha: 0.8
+      fill: red
+      cursor: pointer
+      pointerDown: "pointerDown-123"
+      pointerUp: "pointerUp-123"
+      pointerMove: "pointerMove-123"
+      rotation: 90
 out:
   id: "rect-1"
   type: "rect"
@@ -125,19 +128,20 @@ out:
   alpha: 1
 ---
 case: Test parsing rect default to see the default values for cursor, fill, rotation and interactive props
-in: 
-  - id: 'rect-1'
-    type: "rect"
-    width: 80
-    height: 100
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    border:
-      alpha: 0.8
+in:
+  - state:
+      id: 'rect-1'
+      type: "rect"
+      width: 80
+      height: 100
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      border:
+        alpha: 0.8
 out:
   id: "rect-1"
   type: "rect"
