@@ -109,6 +109,7 @@ const createRouteGraphics = () => {
     animations: [],
     elements: [],
     audios: [],
+    parsers: [],
   };
 
   /**
@@ -281,7 +282,7 @@ const createRouteGraphics = () => {
         backgroundColor,
       } = options;
 
-      plugins = pluginConfig;
+      plugins = { ...plugins, ...pluginConfig};
       eventHandler = handler;
 
       /**
@@ -427,7 +428,10 @@ const createRouteGraphics = () => {
      * @param {RouteGraphicsState} stateParam
      */
     render: (stateParam) => {
-      const parsedElements = parseElements(stateParam.elements);
+      const parsedElements = parseElements({
+        JSONObject: stateParam.elements,
+        parserPlugins: plugins.parsers
+      });
       const parsedState = { ...stateParam, elements: parsedElements };
       renderInternal(app, app.stage, state, parsedState, eventHandler);
       state = parsedState;

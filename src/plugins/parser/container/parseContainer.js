@@ -1,5 +1,4 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
-import { getParserPlugin } from "../parserRegistry.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -7,7 +6,9 @@ import { getParserPlugin } from "../parserRegistry.js";
  */
 
 /**
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The container state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins
  * @returns {ContainerASTNode}
  *
  * This will parse the container element.
@@ -16,7 +17,7 @@ import { getParserPlugin } from "../parserRegistry.js";
  * If the direction has horizontal/vertical, it will reposition the children to be horizontal/vertical
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
  */
-export const parseContainer = (state) => {
+export const parseContainer = ({ state, parserPlugins = [] }) => {
   const direction = state.direction;
   const scroll = state.scroll ? true : false;
   const gap = state.gap || 0;
@@ -51,11 +52,11 @@ export const parseContainer = (state) => {
       child.y = 0;
     }
 
-    const plugin = getParserPlugin(child.type);
+    const plugin = parserPlugins.find(p => p.type === child.type);
     if (!plugin) {
       throw new Error(`Unsupported element type: ${child.type}`);
     }
-    child = plugin.parse(child);
+    child = plugin.parse({ state: child, parserPlugins });
 
     if (direction === "horizontal") {
       if (

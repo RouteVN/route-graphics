@@ -8,10 +8,12 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
  * Parse text object and calculate final position after anchor adjustment
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The text state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @returns {TextASTNode}
  */
-export const parseText = (state) => {
+export const parseText = ({ state }) => {
   const defaultTextStyle = {
     fill: "black",
     fontFamily: "Arial",

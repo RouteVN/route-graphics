@@ -5,10 +5,12 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
  */
 
 /**
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The sprite state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @return {SpriteASTNode}
  */
-export const parseSprite = (state) => {
+export const parseSprite = ({ state }) => {
   const astObj = parseCommonObject(state);
 
   return {

@@ -16,7 +16,7 @@
  * @param {Function} Options.parse
  * @returns {ParserPlugin}
  */
-const createParserPlugin = ({ type, parse }) => ({
+export const createParserPlugin = ({ type, parse }) => ({
     type,
     parse
 })

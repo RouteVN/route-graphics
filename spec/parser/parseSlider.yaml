@@ -9,17 +9,17 @@ specs:
   - "Parser should handle vertical slider configuration"
 ---
 cases:
-  - name: Test parsing basic horizontal slider
     in:
-      id: 'slider-1'
-      type: 'slider'
-      x: 100
-      y: 50
-      width: 200
-      height: 20
-      direction: 'horizontal'
-      thumbSrc: 'https://example.com/thumb.png'
-      barSrc: 'https://example.com/bar.png'
+      state:
+        id: 'slider-1'
+        type: 'slider'
+        x: 100
+        y: 50
+        width: 200
+        height: 20
+        direction: 'horizontal'
+        thumbSrc: 'https://example.com/thumb.png'
+        barSrc: 'https://example.com/bar.png'
     out:
       id: 'slider-1'
       type: 'slider'
@@ -40,14 +40,15 @@ cases:
 
   - name: Test parsing slider with default values
     in:
-      id: 'slider-2'
-      type: 'slider'
-      x: 0
-      y: 0
-      width: 150
-      height: 30
-      thumbSrc: 'thumb-idle.png'
-      barSrc: 'bar-idle.png'
+      state:
+        id: 'slider-2'
+        type: 'slider'
+        x: 0
+        y: 0
+        width: 150
+        height: 30
+        thumbSrc: 'thumb-idle.png'
+        barSrc: 'bar-idle.png'
     out:
       id: 'slider-2'
       type: 'slider'
@@ -68,20 +69,21 @@ cases:
 
   - name: Test parsing vertical slider with custom values
     in:
-      id: 'slider-vertical'
-      type: 'slider'
-      x: 50
-      y: 100
-      width: 25
-      height: 150
-      direction: 'vertical'
-      thumbSrc: 'vertical-thumb.png'
-      barSrc: 'vertical-bar.png'
-      alpha: 0.8
-      min: 10
-      max: 200
-      step: 5
-      initialValue: 75
+      state:
+        id: 'slider-vertical'
+        type: 'slider'
+        x: 50
+        y: 100
+        width: 25
+        height: 150
+        direction: 'vertical'
+        thumbSrc: 'vertical-thumb.png'
+        barSrc: 'vertical-bar.png'
+        alpha: 0.8
+        min: 10
+        max: 200
+        step: 5
+        initialValue: 75
     out:
       id: 'slider-vertical'
       type: 'slider'
@@ -102,17 +104,18 @@ cases:
 
   - name: Test parsing slider with anchor points
     in:
-      id: 'slider-anchored'
-      type: 'slider'
-      x: 200
-      y: 150
-      width: 180
-      height: 25
-      anchorX: 0.5
-      anchorY: 0.5
-      direction: 'horizontal'
-      thumbSrc: 'thumb.png'
-      barSrc: 'bar.png'
+      state:
+        id: 'slider-anchored'
+        type: 'slider'
+        x: 200
+        y: 150
+        width: 180
+        height: 25
+        anchorX: 0.5
+        anchorY: 0.5
+        direction: 'horizontal'
+        thumbSrc: 'thumb.png'
+        barSrc: 'bar.png'
     out:
       id: 'slider-anchored'
       type: 'slider'
@@ -133,20 +136,21 @@ cases:
 
   - name: Test parsing slider with hover configuration
     in:
-      id: 'slider-hover'
-      type: 'slider'
-      x: 100
-      y: 200
-      width: 200
-      height: 20
-      direction: 'horizontal'
-      thumbSrc: 'thumb-idle.png'
-      barSrc: 'bar-idle.png'
-      hover:
-        thumbSrc: 'thumb-hover.png'
-        barSrc: 'bar-hover.png'
-        cursor: 'pointer'
-        soundSrc: 'hover-sound.mp3'
+      state:
+        id: 'slider-hover'
+        type: 'slider'
+        x: 100
+        y: 200
+        width: 200
+        height: 20
+        direction: 'horizontal'
+        thumbSrc: 'thumb-idle.png'
+        barSrc: 'bar-idle.png'
+        hover:
+          thumbSrc: 'thumb-hover.png'
+          barSrc: 'bar-hover.png'
+          cursor: 'pointer'
+          soundSrc: 'hover-sound.mp3'
     out:
       id: 'slider-hover'
       type: 'slider'
@@ -172,28 +176,29 @@ cases:
 
   - name: Test parsing slider with drag event configuration
     in:
-      id: 'slider-events'
-      type: 'slider'
-      x: 100
-      y: 250
-      width: 200
-      height: 20
-      direction: 'horizontal'
-      thumbSrc: 'thumb.png'
-      barSrc: 'bar.png'
-      drag:
-        actionPayload:
-          setVolume: '{{ value }}'
-          source: 'slider'
-      dragStart:
-        actionPayload:
-          event: 'drag-start'
-          sliderId: 'slider-events'
-      dragEnd:
-        actionPayload:
-          event: 'drag-end'
-          finalValue: '{{ value }}'
-          sliderId: 'slider-events'
+      state:
+        id: 'slider-events'
+        type: 'slider'
+        x: 100
+        y: 250
+        width: 200
+        height: 20
+        direction: 'horizontal'
+        thumbSrc: 'thumb.png'
+        barSrc: 'bar.png'
+        drag:
+          actionPayload:
+            setVolume: '{{ value }}'
+            source: 'slider'
+        dragStart:
+          actionPayload:
+            event: 'drag-start'
+            sliderId: 'slider-events'
+        dragEnd:
+          actionPayload:
+            event: 'drag-end'
+            finalValue: '{{ value }}'
+            sliderId: 'slider-events'
     out:
       id: 'slider-events'
       type: 'slider'
@@ -227,16 +232,17 @@ cases:
 
   - name: Test parsing slider with zIndex
     in:
-      id: 'slider-zindex'
-      type: 'slider'
-      x: 50
-      y: 300
-      width: 180
-      height: 25
-      zIndex: 10
-      direction: 'horizontal'
-      thumbSrc: 'thumb.png'
-      barSrc: 'bar.png'
+      state:
+        id: 'slider-zindex'
+        type: 'slider'
+        x: 50
+        y: 300
+        width: 180
+        height: 25
+        zIndex: 10
+        direction: 'horizontal'
+        thumbSrc: 'thumb.png'
+        barSrc: 'bar.png'
     out:
       id: 'slider-zindex'
       type: 'slider'
