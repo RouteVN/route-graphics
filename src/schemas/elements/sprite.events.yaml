@@ -1,0 +1,25 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Sprite Element Events
+description: Events emitted by sprite elements
+type: object
+properties:
+  click:
+    type: object
+    description: This event type is called "click" and will be invoked when the pointer is released on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was clicked
+  hover:
+    type: object
+    description: This event type is called "hover" and will be invoked when the pointer is hover on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was hovered

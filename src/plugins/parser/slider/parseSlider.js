@@ -31,8 +31,6 @@ export const parseSlider = ({ state }) => {
     step: state.step ?? 1,
     initialValue: state.initialValue ?? 0,
     ...(state.hover && { hover: state.hover }),
-    ...(state.drag && { drag: state.drag }),
-    ...(state.dragStart && { dragStart: state.dragStart }),
-    ...(state.dragEnd && { dragEnd: state.dragEnd }),
+    ...(state.change && { change: state.change }),
   };
 };

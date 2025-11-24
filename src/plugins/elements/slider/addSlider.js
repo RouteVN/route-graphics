@@ -35,9 +35,7 @@ export const addSlider = async ({
     originX,
     originY,
     hover,
-    drag,
-    dragStart,
-    dragEnd,
+    change,
   } = sliderASTNode;
 
   // Create container for the slider
@@ -146,59 +144,35 @@ export const addSlider = async ({
     return newValue;
   };
 
+  const onChange = (event) => {
+    const newPosition = sliderContainer.toLocal(event.global);
+    const newValue = getValueFromPosition(newPosition);
+
+    if (newValue !== currentValue) {
+      currentValue = newValue;
+      updateThumbPosition(currentValue);
+
+      if (change?.actionPayload && eventHandler) {
+        eventHandler(`change`, {
+          _event: { id, value: currentValue },
+          ...change.actionPayload,
+        });
+      }
+    }
+  };
+
   // Handle drag events
   const dragStartListener = (event) => {
     isDragging = true;
-
-    const newPosition = sliderContainer.toLocal(event.global);
-    const newValue = getValueFromPosition(newPosition);
-
-    if (newValue !== currentValue) {
-      currentValue = newValue;
-      updateThumbPosition(currentValue);
-
-      if (dragStart?.actionPayload && eventHandler) {
-        eventHandler(`dragstart`, {
-          _event: { id },
-          payload: { ...dragStart.actionPayload },
-          sliderValue: currentValue,
-        });
-      }
-    }
+    onChange(event);
   };
 
   const dragMoveListener = (event) => {
-    if (!isDragging) return;
-
-    const newPosition = sliderContainer.toLocal(event.global);
-    const newValue = getValueFromPosition(newPosition);
-
-    if (newValue !== currentValue) {
-      currentValue = newValue;
-      updateThumbPosition(currentValue);
-
-      if (drag?.actionPayload && eventHandler) {
-        eventHandler(`drag`, {
-          _event: { id },
-          payload: { ...drag.actionPayload },
-          sliderValue: currentValue,
-        });
-      }
-    }
+    if (isDragging) onChange(event);
   };
 
   const dragEndListener = () => {
-    if (isDragging) {
-      isDragging = false;
-
-      if (dragEnd?.actionPayload && eventHandler) {
-        eventHandler(`dragend`, {
-          _event: { id },
-          payload: { ...dragEnd.actionPayload },
-          sliderValue: currentValue,
-        });
-      }
-    }
+    if (isDragging) isDragging = false;
   };
 
   sliderContainer.on("pointerdown", dragStartListener);

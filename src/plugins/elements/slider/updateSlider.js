@@ -110,17 +110,8 @@ export const updateSlider = async ({
 
       // Re-attach event handlers if they exist
       if (eventHandler) {
-        const {
-          hover,
-          drag,
-          dragStart,
-          dragEnd,
-          min,
-          max,
-          step,
-          direction,
-          initialValue,
-        } = nextSliderASTNode;
+        const { hover, change, min, max, step, direction, initialValue } =
+          nextSliderASTNode;
 
         let currentValue = initialValue ?? min;
         const valueRange = max - min;
@@ -171,9 +162,7 @@ export const updateSlider = async ({
         // Handle drag events
         let isDragging = false;
 
-        const dragStartListener = (event) => {
-          isDragging = true;
-
+        const onChange = (event) => {
           const newPosition = sliderElement.toLocal(event.global);
           const newValue = getValueFromPosition(newPosition);
 
@@ -181,48 +170,26 @@ export const updateSlider = async ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (dragStart?.actionPayload && eventHandler) {
-              eventHandler(`dragstart`, {
-                _event: { id: nextSliderASTNode.id },
-                payload: { ...dragStart.actionPayload },
-                sliderValue: currentValue,
+            if (change?.actionPayload && eventHandler) {
+              eventHandler(`change`, {
+                _event: { id, value: currentValue },
+                ...change.actionPayload,
               });
             }
           }
+        };
+
+        const dragStartListener = (event) => {
+          isDragging = true;
+          onChange(event);
         };
 
         const dragMoveListener = (event) => {
-          if (!isDragging) return;
-
-          const newPosition = sliderElement.toLocal(event.global);
-          const newValue = getValueFromPosition(newPosition);
-
-          if (newValue !== currentValue) {
-            currentValue = newValue;
-            updateThumbPosition(currentValue);
-
-            if (drag?.actionPayload && eventHandler) {
-              eventHandler(`drag`, {
-                _event: { id: nextSliderASTNode.id },
-                payload: { ...drag.actionPayload },
-                sliderValue: currentValue,
-              });
-            }
-          }
+          if (isDragging) onChange(event);
         };
 
         const dragEndListener = () => {
-          if (isDragging) {
-            isDragging = false;
-
-            if (dragEnd?.actionPayload && eventHandler) {
-              eventHandler(`dragend`, {
-                _event: { id: nextSliderASTNode.id },
-                payload: { ...dragEnd.actionPayload },
-                sliderValue: currentValue,
-              });
-            }
-          }
+          if (isDragging) isDragging = false;
         };
 
         sliderElement.on("pointerdown", dragStartListener);

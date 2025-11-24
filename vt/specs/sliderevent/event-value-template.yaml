@@ -1,8 +1,8 @@
 ---
 title: Slider Value Template Replacement
-description: Test palyload return
+description: Test payload return
 specs:
-  - "drag event should return the current value of the thumb and the action payload"
+  - "change event should return the current value of the thumb and the action payload"
   - "template should work for both min and max values"
   - "template should work for intermediate values"
   - "actionPayload should contain properly formatted value"
@@ -26,16 +26,9 @@ states:
         max: 50
         step: 2
         initialValue: 30
-        drag:
+        change:
           actionPayload:
             action: "volume-change"
             sliderId: "main-volume"
             status: "adjusting"
             range: "10-50"
-        dragStart:
-          actionPayload:
-            action: "volume-start"
-        dragEnd:
-          actionPayload:
-            action: "volume-end"
-            saved: true
