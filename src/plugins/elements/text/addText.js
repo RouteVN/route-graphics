@@ -43,7 +43,7 @@ export const addText = async ({
 
     const overListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`${text.label}-pointer-over`, {
+        eventHandler(`hover`, {
           _event: {
             id: text.label,
           },
@@ -85,7 +85,7 @@ export const addText = async ({
 
       // Trigger event and sound on pointerup
       if (actionPayload && eventHandler)
-        eventHandler(`${text.label}-click`, {
+        eventHandler(`click`, {
           _event: {
             id: text.label,
           },

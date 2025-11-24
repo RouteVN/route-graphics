@@ -86,24 +86,27 @@ properties:
       soundSrc:
         type: string
         description: URL of sound to play when hovering over the slider
-  drag:
+  change:
     type: object
     description: Configuration for dragging behavior
     properties:
       actionPayload:
         type: object
         description: Payload for drag action event. Typically contains actions like variable updates with "{{ value }}" template for current slider value.
-  dragStart:
-    type: object
-    description: Configuration for drag start behavior
-    properties:
-      actionPayload:
-        type: object
-        description: Payload for drag start action event
-  dragEnd:
-    type: object
-    description: Configuration for drag end behavior
-    properties:
-      actionPayload:
-        type: object
-        description: Payload for drag end action event
+events:
+  type: object
+  description: Events emitted by this element
+  properties:
+    change:
+      type: object
+      description: This event type is called "change" and will be invoked when the slider value changes.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that changed
+            value:
+              type: number
+              description: The current value of the slider

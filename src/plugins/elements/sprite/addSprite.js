@@ -46,7 +46,7 @@ export const addSprite = async ({
 
     const overListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`${sprite.label}-pointer-over`, {
+        eventHandler(`hover`, {
           _event: {
             id: sprite.label,
           },
@@ -92,7 +92,7 @@ export const addSprite = async ({
     const releaseListener = () => {
       sprite.texture = texture;
       if (actionPayload && eventHandler)
-        eventHandler(`${sprite.label}-click`, {
+        eventHandler(`click`, {
           _event: {
             id: sprite.label,
           },

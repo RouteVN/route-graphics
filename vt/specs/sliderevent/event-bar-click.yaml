@@ -3,7 +3,7 @@ title: Slider Bar Click Events
 description: Test click events on slider bar to move thumb directly
 specs:
   - "clicking bar should move thumb to click position"
-  - "bar click should trigger dragStart and drag events"
+  - "bar click should trigger change events"
   - "thumb should move to exact click position"
   - "value should be calculated based on click position"
   - "step functionality should work with bar clicks"
@@ -27,15 +27,9 @@ states:
         max: 100
         step: 10
         initialValue: 20
-        dragStart:
+        change:
           actionPayload:
-            action: "bar-click-start"
+            action: "bar-click-change"
             component: "progress-slider"
-            trigger: "bar-click"
-        drag:
-          actionPayload:
-            action: "bar-click-drag"
-            component: "progress-slider"
-            currentValue: "{{ value }}"
             trigger: "bar-click"
             snapToStep: true
