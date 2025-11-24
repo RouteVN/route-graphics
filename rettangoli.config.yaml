@@ -66,6 +66,12 @@ vt:
         - title: "Slider Events"
           files: "sliderevent"
           description: "Slider event test"
+    - title: "GIF"
+      type: "groupLabel"
+      items:
+        - title: "GIF Basic"
+          files: "gif"
+          description: "Basic GIF rendering tests"
     - title: "Audio"
       type: "groupLabel"
       items:

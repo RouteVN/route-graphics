@@ -1,0 +1,56 @@
+---
+title: GIF Transitions
+description: Test GIF animations using the tween system
+specs:
+  - "GIF should fade in"
+  - "GIF should move position"
+steps:
+  - keypress n
+  - wait 1000
+  - screenshot
+  - keypress n
+  - wait 1000
+  - screenshot
+---
+states:
+  - elements: []
+  - elements:
+      - id: "gif-anim"
+        type: "gif"
+        src: "example-gif"
+        x: 300
+        y: 200
+        width: 200
+        height: 200
+        alpha: 1
+    animations:
+      - id: "gif-fade-in"
+        elementId: "gif-anim"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+
+  - elements:
+      - id: "gif-anim"
+        type: "gif"
+        src: "example-gif"
+        x: 600
+        y: 200
+        width: 200
+        height: 200
+        alpha: 1
+    animations:
+      - id: "gif-move"
+        elementId: "gif-anim"
+        type: tween
+        properties:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 600
+                easing: linear
