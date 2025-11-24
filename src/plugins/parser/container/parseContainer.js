@@ -52,7 +52,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       child.y = 0;
     }
 
-    const plugin = parserPlugins.find(p => p.type === child.type);
+    const plugin = parserPlugins.find((p) => p.type === child.type);
     if (!plugin) {
       throw new Error(`Unsupported element type: ${child.type}`);
     }
