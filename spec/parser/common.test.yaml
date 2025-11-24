@@ -1,4 +1,4 @@
-file: '../../src/parser/common.js'
+file: '../../src/plugins/parser/util/common.js'
 group: common
 suites: [calculatePositionAfterAnchor]
 ---

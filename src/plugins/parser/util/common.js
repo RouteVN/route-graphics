@@ -1,6 +1,6 @@
 /**
- * @typedef {import('../types').PositionAfterAnchorOptions} PositionAfterAnchorOptions
- * @typedef {import('../types').PositionAfterAnchor} PositionAfterAnchor
+ * @typedef {import('../../../types').PositionAfterAnchorOptions} PositionAfterAnchorOptions
+ * @typedef {import('../../../types').PositionAfterAnchor} PositionAfterAnchor
  */
 
 /**

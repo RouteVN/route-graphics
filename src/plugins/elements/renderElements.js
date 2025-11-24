@@ -1,14 +1,14 @@
-import { diffElements } from "../util/diffElements.js";
+import { diffElements } from "../../util/diffElements.js";
 
 /**
  * Add elements using plugin system
  * @param {Object} params
- * @param {import('../types.js').Application} params.app - The PixiJS application
- * @param {import('../types.js').Container} params.parent - Parent container
- * @param {import('../types.js').ASTNode[]} params.prevASTTree - Previous AST tree
- * @param {import('../types.js').ASTNode[]} params.nextASTTree - Next AST tree
- * @param {import("./elements/elementPlugin.js").ElementPlugin[]} params.elementPlugins - Array of element plugins
- * @param {import("./animations/animationPlugin.js").AnimationPlugin[]} params.animationPlugins - Array of animation plugins
+ * @param {import('../../types.js').Application} params.app - The PixiJS application
+ * @param {import('../../types.js').Container} params.parent - Parent container
+ * @param {import('../../types.js').ASTNode[]} params.prevASTTree - Previous AST tree
+ * @param {import('../../types.js').ASTNode[]} params.nextASTTree - Next AST tree
+ * @param {import("./elementPlugin.js").ElementPlugin[]} params.elementPlugins - Array of element plugins
+ * @param {import("../animations/animationPlugin.js").AnimationPlugin[]} params.animationPlugins - Array of animation plugins
  * @param {Object[]} params.animations - Animation configurations
  * @param {Function} params.eventHandler - Event handler function
  * @param {AbortSignal} params.signal - Abort signal
@@ -105,7 +105,7 @@ export const renderElements = async ({
 /**
  * Sort container children to match AST order
  * @param {import('pixi.js').Container} container - Container to sort
- * @param {import('../types.js').ASTNode[]} nextAST - Target AST tree
+ * @param {import('../../types.js').ASTNode[]} nextAST - Target AST tree
  */
 const sortContainerChildren = (container, nextAST) => {
   container.children.sort((a, b) => {

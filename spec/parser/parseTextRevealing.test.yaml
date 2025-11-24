@@ -1,4 +1,4 @@
-file: '../../src/parser/parseTextRevealing.js'
+file: '../../src/plugins/parser/textrevealing/parseTextRevealing.js'
 group: parser
 suites: [parseTextRevealing]
 ---

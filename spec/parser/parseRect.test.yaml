@@ -1,4 +1,4 @@
-file: '../../src/parser/parseRect.js'
+file: '../../src/plugins/parser/rect/parseRect.js'
 group: parser
 suites: [parseRect]
 ---

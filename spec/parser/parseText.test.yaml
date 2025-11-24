@@ -1,4 +1,4 @@
-file: '../../src/parser/parseText.js'
+file: '../../src/plugins/parser/text/parseText.js'
 group: parser
 suites: [parseText]
 ---
