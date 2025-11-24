@@ -79,3 +79,27 @@ properties:
       actionPayload:
         type: object
         description: Payload for click action event
+events:
+  type: object
+  description: Events emitted by this element
+  properties:
+    click:
+      type: object
+      description: This event type is called "click" and will be invoked when the pointer is released on an element.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that was clicked
+    hover:
+      type: object
+      description: This event type is called "hover" and will be invoked when the pointer is hover on an element.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that was hovered

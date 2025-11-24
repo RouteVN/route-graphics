@@ -51,7 +51,7 @@ export const updateText = async ({
               _event: {
                 id: textElement.label,
               },
-              payload: { ...actionPayload },
+              ...actionPayload,
             });
           if (cursor) textElement.cursor = cursor;
           if (soundSrc)
@@ -101,7 +101,7 @@ export const updateText = async ({
               _event: {
                 id: textElement.label,
               },
-              payload: { ...actionPayload },
+              ...actionPayload,
             });
           if (soundSrc)
             app.audioStage.add({

@@ -28,22 +28,9 @@ states:
             event: "slider-hover"
             sliderId: "slider-horizontal"
             direction: "horizontal"
-        dragStart:
+        change:
           actionPayload:
-            action: "slider-drag-start"
-            sliderId: "slider-horizontal"
-            direction: "horizontal"
-            initialValue: 30
-            component: "volume-control"
-        drag:
-          actionPayload:
-            action: "slider-drag"
-            sliderId: "slider-horizontal"
-            direction: "horizontal"
-            component: "volume-control"
-        dragEnd:
-          actionPayload:
-            action: "slider-drag-end"
+            action: "slider-change"
             sliderId: "slider-horizontal"
             direction: "horizontal"
             component: "volume-control"
@@ -73,22 +60,9 @@ states:
             event: "slider-hover"
             sliderId: "slider-vertical"
             direction: "vertical"
-        dragStart:
+        change:
           actionPayload:
-            action: "slider-drag-start"
-            sliderId: "slider-vertical"
-            direction: "vertical"
-            initialValue: 25
-            component: "brightness-control"
-        drag:
-          actionPayload:
-            action: "slider-drag"
-            sliderId: "slider-vertical"
-            direction: "vertical"
-            component: "brightness-control"
-        dragEnd:
-          actionPayload:
-            action: "slider-drag-end"
+            action: "slider-change"
             sliderId: "slider-vertical"
             direction: "vertical"
             component: "brightness-control"
@@ -119,26 +93,10 @@ states:
             sliderId: "slider-with-steps"
             stepSize: 2
             message: "Step slider with 2-unit increments"
-        dragStart:
+        change:
           actionPayload:
-            action: "slider-drag-start"
-            sliderId: "slider-with-steps"
-            stepSize: 2
-            initialValue: 4
-            component: "progress-control"
-            snapToGrid: true
-        drag:
-          actionPayload:
-            action: "slider-drag"
+            action: "slider-change"
             sliderId: "slider-with-steps"
             stepSize: 2
             component: "progress-control"
             snapToGrid: true
-        dragEnd:
-          actionPayload:
-            action: "slider-drag-end"
-            sliderId: "slider-with-steps"
-            stepSize: 2
-            component: "progress-control"
-            snapToGrid: true
-            locked: true
