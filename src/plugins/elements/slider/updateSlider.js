@@ -110,17 +110,8 @@ export const updateSlider = async ({
 
       // Re-attach event handlers if they exist
       if (eventHandler) {
-        const {
-          hover,
-          drag,
-          dragStart,
-          dragEnd,
-          min,
-          max,
-          step,
-          direction,
-          initialValue,
-        } = nextSliderASTNode;
+        const { hover, change, min, max, step, direction, initialValue } =
+          nextSliderASTNode;
 
         let currentValue = initialValue ?? min;
         const valueRange = max - min;
@@ -171,9 +162,7 @@ export const updateSlider = async ({
         // Handle drag events
         let isDragging = false;
 
-        const dragStartListener = (event) => {
-          isDragging = true;
-
+        const onChange = (event) => {
           const newPosition = sliderElement.toLocal(event.global);
           const newValue = getValueFromPosition(newPosition);
 
@@ -181,49 +170,26 @@ export const updateSlider = async ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (dragStart?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag-start`, {
-                _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...dragStart.actionPayload,
+            if (change?.actionPayload && eventHandler) {
+              eventHandler(`change`, {
+                _event: { id, value: currentValue },
+                ...change.actionPayload,
               });
             }
           }
+        };
+
+        const dragStartListener = (event) => {
+          isDragging = true;
+          onChange(event);
         };
 
         const dragMoveListener = (event) => {
-          if (!isDragging) return;
-
-          const newPosition = sliderElement.toLocal(event.global);
-          const newValue = getValueFromPosition(newPosition);
-
-          if (newValue !== currentValue) {
-            currentValue = newValue;
-            updateThumbPosition(currentValue);
-
-            if (drag?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag`, {
-                _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...drag.actionPayload,
-                currentValue,
-              });
-            }
-          }
+          if (isDragging) onChange(event);
         };
 
         const dragEndListener = () => {
-          if (isDragging) {
-            isDragging = false;
-
-            if (dragEnd?.actionPayload && eventHandler) {
-              eventHandler(`${nextSliderASTNode.id}-drag-end`, {
-                _event: { id: nextSliderASTNode.id },
-                value: currentValue,
-                ...dragEnd.actionPayload,
-              });
-            }
-          }
+          if (isDragging) isDragging = false;
         };
 
         sliderElement.on("pointerdown", dragStartListener);
@@ -235,17 +201,11 @@ export const updateSlider = async ({
           const {
             cursor,
             soundSrc,
-            actionPayload,
             thumbSrc: hoverThumbSrc,
             barSrc: hoverBarSrc,
           } = hover;
 
           const overListener = () => {
-            if (actionPayload)
-              eventHandler(`${nextSliderASTNode.id}-pointer-over`, {
-                _event: { id: nextSliderASTNode.id },
-                ...actionPayload,
-              });
             if (cursor) {
               sliderElement.cursor = cursor;
               thumb.cursor = cursor;
@@ -267,16 +227,6 @@ export const updateSlider = async ({
           };
 
           const outListener = () => {
-            sliderElement.cursor = "auto";
-            thumb.cursor = "auto";
-
-            // Restore original textures
-            thumb.texture = originalThumbTexture;
-            bar.texture = originalBarTexture;
-          };
-
-          const pointeroutListener = () => {
-            // Only restore original textures if not dragging
             if (!isDragging) {
               sliderElement.cursor = "auto";
               thumb.cursor = "auto";
@@ -288,8 +238,7 @@ export const updateSlider = async ({
           };
 
           sliderElement.on("pointerover", overListener);
-          sliderElement.on("pointerout", pointeroutListener);
-          sliderElement.on("pointerup", outListener);
+          sliderElement.on("pointerout", outListener);
           sliderElement.on("pointerupoutside", outListener);
         }
       }

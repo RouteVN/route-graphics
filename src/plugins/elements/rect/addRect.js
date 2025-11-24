@@ -65,7 +65,7 @@ export const addRect = async ({
 
     const overListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`${rect.label}-pointer-over`, {
+        eventHandler(`hover`, {
           _event: {
             id: rect.label,
           },
@@ -94,7 +94,7 @@ export const addRect = async ({
 
     const releaseListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`${rect.label}-click`, {
+        eventHandler(`click`, {
           _event: {
             id: rect.label,
           },
