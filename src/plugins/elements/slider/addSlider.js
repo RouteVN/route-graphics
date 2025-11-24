@@ -161,7 +161,7 @@ export const addSlider = async ({
         eventHandler(`dragstart`, {
           _event: { id },
           payload: { ...dragStart.actionPayload },
-          sliderValue: currentValue
+          sliderValue: currentValue,
         });
       }
     }
@@ -181,7 +181,7 @@ export const addSlider = async ({
         eventHandler(`drag`, {
           _event: { id },
           payload: { ...drag.actionPayload },
-          sliderValue: currentValue
+          sliderValue: currentValue,
         });
       }
     }
@@ -194,7 +194,7 @@ export const addSlider = async ({
       if (dragEnd?.actionPayload && eventHandler) {
         eventHandler(`dragend`, {
           _event: { id },
-          payload: { ...dragEnd.actionPayload} ,
+          payload: { ...dragEnd.actionPayload },
           sliderValue: currentValue,
         });
       }

@@ -260,10 +260,10 @@ export const updateSlider = async ({
           };
 
           const outListener = () => {
-            if(!isDragging){
+            if (!isDragging) {
               sliderElement.cursor = "auto";
               thumb.cursor = "auto";
-  
+
               // Restore original textures
               thumb.texture = originalThumbTexture;
               bar.texture = originalBarTexture;
