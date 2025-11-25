@@ -57,7 +57,7 @@ export const updateSprite = async ({
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (cursor) spriteElement.cursor = cursor;
           if (soundSrc)
@@ -108,7 +108,7 @@ export const updateSprite = async ({
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              payload: { ...actionPayload },
             });
           if (soundSrc)
             app.audioStage.add({
