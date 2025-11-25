@@ -423,7 +423,6 @@ Groups and manages layout of multiple elements.
 **Events:** None
 
 **Layout Directions:**
-- `absolute`: Manual positioning of children
 - `horizontal`: Left-to-right arrangement
 - `vertical`: Top-to-bottom arrangement
 
