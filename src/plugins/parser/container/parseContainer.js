@@ -53,16 +53,9 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     }
 
     const plugin = parserPlugins.find((p) => p.type === child.type);
-<<<<<<<< HEAD:src/plugins/parser/container/parseContainer.js
-    if (!plugin) {
-      throw new Error(`Unsupported element type: ${child.type}`);
-    }
-    child = plugin.parse({ state: child, parserPlugins });
-========
     if (plugin) {
       child = plugin.parse({ state: child, parserPlugins });
     }
->>>>>>>> main:src/plugins/elements/container/parseContainer.js
 
     if (direction === "horizontal") {
       if (
