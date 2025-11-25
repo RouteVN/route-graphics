@@ -27,7 +27,7 @@ states:
         alpha: 1
     animations:
       - id: 'rect-render-abortion'
-        elementId: 'rect-render-test'
+        targetId: 'rect-render-test'
         type: tween
         properties:
           x:
@@ -68,7 +68,7 @@ states:
         alpha: 1
     animations:
       - id: 'rect-render-abortion-2'
-        elementId: 'rect-render-test'
+        targetId: 'rect-render-test'
         type: tween
         properties:
           x:

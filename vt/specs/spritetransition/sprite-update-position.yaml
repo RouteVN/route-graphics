@@ -33,7 +33,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-move'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         properties:
           x:

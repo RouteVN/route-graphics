@@ -333,7 +333,7 @@
           fill: "#ff6b6b"
       animations:
         - id: fade-in
-          elementId: animated-rect
+          targetId: animated-rect
           type: tween
           properties:
             x:

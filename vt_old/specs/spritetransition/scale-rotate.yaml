@@ -15,7 +15,7 @@ states:
         y: 200
     animations:
       - id: 'sprite-scale-rotate'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         event: add
         properties:

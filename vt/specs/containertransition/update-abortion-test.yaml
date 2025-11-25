@@ -45,7 +45,7 @@ states:
             fill: "#e74c3c"
     animations:
       - id: 'container-update-abortion'
-        elementId: 'container-update-test'
+        targetId: 'container-update-test'
         type: tween
         properties:
           x:

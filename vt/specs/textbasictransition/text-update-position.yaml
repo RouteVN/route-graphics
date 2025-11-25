@@ -35,7 +35,7 @@ states:
           fontFamily: "Arial"
     animations:
       - id: 'text-move'
-        elementId: 'text1'
+        targetId: 'text1'
         type: tween
         properties:
           x:

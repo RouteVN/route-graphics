@@ -25,7 +25,7 @@ states:
   - elements: []
     animations:
       - id: 'rect-delete-abortion'
-        elementId: 'rect-delete-test'
+        targetId: 'rect-delete-test'
         type: tween
         properties:
           alpha:

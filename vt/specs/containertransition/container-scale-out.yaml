@@ -41,7 +41,7 @@ states:
   - elements: []
     animations:
       - id: 'container-scale-out'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           scaleX:

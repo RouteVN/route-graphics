@@ -24,7 +24,7 @@ states:
         fill: "#ff6600"
     animations:
       - id: 'rect-move-1'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: update
         properties:
@@ -48,7 +48,7 @@ states:
         fill: "#ff6600"
     animations:
       - id: 'rect-move-2'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: update
         properties:

@@ -35,7 +35,7 @@ states:
         initialValue: 30
     animations:
       - id: 'slider-fade-in'
-        elementId: 'slider1'
+        targetId: 'slider1'
         type: tween
         properties:
           alpha:

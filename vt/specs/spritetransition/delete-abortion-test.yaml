@@ -25,7 +25,7 @@ states:
   - elements: []
     animations:
       - id: 'sprite-delete-abortion'
-        elementId: 'sprite-delete-test'
+        targetId: 'sprite-delete-test'
         type: tween
         properties:
           alpha:

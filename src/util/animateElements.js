@@ -16,7 +16,7 @@ export default async function animateElements(
 ) {
   const animatePromises = [];
   for (const animation of animations) {
-    if (animation.elementId === id) {
+    if (animation.targetId === id) {
       const animationPlugin = animationPlugins.find(
         (p) => p.type === animation.type,
       );

@@ -34,7 +34,7 @@ states:
         fill: "#1abc9c"
     animations:
       - id: 'rect-move'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         properties:
           x:
@@ -63,7 +63,7 @@ states:
         fill: "#1abc9c"
     animations:
       - id: 'rect-move'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         properties:
           x:

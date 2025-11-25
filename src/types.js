@@ -372,7 +372,7 @@ export const AudioType = {
 /**
  * @typedef {Object} BaseTransition
  * @property {string} type - Type of the transition
- * @property {string} elementId - ID of the element
+ * @property {string} targetId - ID of the element
  * @property {TransitionEvent} event - Event of the transition
  */
 

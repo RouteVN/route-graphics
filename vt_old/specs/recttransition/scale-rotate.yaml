@@ -17,7 +17,7 @@ states:
         fill: "#9900ff"
     animations:
       - id: 'rect-scale-rotate'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: add
         properties:

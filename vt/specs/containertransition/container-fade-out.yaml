@@ -40,7 +40,7 @@ states:
   - elements: []
     animations:
       - id: 'container-fade-out'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           alpha:

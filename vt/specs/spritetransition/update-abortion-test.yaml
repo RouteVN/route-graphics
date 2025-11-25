@@ -35,7 +35,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-update-abortion'
-        elementId: 'sprite-update-test'
+        targetId: 'sprite-update-test'
         type: tween
         properties:
           x:
@@ -65,7 +65,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-update-abortion'
-        elementId: 'sprite-update-test'
+        targetId: 'sprite-update-test'
         type: tween
         properties:
           x:

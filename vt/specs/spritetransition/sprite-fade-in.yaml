@@ -26,7 +26,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-fade-in'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         properties:
           alpha:
