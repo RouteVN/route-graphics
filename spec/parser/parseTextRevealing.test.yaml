@@ -1,4 +1,4 @@
-file: '../../src/parser/parseTextRevealing.js'
+file: '../../src/plugins/parser/textrevealing/parseTextRevealing.js'
 group: parser
 suites: [parseTextRevealing]
 ---
@@ -7,16 +7,17 @@ exportName: parseTextRevealing
 ---
 case: Test parsing simple text-revealing object with single content
 in:
-  - id: 'tr1'
-    type: "text-revealing"
-    content:
-      - text: "This is a simple text revealing example"
-    x: 100
-    y: 100
-    textStyle:
-      fontSize: 24
-      fill: "#333333"
-      fontFamily: "Arial"
+  - state:
+      id: 'tr1'
+      type: "text-revealing"
+      content:
+        - text: "This is a simple text revealing example"
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 24
+        fill: "#333333"
+        fontFamily: "Arial"
 out:
   id: "tr1"
   type: "text-revealing"
@@ -54,17 +55,18 @@ out:
 ---
 case: Test parsing text-revealing with word wrapping
 in:
-  - id: 'tr2'
-    type: "text-revealing"
-    content:
-      - text: "This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration."
-    x: 50
-    y: 50
-    width: 300
-    textStyle:
-      fontSize: 20
-      fill: "#2c3e50"
-      fontFamily: "Arial"
+  - state:
+      id: 'tr2'
+      type: "text-revealing"
+      content:
+        - text: "This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration."
+      x: 50
+      y: 50
+      width: 300
+      textStyle:
+        fontSize: 20
+        fill: "#2c3e50"
+        fontFamily: "Arial"
 out:
   id: "tr2"
   type: "text-revealing"
@@ -155,26 +157,27 @@ out:
 ---
 case: Test parsing text-revealing with multiple styled content segments
 in:
-  - id: 'tr4'
-    type: "text-revealing"
-    content:
-      - text: "Hello"
-        textStyle:
-          fontSize: 24
-          fill: "#e74c3c"
-      - text: " "
-      - text: "World"
-        textStyle:
-          fontSize: 32
-          fill: "#3498db"
-          fontWeight: "bold"
-      - text: "!"
-        textStyle:
-          fontSize: 28
-          fill: "#27ae60"
-    x: 200
-    y: 200
-    width: 200
+  - state:
+      id: 'tr4'
+      type: "text-revealing"
+      content:
+        - text: "Hello"
+          textStyle:
+            fontSize: 24
+            fill: "#e74c3c"
+        - text: " "
+        - text: "World"
+          textStyle:
+            fontSize: 32
+            fill: "#3498db"
+            fontWeight: "bold"
+        - text: "!"
+          textStyle:
+            fontSize: 28
+            fill: "#27ae60"
+      x: 200
+      y: 200
+      width: 200
 out:
   id: "tr4"
   type: "text-revealing"
@@ -246,22 +249,23 @@ out:
 ---
 case: Test parsing text-revealing with indicator props
 in:
-  - id: 'tr5'
-    type: "text-revealing"
-    content:
-      - text: "Text with indicator"
-    x: 100
-    y: 100
-    indicator:
-      revealing:
-        src: "arrow-right"
-        width: 12
-        height: 12
-      complete:
-        src: "checkmark"
-        width: 14
-        height: 14
-      offset: 8
+  - state:
+      id: 'tr5'
+      type: "text-revealing"
+      content:
+        - text: "Text with indicator"
+      x: 100
+      y: 100
+      indicator:
+        revealing:
+          src: "arrow-right"
+          width: 12
+          height: 12
+        complete:
+          src: "checkmark"
+          width: 14
+          height: 14
+        offset: 8
 out:
   id: "tr5"
   type: "text-revealing"
@@ -309,17 +313,18 @@ out:
 ---
 case: Test parsing text-revealing with indicator default values
 in:
-  - id: 'tr6'
-    type: "text-revealing"
-    content:
-      - text: "Text with indicator defaults"
-    x: 50
-    y: 50
-    indicator:
-      revealing:
-        src: "circle-blue"
-      complete:
-        src: "circle-green"
+  - state:
+      id: 'tr6'
+      type: "text-revealing"
+      content:
+        - text: "Text with indicator defaults"
+      x: 50
+      y: 50
+      indicator:
+        revealing:
+          src: "circle-blue"
+        complete:
+          src: "circle-green"
 out:
   id: "tr6"
   type: "text-revealing"

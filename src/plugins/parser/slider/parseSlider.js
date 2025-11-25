@@ -1,15 +1,17 @@
-import { parseCommonObject } from "./parseCommonObject.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').SliderASTNode} SliderASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').SliderASTNode} SliderASTNode
  */
 
 /**
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The slider state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @return {SliderASTNode}
  */
-export const parseSlider = (state) => {
+export const parseSlider = ({ state }) => {
   const astObj = parseCommonObject(state);
   const defaultMin = state.min ?? 0;
   const defaultMax = state.max ?? 100;

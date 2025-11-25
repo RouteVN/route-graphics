@@ -2,6 +2,7 @@ import { createElementPlugin } from "../elementPlugin.js";
 import { addRect } from "./addRect.js";
 import { updateRect } from "./updateRect.js";
 import { deleteRect } from "./deleteRect.js";
+import { parseRect } from "../../parser/rect/parseRect.js";
 
 // Export the rect plugin
 export const rectPlugin = createElementPlugin({
@@ -9,4 +10,5 @@ export const rectPlugin = createElementPlugin({
   add: addRect,
   update: updateRect,
   delete: deleteRect,
+  parse: parseRect,
 });

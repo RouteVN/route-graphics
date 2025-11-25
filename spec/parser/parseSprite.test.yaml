@@ -1,4 +1,4 @@
-file: "../../src/parser/parseSprite.js"
+file: "../../src/plugins/parser/sprite/parseSprite.js"
 group: parser
 suites: [parseSprite]
 ---
@@ -7,32 +7,33 @@ exportName: parseSprite
 ---
 case: Test parsing sprite
 in:
-  - id: "circle-red"
-    type: "sprite"
-    src: "file:circle-red"
-    alpha: 0.8
-    width: 80
-    height: 100
-    cursor: pointer
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    hover:
-      soundSrc: "sound-1"
-      cursor: "cursor-1"
-      actionPayload:
-        prop1: "44"
-        prop2: "55"
-      src: "hover-src"
-    click:
-      soundSrc: "sound-2"
-      actionPayload:
-        prop3: "00"
-        prop4: "22"
-      src: "click-src"
+  - state:
+      id: "circle-red"
+      type: "sprite"
+      src: "file:circle-red"
+      alpha: 0.8
+      width: 80
+      height: 100
+      cursor: pointer
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      hover:
+        soundSrc: "sound-1"
+        cursor: "cursor-1"
+        actionPayload:
+          prop1: "44"
+          prop2: "55"
+        src: "hover-src"
+      click:
+        soundSrc: "sound-2"
+        actionPayload:
+          prop3: "00"
+          prop4: "22"
+        src: "click-src"
 out:
   id: "circle-red"
   type: "sprite"
@@ -61,16 +62,17 @@ out:
 ---
 case: Test parsing sprite to see the default value of url, alpha, and interactive props
 in:
-  - id: "circle-red"
-    type: "sprite"
-    width: 80
-    height: 100
-    scaleX: 1.2
-    scaleY: 0.8
-    x: 240
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
+  - state:
+      id: "circle-red"
+      type: "sprite"
+      width: 80
+      height: 100
+      scaleX: 1.2
+      scaleY: 0.8
+      x: 240
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
 out:
   id: "circle-red"
   type: "sprite"

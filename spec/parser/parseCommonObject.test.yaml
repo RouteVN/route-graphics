@@ -1,4 +1,4 @@
-file: '../../src/parser/parseCommonObject.js'
+file: '../../src/plugins/parser/util/parseCommonObject.js'
 group: parser
 suites: [parseCommonObject]
 ---

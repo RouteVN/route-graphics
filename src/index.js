@@ -1,7 +1,6 @@
 import { createAssetBufferManager } from "./util/createAssetBufferManager.js";
-import parse from "./parser/index.js";
 import { Application, Assets } from "pixi.js";
-import parseJSONToAST from "./parser/index.js";
+import parseElements from "./plugins/parser/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
 import { createElementPlugin } from "./plugins/elements/elementPlugin.js";
 import { createAnimationPlugin } from "./plugins/animations/animationPlugin.js";
@@ -14,8 +13,8 @@ import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
-import { renderElements } from "./plugins/renderElements.js";
-import { renderAudio } from "./plugins/renderAudio.js";
+import { renderElements } from "./plugins/elements/renderElements.js";
+import { renderAudio } from "./plugins/audio/renderAudio.js";
 import createRouteGraphics from "./RouteGraphics.js";
 
 export default createRouteGraphics;
@@ -24,8 +23,7 @@ export {
   Application,
   Assets,
   AudioAsset,
-  parse,
-  parseJSONToAST,
+  parseElements,
   createAssetBufferManager,
   createElementPlugin,
   createAnimationPlugin,
