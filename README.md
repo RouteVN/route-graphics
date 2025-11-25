@@ -1,93 +1,104 @@
-# Route Graphics
-
-A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS.
-
-
-⚠️ **Warning: This library is under active development and will have breaking changes in future versions.**
-
 ## 🚀 Overview
 
-Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, and interactions automatically.
+Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audio, and interactions automatically.
+
+## 🏗️ Architecture Overview
+
+Route Graphics follows a modular plugin architecture with three main plugin categories:
+
+1. **Element Plugins** - Render visual elements (add/update/delete)
+2. **Audio Plugins** - Handle audio playback
+3. **Animation Plugins** - Handle dynamic content and transitions
+
+Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audios, and interactions automatically.
 
 ## 🛠️ Getting Started
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/RouteVN/route-graphics.git
-cd route-graphics
-
-# Install dependencies
-bun install
-
-# Run tests
-bun run test
-
-# Build the project
-bun run build
+bun install route-graphics
 ```
 
 ### Basic Usage
 
 ```javascript
-import RouteGraphics, {
-  SpriteRendererPlugin,
-  TextRendererPlugin,
-  ContainerRendererPlugin,
-  TextRevealingRendererPlugin,
-  GraphicsRendererPlugin,
-  AudioPlugin,
-  SliderRendererPlugin,
-  KeyframeTransitionPlugin,
+import createRouteGraphics, {
+  textPlugin,
+  rectPlugin,
+  spritePlugin,
+  sliderPlugin,
+  containerPlugin,
+  textRevealingPlugin,
+  tweenPlugin,
+  soundPlugin,
   createAssetBufferManager,
 } from 'route-graphics';
 
-// Load assets
+// Define assets with URL and type
 const assets = {
-  "file:bg1": {
-    url: "/public/slider-bar.png",
-    type: "image/png",
-  },
-  "file:circle-red": {
+  "circle-red": {
     url: "/public/circle-red.png",
     type: "image/png",
   },
-  "file:bgm-1": {
+  "circle-blue": {
+    url: "/public/circle-blue.png",
+    type: "image/png",
+  },
+  "circle-green": {
+    url: "/public/circle-green.png",
+    type: "image/png",
+  },
+  "slider": {
+    url: "/public/slider.png",
+    type: "image/png",
+  },
+  "bgm-1": {
     url: "/public/bgm-1.mp3",
     type: "audio/mpeg",
   },
+  "bgm-2": {
+    url: "/public/bgm-2.mp3",
+    type: "audio/mpeg",
+  }
 };
 
+// Load assets using asset buffer manager
 const assetBufferManager = createAssetBufferManager();
 await assetBufferManager.load(assets);
 const assetBufferMap = assetBufferManager.getBufferMap();
 
-// Initialize RouteGraphics
-const app = new RouteGraphics();
+// Create and initialize app
+const app = createRouteGraphics();
 await app.init({
-  width: 1920,
-  height: 1080,
-  eventHandler: (event, data) => {
-    console.log('Event:', event, data);
+  width: 1280,
+  height: 720,
+  plugins: {
+    elements: [
+      textPlugin,
+      rectPlugin,
+      spritePlugin,
+      sliderPlugin,
+      containerPlugin,
+      textRevealingPlugin
+    ],
+    animations: [
+      tweenPlugin
+    ],
+    audios: [
+      soundPlugin
+    ],
   },
-  plugins: [
-    new SpriteRendererPlugin(),
-    new TextRendererPlugin(),
-    new ContainerRendererPlugin(),
-    new TextRevealingRendererPlugin(),
-    new GraphicsRendererPlugin(),
-    new AudioPlugin(),
-    new SliderRendererPlugin(),
-    new KeyframeTransitionPlugin(),
-  ],
+  eventHandler: (eventName, payload) => {
+    console.log('Event:', eventName, payload);
+  }
 });
 
-// Load assets and render
+// Load assets into the app and add to DOM
 await app.loadAssets(assetBufferMap);
 document.body.appendChild(app.canvas);
 
-// Render your interface
+// Render your UI
 app.render({
   elements: [
     {
@@ -143,33 +154,6 @@ Route Graphics follows a modular plugin architecture with three main plugin cate
 2. **Element Plugins** - Render visual elements (add/update/delete)
 3. **Audio & Animation Plugins** - Handle dynamic content
 
-## 🔤 Parser System
-
-The parser system transforms your JSON input into Abstract Syntax Trees (AST) that the rendering engine can process.
-
-### Parser Structure
-
-```javascript
-// Main parser entry point
-import parseJSONToAST from './src/parser/index.js';
-
-const ast = parseJSONToAST(jsonElements);
-```
-
-### Supported Element Parsers
-
-| Element | Parser Function | Description |
-|---------|----------------|-------------|
-| `rect` | `parseRect()` | Rectangle and shape elements |
-| `sprite` | `parseSprite()` | Image-based elements |
-| `text` | `parseText()` | Text elements with styling |
-| `container` | `parseContainer()` | Layout containers |
-| `textRevealing` | `parseTextRevealing()` | Animated text display |
-| `slider` | `parseSlider()` | Interactive slider controls |
-
-### Parser Features
-
-- **Schema Validation**: Each element type validates against YAML schemas in `src/schemas/`
 
 ## 🎨 Element Plugins
 
@@ -197,29 +181,60 @@ Renders image-based sprites with rich interactions.
 - `anchorX`, `anchorY`: Anchor points (default: 0)
 - `alpha`: Opacity/transparency (0-1, default: 1)
 
-**Interactions:**
-- `hover`: `src`, `soundSrc`, `cursor`, `actionPayload`
-- `click`: `src`, `soundSrc`, `actionPayload`
+**Events:**
+- **click**: Triggered when sprite is clicked
+  - `src` (string, optional): Change sprite image
+  - `soundSrc` (string, optional): Play sound effect
+  - `actionPayload` (object, optional): Custom data sent to event handler
+- **hover**: Triggered when mouse enters/exits sprite
+  - `src` (string, optional): Change sprite image
+  - `soundSrc` (string, optional): Play sound effect
+  - `cursor` (string, optional): CSS cursor style
+  - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```javascript
+```json
 {
-  id: 'character',
-  type: 'sprite',
-  x: 100,
-  y: 100,
-  width: 64,
-  height: 64,
-  src: 'file:hero-idle',
-  hover: {
-    src: 'file:hero-hover',
-    cursor: 'pointer',
-    soundSrc: 'file:hover-sound'
+  "id": "character",
+  "type": "sprite",
+  "x": 100,
+  "y": 100,
+  "width": 64,
+  "height": 64,
+  "src": "hero-idle",
+  "hover": {
+    "src": "hero-hover",
+    "cursor": "pointer",
+    "soundSrc": "hover-sound",
+    "actionPayload": { "action": "hoverHero" }
   },
-  click: {
-    src: 'file:hero-active',
-    soundSrc: 'file:click-sound'
+  "click": {
+    "src": "hero-active",
+    "soundSrc": "click-sound",
+    "actionPayload": { "action": "activateHero" }
   }
+}
+```
+
+**Event Data Structure:**
+- **Click Event:**
+```json
+{
+  "_event": {
+    "id": "character"
+  },
+  // All actionPayload properties are spread directly here
+  "action": "activateHero"
+}
+```
+- **Hover Event:**
+```json
+{
+  "_event": {
+    "id": "character"
+  },
+  // All actionPayload properties are spread directly here
+  "action": "hoverHero"
 }
 ```
 
@@ -247,24 +262,64 @@ Renders styled text with comprehensive formatting options.
 - `strokeColor`: Text outline color
 - `strokeWidth`: Text outline width
 
-**Interactions:**
-- `hover`: `textStyle`, `cursor`, `soundSrc`, `actionPayload`
-- `click`: `textStyle`, `soundSrc`, `actionPayload`
+**Events:**
+- **click**: Triggered when text is clicked
+  - `textStyle` (object, optional): Change text styling
+  - `soundSrc` (string, optional): Play sound effect
+  - `actionPayload` (object, optional): Custom data sent to event handler
+- **hover**: Triggered when mouse enters/exits text
+  - `textStyle` (object, optional): Change text styling
+  - `soundSrc` (string, optional): Play sound effect
+  - `cursor` (string, optional): CSS cursor style
+  - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```javascript
+```json
 {
-  id: 'title',
-  type: 'text',
-  x: 960,
-  y: 100,
-  content: 'Welcome to Route Graphics',
-  textStyle: {
-    fill: '#ffffff',
-    fontFamily: 'Arial',
-    fontSize: 48,
-    align: 'center'
+  "id": "title",
+  "type": "text",
+  "x": 960,
+  "y": 100,
+  "content": "Welcome to Route Graphics",
+  "textStyle": {
+    "fill": "#ffffff",
+    "fontFamily": "Arial",
+    "fontSize": 48,
+    "align": "center"
+  },
+  "hover": {
+    "textStyle": { "fill": "#ffff00" },
+    "cursor": "pointer",
+    "soundSrc": "hover-sound",
+    "actionPayload": { "action": "hoverTitle" }
+  },
+  "click": {
+    "textStyle": { "fill": "#00ff00" },
+    "soundSrc": "click-sound",
+    "actionPayload": { "action": "clickTitle" }
   }
+}
+```
+
+**Event Data Structure:**
+- **Click Event:**
+```json
+{
+  "_event": {
+    "id": "title"
+  },
+  // All actionPayload properties are spread directly here
+  "action": "clickTitle"
+}
+```
+- **Hover Event:**
+```json
+{
+  "_event": {
+    "id": "title"
+  },
+  // All actionPayload properties are spread directly here
+  "action": "hoverTitle"
 }
 ```
 
@@ -287,26 +342,65 @@ Creates filled and bordered rectangles with rotation support.
 - `color`: Border color (default: "black")
 - `alpha`: Border opacity (0-1, default: 1)
 
-**Interactions:**
-- `hover`: `soundSrc`, `cursor`, `actionPayload`
-- `click`: `soundSrc`, `actionPayload`
+**Events:**
+- **click**: Triggered when rectangle is clicked
+  - `soundSrc` (string, optional): Play sound effect
+  - `actionPayload` (object, optional): Custom data sent to event handler
+- **hover**: Triggered when mouse enters/exits rectangle
+  - `soundSrc` (string, optional): Play sound effect
+  - `cursor` (string, optional): CSS cursor style
+  - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```javascript
+```json
 {
-  id: 'panel',
-  type: 'rect',
-  x: 50,
-  y: 50,
-  width: 400,
-  height: 300,
-  fill: '0x333333',
-  border: {
-    width: 2,
-    color: '0xffffff',
-    alpha: 0.8
+  "id": "panel",
+  "type": "rect",
+  "x": 50,
+  "y": 50,
+  "width": 400,
+  "height": 300,
+  "fill": "0x333333",
+  "border": {
+    "width": 2,
+    "color": "0xffffff",
+    "alpha": 0.8
   },
-  alpha: 0.9
+  "alpha": 0.9,
+  "hover": {
+    "cursor": "pointer",
+    "soundSrc": "hover-sound",
+    "actionPayload": { "action": "hoverPanel" }
+  },
+  "click": {
+    "soundSrc": "click-sound",
+    "actionPayload": { "action": "clickPanel" }
+  }
+}
+```
+
+**Event Data Structure:**
+For an element with `actionPayload: { action: "clickPanel", panelType: "settings" }`:
+
+- **Click Event:**
+```json
+{
+  "_event": {
+    "id": "panel"
+  },
+  "action": "clickPanel",
+  "panelType": "settings"
+}
+```
+
+- **Hover Event:**
+```json
+{
+  "_event": {
+    "id": "panel"
+  },
+  "action": "hoverPanel",
+  "panelType": "settings"
 }
 ```
 
@@ -326,25 +420,43 @@ Groups and manages layout of multiple elements.
 - `rotation`: Rotation in degrees (default: 0)
 - `scroll`: Enable scrolling for overflow content (default: false)
 
+**Events:** None
+
 **Layout Directions:**
 - `absolute`: Manual positioning of children
 - `horizontal`: Left-to-right arrangement
 - `vertical`: Top-to-bottom arrangement
 
 **Example:**
-```javascript
+```json
 {
-  id: 'menu',
-  type: 'container',
-  x: 0,
-  y: 0,
-  width: 200,
-  height: 400,
-  direction: 'vertical',
-  gap: 10,
-  children: [
-    { id: 'btn1', type: 'sprite', /* ... */ },
-    { id: 'btn2', type: 'sprite', /* ... */ }
+  "id": "menu",
+  "type": "container",
+  "x": 0,
+  "y": 0,
+  "width": 200,
+  "height": 400,
+  "direction": "vertical",
+  "gap": 10,
+  "children": [
+    {
+      "id": "btn1",
+      "type": "sprite",
+      "x": 0,
+      "y": 0,
+      "width": 200,
+      "height": 50,
+      "src": "button-normal"
+    },
+    {
+      "id": "btn2",
+      "type": "sprite",
+      "x": 0,
+      "y": 60,
+      "width": 200,
+      "height": 50,
+      "src": "button-normal"
+    }
   ]
 }
 ```
@@ -366,17 +478,17 @@ Animated text display with typewriter effects.
 - `indicator`: Continuation indicator settings
 
 **Content Structure:**
-```javascript
-content: [
+```json
+"content": [
   {
-    text: "Hello ",
-    textStyle: { fill: 'red' },  // Optional individual styling
-    furigana: {                   // Optional Japanese annotations
-      text: "こ",
-      textStyle: { fontSize: 12 }
+    "text": "Hello ",
+    "textStyle": { "fill": "red" },  // Optional individual styling
+    "furigana": {                   // Optional Japanese annotations
+      "text": "こ",
+      "textStyle": { "fontSize": 12 }
     }
   },
-  { text: "World!" }
+  { "text": "World!" }
 ]
 ```
 
@@ -385,19 +497,21 @@ content: [
 - `complete`: `src`, `width`, `height` - indicator when finished
 - `offset`: Distance between text and indicator (default: 12)
 
+**Events:** None (Text Revealing elements do not support events)
+
 **Example:**
-```javascript
+```json
 {
-  id: 'story',
-  type: 'textRevealing',
-  x: 100,
-  y: 200,
-  content: [
-    { text: 'Hello ', textStyle: { fill: 'red' } },
-    { text: 'World!', textStyle: { fill: 'blue' } }
+  "id": "story",
+  "type": "textRevealing",
+  "x": 100,
+  "y": 200,
+  "content": [
+    { "text": "Hello ", "textStyle": { "fill": "red" } },
+    { "text": "World!", "textStyle": { "fill": "blue" } }
   ],
-  speed: 50,
-  revealEffect: 'typewriter'
+  "speed": 50,
+  "revealEffect": "typewriter"
 }
 ```
 
@@ -416,33 +530,53 @@ Interactive slider controls for value input.
 - `step`: Value increment (default: 1, minimum: 0)
 - `initialValue`: Starting value (default: 0)
 
-**Interactions:**
-- `hover`: `thumbSrc`, `barSrc`, `cursor`, `soundSrc`
-- `change`: `actionPayload` - triggered during drag with current value
-
-**Value Access:**
-Use `{{ value }}` template in actionPayload to access current slider value
+**Events:**
+- **hover**: Triggered when mouse enters/exits slider
+  - `thumbSrc` (string, optional): Change thumb sprite image
+  - `barSrc` (string, optional): Change bar sprite image
+  - `soundSrc` (string, optional): Play sound effect
+  - `cursor` (string, optional): CSS cursor style
+- **change**: Triggered during slider drag with current value
+  - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```javascript
+```json
 {
-  id: 'volumeSlider',
-  type: 'slider',
-  x: 100,
-  y: 500,
-  direction: 'horizontal',
-  thumbSrc: 'file:slider-thumb',
-  barSrc: 'file:slider-bar',
-  min: 0,
-  max: 100,
-  step: 1,
-  initialValue: 50,
-  change: {
-    actionPayload: {
-      action: 'updateVolume',
-      value: '{{ value }}'  // Current slider value
+  "id": "volumeSlider",
+  "type": "slider",
+  "x": 100,
+  "y": 500,
+  "direction": "horizontal",
+  "thumbSrc": "slider-thumb",
+  "barSrc": "slider-bar",
+  "min": 0,
+  "max": 100,
+  "step": 1,
+  "initialValue": 50,
+  "hover": {
+    "thumbSrc": "slider-thumb-hover",
+    "barSrc": "slider-bar-hover",
+    "cursor": "pointer",
+    "soundSrc": "slider-hover"
+  },
+  "change": {
+    "actionPayload": {
+      "action": "updateVolume"
     }
   }
+}
+```
+
+**Event Data Structure:**
+- **Hover Event:** None (slider hover doesn't trigger event data)
+- **Change Event:** For a slider with `actionPayload: { action: "updateVolume" }` and current value of 75:
+```json
+{
+  "_event": {
+    "id": "volumeSlider",
+    "value": 75
+  },
+  "action": "updateVolume"
 }
 ```
 
@@ -466,14 +600,14 @@ Integrated audio system for sound effects and background music.
 - Values above 1000 = amplified (may clip)
 
 **Example:**
-```javascript
+```json
 {
-  id: 'bgMusic',
-  type: 'sound',
-  src: 'file:bgm-level1',
-  volume: 800,
-  loop: true,
-  delay: 500
+  "id": "bgMusic",
+  "type": "sound",
+  "src": "bgm-level1",
+  "volume": 800,
+  "loop": true,
+  "delay": 500
 }
 ```
 
@@ -508,217 +642,260 @@ Keyframe-based animation system for smooth transitions and effects.
 - `alpha`, `x`, `y`, `scaleX`, `scaleY`, `rotation`
 
 **Example:**
-```javascript
+```json
 {
-  id: 'fadeSlide',
-  targetId: 'myElement',
-  type: 'tween',
-  properties: {
-    alpha: {
-      initialValue: 0,
-      keyframes: [
-        { duration: 500, value: 1, easing: 'linear' },
-        { duration: 1000, value: 0.5, easing: 'linear' }
+  "id": "fadeSlide",
+  "targetId": "myElement",
+  "type": "tween",
+  "properties": {
+    "alpha": {
+      "initialValue": 0,
+      "keyframes": [
+        { "duration": 500, "value": 1, "easing": "linear" },
+        { "duration": 1000, "value": 0.5, "easing": "linear" }
       ]
     },
-    x: {
-      initialValue: 100,
-      keyframes: [
-        { duration: 1500, value: 500, easing: 'linear' }
+    "x": {
+      "initialValue": 100,
+      "keyframes": [
+        { "duration": 1500, "value": 500, "easing": "linear" }
       ]
     }
   }
 }
 ```
 
-## 🎯 Event System
+## 🔌 Creating Custom Plugins
 
-Route Graphics provides a comprehensive event system for handling user interactions with visual elements. Each element type supports specific events that can be configured with custom actions, sounds, and visual feedback.
+The plugin system makes it easy to add new element types, animations, or audio handlers.
 
-### Events by Element Type
+### Element Plugin Creation
 
-#### 🖼️ Sprite Element Events
-**Supported Events:** `click`, `hover`
-
-**Click Event Properties:**
-- `src` (string, optional): Change sprite image
-- `soundSrc` (string, optional): Play sound effect
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-**Hover Event Properties:**
-- `src` (string, optional): Change sprite image
-- `soundSrc` (string, optional): Play sound effect
-- `cursor` (string, optional): CSS cursor style
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-#### 📝 Text Element Events
-**Supported Events:** `click`, `hover`
-
-**Click Event Properties:**
-- `textStyle` (object, optional): Change text styling
-- `soundSrc` (string, optional): Play sound effect
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-**Hover Event Properties:**
-- `textStyle` (object, optional): Change text styling
-- `soundSrc` (string, optional): Play sound effect
-- `cursor` (string, optional): CSS cursor style
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-#### ⬜ Rectangle Element Events
-**Supported Events:** `click`, `hover`
-
-**Click Event Properties:**
-- `soundSrc` (string, optional): Play sound effect
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-**Hover Event Properties:**
-- `soundSrc` (string, optional): Play sound effect
-- `cursor` (string, optional): CSS cursor style
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-#### 🎚️ Slider Element Events
-**Supported Events:** `hover`, `change`
-
-**Hover Event Properties:**
-- `thumbSrc` (string, optional): Change thumb sprite image
-- `barSrc` (string, optional): Change bar sprite image
-- `soundSrc` (string, optional): Play sound effect
-- `cursor` (string, optional): CSS cursor style
-
-**Change Event Properties:**
-- `actionPayload` (object, optional): Custom data sent to event handler
-
-### Event Data Structure by Element Type
-
-#### Sprite Click Event Data
 ```javascript
-{
-  _event: {
-    id: 'myButton'           // ID of the clicked sprite
+import { createElementPlugin } from 'route-graphics';
+
+// Create custom element plugin
+const customPlugin = createElementPlugin({
+  type: "myCustomElement",
+  add: ({ element, app }) => {
+    // Creation logic - return a PIXI display object
+    const graphics = new Graphics();
+    graphics.beginFill(element.fill || 0xffffff);
+    graphics.drawRect(element.x, element.y, element.width, element.height);
+    graphics.endFill();
+    return graphics;
   },
-  payload: {                  // Your configured actionPayload
-    action: 'handleButtonClick',
-    buttonId: 'primary'
+  update: ({ element, app, displayObject }) => {
+    // Update logic - modify the display object
+    if (displayObject) {
+      displayObject.x = element.x;
+      displayObject.y = element.y;
+      displayObject.alpha = element.alpha ?? 1;
+    }
+  },
+  delete: ({ element, app, displayObject }) => {
+    // Cleanup logic
+    if (displayObject) {
+      displayObject.destroy();
+    }
+  },
+  // Optional: Parse function for JSON to AST conversion
+  parse: (element) => {
+    // Parse JSON element to AST format
+    return {
+      ...element,
+      parsed: true
+    };
   }
-}
+});
+
+// Register plugin in your app
+await app.init({
+  // ... other config
+  plugins: {
+    elements: [
+      // ... existing plugins
+      customPlugin
+    ],
+    animations: [/* ... */],
+    audios: [/* ... */]
+  }
+});
 ```
 
-#### Sprite Hover Event Data
+### Animation Plugin Creation
+
 ```javascript
-{
-  _event: {
-    id: 'myButton'           // ID of the hovered sprite
+import { createAnimationPlugin } from 'route-graphics';
+
+const customAnimationPlugin = createAnimationPlugin({
+  type: "myCustomAnimation",
+  add: ({ animation, app }) => {
+    // Animation creation logic
+    return {
+      animation,
+      startTime: Date.now(),
+      active: true
+    };
   },
-  payload: {                  // Your configured actionPayload
-    action: 'handleButtonHover',
-    buttonId: 'primary'
+  update: ({ animation, app, animationData }) => {
+    // Animation update logic
+    if (animationData.active) {
+      const elapsed = Date.now() - animationData.startTime;
+      if (elapsed >= animation.duration) {
+        animationData.active = false;
+      }
+    }
+  },
+  delete: ({ animation, app, animationData }) => {
+    // Animation cleanup logic
+    // Stop any ongoing animations
   }
-}
+});
 ```
 
-#### Text Click Event Data
+### Audio Plugin Creation
+
 ```javascript
-{
-  _event: {
-    id: 'myText'             // ID of the clicked text
+import { createAudioPlugin } from 'route-graphics';
+
+const customAudioPlugin = createAudioPlugin({
+  type: "myCustomAudio",
+  add: ({ audio, app }) => {
+    // Audio creation logic
+    return {
+      audio,
+      startTime: Date.now(),
+      playing: true
+    };
   },
-  payload: {                  // Your configured actionPayload
-    action: 'handleTextClick',
-    linkId: 'home'
+  update: ({ audio, app, audioData }) => {
+    // Audio update logic
+    if (audioData.playing && Date.now() - audioData.startTime >= audio.delay) {
+      // Start playing after delay
+    }
+  },
+  delete: ({ audio, app, audioData }) => {
+    // Audio cleanup logic
+    // Stop audio playback
   }
-}
+});
 ```
 
-#### Text Hover Event Data
+## 🔤 Parser System
+
+The parser system transforms your JSON input into Abstract Syntax Trees (AST) that the rendering engine can process. Each element plugin includes its own parser function that converts JSON definitions into the internal AST format.
+
+### parseElements Function
+
 ```javascript
-{
-  _event: {
-    id: 'myText'             // ID of the hovered text
-  },
-  payload: {                  // Your configured actionPayload
-    action: 'handleTextHover',
-    linkId: 'home'
-  }
-}
+// Main parsing function that processes all elements
+const parsedElements = parseElements({
+  JSONObject: [
+    {
+      id: "myButton",
+      type: "sprite",
+      x: 100,
+      y: 100,
+      width: 64,
+      height: 64
+    }
+  ],
+  parserPlugins: [spritePlugin, textPlugin, ...]
+});
 ```
 
-#### Rectangle Click Event Data
-```javascript
-{
-  _event: {
-    id: 'myPanel'            // ID of the clicked rectangle
-  },
-  payload: {                  // Your configured actionPayload
-    action: 'handlePanelClick',
-    panelId: 'settings'
-  }
-}
-```
+### Parser Function Properties
 
-#### Rectangle Hover Event Data
-```javascript
-{
-  _event: {
-    id: 'myPanel'            // ID of the hovered rectangle
-  },
-  payload: {                  // Your configured actionPayload
-    action: 'handlePanelHover',
-    panelId: 'settings'
-  }
-}
-```
+**Parameters:**
+- `state`: The raw JSON element definition from the input
+- `parserPlugins`: Array of available parser plugins (useful for nested elements like containers)
 
-#### Slider Hover Event Data
-```javascript
-{
-  _event: {
-    id: 'volumeSlider'       // ID of the hovered slider
-  },
-  payload: null              // Slider hover doesn't use payload
-}
-```
+**Returns:**
+- AST (Abstract Syntax Tree) node with processed properties ready for rendering
 
-#### Slider Change Event Data
+### Parser Function Example
+
 ```javascript
-{
-  _event: {
-    id: 'volumeSlider',      // ID of the slider element
-    value: 75               // Current slider value
-  },
-  payload: {                  // Your configured actionPayload
-    action: 'updateVolume'
+const parseMyElement = ({ state, parserPlugins }) => {
+  // Validate required properties
+  if (!state.id || !state.type) {
+    throw new Error('Missing required properties');
   }
-}
+
+  // Apply defaults and type conversion
+  return {
+    id: state.id,
+    type: state.type,
+    x: Math.round(state.x ?? 0),
+    y: Math.round(state.y ?? 0),
+    width: Math.round(state.width ?? 100),
+    height: Math.round(state.height ?? 50),
+    // Custom property with default
+    customProperty: state.customProperty ?? "default",
+    // Example: Hex color to number conversion
+    color: state.color ? parseInt(state.color.replace('#', ''), 16) : 0x000000,
+  };
+};
 ```
 
 ## 📁 Asset Management
 
 Route Graphics uses a sophisticated asset management system with aliasing.
 
-### Asset Aliases
+### Asset Management
 
-Assets are referenced using the `file:` prefix:
+#### Loading Assets
+
+Load assets using the `createAssetBufferManager`:
 
 ```javascript
-// Asset loading
-await app.loadAssets({
-  'file:hero-sprite': './assets/hero.png',
-  'file:bg-music': './audio/background.mp3',
-  'file:font-arial': './fonts/arial.ttf'
-});
+import { createAssetBufferManager } from 'route-graphics';
 
-// Usage in elements
+// Define assets with URL and type
+const assets = {
+  "hero-sprite": {
+    url: "./assets/hero.png",
+    type: "image/png",
+  },
+  "background-image": {
+    url: "./assets/background.jpg",
+    type: "image/jpeg"
+  },
+  "bg-music": {
+    url: "./audio/background.mp3",
+    type: "audio/mpeg",
+  },
+  "click-sound": {
+    url: "./audio/click.wav",
+    type: "audio/wav"
+  }
+};
+
+// Load assets using asset buffer manager
+const assetBufferManager = createAssetBufferManager();
+await assetBufferManager.load(assets);
+const assetBufferMap = assetBufferManager.getBufferMap();
+
+// Load assets into the app
+await app.loadAssets(assetBufferMap);
+```
+
+#### Asset Aliases
+
+Once loaded, assets are referenced by their alias keys:
+
+```json
 {
-  id: 'hero',
-  type: 'sprite',
-  src: 'file:hero-sprite'  // Uses loaded asset
+  "id": "hero",
+  "type": "sprite",
+  "src": "hero-sprite"
 }
 ```
 
-### Supported Asset Types
+#### Supported Asset Types
 
-- **Images**: PNG, JPG, WebP, GIF
+- **Images**: PNG, JPG, JPEG, WebP, GIF
 - **Audio**: MP3, WAV, OGG
 - **Fonts**: TTF, OTF, WOFF
 
@@ -730,9 +907,6 @@ await app.loadAssets({
 # Run all tests
 npx vitest
 
-# Run tests with coverage
-npx vitest --coverage
-
 # Run specific test file
 npx vitest path/to/test.test.js
 ```
@@ -742,19 +916,15 @@ npx vitest path/to/test.test.js
 # Build visual tests
 bun run vt:generate
 
-# Lint code
-bun run lint
 
 # Fix linting issues
 bun run lint:fix
 
-# Format code
-bun run format
 ```
 
 ## 🎯 Complete JSON Example
 
-```javascript
+```json
 {
   "elements": [
     {
@@ -836,28 +1006,6 @@ bun run format
 }
 ```
 
-## 🔧 Extending Route Graphics
-
-The plugin system makes it easy to add new element types:
-
-```javascript
-// Custom element plugin
-const customPlugin = createElementPlugin({
-  type: "customElement",
-  add: ({ element, app }) => {
-    // Creation logic
-  },
-  update: ({ element, app }) => {
-    // Update logic
-  },
-  delete: ({ element, app }) => {
-    // Delete logic
-  }
-});
-
-// Register plugin
-app.registerPlugin(customPlugin);
-```
 
 ## 📚 Schemas
 
