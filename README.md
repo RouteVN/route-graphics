@@ -1,8 +1,8 @@
-## 🚀 Overview
+## Overview
 
 Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audio, and interactions automatically.
 
-## 🎯 Typical Usage Patterns
+## Typical Usage Patterns
 
 ### How It Works
 
@@ -16,52 +16,7 @@ Route Graphics follows a **render cycle** where:
 3. **Animation Functions** apply smooth transitions between states
 4. **Audio Functions** handle sound effects and background music
 
-### The Render Function
-
-The main `render()` function is called whenever you want to update your interface. It automatically:
-- Compares the previous state with the new state
-- Determines which elements to add, update, or remove
-- Executes the appropriate element functions
-- Applies animations and audio effects
-
-```javascript
-// Initial render
-routeGraphics.render(initialState);
-
-// Update with new elements
-routeGraphics.render(updatedState); // Automatically adds/updates/removes elements
-```
-
-**Example Lifecycle:**
-```javascript
-// State 1: Show a button
-const state1 = {
-  elements: [{
-    id: "button1",
-    type: "rect",
-    width: 100, height: 40,
-    fill: "blue"
-  }]
-};
-
-// State 2: Button changes color and moves
-const state2 = {
-  elements: [{
-    id: "button1",
-    type: "rect",
-    width: 100, height: 40,
-    fill: "red",  // Update: color changes
-    x: 50, y: 50  // Update: position moves
-  }]
-};
-
-// State 3: Button is gone
-const state3 = {
-  elements: [] // Delete: button1 is removed
-};
-```
-
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 Route Graphics follows a modular plugin architecture with three main plugin categories:
 
@@ -69,7 +24,7 @@ Route Graphics follows a modular plugin architecture with three main plugin cate
 2. **Audio Plugins** - Handle audio playback
 3. **Animation Plugins** - Handle dynamic content and transitions
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Installation
 
@@ -203,7 +158,7 @@ app.render({
 });
 ```
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 Route Graphics follows a modular plugin architecture with three main plugin categories:
 
@@ -212,7 +167,52 @@ Route Graphics follows a modular plugin architecture with three main plugin cate
 3. **Audio & Animation Plugins** - Handle dynamic content
 
 
-## 🎨 Element Plugins
+### The Render Function
+
+The main `render()` function is called whenever you want to update your interface. It automatically:
+- Compares the previous state with the new state
+- Determines which elements to add, update, or remove
+- Executes the appropriate element functions
+- Applies animations and audio effects
+
+```javascript
+// Initial render
+routeGraphics.render(initialState);
+
+// Update with new elements
+routeGraphics.render(updatedState); // Automatically adds/updates/removes elements
+```
+
+**Example Lifecycle:**
+```javascript
+// State 1: Show a button
+const state1 = {
+  elements: [{
+    id: "button1",
+    type: "rect",
+    width: 100, height: 40,
+    fill: "blue"
+  }]
+};
+
+// State 2: Button changes color and moves
+const state2 = {
+  elements: [{
+    id: "button1",
+    type: "rect",
+    width: 100, height: 40,
+    fill: "red",  // Update: color changes
+    x: 50, y: 50  // Update: position moves
+  }]
+};
+
+// State 3: Button is gone
+const state3 = {
+  elements: [] // Delete: button1 is removed
+};
+```
+
+## Element Plugins
 
 Element plugins handle the creation, updating, and deletion of visual elements. Each plugin follows a consistent interface:
 
@@ -227,7 +227,7 @@ createElementPlugin({
 
 ### Available Element Plugins
 
-#### 🖼️ Sprite Plugin
+#### Sprite Plugin
 Renders image-based sprites with rich interactions.
 
 **Required Properties:**
@@ -250,52 +250,44 @@ Renders image-based sprites with rich interactions.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```json
-{
-  "id": "character",
-  "type": "sprite",
-  "x": 100,
-  "y": 100,
-  "width": 64,
-  "height": 64,
-  "src": "hero-idle",
-  "hover": {
-    "src": "hero-hover",
-    "cursor": "pointer",
-    "soundSrc": "hover-sound",
-    "actionPayload": { "action": "hoverHero" }
-  },
-  "click": {
-    "src": "hero-active",
-    "soundSrc": "click-sound",
-    "actionPayload": { "action": "activateHero" }
-  }
-}
+```yaml
+id: character
+type: sprite
+x: 100
+y: 100
+width: 64
+height: 64
+src: hero-idle
+hover:
+  src: hero-hover
+  cursor: pointer
+  soundSrc: hover-sound
+  actionPayload:
+    action: hoverHero
+click:
+  src: hero-active
+  soundSrc: click-sound
+  actionPayload:
+    action: activateHero
 ```
 
 **Event Data Structure:**
 - **Click Event:**
-```json
-{
-  "_event": {
-    "id": "character"
-  },
-  // All actionPayload properties are spread directly here
-  "action": "activateHero"
-}
+```yaml
+_event:
+  id: character
+# All actionPayload properties are spread directly here
+action: activateHero
 ```
 - **Hover Event:**
-```json
-{
-  "_event": {
-    "id": "character"
-  },
-  // All actionPayload properties are spread directly here
-  "action": "hoverHero"
-}
+```yaml
+_event:
+  id: character
+# All actionPayload properties are spread directly here
+action: hoverHero
 ```
 
-#### 📝 Text Plugin
+#### Text Plugin
 Renders styled text with comprehensive formatting options.
 
 **Required Properties:**
@@ -331,56 +323,49 @@ Renders styled text with comprehensive formatting options.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```json
-{
-  "id": "title",
-  "type": "text",
-  "x": 960,
-  "y": 100,
-  "content": "Welcome to Route Graphics",
-  "textStyle": {
-    "fill": "#ffffff",
-    "fontFamily": "Arial",
-    "fontSize": 48,
-    "align": "center"
-  },
-  "hover": {
-    "textStyle": { "fill": "#ffff00" },
-    "cursor": "pointer",
-    "soundSrc": "hover-sound",
-    "actionPayload": { "action": "hoverTitle" }
-  },
-  "click": {
-    "textStyle": { "fill": "#00ff00" },
-    "soundSrc": "click-sound",
-    "actionPayload": { "action": "clickTitle" }
-  }
-}
+```yaml
+id: title
+type: text
+x: 960
+y: 100
+content: Welcome to Route Graphics
+textStyle:
+  fill: "#ffffff"
+  fontFamily: Arial
+  fontSize: 48
+  align: center
+hover:
+  textStyle:
+    fill: "#ffff00"
+  cursor: pointer
+  soundSrc: hover-sound
+  actionPayload:
+    action: hoverTitle
+click:
+  textStyle:
+    fill: "#00ff00"
+  soundSrc: click-sound
+  actionPayload:
+    action: clickTitle
 ```
 
 **Event Data Structure:**
 - **Click Event:**
-```json
-{
-  "_event": {
-    "id": "title"
-  },
-  // All actionPayload properties are spread directly here
-  "action": "clickTitle"
-}
+```yaml
+_event:
+  id: title
+# All actionPayload properties are spread directly here
+action: clickTitle
 ```
 - **Hover Event:**
-```json
-{
-  "_event": {
-    "id": "title"
-  },
-  // All actionPayload properties are spread directly here
-  "action": "hoverTitle"
-}
+```yaml
+_event:
+  id: title
+# All actionPayload properties are spread directly here
+action: hoverTitle
 ```
 
-#### ⬜ Rectangle Plugin
+#### Rectangle Plugin
 Creates filled and bordered rectangles with rotation support.
 
 **Required Properties:**
@@ -409,59 +394,50 @@ Creates filled and bordered rectangles with rotation support.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```json
-{
-  "id": "panel",
-  "type": "rect",
-  "x": 50,
-  "y": 50,
-  "width": 400,
-  "height": 300,
-  "fill": "0x333333",
-  "border": {
-    "width": 2,
-    "color": "0xffffff",
-    "alpha": 0.8
-  },
-  "alpha": 0.9,
-  "hover": {
-    "cursor": "pointer",
-    "soundSrc": "hover-sound",
-    "actionPayload": { "action": "hoverPanel" }
-  },
-  "click": {
-    "soundSrc": "click-sound",
-    "actionPayload": { "action": "clickPanel" }
-  }
-}
+```yaml
+id: panel
+type: rect
+x: 50
+y: 50
+width: 400
+height: 300
+fill: "0x333333"
+border:
+  width: 2
+  color: "0xffffff"
+  alpha: 0.8
+alpha: 0.9
+hover:
+  cursor: pointer
+  soundSrc: hover-sound
+  actionPayload:
+    action: hoverPanel
+click:
+  soundSrc: click-sound
+  actionPayload:
+    action: clickPanel
 ```
 
 **Event Data Structure:**
 For an element with `actionPayload: { action: "clickPanel", panelType: "settings" }`:
 
 - **Click Event:**
-```json
-{
-  "_event": {
-    "id": "panel"
-  },
-  "action": "clickPanel",
-  "panelType": "settings"
-}
+```yaml
+_event:
+  id: panel
+action: clickPanel
+panelType: settings
 ```
 
 - **Hover Event:**
-```json
-{
-  "_event": {
-    "id": "panel"
-  },
-  "action": "hoverPanel",
-  "panelType": "settings"
-}
+```yaml
+_event:
+  id: panel
+action: hoverPanel
+panelType: settings
 ```
 
-#### 📦 Container Plugin
+#### Container Plugin
 Groups and manages layout of multiple elements.
 
 **Required Properties:**
@@ -484,40 +460,33 @@ Groups and manages layout of multiple elements.
 - `vertical`: Top-to-bottom arrangement
 
 **Example:**
-```json
-{
-  "id": "menu",
-  "type": "container",
-  "x": 0,
-  "y": 0,
-  "width": 200,
-  "height": 400,
-  "direction": "vertical",
-  "gap": 10,
-  "children": [
-    {
-      "id": "btn1",
-      "type": "sprite",
-      "x": 0,
-      "y": 0,
-      "width": 200,
-      "height": 50,
-      "src": "button-normal"
-    },
-    {
-      "id": "btn2",
-      "type": "sprite",
-      "x": 0,
-      "y": 60,
-      "width": 200,
-      "height": 50,
-      "src": "button-normal"
-    }
-  ]
-}
+```yaml
+id: menu
+type: container
+x: 0
+y: 0
+width: 200
+height: 400
+direction: vertical
+gap: 10
+children:
+  - id: btn1
+    type: sprite
+    x: 0
+    y: 0
+    width: 200
+    height: 50
+    src: button-normal
+  - id: btn2
+    type: sprite
+    x: 0
+    y: 60
+    width: 200
+    height: 50
+    src: button-normal
 ```
 
-#### 🎭 Text Revealing Plugin
+#### Text Revealing Plugin
 Animated text display with typewriter effects.
 
 **Required Properties:**
@@ -534,18 +503,16 @@ Animated text display with typewriter effects.
 - `indicator`: Continuation indicator settings
 
 **Content Structure:**
-```json
-"content": [
-  {
-    "text": "Hello ",
-    "textStyle": { "fill": "red" },  // Optional individual styling
-    "furigana": {                   // Optional Japanese annotations
-      "text": "こ",
-      "textStyle": { "fontSize": 12 }
-    }
-  },
-  { "text": "World!" }
-]
+```yaml
+content:
+  - text: "Hello "
+    textStyle:                     # Optional individual styling
+      fill: red
+    furigana:                      # Optional Japanese annotations
+      text: "こ"
+      textStyle:
+        fontSize: 12
+  - text: "World!"
 ```
 
 **Indicator Options:**
@@ -556,22 +523,23 @@ Animated text display with typewriter effects.
 **Events:** None (Text Revealing elements do not support events)
 
 **Example:**
-```json
-{
-  "id": "story",
-  "type": "textRevealing",
-  "x": 100,
-  "y": 200,
-  "content": [
-    { "text": "Hello ", "textStyle": { "fill": "red" } },
-    { "text": "World!", "textStyle": { "fill": "blue" } }
-  ],
-  "speed": 50,
-  "revealEffect": "typewriter"
-}
+```yaml
+id: story
+type: textRevealing
+x: 100
+y: 200
+content:
+  - text: "Hello "
+    textStyle:
+      fill: red
+  - text: "World!"
+    textStyle:
+      fill: blue
+speed: 50
+revealEffect: typewriter
 ```
 
-#### 🎚️ Slider Plugin
+#### Slider Plugin
 Interactive slider controls for value input.
 
 **Required Properties:**
@@ -596,47 +564,39 @@ Interactive slider controls for value input.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
-```json
-{
-  "id": "volumeSlider",
-  "type": "slider",
-  "x": 100,
-  "y": 500,
-  "direction": "horizontal",
-  "thumbSrc": "slider-thumb",
-  "barSrc": "slider-bar",
-  "min": 0,
-  "max": 100,
-  "step": 1,
-  "initialValue": 50,
-  "hover": {
-    "thumbSrc": "slider-thumb-hover",
-    "barSrc": "slider-bar-hover",
-    "cursor": "pointer",
-    "soundSrc": "slider-hover"
-  },
-  "change": {
-    "actionPayload": {
-      "action": "updateVolume"
-    }
-  }
-}
+```yaml
+id: volumeSlider
+type: slider
+x: 100
+y: 500
+direction: horizontal
+thumbSrc: slider-thumb
+barSrc: slider-bar
+min: 0
+max: 100
+step: 1
+initialValue: 50
+hover:
+  thumbSrc: slider-thumb-hover
+  barSrc: slider-bar-hover
+  cursor: pointer
+  soundSrc: slider-hover
+change:
+  actionPayload:
+    action: updateVolume
 ```
 
 **Event Data Structure:**
 - **Hover Event:** None (slider hover doesn't trigger event data)
 - **Change Event:** For a slider with `actionPayload: { action: "updateVolume" }` and current value of 75:
-```json
-{
-  "_event": {
-    "id": "volumeSlider",
-    "value": 75
-  },
-  "action": "updateVolume"
-}
+```yaml
+_event:
+  id: volumeSlider
+  value: 75
+action: updateVolume
 ```
 
-## 🔊 Audio Plugin
+## Audio Plugin
 
 Integrated audio system for sound effects and background music.
 
@@ -656,36 +616,30 @@ Integrated audio system for sound effects and background music.
 - Values above 1000 = amplified (may clip)
 
 **Example:**
-```json
-{
-  "id": "bgMusic",
-  "type": "sound",
-  "src": "bgm-level1",
-  "volume": 800,
-  "loop": true,
-  "delay": 500
-}
+```yaml
+id: bgMusic
+type: sound
+src: bgm-level1
+volume: 800
+loop: true
+delay: 500
 ```
 
 ### Audio Integration
 
 Audio integrates seamlessly with element interactions:
 
-```json
-{
-  "id": "button",
-  "type": "sprite",
-  // ... other properties
-  "hover": {
-    "soundSrc": "file:hover-sound"  // Plays on hover
-  },
-  "click": {
-    "soundSrc": "file:click-sound"  // Plays on click
-  }
-}
+```yaml
+id: button
+type: sprite
+# ... other properties
+hover:
+  soundSrc: file:hover-sound        # Plays on hover
+click:
+  soundSrc: file:click-sound        # Plays on click
 ```
 
-## 🎬 Animation System
+## Animation System
 
 Keyframe-based animation system for smooth transitions and effects.
 
@@ -698,30 +652,29 @@ Keyframe-based animation system for smooth transitions and effects.
 - `alpha`, `x`, `y`, `scaleX`, `scaleY`, `rotation`
 
 **Example:**
-```json
-{
-  "id": "fadeSlide",
-  "targetId": "myElement",
-  "type": "tween",
-  "properties": {
-    "alpha": {
-      "initialValue": 0,
-      "keyframes": [
-        { "duration": 500, "value": 1, "easing": "linear" },
-        { "duration": 1000, "value": 0.5, "easing": "linear" }
-      ]
-    },
-    "x": {
-      "initialValue": 100,
-      "keyframes": [
-        { "duration": 1500, "value": 500, "easing": "linear" }
-      ]
-    }
-  }
-}
+```yaml
+id: fadeSlide
+targetId: myElement
+type: tween
+properties:
+  alpha:
+    initialValue: 0
+    keyframes:
+      - duration: 500
+        value: 1
+        easing: linear
+      - duration: 1000
+        value: 0.5
+        easing: linear
+  x:
+    initialValue: 100
+    keyframes:
+      - duration: 1500
+        value: 500
+        easing: linear
 ```
 
-## 🔌 Creating Custom Plugins
+## Creating Custom Plugins
 
 The plugin system makes it easy to add new element types, animations, or audio handlers.
 
@@ -838,7 +791,7 @@ const customAudioPlugin = createAudioPlugin({
 });
 ```
 
-## 🔤 Parser System
+## Parser System
 
 The parser system transforms your JSON input into Abstract Syntax Trees (AST) that the rendering engine can process. Each element plugin includes its own parser function that converts JSON definitions into the internal AST format.
 
@@ -895,7 +848,7 @@ const parseMyElement = ({ state, parserPlugins }) => {
 };
 ```
 
-## 📁 Asset Management
+## Asset Management
 
 Route Graphics uses a sophisticated asset management system with aliasing.
 
@@ -941,12 +894,10 @@ await app.loadAssets(assetBufferMap);
 
 Once loaded, assets are referenced by their alias keys:
 
-```json
-{
-  "id": "hero",
-  "type": "sprite",
-  "src": "hero-sprite"
-}
+```yaml
+id: hero
+type: sprite
+src: hero-sprite
 ```
 
 #### Supported Asset Types
@@ -955,7 +906,7 @@ Once loaded, assets are referenced by their alias keys:
 - **Audio**: MP3, WAV, OGG
 - **Fonts**: TTF, OTF, WOFF
 
-## 🧪 Development & Testing
+## Development & Testing
 
 ### Running Tests
 
@@ -975,92 +926,70 @@ bun run lint:fix
 
 ```
 
-## 🎯 Complete JSON Example
+## Complete YAML Example
 
-```json
-{
-  "elements": [
-    {
-      "id": "background",
-      "type": "sprite",
-      "x": 0,
-      "y": 0,
-      "width": 1920,
-      "height": 1080,
-      "src": "file:bg-image"
-    },
-    {
-      "id": "title",
-      "type": "text",
-      "x": 960,
-      "y": 100,
-      "content": "Game Title",
-      "textStyle": {
-        "fill": "#ffffff",
-        "fontFamily": "Arial",
-        "fontSize": 64,
-        "align": "center"
-      }
-    },
-    {
-      "id": "buttonContainer",
-      "type": "container",
-      "x": 960,
-      "y": 400,
-      "width": 200,
-      "height": 300,
-      "direction": "vertical",
-      "gap": 20,
-      "children": [
-        {
-          "id": "startBtn",
-          "type": "sprite",
-          "x": 0,
-          "y": 0,
-          "width": 200,
-          "height": 50,
-          "src": "file:btn-normal",
-          "hover": {
-            "imageSrc": "file:btn-hover",
-            "soundSrc": "file:hover-sound"
-          },
-          "click": {
-            "action": "startGame",
-            "soundSrc": "file:click-sound"
-          }
-        }
-      ]
-    }
-  ],
-  "animations": [
-    {
-      "id": "titleFadeIn",
-      "targetId": "title",
-      "type": "tween",
-      "properties": {
-        "alpha": {
-          "initialValue": 0,
-          "keyframes": [
-            { "duration": 2000, "value": 1, "easing": "linear" }
-          ]
-        }
-      }
-    }
-  ],
-  "audio": [
-    {
-      "id": "bgMusic",
-      "type": "sound",
-      "src": "file:background-music",
-      "volume": 600,
-      "loop": true
-    }
-  ]
-}
+```yaml
+elements:
+  - id: background
+    type: sprite
+    x: 0
+    y: 0
+    width: 1920
+    height: 1080
+    src: file:bg-image
+  - id: title
+    type: text
+    x: 960
+    y: 100
+    content: Game Title
+    textStyle:
+      fill: "#ffffff"
+      fontFamily: Arial
+      fontSize: 64
+      align: center
+  - id: buttonContainer
+    type: container
+    x: 960
+    y: 400
+    width: 200
+    height: 300
+    direction: vertical
+    gap: 20
+    children:
+      - id: startBtn
+        type: sprite
+        x: 0
+        y: 0
+        width: 200
+        height: 50
+        src: file:btn-normal
+        hover:
+          imageSrc: file:btn-hover
+          soundSrc: file:hover-sound
+        click:
+          action: startGame
+          soundSrc: file:click-sound
+animations:
+  - id: titleFadeIn
+    targetId: title
+    type: tween
+    properties:
+      alpha:
+        initialValue: 0
+        keyframes:
+          - duration: 2000
+            value: 1
+            easing: linear
+audio:
+  - id: bgMusic
+    type: sound
+    src: file:background-music
+    volume: 600
+    loop: true
 ```
 
 
-## 📚 Schemas
+## Schemas
 
 All element types are defined with YAML schemas in the `src/schemas/` directory, providing:
 
@@ -1068,11 +997,3 @@ All element types are defined with YAML schemas in the `src/schemas/` directory,
 - Property documentation
 - Default values
 - Required field specifications
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
