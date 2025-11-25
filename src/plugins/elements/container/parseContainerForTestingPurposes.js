@@ -17,7 +17,7 @@ const mockParserPlugins = [
     parse: parseText,
   }),
   createParserPlugin({
-    type:"rect",
+    type: "rect",
     parse: parseRect,
   }),
   createParserPlugin({
@@ -30,7 +30,7 @@ const mockParserPlugins = [
   }),
   createParserPlugin({
     type: "container",
-    parse: parseContainer
+    parse: parseContainer,
   }),
 ];
 

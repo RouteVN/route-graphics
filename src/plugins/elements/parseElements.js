@@ -14,7 +14,7 @@ const parseElements = ({ JSONObject, parserPlugins = [] }) => {
   const parsedASTTree = JSONObject.map((node) => {
     const plugin = parserPlugins.find((p) => p.type === node.type);
     if (!plugin) {
-      return JSONObject
+      return JSONObject;
     }
     return plugin.parse({ state: node, parserPlugins });
   });

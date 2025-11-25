@@ -286,7 +286,10 @@ const createRouteGraphics = () => {
       const parserPlugins = [];
 
       pluginConfig?.elements?.forEach((plugin) => {
-        if(plugin?.parse)parserPlugins.push(createParserPlugin({ type: plugin.type, parse: plugin.parse }))
+        if (plugin?.parse)
+          parserPlugins.push(
+            createParserPlugin({ type: plugin.type, parse: plugin.parse }),
+          );
       });
 
       plugins = {
