@@ -1,13 +1,14 @@
-import { parseCommonObject } from "./parseCommonObject.js";
-import parseJSONToAST from "./index.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').ContainerASTNode} ContainerASTNode
  */
 
 /**
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The container state to parse
+ * @param {import("../parserPlugin.js").ParserPlugin[]} params.parserPlugins - Array of parser plugins
  * @returns {ContainerASTNode}
  *
  * This will parse the container element.
@@ -16,7 +17,7 @@ import parseJSONToAST from "./index.js";
  * If the direction has horizontal/vertical, it will reposition the children to be horizontal/vertical
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
  */
-export const parseContainer = (state) => {
+export const parseContainer = ({ state, parserPlugins = [] }) => {
   const direction = state.direction;
   const scroll = state.scroll ? true : false;
   const gap = state.gap || 0;
@@ -51,7 +52,10 @@ export const parseContainer = (state) => {
       child.y = 0;
     }
 
-    child = parseJSONToAST([child])[0];
+    const plugin = parserPlugins.find((p) => p.type === child.type);
+    if (plugin) {
+      child = plugin.parse({ state: child, parserPlugins });
+    }
 
     if (direction === "horizontal") {
       if (

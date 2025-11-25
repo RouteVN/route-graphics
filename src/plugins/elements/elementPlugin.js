@@ -51,6 +51,7 @@
  * @param {Function} options.add - Add function
  * @param {Function} options.update - Update function
  * @param {Function} options.delete - Delete function
+ * @param {import('./parserPlugin.js').ParseOption} options.parse
  * @returns {ElementPlugin} Element plugin
  */
 export const createElementPlugin = ({
@@ -58,9 +59,11 @@ export const createElementPlugin = ({
   add,
   update,
   delete: deleteFn,
+  parse,
 }) => ({
   type,
   add,
   update,
   delete: deleteFn,
+  parse,
 });

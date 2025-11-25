@@ -1,4 +1,4 @@
-file: '../../src/parser/parseText.js'
+file: '../../src/plugins/elements/text/parseText.js'
 group: parser
 suites: [parseText]
 ---
@@ -7,36 +7,37 @@ exportName: parseText
 ---
 case: Test parsing simple text object
 in:
-  - id: 'tl'
-    type: "text"
-    content: "This text is aligned to the top left corner"
-    x: 660
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    textStyle:
-      fontSize: 24
-      fontFamily: "Arial"
-      fill: "white"
-    hover:
-      soundSrc: "sound-1"
-      cursor: "cursor-1"
-      actionPayload:
-        prop1: "44"
-        prop2: "55"
+  - state:
+      id: 'tl'
+      type: "text"
+      content: "This text is aligned to the top left corner"
+      x: 660
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
       textStyle:
-        fontSize: 16
+        fontSize: 24
         fontFamily: "Arial"
-        fill: "black"
-    click:
-      soundSrc: "sound-2"
-      actionPayload:
-        prop3: "00"
-        prop4: "22"
-      textStyle:
-        fontSize: 16
-        fontFamily: "Arial"
-        fill: "black"
+        fill: "white"
+      hover:
+        soundSrc: "sound-1"
+        cursor: "cursor-1"
+        actionPayload:
+          prop1: "44"
+          prop2: "55"
+        textStyle:
+          fontSize: 16
+          fontFamily: "Arial"
+          fill: "black"
+      click:
+        soundSrc: "sound-2"
+        actionPayload:
+          prop3: "00"
+          prop4: "22"
+        textStyle:
+          fontSize: 16
+          fontFamily: "Arial"
+          fill: "black"
 out:
   id: "tl"
   type: "text"
@@ -78,19 +79,20 @@ out:
 ---
 case: Test parsing with word wrap
 in:
-  - id: 'tl'
-    type: "text"
-    content: "This text is wrap"
-    x: 660
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
-    width: 200
-    textStyle:
-      fontSize: 24
-      fontFamily: "Arial"
-      fill: "white"
-      breakWords: true
+  - state:
+      id: 'tl'
+      type: "text"
+      content: "This text is wrap"
+      x: 660
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
+      width: 200
+      textStyle:
+        fontSize: 24
+        fontFamily: "Arial"
+        fill: "white"
+        breakWords: true
 out:
   id: "tl"
   type: "text"
@@ -114,13 +116,14 @@ out:
 ---
 case: Test parsing simple text object with no textStyle
 in:
-  - id: 'tl'
-    type: "text"
-    content: "This text is aligned to the top left corner"
-    x: 660
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
+  - state:
+      id: 'tl'
+      type: "text"
+      content: "This text is aligned to the top left corner"
+      x: 660
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
 out:
   id: "tl"
   type: "text"
@@ -143,12 +146,13 @@ out:
 ---
 case: Test parsing simple text object with no content
 in:
-  - id: 'tl'
-    type: "text"
-    x: 660
-    y: 240
-    anchorX: 0.5
-    anchorY: 0.5
+  - state:
+      id: 'tl'
+      type: "text"
+      x: 660
+      y: 240
+      anchorX: 0.5
+      anchorY: 0.5
 out:
   id: "tl"
   type: "text"
@@ -171,15 +175,16 @@ out:
 ---
 case: Test parsing text with alpha property
 in:
-  - id: 'transparent-text'
-    type: "text"
-    content: "Semi-transparent text"
-    x: 100
-    y: 50
-    alpha: 0.5
-    textStyle:
-      fontSize: 20
-      fill: "blue"
+  - state:
+      id: 'transparent-text'
+      type: "text"
+      content: "Semi-transparent text"
+      x: 100
+      y: 50
+      alpha: 0.5
+      textStyle:
+        fontSize: 20
+        fill: "blue"
 out:
   id: "transparent-text"
   type: "text"
@@ -202,21 +207,22 @@ out:
 ---
 case: Test parsing text with all textStyle properties
 in:
-  - id: 'full-style-text'
-    type: "text"
-    content: "Fully styled text"
-    x: 50
-    y: 100
-    textStyle:
-      fontSize: 18
-      fontFamily: "Times New Roman"
-      fill: "#FF5733"
-      align: "center"
-      lineHeight: 1.5
-      wordWrap: false
-      breakWords: false
-      strokeColor: "#000000"
-      strokeWidth: 1
+  - state:
+      id: 'full-style-text'
+      type: "text"
+      content: "Fully styled text"
+      x: 50
+      y: 100
+      textStyle:
+        fontSize: 18
+        fontFamily: "Times New Roman"
+        fill: "#FF5733"
+        align: "center"
+        lineHeight: 1.5
+        wordWrap: false
+        breakWords: false
+        strokeColor: "#000000"
+        strokeWidth: 1
 out:
   id: "full-style-text"
   type: "text"

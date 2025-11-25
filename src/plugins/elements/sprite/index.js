@@ -2,6 +2,7 @@ import { createElementPlugin } from "../elementPlugin.js";
 import { addSprite } from "./addSprite.js";
 import { updateSprite } from "./updateSprite.js";
 import { deleteSprite } from "./deleteSprite.js";
+import { parseSprite } from "./parseSprite.js";
 
 // Export the sprite plugin
 export const spritePlugin = createElementPlugin({
@@ -9,4 +10,5 @@ export const spritePlugin = createElementPlugin({
   add: addSprite,
   update: updateSprite,
   delete: deleteSprite,
+  parse: parseSprite,
 });

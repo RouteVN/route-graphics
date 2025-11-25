@@ -1,4 +1,4 @@
-import { diffAudio } from "../util/diffAudio.js";
+import { diffAudio } from "../../util/diffAudio.js";
 
 /**
  * Add audio using plugin system

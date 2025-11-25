@@ -1,5 +1,5 @@
 import { calculatePositionAfterAnchor } from "./common.js";
-import { ASTNodeType } from "../types.js";
+import { ASTNodeType } from "../../../types.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement

@@ -1,9 +1,9 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
-import { parseCommonObject } from "./parseCommonObject.js";
+import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
- * @typedef {import('../types.js').BaseElement} BaseElement
- * @typedef {import('../types.js').TextRevealingASTNode} TextRevealingASTNode
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').TextRevealingASTNode} TextRevealingASTNode
  */
 
 /**
@@ -174,10 +174,12 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
 /**
  * Parse text-revealing object and calculate final position after anchor adjustment
- * @param {BaseElement} state
+ * @param {Object} params
+ * @param {BaseElement} params.state - The text-revealing state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @returns {TextRevealingASTNode}
  */
-export const parseTextRevealing = (state) => {
+export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
     fill: "black",
     fontFamily: "Roboto",
