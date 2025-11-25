@@ -2,15 +2,72 @@
 
 Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audio, and interactions automatically.
 
+## 🎯 Typical Usage Patterns
+
+### How It Works
+
+Route Graphics follows a **render cycle** where:
+
+1. **Parser Functions** convert your JSON input into Abstract Syntax Trees (AST)
+2. **Element Functions** handle the lifecycle:
+   - **Add Functions**: Create new visual elements when they appear in the state
+   - **Update Functions**: Modify existing elements when their properties change
+   - **Delete Functions**: Remove elements when they're no longer in the state
+3. **Animation Functions** apply smooth transitions between states
+4. **Audio Functions** handle sound effects and background music
+
+### The Render Function
+
+The main `render()` function is called whenever you want to update your interface. It automatically:
+- Compares the previous state with the new state
+- Determines which elements to add, update, or remove
+- Executes the appropriate element functions
+- Applies animations and audio effects
+
+```javascript
+// Initial render
+routeGraphics.render(initialState);
+
+// Update with new elements
+routeGraphics.render(updatedState); // Automatically adds/updates/removes elements
+```
+
+**Example Lifecycle:**
+```javascript
+// State 1: Show a button
+const state1 = {
+  elements: [{
+    id: "button1",
+    type: "rect",
+    width: 100, height: 40,
+    fill: "blue"
+  }]
+};
+
+// State 2: Button changes color and moves
+const state2 = {
+  elements: [{
+    id: "button1",
+    type: "rect",
+    width: 100, height: 40,
+    fill: "red",  // Update: color changes
+    x: 50, y: 50  // Update: position moves
+  }]
+};
+
+// State 3: Button is gone
+const state3 = {
+  elements: [] // Delete: button1 is removed
+};
+```
+
 ## 🏗️ Architecture Overview
 
 Route Graphics follows a modular plugin architecture with three main plugin categories:
 
-1. **Element Plugins** - Render visual elements (add/update/delete)
+1. **Element Plugins** - Render visual elements with add/update/delete functions
 2. **Audio Plugins** - Handle audio playback
 3. **Animation Plugins** - Handle dynamic content and transitions
-
-Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audios, and interactions automatically.
 
 ## 🛠️ Getting Started
 

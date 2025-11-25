@@ -57,7 +57,7 @@ states:
             fill: "#f39c12"
     animations:
       - id: 'container-scale'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           scaleX:

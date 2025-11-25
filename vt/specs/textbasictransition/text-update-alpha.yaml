@@ -37,7 +37,7 @@ states:
           fontFamily: "Arial"
     animations:
       - id: 'text-fade'
-        elementId: 'text1'
+        targetId: 'text1'
         type: tween
         properties:
           alpha:

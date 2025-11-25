@@ -52,6 +52,7 @@ export const addContainer = async ({
         element: child,
         animations,
         eventHandler,
+        animationPlugins,
         animateElements,
         elementPlugins,
         signal,

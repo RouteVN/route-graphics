@@ -38,8 +38,6 @@ export const addSprite = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
-  console.log("Adding sprite with hover events:", hoverEvents);
-  console.log("Adding sprite with click events:", clickEvents);
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
     sprite.eventMode = "static";

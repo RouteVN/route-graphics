@@ -52,9 +52,9 @@ states:
         hover:
           actionPayload:
             event: "hover"
-            elementId: "text-payload-both"
+            targetId: "text-payload-both"
         click:
           actionPayload:
             event: "click"
-            elementId: "text-payload-both"
+            targetId: "text-payload-both"
             timestamp: 123456789

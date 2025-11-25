@@ -52,7 +52,7 @@ states:
         initialValue: 25
     animations:
       - id: 'slider-move'
-        elementId: 'slider1'
+        targetId: 'slider1'
         type: tween
         event: update
         properties:

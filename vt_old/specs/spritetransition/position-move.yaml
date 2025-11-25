@@ -20,7 +20,7 @@ states:
         y: 300
     animations:
       - id: 'sprite-move-1'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         event: update
         properties:
@@ -42,7 +42,7 @@ states:
         y: 50
     animations:
       - id: 'sprite-move-2'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         event: update
         properties:

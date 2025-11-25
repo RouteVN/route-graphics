@@ -15,7 +15,7 @@ states:
         url: "file:circle-red"
     animations:
       - id: "a"
-        elementId: "a"
+        targetId: "a"
         type: tween
         event: add
         properties:

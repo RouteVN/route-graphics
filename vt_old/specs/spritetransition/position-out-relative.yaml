@@ -21,7 +21,7 @@ states:
         url: "file:bg1"
     animations:
       - id: 'a'
-        elementId: 'b'
+        targetId: 'b'
         type: tween
         event: remove
         properties:

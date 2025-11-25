@@ -33,7 +33,7 @@ states:
         rotation: 6.28318
     animations:
       - id: 'sprite-rotate'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         properties:
           rotation:

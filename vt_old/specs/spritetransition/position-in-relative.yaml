@@ -21,7 +21,7 @@ states:
         y: 200
     animations:
       - id: "a"
-        elementId: "b"
+        targetId: "b"
         type: tween
         event: add
         properties:
