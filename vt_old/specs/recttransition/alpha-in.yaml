@@ -17,7 +17,7 @@ states:
         alpha: 1
     animations:
       - id: 'rect-alpha-in'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: add
         properties:

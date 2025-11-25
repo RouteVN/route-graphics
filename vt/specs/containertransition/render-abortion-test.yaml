@@ -35,7 +35,7 @@ states:
             fill: "#3498db"
     animations:
       - id: 'container-render-abortion'
-        elementId: 'container-render-test'
+        targetId: 'container-render-test'
         type: tween
         properties:
           x:
@@ -87,7 +87,7 @@ states:
             fill: "#f39c12"
     animations:
       - id: 'container-render-abortion-2'
-        elementId: 'container-render-test'
+        targetId: 'container-render-test'
         type: tween
         properties:
           x:

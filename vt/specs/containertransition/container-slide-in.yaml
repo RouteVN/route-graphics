@@ -42,7 +42,7 @@ states:
               fill: "#ffffff"
     animations:
       - id: 'container-slide-in'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           x:

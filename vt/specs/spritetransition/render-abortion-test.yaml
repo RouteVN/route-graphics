@@ -27,7 +27,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-render-abortion'
-        elementId: 'sprite-render-test'
+        targetId: 'sprite-render-test'
         type: tween
         properties:
           x:
@@ -68,7 +68,7 @@ states:
         alpha: 1
     animations:
       - id: 'sprite-render-abortion-2'
-        elementId: 'sprite-render-test'
+        targetId: 'sprite-render-test'
         type: tween
         properties:
           x:

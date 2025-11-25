@@ -17,7 +17,7 @@ states:
         fill: "#ff0000"
     animations:
       - id: 'rect-position-in'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: add
         properties:

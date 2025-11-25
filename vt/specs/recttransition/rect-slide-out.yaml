@@ -25,7 +25,7 @@ states:
   - elements: []
     animations:
       - id: 'rect-slide-out'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         properties:
           x:

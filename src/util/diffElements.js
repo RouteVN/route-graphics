@@ -44,7 +44,7 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
       toDeleteElement.push(prevEl);
     } else if (
       JSON.stringify(prevEl) !== JSON.stringify(nextEl) ||
-      animations.find((transition) => transition.elementId === nextEl.id)
+      animations.find((transition) => transition.targetId === nextEl.id)
     ) {
       //Update element
       toUpdateElement.push({

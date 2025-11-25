@@ -35,7 +35,7 @@ states:
         initialValue: 25
     animations:
       - id: 'slider-slide-in'
-        elementId: 'slider1'
+        targetId: 'slider1'
         type: tween
         properties:
           x:

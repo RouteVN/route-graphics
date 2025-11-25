@@ -40,7 +40,7 @@ states:
             fill: "#2ecc71"
     animations:
       - id: 'container-fade-in'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           alpha:

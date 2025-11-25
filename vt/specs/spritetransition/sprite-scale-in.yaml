@@ -26,7 +26,7 @@ states:
         scaleY: 1
     animations:
       - id: 'sprite-scale-in'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         properties:
           scaleX:

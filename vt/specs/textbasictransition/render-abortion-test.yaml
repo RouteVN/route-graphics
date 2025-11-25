@@ -29,7 +29,7 @@ states:
         alpha: 1
     animations:
       - id: 'text-render-abortion'
-        elementId: 'text-render-test'
+        targetId: 'text-render-test'
         type: tween
         properties:
           x:
@@ -72,7 +72,7 @@ states:
         alpha: 1
     animations:
       - id: 'text-render-abortion-2'
-        elementId: 'text-render-test'
+        targetId: 'text-render-test'
         type: tween
         properties:
           x:

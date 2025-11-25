@@ -35,7 +35,7 @@ states:
         alpha: 1
     animations:
       - id: 'rect-update-abortion'
-        elementId: 'rect-update-test'
+        targetId: 'rect-update-test'
         type: tween
         properties:
           x:
@@ -65,7 +65,7 @@ states:
         alpha: 1
     animations:
       - id: 'rect-update-abortion'
-        elementId: 'rect-update-test'
+        targetId: 'rect-update-test'
         type: tween
         properties:
           x:

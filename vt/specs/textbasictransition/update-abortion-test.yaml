@@ -37,7 +37,7 @@ states:
         alpha: 1
     animations:
       - id: 'text-update-abortion'
-        elementId: 'text-update-test'
+        targetId: 'text-update-test'
         type: tween
         properties:
           x:

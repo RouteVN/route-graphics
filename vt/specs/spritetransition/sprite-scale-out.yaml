@@ -26,7 +26,7 @@ states:
   - elements: []
     animations:
       - id: 'sprite-scale-out'
-        elementId: 'sprite1'
+        targetId: 'sprite1'
         type: tween
         properties:
           scaleX:

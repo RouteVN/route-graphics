@@ -51,7 +51,7 @@ states:
             fill: "#3498db"
     animations:
       - id: 'container-move'
-        elementId: 'container1'
+        targetId: 'container1'
         type: tween
         properties:
           x:

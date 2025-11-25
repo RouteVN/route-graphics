@@ -35,7 +35,7 @@ states:
         scaleY: 1.5
     animations:
       - id: 'rect-scale'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         properties:
           scaleX:

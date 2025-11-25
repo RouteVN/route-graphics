@@ -17,7 +17,7 @@ states:
   - elements: []
     animations:
       - id: 'rect-position-out'
-        elementId: 'rect1'
+        targetId: 'rect1'
         type: tween
         event: remove
         properties:
