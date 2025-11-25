@@ -1,0 +1,18 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Drag Start Event Return
+description: This event type is called "dragstart" and will be invoked when the user starts dragging the slider.
+type: object
+properties:
+  _event:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+  payload:
+    type: object
+    description: Payload object that is passed through the dragStart object in the input
+  sliderValue:
+    type: number
+    description: The current value of the slider when drag starts
