@@ -21,12 +21,6 @@
             textRevealingPlugin,
             tweenPlugin,
             soundPlugin,
-            parseContainerPlugin,
-            parseRectPlugin,
-            parseSpritePlugin,
-            parseTextPlugin,
-            parseTextRevealingPlugin,
-            parseSliderPlugin,
         } from "/RouteGraphics.js"
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
@@ -74,14 +68,6 @@
             audios: [
                 soundPlugin
             ],
-            parsers: [
-                parseContainerPlugin,
-                parseRectPlugin,
-                parseSpritePlugin,
-                parseTextPlugin,
-                parseTextRevealingPlugin,
-                parseSliderPlugin
-            ]
         }
         await app.init({
             width: 1280,

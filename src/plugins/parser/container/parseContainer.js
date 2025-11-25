@@ -8,7 +8,7 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The container state to parse
- * @param {Array} params.parserPlugins - Array of parser plugins
+ * @param {import("../parserPlugin.js").ParserPlugin[]} params.parserPlugins - Array of parser plugins
  * @returns {ContainerASTNode}
  *
  * This will parse the container element.

@@ -1,6 +1,7 @@
 /**
  * @typedef {Function} ParseOption
  * @property {Object} state
+ * @property {ParserPlugin[]} parserPlugins
  */
 
 /**

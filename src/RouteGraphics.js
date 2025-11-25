@@ -13,6 +13,7 @@ import parseElements from "./plugins/parser/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
+import { createParserPlugin } from "./plugins/parser/parserPlugin.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -282,7 +283,13 @@ const createRouteGraphics = () => {
         backgroundColor,
       } = options;
 
-      plugins = { ...plugins, ...pluginConfig };
+      const parserPlugins = pluginConfig?.elements?.map(plugin=>createParserPlugin({ type: plugin.type, parse: plugin.parse }))
+      plugins = {
+        animations: pluginConfig.animations ?? [],
+        elements: pluginConfig.elements ?? [],
+        audios: pluginConfig.audios ?? [],
+        parsers: parserPlugins ?? [],
+      };
       eventHandler = handler;
 
       /**

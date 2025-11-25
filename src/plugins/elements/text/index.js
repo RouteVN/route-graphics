@@ -2,6 +2,7 @@ import { createElementPlugin } from "../elementPlugin.js";
 import { addText } from "./addText.js";
 import { updateText } from "./updateText.js";
 import { deleteText } from "./deleteText.js";
+import { parseText } from "../../parser/text/parseText.js";
 
 // Export the text plugin
 export const textPlugin = createElementPlugin({
@@ -9,4 +10,5 @@ export const textPlugin = createElementPlugin({
   add: addText,
   update: updateText,
   delete: deleteText,
+  parse: parseText,
 });
