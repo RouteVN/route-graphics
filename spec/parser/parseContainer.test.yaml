@@ -1,4 +1,4 @@
-file: '../../src/plugins/parser/container/parseContainerForTestingPurposes.js'
+file: '../../src/plugins/elements/container/parseContainerForTestingPurposes.js'
 group: parser
 suites: [parseContainer]
 ---

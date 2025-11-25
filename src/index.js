@@ -1,6 +1,6 @@
 import { createAssetBufferManager } from "./util/createAssetBufferManager.js";
 import { Application, Assets } from "pixi.js";
-import parseElements from "./plugins/parser/parseElements.js";
+import parseElements from "./plugins/elements/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
 import { createElementPlugin } from "./plugins/elements/elementPlugin.js";
 import { createAnimationPlugin } from "./plugins/animations/animationPlugin.js";

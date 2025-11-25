@@ -2,7 +2,7 @@ import { createElementPlugin } from "../elementPlugin.js";
 import { addSlider } from "./addSlider.js";
 import { updateSlider } from "./updateSlider.js";
 import { deleteSlider } from "./deleteSlider.js";
-import { parseSlider } from "../../parser/slider/parseSlider.js";
+import { parseSlider } from "./parseSlider.js";
 
 // Export the slider plugin
 export const sliderPlugin = createElementPlugin({

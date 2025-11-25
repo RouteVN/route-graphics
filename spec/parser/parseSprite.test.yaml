@@ -1,4 +1,4 @@
-file: "../../src/plugins/parser/sprite/parseSprite.js"
+file: "../../src/plugins/elements/sprite/parseSprite.js"
 group: parser
 suites: [parseSprite]
 ---
