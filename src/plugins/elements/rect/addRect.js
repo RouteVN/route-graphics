@@ -69,7 +69,7 @@ export const addRect = async ({
           _event: {
             id: rect.label,
           },
-          payload: { ...actionPayload },
+          ...actionPayload,
         });
       if (cursor) rect.cursor = cursor;
       if (soundSrc)
@@ -98,7 +98,7 @@ export const addRect = async ({
           _event: {
             id: rect.label,
           },
-          payload: { ...actionPayload },
+          ...actionPayload,
         });
       if (soundSrc)
         app.audioStage.add({
