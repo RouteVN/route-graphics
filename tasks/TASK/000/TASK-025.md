@@ -1,6 +1,6 @@
 ---
 title: Error during animations for nested elements
-status: todo
+status: done
 priority: high
 labels: bug
 ---
