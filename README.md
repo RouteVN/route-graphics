@@ -615,16 +615,16 @@ Integrated audio system for sound effects and background music.
 
 Audio integrates seamlessly with element interactions:
 
-```javascript
+```json
 {
-  id: 'button',
-  type: 'sprite',
+  "id": "button",
+  "type": "sprite",
   // ... other properties
-  hover: {
-    soundSrc: 'file:hover-sound'  // Plays on hover
+  "hover": {
+    "soundSrc": "file:hover-sound"  // Plays on hover
   },
-  click: {
-    soundSrc: 'file:click-sound'  // Plays on click
+  "click": {
+    "soundSrc": "file:click-sound"  // Plays on click
   }
 }
 ```
@@ -905,10 +905,7 @@ Once loaded, assets are referenced by their alias keys:
 
 ```bash
 # Run all tests
-npx vitest
-
-# Run specific test file
-npx vitest path/to/test.test.js
+bun run test
 ```
 ### Code Quality
 
@@ -1023,9 +1020,3 @@ All element types are defined with YAML schemas in the `src/schemas/` directory,
 3. Add tests for new functionality
 4. Ensure all tests pass
 5. Submit a pull request
-
----
-
-**Route Graphics** - Build interactive 2D interfaces with the power of JSON and WebGL.
-
-
