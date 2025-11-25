@@ -9,11 +9,11 @@ import {
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
-import parseElements from "./plugins/parser/parseElements.js";
+import parseElements from "./plugins/elements/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
-import { createParserPlugin } from "./plugins/parser/parserPlugin.js";
+import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -283,14 +283,17 @@ const createRouteGraphics = () => {
         backgroundColor,
       } = options;
 
-      const parserPlugins = pluginConfig?.elements?.map((plugin) =>
-        createParserPlugin({ type: plugin.type, parse: plugin.parse }),
-      );
+      const parserPlugins = [];
+
+      pluginConfig?.elements?.forEach((plugin) => {
+        if(plugin?.parse)parserPlugins.push(createParserPlugin({ type: plugin.type, parse: plugin.parse }))
+      });
+
       plugins = {
         animations: pluginConfig.animations ?? [],
         elements: pluginConfig.elements ?? [],
         audios: pluginConfig.audios ?? [],
-        parsers: parserPlugins ?? [],
+        parsers: parserPlugins,
       };
       eventHandler = handler;
 
