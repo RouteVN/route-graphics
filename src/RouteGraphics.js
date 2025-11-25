@@ -283,7 +283,9 @@ const createRouteGraphics = () => {
         backgroundColor,
       } = options;
 
-      const parserPlugins = pluginConfig?.elements?.map(plugin=>createParserPlugin({ type: plugin.type, parse: plugin.parse }))
+      const parserPlugins = pluginConfig?.elements?.map((plugin) =>
+        createParserPlugin({ type: plugin.type, parse: plugin.parse }),
+      );
       plugins = {
         animations: pluginConfig.animations ?? [],
         elements: pluginConfig.elements ?? [],
