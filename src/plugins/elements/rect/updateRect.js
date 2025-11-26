@@ -14,9 +14,6 @@ export const updateRect = async ({
   eventHandler,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,

@@ -16,10 +16,6 @@ export const updateText = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const textElement = parent.children.find(
     (child) => child.label === prevTextASTNode.id,
   );
@@ -120,6 +116,7 @@ export const updateText = async ({
         textElement.on("pointerup", releaseListener);
         textElement.on("pointerupoutside", outListener);
       }
+      console.log("I have updated the text", textElement)
     }
   };
   signal.addEventListener("abort", () => {

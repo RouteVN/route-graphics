@@ -14,9 +14,6 @@ export const addRect = async ({
   eventHandler,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const {
     id,

@@ -119,6 +119,16 @@ const createRouteGraphics = () => {
   let currentAbortController;
 
   /**
+   * @type {Array<Function>}
+   */
+  let renderQueue = [];
+
+  /**
+   * @type {boolean}
+   */
+  let isProcessingRender = false;
+
+  /**
    * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
    */
   let advancedLoader;
@@ -192,6 +202,27 @@ const createRouteGraphics = () => {
   };
 
   /**
+   * Process the render queue
+   */
+  const processRenderQueue = async () => {
+    if(currentAbortController) currentAbortController.abort();
+    currentAbortController = new AbortController();
+
+    while (isProcessingRender) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    isProcessingRender = true;
+
+    if (renderQueue.length > 0) {
+      const renderTask = renderQueue.shift();
+      await renderTask();
+    }
+
+    isProcessingRender = false;
+  };
+
+  /**
    * Render function
    * @param {Application} appInstance
    * @param {RouteGraphicsState} prevState
@@ -205,17 +236,9 @@ const createRouteGraphics = () => {
     nextState,
     handler,
   ) => {
-    // Apply global cursor styles if they exist and have changed
     applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
-
-    // Cancel any previous render operations
-    if (currentAbortController) {
-      currentAbortController.abort();
-    }
-
-    // Create new AbortController for this render
-    currentAbortController = new AbortController();
     const signal = currentAbortController.signal;
+
     await renderElements({
       app: appInstance,
       parent,
@@ -448,8 +471,14 @@ const createRouteGraphics = () => {
         parserPlugins: plugins.parsers,
       });
       const parsedState = { ...stateParam, elements: parsedElements };
-      renderInternal(app, app.stage, state, parsedState, eventHandler);
-      state = parsedState;
+      const renderTask = async () => {
+        await renderInternal(app, app.stage, state, parsedState, eventHandler);
+        state = parsedState;
+        console.log("Stage: ", app.stage)
+        console.log("State", state)
+      };
+      renderQueue.push(renderTask);
+      processRenderQueue();
     },
   };
 

@@ -15,9 +15,6 @@ export const addContainer = async ({
   elementPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const { id, x, y, children, scroll, alpha } = element;
 

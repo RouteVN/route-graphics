@@ -15,9 +15,6 @@ export const addText = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const text = new Text({
     label: textASTNode.id,
@@ -110,6 +107,7 @@ export const addText = async ({
   }
 
   parent.addChild(text);
+  console.log("I have add the text", textASTNode)
 
   if (animations && animations.length > 0) {
     await animateElements(textASTNode.id, animationPlugins, {

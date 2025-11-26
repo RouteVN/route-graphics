@@ -18,10 +18,6 @@ export const updateContainer = async ({
   elementPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
@@ -37,7 +33,7 @@ export const updateContainer = async ({
         JSON.stringify(prevElement.children) !==
         JSON.stringify(nextElement.children)
       ) {
-        renderElements({
+        await renderElements({
           app,
           parent: containerElement,
           nextASTTree: nextElement.children,
@@ -52,8 +48,8 @@ export const updateContainer = async ({
     }
   };
 
-  signal.addEventListener("abort", () => {
-    updateElement();
+  signal.addEventListener("abort", async () => {
+    await updateElement();
   });
 
   if (containerElement) {

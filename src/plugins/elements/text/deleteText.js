@@ -12,9 +12,9 @@ export const deleteText = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
+  // if (signal?.aborted) {
+  //   return;
+  // }
 
   const text = parent.getChildByLabel(element.id);
 

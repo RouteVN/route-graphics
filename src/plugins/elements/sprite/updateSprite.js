@@ -15,10 +15,6 @@ export const updateSprite = async ({
   eventHandler,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const spriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );

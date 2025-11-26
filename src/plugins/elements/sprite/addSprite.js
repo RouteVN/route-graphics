@@ -14,10 +14,6 @@ export const addSprite = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const { id, x, y, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);

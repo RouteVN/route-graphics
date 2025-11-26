@@ -12,15 +12,24 @@ export const deleteSprite = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
+  // if (signal?.aborted) {
+  //   return;
+  // }
 
   const spriteElement = parent.children.find(
     (child) => child.label === element.id,
   );
 
   if (spriteElement) {
+    const deleteElement = ()=>{
+      if (sprite && !sprite.destroyed) {
+        sprite.destroy();
+      }
+    }
+    signal.addEventListener("abort", () => {
+      deleteElement();
+    });
+
     if (animations && animations.length > 0) {
       await animateElements(element.id, animationPlugins, {
         app,
@@ -29,7 +38,6 @@ export const deleteSprite = async ({
         signal,
       });
     }
-    parent.removeChild(spriteElement);
-    spriteElement.destroy();
+    deleteElement()
   }
 };

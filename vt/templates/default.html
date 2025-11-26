@@ -88,10 +88,21 @@
         })
 
         const listenEvents = () => {
-            document.addEventListener("keydown", (e) => {
+            document.addEventListener("keydown",async (e) => {
                 if (e.key === "n") {
                     if(states.length > index+1){
                         index++
+                        console.log("First render")
+                        app.render({
+                            elements: states[index].elements ?? [],
+                            animations: states[index].animations ?? [], 
+                            audio: states[index].audio ?? [],
+                            global: {}
+                        })
+                    }
+                    if(states.length > index+1){
+                        index++
+                        console.log("Second render")
                         app.render({
                             elements: states[index].elements ?? [],
                             animations: states[index].animations ?? [], 

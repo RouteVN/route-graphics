@@ -12,9 +12,6 @@ export const deleteContainer = async ({
   animations,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const containerElement = parent.getChildByLabel(element.id);
 

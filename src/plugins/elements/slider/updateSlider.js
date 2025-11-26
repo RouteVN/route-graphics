@@ -245,10 +245,7 @@ export const updateSlider = async ({
     }
   };
 
-  signal.addEventListener("abort", () => {
-    updateElement();
-  });
-
+  
   if (sliderElement) {
     if (animations && animations.length > 0) {
       await animateElements(prevSliderASTNode.id, animationPlugins, {
