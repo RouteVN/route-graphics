@@ -192,7 +192,9 @@ export const parseTextRevealing = ({ state }) => {
       ...(item.textStyle || {}),
     };
 
-    itemTextStyle.lineHeight = Math.round(itemTextStyle.lineHeight * itemTextStyle.fontSize)
+    itemTextStyle.lineHeight = Math.round(
+      itemTextStyle.lineHeight * itemTextStyle.fontSize,
+    );
 
     if (state.width) {
       itemTextStyle.wordWrapWidth = state.width;
@@ -206,7 +208,9 @@ export const parseTextRevealing = ({ state }) => {
         ...(item.furigana.textStyle || {}),
       };
 
-      furiganaTextStyle.lineHeight = Math.round(furiganaTextStyle.lineHeight * furiganaTextStyle.fontSize)
+      furiganaTextStyle.lineHeight = Math.round(
+        furiganaTextStyle.lineHeight * furiganaTextStyle.fontSize,
+      );
 
       if (state.width) {
         furiganaTextStyle.wordWrapWidth = state.width;
