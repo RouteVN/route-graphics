@@ -20,8 +20,8 @@ export const parseText = ({ state }) => {
     fontSize: 16,
     align: "left",
     lineHeight: 1.2,
-    wordWrap: true,
-    breakWords: true,
+    wordWrap: false,
+    breakWords: false,
   };
 
   const textStyle = {

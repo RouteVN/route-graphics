@@ -42,12 +42,12 @@ out:
   id: "tl"
   type: "text"
   content: "This text is aligned to the top left corner"
-  width: 91
-  height: 174
-  x: 615
-  y: 153
-  originX: 46
-  originY: 87
+  width: 419
+  height: 29
+  x: 451
+  y: 226
+  originX: 210
+  originY: 15
   alpha: 1
   textStyle:
     fontSize: 24
@@ -55,8 +55,8 @@ out:
     fill: "white"
     align: "left"
     lineHeight: 29
-    wordWrap: true
-    breakWords: true
+    wordWrap: false
+    breakWords: false
   hover:
       soundSrc: "sound-1"
       cursor: "cursor-1"
@@ -128,12 +128,12 @@ out:
   id: "tl"
   type: "text"
   content: "This text is aligned to the top left corner"
-  width: 96
-  height: 76
-  x: 612
-  y: 202
-  originX: 48
-  originY: 38
+  width: 280
+  height: 19
+  x: 520
+  y: 231
+  originX: 140
+  originY: 10
   alpha: 1
   textStyle:
     fill: "black"
@@ -141,8 +141,8 @@ out:
     fontSize: 16
     align: "left"
     lineHeight: 19
-    wordWrap: true
-    breakWords: true
+    wordWrap: false
+    breakWords: false
 ---
 case: Test parsing simple text object with no content
 in:
@@ -170,8 +170,8 @@ out:
     fontSize: 16
     align: "left"
     lineHeight: 19
-    wordWrap: true
-    breakWords: true
+    wordWrap: false
+    breakWords: false
 ---
 case: Test parsing text with alpha property
 in:
@@ -189,8 +189,8 @@ out:
   id: "transparent-text"
   type: "text"
   content: "Semi-transparent text"
-  width: 87
-  height: 72
+  width: 192
+  height: 24
   x: 100
   y: 50
   originX: 0
@@ -202,8 +202,8 @@ out:
     fontFamily: "Arial"
     align: "left"
     lineHeight: 24
-    wordWrap: true
-    breakWords: true
+    wordWrap: false
+    breakWords: false
 ---
 case: Test parsing text with all textStyle properties
 in:
