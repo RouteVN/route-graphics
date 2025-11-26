@@ -1,5 +1,6 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -14,18 +15,8 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
  * @returns {TextASTNode}
  */
 export const parseText = ({ state }) => {
-  const defaultTextStyle = {
-    fill: "black",
-    fontFamily: "Arial",
-    fontSize: 16,
-    align: "left",
-    lineHeight: 1.2,
-    wordWrap: false,
-    breakWords: false,
-  };
-
   const textStyle = {
-    ...defaultTextStyle,
+    ...DEFAULT_TEXT_STYLE,
     ...state.textStyle,
   };
 

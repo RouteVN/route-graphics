@@ -50,6 +50,8 @@ out:
   originY: 15
   alpha: 1
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
@@ -105,6 +107,8 @@ out:
   originY: 15
   alpha: 1
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fontSize: 24
     fontFamily: "Arial"
     fill: "white"
@@ -136,6 +140,8 @@ out:
   originY: 10
   alpha: 1
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fill: "black"
     fontFamily: "Arial"
     fontSize: 16
@@ -165,6 +171,8 @@ out:
   originY: 10
   alpha: 1
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fill: "black"
     fontFamily: "Arial"
     fontSize: 16
@@ -197,6 +205,8 @@ out:
   originY: 0
   alpha: 0.5
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fontSize: 20
     fill: "blue"
     fontFamily: "Arial"

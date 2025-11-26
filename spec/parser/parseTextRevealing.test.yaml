@@ -18,6 +18,7 @@ in:
         fontSize: 24
         fill: "#333333"
         fontFamily: "Arial"
+        breakWords: true
 out:
   id: "tr1"
   type: "text-revealing"
@@ -27,11 +28,14 @@ out:
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
+            breakWords: false
+            strokeColor: "transparent"
+            strokeWidth: 0
           x: 0
           y: 0
       y: 0
@@ -46,12 +50,15 @@ out:
   speed: 50
   revealEffect: typewriter
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fontSize: 24
     fill: "#333333"
     fontFamily: "Arial"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+    breakWords: true
 ---
 case: Test parsing text-revealing with word wrapping
 in:
@@ -67,73 +74,75 @@ in:
         fontSize: 20
         fill: "#2c3e50"
         fontFamily: "Arial"
+        breakWords: true
 out:
   id: "tr2"
   type: "text-revealing"
   content:
     - lineParts:
-        - text: "This is a longer text that should"
+        - text: "This is a longer text that should wrap to"
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 300
+            breakWords: false
+            strokeColor: "transparent"
+            strokeWidth: 0
           x: 0
-          y: 0
-        - text: "wrap"
-          textStyle:
-            fontSize: 16
-            fill: "black"
-            fontFamily: "Roboto"
-            align: "left"
-            lineHeight: 1.2
-            wordWrap: true
-            wordWrapWidth: 46.171875
-          x: 253.828125
           y: 0
       y: 0
       lineMaxHeight: 19
     - lineParts:
-        - text: "to multiple lines when it exceeds the"
+        - text: "multiple lines when it exceeds the"
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 300
+            breakWords: false
+            strokeColor: "transparent"
+            strokeWidth: 0
           x: 0
           y: 19
       y: 19
       lineMaxHeight: 19
     - lineParts:
-        - text: "specified width constraint for proper"
+        - text: "specified width constraint for proper text"
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 300
+            breakWords: false
+            strokeColor: "transparent"
+            strokeWidth: 0
           x: 0
           y: 38
       y: 38
       lineMaxHeight: 19
     - lineParts:
-        - text: "text layout demonstration."
+        - text: "layout demonstration."
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 300
+            breakWords: false
+            strokeColor: "transparent"
+            strokeWidth: 0
           x: 0
           y: 57
       y: 57
@@ -148,12 +157,15 @@ out:
   speed: 50
   revealEffect: typewriter
   textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
     fontSize: 20
     fill: "#2c3e50"
     fontFamily: "Arial"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+    breakWords: true
 ---
 case: Test parsing text-revealing with multiple styled content segments
 in:
@@ -187,51 +199,63 @@ out:
           textStyle:
             fontSize: 24
             fill: "#e74c3c"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 29
             wordWrap: true
             wordWrapWidth: 200
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
           x: 0
-          y: 10
+          y: 9
         - text: " "
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
-            wordWrapWidth: 137.8515625
-          x: 62.1484375
-          y: 20
+            wordWrapWidth: 144.65625
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 55.34375
+          y: 19
         - text: "World"
           textStyle:
             fontSize: 32
             fill: "#3498db"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 38
             wordWrap: true
             fontWeight: "bold"
-            wordWrapWidth: 132.765625
-          x: 67.234375
+            wordWrapWidth: 140.2109375
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 59.7890625
           y: 0
         - text: "!"
           textStyle:
             fontSize: 28
             fill: "#27ae60"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 34
             wordWrap: true
-            wordWrapWidth: 26.96875
-          x: 173.03125
-          y: 5
+            wordWrapWidth: 50.1484375
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 149.8515625
+          y: 4
       y: 0
-      lineMaxHeight: 39
+      lineMaxHeight: 38
   width: 200
-  height: 39
+  height: 38
   x: 200
   y: 200
   originX: 0
@@ -242,10 +266,13 @@ out:
   textStyle:
     fontSize: 16
     fill: "black"
-    fontFamily: "Roboto"
+    fontFamily: "Arial"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+    strokeWidth: 0
+    strokeColor: transparent
+    breakWords: false
 ---
 case: Test parsing text-revealing with indicator props
 in:
@@ -275,11 +302,14 @@ out:
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
           x: 0
           y: 0
       y: 0
@@ -306,10 +336,13 @@ out:
   textStyle:
     fontSize: 16
     fill: "black"
-    fontFamily: "Roboto"
+    fontFamily: "Arial"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+    strokeWidth: 0
+    strokeColor: transparent
+    breakWords: false
 ---
 case: Test parsing text-revealing with indicator default values
 in:
@@ -334,11 +367,14 @@ out:
           textStyle:
             fontSize: 16
             fill: "black"
-            fontFamily: "Roboto"
+            fontFamily: "Arial"
             align: "left"
-            lineHeight: 1.2
+            lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
           x: 0
           y: 0
       y: 0
@@ -365,7 +401,10 @@ out:
   textStyle:
     fontSize: 16
     fill: "black"
-    fontFamily: "Roboto"
+    fontFamily: "Arial"
     align: "left"
     lineHeight: 1.2
     wordWrap: true
+    strokeWidth: 0
+    strokeColor: transparent
+    breakWords: false
