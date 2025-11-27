@@ -2,7 +2,6 @@ import { Sprite, Text, TextStyle, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import cancellableTimeout from "../../../util/cancalleableTimeout";
 
-
 /**
  * Simple render function for text-revealing elements
  * @param {import("../elementPlugin").UpdateElementOptions} params
@@ -116,10 +115,9 @@ export const updateTextRevealing = async (params) => {
             // Wait before adding next character
             if (charIndex < fullText.length - 1) {
               // Don't wait after last character
-              try{
-                await cancellableTimeout(charDelay,signal);
-              }
-              catch{
+              try {
+                await cancellableTimeout(charDelay, signal);
+              } catch {
                 return;
               }
             }
@@ -129,10 +127,9 @@ export const updateTextRevealing = async (params) => {
 
       // Wait before processing next chunk (except for the last chunk)
       if (chunkIndex < element.content.length - 1) {
-        try{
-          await cancellableTimeout(chunkDelay,signal);
-        }
-        catch{
+        try {
+          await cancellableTimeout(chunkDelay, signal);
+        } catch {
           return;
         }
       }

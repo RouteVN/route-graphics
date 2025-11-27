@@ -1,10 +1,4 @@
-import {
-  Text,
-  TextStyle,
-  Container,
-  Sprite,
-  Texture,
-} from "pixi.js";
+import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import cancellableTimeout from "../../../util/cancalleableTimeout";
 
@@ -116,10 +110,9 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
           // Wait before adding next character
           if (charIndex < fullText.length - 1) {
             // Don't wait after last character
-            try{
-              await cancellableTimeout(charDelay,signal);
-            }
-            catch{
+            try {
+              await cancellableTimeout(charDelay, signal);
+            } catch {
               return;
             }
           }
@@ -129,10 +122,9 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
     // Wait before processing next chunk (except for the last chunk)
     if (chunkIndex < element.content.length - 1) {
-      try{
-        await cancellableTimeout(chunkDelay,signal);
-      }
-      catch{
+      try {
+        await cancellableTimeout(chunkDelay, signal);
+      } catch {
         return;
       }
     }

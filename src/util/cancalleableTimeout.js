@@ -7,7 +7,9 @@ const cancellableTimeout = async (ms, signal) => {
   return new Promise((resolve, reject) => {
     // If the signal is already aborted, reject immediately
     if (signal?.aborted) {
-      return reject(new DOMException('The operation was aborted.', 'AbortError'));
+      return reject(
+        new DOMException("The operation was aborted.", "AbortError"),
+      );
     }
 
     const timerId = setTimeout(() => {
@@ -19,8 +21,8 @@ const cancellableTimeout = async (ms, signal) => {
       reject(signal.reason);
     };
 
-    signal?.addEventListener('abort', abortListener, { once: true });
+    signal?.addEventListener("abort", abortListener, { once: true });
   });
-}
+};
 
-export default cancellableTimeout
+export default cancellableTimeout;
