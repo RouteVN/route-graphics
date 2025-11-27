@@ -201,26 +201,6 @@ const createRouteGraphics = () => {
     }
   };
 
-  /**
-   * Process the render queue
-   */
-  const processRenderQueue = async () => {
-    if(currentAbortController) currentAbortController.abort();
-    currentAbortController = new AbortController();
-    
-    while (isProcessingRender) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    isProcessingRender = true;
-
-    if (renderQueue.length > 0) {
-      const renderTask = renderQueue.shift();
-      await renderTask();
-    }
-
-    isProcessingRender = false;
-  };
 
   /**
    * Render function
@@ -232,16 +212,25 @@ const createRouteGraphics = () => {
   const renderInternal = async (
     appInstance,
     parent,
-    prevState,
     nextState,
     handler,
   ) => {
-    applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
+    applyGlobalCursorStyles(appInstance, state.global, nextState.global);
+    if(currentAbortController && isProcessingRender) currentAbortController.abort();
+    currentAbortController = new AbortController();
     const signal = currentAbortController.signal;
+    console.log("Starting rendering if processing is done")
+    while (isProcessingRender) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    isProcessingRender = true;
+    console.log("Prev AST tree: ",state.elements)
+    console.log("Next AST Tree: ",nextState.elements)
     await renderElements({
       app: appInstance,
       parent,
-      prevASTTree: prevState.elements,
+      prevASTTree: state.elements,
       nextASTTree: nextState.elements,
       animations: nextState.animations,
       elementPlugins: plugins.elements,
@@ -252,11 +241,13 @@ const createRouteGraphics = () => {
 
     await renderAudio({
       app: appInstance,
-      prevAudioTree: prevState.audio,
+      prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
       audioPlugins: plugins.audios,
       signal,
     });
+    isProcessingRender = false;
+    state = nextState;
   };
 
   const routeGraphicsInstance = {
@@ -470,14 +461,10 @@ const createRouteGraphics = () => {
         parserPlugins: plugins.parsers,
       });
       const parsedState = { ...stateParam, elements: parsedElements };
-      const renderTask = async () => {
-        await renderInternal(app, app.stage, state, parsedState, eventHandler);
-        state = parsedState;
-        console.log("Stage: ", app.stage)
-        console.log("State", state)
-      };
-      renderQueue.push(renderTask);
-      processRenderQueue();
+      console.log('Chekck point before internal render')
+      renderInternal(app, app.stage, parsedState, eventHandler);
+      console.log("State", state)
+      console.log("Stage: ", app.stage)
     },
   };
 
