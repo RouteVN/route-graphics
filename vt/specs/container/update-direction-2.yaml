@@ -44,7 +44,7 @@ states:
                 type: text
                 x: 20
                 "y": 100
-                content: []
+                content: ""
                 textStyle:
                   fontSize: 24
                   fill: white
