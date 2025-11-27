@@ -438,7 +438,7 @@ const createRouteGraphics = () => {
         JSONObject,
         parserPlugins: plugins.parsers,
       });
-    }
+    },
   };
 
   return routeGraphicsInstance;
