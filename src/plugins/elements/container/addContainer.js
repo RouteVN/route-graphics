@@ -31,7 +31,7 @@ export const addContainer = async ({
     drawContainer();
   });
   drawContainer();
-
+  console.log("Adding container: ",element)
   parent.addChild(container);
 
   if (children && children.length > 0) {

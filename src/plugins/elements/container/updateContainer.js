@@ -24,6 +24,7 @@ export const updateContainer = async ({
 
   const updateElement = async () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+      console.log("Updating container ", nextElement);
       containerElement.x = Math.round(nextElement.x);
       containerElement.y = Math.round(nextElement.y);
       containerElement.label = nextElement.id;

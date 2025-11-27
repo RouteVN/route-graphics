@@ -18,7 +18,12 @@ export const deleteContainer = async ({
   if (containerElement) {
     const deleteElement = () => {
       if (containerElement && !containerElement.destroyed) {
-        containerElement.destroy({ children: true });
+        console.log("Container being destroyed ",containerElement)
+        console.log("Parent container before destorying ", (parent))
+        parent.removeChild(containerElement);
+        containerElement.destroy({children:true, texture:true, baseTexture:true});
+        console.log("Delete contaienr: ",element)
+        console.log("Stage after deleting container", parent)
       }
     };
 

@@ -207,7 +207,7 @@ const createRouteGraphics = () => {
   const processRenderQueue = async () => {
     if(currentAbortController) currentAbortController.abort();
     currentAbortController = new AbortController();
-
+    
     while (isProcessingRender) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -238,7 +238,6 @@ const createRouteGraphics = () => {
   ) => {
     applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
     const signal = currentAbortController.signal;
-
     await renderElements({
       app: appInstance,
       parent,

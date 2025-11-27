@@ -27,7 +27,7 @@ export const renderElements = async ({
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
     prevASTTree,
     nextASTTree,
-    [], // No legacy animations in plugin system
+    animations,
   );
   console.log("To add: ",toAddElement)
   console.log("To delete: ", toDeleteElement)

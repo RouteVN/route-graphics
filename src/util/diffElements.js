@@ -17,6 +17,8 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
   const allIdSet = new Set();
   const prevElementMap = new Map();
   const nextElementMap = new Map();
+  console.log("Prev elements: ",prevElements)
+  console.log("Next elements: ",nextElements)
 
   const toAddElement = [];
   const toDeleteElement = [];
