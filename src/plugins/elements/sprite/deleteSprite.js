@@ -12,9 +12,6 @@ export const deleteSprite = async ({
   animationPlugins,
   signal,
 }) => {
-  // if (signal?.aborted) {
-  //   return;
-  // }
 
   const spriteElement = parent.children.find(
     (child) => child.label === element.id,

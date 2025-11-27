@@ -119,11 +119,6 @@ const createRouteGraphics = () => {
   let currentAbortController;
 
   /**
-   * @type {Array<Function>}
-   */
-  let renderQueue = [];
-
-  /**
    * @type {boolean}
    */
   let isProcessingRender = false;
@@ -216,7 +211,7 @@ const createRouteGraphics = () => {
     const signal = currentAbortController.signal;
 
     while (isProcessingRender) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     isProcessingRender = true;
@@ -241,8 +236,6 @@ const createRouteGraphics = () => {
     });
     isProcessingRender = false;
     state = nextState;
-    console.log("State: ",state)
-    console.log("Parent: ", parent)
   };
 
   const routeGraphicsInstance = {

@@ -12,10 +12,6 @@ export const deleteRect = async ({
   animationPlugins,
   signal,
 }) => {
-  // if (signal?.aborted) {
-  //   return;
-  // }
-
   const rect = parent.getChildByLabel(element.id);
 
   if (rect) {
