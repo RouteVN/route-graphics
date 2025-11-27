@@ -113,7 +113,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
             try {
               await abortableSleep(charDelay, signal);
             } catch {
-              if(err.name === "AbortError") return;
+              if (err.name === "AbortError") return;
               throw err;
             }
           }
@@ -126,7 +126,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
       try {
         await abortableSleep(chunkDelay, signal);
       } catch {
-        if(err.name === "AbortError") return;
+        if (err.name === "AbortError") return;
         throw err;
       }
     }

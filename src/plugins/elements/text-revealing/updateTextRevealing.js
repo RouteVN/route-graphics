@@ -117,8 +117,8 @@ export const updateTextRevealing = async (params) => {
               // Don't wait after last character
               try {
                 await abortableSleep(charDelay, signal);
-              } catch(err) {
-                if(err.name === "AbortError") return;
+              } catch (err) {
+                if (err.name === "AbortError") return;
                 throw err;
               }
             }
@@ -131,7 +131,7 @@ export const updateTextRevealing = async (params) => {
         try {
           await abortableSleep(chunkDelay, signal);
         } catch {
-          if(err.name === "AbortError") return;
+          if (err.name === "AbortError") return;
           throw err;
         }
       }
