@@ -12,9 +12,10 @@ states:
         type: "container"
         x: 50
         y: 50
-        width: 200
+        width: 400
         height: 150
         zIndex: 0
+        direction: "horizontal"
         children:
           - id: 'rect-1'
             type: "rect"
@@ -28,26 +29,32 @@ states:
             fill: "blue"
       - id: 'container-2'
         type: "container"
-        x: 300
-        y: 50
+        x: 400
+        y: 250
         width: 180
         height: 120
         zIndex: 0
+        direction: "horizontal"
         children:
-          - id: 'text-1'
-            type: "text"
-            text: "Hello"
-            style:
-              fontSize: 16
-              fill: "white"
+          - id: 'rect-3'
+            type: "rect"
+            width: 80
+            height: 100
+            fill: "green"
+          - id: 'rect-4'
+            type: "rect"
+            width: 100
+            height: 120
+            fill: "pink"
   - elements:
       - id: 'container-1'
         type: "container"
         x: 50
         y: 50
-        width: 200
+        width: 400
         height: 150
         zIndex: 0
+        direction: "horizontal"
         children:
           - id: 'rect-1'
             type: "rect"

@@ -241,6 +241,8 @@ const createRouteGraphics = () => {
     });
     isProcessingRender = false;
     state = nextState;
+    console.log("State: ",state)
+    console.log("Parent: ", parent)
   };
 
   const routeGraphicsInstance = {
