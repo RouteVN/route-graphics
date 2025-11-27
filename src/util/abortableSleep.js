@@ -3,7 +3,7 @@
  * @param {AbortSignal} signal
  * @returns {Promise} Promise that resolves after delay
  */
-const cancellableTimeout = async (ms, signal) => {
+const abortableSleep = async (ms, signal) => {
   return new Promise((resolve, reject) => {
     // If the signal is already aborted, reject immediately
     if (signal?.aborted) {
@@ -25,4 +25,4 @@ const cancellableTimeout = async (ms, signal) => {
   });
 };
 
-export default cancellableTimeout;
+export default abortableSleep;
