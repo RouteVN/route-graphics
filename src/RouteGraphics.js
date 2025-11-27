@@ -207,7 +207,6 @@ const createRouteGraphics = () => {
   ) => {
     // Apply global cursor styles if they exist and have changed
     applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
-
     // Cancel any previous render operations
     if (currentAbortController) {
       currentAbortController.abort();

@@ -6,14 +6,11 @@ specs:
   - "style persists after click"
   - "color, font, and size can all change"
 steps:
-  - move 210 110
-  - click
+  - click 210 110
   - screenshot
-  - move 210 210
-  - click
+  - click 210 210
   - screenshot
-  - move 210 330
-  - click
+  - click 210 330
   - screenshot
 ---
 states:

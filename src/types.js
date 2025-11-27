@@ -370,6 +370,23 @@ export const AudioType = {
 };
 
 /**
+ * Default text style configuration
+ * @readonly
+ * @type {import('pixi.js').TextStyleOptions}
+ */
+export const DEFAULT_TEXT_STYLE = {
+  fill: "black",
+  fontFamily: "Arial",
+  fontSize: 16,
+  align: "left",
+  lineHeight: 1.2,
+  wordWrap: false,
+  breakWords: false,
+  strokeColor: "transparent",
+  strokeWidth: 0,
+};
+
+/**
  * @typedef {Object} BaseTransition
  * @property {string} type - Type of the transition
  * @property {string} targetId - ID of the element
