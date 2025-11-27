@@ -433,11 +433,17 @@ const createRouteGraphics = () => {
       renderInternal(app, app.stage, parsedState, eventHandler);
     },
 
-    parse: (JSONObject) => {
-      return parseElements({
-        JSONObject,
+    /**
+     * Parse elements from state object using registered parser plugins
+     * @param {RouteGraphicsState} stateParam - The state object containing element definitions
+     */
+    parse: (stateParam) => {
+      const parsedElements = parseElements({
+        JSONObject: stateParam.elements,
         parserPlugins: plugins.parsers,
       });
+      const parsedState = { ...stateParam, elements: parsedElements };
+      return parsedState;
     },
   };
 
