@@ -15,13 +15,11 @@ export const updateSprite = async ({
   eventHandler,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const spriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  let isAnimationDone = true;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
@@ -131,19 +129,26 @@ export const updateSprite = async ({
     }
   };
 
-  signal.addEventListener("abort", () => {
-    updateElement();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      updateElement();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
 
   if (spriteElement) {
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(prevElement.id, animationPlugins, {
         app,
         element: spriteElement,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     updateElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

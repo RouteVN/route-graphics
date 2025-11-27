@@ -14,13 +14,11 @@ export const updateRect = async ({
   eventHandler,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  let isAnimationDone = true;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
@@ -107,19 +105,26 @@ export const updateRect = async ({
     }
   };
 
-  signal.addEventListener("abort", () => {
-    updateElement();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      updateElement();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
 
   if (rectElement) {
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(prevElement.id, animationPlugins, {
         app,
         element: rectElement,
         animations: animations,
         signal,
       });
+      isAnimationDone = true;
     }
     updateElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

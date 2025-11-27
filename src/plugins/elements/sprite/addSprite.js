@@ -14,10 +14,7 @@ export const addSprite = async ({
   animationPlugins,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
+  let isAnimationDone = true;
   const { id, x, y, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
@@ -31,9 +28,13 @@ export const addSprite = async ({
     sprite.alpha = alpha;
   };
 
-  signal.addEventListener("abort", () => {
-    drawSprite();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      drawSprite();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
   drawSprite();
 
   const hoverEvents = element?.hover;
@@ -116,11 +117,15 @@ export const addSprite = async ({
   parent.addChild(sprite);
 
   if (animations && animations.length > 0) {
+    isAnimationDone = false;
     await animateElements(id, animationPlugins, {
       app,
       element: sprite,
       animations,
       signal,
     });
+    isAnimationDone = true;
   }
+
+  signal.removeEventListener("abort", abortHandler);
 };

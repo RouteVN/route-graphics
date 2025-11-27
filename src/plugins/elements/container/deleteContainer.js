@@ -12,31 +12,41 @@ export const deleteContainer = async ({
   animations,
   signal,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const containerElement = parent.getChildByLabel(element.id);
 
   if (containerElement) {
+    let isAnimationDone = true;
+
     const deleteElement = () => {
       if (containerElement && !containerElement.destroyed) {
-        containerElement.destroy({ children: true });
+        parent.removeChild(containerElement);
+        containerElement.destroy({
+          children: true,
+          texture: true,
+          baseTexture: true,
+        });
       }
     };
 
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    const abortHandler = async () => {
+      if (!isAnimationDone) {
+        deleteElement();
+      }
+    };
+
+    signal.addEventListener("abort", abortHandler);
 
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(element.id, animationPlugins, {
         app,
         element: containerElement,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

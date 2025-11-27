@@ -27,9 +27,8 @@ export const renderElements = async ({
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
     prevASTTree,
     nextASTTree,
-    [], // No legacy animations in plugin system
+    animations,
   );
-
   const asyncActions = [];
 
   // Delete elements
@@ -96,10 +95,19 @@ export const renderElements = async ({
     );
   }
 
-  await Promise.all(asyncActions);
+  try {
+    await Promise.all(asyncActions);
 
-  // Sort container children to maintain AST order
-  sortContainerChildren(parent, nextASTTree);
+    // Sort container children to maintain AST order
+    sortContainerChildren(parent, nextASTTree);
+  } catch (error) {
+    // If render was aborted, don't sort - the next render will handle it
+    if (signal.aborted) {
+      console.log("Render aborted, skipping cleanup");
+    } else {
+      throw error;
+    }
+  }
 };
 
 /**

@@ -88,8 +88,25 @@
         })
 
         const listenEvents = () => {
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "n") {
+            document.addEventListener("keydown",async (e) => {
+                if (e.shiftKey && e.key !== "Shift"){
+                    if(states.length > index+1){
+                        index++
+                        app.render({
+                            elements: states[index].elements ?? [],
+                            animations: states[index].animations ?? [], 
+                            audio: states[index].audio ?? [],
+                            global: {}
+                        })
+                        app.render({
+                            elements: states[index].elements ?? [],
+                            animations: states[index].animations ?? [], 
+                            audio: states[index].audio ?? [],
+                            global: {}
+                        })
+                    }
+                }
+                else if (e.key === "n") {
                     if(states.length > index+1){
                         index++
                         app.render({

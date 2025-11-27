@@ -119,6 +119,11 @@ const createRouteGraphics = () => {
   let currentAbortController;
 
   /**
+   * @type {boolean}
+   */
+  let isProcessingRender = false;
+
+  /**
    * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
    */
   let advancedLoader;
@@ -198,27 +203,24 @@ const createRouteGraphics = () => {
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = async (
-    appInstance,
-    parent,
-    prevState,
-    nextState,
-    handler,
-  ) => {
-    // Apply global cursor styles if they exist and have changed
-    applyGlobalCursorStyles(appInstance, prevState.global, nextState.global);
-    // Cancel any previous render operations
-    if (currentAbortController) {
+  const renderInternal = async (appInstance, parent, nextState, handler) => {
+    applyGlobalCursorStyles(appInstance, state.global, nextState.global);
+    if (currentAbortController && isProcessingRender)
       currentAbortController.abort();
-    }
-
-    // Create new AbortController for this render
     currentAbortController = new AbortController();
     const signal = currentAbortController.signal;
+
+    //We are doing this in case render is called more than once consecutively, we need to make sure that
+    //the first render call has been completed before the second one begins.
+    while (isProcessingRender) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    isProcessingRender = true;
     await renderElements({
       app: appInstance,
       parent,
-      prevASTTree: prevState.elements,
+      prevASTTree: state.elements,
       nextASTTree: nextState.elements,
       animations: nextState.animations,
       elementPlugins: plugins.elements,
@@ -229,11 +231,13 @@ const createRouteGraphics = () => {
 
     await renderAudio({
       app: appInstance,
-      prevAudioTree: prevState.audio,
+      prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
       audioPlugins: plugins.audios,
       signal,
     });
+    isProcessingRender = false;
+    state = nextState;
   };
 
   const routeGraphicsInstance = {
@@ -447,8 +451,7 @@ const createRouteGraphics = () => {
         parserPlugins: plugins.parsers,
       });
       const parsedState = { ...stateParam, elements: parsedElements };
-      renderInternal(app, app.stage, state, parsedState, eventHandler);
-      state = parsedState;
+      renderInternal(app, app.stage, parsedState, eventHandler);
     },
   };
 
