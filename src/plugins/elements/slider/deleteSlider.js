@@ -28,7 +28,7 @@ export const deleteSlider = async ({
     };
 
     const abortHandler = async () => {
-      if(!isAnimationDone){
+      if (!isAnimationDone) {
         deleteElement();
       }
     };

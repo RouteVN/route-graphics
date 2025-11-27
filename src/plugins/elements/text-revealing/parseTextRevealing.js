@@ -1,5 +1,6 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -181,11 +182,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
  */
 export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
-    fill: "black",
-    fontFamily: "Roboto",
-    fontSize: 16,
-    align: "left",
-    lineHeight: 1.2,
+    ...DEFAULT_TEXT_STYLE,
     wordWrap: true,
   };
 
@@ -194,6 +191,10 @@ export const parseTextRevealing = ({ state }) => {
       ...defaultTextStyle,
       ...(item.textStyle || {}),
     };
+
+    itemTextStyle.lineHeight = Math.round(
+      itemTextStyle.lineHeight * itemTextStyle.fontSize,
+    );
 
     if (state.width) {
       itemTextStyle.wordWrapWidth = state.width;
@@ -206,6 +207,10 @@ export const parseTextRevealing = ({ state }) => {
         ...defaultTextStyle,
         ...(item.furigana.textStyle || {}),
       };
+
+      furiganaTextStyle.lineHeight = Math.round(
+        furiganaTextStyle.lineHeight * furiganaTextStyle.fontSize,
+      );
 
       if (state.width) {
         furiganaTextStyle.wordWrapWidth = state.width;

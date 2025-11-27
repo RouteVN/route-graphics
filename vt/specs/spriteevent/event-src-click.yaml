@@ -6,14 +6,11 @@ specs:
   - "texture persists after click"
   - "different sprites can have different click textures"
 steps:
-  - move 175 175
-  - click
+  - click 175 175
   - screenshot
-  - move 425 175
-  - click
+  - click 425 175
   - screenshot
-  - move 675 175
-  - click
+  - click 675 175
   - screenshot
 ---
 states:

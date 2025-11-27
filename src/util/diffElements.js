@@ -18,7 +18,6 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
   const prevElementMap = new Map();
   const nextElementMap = new Map();
 
-
   const toAddElement = [];
   const toDeleteElement = [];
   const toUpdateElement = [];

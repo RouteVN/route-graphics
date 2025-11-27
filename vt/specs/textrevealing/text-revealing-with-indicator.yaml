@@ -38,7 +38,7 @@ states:
           - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
             textStyle:
               fontSize: 20
-              fill: "#000000"
+              fill: "#11a285"
               fontFamily: "Georgia"
               lineHeight: 1.4
           - text: " Different colors"

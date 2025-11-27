@@ -28,7 +28,7 @@ export const deleteText = async ({
     };
 
     const abortHandler = async () => {
-      if(!isAnimationDone){
+      if (!isAnimationDone) {
         deleteElement();
       }
     };

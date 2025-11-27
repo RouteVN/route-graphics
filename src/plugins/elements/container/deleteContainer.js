@@ -29,7 +29,7 @@ export const deleteContainer = async ({
     };
 
     const abortHandler = async () => {
-      if(!isAnimationDone){
+      if (!isAnimationDone) {
         deleteElement();
       }
     };

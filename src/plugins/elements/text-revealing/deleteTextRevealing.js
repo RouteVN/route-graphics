@@ -19,7 +19,7 @@ export const deleteTextRevealing = async ({ parent, element, signal }) => {
     };
 
     const abortHandler = async () => {
-      if(!isAnimationDone){
+      if (!isAnimationDone) {
         deleteElement();
       }
     };

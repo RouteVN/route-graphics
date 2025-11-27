@@ -28,7 +28,7 @@ export const deleteRect = async ({
     };
 
     const abortHandler = async () => {
-      if(!isAnimationDone){
+      if (!isAnimationDone) {
         deleteElement();
       }
     };
