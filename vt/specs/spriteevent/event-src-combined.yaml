@@ -8,11 +8,11 @@ specs:
 steps:
   - move 220 175
   - screenshot
-  - click
+  - click 220 175
   - screenshot
   - move 520 175
   - screenshot
-  - click
+  - click 520 175
   - screenshot
 ---
 states:
