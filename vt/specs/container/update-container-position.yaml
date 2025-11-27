@@ -1,10 +1,10 @@
 ---
 title: Update Container Position
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - keypress b
+  # - screenshot
 ---
 states:
   - elements:

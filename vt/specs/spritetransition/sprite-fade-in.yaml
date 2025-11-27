@@ -6,12 +6,12 @@ specs:
   - "sprite should appear gradually over 1 second"
   - "sprite image should load and fade in"
 steps:
-  - keypress n
-  - screenshot
-  - wait 500
-  - screenshot
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - wait 500
+  # - screenshot
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements: []

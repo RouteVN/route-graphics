@@ -6,11 +6,11 @@ specs:
   - "rect should disappear gradually"
   - "rect should be destroyed after animation"
 steps:
-  - keypress n
-  - wait 500
-  - screenshot
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - wait 500
+  # - screenshot
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements:

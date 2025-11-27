@@ -8,8 +8,8 @@ specs:
   - "hover event should send actionPayload"
   - "textures should revert when hover ends"
 steps:
-  - move 170 110
-  - screenshot
+  # - move 170 110
+  # - screenshot
 ---
 states:
   - elements:

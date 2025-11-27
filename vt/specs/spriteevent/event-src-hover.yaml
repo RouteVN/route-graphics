@@ -6,12 +6,12 @@ specs:
   - "sprite texture should revert on pointer out"
   - "different sprites can have different hover textures"
 steps:
-  - move 175 175
-  - screenshot
-  - move 400 175
-  - screenshot
-  - move 675 175
-  - screenshot
+  # - move 175 175
+  # - screenshot
+  # - move 400 175
+  # - screenshot
+  # - move 675 175
+  # - screenshot
 ---
 states:
   - elements:

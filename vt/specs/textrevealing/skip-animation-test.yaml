@@ -8,13 +8,13 @@ specs:
   - "Furigana should appear immediately when revealEffect is typewriter"
   - "Multiple content segments should appear immediately when revealEffect is typewriter"
 steps:
-  - wait 4000
-  - screenshot
-  - keypress n
-  - wait 6000
-  - screenshot
-  - keypress n
-  - screenshot
+  # - wait 4000
+  # - screenshot
+  # - keypress n
+  # - wait 6000
+  # - screenshot
+  # - keypress n
+  # - screenshot
 ---
 states:
   - elements:

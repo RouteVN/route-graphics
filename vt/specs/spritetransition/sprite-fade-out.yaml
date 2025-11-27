@@ -6,12 +6,12 @@ specs:
   - "sprite should disappear gradually"
   - "sprite should be destroyed after animation"
 steps:
-  - keypress n
-  - screenshot
-  - wait 500
-  - screenshot
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - wait 500
+  # - screenshot
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements:

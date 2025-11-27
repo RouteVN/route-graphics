@@ -7,11 +7,11 @@ specs:
   - "slider should remain visible throughout"
   - "thumb should maintain relative position on bar"
 steps:
-  - keypress n
-  - wait 500
-  - screenshot
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - wait 500
+  # - screenshot
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements:

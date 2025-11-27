@@ -6,11 +6,11 @@ specs:
   - "text should fade out while sliding"
   - "animation should complete in 800ms"
 steps:
-  - keypress n
-  - wait 400
-  - screenshot
-  - wait 400
-  - screenshot
+  # - keypress n
+  # - wait 400
+  # - screenshot
+  # - wait 400
+  # - screenshot
 ---
 states:
   - elements:

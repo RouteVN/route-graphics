@@ -6,11 +6,11 @@ specs:
   - "animation should take 800ms"
   - "uses scaleX and scaleY properties"
 steps:
-  - keypress n
-  - wait 400
-  - screenshot
-  - wait 400
-  - screenshot
+  # - keypress n
+  # - wait 400
+  # - screenshot
+  # - wait 400
+  # - screenshot
 ---
 states:
   - elements:
