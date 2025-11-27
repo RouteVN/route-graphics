@@ -4,24 +4,15 @@ import {
   Container,
   Sprite,
   Texture,
-  CanvasTextMetrics,
 } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
-
-/**
- * Sleep utility for delays
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise} Promise that resolves after delay
- */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+import cancellableTimeout from "../../../util/cancalleableTimeout";
 
 /**
  * Add text-revealing element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
  */
 export const addTextRevealing = async ({ parent, element, signal }) => {
-  if (signal?.aborted) return;
-
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
   const indicatorOffset = element?.indicator?.offset ?? 12;
@@ -30,9 +21,6 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
   const skipAnimations = revealEffect === "none";
   const charDelay = skipAnimations ? 0 : Math.max(1, Math.floor(1000 / speed));
   const chunkDelay = skipAnimations ? 0 : Math.max(1, Math.floor(4000 / speed));
-
-  // Check if aborted
-  if (signal?.aborted) return;
 
   const container = new Container();
   container.label = element.id;
@@ -65,6 +53,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
+      if (signal?.aborted) return;
       const part = chunk.lineParts[partIndex];
 
       // Create text objects for this part
@@ -127,7 +116,12 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
           // Wait before adding next character
           if (charIndex < fullText.length - 1) {
             // Don't wait after last character
-            await sleep(charDelay);
+            try{
+              await cancellableTimeout(charDelay,signal);
+            }
+            catch{
+              return;
+            }
           }
         }
       }
@@ -135,7 +129,12 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
     // Wait before processing next chunk (except for the last chunk)
     if (chunkIndex < element.content.length - 1) {
-      await sleep(chunkDelay);
+      try{
+        await cancellableTimeout(chunkDelay,signal);
+      }
+      catch{
+        return;
+      }
     }
   }
   if (element?.indicator?.complete?.src) {

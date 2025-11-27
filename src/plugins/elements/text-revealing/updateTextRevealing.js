@@ -1,12 +1,7 @@
 import { Sprite, Text, TextStyle, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
+import cancellableTimeout from "../../../util/cancalleableTimeout";
 
-/**
- * Sleep utility for delays
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise} Promise that resolves after delay
- */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Simple render function for text-revealing elements
@@ -23,9 +18,6 @@ export const updateTextRevealing = async (params) => {
   const skipAnimations = revealEffect === "none";
   const charDelay = skipAnimations ? 0 : Math.max(1, Math.floor(1000 / speed));
   const chunkDelay = skipAnimations ? 0 : Math.max(1, Math.floor(4000 / speed));
-
-  // Check if aborted
-  if (signal?.aborted) return;
 
   const textRevealingElement = parent.children.find(
     (child) => child.label === element.id,
@@ -124,7 +116,12 @@ export const updateTextRevealing = async (params) => {
             // Wait before adding next character
             if (charIndex < fullText.length - 1) {
               // Don't wait after last character
-              await sleep(charDelay);
+              try{
+                await cancellableTimeout(charDelay,signal);
+              }
+              catch{
+                return;
+              }
             }
           }
         }
@@ -132,7 +129,12 @@ export const updateTextRevealing = async (params) => {
 
       // Wait before processing next chunk (except for the last chunk)
       if (chunkIndex < element.content.length - 1) {
-        await sleep(chunkDelay);
+        try{
+          await cancellableTimeout(chunkDelay,signal);
+        }
+        catch{
+          return;
+        }
       }
     }
 
