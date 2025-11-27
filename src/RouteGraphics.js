@@ -211,7 +211,7 @@ const createRouteGraphics = () => {
     const signal = currentAbortController.signal;
 
     while (isProcessingRender) {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
     isProcessingRender = true;
