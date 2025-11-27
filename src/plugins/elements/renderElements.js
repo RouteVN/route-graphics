@@ -29,9 +29,6 @@ export const renderElements = async ({
     nextASTTree,
     animations,
   );
-  console.log("To add: ",toAddElement)
-  console.log("To delete: ", toDeleteElement)
-  console.log("To update: ", toUpdateElement)
   const asyncActions = [];
 
   // Delete elements
@@ -106,7 +103,7 @@ export const renderElements = async ({
   } catch (error) {
     // If render was aborted, don't sort - the next render will handle it
     if (signal.aborted) {
-      console.log('Render aborted, skipping cleanup');
+      console.log("Render aborted, skipping cleanup");
     } else {
       throw error;
     }

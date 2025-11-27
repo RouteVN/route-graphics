@@ -12,33 +12,41 @@ export const deleteContainer = async ({
   animations,
   signal,
 }) => {
-
   const containerElement = parent.getChildByLabel(element.id);
 
   if (containerElement) {
+    let isAnimationDone = true;
+
     const deleteElement = () => {
       if (containerElement && !containerElement.destroyed) {
-        console.log("Container being destroyed ",containerElement)
-        console.log("Parent container before destorying ", (parent))
         parent.removeChild(containerElement);
-        containerElement.destroy({children:true, texture:true, baseTexture:true});
-        console.log("Delete contaienr: ",element)
-        console.log("Stage after deleting container", parent)
+        containerElement.destroy({
+          children: true,
+          texture: true,
+          baseTexture: true,
+        });
       }
     };
 
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    const abortHandler = async () => {
+      if(!isAnimationDone){
+        deleteElement();
+      }
+    };
+
+    signal.addEventListener("abort", abortHandler);
 
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(element.id, animationPlugins, {
         app,
         element: containerElement,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

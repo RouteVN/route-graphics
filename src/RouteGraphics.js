@@ -201,7 +201,6 @@ const createRouteGraphics = () => {
     }
   };
 
-
   /**
    * Render function
    * @param {Application} appInstance
@@ -209,24 +208,18 @@ const createRouteGraphics = () => {
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = async (
-    appInstance,
-    parent,
-    nextState,
-    handler,
-  ) => {
+  const renderInternal = async (appInstance, parent, nextState, handler) => {
     applyGlobalCursorStyles(appInstance, state.global, nextState.global);
-    if(currentAbortController && isProcessingRender) currentAbortController.abort();
+    if (currentAbortController && isProcessingRender)
+      currentAbortController.abort();
     currentAbortController = new AbortController();
     const signal = currentAbortController.signal;
-    console.log("Starting rendering if processing is done")
+
     while (isProcessingRender) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     isProcessingRender = true;
-    console.log("Prev AST tree: ",state.elements)
-    console.log("Next AST Tree: ",nextState.elements)
     await renderElements({
       app: appInstance,
       parent,
@@ -461,10 +454,7 @@ const createRouteGraphics = () => {
         parserPlugins: plugins.parsers,
       });
       const parsedState = { ...stateParam, elements: parsedElements };
-      console.log('Chekck point before internal render')
       renderInternal(app, app.stage, parsedState, eventHandler);
-      console.log("State", state)
-      console.log("Stage: ", app.stage)
     },
   };
 

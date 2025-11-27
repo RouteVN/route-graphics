@@ -14,7 +14,6 @@ export const addRect = async ({
   eventHandler,
   signal,
 }) => {
-
   const {
     id,
     x,
@@ -31,6 +30,7 @@ export const addRect = async ({
 
   const rect = new Graphics();
   rect.label = id;
+  let isAnimationDone = true;
 
   const drawRect = () => {
     rect.clear();
@@ -48,9 +48,13 @@ export const addRect = async ({
     }
   };
 
-  signal.addEventListener("abort", () => {
-    drawRect();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      drawRect();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
   drawRect();
 
   const hoverEvents = element?.hover;
@@ -111,6 +115,7 @@ export const addRect = async ({
   parent.addChild(rect);
 
   if (animations && animations.length > 0) {
+    isAnimationDone = false;
     await animateElements(id, animationPlugins, {
       app,
       element: rect,
@@ -118,4 +123,7 @@ export const addRect = async ({
       signal,
     });
   }
+  isAnimationDone = true;
+
+  signal.removeEventListener("abort", abortHandler);
 };

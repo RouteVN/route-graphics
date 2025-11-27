@@ -15,6 +15,7 @@ export const addText = async ({
   animationPlugins,
   signal,
 }) => {
+  let isAnimationDone = true;
 
   const text = new Text({
     label: textASTNode.id,
@@ -27,9 +28,13 @@ export const addText = async ({
     text.y = textASTNode.y;
   };
 
-  signal.addEventListener("abort", () => {
-    drawText();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      drawText();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
   drawText();
   const hoverEvents = textASTNode?.hover;
   const clickEvents = textASTNode?.click;
@@ -107,14 +112,17 @@ export const addText = async ({
   }
 
   parent.addChild(text);
-  console.log("I have add the text", textASTNode)
 
   if (animations && animations.length > 0) {
+    isAnimationDone = false;
     await animateElements(textASTNode.id, animationPlugins, {
       app,
       element: text,
       animations,
       signal,
     });
+    isAnimationDone = true;
   }
+
+  signal.removeEventListener("abort", abortHandler);
 };

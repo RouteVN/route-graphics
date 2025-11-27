@@ -10,16 +10,23 @@ export const deleteTextRevealing = async ({ parent, element, signal }) => {
   const textElement = parent.getChildByLabel(element.id);
 
   if (textElement) {
+    let isAnimationDone = true;
+
     const deleteElement = () => {
       if (textElement && !textElement.destroyed) {
         textElement.destroy({ children: true });
       }
     };
 
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    const abortHandler = async () => {
+      if(!isAnimationDone){
+        deleteElement();
+      }
+    };
+
+    signal.addEventListener("abort", abortHandler);
 
     deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

@@ -21,23 +21,31 @@ export const deleteSprite = async ({
   );
 
   if (spriteElement) {
-    const deleteElement = ()=>{
-      if (sprite && !sprite.destroyed) {
-        sprite.destroy();
+    let isAnimationDone = true;
+
+    const deleteElement = () => {
+      if (spriteElement && !spriteElement.destroyed) {
+        spriteElement.destroy();
       }
-    }
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    };
+    const abortHandler = async () => {
+      if(!isAnimationDone){
+        deleteElement();
+      }
+    };
+    signal.addEventListener("abort", abortHandler);
 
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(element.id, animationPlugins, {
         app,
         element: spriteElement,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
-    deleteElement()
+    deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

@@ -19,24 +19,33 @@ export const deleteText = async ({
   const text = parent.getChildByLabel(element.id);
 
   if (text) {
+    let isAnimationDone = true;
+
     const deleteElement = () => {
       if (text && !text.destroyed) {
         text.destroy();
       }
     };
 
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    const abortHandler = async () => {
+      if(!isAnimationDone){
+        deleteElement();
+      }
+    };
 
-    if (element.animations && element.animations.length > 0) {
+    signal.addEventListener("abort", abortHandler);
+
+    if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(element.id, animationPlugins, {
         app,
         element: text,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

@@ -15,11 +15,11 @@ export const addContainer = async ({
   elementPlugins,
   signal,
 }) => {
-
   const { id, x, y, children, scroll, alpha } = element;
 
   const container = new Container();
   container.label = id;
+  let isAnimationDone = true;
 
   const drawContainer = () => {
     container.x = Math.round(x);
@@ -27,11 +27,14 @@ export const addContainer = async ({
     container.alpha = alpha;
   };
 
-  signal.addEventListener("abort", () => {
-    drawContainer();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      drawContainer();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
   drawContainer();
-  console.log("Adding container: ",element)
   parent.addChild(container);
 
   if (children && children.length > 0) {
@@ -65,6 +68,7 @@ export const addContainer = async ({
   }
 
   if (animations && animations.length > 0) {
+    isAnimationDone = false;
     await animateElements(id, animationPlugins, {
       app,
       element: container,
@@ -72,6 +76,9 @@ export const addContainer = async ({
       signal,
     });
   }
+  isAnimationDone = true;
+
+  signal.removeEventListener("abort", abortHandler);
 };
 
 /**

@@ -14,6 +14,7 @@ export const addSlider = async ({
   eventHandler,
   signal,
 }) => {
+  let isAnimationDone = true;
   if (signal?.aborted) {
     return;
   }
@@ -105,7 +106,13 @@ export const addSlider = async ({
   };
 
   // Handle cleanup
-  signal.addEventListener("abort", setupSlider);
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      setupSlider();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
   setupSlider();
 
   // Store original textures for hover effects
@@ -235,11 +242,15 @@ export const addSlider = async ({
 
   // Apply animations if any
   if (animations && animations.length > 0) {
+    isAnimationDone = false;
     await animateElements(id, animationPlugins, {
       app,
       element: sliderContainer,
       animations,
       signal,
     });
+    isAnimationDone = true;
   }
+
+  signal.removeEventListener("abort", abortHandler);
 };

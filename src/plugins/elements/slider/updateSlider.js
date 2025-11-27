@@ -245,7 +245,6 @@ export const updateSlider = async ({
     }
   };
 
-  
   if (sliderElement) {
     if (animations && animations.length > 0) {
       await animateElements(prevSliderASTNode.id, animationPlugins, {

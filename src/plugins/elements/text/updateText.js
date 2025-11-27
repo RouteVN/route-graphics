@@ -19,6 +19,9 @@ export const updateText = async ({
   const textElement = parent.children.find(
     (child) => child.label === prevTextASTNode.id,
   );
+
+  let isAnimationDone = true;
+
   const updateElement = () => {
     if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
       textElement.text = nextTextASTNode.content;
@@ -116,22 +119,28 @@ export const updateText = async ({
         textElement.on("pointerup", releaseListener);
         textElement.on("pointerupoutside", outListener);
       }
-      console.log("I have updated the text", textElement)
     }
   };
-  signal.addEventListener("abort", () => {
-    updateElement();
-  });
+  const abortHandler = async () => {
+    if (!isAnimationDone) {
+      updateElement();
+    }
+  };
+
+  signal.addEventListener("abort", abortHandler);
 
   if (textElement) {
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(nextTextASTNode.id, animationPlugins, {
         app,
         element: textElement,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     updateElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

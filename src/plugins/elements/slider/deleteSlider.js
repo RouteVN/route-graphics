@@ -19,24 +19,33 @@ export const deleteSlider = async ({
   const sliderContainer = parent.getChildByLabel(element.id);
 
   if (sliderContainer) {
+    let isAnimationDone = true;
+
     const deleteElement = () => {
       if (sliderContainer && !sliderContainer.destroyed) {
         sliderContainer.destroy({ children: true });
       }
     };
 
-    signal.addEventListener("abort", () => {
-      deleteElement();
-    });
+    const abortHandler = async () => {
+      if(!isAnimationDone){
+        deleteElement();
+      }
+    };
+
+    signal.addEventListener("abort", abortHandler);
 
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(element.id, animationPlugins, {
         app,
         element: sliderContainer,
         animations,
         signal,
       });
+      isAnimationDone = true;
     }
     deleteElement();
+    signal.removeEventListener("abort", abortHandler);
   }
 };

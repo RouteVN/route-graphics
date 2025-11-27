@@ -21,10 +21,10 @@ export const updateContainer = async ({
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+  let isAnimationDone = true;
 
   const updateElement = async () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      console.log("Updating container ", nextElement);
       containerElement.x = Math.round(nextElement.x);
       containerElement.y = Math.round(nextElement.y);
       containerElement.label = nextElement.id;
@@ -49,12 +49,17 @@ export const updateContainer = async ({
     }
   };
 
-  signal.addEventListener("abort", async () => {
-    await updateElement();
-  });
+  const abortController = async () => {
+    if (!isAnimationDone) {
+      await updateElement();
+    }
+  };
+
+  signal.addEventListener("abort", abortController);
 
   if (containerElement) {
     if (animations && animations.length > 0) {
+      isAnimationDone = false;
       await animateElements(prevElement.id, animationPlugins, {
         app,
         element: containerElement,
@@ -62,6 +67,8 @@ export const updateContainer = async ({
         signal,
       });
     }
+    isAnimationDone = true;
     await updateElement();
+    signal.removeEventListener("abort", abortController);
   }
 };
