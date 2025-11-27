@@ -210,6 +210,8 @@ const createRouteGraphics = () => {
     currentAbortController = new AbortController();
     const signal = currentAbortController.signal;
 
+    //We are doing this in case render is called more than once consecutively, we need to make sure that
+    //the first render call has been completed before the second one begins.
     while (isProcessingRender) {
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
