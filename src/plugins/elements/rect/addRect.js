@@ -137,7 +137,7 @@ export const addRect = async ({
           _event: {
             id: rect.label,
           },
-          ...(end?.actionPayload? end.actionPayload : {}),
+          ...(end?.actionPayload ? end.actionPayload : {}),
         });
       }
     };
@@ -150,7 +150,7 @@ export const addRect = async ({
             x: e.global.x,
             y: e.global.y,
           },
-          ...(move?.actionPayload? move.actionPayload : {}),
+          ...(move?.actionPayload ? move.actionPayload : {}),
         });
       }
     };
