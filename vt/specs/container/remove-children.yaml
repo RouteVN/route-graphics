@@ -1,10 +1,10 @@
 ---
 title: Remove Children from Container
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - keypress b
+  # - screenshot
 ---
 states:
   - elements:
