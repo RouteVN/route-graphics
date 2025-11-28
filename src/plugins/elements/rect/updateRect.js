@@ -117,8 +117,6 @@ export const updateRect = async ({
             eventHandler("drag-start", {
               _event: {
                 id: rectElement.label,
-                x: e.global.x,
-                y: e.global.y,
               },
               ...down?.actionPayload,
             });
@@ -131,8 +129,6 @@ export const updateRect = async ({
             eventHandler("drag-end", {
               _event: {
                 id: rectElement.label,
-                x: e.global.x,
-                y: e.global.y,
               },
               ...up?.actionPayload,
             });

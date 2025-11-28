@@ -124,8 +124,6 @@ export const addRect = async ({
         eventHandler("drag-start", {
           _event: {
             id: rect.label,
-            x: e.global.x,
-            y: e.global.y,
           },
           ...down?.actionPayload,
         });
@@ -138,8 +136,6 @@ export const addRect = async ({
         eventHandler("drag-end", {
           _event: {
             id: rect.label,
-            x: e.global.x,
-            y: e.global.y,
           },
           ...up?.actionPayload,
         });
