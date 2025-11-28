@@ -113,37 +113,37 @@ export const updateRect = async ({
 
         const downListener = (e) => {
           isDragging = true;
-          if (start?.actionPayload && eventHandler) {
+          if (start && eventHandler) {
             eventHandler("drag-start", {
               _event: {
                 id: rectElement.label,
               },
-              ...start?.actionPayload,
+              ...(start?.actionPayload ? start.actionPayload : {}),
             });
           }
         };
 
         const upListener = (e) => {
           isDragging = false;
-          if (end?.actionPayload && eventHandler) {
+          if (end && eventHandler) {
             eventHandler("drag-end", {
               _event: {
                 id: rectElement.label,
               },
-              ...end?.actionPayload,
+              ...(end?.actionPayload? end.actionPayload : {}),
             });
           }
         };
 
         const moveListener = (e) => {
-          if (move?.actionPayload && eventHandler && isDragging) {
+          if (move && eventHandler && isDragging) {
             eventHandler("drag-move", {
               _event: {
                 id: rectElement.label,
                 x: e.global.x,
                 y: e.global.y,
               },
-              ...move?.actionPayload,
+              ...(move?.actionPayload? move.actionPayload : {}),
             });
           }
         };
