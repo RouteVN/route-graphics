@@ -114,30 +114,30 @@ export const addRect = async ({
   }
 
   if (dragEvent) {
-    const { down, up, move } = dragEvent;
+    const { start, end, move } = dragEvent;
     let isDragging = false;
     rect.eventMode = "static";
 
     const downListener = (e) => {
       isDragging = true;
-      if (down?.actionPayload && eventHandler) {
+      if (start?.actionPayload && eventHandler) {
         eventHandler("drag-start", {
           _event: {
             id: rect.label,
           },
-          ...down?.actionPayload,
+          ...start?.actionPayload,
         });
       }
     };
 
     const upListener = (e) => {
       isDragging = false;
-      if (up?.actionPayload && eventHandler) {
+      if (end?.actionPayload && eventHandler) {
         eventHandler("drag-end", {
           _event: {
             id: rect.label,
           },
-          ...up?.actionPayload,
+          ...end?.actionPayload,
         });
       }
     };

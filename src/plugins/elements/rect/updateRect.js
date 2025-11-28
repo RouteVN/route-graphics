@@ -107,30 +107,30 @@ export const updateRect = async ({
       }
 
       if (dragEvents) {
-        const { down, up, move } = dragEvents;
+        const { start, end, move } = dragEvents;
         let isDragging = false;
         rectElement.eventMode = "static";
 
         const downListener = (e) => {
           isDragging = true;
-          if (down?.actionPayload && eventHandler) {
+          if (start?.actionPayload && eventHandler) {
             eventHandler("drag-start", {
               _event: {
                 id: rectElement.label,
               },
-              ...down?.actionPayload,
+              ...start?.actionPayload,
             });
           }
         };
 
         const upListener = (e) => {
           isDragging = false;
-          if (up?.actionPayload && eventHandler) {
+          if (end?.actionPayload && eventHandler) {
             eventHandler("drag-end", {
               _event: {
                 id: rectElement.label,
               },
-              ...up?.actionPayload,
+              ...end?.actionPayload,
             });
           }
         };

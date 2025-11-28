@@ -82,11 +82,11 @@ properties:
   drag:
     type: object
     properties:
-      down:
+      start:
         actionPayload:
           type: object
           description: Payload for click action event
-      up:
+      end:
         actionPayload:
           type: object
           description: Payload for click action event

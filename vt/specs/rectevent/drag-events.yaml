@@ -17,12 +17,12 @@ states:
         fill: "blue"
         cursor: "pointer"
         drag:
-          down:
+          start:
             actionPayload:
               action: "drag-start"
           move:
             actionPayload:
               action: "drag-move"
-          up:
+          end:
             actionPayload:
               action: "drag-end"
