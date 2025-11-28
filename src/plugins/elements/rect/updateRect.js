@@ -47,9 +47,12 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");
+      rectElement.removeAllListeners("pointerdown");
+      rectElement.removeAllListeners("pointermove");
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
+      const dragEvents = nextElement?.drag;
 
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -101,6 +104,59 @@ export const updateRect = async ({
         };
 
         rectElement.on("pointerup", clickListener);
+      }
+
+      if (dragEvents) {
+        const { start, end, move } = dragEvents;
+        let isDragging = false;
+        rectElement.eventMode = "static";
+
+        const downListener = (e) => {
+          isDragging = true;
+          if (start && eventHandler) {
+            eventHandler("drag-start", {
+              _event: {
+                id: rectElement.label,
+              },
+              ...(typeof start?.actionPayload === "object"
+                ? start.actionPayload
+                : {}),
+            });
+          }
+        };
+
+        const upListener = (e) => {
+          isDragging = false;
+          if (end && eventHandler) {
+            eventHandler("drag-end", {
+              _event: {
+                id: rectElement.label,
+              },
+              ...(typeof end?.actionPayload === "object"
+                ? end.actionPayload
+                : {}),
+            });
+          }
+        };
+
+        const moveListener = (e) => {
+          if (move && eventHandler && isDragging) {
+            eventHandler("drag-move", {
+              _event: {
+                id: rectElement.label,
+                x: e.global.x,
+                y: e.global.y,
+              },
+              ...(typeof move?.actionPayload === "object"
+                ? move.actionPayload
+                : {}),
+            });
+          }
+        };
+
+        rectElement.on("pointerdown", downListener);
+        rectElement.on("pointerup", upListener);
+        rectElement.on("pointermove", moveListener);
       }
     }
   };

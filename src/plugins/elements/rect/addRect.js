@@ -59,6 +59,7 @@ export const addRect = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
+  const dragEvent = element?.drag;
 
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -110,6 +111,57 @@ export const addRect = async ({
     };
 
     rect.on("pointerup", releaseListener);
+  }
+
+  if (dragEvent) {
+    const { start, end, move } = dragEvent;
+    let isDragging = false;
+    rect.eventMode = "static";
+
+    const downListener = (e) => {
+      isDragging = true;
+      if (start && eventHandler) {
+        eventHandler("drag-start", {
+          _event: {
+            id: rect.label,
+          },
+          ...(typeof start?.actionPayload === "object"
+            ? start.actionPayload
+            : {}),
+        });
+      }
+    };
+
+    const upListener = (e) => {
+      isDragging = false;
+      if (end && eventHandler) {
+        eventHandler("drag-end", {
+          _event: {
+            id: rect.label,
+          },
+          ...(typeof end?.actionPayload === "object" ? end.actionPayload : {}),
+        });
+      }
+    };
+
+    const moveListener = (e) => {
+      if (move && eventHandler && isDragging) {
+        eventHandler("drag-move", {
+          _event: {
+            id: rect.label,
+            x: e.global.x,
+            y: e.global.y,
+          },
+          ...(typeof move?.actionPayload === "object"
+            ? move.actionPayload
+            : {}),
+        });
+      }
+    };
+
+    rect.on("pointerdown", downListener);
+    rect.on("pointerup", upListener);
+    rect.on("pointermove", moveListener);
   }
 
   parent.addChild(rect);

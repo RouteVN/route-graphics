@@ -87,3 +87,18 @@ properties:
       actionPayload:
         type: object
         description: Payload for click action event
+  drag:
+    type: object
+    properties:
+      start:
+        actionPayload:
+          type: object
+          description: Payload for click action event
+      end:
+        actionPayload:
+          type: object
+          description: Payload for click action event
+      move:
+        actionPayload:
+          type: object
+          description: Payload for click action event

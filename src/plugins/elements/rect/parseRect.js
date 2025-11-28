@@ -34,5 +34,6 @@ export const parseRect = ({ state }) => {
     pointerMove: state.pointerMove ?? "",
     pointerUp: state.pointerUp ?? "",
     rotation: state.rotation ?? 0,
+    ...(state.drag && { drag: state.drag }),
   };
 };
