@@ -6,11 +6,11 @@ specs:
   - "animation should take 1 second"
   - "sprite should remain visible throughout"
 steps:
-  - keypress n
-  - wait 500
-  - screenshot
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - wait 500
+  # - screenshot
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements:

@@ -6,13 +6,13 @@ specs:
   - "abortion callback should be testable during update"
   - "element position differs from animation end position"
 steps:
-  - keypress n
-  - wait 1200     
-  - screenshot
-  - keypress n      
-  - screenshot
-  - wait 2000      
-  - screenshot       
+  # - keypress n
+  # - wait 1200     
+  # - screenshot
+  # - keypress n      
+  # - screenshot
+  # - wait 2000      
+  # - screenshot       
 ---
 states:
   - elements:

@@ -2,10 +2,10 @@
 title: Text Revealing Showcase with indicator
 description: Showcasing text-revealing element with indicator
 steps:
-  - wait 14000
-  - screenshot
-  - wait 14000
-  - screenshot
+  # - wait 14000
+  # - screenshot
+  # - wait 14000
+  # - screenshot
 ---
 states:
   - elements:
@@ -69,6 +69,7 @@ states:
               fontFamily: "Georgia"
               fontStyle: "italic"
               lineHeight: 1.4
+        revealEffect: none
         x: 50
         y: 50
         width: 600

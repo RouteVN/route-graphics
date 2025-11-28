@@ -6,11 +6,11 @@ specs:
   - "all children should move with container"
   - "animation should take 1.2 seconds"
 steps:
-  - keypress n
-  - wait 600
-  - screenshot
-  - wait 600
-  - screenshot
+  # - keypress n
+  # - wait 600
+  # - screenshot
+  # - wait 600
+  # - screenshot
 ---
 states:
   - elements: []

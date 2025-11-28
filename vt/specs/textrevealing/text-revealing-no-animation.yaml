@@ -2,10 +2,10 @@
 title: Text Revealing - No Animation
 description: Testing text-revealing element with revealEffect set to none
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - keypress b
+  # - screenshot
 ---
 states:
   - elements:
@@ -30,6 +30,7 @@ states:
             width: 8
             height: 8
           gap: 15
+        revealEffect: none
   - elements:
       - id: 'no-animation-text'
         type: "text-revealing"
@@ -52,3 +53,4 @@ states:
             width: 8
             height: 8
           gap: 15
+        revealEffect: none

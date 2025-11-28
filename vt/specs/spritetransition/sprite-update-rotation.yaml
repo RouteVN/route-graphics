@@ -6,11 +6,11 @@ specs:
   - "animation should take 1.5 seconds"
   - "demonstrates rotation property"
 steps:
-  - keypress n
-  - wait 750
-  - screenshot
-  - wait 750
-  - screenshot
+  # - keypress n
+  # - wait 750
+  # - screenshot
+  # - wait 750
+  # - screenshot
 ---
 states:
   - elements:

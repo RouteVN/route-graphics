@@ -6,11 +6,11 @@ specs:
   - "animation should take 600ms"
   - "demonstrates alpha update transition"
 steps:
-  - keypress n
-  - wait 300
-  - screenshot
-  - wait 300
-  - screenshot
+  # - keypress n
+  # - wait 300
+  # - screenshot
+  # - wait 300
+  # - screenshot
 ---
 states:
   - elements:

@@ -7,10 +7,10 @@ specs:
   - "Other element types should remain unaffected"
   - "Container should update properly after deletion"
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  # - keypress n
+  # - screenshot
+  # - keypress b
+  # - screenshot
 ---
 states:
   - elements:

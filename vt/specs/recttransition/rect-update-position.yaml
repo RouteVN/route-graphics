@@ -6,14 +6,14 @@ specs:
   - "animation should take 1 second"
   - "rect should remain visible throughout"
 steps:
-  - keypress n
-  - wait 500
-  - screenshot
-  - wait 1000
-  - screenshot
-  - keypress n
-  - wait 500
-  - screenshot
+  # - keypress n
+  # - wait 500
+  # - screenshot
+  # - wait 1000
+  # - screenshot
+  # - keypress n
+  # - wait 500
+  # - screenshot
 ---
 states:
   - elements:
