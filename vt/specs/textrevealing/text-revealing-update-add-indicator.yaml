@@ -21,6 +21,7 @@ states:
         x: 100
         y: 100
         width: 400
+        revealEffect: none
   - elements:
       - id: 'update-indicator-text'
         type: "text-revealing"
@@ -42,3 +43,4 @@ states:
             width: 10
             height: 10
           gap: 8
+        revealEffect: none

@@ -42,6 +42,7 @@ states:
         width: 400
         alpha: 1
         speed: 30
+        revealEffect: none
   - elements:
       - id: 'text-revealing-animate'
         type: "text-revealing"
@@ -67,6 +68,7 @@ states:
         width: 400
         alpha: 1
         speed: 30
+        revealEffect: none
   - elements:
       - id: 'text-revealing-animate'
         type: "text-revealing"

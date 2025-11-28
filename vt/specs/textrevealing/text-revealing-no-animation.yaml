@@ -30,6 +30,7 @@ states:
             width: 8
             height: 8
           gap: 15
+        revealEffect: none
   - elements:
       - id: 'no-animation-text'
         type: "text-revealing"
@@ -52,3 +53,4 @@ states:
             width: 8
             height: 8
           gap: 15
+        revealEffect: none
