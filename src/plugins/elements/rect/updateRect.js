@@ -112,8 +112,8 @@ export const updateRect = async ({
         rectElement.eventMode = "static";
 
         const downListener = (e) => {
+          isDragging = true;
           if (down?.actionPayload && eventHandler) {
-            isDragging = true;
             eventHandler("drag-start", {
               _event: {
                 id: rectElement.label,
@@ -126,8 +126,8 @@ export const updateRect = async ({
         };
 
         const upListener = (e) => {
+          isDragging = false;
           if (up?.actionPayload && eventHandler) {
-            isDragging = false;
             eventHandler("drag-end", {
               _event: {
                 id: rectElement.label,
