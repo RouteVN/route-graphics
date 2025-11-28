@@ -217,11 +217,11 @@ out:
             align: "left"
             lineHeight: 19
             wordWrap: true
-            wordWrapWidth: 144.65625
+            wordWrapWidth: 145
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 55.34375
+          x: 55
           y: 19
         - text: "World"
           textStyle:
@@ -232,11 +232,11 @@ out:
             lineHeight: 38
             wordWrap: true
             fontWeight: "bold"
-            wordWrapWidth: 140.2109375
+            wordWrapWidth: 141
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 59.7890625
+          x: 59
           y: 0
         - text: "!"
           textStyle:
@@ -246,11 +246,11 @@ out:
             align: "left"
             lineHeight: 34
             wordWrap: true
-            wordWrapWidth: 50.1484375
+            wordWrapWidth: 51
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 149.8515625
+          x: 149
           y: 4
       y: 0
       lineMaxHeight: 38

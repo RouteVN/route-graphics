@@ -33,7 +33,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
       continue;
     }
 
-    const remainingWidth = wordWrapWidth - x;
+    const remainingWidth = Math.round(wordWrapWidth - x);
     const styleWithWordWrap = {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
@@ -107,7 +107,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
       const furiganaPart = {
         text: segment.furigana.text,
         textStyle: segment.furigana.textStyle,
-        x: x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2,
+        x: Math.round(x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2),
         y: furiganaYOffset,
       };
 
@@ -118,7 +118,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
     lineMaxHeight = Math.max(lineMaxHeight, measurementsWithNoWrapping.height);
 
     // Update horizontal position and track max width
-    x += measurements.lineWidths[0];
+    x += Math.round(measurements.lineWidths[0]);
     maxTotalWidth = Math.max(maxTotalWidth, x);
 
     // Handle remaining text
