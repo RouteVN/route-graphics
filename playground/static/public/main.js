@@ -8,7 +8,7 @@ import createRouteGraphics, {
     textRevealingPlugin,
     tweenPlugin,
     soundPlugin
-} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.8/+esm'
+} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.11/+esm'
 
 import jsYaml from 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm'
 
