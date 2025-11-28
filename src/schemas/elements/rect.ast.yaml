@@ -79,3 +79,18 @@ properties:
       actionPayload:
         type: object
         description: Payload for click action event
+  drop:
+    type: object
+    properties:
+      down:
+        actionPayload:
+          type: object
+          description: Payload for click action event
+      up:
+        actionPayload:
+          type: object
+          description: Payload for click action event
+      move:
+        actionPayload:
+          type: object
+          description: Payload for click action event

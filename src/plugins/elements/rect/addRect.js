@@ -59,6 +59,7 @@ export const addRect = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
+  const dragEvent = element.drag;
 
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -110,6 +111,47 @@ export const addRect = async ({
     };
 
     rect.on("pointerup", releaseListener);
+  }
+
+  if(dragEvent){
+    const { down, up, move } = dragEvent;
+
+    const downListener = () =>{
+      if(down?.actionPayload && eventHandler){
+        eventHandler("drag-down",{
+          _event:{
+            id: rect.label,
+          },
+          ...down?.actionPayload,
+        })
+      }
+    }
+
+    const upListener = () =>{
+      if(up?.actionPayload && eventHandler){
+        eventHandler("drag-up",{
+          _event:{
+            id: rect.label,
+          },
+          ...up?.actionPayload,
+        })
+      }
+    }
+
+    const moveListener = () =>{
+      if(move?.actionPayload && eventHandler){
+        eventHandler("drag-move",{
+          _event:{
+            id: rect.label,
+          },
+          ...move?.actionPayload,
+        })
+      }
+    }
+
+    rect.on("pointerup",downListener);
+    rect.on("pointerdown",upListener);
+    rect.on("pointermove",moveListener);
   }
 
   parent.addChild(rect);

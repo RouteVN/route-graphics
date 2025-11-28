@@ -47,9 +47,12 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");
+      rectElement.removeAllListeners("pointerdown");
+      rectElement.removeAllListeners("pointermove");
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
+      const dragEvents = nextElement?.drag;
 
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -101,6 +104,47 @@ export const updateRect = async ({
         };
 
         rectElement.on("pointerup", clickListener);
+      }
+
+      if(dragEvents){
+        const { down, up, move } = dragEvent;
+
+        const downListener = () =>{
+          if(down?.actionPayload && eventHandler){
+            eventHandler("drag-down",{
+              _event:{
+                id: rectElement.label,
+              },
+              ...down?.actionPayload,
+            })
+          }
+        }
+
+        const upListener = () =>{
+          if(up?.actionPayload && eventHandler){
+            eventHandler("drag-up",{
+              _event:{
+                id: rectElement.label,
+              },
+              ...up?.actionPayload,
+            })
+          }
+        }
+
+        const moveListener = () =>{
+          if(move?.actionPayload && eventHandler){
+            eventHandler("drag-move",{
+              _event:{
+                id: rectElement.label,
+              },
+              ...move?.actionPayload,
+            })
+          }
+        }
+
+        rectElement.on("pointerup",downListener);
+        rectElement.on("pointerdown",upListener);
+        rectElement.on("pointermove",moveListener);
       }
     }
   };
