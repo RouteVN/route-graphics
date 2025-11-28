@@ -118,7 +118,7 @@ export const updateRect = async ({
               _event: {
                 id: rectElement.label,
               },
-              ...(start?.actionPayload ? start.actionPayload : {}),
+              ...(typeof start?.actionPayload === "object" ? start.actionPayload : {}),
             });
           }
         };
@@ -130,7 +130,7 @@ export const updateRect = async ({
               _event: {
                 id: rectElement.label,
               },
-              ...(end?.actionPayload ? end.actionPayload : {}),
+              ...(typeof end?.actionPayload === "object" ? end.actionPayload : {}),
             });
           }
         };
@@ -143,7 +143,7 @@ export const updateRect = async ({
                 x: e.global.x,
                 y: e.global.y,
               },
-              ...(move?.actionPayload ? move.actionPayload : {}),
+              ...(typeof move?.actionPayload === "object" ? move.actionPayload : {}),
             });
           }
         };

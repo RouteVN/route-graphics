@@ -125,7 +125,7 @@ export const addRect = async ({
           _event: {
             id: rect.label,
           },
-          ...(start?.actionPayload ? start.actionPayload : {}),
+          ...(typeof start?.actionPayload === "object" ? start.actionPayload : {}),
         });
       }
     };
@@ -137,7 +137,7 @@ export const addRect = async ({
           _event: {
             id: rect.label,
           },
-          ...(end?.actionPayload ? end.actionPayload : {}),
+          ...(typeof end?.actionPayload === "object" ? end.actionPayload : {}),
         });
       }
     };
@@ -150,7 +150,7 @@ export const addRect = async ({
             x: e.global.x,
             y: e.global.y,
           },
-          ...(move?.actionPayload ? move.actionPayload : {}),
+          ...(typeof move?.actionPayload === "object" ? move.actionPayload : {}),
         });
       }
     };
