@@ -1,6 +1,6 @@
 import { Sprite, Text, TextStyle, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
-import cancellableTimeout from "../../../util/cancalleableTimeout";
+import abortableSleep from "../../../util/abortableSleep";
 
 /**
  * Simple render function for text-revealing elements
@@ -116,9 +116,10 @@ export const updateTextRevealing = async (params) => {
             if (charIndex < fullText.length - 1) {
               // Don't wait after last character
               try {
-                await cancellableTimeout(charDelay, signal);
-              } catch {
-                return;
+                await abortableSleep(charDelay, signal);
+              } catch (err) {
+                if (err.name === "AbortError") return;
+                throw err;
               }
             }
           }
@@ -128,9 +129,10 @@ export const updateTextRevealing = async (params) => {
       // Wait before processing next chunk (except for the last chunk)
       if (chunkIndex < element.content.length - 1) {
         try {
-          await cancellableTimeout(chunkDelay, signal);
+          await abortableSleep(chunkDelay, signal);
         } catch {
-          return;
+          if (err.name === "AbortError") return;
+          throw err;
         }
       }
     }
