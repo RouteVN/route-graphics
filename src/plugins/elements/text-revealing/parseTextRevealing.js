@@ -107,7 +107,9 @@ const createTextChunks = (segments, wordWrapWidth) => {
       const furiganaPart = {
         text: segment.furigana.text,
         textStyle: segment.furigana.textStyle,
-        x: Math.round(x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2),
+        x: Math.round(
+          x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2,
+        ),
         y: furiganaYOffset,
       };
 

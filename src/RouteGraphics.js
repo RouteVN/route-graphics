@@ -420,27 +420,6 @@ const createRouteGraphics = () => {
       app.renderer.background.color = color;
     },
 
-    getStageElementBounds: () => {
-      const items = {};
-      const iterate = (children) => {
-        if (!children || children.length === 0) {
-          return;
-        }
-        for (const item of children) {
-          items[item.label] = {
-            x: item.groupTransform.tx,
-            y: item.groupTransform.ty,
-            width: item.width,
-            height: item.height,
-          };
-
-          iterate(item.children);
-        }
-      };
-      iterate(app.stage.children);
-      return items;
-    },
-
     /**
      *
      * @param {RouteGraphicsState} stateParam
@@ -452,6 +431,19 @@ const createRouteGraphics = () => {
       });
       const parsedState = { ...stateParam, elements: parsedElements };
       renderInternal(app, app.stage, parsedState, eventHandler);
+    },
+
+    /**
+     * Parse elements from state object using registered parser plugins
+     * @param {RouteGraphicsState} stateParam - The state object containing element definitions
+     */
+    parse: (stateParam) => {
+      const parsedElements = parseElements({
+        JSONObject: stateParam.elements,
+        parserPlugins: plugins.parsers,
+      });
+      const parsedState = { ...stateParam, elements: parsedElements };
+      return parsedState;
     },
   };
 
