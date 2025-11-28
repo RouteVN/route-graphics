@@ -59,7 +59,7 @@ export const addRect = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
-  const dragEvent = element.drag;
+  const dragEvent = element?.drag;
 
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -113,45 +113,55 @@ export const addRect = async ({
     rect.on("pointerup", releaseListener);
   }
 
-  if(dragEvent){
+  if (dragEvent) {
     const { down, up, move } = dragEvent;
+    let isDragging = false;
+    rect.eventMode = "static";
 
-    const downListener = () =>{
-      if(down?.actionPayload && eventHandler){
-        eventHandler("drag-down",{
-          _event:{
+    const downListener = (e) => {
+      if (down?.actionPayload && eventHandler) {
+        isDragging = true;
+        eventHandler("drag-start", {
+          _event: {
             id: rect.label,
+            x: e.global.x,
+            y: e.global.y,
           },
           ...down?.actionPayload,
-        })
+        });
       }
-    }
+    };
 
-    const upListener = () =>{
-      if(up?.actionPayload && eventHandler){
-        eventHandler("drag-up",{
-          _event:{
+    const upListener = (e) => {
+      if (up?.actionPayload && eventHandler) {
+        isDragging = false;
+        eventHandler("drag-end", {
+          _event: {
             id: rect.label,
+            x: e.global.x,
+            y: e.global.y,
           },
           ...up?.actionPayload,
-        })
+        });
       }
-    }
+    };
 
-    const moveListener = () =>{
-      if(move?.actionPayload && eventHandler){
-        eventHandler("drag-move",{
-          _event:{
+    const moveListener = (e) => {
+      if (move?.actionPayload && eventHandler && isDragging) {
+        eventHandler("drag-move", {
+          _event: {
             id: rect.label,
+            x: e.global.x,
+            y: e.global.y,
           },
           ...move?.actionPayload,
-        })
+        });
       }
-    }
+    };
 
-    rect.on("pointerup",downListener);
-    rect.on("pointerdown",upListener);
-    rect.on("pointermove",moveListener);
+    rect.on("pointerdown", downListener);
+    rect.on("pointerup", upListener);
+    rect.on("pointermove", moveListener);
   }
 
   parent.addChild(rect);

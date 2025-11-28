@@ -23,3 +23,51 @@ properties:
           id:
             type: string
             description: The ID of the element that was hovered
+  drag-start:
+    type: object
+    description: This event type is called "drag-start" and will be invoked when the pointer is press-downed on an element.
+    properties:
+      _event: 
+        type: object
+        properties:
+          id: 
+            type: string
+            description: The ID of the element that was hovered
+          x:
+            type: number
+            description: The x coordinate of the pointer
+          y:
+            type: number
+            description: The y coordinate of the pointer
+  drag-move:
+    type: object
+    description: This event type is called "drag-move" and will be invoked when the pointer is press-downed and the pointer is moving in an element.
+    properties:
+      _event: 
+        type: object
+        properties:
+          id: 
+            type: string
+            description: The ID of the element that was hovered
+          x:
+            type: number
+            description: The x coordinate of the pointer
+          y:
+            type: number
+            description: The y coordinate of the pointer
+  drag-end:
+    type: object
+    description: This event type is called "drag-end" and will be invoked when the pointer is released after it is press-downed on an element.
+    properties:
+      _event: 
+        type: object
+        properties:
+          id: 
+            type: string
+            description: The ID of the element that was hovered
+          x:
+            type: number
+            description: The x coordinate of the pointer
+          y:
+            type: number
+            description: The y coordinate of the pointer

@@ -79,7 +79,7 @@ properties:
       actionPayload:
         type: object
         description: Payload for click action event
-  drop:
+  drag:
     type: object
     properties:
       down:

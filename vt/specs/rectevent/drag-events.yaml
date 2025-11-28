@@ -1,0 +1,28 @@
+---
+title: Rect Drag Events
+description: Test drag events on rect elements
+specs:
+  - "rect should send actionPayload on drag.down"
+  - "rect should send actionPayload on drag.move"
+  - "rect should send actionPayload on drag.up"
+---
+states:
+  - elements:
+      - id: 'rect-draggable'
+        type: "rect"
+        x: 200
+        y: 150
+        width: 200
+        height: 100
+        fill: "blue"
+        cursor: "pointer"
+        drag:
+          down:
+            actionPayload:
+              action: "drag-start"
+          move:
+            actionPayload:
+              action: "drag-move"
+          up:
+            actionPayload:
+              action: "drag-end"
