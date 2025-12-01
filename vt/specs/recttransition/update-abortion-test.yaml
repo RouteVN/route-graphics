@@ -7,11 +7,11 @@ specs:
   - "element position differs from animation end position"
 steps:
   - keypress n
-  - wait 1200     
+  - customEvent snapShotKeyFrame deltaMS=1200
   - screenshot
-  - keypress n      
+  - keypress n
   - screenshot
-  - wait 2000      
+  - customEvent snapShotKeyFrame deltaMS=2000
   - screenshot       
 ---
 states:

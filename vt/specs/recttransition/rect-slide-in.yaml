@@ -7,9 +7,9 @@ specs:
   - "rect uses initialValue to override starting position"
 steps:
   - keypress n
-  - wait 500
+  - customEvent snapShotKeyFrame deltaMS=500
   - screenshot
-  - wait 1000
+  - customEvent snapShotKeyFrame deltaMS=1500
   - screenshot
 ---
 states:

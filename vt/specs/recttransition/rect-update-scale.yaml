@@ -7,9 +7,9 @@ specs:
   - "uses scaleX and scaleY properties"
 steps:
   - keypress n
-  - wait 400
+  - customEvent snapShotKeyFrame deltaMS=400
   - screenshot
-  - wait 400
+  - customEvent snapShotKeyFrame deltaMS=800
   - screenshot
 ---
 states:

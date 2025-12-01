@@ -233,6 +233,14 @@ export const animate = async ({ app, element, animation, signal }) => {
       return;
     }
 
-    app.ticker.add(effect);
-  });
+    // This is for testing purposes with rtgl vt
+    if(!app.skipAnimation)
+      app.ticker.add(effect);
+    else{
+      window.addEventListener("snapShotKeyFrame",(payload)=>{
+        console.log("Skip animation ",payload)
+        effect(payload.deltaMS)
+      })
+    }
+    });
 };

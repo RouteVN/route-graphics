@@ -7,9 +7,9 @@ specs:
   - "both animations should complete in 1 second"
 steps:
   - keypress n
-  - wait 500
+  - customEvent snapShotKeyFrame deltaMS=500
   - screenshot
-  - wait 500
+  - customEvent snapShotKeyFrame deltaMS=1000
   - screenshot
 ---
 states:

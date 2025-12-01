@@ -7,7 +7,7 @@ specs:
   - "new element added in third state"
 steps:
   - keypress n
-  - wait 1500           
+  - customEvent snapShotKeyFrame deltaMS=1500           
   - screenshot
   - keypress n          
   - screenshot         

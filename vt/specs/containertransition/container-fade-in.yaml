@@ -42,10 +42,17 @@ states:
       - id: 'container-fade-in'
         targetId: 'container1'
         type: tween
+        test: true
+        jumpTo:
+          - wait: 1000 # default 1 seconds, can change
+            at: 500
         properties:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 1000
+                value: 0.5
+                easing: linear
+              - duration: 500
                 value: 1
                 easing: linear
