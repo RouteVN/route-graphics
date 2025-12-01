@@ -6,11 +6,11 @@ specs:
   - "abortion callback should be testable during deletion"
   - "new element added in third state"
 steps:
-  # - keypress n
-  # - wait 1500           
-  # - screenshot
-  # - keypress n          
-  # - screenshot         
+  - keypress n
+  - wait 1500           
+  - screenshot
+  - keypress n          
+  - screenshot         
 ---
 states:
   - elements:
