@@ -11,8 +11,9 @@ steps:
   - screenshot
   - keypress n
   - screenshot
-  - customEvent snapShotKeyFrame deltaMS=2000
+  - customEvent snapShotKeyFrame deltaMS=800
   - screenshot        
+  - customEvent snapShotKeyFrame deltaMS=1500
 ---
 states:
   - elements: []

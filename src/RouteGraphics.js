@@ -284,7 +284,7 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
-        skipAnimation,
+        skipAnimation = false,
       } = options;
 
       const parserPlugins = [];

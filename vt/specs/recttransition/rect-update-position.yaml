@@ -6,9 +6,8 @@ specs:
   - "animation should take 1 second"
   - "rect should remain visible throughout"
 steps:
-  - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
-  - customEvent snapShotKeyFrame deltaMS=1500
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=1000
   - screenshot
   - keypress n
   - customEvent snapShotKeyFrame deltaMS=250

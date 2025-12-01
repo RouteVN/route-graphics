@@ -9,7 +9,7 @@ steps:
   - keypress n
   - customEvent snapShotKeyFrame deltaMS=400
   - screenshot
-  - customEvent snapShotKeyFrame deltaMS=800
+  - customEvent snapShotKeyFrame deltaMS=400
   - screenshot
 ---
 states:

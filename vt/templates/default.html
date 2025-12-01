@@ -76,6 +76,7 @@
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
+            skipAnimation: true,
         })
         document.body.appendChild(app.canvas);
         let index = 0
@@ -84,7 +85,6 @@
             elements: states[index].elements ?? [],
             animations: states[index].animations ?? [], 
             audio: states[index].audio ?? [],
-            skipAnimation: true,
             global: {}
         })
 
