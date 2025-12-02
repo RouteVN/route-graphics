@@ -17,6 +17,9 @@ jobs:
       # Install dependencies from root
       - name: Install Dependencies
         run: bun install --frozen-lockfile
+      
+      - name: Install rtgl
+        run: bun install rtgl
 
       - name: Lint
         run: bun run lint
