@@ -235,7 +235,7 @@ export const animate = async ({ app, element, animation, signal }) => {
     }
 
     // This is for testing purposes with rtgl vt
-    if (!app.skipAnimation) app.ticker.add(effect);
+    if (app.useCustomTicker === false) app.ticker.add(effect);
     else {
       window.addEventListener("snapShotKeyFrame", (event) => {
         if (event?.detail?.deltaMS)
