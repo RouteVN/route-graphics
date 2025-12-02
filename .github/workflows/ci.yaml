@@ -20,3 +20,6 @@ jobs:
 
       - name: Lint
         run: bun run lint
+      
+      - name: Run vt:report
+        run: bun run vt:report
