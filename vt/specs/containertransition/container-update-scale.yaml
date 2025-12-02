@@ -6,11 +6,11 @@ specs:
   - "children should scale with container"
   - "animation should take 1 second"
 steps:
-  # - keypress n
-  # - wait 500
-  # - screenshot
-  # - wait 500
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
 ---
 states:
   - elements:
@@ -25,8 +25,8 @@ states:
         children:
           - id: 'text1'
             type: "text"
-            text: "Scaling"
-            style:
+            content: "Scaling"
+            textStyle:
               fontSize: 20
               fill: "#ffffff"
           - id: 'rect1'
@@ -46,8 +46,8 @@ states:
         children:
           - id: 'text1'
             type: "text"
-            text: "Scaling"
-            style:
+            content: "Scaling"
+            textStyle:
               fontSize: 20
               fill: "#ffffff"
           - id: 'rect1'

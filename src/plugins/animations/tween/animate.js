@@ -239,7 +239,6 @@ export const animate = async ({ app, element, animation, signal }) => {
       app.ticker.add(effect);
     else{
       window.addEventListener("snapShotKeyFrame",(event)=>{
-        console.log("Skip animation ",event.detail)
         if(event?.detail?.deltaMS)effect({ deltaMS: Number(event.detail.deltaMS) })
       })
     }

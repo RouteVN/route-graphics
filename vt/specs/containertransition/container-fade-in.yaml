@@ -6,11 +6,11 @@ specs:
   - "all children should fade in with container"
   - "animation should take 1 second"
 steps:
-  # - keypress n
-  # - wait 500
-  # - screenshot
-  # - wait 500
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1000
+  - screenshot
 ---
 states:
   - elements: []
@@ -43,9 +43,6 @@ states:
         targetId: 'container1'
         type: tween
         test: true
-        jumpTo:
-          - wait: 1000 # default 1 seconds, can change
-            at: 500
         properties:
           alpha:
             initialValue: 0

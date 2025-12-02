@@ -6,11 +6,11 @@ specs:
   - "all children should move with container"
   - "animation should take 1.2 seconds"
 steps:
-  # - keypress n
-  # - wait 600
-  # - screenshot
-  # - wait 600
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=600
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=600
+  - screenshot
 ---
 states:
   - elements: []
@@ -24,20 +24,20 @@ states:
         children:
           - id: 'text1'
             type: "text"
-            text: "Item 1"
-            style:
+            content: "Item 1"
+            textStyle:
               fontSize: 24
               fill: "#ffffff"
           - id: 'text2'
             type: "text"
-            text: "Item 2"
-            style:
+            content: "Item 2"
+            textStyle:
               fontSize: 24
               fill: "#ffffff"
           - id: 'text3'
             type: "text"
-            text: "Item 3"
-            style:
+            content: "Item 3"
+            textStyle:
               fontSize: 24
               fill: "#ffffff"
     animations:

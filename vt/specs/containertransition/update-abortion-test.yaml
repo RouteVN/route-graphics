@@ -6,11 +6,11 @@ specs:
   - "abortion callback should be testable during update"
   - "element position differs from animation end position"
 steps:
-  # - keypress n
-  # - wait 600
-  # - screenshot
-  # - keypress n
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=600
+  - screenshot
+  - keypress n
+  - screenshot
 ---
 states:
   - elements:
