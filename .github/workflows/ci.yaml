@@ -34,17 +34,14 @@ jobs:
         run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
 
       - name: Install linux runtime
-        run: bun install --platform=linux --arch=x64 sharp
+        run: npm install --platform=linux --arch=x64 sharp
       
       # Install dependencies from root
       - name: Install Dependencies
         run: bun install --frozen-lockfile
-
-        
       
       - name: Install rtgl
-        run: bun install -g rtgl
-      
+        run: npm install -g rtgl
 
       - name: Run vt:report
         run: bun run vt:report
