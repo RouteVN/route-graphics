@@ -17,15 +17,9 @@ jobs:
       # Install dependencies from root
       - name: Install Dependencies
         run: bun install --frozen-lockfile
-      
-      - name: Install rtgl
-        run: bun install -g rtgl
 
       - name: Lint
         run: bun run lint
-      
-      - name: Run vt:report
-        run: bun run vt:report
   visualTest:
     runs-on: ubuntu-latest
     steps:
