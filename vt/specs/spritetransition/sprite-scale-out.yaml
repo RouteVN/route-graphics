@@ -6,11 +6,11 @@ specs:
   - "sprite should shrink to center"
   - "animation should take 800ms"
 steps:
-  # - keypress n
-  # - wait 400
-  # - screenshot
-  # - wait 400
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
 ---
 states:
   - elements:

@@ -218,6 +218,7 @@ export const animate = async ({ app, element, animation, signal }) => {
 
       if (currentTimeDelta >= maxDuration) {
         app.ticker.remove(effect);
+        applyAnimationState(maxDuration);
         resolve();
         return;
       }
@@ -233,6 +234,13 @@ export const animate = async ({ app, element, animation, signal }) => {
       return;
     }
 
-    app.ticker.add(effect);
+    // This is for testing purposes with rtgl vt
+    if (app.useCustomTicker === false) app.ticker.add(effect);
+    else {
+      window.addEventListener("snapShotKeyFrame", (event) => {
+        if (event?.detail?.deltaMS)
+          effect({ deltaMS: Number(event.detail.deltaMS) });
+      });
+    }
   });
 };

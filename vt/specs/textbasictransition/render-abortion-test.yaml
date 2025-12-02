@@ -6,13 +6,14 @@ specs:
   - "abortion callback should be testable during render"
   - "element props differ from animation final state"
 steps:
-  # - keypress n
-  # - wait 1200 
-  # - screenshot
-  # - keypress n 
-  # - screenshot
-  # - wait 2000 
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=1200 
+  - screenshot
+  - keypress n 
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1200 
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=800 
 ---
 states:
   - elements: []
@@ -22,10 +23,10 @@ states:
         x: 100
         y: 100
         content: "Render Test"
-        textSyle:
+        textStyle:
           fontFamily: "Arial"
           fontSize: 32
-          fill: "#3498db"
+          fill: "white"
         alpha: 1
     animations:
       - id: 'text-render-abortion'
@@ -50,25 +51,16 @@ states:
               - duration: 1000
                 value: 200
                 easing: linear
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 0.5
-                easing: linear
-              - duration: 1000
-                value: 1
-                easing: linear
   - elements:
       - id: 'text-render-test'
         type: "text"
         x: 400
         y: 300
         content: "Continued Render"
-        textSyle:
+        textStyle:
           fontFamily: "Arial"
           fontSize: 48
-          fill: "#e74c3c"
+          fill: "white"
         alpha: 1
     animations:
       - id: 'text-render-abortion-2'

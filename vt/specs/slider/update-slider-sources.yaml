@@ -7,14 +7,12 @@ specs:
   - "slider should maintain position after source changes"
   - "slider should support switching between different asset types"
 steps:
-  # - keypress n
-  # - screenshot
-  # - keypress b
-  # - screenshot
-  # - keypress v
-  # - screenshot
-  # - keypress c
-  # - screenshot
+  - keypress n
+  - screenshot
+  - keypress n
+  - screenshot
+  - keypress n
+  - screenshot
 ---
 states:
   - elements:

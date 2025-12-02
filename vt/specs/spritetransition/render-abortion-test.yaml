@@ -6,13 +6,15 @@ specs:
   - "abortion callback should be testable during render"
   - "element props differ from animation final state"
 steps:
-  # - keypress n
-  # - wait 1200   
-  # - screenshot
-  # - keypress n      
-  # - screenshot
-  # - wait 2000      
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=1200   
+  - screenshot
+  - keypress n      
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1200      
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1200    
+  - screenshot
 ---
 states:
   - elements: []

@@ -6,11 +6,11 @@ specs:
   - "sprite should appear to grow from center"
   - "animation should take 1.2 seconds"
 steps:
-  # - keypress n
-  # - wait 600
-  # - screenshot
-  # - wait 600
-  # - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=600
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=600
+  - screenshot
 ---
 states:
   - elements: []
