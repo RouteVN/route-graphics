@@ -109,7 +109,7 @@ const createRouteGraphics = () => {
   let plugins = {
     animations: [],
     elements: [],
-    audios: [],
+    audio: [],
     parsers: [],
   };
 
@@ -233,7 +233,7 @@ const createRouteGraphics = () => {
       app: appInstance,
       prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
-      audioPlugins: plugins.audios,
+      audioPlugins: plugins.audio,
       signal,
     });
     isProcessingRender = false;
@@ -299,7 +299,7 @@ const createRouteGraphics = () => {
       plugins = {
         animations: pluginConfig.animations ?? [],
         elements: pluginConfig.elements ?? [],
-        audios: pluginConfig.audios ?? [],
+        audio: pluginConfig.audio ?? [],
         parsers: parserPlugins,
       };
       eventHandler = handler;
