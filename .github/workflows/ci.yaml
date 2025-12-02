@@ -1,4 +1,4 @@
-name: Lint
+name: CI/CD
 on:
   pull_request:
   workflow_dispatch:
@@ -19,7 +19,7 @@ jobs:
         run: bun install --frozen-lockfile
       
       - name: Install rtgl
-        run: bun install rtgl
+        run: bun install -g rtgl
 
       - name: Lint
         run: bun run lint
