@@ -41,7 +41,7 @@ jobs:
         run: npm install --platform=linux --arch=x64 sharp
 
       - name: Install Playwright browsers
-        run: bunx playwright install --with-deps
+        run:  npx playwright install
 
       - name: Install rtgl
         run: npm install -g rtgl
