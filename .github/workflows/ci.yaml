@@ -26,3 +26,28 @@ jobs:
       
       - name: Run vt:report
         run: bun run vt:report
+  visualTest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Bun
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.2
+
+      # Install dependencies from root
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+      
+      - name: Install rtgl
+        run: bun install -g rtgl
+      
+      - name: Install linux runtime
+        run: npm install --platform=linux --arch=x64 sharp
+      
+      - name: Install linux runtime
+        run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp"
+
+      - name: Run vt:report
+        run: bun run vt:report
