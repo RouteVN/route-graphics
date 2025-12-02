@@ -29,18 +29,20 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.2
-      
+
       # Install dependencies from root
       - name: Install Dependencies
         run: bun install --frozen-lockfile
-      
+
       - name: Install verbose logging
         run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
 
       - name: Install linux runtime
         run: npm install --platform=linux --arch=x64 sharp
-      
-      
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Install rtgl
         run: npm install -g rtgl
 
