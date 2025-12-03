@@ -99,7 +99,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       currentColHeight = child.y + child.height;
       containerWidth = Math.max(child.width + child.x, containerWidth);
       containerHeight = Math.max(currentY, containerHeight);
-    } else{
+    } else {
       containerWidth = Math.max(child.width + child.x, containerWidth);
       containerHeight = Math.max(child.height + child.y, containerHeight);
     }
