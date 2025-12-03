@@ -24,9 +24,6 @@ in:
         color: blue
         alpha: 0.25
       cursor: pointer
-      pointerDown: "pointerDown-123"
-      pointerUp: "pointerUp-123"
-      pointerMove: "pointerMove-123"
       rotation: 90
 out:
   id: "rect-1"
@@ -43,9 +40,6 @@ out:
     color: blue
     alpha: 0.25
   cursor: pointer
-  pointerDown: "pointerDown-123"
-  pointerUp: "pointerUp-123"
-  pointerMove: "pointerMove-123"
   rotation: 90
   alpha: 1
 ---
@@ -64,9 +58,6 @@ in:
       anchorY: 0.5
       fill: red
       cursor: pointer
-      pointerDown: "pointerDown-123"
-      pointerUp: "pointerUp-123"
-      pointerMove: "pointerMove-123"
       rotation: 90
 out:
   id: "rect-1"
@@ -79,9 +70,6 @@ out:
   originY: 40
   fill: red
   cursor: pointer
-  pointerDown: "pointerDown-123"
-  pointerUp: "pointerUp-123"
-  pointerMove: "pointerMove-123"
   rotation: 90
   alpha: 1
 ---
@@ -102,9 +90,6 @@ in:
         alpha: 0.8
       fill: red
       cursor: pointer
-      pointerDown: "pointerDown-123"
-      pointerUp: "pointerUp-123"
-      pointerMove: "pointerMove-123"
       rotation: 90
 out:
   id: "rect-1"
@@ -121,9 +106,6 @@ out:
     color: black
   fill: red
   cursor: pointer
-  pointerDown: "pointerDown-123"
-  pointerUp: "pointerUp-123"
-  pointerMove: "pointerMove-123"
   rotation: 90
   alpha: 1
 ---
@@ -157,8 +139,5 @@ out:
     color: black
   fill: white
   cursor: ""
-  pointerDown: ""
-  pointerUp: ""
-  pointerMove: ""
   rotation: 0
   alpha: 1

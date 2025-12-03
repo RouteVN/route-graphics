@@ -67,9 +67,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-2'
@@ -82,9 +79,6 @@ out:
       originY: 0
       fill: blue
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-3'
@@ -97,9 +91,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
 ---
@@ -165,9 +156,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-2'
@@ -180,9 +168,6 @@ out:
       originY: 0
       fill: blue
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-3'
@@ -195,9 +180,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
 ---
@@ -256,9 +238,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-2'
@@ -271,9 +250,6 @@ out:
       originY: 0
       fill: blue
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
 ---
@@ -340,9 +316,6 @@ out:
       originY: 0
       fill: red
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-2'
@@ -355,9 +328,6 @@ out:
       originY: 0
       fill: blue
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
     - id: 'rect-3'
@@ -370,9 +340,6 @@ out:
       originY: 0
       fill: blue
       cursor: ""
-      pointerDown: ""
-      pointerUp: ""
-      pointerMove: ""
       rotation: 90
       alpha: 1
 ---
@@ -403,3 +370,70 @@ out:
   rotation: 90
   alpha: 1
   children: []
+---
+case: Test parsing container with anchor but no width or height
+in:
+  - state:
+      id: outer-container
+      type: container
+      x: 0
+      "y": 0
+      children:
+        - type: container
+          id: inner-container
+          x: 300
+          "y": 100
+          anchorX: 0.5
+          anchorY: 1
+          rotation: 0
+          scaleX: 1
+          scaleY: 1
+          children:
+            - type: rect
+              id: reactid
+              fill: red
+              width: 100
+              height: 100
+              x: 0
+              "y": 0
+out:
+  id: "outer-container"
+  type: "container"
+  direction: ""
+  alpha: 1
+  gap: 0
+  height: 100
+  originX: 0
+  originY: 0
+  rotation: 0
+  scroll: false
+  width: 350
+  x: 0
+  y: 0
+  children:
+    - id: inner-container
+      type: container
+      direction: ""
+      height: 100
+      width: 100
+      x: 250
+      y: 0
+      originX: 50
+      originY: 100
+      scroll: false
+      rotation: 0
+      gap: 0
+      alpha: 1
+      children: 
+        - id: "reactid"
+          type: "rect"
+          alpha: 1
+          cursor: ""
+          fill: red
+          height: 100
+          width: 100
+          originX: 0
+          originY: 0
+          rotation: 0
+          x: 0
+          y: 0
