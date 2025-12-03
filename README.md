@@ -902,7 +902,7 @@ src: hero-sprite
 
 #### Supported Asset Types
 
-- **Images**: PNG, JPG, JPEG, WebP, GIF
+- **Images**: PNG, JPG, JPEG, WebP
 - **Audio**: MP3, WAV, OGG
 - **Fonts**: TTF, OTF, WOFF
 
