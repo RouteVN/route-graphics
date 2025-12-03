@@ -1,6 +1,6 @@
 ---
 title: Rename audios to audio
-status: todo
+status: done
 priority: low
 ---
 
