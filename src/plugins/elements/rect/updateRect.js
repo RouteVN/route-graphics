@@ -49,6 +49,7 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerup");
       rectElement.removeAllListeners("pointerdown");
       rectElement.removeAllListeners("pointermove");
+      rectElement.removeAllListeners("pointerupoutside");
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
@@ -111,7 +112,7 @@ export const updateRect = async ({
         let isDragging = false;
         rectElement.eventMode = "static";
 
-        const downListener = (e) => {
+        const downListener = () => {
           isDragging = true;
           if (start && eventHandler) {
             eventHandler("drag-start", {
@@ -125,7 +126,7 @@ export const updateRect = async ({
           }
         };
 
-        const upListener = (e) => {
+        const upListener = () => {
           isDragging = false;
           if (end && eventHandler) {
             eventHandler("drag-end", {
@@ -157,6 +158,7 @@ export const updateRect = async ({
         rectElement.on("pointerdown", downListener);
         rectElement.on("pointerup", upListener);
         rectElement.on("pointermove", moveListener);
+        rectElement.on("pointerupoutside",upListener);
       }
     }
   };
