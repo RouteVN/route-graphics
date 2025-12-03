@@ -115,11 +115,10 @@ export const addRect = async ({
 
   if (dragEvent) {
     const { start, end, move } = dragEvent;
-    let isDragging = false;
     rect.eventMode = "static";
 
     const downListener = () => {
-      isDragging = true;
+      rect._isDragging = true;
       if (start && eventHandler) {
         eventHandler("drag-start", {
           _event: {
@@ -133,7 +132,7 @@ export const addRect = async ({
     };
 
     const upListener = () => {
-      isDragging = false;
+      rect._isDragging = false;
       if (end && eventHandler) {
         eventHandler("drag-end", {
           _event: {
@@ -145,7 +144,7 @@ export const addRect = async ({
     };
 
     const moveListener = (e) => {
-      if (move && eventHandler && isDragging) {
+      if (move && eventHandler && rect._isDragging) {
         eventHandler("drag-move", {
           _event: {
             id: rect.label,
@@ -161,8 +160,8 @@ export const addRect = async ({
 
     rect.on("pointerdown", downListener);
     rect.on("pointerup", upListener);
-    rect.on("pointermove", moveListener);
-    rect.on("pointerupoutside",upListener);
+    rect.on("globalpointermove", moveListener);
+    rect.on("pointerupoutside", upListener);
   }
 
   parent.addChild(rect);
