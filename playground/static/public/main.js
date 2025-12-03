@@ -133,7 +133,7 @@ const initRouteGraphics = async () => {
                     textRevealingPlugin
                 ],
                 animations: [tweenPlugin],
-                audios: [soundPlugin]
+                audio: [soundPlugin]
             },
             backgroundColor: "#1D1D1D",
             eventHandler: (eventName, payload) => {

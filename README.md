@@ -97,7 +97,7 @@ await app.init({
     animations: [
       tweenPlugin
     ],
-    audios: [
+    audio: [
       soundPlugin
     ],
   },
@@ -727,7 +727,7 @@ await app.init({
       customPlugin
     ],
     animations: [/* ... */],
-    audios: [/* ... */]
+    audio: [/* ... */]
   }
 });
 ```
