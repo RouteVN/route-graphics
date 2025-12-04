@@ -8,6 +8,7 @@ on:
     branches: ["main"]
     paths:
       - "playground/**"
+      - "tasks/**"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -32,7 +33,6 @@ jobs:
         with:
           lfs: true
 
-
       # Setup Bun
       - uses: oven-sh/setup-bun@v2
         with:
@@ -42,15 +42,26 @@ jobs:
       - name: Install rtgl CLI
         run: npm i -g rtgl
 
+      # Install rtgl CLI globally
+      - name: Install kanbatte CLI
+        run: npm i -g kanbatte
+
+      - name: Kanbatte build
+        run: kanbatte task build
+
       - name: Build
         working-directory: ./playground
         run: rtgl sites build
+
+      - name: Build
+        working-directory: ./playground
+        run: cp -rf _site/* ../_site
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: ./playground/_site/
+          path: ./_site/
 
   deploy:
     needs: build
@@ -75,3 +86,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+

@@ -2,7 +2,8 @@
 title: Error during animations for nested elements
 status: done
 priority: high
-labels: bug
+labels:
+  - bug
 ---
 
 # Description
