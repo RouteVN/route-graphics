@@ -48,7 +48,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  revealEffect: none #Change this to typewriter when we update vt test 
+  revealEffect: typewriter 
   textStyle:
     strokeColor: "transparent"
     strokeWidth: 0
@@ -155,7 +155,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  revealEffect: none #Change this to typewriter when we update vt test 
+  revealEffect: typewriter 
   textStyle:
     strokeColor: "transparent"
     strokeWidth: 0
@@ -262,7 +262,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  revealEffect: none #Change this to typewriter when we update vt test 
+  revealEffect: typewriter 
   textStyle:
     fontSize: 16
     fill: "black"
@@ -322,7 +322,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  revealEffect: none #Change this to typewriter when we update vt test 
+  revealEffect: typewriter 
   indicator:
     revealing:
       src: "arrow-right"
@@ -387,7 +387,7 @@ out:
   originY: 0
   alpha: 1
   speed: 50
-  revealEffect: none #Change this to typewriter when we update vt test 
+  revealEffect: typewriter 
   indicator:
     revealing:
       height: 12
