@@ -37,9 +37,6 @@ jobs:
       - name: Install verbose logging
         run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
 
-      - name: Install linux runtime
-        run: npm install --platform=linux --arch=x64 sharp
-
       - name: Install Playwright browsers
         run:  npx playwright install --with-deps
 
