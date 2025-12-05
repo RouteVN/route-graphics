@@ -39,11 +39,32 @@ export const addSprite = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
+
+  let events = {
+    isHovering: false,
+    isPressed: false,
+  }
+
+  const updateTexture = ({isHovering, isPressed}) => {
+    console.log("IsPressed: ",isPressed)
+    console.log("IsHovering: ",isHovering)
+    if (isPressed && clickEvents?.src) {
+      const clickTexture = Texture.from(clickEvents.src);
+      sprite.texture = clickTexture;
+    } else if (isHovering && hoverEvents?.src) {
+      const hoverTexture = Texture.from(hoverEvents.src);
+      sprite.texture = hoverTexture;
+    } else {
+      sprite.texture = texture;
+    }
+  };
+
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
     sprite.eventMode = "static";
 
     const overListener = () => {
+      events.isHovering = true;
       if (actionPayload && eventHandler)
         eventHandler(`hover`, {
           _event: {
@@ -58,17 +79,13 @@ export const addSprite = async ({
           url: soundSrc,
           loop: false,
         });
-      if (hoverEvents?.src) {
-        const hoverTexture = hoverEvents.src
-          ? Texture.from(hoverEvents.src)
-          : Texture.EMPTY;
-        sprite.texture = hoverTexture;
-      }
+      updateTexture(events);
     };
 
     const outListener = () => {
+      events.isHovering = false;
       sprite.cursor = "auto";
-      sprite.texture = texture;
+      updateTexture(events);
     };
 
     sprite.on("pointerover", overListener);
@@ -78,20 +95,16 @@ export const addSprite = async ({
   if (clickEvents) {
     const { soundSrc, actionPayload } = clickEvents;
     sprite.eventMode = "static";
-    let spriteBeforeClick = texture;
 
     const clickListener = (e) => {
-      if (clickEvents?.src) {
-        spriteBeforeClick = { ...e.target._texture };
-        const clickTexture = clickEvents.src
-          ? Texture.from(clickEvents.src)
-          : Texture.EMPTY;
-        sprite.texture = clickTexture;
-      }
+      events.isPressed = true;
+      updateTexture(events);
     };
 
     const releaseListener = () => {
-      sprite.texture = spriteBeforeClick;
+      events.isPressed = false;
+      updateTexture(events);
+
       if (actionPayload && eventHandler)
         eventHandler(`click`, {
           _event: {
@@ -108,7 +121,8 @@ export const addSprite = async ({
     };
 
     const outListener = () => {
-      sprite.texture = spriteBeforeClick;
+      events.isPressed = false;
+      updateTexture(events);
     };
 
     sprite.on("pointerdown", clickListener);

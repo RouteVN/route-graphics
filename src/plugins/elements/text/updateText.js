@@ -40,11 +40,29 @@ export const updateText = async ({
       const hoverEvents = nextTextASTNode?.hover;
       const clickEvents = nextTextASTNode?.click;
 
+      let events = {
+        isHovering: false,
+        isPressed: false,
+      }
+
+      const updateTextStyle = ({isHovering, isPressed}) => {
+        console.log("IsPressed: ",isPressed);
+        console.log("IsHovering: ",isHovering);
+        if (isPressed && clickEvents?.textStyle) {
+          applyTextStyle(textElement, clickEvents.textStyle);
+        } else if (isHovering && hoverEvents?.textStyle) {
+          applyTextStyle(textElement, hoverEvents.textStyle);
+        } else {
+          applyTextStyle(textElement, textASTNode.textStyle);
+        }
+      };
+
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
         textElement.eventMode = "static";
 
         const overListener = () => {
+          events.isHovering = true;
           if (actionPayload && eventHandler)
             eventHandler(`hover`, {
               _event: {
@@ -59,17 +77,13 @@ export const updateText = async ({
               url: soundSrc,
               loop: false,
             });
-          if (hoverEvents?.textStyle)
-            applyTextStyle(
-              textElement,
-              hoverEvents.textStyle,
-              nextTextASTNode.textStyle,
-            );
+          updateTextStyle(events);
         };
 
         const outListener = () => {
+          events.isHovering = false;
           textElement.cursor = "auto";
-          applyTextStyle(textElement, nextTextASTNode.textStyle);
+          updateTextStyle(events);
         };
 
         textElement.on("pointerover", overListener);
@@ -79,17 +93,15 @@ export const updateText = async ({
       if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         textElement.eventMode = "static";
-        let styleBeforeClick = nextTextASTNode.textStyle;
 
         const clickListener = (e) => {
-          if (clickEvents?.textStyle) {
-            styleBeforeClick = e.target.style;
-            applyTextStyle(textElement, clickEvents.textStyle);
-          }
+          events.isPressed = true;
+          updateTextStyle(events);
         };
 
         const releaseListener = () => {
-          applyTextStyle(textElement, styleBeforeClick);
+          events.isPressed = false;
+          updateTextStyle(events);
 
           if (actionPayload && eventHandler)
             eventHandler(`click`, {
@@ -107,7 +119,8 @@ export const updateText = async ({
         };
 
         const outListener = () => {
-          applyTextStyle(textElement, styleBeforeClick);
+          events.isPressed = false;
+          updateTextStyle();
         };
 
         textElement.on("pointerdown", clickListener);
