@@ -41,8 +41,8 @@ jobs:
         run: npm install --platform=linux --arch=x64 sharp
 
       - name: Install rtgl
-        run: bun install -g rtgl
-        
+        run: npm install -g rtgl
+
       - name: Install Playwright 1.52.0
         run: npm install -g playwright@1.52.0
 
