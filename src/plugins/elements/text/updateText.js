@@ -43,11 +43,11 @@ export const updateText = async ({
       let events = {
         isHovering: false,
         isPressed: false,
-      }
+      };
 
-      const updateTextStyle = ({isHovering, isPressed}) => {
-        console.log("IsPressed: ",isPressed);
-        console.log("IsHovering: ",isHovering);
+      const updateTextStyle = ({ isHovering, isPressed }) => {
+        console.log("IsPressed: ", isPressed);
+        console.log("IsHovering: ", isHovering);
         if (isPressed && clickEvents?.textStyle) {
           applyTextStyle(textElement, clickEvents.textStyle);
         } else if (isHovering && hoverEvents?.textStyle) {

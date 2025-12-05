@@ -43,11 +43,11 @@ export const addSprite = async ({
   let events = {
     isHovering: false,
     isPressed: false,
-  }
+  };
 
-  const updateTexture = ({isHovering, isPressed}) => {
-    console.log("IsPressed: ",isPressed)
-    console.log("IsHovering: ",isHovering)
+  const updateTexture = ({ isHovering, isPressed }) => {
+    console.log("IsPressed: ", isPressed);
+    console.log("IsHovering: ", isHovering);
     if (isPressed && clickEvents?.src) {
       const clickTexture = Texture.from(clickEvents.src);
       sprite.texture = clickTexture;

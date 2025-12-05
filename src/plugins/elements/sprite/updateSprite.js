@@ -46,11 +46,11 @@ export const updateSprite = async ({
       let events = {
         isHovering: false,
         isPressed: false,
-      }
+      };
 
-      const updateTexture = ({isHovering, isPressed}) => {
-        console.log("IsPressed: ",isPressed)
-        console.log("IsHovering: ",isHovering)
+      const updateTexture = ({ isHovering, isPressed }) => {
+        console.log("IsPressed: ", isPressed);
+        console.log("IsHovering: ", isHovering);
         if (isPressed && clickEvents?.src) {
           const clickTexture = Texture.from(clickEvents.src);
           spriteElement.texture = clickTexture;
@@ -65,7 +65,7 @@ export const updateSprite = async ({
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
         spriteElement.eventMode = "static";
-        
+
         const overListener = () => {
           events.isHovering = true;
           if (actionPayload && eventHandler)
