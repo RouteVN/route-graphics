@@ -47,4 +47,4 @@ jobs:
         run: bun add -g rtgl
 
       - name: Run rtgl vt report
-        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 8000 && rtgl vt report
+        run: bun run vt:report
