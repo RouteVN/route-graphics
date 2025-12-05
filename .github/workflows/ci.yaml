@@ -40,8 +40,11 @@ jobs:
       - name: Install linux runtime
         run: npm install --platform=linux --arch=x64 sharp
 
+      - name: Install Playwright 1.52.0
+        run: npm install -g playwright@1.52.0
+
       - name: Install Playwright browsers
-        run:  npx playwright install --with-deps
+        run:  npx playwright install
 
       - name: Install rtgl
         run: npm install -g rtgl
