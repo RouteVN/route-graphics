@@ -1,4 +1,4 @@
-name: Lint
+name: CI
 on:
   pull_request:
   workflow_dispatch:
@@ -20,3 +20,35 @@ jobs:
 
       - name: Lint
         run: bun run lint
+  visualTest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Bun
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.2
+
+      # Install dependencies from root
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install verbose logging
+        run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
+
+      - name: Install linux runtime
+        run: npm install --platform=linux --arch=x64 sharp
+
+      - name: Install rtgl
+        run: npm install -g rtgl
+
+      - name: Install Playwright 1.44.0
+        run: bun add playwright@1.44.0
+
+      - name: Install Playwright browsers
+        run:  npx playwright install
+
+
+      - name: Run vt:report
+        run: bun run vt:report
