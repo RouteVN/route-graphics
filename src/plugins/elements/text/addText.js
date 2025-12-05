@@ -77,8 +77,8 @@ export const addText = async ({
     let styleBeforeClick = textASTNode.textStyle;
 
     const clickListener = (e) => {
-      if (clickEvents?.textStyle){
-        styleBeforeClick = e.target._style
+      if (clickEvents?.textStyle) {
+        styleBeforeClick = e.target._style;
         applyTextStyle(text, clickEvents.textStyle);
       }
     };

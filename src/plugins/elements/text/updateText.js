@@ -79,15 +79,12 @@ export const updateText = async ({
       if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         textElement.eventMode = "static";
-        let styleBeforeClick = nextTextASTNode.textStyle
+        let styleBeforeClick = nextTextASTNode.textStyle;
 
         const clickListener = (e) => {
-          if (clickEvents?.textStyle){
-            styleBeforeClick = e.target.style
-            applyTextStyle(
-              textElement,
-              clickEvents.textStyle,
-            );
+          if (clickEvents?.textStyle) {
+            styleBeforeClick = e.target.style;
+            applyTextStyle(textElement, clickEvents.textStyle);
           }
         };
 

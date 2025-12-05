@@ -82,7 +82,7 @@ export const addSprite = async ({
 
     const clickListener = (e) => {
       if (clickEvents?.src) {
-        spriteBeforeClick = {...e.target._texture};
+        spriteBeforeClick = { ...e.target._texture };
         const clickTexture = clickEvents.src
           ? Texture.from(clickEvents.src)
           : Texture.EMPTY;
