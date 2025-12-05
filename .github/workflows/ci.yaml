@@ -34,11 +34,17 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install verbose logging
-        run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
+      # Install Node.js for Sharp
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Install linux runtime
-        run: npm install --platform=linux --arch=x64 sharp
+      # Install Sharp globally with npm
+      - name: Install Sharp
+        run: |
+          export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+          npm install -g sharp
+          npm install --platform=linux --arch=x64 sharp
 
       - name: Install Playwright browsers
         run:  npx playwright install --with-deps
