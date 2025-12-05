@@ -238,6 +238,7 @@ const createRouteGraphics = () => {
     });
     isProcessingRender = false;
     state = nextState;
+    console.log("Route graphic state after render internal: ", state);
   };
 
   const routeGraphicsInstance = {

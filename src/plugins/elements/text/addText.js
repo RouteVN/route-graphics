@@ -1,4 +1,4 @@
-import { Text } from "pixi.js";
+import { Text, TextStyle } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import animateElements from "../../../util/animateElements.js";
 
@@ -39,11 +39,27 @@ export const addText = async ({
   const hoverEvents = textASTNode?.hover;
   const clickEvents = textASTNode?.click;
 
+  let events = {
+    isHovering: false,
+    isPressed: false,
+  };
+
+  const updateTextStyle = ({ isHovering, isPressed }) => {
+    if (isPressed && clickEvents?.textStyle) {
+      applyTextStyle(text, clickEvents.textStyle);
+    } else if (isHovering && hoverEvents?.textStyle) {
+      applyTextStyle(text, hoverEvents.textStyle);
+    } else {
+      applyTextStyle(text, textASTNode.textStyle);
+    }
+  };
+
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
     text.eventMode = "static";
 
     const overListener = () => {
+      events.isHovering = true;
       if (actionPayload && eventHandler)
         eventHandler(`hover`, {
           _event: {
@@ -58,13 +74,13 @@ export const addText = async ({
           url: soundSrc,
           loop: false,
         });
-      if (hoverEvents?.textStyle)
-        applyTextStyle(text, hoverEvents.textStyle, textASTNode.textStyle);
+      updateTextStyle(events);
     };
 
     const outListener = () => {
+      events.isHovering = false;
       text.cursor = "auto";
-      applyTextStyle(text, textASTNode.textStyle);
+      updateTextStyle(events);
     };
 
     text.on("pointerover", overListener);
@@ -75,17 +91,15 @@ export const addText = async ({
     const { soundSrc, actionPayload } = clickEvents;
     text.eventMode = "static";
 
-    const clickListener = () => {
-      // Apply click style during pointerdown
-      if (clickEvents?.textStyle)
-        applyTextStyle(text, clickEvents.textStyle, textASTNode.textStyle);
+    const clickListener = (e) => {
+      events.isPressed = true;
+      updateTextStyle(events);
     };
 
     const releaseListener = () => {
-      // Restore original style on pointerup
-      applyTextStyle(text, textASTNode.textStyle);
+      events.isPressed = false;
+      updateTextStyle(events);
 
-      // Trigger event and sound on pointerup
       if (actionPayload && eventHandler)
         eventHandler(`click`, {
           _event: {
@@ -102,8 +116,8 @@ export const addText = async ({
     };
 
     const outListener = () => {
-      // Restore original style on pointerout
-      applyTextStyle(text, textASTNode.textStyle);
+      events.isPressed = false;
+      updateTextStyle(events);
     };
 
     text.on("pointerdown", clickListener);
