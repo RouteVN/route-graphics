@@ -43,8 +43,8 @@ jobs:
       - name: Install rtgl
         run: npm install -g rtgl
 
-      - name: Install Playwright 1.52.0
-        run: npm install -g playwright@1.52.0
+      - name: Install Playwright 1.44.0
+        run: bun add playwright@1.44.0
 
       - name: Install Playwright browsers
         run:  npx playwright install
