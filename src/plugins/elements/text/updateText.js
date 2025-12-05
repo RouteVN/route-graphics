@@ -79,22 +79,21 @@ export const updateText = async ({
       if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         textElement.eventMode = "static";
+        let styleBeforeClick = nextTextASTNode.textStyle
 
-        const clickListener = () => {
-          // Apply click style during pointerdown
-          if (clickEvents?.textStyle)
+        const clickListener = (e) => {
+          if (clickEvents?.textStyle){
+            styleBeforeClick = e.target.style
             applyTextStyle(
               textElement,
               clickEvents.textStyle,
-              nextTextASTNode.textStyle,
             );
+          }
         };
 
         const releaseListener = () => {
-          // Restore original style on pointerup
-          applyTextStyle(textElement, nextTextASTNode.textStyle);
+          applyTextStyle(textElement, styleBeforeClick);
 
-          // Trigger event and sound on pointerup
           if (actionPayload && eventHandler)
             eventHandler(`click`, {
               _event: {
@@ -111,8 +110,7 @@ export const updateText = async ({
         };
 
         const outListener = () => {
-          // Restore original style on pointerout
-          applyTextStyle(textElement, nextTextASTNode.textStyle);
+          applyTextStyle(textElement, styleBeforeClick);
         };
 
         textElement.on("pointerdown", clickListener);

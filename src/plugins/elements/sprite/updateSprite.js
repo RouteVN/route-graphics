@@ -23,12 +23,10 @@ export const updateSprite = async ({
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      if (prevElement.src !== nextElement.src) {
-        const texture = nextElement.src
-          ? Texture.from(nextElement.src)
-          : Texture.EMPTY;
-        spriteElement.texture = texture;
-      }
+      const texture = nextElement.src
+        ? Texture.from(nextElement.src)
+        : Texture.EMPTY;
+      spriteElement.texture = texture;
 
       spriteElement.x = Math.round(nextElement.x);
       spriteElement.y = Math.round(nextElement.y);
@@ -86,9 +84,11 @@ export const updateSprite = async ({
       if (clickEvents) {
         const { soundSrc, actionPayload } = clickEvents;
         spriteElement.eventMode = "static";
+        let spriteBeforeClick = texture;
 
-        const clickListener = () => {
+        const clickListener = (e) => {
           if (clickEvents?.src) {
+            spriteBeforeClick = {...e.target._texture};
             const clickTexture = clickEvents.src
               ? Texture.from(clickEvents.src)
               : Texture.EMPTY;
@@ -97,9 +97,7 @@ export const updateSprite = async ({
         };
 
         const releaseListener = () => {
-          spriteElement.texture = nextElement.src
-            ? Texture.from(nextElement.src)
-            : Texture.EMPTY;
+          spriteElement.texture = spriteBeforeClick;
 
           if (actionPayload && eventHandler)
             eventHandler(`click`, {
@@ -117,9 +115,7 @@ export const updateSprite = async ({
         };
 
         const outListener = () => {
-          spriteElement.texture = nextElement.src
-            ? Texture.from(nextElement.src)
-            : Texture.EMPTY;
+          spriteElement.texture = spriteBeforeClick;
         };
 
         spriteElement.on("pointerdown", clickListener);

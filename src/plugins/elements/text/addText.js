@@ -1,4 +1,4 @@
-import { Text } from "pixi.js";
+import { Text, TextStyle } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import animateElements from "../../../util/animateElements.js";
 
@@ -74,18 +74,18 @@ export const addText = async ({
   if (clickEvents) {
     const { soundSrc, actionPayload } = clickEvents;
     text.eventMode = "static";
+    let styleBeforeClick = textASTNode.textStyle;
 
-    const clickListener = () => {
-      // Apply click style during pointerdown
-      if (clickEvents?.textStyle)
-        applyTextStyle(text, clickEvents.textStyle, textASTNode.textStyle);
+    const clickListener = (e) => {
+      if (clickEvents?.textStyle){
+        styleBeforeClick = e.target._style
+        applyTextStyle(text, clickEvents.textStyle);
+      }
     };
 
     const releaseListener = () => {
-      // Restore original style on pointerup
-      applyTextStyle(text, textASTNode.textStyle);
+      applyTextStyle(text, styleBeforeClick);
 
-      // Trigger event and sound on pointerup
       if (actionPayload && eventHandler)
         eventHandler(`click`, {
           _event: {
@@ -102,8 +102,7 @@ export const addText = async ({
     };
 
     const outListener = () => {
-      // Restore original style on pointerout
-      applyTextStyle(text, textASTNode.textStyle);
+      applyTextStyle(text, styleBeforeClick);
     };
 
     text.on("pointerdown", clickListener);

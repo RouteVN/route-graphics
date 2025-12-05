@@ -78,9 +78,11 @@ export const addSprite = async ({
   if (clickEvents) {
     const { soundSrc, actionPayload } = clickEvents;
     sprite.eventMode = "static";
+    let spriteBeforeClick = texture;
 
-    const clickListener = () => {
+    const clickListener = (e) => {
       if (clickEvents?.src) {
+        spriteBeforeClick = {...e.target._texture};
         const clickTexture = clickEvents.src
           ? Texture.from(clickEvents.src)
           : Texture.EMPTY;
@@ -89,7 +91,7 @@ export const addSprite = async ({
     };
 
     const releaseListener = () => {
-      sprite.texture = texture;
+      sprite.texture = spriteBeforeClick;
       if (actionPayload && eventHandler)
         eventHandler(`click`, {
           _event: {
@@ -106,7 +108,7 @@ export const addSprite = async ({
     };
 
     const outListener = () => {
-      sprite.texture = texture;
+      sprite.texture = spriteBeforeClick;
     };
 
     sprite.on("pointerdown", clickListener);
