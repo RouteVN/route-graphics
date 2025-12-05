@@ -40,11 +40,11 @@ jobs:
       - name: Install linux runtime
         run: npm install --platform=linux --arch=x64 sharp
 
-      - name: Install rtgl
-        run: bun add -g rtgl
-
       - name: Install Playwright browsers
         run:  npx playwright install --with-deps
 
-      - name: Run vt:report
-        run: bun run vt:report
+      - name: Install rtgl
+        run: bun add rtgl
+
+      - name: Run rtgl vt report
+        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 8000 && rtgl vt report
