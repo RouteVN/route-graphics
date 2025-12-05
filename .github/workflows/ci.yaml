@@ -44,7 +44,7 @@ jobs:
         run:  npx playwright install --with-deps
 
       - name: Install rtgl
-        run: bun add rtgl
+        run: bun add -g rtgl
 
       - name: Run rtgl vt report
         run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 8000 && rtgl vt report
