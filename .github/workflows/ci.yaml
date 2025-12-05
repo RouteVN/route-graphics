@@ -40,14 +40,15 @@ jobs:
       - name: Install linux runtime
         run: npm install --platform=linux --arch=x64 sharp
 
+      - name: Install rtgl
+        run: bun install -g rtgl
+        
       - name: Install Playwright 1.52.0
         run: npm install -g playwright@1.52.0
 
       - name: Install Playwright browsers
         run:  npx playwright install
 
-      - name: Install rtgl
-        run: npm install -g rtgl
 
       - name: Run vt:report
         run: bun run vt:report
