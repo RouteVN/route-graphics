@@ -41,6 +41,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   alpha: 0.8
@@ -80,6 +81,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   alpha: 1

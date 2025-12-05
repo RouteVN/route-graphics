@@ -35,6 +35,7 @@ export const updateRect = async ({
       rectElement.x = Math.round(nextElement.x);
       rectElement.y = Math.round(nextElement.y);
       rectElement.alpha = nextElement.alpha;
+      rectElement.zIndex = nextElement.zIndex ?? 0;
 
       if (nextElement.border) {
         rectElement.stroke({

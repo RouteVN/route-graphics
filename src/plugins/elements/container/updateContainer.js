@@ -29,6 +29,7 @@ export const updateContainer = async ({
       containerElement.y = Math.round(nextElement.y);
       containerElement.label = nextElement.id;
       containerElement.alpha = nextElement.alpha;
+      containerElement.zIndex = nextElement.zIndex ?? 0;
 
       if (
         JSON.stringify(prevElement.children) !==

@@ -32,10 +32,8 @@ export const updateSlider = async ({
       sliderElement.y = nextSliderASTNode.y;
       sliderElement.alpha = nextSliderASTNode.alpha;
       sliderElement.label = nextSliderASTNode.id;
-      sliderElement.pivot.set(
-        nextSliderASTNode.originX,
-        nextSliderASTNode.originY,
-      );
+      sliderElement.zIndex = nextSliderASTNode.zIndex ?? 0;
+
 
       // Get bar and thumb sprites
       const bar = sliderElement.getChildByLabel(`${nextSliderASTNode.id}-bar`);

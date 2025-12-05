@@ -37,6 +37,7 @@ export const addSlider = async ({
     originY,
     hover,
     change,
+    zIndex,
   } = sliderASTNode;
 
   // Create container for the slider
@@ -45,6 +46,7 @@ export const addSlider = async ({
   sliderContainer.x = x;
   sliderContainer.y = y;
   sliderContainer.alpha = alpha;
+  sliderContainer.zIndex = zIndex ?? 0;
   sliderContainer.sortableChildren = true;
   sliderContainer.eventMode = "static";
   const barPadding = 0;

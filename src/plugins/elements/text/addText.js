@@ -20,6 +20,8 @@ export const addText = async ({
   const text = new Text({
     label: textASTNode.id,
   });
+  text.zIndex = textASTNode.zIndex ?? 0;
+
   const drawText = () => {
     text.text = textASTNode.content;
     applyTextStyle(text, textASTNode.textStyle);

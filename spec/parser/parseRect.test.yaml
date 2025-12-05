@@ -32,10 +32,11 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   fill: red
-  border: 
+  border:
     width: 15
     color: blue
     alpha: 0.25
@@ -66,6 +67,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   fill: red
@@ -98,6 +100,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   border:
@@ -131,6 +134,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   border:

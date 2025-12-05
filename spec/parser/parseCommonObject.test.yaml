@@ -35,6 +35,7 @@ out:
   height: 44
   x: 297
   y: 218
+  zIndex: 0
   originX: 363
   originY: 22
   alpha: 1
@@ -106,6 +107,7 @@ out:
   height: 60
   x: 100
   y: 200
+  zIndex: 0
   originX: 0
   originY: 0
   alpha: 1
@@ -135,6 +137,7 @@ out:
   height: 120
   x: 50
   y: 75
+  zIndex: 0
   originX: 0
   originY: 0
   alpha: 1
@@ -166,6 +169,7 @@ out:
   height: 400
   x: 0
   y: 0
+  zIndex: 0
   originX: 0
   originY: 0
   alpha: 1
@@ -193,6 +197,7 @@ out:
   height: 150
   x: 100
   y: 100
+  zIndex: 0
   originX: 0
   originY: 0
   alpha: 0.75

@@ -37,9 +37,10 @@ export const updateTextRevealing = async (params) => {
     }
     textRevealingElement.addChild(indicatorSprite);
 
-    if (element.x !== undefined) textRevealingElement.x = element.x;
-    if (element.y !== undefined) textRevealingElement.y = element.y;
-    if (element.alpha !== undefined) textRevealingElement.alpha = element.alpha;
+    textRevealingElement.x = element.x;
+    textRevealingElement.y = element.y;
+    textRevealingElement.alpha = element.alpha;
+    textRevealingElement.zIndex = element.zIndex;
 
     // Process each chunk sequentially
     for (

@@ -18,6 +18,7 @@ export const addTextRevealing = async ({ parent, element, signal }) => {
 
   const container = new Container();
   container.label = element.id;
+  container.zIndex = element.zIndex ?? 0;
 
   let indicatorSprite = new Sprite(Texture.EMPTY);
   if (element?.indicator?.revealing?.src) {

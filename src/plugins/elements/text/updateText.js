@@ -30,6 +30,7 @@ export const updateText = async ({
       textElement.x = nextTextASTNode.x;
       textElement.y = nextTextASTNode.y;
       textElement.alpha = nextTextASTNode.alpha;
+      textElement.zIndex = nextTextASTNode.zIndex ?? 0;
 
       textElement.removeAllListeners("pointerover");
       textElement.removeAllListeners("pointerout");

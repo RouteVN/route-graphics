@@ -44,6 +44,7 @@ out:
   height: 80
   x: 192
   y: 200
+  zIndex: 0
   originX: 48
   originY: 40
   alpha: 0.8
@@ -125,5 +126,6 @@ out:
   initialValue: 0
   x: 50
   y: 75
+  zIndex: 0
   originX: 0
   originY: 0

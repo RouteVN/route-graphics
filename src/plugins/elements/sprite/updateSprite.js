@@ -33,6 +33,7 @@ export const updateSprite = async ({
       spriteElement.width = Math.round(nextElement.width);
       spriteElement.height = Math.round(nextElement.height);
       spriteElement.alpha = nextElement.alpha;
+      spriteElement.zIndex = nextElement.zIndex ?? 0;
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");

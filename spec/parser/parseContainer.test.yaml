@@ -51,6 +51,7 @@ out:
   height: 96
   x: 79
   y: 192
+  zIndex: 0
   originX: 161
   originY: 48
   scroll: false
@@ -63,6 +64,7 @@ out:
       height: 80
       x: 0
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -75,6 +77,7 @@ out:
       height: 96
       x: 101
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: blue
@@ -87,6 +90,7 @@ out:
       height: 80
       x: 226
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -140,6 +144,7 @@ out:
   height: 310
   x: 190
   y: 85
+  zIndex: 0
   originX: 50
   originY: 155
   scroll: false
@@ -152,6 +157,7 @@ out:
       height: 80
       x: 0
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -164,6 +170,7 @@ out:
       height: 120
       x: 0
       y: 85
+      zIndex: 0
       originX: 0
       originY: 0
       fill: blue
@@ -176,6 +183,7 @@ out:
       height: 100
       x: 0
       y: 210
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -222,6 +230,7 @@ out:
   height: 181
   x: 140
   y: 150
+  zIndex: 0
   originX: 100
   originY: 91
   scroll: false
@@ -234,6 +243,7 @@ out:
       height: 80
       x: 0
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -246,6 +256,7 @@ out:
       height: 96
       x: 0
       y: 85
+      zIndex: 0
       originX: 0
       originY: 0
       fill: blue
@@ -300,6 +311,7 @@ out:
   height: 200
   x: 118
   y: 140
+  zIndex: 0
   originX: 123
   originY: 100
   scroll: false
@@ -312,6 +324,7 @@ out:
       height: 80
       x: 0
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: red
@@ -324,6 +337,7 @@ out:
       height: 96
       x: 0
       y: 85
+      zIndex: 0
       originX: 0
       originY: 0
       fill: blue
@@ -336,6 +350,7 @@ out:
       height: 96
       x: 125
       y: 0
+      zIndex: 0
       originX: 0
       originY: 0
       fill: blue
@@ -364,6 +379,7 @@ out:
   height: 0
   x: 240
   y: 240
+  zIndex: 0
   originX: 0
   originY: 0
   scroll: false
@@ -410,6 +426,7 @@ out:
   width: 350
   x: 0
   y: 0
+  zIndex: 0
   children:
     - id: inner-container
       type: container
@@ -418,6 +435,7 @@ out:
       width: 100
       x: 250
       y: 0
+      zIndex: 0
       originX: 50
       originY: 100
       scroll: false
@@ -432,6 +450,7 @@ out:
           fill: red
           height: 100
           width: 100
+          zIndex: 0
           originX: 0
           originY: 0
           rotation: 0

@@ -26,10 +26,12 @@ export const addRect = async ({
     originY,
     rotation,
     alpha,
+    zIndex,
   } = element;
 
   const rect = new Graphics();
   rect.label = id;
+  rect.zIndex = zIndex ?? 0;
   let isAnimationDone = true;
 
   const drawRect = () => {
