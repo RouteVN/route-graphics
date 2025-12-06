@@ -1,6 +1,6 @@
 ---
 title: basic website with playground
-status: todo
+status: done
 priority: low
 ---
 

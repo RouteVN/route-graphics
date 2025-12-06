@@ -1,6 +1,6 @@
 ---
 title: Consecutive renders bug
-status: todo
+status: done
 assignee: nghia
 priority: high
 ---

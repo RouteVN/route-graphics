@@ -1,6 +1,6 @@
 ---
 title: text revealing add indicator
-status: todo
+status: done
 priority: low
 ---
 

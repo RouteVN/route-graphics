@@ -1,6 +1,6 @@
 ---
 title: make features plugins
-status: todo
+status: done
 priority: low
 ---
 

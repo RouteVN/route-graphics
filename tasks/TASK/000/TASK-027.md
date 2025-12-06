@@ -1,6 +1,6 @@
 ---
 title: Container children text sizes
-status: todo
+status: done
 priority: high
 ---
 

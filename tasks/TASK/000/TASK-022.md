@@ -1,6 +1,6 @@
 ---
 title: Remove old code
-status: todo
+status: done
 priority: medium
 ---
 

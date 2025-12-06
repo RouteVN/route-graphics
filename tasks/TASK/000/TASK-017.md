@@ -1,6 +1,6 @@
 ---
 title: add multi screenshot visual tests
-status: todo
+status: done
 priority: medium
 ---
 
