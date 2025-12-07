@@ -26,7 +26,7 @@
     "lint:fix": "bunx prettier --check --write src",
     "build": "bun run esbuild.js",
     "vt:generate": "bun run esbuild.js && rtgl vt generate --skip-screenshots",
-    "vt:report": "bun run esbuild.js && node ../rettangoli/packages/rettangoli-cli/cli.js vt generate --screenshot-wait-time 8000 && node ../rettangoli/packages/rettangoli-cli/cli.js vt report",
+    "vt:report": "bun run esbuild.js && rtgl vt generate --screenshot-wait-time 8000 && rtgl vt report",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
