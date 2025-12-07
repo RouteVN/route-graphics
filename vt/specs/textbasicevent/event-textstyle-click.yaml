@@ -7,14 +7,14 @@ specs:
   - "color, font, and size can all change"
 steps:
   - move 210 110
-  - holdLeftDown
+  - mousedown
   - screenshot
-  - releaseLeftUp
+  - mouseup
   - screenshot
   - move 210 210
-  - holdLeftDown
+  - mousedown
   - screenshot
-  - releaseLeftUp
+  - mouseup
   - screenshot
 ---
 states:

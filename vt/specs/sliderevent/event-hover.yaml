@@ -9,7 +9,7 @@ specs:
   - "textures should revert when hover ends"
 steps:
   - move 170 110
-  - holdLeftDown
+  - mousedown
   - screenshot
   - move 200 110
   - screenshot

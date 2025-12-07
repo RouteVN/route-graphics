@@ -7,19 +7,19 @@ specs:
   - "different sprites can have different click textures"
 steps:
   - move 175 175
-  - holdLeftDown
+  - mousedown
   - screenshot
-  - releaseLeftUp
+  - mouseup
   - screenshot
   - move 425 175 
-  - holdLeftDown
+  - mousedown
   - screenshot
-  - releaseLeftUp
+  - mouseup
   - screenshot
   - move 675 175 
-  - holdLeftDown
+  - mousedown
   - screenshot
-  - releaseLeftUp
+  - mouseup
   - screenshot
 ---
 states:
