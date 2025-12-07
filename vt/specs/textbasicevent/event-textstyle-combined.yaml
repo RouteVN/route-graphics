@@ -6,14 +6,29 @@ specs:
   - "click textStyle should work"
   - "both events can have different textStyles"
 steps:
-  # - move 220 160
-  # - screenshot
-  # - click 220 160
-  # - screenshot
-  # - move 220 310
-  # - screenshot
-  # - click 220 310
-  # - screenshot
+  - move 220 160
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - releaseLeftUp # We want to check when the pointer is realease inside the element and outside of it too
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - move 0 0
+  - screenshot
+  - releaseLeftUp
+  - screenshot
+  - move 220 310
+  - screenshot
+  - holdLeftDown
+  - releaseLeftUp # We want to check when the pointer is realease inside the element and outside of it too
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - move 0 0
+  - screenshot
+  - releaseLeftUp
+  - screenshot
 ---
 states:
   - elements:

@@ -6,14 +6,29 @@ specs:
   - "click src should work"
   - "both events can have different src values"
 steps:
-  # - move 220 175
-  # - screenshot
-  # - click 220 175
-  # - screenshot
-  # - move 520 175
-  # - screenshot
-  # - click 520 175
-  # - screenshot
+  - move 220 175
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - releaseLeftUp # We want to check when the pointer is realease inside the element and outside of it too
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - move 0 0
+  - screenshot
+  - releaseLeftUp
+  - screenshot
+  - move 520 175
+  - screenshot
+  - holdLeftDown
+  - releaseLeftUp # We want to check when the pointer is realease inside the element and outside of it too
+  - screenshot
+  - holdLeftDown
+  - screenshot
+  - move 0 0
+  - screenshot
+  - releaseLeftUp
+  - screenshot
 ---
 states:
   - elements:
