@@ -1,6 +1,6 @@
 ---
 title: convert class to functions
-status: todo
+status: done
 priority: low
 ---
 
