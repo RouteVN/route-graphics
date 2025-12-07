@@ -8,26 +8,26 @@ specs:
 steps:
   - move 220 160
   - screenshot
-  - mousedown
+  - mouseDown
   - screenshot
-  - mouseup # We want to check when the pointer is realease inside the element and outside of it too
+  - mouseUp # We want to check when the pointer is realease inside the element and outside of it too
   - screenshot
-  - mousedown
+  - mouseDown
   - screenshot
   - move 0 0
   - screenshot
-  - mouseup
+  - mouseUp
   - screenshot
   - move 220 310
   - screenshot
-  - mousedown
-  - mouseup # We want to check when the pointer is realease inside the element and outside of it too
+  - mouseDown
+  - mouseUp # We want to check when the pointer is realease inside the element and outside of it too
   - screenshot
-  - mousedown
+  - mouseDown
   - screenshot
   - move 0 0
   - screenshot
-  - mouseup
+  - mouseUp
   - screenshot
 ---
 states:

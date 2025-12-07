@@ -8,7 +8,7 @@ specs:
   - "actionPayload should include custom data"
 steps:
   - move 250 110
-  - mousedown
+  - mouseDown
   - screenshot
   - move 200 110
   - screenshot
