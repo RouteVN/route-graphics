@@ -6,6 +6,12 @@ specs:
   - "slider should send change event during thumb movement"
   - "change events should include current slider value"
   - "actionPayload should include custom data"
+steps:
+  - move 250 110
+  - holdLeftDown
+  - screenshot
+  - move 200 110
+  - screenshot
 ---
 states:
   - elements:
