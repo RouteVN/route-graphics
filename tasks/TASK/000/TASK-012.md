@@ -1,6 +1,6 @@
 ---
 title: update element properties to match schema
-status: todo
+status: done
 priority: low
 ---
 

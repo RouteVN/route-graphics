@@ -1,6 +1,6 @@
 ---
 title: Move Parsers to plugins
-status: todo
+status: done
 priority: medium
 ---
 

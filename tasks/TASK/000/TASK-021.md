@@ -1,6 +1,6 @@
 ---
 title: Standardize event names
-status: todo
+status: done
 priority: high
 ---
 

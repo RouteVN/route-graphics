@@ -1,6 +1,6 @@
 ---
 title: Sprite remove support for url
-status: todo
+status: done
 priority: low
 ---
 
