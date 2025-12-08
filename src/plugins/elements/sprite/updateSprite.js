@@ -23,12 +23,10 @@ export const updateSprite = async ({
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      if (prevElement.src !== nextElement.src) {
-        const texture = nextElement.src
-          ? Texture.from(nextElement.src)
-          : Texture.EMPTY;
-        spriteElement.texture = texture;
-      }
+      const texture = nextElement.src
+        ? Texture.from(nextElement.src)
+        : Texture.EMPTY;
+      spriteElement.texture = texture;
 
       spriteElement.x = Math.round(nextElement.x);
       spriteElement.y = Math.round(nextElement.y);
@@ -45,11 +43,31 @@ export const updateSprite = async ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
 
+      let events = {
+        isHovering: false,
+        isPressed: false,
+      };
+
+      const updateTexture = ({ isHovering, isPressed }) => {
+        console.log("IsPressed: ", isPressed);
+        console.log("IsHovering: ", isHovering);
+        if (isPressed && clickEvents?.src) {
+          const clickTexture = Texture.from(clickEvents.src);
+          spriteElement.texture = clickTexture;
+        } else if (isHovering && hoverEvents?.src) {
+          const hoverTexture = Texture.from(hoverEvents.src);
+          spriteElement.texture = hoverTexture;
+        } else {
+          spriteElement.texture = texture;
+        }
+      };
+
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
         spriteElement.eventMode = "static";
 
         const overListener = () => {
+          events.isHovering = true;
           if (actionPayload && eventHandler)
             eventHandler(`hover`, {
               _event: {
@@ -64,19 +82,13 @@ export const updateSprite = async ({
               url: soundSrc,
               loop: false,
             });
-          if (hoverEvents?.src) {
-            const hoverTexture = hoverEvents.src
-              ? Texture.from(hoverEvents.src)
-              : Texture.EMPTY;
-            spriteElement.texture = hoverTexture;
-          }
+          updateTexture(events);
         };
 
         const outListener = () => {
+          events.isHovering = false;
           spriteElement.cursor = "auto";
-          spriteElement.texture = nextElement.src
-            ? Texture.from(nextElement.src)
-            : Texture.EMPTY;
+          updateTexture(events);
         };
 
         spriteElement.on("pointerover", overListener);
@@ -88,18 +100,13 @@ export const updateSprite = async ({
         spriteElement.eventMode = "static";
 
         const clickListener = () => {
-          if (clickEvents?.src) {
-            const clickTexture = clickEvents.src
-              ? Texture.from(clickEvents.src)
-              : Texture.EMPTY;
-            spriteElement.texture = clickTexture;
-          }
+          events.isPressed = true;
+          updateTexture(events);
         };
 
         const releaseListener = () => {
-          spriteElement.texture = nextElement.src
-            ? Texture.from(nextElement.src)
-            : Texture.EMPTY;
+          events.isPressed = false;
+          updateTexture(events);
 
           if (actionPayload && eventHandler)
             eventHandler(`click`, {
@@ -117,9 +124,8 @@ export const updateSprite = async ({
         };
 
         const outListener = () => {
-          spriteElement.texture = nextElement.src
-            ? Texture.from(nextElement.src)
-            : Texture.EMPTY;
+          events.isPressed = false;
+          updateTexture(events);
         };
 
         spriteElement.on("pointerdown", clickListener);
