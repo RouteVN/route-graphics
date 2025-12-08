@@ -103,8 +103,10 @@ jobs:
         run: |
           echo "=== Final check ==="
           find vt/reference -type f -name "*.webp" | wc -l | xargs echo "Final total webp files:"
-          echo "=== Sample of generated files ==="
-          find vt/reference -type f -name "*.webp" -exec ls -la {} \; | head -20
+          echo "=== ALL generated files ==="
+          find vt/reference -type f -name "*.webp" | sort
+          echo "=== File details ==="
+          find vt/reference -type f -name "*.webp" -exec ls -la {} \;
 
       - name: Upload vt reference images
         if: always()
