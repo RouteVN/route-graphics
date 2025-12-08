@@ -1,6 +1,12 @@
+
 ## Overview
 
 Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audio, and interactions automatically.
+
+## Links
+
+- [Playground](http://route-graphics.routevn.com/playground)
+- [Tasks & Roadmap](http://route-graphics.routevn.com/tasks)
 
 ## Typical Usage Patterns
 
@@ -97,7 +103,7 @@ await app.init({
     animations: [
       tweenPlugin
     ],
-    audios: [
+    audio: [
       soundPlugin
     ],
   },
@@ -727,7 +733,7 @@ await app.init({
       customPlugin
     ],
     animations: [/* ... */],
-    audios: [/* ... */]
+    audio: [/* ... */]
   }
 });
 ```
@@ -902,7 +908,7 @@ src: hero-sprite
 
 #### Supported Asset Types
 
-- **Images**: PNG, JPG, JPEG, WebP, GIF
+- **Images**: PNG, JPG, JPEG, WebP
 - **Audio**: MP3, WAV, OGG
 - **Fonts**: TTF, OTF, WOFF
 

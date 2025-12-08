@@ -1,6 +1,6 @@
 ---
 title: remove ticker exposure from route-graphics once we updated route-engine
-status: todo
+status: done
 priority: low
 ---
 

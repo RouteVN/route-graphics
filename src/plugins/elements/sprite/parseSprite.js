@@ -15,7 +15,7 @@ export const parseSprite = ({ state }) => {
 
   return {
     ...astObj,
-    src: state.src ?? state.url ?? "",
+    src: state.src ?? "",
     alpha: state.alpha ?? 1,
     cursor: state.cursor ?? "",
   };

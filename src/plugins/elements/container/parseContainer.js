@@ -18,7 +18,7 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
  */
 export const parseContainer = ({ state, parserPlugins = [] }) => {
-  const direction = state.direction;
+  const direction = state.direction ?? "";
   const scroll = state.scroll ? true : false;
   const gap = state.gap || 0;
   const children = structuredClone(state.children || []);
@@ -99,6 +99,9 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       currentColHeight = child.y + child.height;
       containerWidth = Math.max(child.width + child.x, containerWidth);
       containerHeight = Math.max(currentY, containerHeight);
+    } else {
+      containerWidth = Math.max(child.width + child.x, containerWidth);
+      containerHeight = Math.max(child.height + child.y, containerHeight);
     }
 
     parsedChildren.push(child);

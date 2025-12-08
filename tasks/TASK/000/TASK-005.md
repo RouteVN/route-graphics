@@ -1,6 +1,6 @@
 ---
 title: write real README
-status: todo
+status: done
 priority: high
 ---
 
