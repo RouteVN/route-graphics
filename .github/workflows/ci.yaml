@@ -48,3 +48,25 @@ jobs:
 
       - name: Run vt:report
         run: bun run vt:report
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vt-report
+          path: ./
+          retention-days: 30
+
+  download-artifacts:
+    needs: visualTest
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./
+
+      - name: List all downloaded files
+        run: |
+          echo "All downloaded files:"
+          find ./ -type f | sort
