@@ -34,6 +34,14 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
+      - name: Check project structure
+        run: |
+          echo "=== Project structure ==="
+          pwd
+          ls -la
+          echo "=== VT directory structure ==="
+          find vt -type f | head -20
+
       - name: Install verbose logging
         run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
 
@@ -46,5 +54,62 @@ jobs:
       - name: Install Playwright browsers
         run:  npx playwright@1.57.0 install --with-deps
 
-      - name: Run vt:report
-        run: bun run vt:report
+      - name: Check vt specs before
+        run: |
+          echo "=== VT specs directory ==="
+          find vt/specs -name "*.yaml" | wc -l | xargs echo "Total YAML specs:"
+          ls -la vt/specs/ | head -20
+
+      - name: Show vt/reference before
+        run: |
+          echo "=== vt/reference contents before ==="
+          if [ -d "vt/reference" ]; then
+            find vt/reference -type f -name "*.webp" 2>/dev/null | wc -l | xargs echo "Total webp files:"
+            du -sh vt/reference/ 2>/dev/null || echo "Cannot calculate size"
+          else
+            echo "vt/reference directory does not exist"
+          fi
+
+      - name: Run rtgl vt generate
+        run: |
+          echo "=== Starting rtgl vt generate ==="
+          bun run esbuild.js
+          echo "=== Building completed, starting generation ==="
+          rtgl vt generate --screenshot-wait-time 8000
+          echo "=== Generation completed ==="
+
+      - name: Monitor generation results
+        run: |
+          echo "=== Checking results after generation ==="
+          if [ -d "vt/reference" ]; then
+            echo "Directory exists"
+            find vt/reference -type f -name "*.webp" | wc -l | xargs echo "Total webp files generated:"
+            du -sh vt/reference/
+            echo "=== First 10 files ==="
+            find vt/reference -type f -name "*.webp" | head -10
+            echo "=== Subdirectories ==="
+            find vt/reference -type d | head -20
+          else
+            echo "ERROR: vt/reference directory was not created!"
+          fi
+
+      - name: Run rtgl vt report
+        run: |
+          echo "=== Starting rtgl vt report ==="
+          rtgl vt report
+          echo "=== Report completed ==="
+
+      - name: Final check and upload artifacts
+        run: |
+          echo "=== Final check ==="
+          find vt/reference -type f -name "*.webp" | wc -l | xargs echo "Final total webp files:"
+          echo "=== Sample of generated files ==="
+          find vt/reference -type f -name "*.webp" -exec ls -la {} \; | head -20
+
+      - name: Upload vt reference images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vt-reference-images
+          path: vt/reference/
+          retention-days: 7
