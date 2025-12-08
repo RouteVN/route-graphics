@@ -44,7 +44,7 @@ jobs:
         run: npm install -g rtgl
 
       - name: Install Playwright browsers
-        run:  npx playwright@1.55.0 install --with-deps
+        run:  npx playwright install --with-deps
 
       - name: Run vt:report
         run: bun run vt:report
