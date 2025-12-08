@@ -6,12 +6,16 @@ specs:
   - "style persists after click"
   - "color, font, and size can all change"
 steps:
-  # - click 210 110
-  # - screenshot
-  # - click 210 210
-  # - screenshot
-  # - click 210 330
-  # - screenshot
+  - move 210 110
+  - mouseDown
+  - screenshot
+  - mouseUp
+  - screenshot
+  - move 210 210
+  - mouseDown
+  - screenshot
+  - mouseUp
+  - screenshot
 ---
 states:
   - elements:
