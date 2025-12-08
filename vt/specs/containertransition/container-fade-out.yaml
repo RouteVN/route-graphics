@@ -24,17 +24,17 @@ states:
         children:
           - id: 'sprite1'
             type: "sprite"
-            url: "circle-blue"
+            src: "circle-blue"
             width: 60
             height: 60
           - id: 'sprite2'
             type: "sprite"
-            url: "circle-red"
+            src: "circle-red"
             width: 60
             height: 60
           - id: 'sprite3'
             type: "sprite"
-            url: "circle-blue"
+            src: "circle-blue"
             width: 60
             height: 60
   - elements: []
