@@ -12,6 +12,7 @@ import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
+import { particlesPlugin } from "./plugins/elements/particles/index.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import createRouteGraphics from "./RouteGraphics.js";
@@ -34,6 +35,7 @@ export {
   textRevealingPlugin,
   tweenPlugin,
   soundPlugin,
+  particlesPlugin,
   renderElements,
   renderAudio,
 };
