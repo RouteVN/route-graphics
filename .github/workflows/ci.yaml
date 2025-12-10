@@ -46,7 +46,7 @@ jobs:
         run: npm install -g rtgl
 
       - name: Install Playwright browsers
-        run:  npx playwright@1.57.0 install --with-deps
+        run:  npx playwright@1.57.0 install
 
       - name: Run vt generate
         run: bun run build && rtgl vt generate --screenshot-wait-time 8000
