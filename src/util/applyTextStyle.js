@@ -13,6 +13,7 @@ export default (element, style) => {
     strokeWidth: style?.strokeWidth ?? DEFAULT_TEXT_STYLE.strokeWidth,
     wordWrapWidth: style?.wordWrapWidth ?? DEFAULT_TEXT_STYLE.wordWrapWidth,
   };
-  if(element.label === "en-text-true" || element.label === "en-text-false") console.log(appliedStyle)
+  if (element.label === "en-text-true" || element.label === "en-text-false")
+    console.log(appliedStyle);
   element.style = appliedStyle;
 };
