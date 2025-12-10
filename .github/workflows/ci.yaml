@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 on:
   pull_request:
   workflow_dispatch:
@@ -27,13 +27,10 @@ jobs:
         with:
           lfs: true 
 
-
-      # Setup Bun
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.2
 
-      # Install dependencies from root
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
@@ -44,35 +41,5 @@ jobs:
       - name: Install Playwright browsers
         run:  npx playwright@1.57.0 install
 
-      - name: Build project
-        run: bun run build
-
-      - name: Run vt generate
-        run: NODE_OPTIONS="--max-old-space-size=8192" rtgl vt generate --screenshot-wait-time 8000
-      
-      - name: List generated files
-        run: |
-          echo "=== Root directory ==="
-          ls -la
-          echo "=== .rettangoli directory ==="
-          ls -la .rettangoli/ || echo "No .rettangoli directory"
-          echo "=== .rettangoli/vt directory ==="
-          ls -la .rettangoli/vt/ || echo "No .rettangoli/vt directory"
-          echo "=== .rettangoli/vt/_site directory ==="
-          ls -la .rettangoli/vt/_site/ || echo "No .rettangoli/vt/_site directory"
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: vt-report
-          path: ./.rettangoli
-          retention-days: 30
-
       - name: Run vt report with debug
-        run: |
-          echo "=== Running rtgl vt report ==="
-          NODE_OPTIONS="--max-old-space-size=8192 --max-semi-space-size=128 --trace-warnings" rtgl vt report || {
-            echo "=== Report failed, checking files ==="
-            ls -la .rettangoli/vt/_site/ || true
-            exit 1
-          }
+        run: bun run vt:report
