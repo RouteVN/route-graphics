@@ -2,9 +2,15 @@
 title: Fix font size inconsistencies
 status: todo
 priority: medium
+assignee: han4wluc
+labels: [bug]
 ---
 
 # Description
+
+- root cause seems to be because we're using arial font. but that one is not installed in pure linux env by default.
+- we need to pick a font and make sure it is installed for all environments.
+
 
 - width being 419 vs 420 and x being 451 vs 450 I supsect is due to font size different. my system is using a different font therefore having different font sizes. font usually fallback to system when specified font is not found
 - wordWrapWidth should be rounded to pixel

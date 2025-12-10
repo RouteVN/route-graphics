@@ -1,7 +1,9 @@
 ---
 title: rect clear error
-status: todo
+status: high
 priority: medium
+assignee: nghia
+labels: [bug]
 ---
 
 # Description

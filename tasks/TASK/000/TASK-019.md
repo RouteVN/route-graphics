@@ -1,7 +1,9 @@
 ---
 title: Research and implement solution for things like rain, snow effects
 status: todo
-priority: low
+priority: medium
+assignee: JeffY
+labels: [feat]
 ---
 
 # Description
