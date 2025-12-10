@@ -36,20 +36,18 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
-      # - name: Install verbose logging
-      #   run: npm install --ignore-scripts=false --foreground-scripts --verbose sharp
-
-      # - name: Install linux runtime
-      #   run: npm install --platform=linux --arch=x64 sharp
-
+    
       - name: Install rtgl
         run: npm install -g rtgl
 
       - name: Install Playwright browsers
         run:  npx playwright@1.57.0 install
 
+      - name: Build project
+        run: bun run build
+
       - name: Run vt generate
-        run: bun run build && rtgl vt generate --screenshot-wait-time 8000
+        run: NODE_OPTIONS="--max-old-space-size=8192" rtgl vt generate --screenshot-wait-time 8000
       
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
