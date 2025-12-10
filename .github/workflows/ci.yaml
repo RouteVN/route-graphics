@@ -27,6 +27,7 @@ jobs:
         with:
           lfs: true 
 
+
       # Setup Bun
       - uses: oven-sh/setup-bun@v2
         with:
@@ -49,6 +50,17 @@ jobs:
       - name: Run vt generate
         run: NODE_OPTIONS="--max-old-space-size=8192" rtgl vt generate --screenshot-wait-time 8000
       
+      - name: List generated files
+        run: |
+          echo "=== Root directory ==="
+          ls -la
+          echo "=== .rettangoli directory ==="
+          ls -la .rettangoli/ || echo "No .rettangoli directory"
+          echo "=== .rettangoli/vt directory ==="
+          ls -la .rettangoli/vt/ || echo "No .rettangoli/vt directory"
+          echo "=== .rettangoli/vt/_site directory ==="
+          ls -la .rettangoli/vt/_site/ || echo "No .rettangoli/vt/_site directory"
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -57,4 +69,4 @@ jobs:
           retention-days: 30
 
       - name: Run vt report
-        run: rtgl vt report
+        run: NODE_OPTIONS="--max-old-space-size=8192" rtgl vt report
