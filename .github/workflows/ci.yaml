@@ -42,4 +42,4 @@ jobs:
         run:  npx playwright@1.57.0 install
 
       - name: Run vt report with debug
-        run: bun run vt:report
+        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 14000 && rtgl vt report
