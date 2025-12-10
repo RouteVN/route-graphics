@@ -42,4 +42,14 @@ jobs:
         run:  npx playwright@1.57.0 install
 
       - name: Run vt report with debug
-        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 14000 && rtgl vt report
+        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 16000 && rtgl vt report
+
+      - name: Upload VT Images as Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vt-images-${{ github.run_number }}
+          path: |
+            .rettangoli/vt/_site/reference/
+            .rettangoli/vt/_site/candidate/
+          retention-days: 30
