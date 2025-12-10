@@ -68,5 +68,11 @@ jobs:
           path: ./.rettangoli
           retention-days: 30
 
-      - name: Run vt report
-        run: NODE_OPTIONS="--max-old-space-size=8192" rtgl vt report
+      - name: Run vt report with debug
+        run: |
+          echo "=== Running rtgl vt report ==="
+          NODE_OPTIONS="--max-old-space-size=8192 --trace-warnings" rtgl vt report || {
+            echo "=== Report failed, checking files ==="
+            ls -la .rettangoli/vt/_site/ || true
+            exit 1
+          }
