@@ -2,6 +2,8 @@
 title: full website documentation
 status: todo
 priority: low
+assignee: han4wluc
+labels: ['docs']
 ---
 
 # Description

@@ -1,7 +1,9 @@
 ---
 title: Fix issues with playground
 status: todo
-priority: low
+priority: medium
+assignee: nghia
+labels: [bug, playground]
 ---
 
 # Description

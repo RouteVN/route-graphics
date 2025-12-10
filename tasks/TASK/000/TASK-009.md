@@ -1,7 +1,9 @@
 ---
 title: code improvements
 status: todo
-priority: low
+priority: high
+assignee: nghia
+lables: ['refactor']
 ---
 
 # Description
