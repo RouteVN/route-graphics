@@ -13,6 +13,7 @@ states:
         textStyle:
           fontSize: 32
           fill: "white"
+          fontFamily: "Noto Sans CJK"
       # English - breakWords: true (left column)
       - id: 'en-label-true'
         type: "text"
@@ -22,6 +23,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "yellow"
+          fontFamily: "Noto Sans CJK"
       - id: 'en-text-true'
         type: "text"
         content: "This is a very long English sentence that demonstrates how word wrapping behaves with breakWords set to true. SupercalifragilisticexpialidociousAntidisestablishmentarianism"
@@ -32,6 +34,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: true
+          fontFamily: "Noto Sans CJK"
       # English - breakWords: false (right column)
       - id: 'en-label-false'
         type: "text"
@@ -41,6 +44,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "yellow"
+          fontFamily: "Noto Sans CJK"
       - id: 'en-text-false'
         type: "text"
         content: "This is a very long English sentence that demonstrates how word wrapping behaves with breakWords set to false. SupercalifragilisticexpialidociousAntidisestablishmentarianism"
@@ -51,6 +55,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: false
+          fontFamily: "Noto Sans CJK"
       # Chinese - breakWords: true (left column)
       - id: 'zh-label-true'
         type: "text"
@@ -60,6 +65,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "lightgreen"
+          fontFamily: "Noto Sans CJK"
       - id: 'zh-text-true'
         type: "text"
         content: "这是一段很长的中文文本用来演示当breakWords设置为true时中文文本的换行行为表现。中文通常不使用空格分隔单词所以换行规则与英文有所不同。"
@@ -70,6 +76,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: true
+          fontFamily: "Noto Sans CJK"
       # Chinese - breakWords: false (right column)
       - id: 'zh-label-false'
         type: "text"
@@ -79,6 +86,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "lightgreen"
+          fontFamily: "Noto Sans CJK"
       - id: 'zh-text-false'
         type: "text"
         content: "这是一段很长的中文文本用来演示当breakWords设置为false时中文文本的换行行为表现。中文通常不使用空格分隔单词所以换行规则与英文有所不同。"
@@ -89,6 +97,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: false
+          fontFamily: "Noto Sans CJK"
       # Japanese - breakWords: true (left column)
       - id: 'ja-label-true'
         type: "text"
@@ -98,6 +107,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "lightblue"
+          fontFamily: "Noto Sans CJK"
       - id: 'ja-text-true'
         type: "text"
         content: "これは非常に長い日本語のテキストでbreakWordsがtrueに設定されている時の改行動作を示すためのものです。ひらがなカタカナ漢字が混在する日本語の改行ルールは複雑です。"
@@ -108,6 +118,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: true
+          fontFamily: "Noto Sans CJK"
       # Japanese - breakWords: false (right column)
       - id: 'ja-label-false'
         type: "text"
@@ -117,6 +128,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "lightblue"
+          fontFamily: "Noto Sans CJK"
       - id: 'ja-text-false'
         type: "text"
         content: "これは非常に長い日本語のテキストでbreakWordsがfalseに設定されている時の改行動作を示すためのものです。ひらがなカタカナ漢字が混在する日本語の改行ルールは複雑です。"
@@ -127,6 +139,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: false
+          fontFamily: "Noto Sans CJK"
       # Korean - breakWords: true (left column)
       - id: 'ko-label-true'
         type: "text"
@@ -136,6 +149,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "orange"
+          fontFamily: "Noto Sans CJK"
       - id: 'ko-text-true'
         type: "text"
         content: "이것은 매우 긴 한국어 텍스트로서 breakWords가 true로 설정되었을 때의 줄바꿈 동작을 보여주기 위한 것입니다. 한글의 특성상 단어 구분과 줄바꿈 규칙이 독특합니다."
@@ -146,6 +160,7 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: true
+          fontFamily: "Noto Sans CJK"
       # Korean - breakWords: false (right column)
       - id: 'ko-label-false'
         type: "text"
@@ -155,6 +170,7 @@ states:
         textStyle:
           fontSize: 18
           fill: "orange"
+          fontFamily: "Noto Sans CJK"
       - id: 'ko-text-false'
         type: "text"
         content: "이것은 매우 긴 한국어 텍스트로서 breakWords가 false로 설정되었을 때의 줄바꿈 동작을 보여주기 위한 것입니다. 한글의 특성상 단어 구분과 줄바꿈 규칙이 독특합니다."
@@ -165,3 +181,4 @@ states:
           fontSize: 16
           fill: "white"
           breakWords: false
+          fontFamily: "Noto Sans CJK"
