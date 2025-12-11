@@ -1003,3 +1003,13 @@ All element types are defined with YAML schemas in the `src/schemas/` directory,
 - Property documentation
 - Default values
 - Required field specifications
+
+## Community
+
+Join us on [Discord](https://discord.gg/8J9dyZSu9C) to ask questions, report bugs, and stay up to date.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+
