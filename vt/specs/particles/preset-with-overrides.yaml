@@ -1,0 +1,36 @@
+---
+title: Particles preset with overrides (Level 2)
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  # Demonstrates using a preset with behavior overrides and disableBehaviors
+  - elements:
+      # Snow preset with custom color gradient and no rotation
+      - id: 'custom-snow'
+        type: "particles"
+        preset: "snow"
+        count: 200
+        disableBehaviors:
+          - rotation
+        behaviors:
+          - type: "color"
+            config:
+              list:
+                - value: "#ffffff"
+                  time: 0
+                - value: "#aaaaff"
+                  time: 0.5
+                - value: "#6666ff"
+                  time: 1
+        emitter:
+          frequency: 0.03
+          lifetime:
+            min: 5
+            max: 8
+          seed: 12345

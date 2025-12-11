@@ -1,0 +1,58 @@
+---
+title: Particles with custom config (Level 3 - Full Custom)
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  # Demonstrates full custom config without preset
+  # This creates a rising bubble effect
+  - elements:
+      - id: 'custom-bubbles'
+        type: "particles"
+        texture:
+          shape: circle
+          radius: 4
+          color: "#88ccff"
+        behaviors:
+          - type: "spawnShape"
+            config:
+              type: "rect"
+              data:
+                x: 200
+                y: 650
+                w: 880
+                h: 20
+          - type: "movePoint"
+            config:
+              speed:
+                min: 80
+                max: 150
+              direction: -90
+          - type: "scaleStatic"
+            config:
+              min: 0.5
+              max: 1.5
+          - type: "alpha"
+            config:
+              list:
+                - value: 0
+                  time: 0
+                - value: 0.8
+                  time: 0.1
+                - value: 0.6
+                  time: 0.8
+                - value: 0
+                  time: 1
+        emitter:
+          lifetime:
+            min: 2
+            max: 4
+          frequency: 0.08
+          particlesPerWave: 2
+          maxParticles: 50
+          seed: 12345

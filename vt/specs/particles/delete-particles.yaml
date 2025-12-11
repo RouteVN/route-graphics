@@ -1,0 +1,44 @@
+---
+title: Delete Particles Elements
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - keypress b
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  # State 1: Two particle effects
+  - elements:
+      - id: "snow-effect"
+        type: "particles"
+        preset: "snow"
+        count: 100
+        emitter:
+          seed: 12345
+      - id: "rain-effect"
+        type: "particles"
+        preset: "rain"
+        count: 100
+        emitter:
+          seed: 54321
+
+  # State 2: Only rain remains (snow deleted)
+  - elements:
+      - id: "rain-effect"
+        type: "particles"
+        preset: "rain"
+        count: 100
+        emitter:
+          seed: 54321

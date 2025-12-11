@@ -1,0 +1,67 @@
+---
+title: Custom sparkle/twinkle effect (Level 3 - Full Custom)
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=200
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=200
+  - screenshot
+---
+states:
+  - elements: []
+  # Sparkles that appear and fade randomly across the screen
+  - elements:
+      - id: 'sparkles'
+        type: "particles"
+        texture: "snowflake"
+        behaviors:
+          - type: "spawnShape"
+            config:
+              type: "rect"
+              data:
+                x: 100
+                y: 100
+                w: 1080
+                h: 520
+          - type: "speedStatic"
+            config:
+              min: 0
+              max: 0
+          - type: "scale"
+            config:
+              list:
+                - value: 0
+                  time: 0
+                - value: 1.5
+                  time: 0.3
+                - value: 1.5
+                  time: 0.7
+                - value: 0
+                  time: 1
+          - type: "alpha"
+            config:
+              list:
+                - value: 0
+                  time: 0
+                - value: 1
+                  time: 0.2
+                - value: 1
+                  time: 0.8
+                - value: 0
+                  time: 1
+          - type: "rotation"
+            config:
+              minStart: 0
+              maxStart: 360
+              minSpeed: 45
+              maxSpeed: 90
+              accel: 0
+        emitter:
+          lifetime:
+            min: 0.3
+            max: 0.8
+          frequency: 0.05
+          particlesPerWave: 1
+          maxParticles: 30
+          emitterLifetime: -1
+          seed: 12345

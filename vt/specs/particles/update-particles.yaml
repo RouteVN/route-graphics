@@ -1,0 +1,40 @@
+---
+title: Update Particles Properties
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - keypress b
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  # State 1: Snow with low count and full opacity
+  - elements:
+      - id: "snow-effect"
+        type: "particles"
+        preset: "snow"
+        count: 50
+        alpha: 1
+        emitter:
+          seed: 12345
+
+  # State 2: Update count and reduce opacity
+  - elements:
+      - id: "snow-effect"
+        type: "particles"
+        preset: "snow"
+        count: 200
+        alpha: 0.5
+        emitter:
+          seed: 12345

@@ -1,0 +1,20 @@
+---
+title: Particles fire
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'particles-fire'
+        type: "particles"
+        preset: "fire"
+        count: 100
+        emitX: 640
+        emitY: 600
+        emitter:
+          seed: 12345

@@ -1,9 +1,18 @@
-# ---
-# title: Particles snow
-# ---
-# states:
-#   - elements:
-#       - id: 'particles-snow'
-#         type: "particles_experimental"
-#         preset: "snow"
-#         count: 300
+---
+title: Particles snow
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  - elements:
+      - id: 'particles-snow'
+        type: "particles"
+        preset: "snow"
+        count: 300
+        emitter:
+          seed: 12345

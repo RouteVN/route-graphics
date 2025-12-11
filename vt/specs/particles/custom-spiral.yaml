@@ -1,0 +1,77 @@
+---
+title: Custom spiral fountain effect (Level 3 - Full Custom)
+steps:
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements: []
+  # A spiral/fountain effect using full custom config
+  - elements:
+      - id: 'spiral-fountain'
+        type: "particles"
+        texture:
+          shape: circle
+          radius: 3
+          color: "#ffffff"
+        behaviors:
+          - type: "spawnShape"
+            config:
+              type: "circle"
+              data:
+                x: 640
+                y: 500
+                radius: 5
+                affectRotation: true
+          - type: "speedStatic"
+            config:
+              min: 150
+              max: 250
+          - type: "acceleration"
+            config:
+              accel:
+                x: 0
+                y: 300
+              minStart: 0
+              maxStart: 0
+              rotate: false
+              maxSpeed: 0
+          - type: "scale"
+            config:
+              list:
+                - value: 1
+                  time: 0
+                - value: 0.5
+                  time: 0.5
+                - value: 0
+                  time: 1
+          - type: "alpha"
+            config:
+              list:
+                - value: 1
+                  time: 0
+                - value: 0.8
+                  time: 0.5
+                - value: 0
+                  time: 1
+          - type: "color"
+            config:
+              list:
+                - value: "#00ffff"
+                  time: 0
+                - value: "#0066ff"
+                  time: 0.5
+                - value: "#000066"
+                  time: 1
+        emitter:
+          lifetime:
+            min: 1.5
+            max: 2.5
+          frequency: 0.02
+          particlesPerWave: 3
+          maxParticles: 100
+          emitterLifetime: -1
+          seed: 12345
