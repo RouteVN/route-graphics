@@ -44,9 +44,11 @@ export class RotationBehavior {
     let particle = first;
     while (particle) {
       particle.rotation =
-        particle.emitter.random() * (this.maxStart - this.minStart) + this.minStart;
+        particle.emitter.random() * (this.maxStart - this.minStart) +
+        this.minStart;
       particle.rotationSpeed =
-        particle.emitter.random() * (this.maxSpeed - this.minSpeed) + this.minSpeed;
+        particle.emitter.random() * (this.maxSpeed - this.minSpeed) +
+        this.minSpeed;
 
       particle = particle.next;
     }
@@ -89,7 +91,8 @@ export class StaticRotationBehavior {
   initParticles(first) {
     let particle = first;
     while (particle) {
-      particle.rotation = particle.emitter.random() * (this.max - this.min) + this.min;
+      particle.rotation =
+        particle.emitter.random() * (this.max - this.min) + this.min;
       particle = particle.next;
     }
   }

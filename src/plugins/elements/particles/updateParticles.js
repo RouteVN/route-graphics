@@ -26,7 +26,7 @@ export const updateParticles = async ({
 }) => {
   // Find the existing container
   const container = parent.children.find(
-    (child) => child.label === prevElement.id
+    (child) => child.label === prevElement.id,
   );
 
   if (!container) {
@@ -91,10 +91,17 @@ function hasConfigChanged(prev, next) {
   // Changes that require emitter recreation
   if (prev.preset !== next.preset) return true;
   if (prev.count !== next.count) return true;
-  if (JSON.stringify(prev.texture) !== JSON.stringify(next.texture)) return true;
-  if (JSON.stringify(prev.behaviors) !== JSON.stringify(next.behaviors)) return true;
-  if (JSON.stringify(prev.emitter) !== JSON.stringify(next.emitter)) return true;
-  if (JSON.stringify(prev.disableBehaviors) !== JSON.stringify(next.disableBehaviors)) return true;
+  if (JSON.stringify(prev.texture) !== JSON.stringify(next.texture))
+    return true;
+  if (JSON.stringify(prev.behaviors) !== JSON.stringify(next.behaviors))
+    return true;
+  if (JSON.stringify(prev.emitter) !== JSON.stringify(next.emitter))
+    return true;
+  if (
+    JSON.stringify(prev.disableBehaviors) !==
+    JSON.stringify(next.disableBehaviors)
+  )
+    return true;
   if (prev.width !== next.width) return true;
   if (prev.height !== next.height) return true;
   if (prev.emitX !== next.emitX) return true;

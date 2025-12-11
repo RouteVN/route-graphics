@@ -47,7 +47,8 @@ export class AccelerationBehavior {
     let particle = first;
     while (particle) {
       const speed =
-        particle.emitter.random() * (this.maxStart - this.minStart) + this.minStart;
+        particle.emitter.random() * (this.maxStart - this.minStart) +
+        this.minStart;
 
       // Set initial velocity based on rotation
       particle.velocity.x = Math.cos(particle.rotation) * speed;

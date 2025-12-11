@@ -9,4 +9,10 @@
 
 export { Emitter } from "./emitter.js";
 export { Particle } from "./particle.js";
-export { PropertyList, PropertyNode, lerp, lerpColor, parseColor } from "./propertyList.js";
+export {
+  PropertyList,
+  PropertyNode,
+  lerp,
+  lerpColor,
+  parseColor,
+} from "./propertyList.js";

@@ -44,6 +44,11 @@ export const rain = (options) => ({
       config: { rotation: -5 },
     },
   ],
-  spawnBounds: { x: -100, y: -100, width: options.width ?? 1280, height: options.height ?? 720 },
+  spawnBounds: {
+    x: -100,
+    y: -100,
+    width: options.width ?? 1280,
+    height: options.height ?? 720,
+  },
   recycleOnBounds: true,
 });

@@ -52,12 +52,18 @@ function createCustomTexture(app, shapeConfig) {
  * @param {Array} customBehaviors - User-provided behaviors to add or override
  * @param {Array} disableBehaviors - Behavior types to remove (e.g., ["rotation"])
  */
-function mergeBehaviors(presetBehaviors = [], customBehaviors = [], disableBehaviors = []) {
+function mergeBehaviors(
+  presetBehaviors = [],
+  customBehaviors = [],
+  disableBehaviors = [],
+) {
   const disableSet = new Set(disableBehaviors);
   const merged = presetBehaviors.filter((b) => !disableSet.has(b.type));
 
   for (const customBehavior of customBehaviors) {
-    const existingIndex = merged.findIndex((b) => b.type === customBehavior.type);
+    const existingIndex = merged.findIndex(
+      (b) => b.type === customBehavior.type,
+    );
     if (existingIndex >= 0) {
       merged[existingIndex] = customBehavior;
     } else {
@@ -70,12 +76,12 @@ function mergeBehaviors(presetBehaviors = [], customBehaviors = [], disableBehav
 
 /** Emitter properties that can be overridden by user config. */
 const EMITTER_SCALAR_PROPS = [
-  'frequency',
-  'particlesPerWave',
-  'maxParticles',
-  'emitterLifetime',
-  'recycleOnBounds',
-  'seed',
+  "frequency",
+  "particlesPerWave",
+  "maxParticles",
+  "emitterLifetime",
+  "recycleOnBounds",
+  "seed",
 ];
 
 /**
@@ -92,7 +98,10 @@ function mergeEmitterConfig(presetConfig, customEmitter) {
     merged.lifetime = { ...presetConfig.lifetime, ...customEmitter.lifetime };
   }
   if (customEmitter.spawnBounds) {
-    merged.spawnBounds = { ...presetConfig.spawnBounds, ...customEmitter.spawnBounds };
+    merged.spawnBounds = {
+      ...presetConfig.spawnBounds,
+      ...customEmitter.spawnBounds,
+    };
   }
 
   for (const prop of EMITTER_SCALAR_PROPS) {
@@ -108,12 +117,7 @@ function mergeEmitterConfig(presetConfig, customEmitter) {
  * Add a particle effect to the stage.
  * Supports presets (snow, rain, fire, burst) or custom behavior configs.
  */
-export const addParticle = async ({
-  app,
-  parent,
-  element,
-  signal,
-}) => {
+export const addParticle = async ({ app, parent, element, signal }) => {
   if (signal?.aborted) return;
 
   const container = new Container();
@@ -146,7 +150,7 @@ export const addParticle = async ({
     emitterConfig.behaviors = mergeBehaviors(
       presetConfig.behaviors,
       element.behaviors,
-      element.disableBehaviors
+      element.disableBehaviors,
     );
   } else {
     // Custom behaviors (no preset)
@@ -168,7 +172,8 @@ export const addParticle = async ({
   if (typeof element.texture === "object" && element.texture.shape) {
     texture = createCustomTexture(app, element.texture);
   } else {
-    const textureName = element.texture ?? getPresetDefaultTexture(element.preset) ?? "circle";
+    const textureName =
+      element.texture ?? getPresetDefaultTexture(element.preset) ?? "circle";
     texture = getTexture(textureName, app);
     if (!texture) {
       try {
@@ -186,7 +191,10 @@ export const addParticle = async ({
 
   // Pre-fill weather effects so they don't start empty
   if (emitterConfig.recycleOnBounds) {
-    const initialCount = Math.min(element.count ?? 100, emitterConfig.maxParticles);
+    const initialCount = Math.min(
+      element.count ?? 100,
+      emitterConfig.maxParticles,
+    );
     emitter.spawn(initialCount);
 
     let particle = emitter._activeFirst;

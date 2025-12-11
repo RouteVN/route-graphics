@@ -5,11 +5,25 @@ import {
 } from "./textures/index.js";
 import { AlphaBehavior, StaticAlphaBehavior } from "./behaviors/alpha.js";
 import { ScaleBehavior, StaticScaleBehavior } from "./behaviors/scale.js";
-import { SpeedBehavior, StaticSpeedBehavior, PointMovementBehavior } from "./behaviors/speed.js";
-import { AccelerationBehavior, GravityBehavior } from "./behaviors/acceleration.js";
-import { RotationBehavior, StaticRotationBehavior, NoRotationBehavior } from "./behaviors/rotation.js";
+import {
+  SpeedBehavior,
+  StaticSpeedBehavior,
+  PointMovementBehavior,
+} from "./behaviors/speed.js";
+import {
+  AccelerationBehavior,
+  GravityBehavior,
+} from "./behaviors/acceleration.js";
+import {
+  RotationBehavior,
+  StaticRotationBehavior,
+  NoRotationBehavior,
+} from "./behaviors/rotation.js";
 import { ColorBehavior, StaticColorBehavior } from "./behaviors/color.js";
-import { SpawnShapeBehavior, BurstSpawnBehavior } from "./behaviors/spawnShape.js";
+import {
+  SpawnShapeBehavior,
+  BurstSpawnBehavior,
+} from "./behaviors/spawnShape.js";
 
 const presetRegistry = new Map();
 const textureRegistry = new Map();
@@ -25,15 +39,21 @@ const presetDefaultTextures = {
 
 function validateBehavior(behavior, index, presetName) {
   if (!behavior || typeof behavior !== "object") {
-    console.warn(`[particles] Preset "${presetName}" behavior[${index}] is not an object, skipping`);
+    console.warn(
+      `[particles] Preset "${presetName}" behavior[${index}] is not an object, skipping`,
+    );
     return { valid: false };
   }
   if (!behavior.type || typeof behavior.type !== "string") {
-    console.warn(`[particles] Preset "${presetName}" behavior[${index}] missing type, skipping`);
+    console.warn(
+      `[particles] Preset "${presetName}" behavior[${index}] missing type, skipping`,
+    );
     return { valid: false };
   }
   if (!getBehavior(behavior.type)) {
-    console.warn(`[particles] Preset "${presetName}" behavior[${index}] unknown type "${behavior.type}", skipping`);
+    console.warn(
+      `[particles] Preset "${presetName}" behavior[${index}] unknown type "${behavior.type}", skipping`,
+    );
     return { valid: false };
   }
   return { valid: true };
@@ -45,15 +65,21 @@ function validateLifetime(lifetime, presetName) {
   if (!lifetime) return defaultLifetime;
 
   if (typeof lifetime !== "object") {
-    console.warn(`[particles] Preset "${presetName}" lifetime must be an object, using default`);
+    console.warn(
+      `[particles] Preset "${presetName}" lifetime must be an object, using default`,
+    );
     return defaultLifetime;
   }
 
-  const min = typeof lifetime.min === "number" ? lifetime.min : defaultLifetime.min;
-  const max = typeof lifetime.max === "number" ? lifetime.max : defaultLifetime.max;
+  const min =
+    typeof lifetime.min === "number" ? lifetime.min : defaultLifetime.min;
+  const max =
+    typeof lifetime.max === "number" ? lifetime.max : defaultLifetime.max;
 
   if (min > max) {
-    console.warn(`[particles] Preset "${presetName}" lifetime.min > max, swapping`);
+    console.warn(
+      `[particles] Preset "${presetName}" lifetime.min > max, swapping`,
+    );
     return { min: max, max: min };
   }
 
@@ -165,22 +191,32 @@ export function loadParticlePresets(config) {
       continue;
     }
 
-    if (!presetDef || typeof presetDef !== "object" || Array.isArray(presetDef)) {
+    if (
+      !presetDef ||
+      typeof presetDef !== "object" ||
+      Array.isArray(presetDef)
+    ) {
       console.warn(`[particles] Preset "${name}" must be an object, skipping`);
       result.skipped.push(name);
       continue;
     }
 
     if (!Array.isArray(presetDef.behaviors)) {
-      console.warn(`[particles] Preset "${name}" missing behaviors array, skipping`);
+      console.warn(
+        `[particles] Preset "${name}" missing behaviors array, skipping`,
+      );
       result.skipped.push(name);
       continue;
     }
 
-    const validBehaviors = presetDef.behaviors.filter((b, i) => validateBehavior(b, i, name).valid);
+    const validBehaviors = presetDef.behaviors.filter(
+      (b, i) => validateBehavior(b, i, name).valid,
+    );
 
     if (validBehaviors.length === 0) {
-      console.warn(`[particles] Preset "${name}" has no valid behaviors, skipping`);
+      console.warn(
+        `[particles] Preset "${name}" has no valid behaviors, skipping`,
+      );
       result.skipped.push(name);
       continue;
     }
@@ -194,10 +230,21 @@ export function loadParticlePresets(config) {
     const factory = (options) => {
       const config = {
         lifetime: { ...lifetime },
-        frequency: typeof presetDef.frequency === "number" ? presetDef.frequency : 0.1,
-        particlesPerWave: typeof presetDef.particlesPerWave === "number" ? presetDef.particlesPerWave : 1,
-        maxParticles: options.count ?? (typeof presetDef.maxParticles === "number" ? presetDef.maxParticles : 100),
-        emitterLifetime: typeof presetDef.emitterLifetime === "number" ? presetDef.emitterLifetime : -1,
+        frequency:
+          typeof presetDef.frequency === "number" ? presetDef.frequency : 0.1,
+        particlesPerWave:
+          typeof presetDef.particlesPerWave === "number"
+            ? presetDef.particlesPerWave
+            : 1,
+        maxParticles:
+          options.count ??
+          (typeof presetDef.maxParticles === "number"
+            ? presetDef.maxParticles
+            : 100),
+        emitterLifetime:
+          typeof presetDef.emitterLifetime === "number"
+            ? presetDef.emitterLifetime
+            : -1,
         behaviors: validBehaviors,
       };
 

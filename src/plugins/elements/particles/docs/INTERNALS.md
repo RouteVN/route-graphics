@@ -7,12 +7,14 @@ Implementation details for developers who want to understand or extend the parti
 The core emitter code is adapted from [@pixi/particle-emitter](https://github.com/pixijs-userland/particle-emitter) (MIT License, Copyright (c) 2015 CloudKid).
 
 **What was borrowed:**
+
 - `emitter/emitter.js` - Particle spawning, pooling, and lifecycle management
 - `emitter/particle.js` - Particle class structure (extends Sprite)
 - `emitter/propertyList.js` - Value interpolation system
 - `behaviors/*.js` - Behavior patterns and interfaces
 
 **What was changed:**
+
 - Simplified API for route-graphics integration
 - Converted from TypeScript to JavaScript
 - Added seeded RNG for visual testing
@@ -92,6 +94,7 @@ The main controller that spawns, updates, and recycles particles.
 ```
 
 **Key methods:**
+
 - `spawn(count)` - Create particles from pool or new
 - `update(deltaSec)` - Age particles, run behaviors, recycle dead ones
 - `recycle(particle)` - Return particle to pool
@@ -143,6 +146,7 @@ updateParticle(particle) {
 **Structure:** Linked list of `PropertyNode` objects, sorted by time. `getValue(t)` finds the correct segment and interpolates.
 
 **Utility functions:**
+
 - `lerp(start, end, t)` - Linear interpolation for numbers
 - `lerpColor(start, end, t)` - RGB component interpolation
 - `parseColor(color)` - Hex string to integer
@@ -169,7 +173,7 @@ Behaviors modify particles at different lifecycle stages.
 
 ```javascript
 class MyBehavior {
-  static type = 'myBehavior'; // Registry key
+  static type = "myBehavior"; // Registry key
 
   constructor(config) {
     // Parse config, set up PropertyLists, etc.
@@ -198,30 +202,30 @@ class MyBehavior {
 
 ### Built-in Behaviors
 
-| Behavior | Init | Update | Description |
-|----------|------|--------|-------------|
-| `alpha` | - | Yes | Fade via PropertyList |
-| `alphaStatic` | Yes | - | Random fixed alpha |
-| `scale` | - | Yes | Size via PropertyList |
-| `scaleStatic` | Yes | - | Random fixed scale |
-| `color` | - | Yes | Tint via PropertyList |
-| `colorStatic` | Yes | - | Fixed tint |
-| `movePoint` | Yes | Yes | Direction + speed |
-| `speed` | Yes | Yes | Speed with acceleration |
-| `speedStatic` | Yes | - | Fixed outward speed |
-| `acceleration` | Yes | Yes | Apply forces (gravity) |
-| `rotation` | Yes | Yes | Spin with acceleration |
-| `rotationStatic` | Yes | - | Random fixed rotation |
-| `noRotation` | Yes | - | Fixed angle, no spin |
-| `spawnShape` | Yes | - | Position particles in shape |
+| Behavior         | Init | Update | Description                 |
+| ---------------- | ---- | ------ | --------------------------- |
+| `alpha`          | -    | Yes    | Fade via PropertyList       |
+| `alphaStatic`    | Yes  | -      | Random fixed alpha          |
+| `scale`          | -    | Yes    | Size via PropertyList       |
+| `scaleStatic`    | Yes  | -      | Random fixed scale          |
+| `color`          | -    | Yes    | Tint via PropertyList       |
+| `colorStatic`    | Yes  | -      | Fixed tint                  |
+| `movePoint`      | Yes  | Yes    | Direction + speed           |
+| `speed`          | Yes  | Yes    | Speed with acceleration     |
+| `speedStatic`    | Yes  | -      | Fixed outward speed         |
+| `acceleration`   | Yes  | Yes    | Apply forces (gravity)      |
+| `rotation`       | Yes  | Yes    | Spin with acceleration      |
+| `rotationStatic` | Yes  | -      | Random fixed rotation       |
+| `noRotation`     | Yes  | -      | Fixed angle, no spin        |
+| `spawnShape`     | Yes  | -      | Position particles in shape |
 
 ### Adding a Custom Behavior
 
 ```javascript
-import { registerParticleBehavior } from 'route-graphics';
+import { registerParticleBehavior } from "route-graphics";
 
 class WindBehavior {
-  static type = 'wind';
+  static type = "wind";
 
   constructor(config) {
     this.strength = config.strength || 50;
@@ -238,7 +242,9 @@ class WindBehavior {
   }
 
   updateParticle(particle, deltaSec) {
-    const offset = Math.sin(particle.age * this.frequency + particle.config.windPhase);
+    const offset = Math.sin(
+      particle.age * this.frequency + particle.config.windPhase,
+    );
     particle.x += offset * this.strength * deltaSec;
   }
 }
@@ -253,14 +259,15 @@ registerParticleBehavior(WindBehavior);
 Three registries store extensible components:
 
 ```javascript
-const presetRegistry = new Map();   // name → config object or function
-const textureRegistry = new Map();  // name → Texture or generator function
+const presetRegistry = new Map(); // name → config object or function
+const textureRegistry = new Map(); // name → Texture or generator function
 const behaviorRegistry = new Map(); // type → Behavior class
 ```
 
 ### Preset Registry
 
 Presets can be:
+
 1. **Static object** - Config used as-is
 2. **Function** - Called with element options, returns config
 
@@ -283,10 +290,10 @@ registerParticlePreset('burst', (options) => ({
 
 ```javascript
 // Pre-made texture
-registerParticleTexture('star', starTexture);
+registerParticleTexture("star", starTexture);
 
 // Generator function (receives app for renderer access)
-registerParticleTexture('star', (app) => {
+registerParticleTexture("star", (app) => {
   const g = new Graphics();
   g.star(0, 0, 5, 8, 4);
   g.fill({ color: 0xffffff });
@@ -347,6 +354,7 @@ YAML Element Config
 ### Object Pooling
 
 Dead particles are recycled, not destroyed:
+
 1. Particle dies (age >= maxLife)
 2. Removed from active list
 3. Added to pool list
@@ -362,7 +370,7 @@ The `seed` emitter option enables deterministic behavior:
 
 ```yaml
 emitter:
-  seed: 12345  # Same seed = same particle positions
+  seed: 12345 # Same seed = same particle positions
 ```
 
 This is used by the visual testing system to generate reproducible screenshots.

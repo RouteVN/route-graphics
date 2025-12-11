@@ -84,7 +84,8 @@ export class StaticScaleBehavior {
   initParticles(first) {
     let particle = first;
     while (particle) {
-      const scale = particle.emitter.random() * (this.max - this.min) + this.min;
+      const scale =
+        particle.emitter.random() * (this.max - this.min) + this.min;
       particle.scale.set(scale, scale);
       particle = particle.next;
     }

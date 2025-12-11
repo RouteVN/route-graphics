@@ -14,7 +14,12 @@ export const burst = (options) => ({
       type: "spawnShape",
       config: {
         type: "circle",
-        data: { x: options.x ?? 0, y: options.y ?? 0, radius: 10, affectRotation: true },
+        data: {
+          x: options.x ?? 0,
+          y: options.y ?? 0,
+          radius: 10,
+          affectRotation: true,
+        },
       },
     },
     {

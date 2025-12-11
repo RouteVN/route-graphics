@@ -64,7 +64,7 @@ export class SpeedBehavior {
     // Normalize and scale velocity
     const len = Math.sqrt(
       particle.velocity.x * particle.velocity.x +
-        particle.velocity.y * particle.velocity.y
+        particle.velocity.y * particle.velocity.y,
     );
 
     if (len > 0) {
@@ -103,7 +103,8 @@ export class StaticSpeedBehavior {
   initParticles(first) {
     let particle = first;
     while (particle) {
-      const speed = particle.emitter.random() * (this.max - this.min) + this.min;
+      const speed =
+        particle.emitter.random() * (this.max - this.min) + this.min;
 
       // Set velocity based on rotation
       particle.velocity.x = Math.cos(particle.rotation) * speed;
@@ -152,7 +153,8 @@ export class PointMovementBehavior {
     let particle = first;
     while (particle) {
       const speed =
-        particle.emitter.random() * (this.maxSpeed - this.minSpeed) + this.minSpeed;
+        particle.emitter.random() * (this.maxSpeed - this.minSpeed) +
+        this.minSpeed;
 
       particle.velocity.x = Math.cos(this.direction) * speed;
       particle.velocity.y = Math.sin(this.direction) * speed;

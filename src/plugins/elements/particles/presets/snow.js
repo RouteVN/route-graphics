@@ -49,6 +49,11 @@ export const snow = (options) => ({
       },
     },
   ],
-  spawnBounds: { x: -50, y: -50, width: options.width ?? 1280, height: options.height ?? 720 },
+  spawnBounds: {
+    x: -50,
+    y: -50,
+    width: options.width ?? 1280,
+    height: options.height ?? 720,
+  },
   recycleOnBounds: true,
 });

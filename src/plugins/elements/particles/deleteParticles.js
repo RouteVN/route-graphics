@@ -29,7 +29,10 @@ export const deleteParticles = async ({
 
         // Remove custom ticker handler if present (used in testing mode)
         if (particleElement.customTickerHandler) {
-          window.removeEventListener("snapShotKeyFrame", particleElement.customTickerHandler);
+          window.removeEventListener(
+            "snapShotKeyFrame",
+            particleElement.customTickerHandler,
+          );
         }
 
         particleElement.destroy({ children: true });

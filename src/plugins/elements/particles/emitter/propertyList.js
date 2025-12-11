@@ -138,8 +138,7 @@ export class PropertyList {
     }
 
     // Interpolate within segment
-    const segmentT =
-      (t - current.time) / (current.next.time - current.time);
+    const segmentT = (t - current.time) / (current.next.time - current.time);
 
     if (this.isColor) {
       return lerpColor(current.value, current.next.value, segmentT);
