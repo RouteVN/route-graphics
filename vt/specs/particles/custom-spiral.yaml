@@ -1,14 +1,12 @@
 ---
 title: Custom spiral fountain effect (Level 3 - Full Custom)
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
 ---
 states:
-  - elements: []
   # A spiral/fountain effect using full custom config
   - elements:
       - id: 'spiral-fountain'

@@ -1,7 +1,6 @@
 ---
 title: Particles with texture override
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
@@ -13,7 +12,6 @@ steps:
   - screenshot
 ---
 states:
-  - elements: []
   # Use snow preset but with circle texture instead of snowflake
   - elements:
       - id: 'snow-circles'

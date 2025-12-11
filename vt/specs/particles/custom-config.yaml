@@ -1,14 +1,12 @@
 ---
 title: Particles with custom config (Level 3 - Full Custom)
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
 ---
 states:
-  - elements: []
   # Demonstrates full custom config without preset
   # This creates a rising bubble effect
   - elements:

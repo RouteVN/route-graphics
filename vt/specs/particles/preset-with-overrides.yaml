@@ -1,14 +1,12 @@
 ---
 title: Particles preset with overrides (Level 2)
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
 ---
 states:
-  - elements: []
   # Demonstrates using a preset with behavior overrides and disableBehaviors
   - elements:
       # Snow preset with custom color gradient and no rotation

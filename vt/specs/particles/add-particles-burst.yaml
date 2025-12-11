@@ -1,14 +1,12 @@
 ---
 title: Particles burst
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=50
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=100
   - screenshot
 ---
 states:
-  - elements: []
   - elements:
       - id: 'particles-burst'
         type: "particles"

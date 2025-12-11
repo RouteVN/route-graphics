@@ -1,14 +1,12 @@
 ---
 title: Particles fire
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
 ---
 states:
-  - elements: []
   - elements:
       - id: 'particles-fire'
         type: "particles"

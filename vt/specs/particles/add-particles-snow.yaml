@@ -1,14 +1,12 @@
 ---
 title: Particles snow
 steps:
-  - keypress n
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
 ---
 states:
-  - elements: []
   - elements:
       - id: 'particles-snow'
         type: "particles"
