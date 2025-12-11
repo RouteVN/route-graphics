@@ -41,11 +41,6 @@ jobs:
       - name: Install Playwright browsers
         run:  npx playwright@1.57.0 install
 
-      - name: Install Asian fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk
-
       - name: Run vt report with debug
         run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 13000 && rtgl vt report
 
