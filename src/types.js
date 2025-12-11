@@ -385,6 +385,7 @@ export const DEFAULT_TEXT_STYLE = {
   breakWords: false,
   strokeColor: "transparent",
   strokeWidth: 0,
+  wordWrapWidth: 0,
 };
 
 /**

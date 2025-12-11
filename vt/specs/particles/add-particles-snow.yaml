@@ -1,9 +1,9 @@
----
-title: Particles snow
----
-states:
-  - elements:
-      - id: 'particles-snow'
-        type: "particles_experimental"
-        preset: "snow"
-        count: 300
+# ---
+# title: Particles snow
+# ---
+# states:
+#   - elements:
+#       - id: 'particles-snow'
+#         type: "particles_experimental"
+#         preset: "snow"
+#         count: 300
