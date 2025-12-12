@@ -53,9 +53,29 @@ properties:
     type: object
     description: This event type is called "drag-end" and will be invoked when the pointer is released after it is press-downed on an element.
     properties:
-      _event: 
+      _event:
         type: object
         properties:
-          id: 
+          id:
             type: string
             description: The ID of the element that was hovered
+  scrollup:
+    type: object
+    description: This event type is called "scrollup" and will be invoked when scrolling up on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was scrolled up on
+  scrolldown:
+    type: object
+    description: This event type is called "scrolldown" and will be invoked when scrolling down on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was scrolled down on
