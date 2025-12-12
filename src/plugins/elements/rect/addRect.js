@@ -59,6 +59,7 @@ export const addRect = async ({
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
+  const rightClickEvents = element?.rightClick;
   const dragEvent = element?.drag;
 
   if (hoverEvents) {
@@ -111,6 +112,29 @@ export const addRect = async ({
     };
 
     rect.on("pointerup", releaseListener);
+  }
+
+  if (rightClickEvents) {
+    const { soundSrc, actionPayload } = rightClickEvents;
+    rect.eventMode = "static";
+
+    const rightClickListener = () => {
+      if (actionPayload && eventHandler)
+        eventHandler(`rightclick`, {
+          _event: {
+            id: rect.label,
+          },
+          ...actionPayload,
+        });
+      if (soundSrc)
+        app.audioStage.add({
+          id: `rightclick-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+    };
+
+    rect.on("rightdown", rightClickListener);
   }
 
   if (dragEvent) {
