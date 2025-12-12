@@ -12,7 +12,15 @@ import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
-import { particlesPlugin } from "./plugins/elements/particles/index.js";
+import {
+  particlesPlugin,
+  registerParticlePreset,
+  registerParticleTexture,
+  registerParticleBehavior,
+  loadParticlePresets,
+  Emitter,
+  Particle,
+} from "./plugins/elements/particles/index.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import createRouteGraphics from "./RouteGraphics.js";
@@ -38,4 +46,11 @@ export {
   particlesPlugin,
   renderElements,
   renderAudio,
+  // Particle system extensibility
+  registerParticlePreset,
+  registerParticleTexture,
+  registerParticleBehavior,
+  loadParticlePresets,
+  Emitter,
+  Particle,
 };

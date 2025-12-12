@@ -1,5 +1,5 @@
 ---
-title: Particles snow
+title: Particles fire
 steps:
   - customEvent snapShotKeyFrame deltaMS=300
   - screenshot
@@ -8,9 +8,11 @@ steps:
 ---
 states:
   - elements:
-      - id: 'particles-snow'
+      - id: 'particles-fire'
         type: "particles"
-        preset: "snow"
-        count: 300
+        preset: "fire"
+        count: 100
+        emitX: 640
+        emitY: 600
         emitter:
           seed: 12345

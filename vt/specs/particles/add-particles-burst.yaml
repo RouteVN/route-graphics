@@ -1,0 +1,18 @@
+---
+title: Particles burst
+steps:
+  - customEvent snapShotKeyFrame deltaMS=50
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=100
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'particles-burst'
+        type: "particles"
+        preset: "burst"
+        count: 50
+        emitX: 640
+        emitY: 360
+        emitter:
+          seed: 12345

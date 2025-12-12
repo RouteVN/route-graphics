@@ -1,9 +1,16 @@
-# ---
-# title: Particles rain
-# ---
-# states:
-#   - elements:
-#       - id: 'particles-rain'
-#         type: "particles_experimental"
-#         preset: "rain"
-#         count: 300
+---
+title: Particles rain
+steps:
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'particles-rain'
+        type: "particles"
+        preset: "rain"
+        count: 300
+        emitter:
+          seed: 12345

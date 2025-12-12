@@ -1,0 +1,213 @@
+file: "../../src/plugins/elements/particles/parseParticles.js"
+group: parser
+suites: [parseParticles]
+---
+suite: parseParticles
+exportName: parseParticles
+---
+case: Test parsing particles with preset only (Level 1)
+in:
+  - state:
+      id: "snow-effect"
+      type: "particles"
+      preset: "snow"
+      count: 200
+out:
+  id: "snow-effect"
+  type: "particles"
+  preset: "snow"
+  count: 200
+  x: 0
+  y: 0
+  alpha: 1
+---
+case: Test parsing particles with preset and overrides (Level 2)
+in:
+  - state:
+      id: "custom-snow"
+      type: "particles"
+      preset: "snow"
+      count: 300
+      texture: "circle"
+      disableBehaviors:
+        - rotation
+      behaviors:
+        - type: "color"
+          config:
+            list:
+              - value: "#ffffff"
+                time: 0
+              - value: "#aaaaff"
+                time: 1
+      emitter:
+        frequency: 0.02
+        lifetime:
+          min: 5
+          max: 8
+out:
+  id: "custom-snow"
+  type: "particles"
+  preset: "snow"
+  count: 300
+  texture: "circle"
+  disableBehaviors:
+    - rotation
+  behaviors:
+    - type: "color"
+      config:
+        list:
+          - value: "#ffffff"
+            time: 0
+          - value: "#aaaaff"
+            time: 1
+  emitter:
+    frequency: 0.02
+    lifetime:
+      min: 5
+      max: 8
+    maxParticles: 300
+  x: 0
+  y: 0
+  alpha: 1
+---
+case: Test parsing particles with full custom config (Level 3)
+in:
+  - state:
+      id: "sparkles"
+      type: "particles"
+      texture:
+        shape: circle
+        radius: 5
+        color: "#ffffff"
+      behaviors:
+        - type: "spawnShape"
+          config:
+            type: "rect"
+            data:
+              x: 0
+              y: 0
+              w: 1280
+              h: 720
+        - type: "alpha"
+          config:
+            list:
+              - value: 0
+                time: 0
+              - value: 1
+                time: 0.2
+              - value: 0
+                time: 1
+      emitter:
+        lifetime:
+          min: 0.5
+          max: 1.0
+        frequency: 0.1
+        maxParticles: 50
+out:
+  id: "sparkles"
+  type: "particles"
+  count: 50
+  texture:
+    shape: circle
+    radius: 5
+    color: "#ffffff"
+  behaviors:
+    - type: "spawnShape"
+      config:
+        type: "rect"
+        data:
+          x: 0
+          y: 0
+          w: 1280
+          h: 720
+    - type: "alpha"
+      config:
+        list:
+          - value: 0
+            time: 0
+          - value: 1
+            time: 0.2
+          - value: 0
+            time: 1
+  emitter:
+    lifetime:
+      min: 0.5
+      max: 1.0
+    frequency: 0.1
+    maxParticles: 50
+  x: 0
+  y: 0
+  alpha: 1
+---
+case: Test parsing particles with position and dimensions
+in:
+  - state:
+      id: "positioned-particles"
+      type: "particles"
+      preset: "fire"
+      count: 80
+      x: 100
+      y: 200
+      width: 500
+      height: 400
+      emitX: 250
+      emitY: 350
+      alpha: 0.8
+out:
+  id: "positioned-particles"
+  type: "particles"
+  preset: "fire"
+  count: 80
+  x: 100
+  y: 200
+  width: 500
+  height: 400
+  emitX: 250
+  emitY: 350
+  alpha: 0.8
+---
+case: Test parsing particles with default values
+in:
+  - state:
+      id: "default-particles"
+      type: "particles"
+      preset: "rain"
+out:
+  id: "default-particles"
+  type: "particles"
+  preset: "rain"
+  count: 100
+  x: 0
+  y: 0
+  alpha: 1
+---
+case: Error when id is missing
+in:
+  - state:
+      type: "particles"
+      preset: "snow"
+throws: "Input Error: Id is missing"
+---
+case: Error when neither preset nor behaviors provided
+in:
+  - state:
+      id: "no-preset-or-behaviors"
+      type: "particles"
+throws: "Input Error: Particles require either 'preset' or 'behaviors'"
+---
+case: Error when behaviors is not an array
+in:
+  - state:
+      id: "invalid-behaviors"
+      type: "particles"
+      behaviors: "not-an-array"
+throws: "Input Error: 'behaviors' must be an array"
+---
+case: Error when emitter is not an object
+in:
+  - state:
+      id: "invalid-emitter"
+      type: "particles"
+      preset: "snow"
+      emitter: "not-an-object"
+throws: "Input Error: 'emitter' must be an object"

@@ -84,6 +84,6 @@ vt:
     - title: "Particles"
       type: "groupLabel"
       items:
-        - title: "particles snow"
+        - title: "Particles"
           files: "particles"
-          description: "particles snow"
+          description: "Particle effects (presets and custom configs)"

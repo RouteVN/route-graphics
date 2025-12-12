@@ -1,17 +1,10 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Particles AST Node
-description: Schema for particles raw input
+title: Particles Element
+description: Schema for particles element raw input
 type: object
 required:
   - id
   - type
-  - x
-  - y
-  - width
-  - height
-  - count
-  - speed
-  - alpha
 properties:
   id:
     type: string
@@ -23,34 +16,137 @@ properties:
 
   preset:
     type: string
-    enum: [snow, rain]
-    description: Preset name used (if any)
+    enum: [snow, rain, fire, burst, explosion]
+    description: Built-in preset name
+
+  count:
+    type: number
+    description: Shorthand for emitter.maxParticles
+    default: 100
+
+  texture:
+    oneOf:
+      - type: string
+        description: Built-in texture name or asset alias
+      - type: object
+        description: Custom texture configuration
+        required:
+          - shape
+        properties:
+          shape:
+            type: string
+            enum: [circle, ellipse, rect]
+            description: Shape type
+          radius:
+            type: number
+            description: Radius for circle shape
+            default: 3
+          width:
+            type: number
+            description: Width for ellipse/rect shapes
+          height:
+            type: number
+            description: Height for ellipse/rect shapes
+          color:
+            type: string
+            description: Fill color (hex)
+            default: "#ffffff"
+
+  behaviors:
+    type: array
+    description: Behavior configurations (merged with preset behaviors)
+    items:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Behavior type name
+        config:
+          type: object
+          description: Behavior-specific configuration
+
+  disableBehaviors:
+    type: array
+    description: List of preset behavior types to disable
+    items:
+      type: string
+
+  emitter:
+    type: object
+    description: Emitter configuration (merged with preset)
+    properties:
+      lifetime:
+        type: object
+        description: Particle lifespan in seconds
+        properties:
+          min:
+            type: number
+          max:
+            type: number
+      frequency:
+        type: number
+        description: Seconds between spawns (0 = burst all at once)
+      particlesPerWave:
+        type: number
+        description: Particles spawned per wave
+      maxParticles:
+        type: number
+        description: Maximum active particles
+      emitterLifetime:
+        type: number
+        description: How long emitter runs in seconds (-1 = infinite)
+        default: -1
+      spawnBounds:
+        type: object
+        description: Recycle boundary
+        properties:
+          x:
+            type: number
+          y:
+            type: number
+          width:
+            type: number
+          height:
+            type: number
+      recycleOnBounds:
+        type: boolean
+        description: Recycle particles leaving bounds
+        default: false
+      seed:
+        type: number
+        description: Seed for deterministic randomness (for visual testing)
 
   x:
     type: number
-    description: X position
+    description: Container X position
     default: 0
 
   y:
     type: number
-    description: Y position
+    description: Container Y position
     default: 0
 
   width:
     type: number
-    description: Emission area width
+    description: Effect area width (defaults to screen width)
 
   height:
     type: number
-    description: Emission area height
+    description: Effect area height (defaults to screen height)
 
-  count:
+  emitX:
     type: number
-    description: Number of particles
+    description: Emission point X (for point-based presets like fire/burst)
+
+  emitY:
+    type: number
+    description: Emission point Y (for point-based presets like fire/burst)
 
   alpha:
     type: number
-    description: Overall opacity
+    description: Container opacity
     minimum: 0
     maximum: 1
     default: 1
