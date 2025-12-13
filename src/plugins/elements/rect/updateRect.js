@@ -47,7 +47,7 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");
-      rectElement.removeAllListeners("rightdown");
+      rectElement.removeAllListeners("rightclick");
       rectElement.removeAllListeners("pointerdown");
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
@@ -129,7 +129,7 @@ export const updateRect = async ({
             });
         };
 
-        rectElement.on("rightdown", rightClickListener);
+        rectElement.on("rightclick", rightClickListener);
       }
 
       if (dragEvents) {

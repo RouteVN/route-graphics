@@ -134,7 +134,7 @@ export const addRect = async ({
         });
     };
 
-    rect.on("rightdown", rightClickListener);
+    rect.on("rightclick", rightClickListener);
   }
 
   if (dragEvent) {
