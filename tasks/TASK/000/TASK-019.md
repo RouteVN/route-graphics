@@ -1,6 +1,6 @@
 ---
 title: Research and implement solution for things like rain, snow effects
-status: todo
+status: done
 priority: medium
 assignee: JeffY
 labels: [feat]

@@ -1,8 +1,8 @@
 ---
 title: support video element
 status: todo
-priority: medium
-assignee:
+priority: high
+assignee: nghia
 labels: ['feat']
 ---
 
@@ -12,4 +12,8 @@ labels: ['feat']
 - video's audio has to play together with the video
 - reference pixijs video: https://pixijs.com/8.x/examples?example=sprite_video_texture
 
+it should have these properties that sound element has:
+
+loop: boolean
+volume: number (from 0 to 1000)
 
