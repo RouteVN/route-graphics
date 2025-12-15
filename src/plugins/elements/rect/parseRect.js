@@ -32,5 +32,6 @@ export const parseRect = ({ state }) => {
     fill: state.fill ?? "white",
     rotation: state.rotation ?? 0,
     ...(state.drag && { drag: state.drag }),
+    ...(state.scroll && { scroll: state.scroll }),
   };
 };

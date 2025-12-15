@@ -1,0 +1,20 @@
+---
+title: Rect scrolling events
+description: Test srolling up and down events on rect element
+---
+states:
+  - elements:
+      - id: 'rect-scroll'
+        type: "rect"
+        x: 200
+        y: 300
+        width: 350
+        height: 120
+        fill: "#f39c12"
+        scroll:
+          up:
+            actionPayload:
+              message: "scrolled up"
+          down:
+            actionPayload:
+              message: "scrolled down"
