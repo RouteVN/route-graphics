@@ -2,7 +2,7 @@
 title: support animated spritesheets
 status: todo
 priority: medium
-assignee: anyone
+assignee: nghia
 labels: [feat]
 ---
 
