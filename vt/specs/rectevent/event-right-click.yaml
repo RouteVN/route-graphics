@@ -1,0 +1,18 @@
+---
+title: Rect right click event
+description: Test right clicke event on rect elements
+specs:
+  - "rect should call the callback with data when right-clicked"
+---
+states:
+  - elements:
+      - id: 'rect-right-click-1'
+        type: "rect"
+        x: 200
+        y: 100
+        width: 300
+        height: 100
+        fill: "#3498db"
+        rightClick:
+          actionPayload:
+            message: "Rect 1 right-clicked"

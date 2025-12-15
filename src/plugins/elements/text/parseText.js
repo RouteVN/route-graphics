@@ -49,5 +49,8 @@ export const parseText = ({ state }) => {
     textStyle: {
       ...textStyle,
     },
+    ...(state.hover && { hover: state.hover }),
+    ...(state.click && { click: state.click }),
+    ...(state.rightClick && { rightClick: state.rightClick }),
   };
 };

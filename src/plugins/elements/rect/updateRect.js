@@ -47,6 +47,7 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");
+      rectElement.removeAllListeners("rightclick");
       rectElement.removeAllListeners("wheel");
       rectElement.removeAllListeners("pointerdown");
       rectElement.removeAllListeners("globalpointermove");
@@ -54,6 +55,7 @@ export const updateRect = async ({
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
+      const rightClickEvents = nextElement?.rightClick;
       const scrollEvents = nextElement?.scroll;
       const dragEvents = nextElement?.drag;
 
@@ -109,6 +111,28 @@ export const updateRect = async ({
         rectElement.on("pointerup", clickListener);
       }
 
+      if (rightClickEvents) {
+        const { soundSrc, actionPayload } = rightClickEvents;
+        rectElement.eventMode = "static";
+
+        const rightClickListener = () => {
+          if (actionPayload && eventHandler)
+            eventHandler(`rightclick`, {
+              _event: {
+                id: rectElement.label,
+              },
+              ...actionPayload,
+            });
+          if (soundSrc)
+            app.audioStage.add({
+              id: `rightclick-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+        };
+
+        rectElement.on("rightclick", rightClickListener);
+      }
       if (scrollEvents) {
         rectElement.eventMode = "static";
 

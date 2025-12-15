@@ -59,6 +59,16 @@ properties:
           id:
             type: string
             description: The ID of the element that was hovered
+  rightClick:
+    type: object
+    description: This event type is called "rightclick" and will be invoked when the right mouse button is clicked on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was right-clicked
   scrollUp:
     type: object
     description: This event type is called "scrollup" and will be invoked when scrolling up on an element.

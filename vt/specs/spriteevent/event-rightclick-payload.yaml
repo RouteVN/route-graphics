@@ -1,0 +1,23 @@
+---
+title: Sprite Right-Click payload Tests
+description: Test payload sending on right-click events for sprites
+specs:
+  - "sprite should send actionPayload on right-click"
+  - "sprite should support different payloads for different events"
+  - "sprite should send correct payload without interfering with style changes"
+---
+states:
+  - elements:
+      # Test sprite with sound on right-click only
+      - id: 'sprite-rightclick-sound'
+        type: "sprite"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        src: "circle-blue"
+        rightClick:
+          actionPayload:
+            action: "sprite-right-clicked"
+            eventType: "rightclick"
+            button: "right"
