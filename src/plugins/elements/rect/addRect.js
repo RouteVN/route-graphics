@@ -137,7 +137,7 @@ export const addRect = async ({
 
     rect.on("rightclick", rightClickListener);
   }
-  
+
   if (scrollEvents) {
     rect.eventMode = "static";
 
