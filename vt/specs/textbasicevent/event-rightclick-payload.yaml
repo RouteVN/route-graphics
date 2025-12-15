@@ -1,0 +1,23 @@
+---
+title: Text Right-Click payload test
+description: Test payload sending on right-click events
+specs:
+  - "text should send actionPayload on right-click"
+  - "text should support different payloads for different events"
+  - "text should send correct payload without interfering with style changes"
+---
+states:
+  - elements:
+      - id: 'text-rightclick-sound'
+        type: "text"
+        x: 150
+        y: 100
+        content: "Right-click and check the console to see the actionPayload"
+        textStyle:
+          fontSize: 24
+          fill: "blue"
+        rightClick:
+          actionPayload:
+            action: "text-right-clicked"
+            eventType: "rightclick"
+            button: "right"
