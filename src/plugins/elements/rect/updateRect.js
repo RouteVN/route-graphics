@@ -48,6 +48,7 @@ export const updateRect = async ({
       rectElement.removeAllListeners("pointerout");
       rectElement.removeAllListeners("pointerup");
       rectElement.removeAllListeners("rightclick");
+      rectElement.removeAllListeners("wheel");
       rectElement.removeAllListeners("pointerdown");
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
@@ -55,6 +56,7 @@ export const updateRect = async ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
+      const scrollEvents = nextElement?.scroll;
       const dragEvents = nextElement?.drag;
 
       if (hoverEvents) {
@@ -130,6 +132,35 @@ export const updateRect = async ({
         };
 
         rectElement.on("rightclick", rightClickListener);
+      }
+      if (scrollEvents) {
+        rectElement.eventMode = "static";
+
+        const wheelListener = (e) => {
+          if (e.deltaY < 0 && scrollEvents.up) {
+            const { actionPayload } = scrollEvents.up;
+
+            if (actionPayload && eventHandler)
+              eventHandler(`scrollup`, {
+                _event: {
+                  id: rectElement.label,
+                },
+                ...actionPayload,
+              });
+          } else if (e.deltaY > 0 && scrollEvents.down) {
+            const { actionPayload } = scrollEvents.down;
+
+            if (actionPayload && eventHandler)
+              eventHandler(`scrolldown`, {
+                _event: {
+                  id: rectElement.label,
+                },
+                ...actionPayload,
+              });
+          }
+        };
+
+        rectElement.on("wheel", wheelListener);
       }
 
       if (dragEvents) {

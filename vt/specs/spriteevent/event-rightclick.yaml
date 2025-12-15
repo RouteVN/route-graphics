@@ -1,0 +1,81 @@
+---
+title: Sprite Right-Click with Hover and Click
+description: Test right-click functionality combined with hover and click events on sprite elements
+specs:
+  - "sprite should handle right-click and click events independently"
+  - "sprite should show hover cursor and still support right-click"
+  - "sprite should change texture on hover, click, and right-click differently"
+  - "sprite should play different sounds for different click types"
+  - "sprite should send correct actionPayload for each event type"
+---
+states:
+  - elements:
+      # Test sprite with all three event types
+      - id: 'sprite-all-events'
+        type: "sprite"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        src: "circle-blue"
+        hover:
+          src: "circle-green"
+          cursor: "pointer"
+          soundSrc: "hover-sound"
+          actionPayload:
+            action: "sprite-hovered"
+            eventType: "hover"
+            status: "over"
+        click:
+          src: "circle-red"
+          soundSrc: "click-sound"
+          actionPayload:
+            action: "sprite-clicked"
+            eventType: "click"
+            button: "left"
+        rightClick:
+          src: "circle-blue"
+          soundSrc: "rightclick-sound"
+          actionPayload:
+            action: "sprite-right-clicked"
+            eventType: "rightclick"
+            button: "right"
+            contextMenu: true
+
+      # Test sprite with hover and right-click (no click)
+      - id: 'sprite-hover-rightclick'
+        type: "sprite"
+        x: 400
+        y: 100
+        width: 150
+        height: 150
+        src: "circle-green"
+        hover:
+          cursor: "help"
+          actionPayload:
+            action: "help-text-hovered"
+            helpText: "Right-click for options"
+        rightClick:
+          actionPayload:
+            action: "context-menu-opened"
+            menuType: "help-menu"
+            availableOptions: ["About", "Settings", "Help"]
+
+      # Test sprite with click and right-click (no hover)
+      - id: 'sprite-click-rightclick'
+        type: "sprite"
+        x: 650
+        y: 100
+        width: 150
+        height: 150
+        src: "circle-red"
+        click:
+          actionPayload:
+            action: "select-item"
+            selectionType: "primary"
+        rightClick:
+          actionPayload:
+            action: "item-options"
+            selectionType: "context"
+            canDelete: true
+            canEdit: true

@@ -60,6 +60,7 @@ export const addRect = async ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
+  const scrollEvents = element?.scroll;
   const dragEvent = element?.drag;
 
   if (hoverEvents) {
@@ -135,6 +136,36 @@ export const addRect = async ({
     };
 
     rect.on("rightclick", rightClickListener);
+  }
+  
+  if (scrollEvents) {
+    rect.eventMode = "static";
+
+    const wheelListener = (e) => {
+      if (e.deltaY < 0 && scrollEvents.up) {
+        const { actionPayload } = scrollEvents.up;
+
+        if (actionPayload && eventHandler)
+          eventHandler(`scrollup`, {
+            _event: {
+              id: rect.label,
+            },
+            ...actionPayload,
+          });
+      } else if (e.deltaY > 0 && scrollEvents.down) {
+        const { actionPayload } = scrollEvents.down;
+
+        if (actionPayload && eventHandler)
+          eventHandler(`scrolldown`, {
+            _event: {
+              id: rect.label,
+            },
+            ...actionPayload,
+          });
+      }
+    };
+
+    rect.on("wheel", wheelListener);
   }
 
   if (dragEvent) {

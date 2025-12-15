@@ -39,19 +39,25 @@ export const updateSprite = async ({
       spriteElement.removeAllListeners("pointerdown");
       spriteElement.removeAllListeners("pointerupoutside");
       spriteElement.removeAllListeners("pointerup");
+      spriteElement.removeAllListeners("rightdown");
+      spriteElement.removeAllListeners("rightup");
+      spriteElement.removeAllListeners("rightupoutside");
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
+      const rightClickEvents = nextElement?.rightClick;
 
       let events = {
         isHovering: false,
         isPressed: false,
+        isRightPressed: false,
       };
 
-      const updateTexture = ({ isHovering, isPressed }) => {
-        console.log("IsPressed: ", isPressed);
-        console.log("IsHovering: ", isHovering);
-        if (isPressed && clickEvents?.src) {
+      const updateTexture = ({ isHovering, isPressed, isRightPressed }) => {
+        if (isRightPressed && rightClickEvents?.src) {
+          const rightClickTexture = Texture.from(rightClickEvents.src);
+          spriteElement.texture = rightClickTexture;
+        } else if (isPressed && clickEvents?.src) {
           const clickTexture = Texture.from(clickEvents.src);
           spriteElement.texture = clickTexture;
         } else if (isHovering && hoverEvents?.src) {
@@ -131,6 +137,46 @@ export const updateSprite = async ({
         spriteElement.on("pointerdown", clickListener);
         spriteElement.on("pointerup", releaseListener);
         spriteElement.on("pointerupoutside", outListener);
+      }
+
+      if (rightClickEvents) {
+        const { soundSrc, actionPayload } = rightClickEvents;
+        spriteElement.eventMode = "static";
+
+        const rightClickListener = () => {
+          events.isRightPressed = true;
+          updateTexture(events);
+        };
+
+        const rightReleaseListener = () => {
+          events.isRightPressed = false;
+          updateTexture(events);
+
+          if (actionPayload && eventHandler) {
+            eventHandler(`rightclick`, {
+              _event: {
+                id: spriteElement.label,
+              },
+              ...actionPayload,
+            });
+          }
+          if (soundSrc) {
+            app.audioStage.add({
+              id: `rightclick-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+          }
+        };
+
+        const rightOutListener = () => {
+          events.isRightPressed = false;
+          updateTexture(events);
+        };
+
+        spriteElement.on("rightdown", rightClickListener);
+        spriteElement.on("rightup", rightReleaseListener);
+        spriteElement.on("rightupoutside", rightOutListener);
       }
     }
   };

@@ -111,3 +111,18 @@ properties:
       actionPayload:
         type: object
         description: Payload for right-click action event
+  scroll:
+    type: object
+    properties:
+      up:
+        type: object
+        properties:
+          actionPayload:
+            type: object
+            description: Payload for scroll up action event
+      down:
+        type: object
+        properties:
+          actionPayload:
+            type: object
+            description: Payload for scroll down action event
