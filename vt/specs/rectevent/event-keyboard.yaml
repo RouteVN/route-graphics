@@ -1,0 +1,22 @@
+---
+title: Rect keyboard event
+description: Test keyboard event on rect elements
+specs:
+  - "rect should call the callback with data when keyboard event occurs"
+---
+states:
+  - elements:
+      - id: 'rect-keyboard-1'
+        type: "rect"
+        x: 200
+        y: 100
+        width: 300
+        height: 100
+        fill: "#3498db"
+        keyboard:
+          - key: "a"
+            actionPayload:
+              message: "Key A pressed on Rect 1"
+          - key: "Enter"
+            actionPayload:
+              message: "Enter key pressed on Rect 1"
