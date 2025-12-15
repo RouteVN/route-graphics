@@ -51,6 +51,11 @@ export const updateRect = async ({
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
 
+      if (rectElement.cleanupKeyboard) {
+        rectElement.cleanupKeyboard();
+        delete rectElement.cleanupKeyboard;
+      }
+
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const dragEvents = nextElement?.drag;
@@ -158,6 +163,54 @@ export const updateRect = async ({
         rectElement.on("pointerup", upListener);
         rectElement.on("globalpointermove", moveListener);
         rectElement.on("pointerupoutside", upListener);
+      }
+
+      const keyboardEvents = nextElement?.keyboard;
+      if (keyboardEvents && keyboardEvents.length > 0) {
+        rectElement.eventMode = "static";
+        let hasFocus = false;
+
+        const keyHandlers = keyboardEvents.map(({ key, actionPayload }) => {
+          const handleKey = (e) => {
+            if (e.key === key && hasFocus) {
+              if (actionPayload && eventHandler) {
+                eventHandler('keyboard', {
+                  _event: {
+                    id: rectElement.label,
+                    key: e.key,
+                  },
+                  ...actionPayload,
+                });
+              }
+            }
+          };
+
+          return handleKey;
+        });
+
+        const handleKeyDown = (e) => {
+          keyHandlers.forEach(handler => handler(e));
+        };
+
+        const handlePointerDown = () => {
+          hasFocus = true;
+        };
+
+        const handlePointerDownOutside = () => {
+          hasFocus = false;
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        rectElement.on('pointerdown', handlePointerDown);
+        app.stage.on('pointerdown', handlePointerDownOutside);
+
+        const cleanupKeyboard = () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          rectElement.off('pointerdown', handlePointerDown);
+          app.stage.off('pointerdown', handlePointerDownOutside);
+        };
+
+        rectElement.cleanupKeyboard = cleanupKeyboard;
       }
     }
   };

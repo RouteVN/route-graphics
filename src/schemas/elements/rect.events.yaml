@@ -53,9 +53,22 @@ properties:
     type: object
     description: This event type is called "drag-end" and will be invoked when the pointer is released after it is press-downed on an element.
     properties:
-      _event: 
+      _event:
         type: object
         properties:
-          id: 
+          id:
             type: string
             description: The ID of the element that was hovered
+  keyboard:
+    type: object
+    description: This event type is called "keyboard" and will be invoked when a keyboard key is pressed while an element has focus.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that triggered the keyboard event
+          key:
+            type: string
+            description: The key that was pressed

@@ -102,3 +102,15 @@ properties:
         actionPayload:
           type: object
           description: Payload for click action event
+  keyboard:
+    type: array
+    description: Array of keyboard input bindings
+    items:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Key identifier (e.g., 'a', 'Enter', 'ArrowUp')
+        actionPayload:
+          type: object
+          description: Payload to trigger when key is pressed

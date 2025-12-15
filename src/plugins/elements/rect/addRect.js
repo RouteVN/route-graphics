@@ -164,6 +164,54 @@ export const addRect = async ({
     rect.on("pointerupoutside", upListener);
   }
 
+  const keyboardEvents = element?.keyboard;
+  if (keyboardEvents && keyboardEvents.length > 0) {
+    rect.eventMode = "static";
+    let hasFocus = false;
+
+    const keyHandlers = keyboardEvents.map(({ key, actionPayload }) => {
+      const handleKey = (e) => {
+        if (e.key === key && hasFocus) {
+          if (actionPayload && eventHandler) {
+            eventHandler('keyboard', {
+              _event: {
+                id: rect.label,
+                key: e.key,
+              },
+              ...actionPayload,
+            });
+          }
+        }
+      };
+
+      return handleKey;
+    });
+
+    const handleKeyDown = (e) => {
+      keyHandlers.forEach(handler => handler(e));
+    };
+
+    const handlePointerDown = () => {
+      hasFocus = true;
+    };
+
+    const handlePointerDownOutside = () => {
+      hasFocus = false;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    rect.on('pointerdown', handlePointerDown);
+    app.stage.on('pointerdown', handlePointerDownOutside);
+
+    const cleanupKeyboard = () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      rect.off('pointerdown', handlePointerDown);
+      app.stage.off('pointerdown', handlePointerDownOutside);
+    };
+
+    rect.cleanupKeyboard = cleanupKeyboard;
+  }
+
   parent.addChild(rect);
 
   if (animations && animations.length > 0) {
