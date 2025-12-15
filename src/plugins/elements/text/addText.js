@@ -38,14 +38,18 @@ export const addText = async ({
   drawText();
   const hoverEvents = textASTNode?.hover;
   const clickEvents = textASTNode?.click;
+  const rightClickEvents = textASTNode?.rightClick;
 
   let events = {
     isHovering: false,
     isPressed: false,
+    isRightPressed: false,
   };
 
-  const updateTextStyle = ({ isHovering, isPressed }) => {
-    if (isPressed && clickEvents?.textStyle) {
+  const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
+    if (isRightPressed && rightClickEvents?.textStyle) {
+      applyTextStyle(text, rightClickEvents.textStyle);
+    } else if (isPressed && clickEvents?.textStyle) {
       applyTextStyle(text, clickEvents.textStyle);
     } else if (isHovering && hoverEvents?.textStyle) {
       applyTextStyle(text, hoverEvents.textStyle);
@@ -91,7 +95,7 @@ export const addText = async ({
     const { soundSrc, actionPayload } = clickEvents;
     text.eventMode = "static";
 
-    const clickListener = (e) => {
+    const clickListener = () => {
       events.isPressed = true;
       updateTextStyle(events);
     };
@@ -123,6 +127,46 @@ export const addText = async ({
     text.on("pointerdown", clickListener);
     text.on("pointerup", releaseListener);
     text.on("pointerupoutside", outListener);
+  }
+
+  if (rightClickEvents) {
+    const { soundSrc, actionPayload } = rightClickEvents;
+    text.eventMode = "static";
+
+    const rightClickListener = () => {
+      events.isRightPressed = true;
+      updateTextStyle(events);
+    };
+
+    const rightReleaseListener = () => {
+      events.isRightPressed = false;
+      updateTextStyle(events);
+
+      if (actionPayload && eventHandler) {
+        eventHandler(`rightclick`, {
+          _event: {
+            id: text.label,
+          },
+          ...actionPayload,
+        });
+      }
+      if (soundSrc) {
+        app.audioStage.add({
+          id: `rightclick-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+      }
+    };
+
+    const rightOutListener = () => {
+      events.isRightPressed = false;
+      updateTextStyle(events);
+    };
+
+    text.on("rightdown", rightClickListener);
+    text.on("rightup", rightReleaseListener);
+    text.on("rightupoutside", rightOutListener);
   }
 
   parent.addChild(text);

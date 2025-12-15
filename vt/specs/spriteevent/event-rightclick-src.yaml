@@ -1,0 +1,26 @@
+---
+title: Sprite Right-Click Source/Texture Tests
+description: Test sprite source/texture changes on right-click events
+specs:
+  - "sprite should change src on right-click"
+  - "sprite should support different src for different events"
+  - "sprite should maintain dimensions when changing src"
+steps:
+  - move 225 175
+  - rMouseDown
+  - screenshot
+  - rMouseUp
+  - screenshot
+---
+states:
+  - elements:
+      # Test sprite with src change on right-click
+      - id: 'sprite-rightclick-src'
+        type: "sprite"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        src: "circle-blue"
+        rightClick:
+          src: "circle-red"

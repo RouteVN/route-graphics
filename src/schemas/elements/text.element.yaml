@@ -107,3 +107,14 @@ properties:
       actionPayload:
         type: object
         description: Payload for click action event
+  rightClick:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      soundSrc:
+        type: string
+        description: URL to sound file to play on right-click
+      actionPayload:
+        type: object
+        description: Payload for right-click action event

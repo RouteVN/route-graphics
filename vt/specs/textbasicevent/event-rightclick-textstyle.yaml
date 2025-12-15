@@ -1,0 +1,36 @@
+---
+title: Text Style Right-Click Tests
+description: Test text style changes on right-click events
+specs:
+  - "text should change textStyle on right-click"
+  - "text should maintain different styles for different events"
+  - "text should support fontSize, fill, and fontFamily changes on right-click"
+steps:
+  - move 155 110
+  - rMouseDown
+  - screenshot
+  - rMouseUp
+  - screenshot
+---
+states:
+  - elements:
+      # Test text with style change on right-click
+      - id: 'text-rightclick-style'
+        type: "text"
+        x: 150
+        y: 100
+        content: "Right-click Me"
+        textStyle:
+          fontSize: 24
+          fill: "blue"
+          fontFamily: "Arial"
+        rightClick:
+          textStyle:
+            fontSize: 24
+            fill: "purple"
+            fontFamily: "Arial"
+          actionPayload:
+            action: "text-right-clicked"
+            eventType: "rightclick"
+            button: "right"
+            contextMenu: true

@@ -36,24 +36,29 @@ export const updateText = async ({
       textElement.removeAllListeners("pointerdown");
       textElement.removeAllListeners("pointerupoutside");
       textElement.removeAllListeners("pointerup");
+      textElement.removeAllListeners("rightdown");
+      textElement.removeAllListeners("rightup");
+      textElement.removeAllListeners("rightupoutside");
 
       const hoverEvents = nextTextASTNode?.hover;
       const clickEvents = nextTextASTNode?.click;
+      const rightClickEvents = nextTextASTNode?.rightClick;
 
       let events = {
         isHovering: false,
         isPressed: false,
+        isRightPressed: false,
       };
 
-      const updateTextStyle = ({ isHovering, isPressed }) => {
-        console.log("IsPressed: ", isPressed);
-        console.log("IsHovering: ", isHovering);
-        if (isPressed && clickEvents?.textStyle) {
+      const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
+        if (isRightPressed && rightClickEvents?.textStyle) {
+          applyTextStyle(textElement, rightClickEvents.textStyle);
+        } else if (isPressed && clickEvents?.textStyle) {
           applyTextStyle(textElement, clickEvents.textStyle);
         } else if (isHovering && hoverEvents?.textStyle) {
           applyTextStyle(textElement, hoverEvents.textStyle);
         } else {
-          applyTextStyle(textElement, textASTNode.textStyle);
+          applyTextStyle(textElement, nextTextASTNode.textStyle);
         }
       };
 
@@ -94,7 +99,7 @@ export const updateText = async ({
         const { soundSrc, actionPayload } = clickEvents;
         textElement.eventMode = "static";
 
-        const clickListener = (e) => {
+        const clickListener = () => {
           events.isPressed = true;
           updateTextStyle(events);
         };
@@ -126,6 +131,46 @@ export const updateText = async ({
         textElement.on("pointerdown", clickListener);
         textElement.on("pointerup", releaseListener);
         textElement.on("pointerupoutside", outListener);
+      }
+
+      if (rightClickEvents) {
+        const { soundSrc, actionPayload } = rightClickEvents;
+        textElement.eventMode = "static";
+
+        const rightClickListener = () => {
+          events.isRightPressed = true;
+          updateTextStyle(events);
+        };
+
+        const rightReleaseListener = () => {
+          events.isRightPressed = false;
+          updateTextStyle(events);
+
+          if (actionPayload && eventHandler) {
+            eventHandler(`rightclick`, {
+              _event: {
+                id: textElement.label,
+              },
+              ...actionPayload,
+            });
+          }
+          if (soundSrc) {
+            app.audioStage.add({
+              id: `rightclick-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+          }
+        };
+
+        const rightOutListener = () => {
+          events.isRightPressed = false;
+          updateTextStyle(events);
+        };
+
+        textElement.on("rightdown", rightClickListener);
+        textElement.on("rightup", rightReleaseListener);
+        textElement.on("rightupoutside", rightOutListener);
       }
     }
   };

@@ -33,5 +33,7 @@ export const parseRect = ({ state }) => {
     rotation: state.rotation ?? 0,
     ...(state.drag && { drag: state.drag }),
     ...(state.keyboard && { keyboard: state.keyboard }),
+    ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.scroll && { scroll: state.scroll }),
   };
 };
