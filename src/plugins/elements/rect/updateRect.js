@@ -53,9 +53,9 @@ export const updateRect = async ({
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
 
-      if (rectElement.cleanupKeyboard) {
-        rectElement.cleanupKeyboard();
-        delete rectElement.cleanupKeyboard;
+      if (rectElement._cleanupKeyboard) {
+        rectElement._cleanupKeyboard();
+        rectElement._cleanupKeyboard = null;
       }
 
       const hoverEvents = nextElement?.hover;
@@ -63,6 +63,7 @@ export const updateRect = async ({
       const rightClickEvents = nextElement?.rightClick;
       const scrollEvents = nextElement?.scroll;
       const dragEvents = nextElement?.drag;
+      const keyboardEvents = nextElement?.keyboard;
 
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -221,7 +222,6 @@ export const updateRect = async ({
         rectElement.on("pointerupoutside", upListener);
       }
 
-      const keyboardEvents = nextElement?.keyboard;
       if (keyboardEvents && keyboardEvents.length > 0) {
         rectElement.eventMode = "static";
         let hasFocus = false;
@@ -257,16 +257,14 @@ export const updateRect = async ({
         };
 
         window.addEventListener('keydown', handleKeyDown);
-        rectElement.on('pointerdown', handlePointerDown);
-        app.stage.on('pointerdown', handlePointerDownOutside);
+        rectElement.on('pointerover', handlePointerDown);
+        rectElement.on('pointerout', handlePointerDownOutside);
 
         const cleanupKeyboard = () => {
           window.removeEventListener('keydown', handleKeyDown);
-          rectElement.off('pointerdown', handlePointerDown);
-          app.stage.off('pointerdown', handlePointerDownOutside);
         };
 
-        rectElement.cleanupKeyboard = cleanupKeyboard;
+        rectElement._cleanupKeyboard = cleanupKeyboard;
       }
     }
   };

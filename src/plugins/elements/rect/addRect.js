@@ -255,13 +255,11 @@ export const addRect = async ({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    rect.on('pointerdown', handlePointerDown);
-    app.stage.on('pointerdown', handlePointerDownOutside);
+    rect.on('pointerover', handlePointerDown);
+    rect.on('pointerout', handlePointerDownOutside);
 
     const cleanupKeyboard = () => {
       window.removeEventListener('keydown', handleKeyDown);
-      rect.off('pointerdown', handlePointerDown);
-      app.stage.off('pointerdown', handlePointerDownOutside);
     };
 
     rect.cleanupKeyboard = cleanupKeyboard;
