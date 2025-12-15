@@ -60,6 +60,7 @@ export const addRect = async ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const dragEvent = element?.drag;
+  const keyboardEvents = element?.keyboard;
 
   if (hoverEvents) {
     const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -164,8 +165,7 @@ export const addRect = async ({
     rect.on("pointerupoutside", upListener);
   }
 
-  const keyboardEvents = element?.keyboard;
-  if (keyboardEvents && keyboardEvents.length > 0) {
+  if (keyboardEvents && keyboardEvents?.length > 0) {
     rect.eventMode = "static";
     let hasFocus = false;
 
