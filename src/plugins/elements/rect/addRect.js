@@ -227,6 +227,7 @@ export const addRect = async ({
     const keyHandlers = keyboardEvents.map(({ key, actionPayload }) => {
       const handleKey = (e) => {
         if (e.key === key && hasFocus) {
+          e.stopPropagation();
           if (actionPayload && eventHandler) {
             eventHandler('keyboard', {
               _event: {
@@ -243,6 +244,7 @@ export const addRect = async ({
     });
 
     const handleKeyDown = (e) => {
+      if(!hasFocus) return;
       keyHandlers.forEach(handler => handler(e));
     };
 
