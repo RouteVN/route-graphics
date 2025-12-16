@@ -20,3 +20,6 @@ states:
           - key: "Enter"
             actionPayload:
               message: "Enter key pressed on Rect 1"
+          - key: "ctrl"
+            actionPayload:
+              message: "Enter ctrl pressed on Rect 1"
