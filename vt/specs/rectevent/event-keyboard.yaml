@@ -14,12 +14,18 @@ states:
         height: 100
         fill: "#3498db"
         keyboard:
-          - key: "a"
+          - key: ["a"]
+            soundSrc: "keyboard-sound"
             actionPayload:
+              action: "key-action"
               message: "Key A pressed on Rect 1"
-          - key: "Enter"
+          - key: ["Enter"]
+            soundSrc: "keyboard-sound"
             actionPayload:
+              action: "key-action"
               message: "Enter key pressed on Rect 1"
-          - key: "ctrl"
+          - key: ["ctrl+a", "b", "c"]
+            soundSrc: "keyboard-sound"
             actionPayload:
-              message: "Enter ctrl pressed on Rect 1"
+              action: "key-action"
+              message: "Multiple keys bound to Rect 1"

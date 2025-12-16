@@ -226,10 +226,45 @@ export const updateRect = async ({
         rectElement.eventMode = "static";
         let hasFocus = false;
 
-        const keyHandlers = keyboardEvents.map(({ key, actionPayload }) => {
+        const keyHandlers = keyboardEvents.map(({ key, actionPayload, soundSrc }) => {
           const handleKey = (e) => {
-            if (e.key === key && hasFocus) {
+            // Check if pressed key matches any of the keys in the array
+            const keyPressed = e.key.toLowerCase();
+            const keysMatch = key.some(k => {
+              // Handle special key combinations like ctrl+a
+              if (k.includes('+')) {
+                const parts = k.split('+');
+                const modifier = parts[0].toLowerCase();
+                const mainKey = parts[1].toLowerCase();
+
+                if (modifier === 'ctrl' && e.ctrlKey && keyPressed === mainKey) {
+                  return true;
+                }
+                if (modifier === 'shift' && e.shiftKey && keyPressed === mainKey) {
+                  return true;
+                }
+                if (modifier === 'alt' && e.altKey && keyPressed === mainKey) {
+                  return true;
+                }
+                return false;
+              }
+
+              // Simple key match
+              return k.toLowerCase() === keyPressed;
+            });
+
+            if (keysMatch && hasFocus) {
               e.stopPropagation();
+
+              // Play sound if provided
+              if (soundSrc) {
+                app.audioStage.add({
+                  id: `keyboard-${Date.now()}`,
+                  url: soundSrc,
+                  loop: false,
+                });
+              }
+
               if (actionPayload && eventHandler) {
                 eventHandler('keyboard', {
                   _event: {

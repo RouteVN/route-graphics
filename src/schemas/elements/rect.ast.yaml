@@ -94,3 +94,44 @@ properties:
         actionPayload:
           type: object
           description: Payload for click action event
+  keyboard:
+    type: array
+    description: Array of keyboard input bindings
+    items:
+      type: object
+      properties:
+        key:
+          type: array
+          items:
+            type: string
+          description: Array of key identifiers (e.g., ['a', 'ctrl+a', 'b', 'c'])
+        soundSrc:
+          type: string
+          description: Source of sound to be played when any of the keys are pressed
+        actionPayload:
+          type: object
+          description: Payload to trigger when any of the keys are pressed
+  rightClick:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the rect is right-clicked
+      actionPayload:
+        type: object
+        description: Payload for right-click action event
+  scroll:
+    type: object
+    properties:
+      up:
+        type: object
+        properties:
+          actionPayload:
+            type: object
+            description: Payload for scroll up action event
+      down:
+        type: object
+        properties:
+          actionPayload:
+            type: object
+            description: Payload for scroll down action event
