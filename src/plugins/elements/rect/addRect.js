@@ -226,10 +226,8 @@ export const addRect = async ({
 
     const keyHandlers = keyboardEvents.map(({ key, actionPayload, soundSrc }) => {
       const handleKey = (e) => {
-        // Check if pressed key matches any of the keys in the array
         const keyPressed = e.key.toLowerCase();
         const keysMatch = key.some(k => {
-          // Handle special key combinations like ctrl+a
           if (k.includes('+')) {
             const parts = k.split('+');
             const modifier = parts[0].toLowerCase();
@@ -247,7 +245,16 @@ export const addRect = async ({
             return false;
           }
 
-          // Simple key match
+          if (k === 'ctrl' && e.ctrlKey) {
+            return true;
+          }
+          if (k === 'shift' && e.shiftKey) {
+            return true;
+          }
+          if (k === 'alt' && e.altKey) {
+            return true;
+          }
+
           return k.toLowerCase() === keyPressed;
         });
 

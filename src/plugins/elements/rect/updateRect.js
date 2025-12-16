@@ -249,6 +249,16 @@ export const updateRect = async ({
                 return false;
               }
 
+              if (k === 'ctrl' && e.ctrlKey) {
+                return true;
+              }
+              if (k === 'shift' && e.shiftKey) {
+                return true;
+              }
+              if (k === 'alt' && e.altKey) {
+                return true;
+              }
+
               // Simple key match
               return k.toLowerCase() === keyPressed;
             });

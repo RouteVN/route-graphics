@@ -29,3 +29,13 @@ states:
             actionPayload:
               action: "key-action"
               message: "Multiple keys bound to Rect 1"
+          - key: ["ctrl"]
+            soundSrc: "keyboard-sound"
+            actionPayload:
+              action: "key-action"
+              message: "Ctrl modifier key pressed on Rect 1"
+          - key: ["shift"]
+            soundSrc: "keyboard-sound"
+            actionPayload:
+              action: "key-action"
+              message: "Shift modifier key pressed on Rect 1"
