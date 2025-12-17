@@ -16,6 +16,7 @@
             textPlugin,
             rectPlugin,
             spritePlugin,
+            videoPlugin,
             sliderPlugin,
             containerPlugin,
             textRevealingPlugin,
@@ -37,6 +38,9 @@
         await Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' });
         await Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' });
 
+        // Pre-load video files
+        await Assets.load({ alias: 'bullrun-video', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4' });
+        await Assets.load({ alias: 'blazes-video', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4' });
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -51,6 +55,14 @@
         const audio3Buffer = await audio3.arrayBuffer();
         await AudioAsset.load('bgm-3', audio3Buffer);
 
+        const bullRunAudio = await fetch('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4');
+        const bullRunAudioBuffer = await bullRunAudio.arrayBuffer();
+        await AudioAsset.load('bullrun-video', bullRunAudioBuffer);
+
+        const blazesAudio = await fetch('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+        const blazesAudioBuffer = await blazesAudio.arrayBuffer();
+        await AudioAsset.load('blazes-video', blazesAudioBuffer);
+
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = createRouteGraphics();
 
@@ -59,6 +71,7 @@
                 textPlugin,
                 rectPlugin,
                 spritePlugin,
+                videoPlugin,
                 sliderPlugin,
                 containerPlugin,
                 textRevealingPlugin,
