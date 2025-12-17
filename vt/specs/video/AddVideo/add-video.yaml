@@ -15,7 +15,7 @@ states:
         width: 400
         height: 300
         src: "bullrun-video"
-        volume: 1000
+        volume: 100
         loop: true
         alpha: 1
         autoplay: true

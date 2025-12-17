@@ -15,32 +15,17 @@ export const addVideo = async ({
   signal,
 }) => {
   let isAnimationDone = true;
-  const {
-    id,
-    x,
-    y,
-    width,
-    height,
-    src,
-    volume,
-    loop,
-    alpha,
-  } = element;
+  const { id, x, y, width, height, src, volume, loop, alpha } = element;
 
   const texture = Texture.from(src);
   const video = texture.source.resource;
 
   video.loop = loop ?? false;
-
-  if (volume) {
-    const audioElement = {
-      id: id,
-      url: src,
-      loop: loop ?? false,
-      volume: volume / 1000,
-    };
-    app.audioStage.add(audioElement);
-  }
+  video.volume = volume / 1000;
+  video.muted = false;
+  video.pause();
+  video.currentTime = 0;
+  video.play();
 
   const sprite = new Sprite(texture);
   sprite.label = id;

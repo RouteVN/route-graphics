@@ -1,4 +1,4 @@
-import { Texture, Sprite } from "pixi.js";
+import { Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 
 /**
@@ -27,23 +27,30 @@ export const updateVideo = async ({
       videoElement.width = Math.round(nextElement.width);
       videoElement.height = Math.round(nextElement.height);
       videoElement.alpha = nextElement.alpha ?? 1;
-      const audioElement = app.audioStage.getById(prevElement.id);
 
       if (prevElement.src !== nextElement.src) {
+        const oldVideo = videoElement.texture.source.resource;
+        if (oldVideo) {
+          oldVideo.pause();
+        }
+
         const newTexture = Texture.from(nextElement.src);
         videoElement.texture = newTexture;
 
         const newVideo = newTexture.source.resource;
-        newVideo.loop = nextElement.loop ?? false;
+        newVideo.muted = false;
+        newVideo.pause();
         newVideo.currentTime = 0;
-        videoElement.videoElement = newVideo;
+        newVideo.play();
       }
+      videoElement.texture.source.resource.volume = nextElement.volume / 1000;
+      videoElement.texture.source.resource.loop = nextElement.loop ?? false;
 
-      if (audioElement) {
-        audioElement.url = nextElement.src;
-        audioElement.volume = nextElement.volume / 1000;
-        audioElement.loop = nextElement.loop ?? false;
-      }
+      // if (audioElement) {
+      //   audioElement.url = nextElement.src;
+      //   audioElement.volume = nextElement.volume / 1000;
+      //   audioElement.loop = nextElement.loop ?? false;
+      // }
     }
   };
 

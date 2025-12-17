@@ -26,6 +26,10 @@ export const deleteVideo = async ({
       }
 
       if (videoElement && !videoElement.destroyed) {
+        const video = videoElement.texture.source.resource;
+        if (video) {
+          video.pause();
+        }
         parent.removeChild(videoElement);
         videoElement.destroy();
       }
