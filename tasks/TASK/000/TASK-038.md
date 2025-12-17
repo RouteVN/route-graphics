@@ -8,6 +8,9 @@ labels: [bug]
 
 # Description
 
+<img width="853" height="988" alt="Screenshot 2025-12-17 at 17 22 07" src="https://github.com/user-attachments/assets/c8d46820-f530-4d62-beaf-93557ed71446" />
+
+
 vt/specs/spritetransition/sprite-fade-in-layer.yaml
 
 current: blue circle is on top of the red circle
