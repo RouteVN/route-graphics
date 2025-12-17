@@ -22,7 +22,7 @@ export const deleteVideo = async ({
     const deleteElement = () => {
       const audioElement = app.audioStage.getById(element.id);
       if (audioElement) {
-        app.audioStage.stop(element.id);
+        app.audioStage.remove(element.id);
       }
 
       if (videoElement && !videoElement.destroyed) {

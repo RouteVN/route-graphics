@@ -27,8 +27,18 @@ export const updateVideo = async ({
       videoElement.width = Math.round(nextElement.width);
       videoElement.height = Math.round(nextElement.height);
       videoElement.alpha = nextElement.alpha ?? 1;
-
       const audioElement = app.audioStage.getById(prevElement.id);
+
+      if (prevElement.src !== nextElement.src) {
+        const newTexture = Texture.from(nextElement.src);
+        videoElement.texture = newTexture;
+
+        const newVideo = newTexture.source.resource;
+        newVideo.loop = nextElement.loop ?? false;
+        newVideo.currentTime = 0;
+        videoElement.videoElement = newVideo;
+      }
+
       if (audioElement) {
         audioElement.url = nextElement.src;
         audioElement.volume = nextElement.volume / 1000;

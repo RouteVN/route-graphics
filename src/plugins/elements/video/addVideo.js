@@ -25,27 +25,14 @@ export const addVideo = async ({
     volume,
     loop,
     alpha,
-    autoplay,
   } = element;
 
   const texture = Texture.from(src);
   const video = texture.source.resource;
-  console.log("Audio source created for video:", video);
 
   video.loop = loop ?? false;
-  // video.muted = false; 
-  // video.autoPlay = true;
 
   if (volume) {
-    // const audioCtx = new AudioContext();
-    // const source = audioCtx.createMediaElementSource(video);
-    // const gainNode = audioCtx.createGain();
-    
-    // source.connect(gainNode).connect(audioCtx.destination);
-    // gainNode.gain.value = volume / 1000;
-
-    // video._gainNode = gainNode;
-    // video._audioContext = audioCtx;
     const audioElement = {
       id: id,
       url: src,
