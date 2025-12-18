@@ -165,9 +165,8 @@ const createRouteGraphics = () => {
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
-  const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
+  const applyGlobalObjects = (appInstance, prevGlobal, nextGlobal) => {
     if (keyboardManager) {
-      keyboardManager.unregisterAllHotkeys();
       keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? {});
     }
 
@@ -215,7 +214,7 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = async (appInstance, parent, nextState, handler) => {
-    applyGlobalCursorStyles(appInstance, state.global, nextState.global);
+    applyGlobalObjects(appInstance, state.global, nextState.global);
     if (currentAbortController && isProcessingRender)
       currentAbortController.abort();
     currentAbortController = new AbortController();

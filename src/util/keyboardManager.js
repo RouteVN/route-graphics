@@ -6,46 +6,65 @@ import hotkeys from "hotkeys-js";
  * @returns {Object} Keyboard manager instance
  */
 export const createKeyboardManager = (eventHandler) => {
-  const activeHotkeys = new Set();
+  const activeHotkeys = new Map();
 
   /**
-   * Register hotkeys with action payloads
    * @param {Object} hotkeyConfigs - Object with key mappings
    * @param {Object} hotkeyConfigs[key].actionPayload - Action payload for the key
    */
   const registerHotkeys = (hotkeyConfigs = {}) => {
     if (typeof hotkeyConfigs !== "object" || hotkeyConfigs === null) return;
 
-    Object.entries(hotkeyConfigs).forEach(([key, config]) => {
+    const keysToAdd = [];
+    const keysToUpdate = [];
+    const keysToRemove = [];
+
+    Object.keys(hotkeyConfigs).forEach(key => {
+      const active = activeHotkeys.get(key);
+      if (!active) {
+        keysToAdd.push(key);
+      } else if (JSON.stringify(active.payload) !== JSON.stringify(hotkeyConfigs[key].actionPayload)) {
+        keysToUpdate.push(key);
+        hotkeys.unbind(key);
+      }
+    });
+
+    activeHotkeys.forEach((_, key) => {
+      if (!hotkeyConfigs.hasOwnProperty(key)) {
+        keysToRemove.push(key);
+      }
+    });
+
+    keysToRemove.forEach(key => {
+      hotkeys.unbind(key);
+      activeHotkeys.delete(key);
+    });
+
+    [...keysToAdd, ...keysToUpdate].forEach(key => {
+      const config = hotkeyConfigs[key];
+      const payload = config.actionPayload ?? {};
+
       const handler = () => {
         if (eventHandler) {
           eventHandler("keydown", {
             _event: {
               key: key,
             },
-            ...(config.actionPayload ?? {}),
+            ...payload,
           });
         }
       };
 
       hotkeys(key, handler);
 
-      activeHotkeys.add(key);
+      activeHotkeys.set(key, {
+        value: key,
+        payload: payload,
+      });
     });
-  };
-
-  /**
-   * Unregister all hotkeys
-   */
-  const unregisterAllHotkeys = () => {
-    activeHotkeys.forEach((key) => {
-      hotkeys.unbind(key);
-    });
-    activeHotkeys.clear();
   };
 
   return {
     registerHotkeys,
-    unregisterAllHotkeys,
   };
 };
