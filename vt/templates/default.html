@@ -37,8 +37,8 @@
         await Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' });
         await Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' });
         await Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' });
-        await Assets.load({ alias: 'bullrun-video', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4' });
-        await Assets.load({ alias: 'blazes-video', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4' });
+        await Assets.load({ alias: 'bullrun-video', src: '/public/WeAreGoingOnBullrun.mp4' });
+        await Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes.mp4' });
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -82,7 +82,7 @@
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
             },
-            useCustomTicker: true,
+            useCustomTicker: false,
         })
         document.body.appendChild(app.canvas);
         let index = 0
