@@ -5,6 +5,9 @@ specs:
   - "text should send actionPayload on right-click"
   - "text should support different payloads for different events"
   - "text should send correct payload without interfering with style changes"
+steps:
+  - rclick 155 105
+  - screenshot
 ---
 states:
   - elements:
