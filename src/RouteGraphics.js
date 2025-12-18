@@ -166,6 +166,11 @@ const createRouteGraphics = () => {
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
   const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
+    if(keyboardManager){
+      keyboardManager.unregisterAllHotkeys();
+      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? []);
+    }
+
     // Initialize default cursor styles if they don't exist
     if (!appInstance.renderer.events.cursorStyles) {
       appInstance.renderer.events.cursorStyles = {};
@@ -450,27 +455,6 @@ const createRouteGraphics = () => {
       });
       const parsedState = { ...stateParam, elements: parsedElements };
       return parsedState;
-    },
-
-    /**
-     * Register global keyboard shortcuts
-     * @param {Array} hotkeyConfigs - Array of hotkey configurations
-     * @param {string} hotkeyConfigs[].keys - Key combinations (e.g., 'a,b,c, ctrl+a')
-     * @param {Object} hotkeyConfigs[].actionPayload - Action payload for the event
-     */
-    registerKeyboardShortcuts: (hotkeyConfigs) => {
-      if (keyboardManager) {
-        keyboardManager.registerHotkeys(hotkeyConfigs);
-      }
-    },
-
-    /**
-     * Unregister all keyboard shortcuts
-     */
-    unregisterAllKeyboardShortcuts: () => {
-      if (keyboardManager) {
-        keyboardManager.unregisterAllHotkeys();
-      }
     },
   };
 

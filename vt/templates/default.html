@@ -87,7 +87,7 @@
             elements: states[index].elements ?? [],
             animations: states[index].animations ?? [], 
             audio: states[index].audio ?? [],
-            global: {}
+            global: states[index].global ?? {}
         })
 
         const listenEvents = () => {
@@ -99,13 +99,13 @@
                             elements: states[index].elements ?? [],
                             animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
-                            global: {}
+                            global: states[index].global ?? {}
                         })
                         app.render({
                             elements: states[index].elements ?? [],
                             animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
-                            global: {}
+                            global: states[index].global ?? {}
                         })
                     }
                 }
@@ -116,7 +116,7 @@
                             elements: states[index].elements ?? [],
                             animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
-                            global: {}
+                            global: states[index].global ?? {}
                         })
                     }
                 } else if (e.key === "b") {
@@ -126,7 +126,7 @@
                             elements: states[index].elements ?? [],
                             animations: states[index].animations ?? [], 
                             audio: states[index].audio ?? [],
-                            global: {}
+                            global: states[index].global ?? {}
                         })
                     }
                 }

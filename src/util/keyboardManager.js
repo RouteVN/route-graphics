@@ -16,11 +16,12 @@ export const createKeyboardManager = (eventHandler) => {
    */
   const registerHotkeys = (hotkeyConfigs = []) => {
     if (!Array.isArray(hotkeyConfigs)) return;
+    const hotkeyId = `hotkey-${Date.now()}`;
 
     hotkeyConfigs.forEach((config, index) => {
       const handler = (_, handler) => {
         if (eventHandler) {
-          eventHandler("keydown", {
+          eventHandler("keydown-"+hotkeyId, {
             _event: {
               key: handler.key,
             },
