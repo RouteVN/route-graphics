@@ -23,7 +23,10 @@
             tweenPlugin,
             soundPlugin,
             particlesPlugin,
+            createAssetBufferManager,
         } from "/RouteGraphics.js"
+
+        const assetBufferManager = createAssetBufferManager();
 
         await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
         await Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' });
@@ -37,8 +40,19 @@
         await Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' });
         await Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' });
         await Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' });
-        await Assets.load({ alias: 'bullrun-video', src: '/public/WeAreGoingOnBullrun.mp4' });
-        await Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes.mp4' });
+
+        assetBufferManager.load(
+            {
+                "bullrun-video": {
+                    url: '/public/WeAreGoingOnBullrun.mp4',
+                    type: 'video/'
+                },
+                "blazes-video": {
+                    url: '/public/ForBiggerBlazes.mp4',
+                    type: 'video/'
+                }
+            }
+        )
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -84,6 +98,7 @@
             },
             useCustomTicker: false,
         })
+        app.loadAssets(assetBufferManager.getBufferMap());
         document.body.appendChild(app.canvas);
         let index = 0
         const states = parse(window.vtState).states

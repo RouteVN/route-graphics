@@ -150,6 +150,8 @@ const createRouteGraphics = () => {
       return "font";
     }
 
+    if (mimeType.startsWith("video/")) return "video";
+
     return "texture";
   };
 
@@ -343,6 +345,7 @@ const createRouteGraphics = () => {
       const assetsByType = {
         audio: {},
         font: {},
+        video: {}, 
         texture: {}, // includes images and other PIXI-compatible assets
       };
 
@@ -350,6 +353,7 @@ const createRouteGraphics = () => {
         const assetType = classifyAsset(asset.type);
         assetsByType[assetType][key] = asset;
       }
+      console.log("Assets classified by type:", assetsByType);
 
       // Load audio assets using AudioAsset.load in parallel
       await Promise.all(
@@ -375,6 +379,12 @@ const createRouteGraphics = () => {
           }
         }),
       );
+
+      Object.entries(assetsByType.video).forEach(([key, asset]) => {
+        console.log("Video asset loading not implemented yet:", key);
+        console.log("Video asset loading not implemented yet:", asset);
+        Assets.load({src: asset, alias: key});
+      });
 
       if (!advancedLoader) {
         advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
