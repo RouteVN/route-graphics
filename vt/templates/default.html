@@ -71,18 +71,42 @@
                 soundPlugin
             ],
         }
+        let index = 0
+        const states = parse(window.vtState).states
         await app.init({
             width: 1280,
             height: 720,
             plugins,
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
+                app.render(
+                    {
+                        elements: [
+                            ...(states[index].elements ?? []),
+                            {
+                                type: 'text',
+                                id: 'event-log',
+                                x: 500,
+                                y: 500,
+                                width: 300,
+                                content: `Event: ${eventName}, Payload: ${JSON.stringify(payload, null, 2)}`,
+                                textStyle: {
+                                    fill: '#ffffff',
+                                    fontSize: 24,
+                                    breakWords: true,
+                                }
+                            }
+                        ],
+                        animations: states[index].animations ?? [], 
+                        audio: states[index].audio ?? [],
+                        global: states[index].global ?? {}
+                    }
+                )
             },
             useCustomTicker: true,
         })
         document.body.appendChild(app.canvas);
-        let index = 0
-        const states = parse(window.vtState).states
+
         app.render({
             elements: states[index].elements ?? [],
             animations: states[index].animations ?? [], 
