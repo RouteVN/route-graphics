@@ -14,15 +14,26 @@ states:
         alpha: 1
     global:
       keyboard:
-        - keys: "a"
+        a:
           actionPayload:
             action: "keyA_Pressed"
-        - keys: "b"
+        b:
           actionPayload:
             action: "keyB_Pressed"
-        - keys: "ctrl"
+  - elements:
+      - id: 'rect-keyboard-test'
+        type: "rect"
+        x: 150
+        y: 100
+        width: 500
+        height: 400
+        fill: "#3498db"
+        alpha: 1
+    global:
+      keyboard:
+        c:
           actionPayload:
-            action: "ctrl_Pressed"
-        - keys: "shift+a, shift"
+            action: "keyC_Pressed"
+        shift+c:
           actionPayload:
-            action: "shift_Pressed"
+            action: "shift_c_Pressed"

@@ -6,36 +6,31 @@ import hotkeys from "hotkeys-js";
  * @returns {Object} Keyboard manager instance
  */
 export const createKeyboardManager = (eventHandler) => {
-  const activeHotkeys = new Map();
+  const activeHotkeys = new Set();
 
   /**
    * Register hotkeys with action payloads
-   * @param {Array} hotkeyConfigs - Array of hotkey configurations
-   * @param {string} hotkeyConfigs[].keys - Key combinations (e.g., 'a,b,c, ctrl+a')
-   * @param {Object} hotkeyConfigs[].actionPayload - Action payload for the event
+   * @param {Object} hotkeyConfigs - Object with key mappings
+   * @param {Object} hotkeyConfigs[key].actionPayload - Action payload for the key
    */
-  const registerHotkeys = (hotkeyConfigs = []) => {
-    if (!Array.isArray(hotkeyConfigs)) return;
-    const hotkeyId = `hotkey-${Date.now()}`;
+  const registerHotkeys = (hotkeyConfigs = {}) => {
+    if (typeof hotkeyConfigs !== "object" || hotkeyConfigs === null) return;
 
-    hotkeyConfigs.forEach((config) => {
-      const handler = (_, handler) => {
+    Object.entries(hotkeyConfigs).forEach(([key, config]) => {
+      const handler = () => {
         if (eventHandler) {
           eventHandler("keydown", {
             _event: {
-              key: handler.key,
+              key: key,
             },
             ...(config.actionPayload ?? {}),
           });
         }
       };
 
-      hotkeys(config.keys, handler);
+      hotkeys(key, handler);
 
-      activeHotkeys.set(hotkeyId, {
-        keys: config.keys,
-        handler,
-      });
+      activeHotkeys.add(key);
     });
   };
 
@@ -43,8 +38,8 @@ export const createKeyboardManager = (eventHandler) => {
    * Unregister all hotkeys
    */
   const unregisterAllHotkeys = () => {
-    activeHotkeys.forEach(({ keys }) => {
-      hotkeys.unbind(keys);
+    activeHotkeys.forEach((key) => {
+      hotkeys.unbind(key);
     });
     activeHotkeys.clear();
   };

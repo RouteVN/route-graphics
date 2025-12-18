@@ -168,7 +168,7 @@ const createRouteGraphics = () => {
   const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
     if (keyboardManager) {
       keyboardManager.unregisterAllHotkeys();
-      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? []);
+      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? {});
     }
 
     // Initialize default cursor styles if they don't exist
