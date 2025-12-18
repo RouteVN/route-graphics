@@ -8,7 +8,9 @@ specs:
   - "video should not remain visible after aborted deletion"
 steps:
   - keypress n
-  - waitMS=300
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+  - keypress n
   - screenshot
 ---
 states:

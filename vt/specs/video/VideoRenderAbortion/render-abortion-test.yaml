@@ -8,8 +8,13 @@ specs:
   - "video should be at correct position and size"
 steps:
   - keypress n
-  - waitMS=300
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
   - keypress n
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1000
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1000
   - screenshot
 ---
 states:
