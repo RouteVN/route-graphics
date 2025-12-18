@@ -14,6 +14,7 @@ import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
+import { createKeyboardManager } from "./util/keyboardManager.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -112,6 +113,11 @@ const createRouteGraphics = () => {
     audio: [],
     parsers: [],
   };
+
+  /**
+   * @type {ReturnType<typeof createKeyboardManager>}
+   */
+  let keyboardManager;
 
   /**
    * @type {AbortController}
@@ -300,6 +306,8 @@ const createRouteGraphics = () => {
       };
       eventHandler = handler;
 
+      keyboardManager = createKeyboardManager(handler);
+
       /**
        * @type {ApplicationWithAudioStage}
        */
@@ -442,6 +450,27 @@ const createRouteGraphics = () => {
       });
       const parsedState = { ...stateParam, elements: parsedElements };
       return parsedState;
+    },
+
+    /**
+     * Register global keyboard shortcuts
+     * @param {Array} hotkeyConfigs - Array of hotkey configurations
+     * @param {string} hotkeyConfigs[].keys - Key combinations (e.g., 'a,b,c, ctrl+a')
+     * @param {Object} hotkeyConfigs[].actionPayload - Action payload for the event
+     */
+    registerKeyboardShortcuts: (hotkeyConfigs) => {
+      if (keyboardManager) {
+        keyboardManager.registerHotkeys(hotkeyConfigs);
+      }
+    },
+
+    /**
+     * Unregister all keyboard shortcuts
+     */
+    unregisterAllKeyboardShortcuts: () => {
+      if (keyboardManager) {
+        keyboardManager.unregisterAllHotkeys();
+      }
     },
   };
 

@@ -102,23 +102,6 @@ properties:
         actionPayload:
           type: object
           description: Payload for click action event
-  keyboard:
-    type: array
-    description: Array of keyboard input bindings
-    items:
-      type: object
-      properties:
-        key:
-          type: array
-          items:
-            type: string
-          description: Array of key identifiers (e.g., ['a', 'ctrl+a', 'b', 'c'])
-        soundSrc:
-          type: string
-          description: Source of sound to be played when any of the keys are pressed
-        actionPayload:
-          type: object
-          description: Payload to trigger when any of the keys are pressed
   rightClick:
     type: object
     properties:

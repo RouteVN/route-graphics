@@ -53,17 +53,11 @@ export const updateRect = async ({
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
 
-      if (rectElement._cleanupKeyboard) {
-        rectElement._cleanupKeyboard();
-        rectElement._cleanupKeyboard = null;
-      }
-
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
       const scrollEvents = nextElement?.scroll;
       const dragEvents = nextElement?.drag;
-      const keyboardEvents = nextElement?.keyboard;
 
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -222,97 +216,6 @@ export const updateRect = async ({
         rectElement.on("pointerupoutside", upListener);
       }
 
-      if (keyboardEvents && keyboardEvents.length > 0) {
-        rectElement.eventMode = "static";
-        let hasFocus = false;
-
-        const keyHandlers = keyboardEvents.map(({ key, actionPayload, soundSrc }) => {
-          const handleKey = (e) => {
-            // Check if pressed key matches any of the keys in the array
-            const keyPressed = e.key.toLowerCase();
-            const keysMatch = key.some(k => {
-              // Handle special key combinations like ctrl+a
-              if (k.includes('+')) {
-                const parts = k.split('+');
-                const modifier = parts[0].toLowerCase();
-                const mainKey = parts[1].toLowerCase();
-
-                if (modifier === 'ctrl' && e.ctrlKey && keyPressed === mainKey) {
-                  return true;
-                }
-                if (modifier === 'shift' && e.shiftKey && keyPressed === mainKey) {
-                  return true;
-                }
-                if (modifier === 'alt' && e.altKey && keyPressed === mainKey) {
-                  return true;
-                }
-                return false;
-              }
-
-              if (k === 'ctrl' && e.ctrlKey) {
-                return true;
-              }
-              if (k === 'shift' && e.shiftKey) {
-                return true;
-              }
-              if (k === 'alt' && e.altKey) {
-                return true;
-              }
-
-              // Simple key match
-              return k.toLowerCase() === keyPressed;
-            });
-
-            if (keysMatch && hasFocus) {
-              e.stopPropagation();
-
-              // Play sound if provided
-              if (soundSrc) {
-                app.audioStage.add({
-                  id: `keyboard-${Date.now()}`,
-                  url: soundSrc,
-                  loop: false,
-                });
-              }
-
-              if (actionPayload && eventHandler) {
-                eventHandler('keyboard', {
-                  _event: {
-                    id: rectElement.label,
-                    key: e.key,
-                  },
-                  ...actionPayload,
-                });
-              }
-            }
-          };
-
-          return handleKey;
-        });
-
-        const handleKeyDown = (e) => {
-          if(!hasFocus) return;
-          keyHandlers.forEach(handler => handler(e));
-        };
-
-        const handlePointerDown = () => {
-          hasFocus = true;
-        };
-
-        const handlePointerDownOutside = () => {
-          hasFocus = false;
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        rectElement.on('pointerover', handlePointerDown);
-        rectElement.on('pointerout', handlePointerDownOutside);
-
-        const cleanupKeyboard = () => {
-          window.removeEventListener('keydown', handleKeyDown);
-        };
-
-        rectElement._cleanupKeyboard = cleanupKeyboard;
-      }
     }
   };
 
