@@ -20,11 +20,6 @@ export const deleteVideo = async ({
     let isAnimationDone = true;
 
     const deleteElement = () => {
-      const audioElement = app.audioStage.getById(element.id);
-      if (audioElement) {
-        app.audioStage.remove(element.id);
-      }
-
       if (videoElement && !videoElement.destroyed) {
         const video = videoElement.texture.source.resource;
         if (video) {

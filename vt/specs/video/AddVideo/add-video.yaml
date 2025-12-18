@@ -18,5 +18,3 @@ states:
         volume: 100
         loop: true
         alpha: 1
-        autoplay: true
-        muted: false
