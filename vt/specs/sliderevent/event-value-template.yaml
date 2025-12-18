@@ -6,6 +6,12 @@ specs:
   - "template should work for both min and max values"
   - "template should work for intermediate values"
   - "actionPayload should contain properly formatted value"
+steps:
+  - move 120 160
+  - mouseDown
+  - screenshot
+  - move 180 160
+  - screenshot
 ---
 states:
   - elements:
