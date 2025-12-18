@@ -18,10 +18,10 @@ export const createKeyboardManager = (eventHandler) => {
     if (!Array.isArray(hotkeyConfigs)) return;
     const hotkeyId = `hotkey-${Date.now()}`;
 
-    hotkeyConfigs.forEach((config, index) => {
+    hotkeyConfigs.forEach((config) => {
       const handler = (_, handler) => {
         if (eventHandler) {
-          eventHandler("keydown-" + hotkeyId, {
+          eventHandler("keydown", {
             _event: {
               key: handler.key,
             },
