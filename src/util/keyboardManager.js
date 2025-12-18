@@ -19,11 +19,14 @@ export const createKeyboardManager = (eventHandler) => {
     const keysToUpdate = [];
     const keysToRemove = [];
 
-    Object.keys(hotkeyConfigs).forEach(key => {
+    Object.keys(hotkeyConfigs).forEach((key) => {
       const active = activeHotkeys.get(key);
       if (!active) {
         keysToAdd.push(key);
-      } else if (JSON.stringify(active.payload) !== JSON.stringify(hotkeyConfigs[key].actionPayload)) {
+      } else if (
+        JSON.stringify(active.payload) !==
+        JSON.stringify(hotkeyConfigs[key].actionPayload)
+      ) {
         keysToUpdate.push(key);
         hotkeys.unbind(key);
       }
@@ -35,12 +38,12 @@ export const createKeyboardManager = (eventHandler) => {
       }
     });
 
-    keysToRemove.forEach(key => {
+    keysToRemove.forEach((key) => {
       hotkeys.unbind(key);
       activeHotkeys.delete(key);
     });
 
-    [...keysToAdd, ...keysToUpdate].forEach(key => {
+    [...keysToAdd, ...keysToUpdate].forEach((key) => {
       const config = hotkeyConfigs[key];
       const payload = config.actionPayload ?? {};
 
