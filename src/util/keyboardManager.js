@@ -21,7 +21,7 @@ export const createKeyboardManager = (eventHandler) => {
     hotkeyConfigs.forEach((config, index) => {
       const handler = (_, handler) => {
         if (eventHandler) {
-          eventHandler("keydown-"+hotkeyId, {
+          eventHandler("keydown-" + hotkeyId, {
             _event: {
               key: handler.key,
             },

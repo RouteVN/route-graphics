@@ -215,7 +215,6 @@ export const updateRect = async ({
         rectElement.on("globalpointermove", moveListener);
         rectElement.on("pointerupoutside", upListener);
       }
-
     }
   };
 

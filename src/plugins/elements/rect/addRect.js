@@ -14,16 +14,7 @@ export const addRect = async ({
   eventHandler,
   signal,
 }) => {
-  const {
-    id,
-    x,
-    y,
-    width,
-    height,
-    fill,
-    border,
-    alpha,
-  } = element;
+  const { id, x, y, width, height, fill, border, alpha } = element;
 
   const rect = new Graphics();
   rect.label = id;

@@ -166,7 +166,7 @@ const createRouteGraphics = () => {
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
   const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
-    if(keyboardManager){
+    if (keyboardManager) {
       keyboardManager.unregisterAllHotkeys();
       keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? []);
     }
