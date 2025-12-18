@@ -5,6 +5,15 @@ specs:
   - "rect should send actionPayload on drag.down"
   - "rect should send actionPayload on drag.move"
   - "rect should send actionPayload on drag.up"
+steps:
+  - move 220 160
+  - mouseDown
+  - screenshot
+  - move 300 200
+  - screenshot
+  - move 400 300
+  - mouseUp
+  - screenshot
 ---
 states:
   - elements:

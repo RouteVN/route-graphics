@@ -1,0 +1,49 @@
+---
+title: Global Keyboard Events
+description: Test global keyboard event handling
+steps:
+  - keypress a
+  - screenshot
+  - keypress b
+  - screenshot
+  - keypress n
+  - keypress Shift+c
+  - screenshot
+  - keypress c
+  - screenshot
+---
+states: 
+  - elements:
+      - id: 'rect-keyboard-test'
+        type: "rect"
+        x: 150
+        y: 100
+        width: 500
+        height: 400
+        fill: "#3498db"
+        alpha: 1
+    global:
+      keyboard:
+        a:
+          actionPayload:
+            action: "keyA_Pressed"
+        b:
+          actionPayload:
+            action: "keyB_Pressed"
+  - elements:
+      - id: 'rect-keyboard-test'
+        type: "rect"
+        x: 150
+        y: 100
+        width: 500
+        height: 400
+        fill: "#3498db"
+        alpha: 1
+    global:
+      keyboard:
+        c:
+          actionPayload:
+            action: "keyC_Pressed"
+        shift+c:
+          actionPayload:
+            action: "shift_c_Pressed"

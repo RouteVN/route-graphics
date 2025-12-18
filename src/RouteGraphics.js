@@ -14,6 +14,7 @@ import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
+import { createKeyboardManager } from "./util/keyboardManager.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -114,6 +115,11 @@ const createRouteGraphics = () => {
   };
 
   /**
+   * @type {ReturnType<typeof createKeyboardManager>}
+   */
+  let keyboardManager;
+
+  /**
    * @type {AbortController}
    */
   let currentAbortController;
@@ -159,7 +165,11 @@ const createRouteGraphics = () => {
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
-  const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
+  const applyGlobalObjects = (appInstance, prevGlobal, nextGlobal) => {
+    if (keyboardManager) {
+      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? {});
+    }
+
     // Initialize default cursor styles if they don't exist
     if (!appInstance.renderer.events.cursorStyles) {
       appInstance.renderer.events.cursorStyles = {};
@@ -204,7 +214,7 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = async (appInstance, parent, nextState, handler) => {
-    applyGlobalCursorStyles(appInstance, state.global, nextState.global);
+    applyGlobalObjects(appInstance, state.global, nextState.global);
     if (currentAbortController && isProcessingRender)
       currentAbortController.abort();
     currentAbortController = new AbortController();
@@ -299,6 +309,8 @@ const createRouteGraphics = () => {
         parsers: parserPlugins,
       };
       eventHandler = handler;
+
+      keyboardManager = createKeyboardManager(handler);
 
       /**
        * @type {ApplicationWithAudioStage}
