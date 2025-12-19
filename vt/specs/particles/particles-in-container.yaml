@@ -1,0 +1,29 @@
+---
+title: Particles inside container
+steps:
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'container-with-particles'
+        type: "container"
+        x: 100
+        y: 100
+        alpha: 1
+        children:
+          - id: 'background-rect'
+            type: "rect"
+            x: 0
+            y: 0
+            width: 600
+            height: 400
+            fill: "#1a1a2e"
+            alpha: 0.9
+          - id: 'particles-snow'
+            type: "particles"
+            preset: "snow"
+            emitter:
+              seed: 12345
