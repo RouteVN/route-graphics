@@ -3,6 +3,9 @@ title: Rect right click event
 description: Test right clicke event on rect elements
 specs:
   - "rect should call the callback with data when right-clicked"
+steps:
+  - rclick 250 110
+  - screenshot
 ---
 states:
   - elements:

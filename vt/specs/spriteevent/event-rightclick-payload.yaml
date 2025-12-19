@@ -5,6 +5,9 @@ specs:
   - "sprite should send actionPayload on right-click"
   - "sprite should support different payloads for different events"
   - "sprite should send correct payload without interfering with style changes"
+steps:
+  - rclick 160 105
+  - screenshot
 ---
 states:
   - elements:

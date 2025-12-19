@@ -3,6 +3,12 @@ vt:
   name: "Route Graphics UI Visual Tests"
   description: "Visual testing for Route Graphics"
   sections:
+    - title: "Keyboard"
+      type: "groupLabel"
+      items:
+        - title: "Global Keyboard Events"
+          files: "global-keyboard"
+          description: "Test global keyboard event handling"
     - title: "Text"
       type: "groupLabel"
       items:
