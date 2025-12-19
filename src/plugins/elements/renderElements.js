@@ -117,7 +117,7 @@ export const renderElements = async ({
  * @param {import('../../types.js').ASTNode[]} nextAST - Target AST tree
  */
 const sortContainerChildren = (container, nextAST) => {
-  container.children
+  container.children = container.children
     .sort((a, b) => {
       const aIndex = nextAST.findIndex((element) => element.id === a.label);
       const bIndex = nextAST.findIndex((element) => element.id === b.label);
@@ -132,7 +132,7 @@ const sortContainerChildren = (container, nextAST) => {
       if (bIndex === -1) return 1;
     })
     .map((child, index) => {
-      if (child?.zIndex === 0) child.zIndex = index;
+      child.zIndex = index;
       return child;
     });
 };
