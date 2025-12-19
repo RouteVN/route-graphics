@@ -100,7 +100,6 @@ export const renderElements = async ({
 
     // Sort container children to maintain AST order
     sortContainerChildren(parent, nextASTTree);
-    console.log("Sorted parent: ", parent);
   } catch (error) {
     // If render was aborted, don't sort - the next render will handle it
     if (signal.aborted) {
