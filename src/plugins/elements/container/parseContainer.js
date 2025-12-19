@@ -57,8 +57,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       child = plugin.parse({ state: child, parserPlugins });
     }
 
-    if (child.type === 'particles' && !child.width && !child.height) {
-      child.width = state.width ?? (containerWidth || 0);;
+    if (child.type === "particles" && !child.width && !child.height) {
+      child.width = state.width ?? (containerWidth || 0);
       child.height = state.height ?? (containerHeight || 0);
     }
 
