@@ -491,3 +491,39 @@
             fill: "#ffffff"
             fontSize: 20
             align: center
+- id: particles-demo
+  name: Particles Demo
+  description: Fire, snow and custom effects
+  content:
+    - elements:
+      - id: particles-fire
+        type: particles
+        preset: fire
+        count: 100
+    - elements:
+        - id: particles-snow
+          type: particles
+          preset: snow
+          count: 300
+    - elements:
+        - id: custom-snow
+          type: particles
+          preset: snow
+          count: 200
+          disableBehaviors:
+            - rotation
+          behaviors:
+            - type: color
+              config:
+                list:
+                  - value: ffffff
+                    time: 0
+                  - value: aaaaff
+                    time: 0.5
+                  - value: 6666ff
+                    time: 1
+          emitter:
+            frequency: 0.03
+            lifetime:
+              min: 5
+              max: 8
