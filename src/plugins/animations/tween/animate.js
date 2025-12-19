@@ -241,8 +241,6 @@ export const animate = async ({ app, element, animation, signal }) => {
         if (event?.detail?.deltaMS)
           effect({ deltaMS: Number(event.detail.deltaMS) });
       });
-      resolve();
-      return;
     }
   });
 };

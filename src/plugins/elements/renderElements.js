@@ -121,13 +121,6 @@ const sortContainerChildren = (container, nextAST) => {
     const aIndex = nextAST.findIndex((element) => element.id === a.label);
     const bIndex = nextAST.findIndex((element) => element.id === b.label);
 
-    const aZIndex = a.zIndex ?? 0;
-    const bZIndex = b.zIndex ?? 0;
-
-    if (aZIndex !== bZIndex) {
-      return aZIndex - bZIndex;
-    }
-
     if (aIndex !== -1 && bIndex !== -1) {
       return aIndex - bIndex;
     }
