@@ -100,6 +100,7 @@ export const renderElements = async ({
 
     // Sort container children to maintain AST order
     sortContainerChildren(parent, nextASTTree);
+    console.log("Sorted parent: ",parent);
   } catch (error) {
     // If render was aborted, don't sort - the next render will handle it
     if (signal.aborted) {
@@ -111,7 +112,7 @@ export const renderElements = async ({
 };
 
 /**
- * Sort container children to match AST order
+ * Sort container children to match AST order, considering zIndex
  * @param {import('pixi.js').Container} container - Container to sort
  * @param {import('../../types.js').ASTNode[]} nextAST - Target AST tree
  */
@@ -120,7 +121,13 @@ const sortContainerChildren = (container, nextAST) => {
     const aIndex = nextAST.findIndex((element) => element.id === a.label);
     const bIndex = nextAST.findIndex((element) => element.id === b.label);
 
-    // If both elements are in nextAST, maintain order from nextASTTree
+    const aZIndex = a.zIndex ?? 0;
+    const bZIndex = b.zIndex ?? 0;
+
+    if (aZIndex !== bZIndex) {
+      return aZIndex - bZIndex;
+    }
+
     if (aIndex !== -1 && bIndex !== -1) {
       return aIndex - bIndex;
     }
@@ -129,5 +136,8 @@ const sortContainerChildren = (container, nextAST) => {
     if (aIndex === -1 && bIndex === -1) return 0;
     if (aIndex === -1) return -1;
     if (bIndex === -1) return 1;
+  }).map((child, index)=>{
+    if(child?.zIndex === 0) child.zIndex = index;
+    return child;
   });
 };

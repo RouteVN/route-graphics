@@ -320,7 +320,9 @@ const createRouteGraphics = () => {
       app.stage.width = width;
       app.stage.height = height;
       app.ticker.add(app.audioStage.tick);
-
+      window.__PIXI_DEVTOOLS__ = {
+        app
+      };
       return routeGraphicsInstance;
     },
 
