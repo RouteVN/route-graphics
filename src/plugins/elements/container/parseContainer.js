@@ -57,6 +57,11 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       child = plugin.parse({ state: child, parserPlugins });
     }
 
+    if (child.type === 'particles' && !child.width && !child.height) {
+      child.width = state.width ?? (containerWidth || 0);;
+      child.height = state.height ?? (containerHeight || 0);
+    }
+
     if (direction === "horizontal") {
       if (
         state.width &&
@@ -109,8 +114,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
 
   const containerAST = parseCommonObject({
     ...state,
-    width: state.width ? state.width : containerWidth,
-    height: state.height ? state.height : containerHeight,
+    width: state.width ?? containerWidth,
+    height: state.height ?? containerHeight,
   });
 
   return {
