@@ -100,7 +100,7 @@ export const renderElements = async ({
 
     // Sort container children to maintain AST order
     sortContainerChildren(parent, nextASTTree);
-    console.log("Sorted parent: ",parent);
+    console.log("Sorted parent: ", parent);
   } catch (error) {
     // If render was aborted, don't sort - the next render will handle it
     if (signal.aborted) {
@@ -117,20 +117,22 @@ export const renderElements = async ({
  * @param {import('../../types.js').ASTNode[]} nextAST - Target AST tree
  */
 const sortContainerChildren = (container, nextAST) => {
-  container.children.sort((a, b) => {
-    const aIndex = nextAST.findIndex((element) => element.id === a.label);
-    const bIndex = nextAST.findIndex((element) => element.id === b.label);
+  container.children
+    .sort((a, b) => {
+      const aIndex = nextAST.findIndex((element) => element.id === a.label);
+      const bIndex = nextAST.findIndex((element) => element.id === b.label);
 
-    if (aIndex !== -1 && bIndex !== -1) {
-      return aIndex - bIndex;
-    }
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
 
-    // Keep elements that aren't in nextAST at their current position
-    if (aIndex === -1 && bIndex === -1) return 0;
-    if (aIndex === -1) return -1;
-    if (bIndex === -1) return 1;
-  }).map((child, index)=>{
-    if(child?.zIndex === 0) child.zIndex = index;
-    return child;
-  });
+      // Keep elements that aren't in nextAST at their current position
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return -1;
+      if (bIndex === -1) return 1;
+    })
+    .map((child, index) => {
+      if (child?.zIndex === 0) child.zIndex = index;
+      return child;
+    });
 };
