@@ -35,9 +35,9 @@ export const setupScrolling = ({ container, element }) => {
     container.addChild(contentContainer);
 
     // Create clipping mask
-    const clip = new Graphics()
+    const clip = new Graphics({label: `${container.label}-clip`})
       .rect(0, 0, element.width || totalWidth, element.height || totalHeight)
-      .fill({ color: 0xff0000, alpha: 0 }); // Transparent mask
+      .fill({ color: 0xff0000, alpha: 0 });
     container.addChild(clip);
 
     // Apply the mask to the content container
@@ -104,31 +104,27 @@ export const setupScrolling = ({ container, element }) => {
  * @param {import("../../../../types").RemoveScrollingOptions} params
  */
 export const removeScrolling = ({ container }) => {
-  // Find the content container by its label pattern
   const contentContainer = container.children.find(
     (child) => child.label && child.label.endsWith("-content")
   );
+  const clip = container.children.find(
+    (child) => child.label && child.label.endsWith("-clip")
+  );
 
   if (contentContainer) {
-    // Move all children back to the main container
     const children = [...contentContainer.children];
     children.forEach((child) => {
-      // Remove the mask from each child
       child.mask = null;
       container.addChild(child);
     });
 
-    // Remove the content container
     container.removeChild(contentContainer);
   }
 
-  // Remove the clipping mask (find graphics object used as mask)
-  const clipMask = container.children.find((child) => child.isGraphics);
-  if (clipMask) {
-    container.removeChild(clipMask);
+  if(clip) {
+    container.removeChild(clip);
   }
 
-  // Remove wheel event listeners
   container.eventMode = "auto";
   container.removeAllListeners("wheel");
 };
