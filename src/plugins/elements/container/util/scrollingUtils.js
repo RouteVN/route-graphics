@@ -35,7 +35,7 @@ export const setupScrolling = ({ container, element }) => {
     container.addChild(contentContainer);
 
     // Create clipping mask
-    const clip = new Graphics({label: `${container.label}-clip`})
+    const clip = new Graphics({ label: `${container.label}-clip` })
       .rect(0, 0, element.width || totalWidth, element.height || totalHeight)
       .fill({ color: 0xff0000, alpha: 0 });
     container.addChild(clip);
@@ -105,10 +105,10 @@ export const setupScrolling = ({ container, element }) => {
  */
 export const removeScrolling = ({ container }) => {
   const contentContainer = container.children.find(
-    (child) => child.label && child.label.endsWith("-content")
+    (child) => child.label && child.label.endsWith("-content"),
   );
   const clip = container.children.find(
-    (child) => child.label && child.label.endsWith("-clip")
+    (child) => child.label && child.label.endsWith("-clip"),
   );
 
   if (contentContainer) {
@@ -121,7 +121,7 @@ export const removeScrolling = ({ container }) => {
     container.removeChild(contentContainer);
   }
 
-  if(clip) {
+  if (clip) {
     container.removeChild(clip);
   }
 

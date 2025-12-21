@@ -58,9 +58,11 @@ export const updateContainer = async ({
       ) {
         await renderElements({
           app,
-          parent: (nextElement.scroll)?  
-          containerElement.children.find((child) => child.label === `${nextElement.id}-content`)
-          : containerElement,
+          parent: nextElement.scroll
+            ? containerElement.children.find(
+                (child) => child.label === `${nextElement.id}-content`,
+              )
+            : containerElement,
           nextASTTree: nextElement.children,
           prevASTTree: prevElement.children,
           eventHandler,
