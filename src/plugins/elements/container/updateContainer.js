@@ -1,5 +1,6 @@
 import animateElements from "../../../util/animateElements.js";
 import { renderElements } from "../renderElements.js";
+import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 
 /**
  * Update container element
@@ -29,6 +30,27 @@ export const updateContainer = async ({
       containerElement.y = Math.round(nextElement.y);
       containerElement.label = nextElement.id;
       containerElement.alpha = nextElement.alpha;
+
+      if (prevElement.scroll !== nextElement.scroll) {
+        if (nextElement.scroll) {
+          setupScrolling({
+            container: containerElement,
+            element: nextElement,
+          });
+        } else {
+          removeScrolling({
+            container: containerElement,
+          });
+        }
+      } else if (nextElement.scroll) {
+        removeScrolling({
+          container: containerElement,
+        });
+        setupScrolling({
+          container: containerElement,
+          element: nextElement,
+        });
+      }
 
       if (
         JSON.stringify(prevElement.children) !==
