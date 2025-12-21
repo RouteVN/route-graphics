@@ -22,10 +22,9 @@ export const addVideo = async ({
 
   video.loop = loop ?? false;
   video.volume = volume / 1000;
-  video.muted = false;
+  video.muted = volume;
   video.pause();
   video.currentTime = 0;
-  video.play();
 
   const sprite = new Sprite(texture);
   sprite.label = id;
