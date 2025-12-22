@@ -1,4 +1,4 @@
-import { Texture, Sprite } from "pixi.js";
+import { Texture, Sprite, Assets } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 
 /**
@@ -16,15 +16,17 @@ export const addVideo = async ({
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
-
-  const texture = Texture.from(src);
+  let texture = (Assets.cache.has(src)) ? Assets.cache.get(src) : Texture.from(src);
   const video = texture.source.resource;
 
-  video.loop = loop ?? false;
-  video.volume = volume / 1000;
-  video.muted = volume;
   video.pause();
   video.currentTime = 0;
+  video.loop = loop ?? false;
+  video.volume = volume / 1000;
+  video.muted = false;
+  console.log("Video", video);
+  console.log("Pause status:", video.paused);
+  // video.play();
 
   const sprite = new Sprite(texture);
   sprite.label = id;
@@ -47,7 +49,7 @@ export const addVideo = async ({
   drawVideo();
 
   parent.addChild(sprite);
-
+  
   if (animations && animations.length > 0) {
     isAnimationDone = false;
     await animateElements(id, animationPlugins, {
@@ -58,6 +60,6 @@ export const addVideo = async ({
     });
     isAnimationDone = true;
   }
-
+  
   signal.removeEventListener("abort", abortHandler);
 };
