@@ -1,5 +1,16 @@
 ---
 title: Scroll
+steps:
+  - move 50 0
+  - scroll 100 0
+  - screenshot
+  - scroll -100 0 
+  - screenshot
+  - move 510 0
+  - scroll 0 100
+  - screenshot
+  - scroll 0 -100
+  - screenshot
 ---
 states:
   - elements:
