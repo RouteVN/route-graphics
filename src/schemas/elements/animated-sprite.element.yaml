@@ -1,0 +1,105 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Animated Sprite Element
+description: Schema for animated sprite element raw input
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - width
+  - height
+  - sheetSrc
+  - metadataSrc
+  - animation
+properties:
+  id:
+    type: string
+    description: Unique identifier for the animated sprite element
+  type:
+    type: string
+    const: animated-sprite
+    description: Element type, must be 'animated-sprite'
+  x:
+    type: number
+    description: X position of the animated sprite
+  y:
+    type: number
+    description: Y position of the animated sprite
+  width:
+    type: number
+    description: Width of the animated sprite in pixels
+  height:
+    type: number
+    description: Height of the animated sprite in pixels
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+    default: 0
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+    default: 0
+  sheetSrc:
+    type: string
+    description: Alias of the sprite sheet image asset
+  metadataSrc:
+    type: string
+    description: Alias of the sprite sheet metadata JSON asset
+  animation:
+    type: object
+    required:
+      - frames
+      - frameRate
+    properties:
+      frames:
+        type: array
+        items:
+          type: string
+        description: Array of frame names for the animation sequence
+        example: ["rollSequence000.png", "rollSequence001.png", "rollSequence002.png"]
+      frameRate:
+        type: number
+        description: Animation frame rate (frames per second)
+        minimum: 0.1
+        default: 8
+      loop:
+        type: boolean
+        description: Whether the animation should loop
+        default: true
+  alpha:
+    type: number
+    description: Opacity/transparency of the animated sprite (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
+  hover:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the sprite
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the sprite
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is clicked
+      actionPayload:
+        type: object
+        description: Payload for click action event
+  rightClick:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the sprite is right-clicked
+      actionPayload:
+        type: object
+        description: Payload for right-click action event
