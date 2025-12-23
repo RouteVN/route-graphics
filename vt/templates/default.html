@@ -26,7 +26,7 @@
             createAssetBufferManager,
         } from "/RouteGraphics.js"
 
-        const assetBufferManager = createAssetBufferManager();
+        // const assetBufferManager = createAssetBufferManager();
 
         await Promise.all([
             Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' }),
@@ -111,7 +111,7 @@
                     }
                 )
             },
-            useCustomTicker: false,
+            useCustomTicker: true,
         })
         document.body.appendChild(app.canvas);
 
