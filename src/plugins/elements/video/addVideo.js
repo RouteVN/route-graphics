@@ -26,7 +26,6 @@ export const addVideo = async ({
   video.volume = volume / 1000;
   video.muted = false;
   video.play();
-  
 
   const sprite = new Sprite(texture);
   sprite.label = id;
@@ -49,7 +48,7 @@ export const addVideo = async ({
   drawVideo();
 
   parent.addChild(sprite);
-  
+
   if (animations && animations.length > 0) {
     isAnimationDone = false;
     await animateElements(id, animationPlugins, {
@@ -60,6 +59,6 @@ export const addVideo = async ({
     });
     isAnimationDone = true;
   }
-  
+
   signal.removeEventListener("abort", abortHandler);
 };

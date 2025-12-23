@@ -357,7 +357,7 @@ const createRouteGraphics = () => {
       const assetsByType = {
         audio: {},
         font: {},
-        video: {}, 
+        video: {},
         texture: {}, // includes images and other PIXI-compatible assets
       };
 
@@ -414,17 +414,17 @@ const createRouteGraphics = () => {
       // Load video assets
       // Note: WIP, still getting maximun call stack size exceeded error
       // Object.entries(assetsByType.video).map( ([key, asset]) => {
-        // const blob = new Blob([asset.buffer], { type: asset.type });
-        // const videoUrl = URL.createObjectURL(blob);
+      // const blob = new Blob([asset.buffer], { type: asset.type });
+      // const videoUrl = URL.createObjectURL(blob);
 
-        // const video = document.createElement('video');
-        // video.src = videoUrl;
-        // video.preload = 'none';
-        // video.loop = true;
-        // video.muted = true;
+      // const video = document.createElement('video');
+      // video.src = videoUrl;
+      // video.preload = 'none';
+      // video.loop = true;
+      // video.muted = true;
 
-        // const texture = Texture.from(video);
-        // Assets.cache.set(key, videoUrl);
+      // const texture = Texture.from(video);
+      // Assets.cache.set(key, videoUrl);
       // });
 
       const urls = Object.keys(assetsByType.texture);
