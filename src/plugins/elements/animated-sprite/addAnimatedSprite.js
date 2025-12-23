@@ -1,5 +1,6 @@
 import { AnimatedSprite, Assets, Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
+import { setupDebugMode } from "./util/debugUtils.js";
 
 /**
  * Add animated sprite element to the stage
@@ -33,9 +34,10 @@ export const addAnimatedSprite = async ({
   animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
   animatedSprite.loop = animation.loop ?? true;
 
-  if (!app.debug) {
+  if (!app.debug) 
     animatedSprite.play();
-  }
+  else
+    setupDebugMode(animatedSprite, id, app.debug);
 
   const drawSprite = () => {
     animatedSprite.x = Math.round(x);
@@ -50,16 +52,6 @@ export const addAnimatedSprite = async ({
       drawSprite();
     }
   };
-
-  const snapShotKeyFrameHandler = (event) => {
-    if (event.elementId === id && typeof event.frameIndex === "number") {
-      animatedSprite.gotoAndStop(event.frameIndex);
-    }
-  };
-
-  if (app.debug) {
-    window.addEventListener("snapShotKeyFrame", snapShotKeyFrameHandler);
-  }
 
   signal.addEventListener("abort", abortHandler);
   drawSprite();
@@ -78,10 +70,4 @@ export const addAnimatedSprite = async ({
   }
 
   signal.removeEventListener("abort", abortHandler);
-
-  return () => {
-    if (app.debug) {
-      app.stage.off("snapShotKeyFrame", snapShotKeyFrameHandler);
-    }
-  };
 };

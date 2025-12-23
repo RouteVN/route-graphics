@@ -1,4 +1,5 @@
 import animateElements from "../../../util/animateElements.js";
+import { cleanupDebugMode } from "./util/debugUtils.js";
 
 /**
  * Delete animated sprite element
@@ -20,6 +21,9 @@ export const deleteAnimatedSprite = async ({
     let isAnimationDone = true;
 
     const deleteElement = () => {
+      if (app.debug) {
+        cleanupDebugMode(animatedSpriteElement);
+      }
       if (animatedSpriteElement && !animatedSpriteElement.destroyed) {
         animatedSpriteElement.stop();
         animatedSpriteElement.destroy();

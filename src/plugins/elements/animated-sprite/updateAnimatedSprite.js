@@ -1,5 +1,6 @@
 import { AnimatedSprite, Assets, Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
+import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 
 /**
  * Update animated sprite element
@@ -48,7 +49,15 @@ export const updateAnimatedSprite = async ({
           (index) => spriteSheet.textures[frameNames[index]],
         );
         animatedSpriteElement.textures = frameTextures;
-        animatedSpriteElement.play();
+
+        if (!app.debug) {
+          animatedSpriteElement.play();
+        } else {
+          if (prevElement.id !== nextElement.id) {
+            cleanupDebugMode(animatedSpriteElement);
+            setupDebugMode(animatedSpriteElement, nextElement.id, app.debug);
+          }
+        }
       }
     }
   };

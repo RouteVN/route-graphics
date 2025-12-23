@@ -1,7 +1,12 @@
 ---
 title: Update Animated Sprite Position and Animation
 steps:
+  - customEvent snapShotKeyFrame frameIndex=3 elementId=animated-sprite-1
+  - customEvent snapShotKeyFrame frameIndex=4 elementId=animated-sprite-2
+  - screenshot
   - keypress n
+  - customEvent snapShotKeyFrame frameIndex=6 elementId=animated-sprite-1
+  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-
   - screenshot
 ---
 states:
@@ -17,6 +22,7 @@ states:
         animation:
           frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
           animationSpeed: 0.5
+          loop: true
       - id: 'animated-sprite-2'
         type: "animated-sprite"
         x: 400
@@ -28,6 +34,7 @@ states:
         animation:
           frames: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
           animationSpeed: 0.25
+          loop: true
   - elements:
       - id: 'animated-sprite-1'
         type: "animated-sprite"
@@ -40,6 +47,7 @@ states:
         animation:
           frames: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
           animationSpeed: 1
+          loop: true
       - id: 'animated-sprite-2'
         type: "animated-sprite"
         x: 400
@@ -51,3 +59,4 @@ states:
         animation:
           frames: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
           animationSpeed: 0.25
+          loop: true
