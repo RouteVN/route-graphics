@@ -16,7 +16,7 @@ export const addVideo = async ({
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
-  let texture = (Assets.cache.has(src)) ? Assets.cache.get(src) : Texture.from(src);
+  const texture = (Assets.cache.has(src)) ? Assets.cache.get(src) : Texture.from(src);
   const video = texture.source.resource;
 
   video.pause();
@@ -24,8 +24,6 @@ export const addVideo = async ({
   video.loop = loop ?? false;
   video.volume = volume / 1000;
   video.muted = false;
-  console.log("Video", video);
-  console.log("Pause status:", video.paused);
   video.play();
 
   const sprite = new Sprite(texture);
