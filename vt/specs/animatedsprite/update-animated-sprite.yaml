@@ -6,7 +6,7 @@ steps:
   - screenshot
   - keypress n
   - customEvent snapShotKeyFrame frameIndex=6 elementId=animated-sprite-1
-  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-
+  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-2
   - screenshot
 ---
 states:
