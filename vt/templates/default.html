@@ -16,27 +16,34 @@
             textPlugin,
             rectPlugin,
             spritePlugin,
+            videoPlugin,
             sliderPlugin,
             containerPlugin,
             textRevealingPlugin,
             tweenPlugin,
             soundPlugin,
             particlesPlugin,
+            createAssetBufferManager,
         } from "/RouteGraphics.js"
 
-        await Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' });
-        await Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' });
-        await Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' });
-        await Assets.load({ alias: 'slider', src: '/public/slider.png' });
-        await Assets.load({ alias: 'horizontal-idle-bar', src: '/public/horizontal_idle_bar.png' });
-        await Assets.load({ alias: 'horizontal-hover-bar', src: '/public/horizontal_hover_bar.png' });
-        await Assets.load({ alias: 'horizontal-idle-thumb', src: '/public/horizontal_idle_thumb.png' });
-        await Assets.load({ alias: 'horizontal-hover-thumb', src: '/public/horizontal_hover_thumb.png' });
-        await Assets.load({ alias: 'vertical-idle-bar', src: '/public/vertical_idle_bar.png' });
-        await Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' });
-        await Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' });
-        await Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' });
+        // const assetBufferManager = createAssetBufferManager();
 
+        await Promise.all([
+            Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' }),
+            Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' }),
+            Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' }),
+            Assets.load({ alias: 'slider', src: '/public/slider.png' }),
+            Assets.load({ alias: 'horizontal-idle-bar', src: '/public/horizontal_idle_bar.png' }),
+            Assets.load({ alias: 'horizontal-hover-bar', src: '/public/horizontal_hover_bar.png' }),
+            Assets.load({ alias: 'horizontal-idle-thumb', src: '/public/horizontal_idle_thumb.png' }),
+            Assets.load({ alias: 'horizontal-hover-thumb', src: '/public/horizontal_hover_thumb.png' }),
+            Assets.load({ alias: 'vertical-idle-bar', src: '/public/vertical_idle_bar.png' }),
+            Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' }),
+            Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' }),
+            Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' }),
+            // Assets.load({ alias: 'escapes-video', src: '/public/ForBiggerEscapes.mp4' }),
+            // Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes' }),
+        ]);
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -51,14 +58,15 @@
         const audio3Buffer = await audio3.arrayBuffer();
         await AudioAsset.load('bgm-3', audio3Buffer);
 
+
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = createRouteGraphics();
-
         const plugins = {
             elements: [
                 textPlugin,
                 rectPlugin,
                 spritePlugin,
+                videoPlugin,
                 sliderPlugin,
                 containerPlugin,
                 textRevealingPlugin,

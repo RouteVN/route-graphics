@@ -360,6 +360,7 @@ export const ASTNodeType = {
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
   PARTICLES: "particles",
+  VIDEO: "video",
 };
 
 /**

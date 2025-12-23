@@ -1,0 +1,39 @@
+# ---
+# title: Video Add with Fade In Animation
+# description: Test adding a video element with fade-in animation
+# specs:
+#   - "video should fade in from alpha 0 to 1"
+#   - "video should start playing immediately even while fading"
+#   - "video should be visible after animation completes"
+# steps:
+#   - keypress n
+#   - screenshot
+#   - customEvent snapShotKeyFrame deltaMS=500
+#   - screenshot
+#   - customEvent snapShotKeyFrame deltaMS=500
+#   - screenshot
+# ---
+# states:
+#   - elements: []
+#   - elements:
+#       - id: 'video-1'
+#         type: "video"
+#         x: 100
+#         y: 100
+#         width: 400
+#         height: 300
+#         src: "escapes-video"
+#         volume: 500
+#         loop: false
+#         alpha: 1
+#     animations:
+#       - id: 'video-fade-in'
+#         targetId: 'video-1'
+#         type: tween
+#         properties:
+#           alpha:
+#             initialValue: 0
+#             keyframes:
+#               - duration: 1000
+#                 value: 1
+#                 easing: linear
