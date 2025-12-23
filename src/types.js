@@ -119,6 +119,17 @@
  */
 
 /**
+ * @typedef {Object} AnimatedSpriteASTProps
+ * @property {'animated-sprite'} type
+ * @property {number} alpha
+ * @property {Object} animation
+ * @property {string[]} animation.frames - Array of frame names for the animation sequence
+ * @property {number} animation.frameRate - Animation frame rate (frames per second)
+ * @property {boolean} [animation.loop=true] - Whether the animation should loop
+ * @typedef {ASTNode & AnimatedSpriteASTProps} AnimatedSpriteASTNode
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
@@ -360,6 +371,7 @@ export const ASTNodeType = {
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
   PARTICLES: "particles",
+  ANIMATED_SPRITE: "animated-sprite",
 };
 
 /**

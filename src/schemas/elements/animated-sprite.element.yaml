@@ -73,33 +73,3 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
-  hover:
-    type: object
-    properties:
-      soundSrc:
-        type: string
-        description: source of sound to be played when hovering over the sprite
-      cursor:
-        type: string
-        description: CSS cursor style when hovering over the sprite
-      actionPayload:
-        type: object
-        description: Payload for hover action event
-  click:
-    type: object
-    properties:
-      soundSrc:
-        type: string
-        description: source of sound to be played when the sprite is clicked
-      actionPayload:
-        type: object
-        description: Payload for click action event
-  rightClick:
-    type: object
-    properties:
-      soundSrc:
-        type: string
-        description: source of sound to be played when the sprite is right-clicked
-      actionPayload:
-        type: object
-        description: Payload for right-click action event

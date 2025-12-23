@@ -87,3 +87,9 @@ vt:
         - title: "Particles"
           files: "particles"
           description: "Particle effects (presets and custom configs)"
+    - title: "Animated sprite"
+      type: "groupLabel"
+      items:
+        - title: "Animated sprite"
+          files: "animatedsprite"
+          description: "Animated sprite"
