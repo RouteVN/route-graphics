@@ -32,7 +32,10 @@ export const addAnimatedSprite = async ({
 
   animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
   animatedSprite.loop = animation.loop ?? true;
-  animatedSprite.play();
+
+  if (!app.debug) {
+    animatedSprite.play();
+  }
 
   const drawSprite = () => {
     animatedSprite.x = Math.round(x);
@@ -47,6 +50,16 @@ export const addAnimatedSprite = async ({
       drawSprite();
     }
   };
+
+  const snapShotKeyFrameHandler = (event) => {
+    if (event.elementId === id && typeof event.frameIndex === "number") {
+      animatedSprite.gotoAndStop(event.frameIndex);
+    }
+  };
+
+  if (app.debug) {
+    window.addEventListener("snapShotKeyFrame", snapShotKeyFrameHandler);
+  }
 
   signal.addEventListener("abort", abortHandler);
   drawSprite();
@@ -65,4 +78,10 @@ export const addAnimatedSprite = async ({
   }
 
   signal.removeEventListener("abort", abortHandler);
+
+  return () => {
+    if (app.debug) {
+      app.stage.off("snapShotKeyFrame", snapShotKeyFrameHandler);
+    }
+  };
 };
