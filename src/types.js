@@ -119,10 +119,29 @@
  */
 
 /**
+ * @typedef {Object} ParticlesASTProps
+ * @property {'particles'} type
+ * @property {string} [preset] - Preset name (e.g., "snow", "fire", "rain")
+ * @property {number} [count] - Max particles (default: 100)
+ * @property {string|Object} [texture] - Particle appearance (string for named texture, object for custom shape)
+ * @property {Array} [behaviors] - Custom particle behaviors
+ * @property {Array<string>} [disableBehaviors] - Behaviors to disable from preset
+ * @property {Object} [emitter] - Emitter configuration (lifetime, frequency, etc.)
+ * @property {number} [x] - Container position X (default: 0)
+ * @property {number} [y] - Container position Y (default: 0)
+ * @property {number} [width] - Effect area width (default: screen width)
+ * @property {number} [height] - Effect area height (default: screen height)
+ * @property {number} [alpha] - Container opacity 0-1 (default: 1)
+ * @property {number} [emitX] - Emission point X coordinate (for fire/burst presets)
+ * @property {number} [emitY] - Emission point Y coordinate (for fire/burst presets)
+ * @typedef {ASTNode & ParticlesASTProps} ParticlesASTNode
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
- * @property {SpriteASTNode | TextASTNode | RectASTNode | ContainerASTNode} children
+ * @property {SpriteASTNode | TextASTNode | RectASTNode | ContainerASTNode | ParticlesASTNode} children
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll

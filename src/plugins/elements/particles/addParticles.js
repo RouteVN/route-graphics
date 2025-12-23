@@ -124,8 +124,9 @@ export const addParticle = async ({ app, parent, element, signal }) => {
   container.label = element.id;
   parent.addChild(container);
 
-  const width = element.width ?? app.screen.width;
-  const height = element.height ?? app.screen.height;
+  // Use parent container dimensions if provided during parsing, otherwise fall back to screen size
+  const width = element.width ?? element._parentWidth ?? app.screen.width;
+  const height = element.height ?? element._parentHeight ?? app.screen.height;
   container.x = element.x ?? 0;
   container.y = element.y ?? 0;
 
