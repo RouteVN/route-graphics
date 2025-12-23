@@ -16,7 +16,7 @@ export const addVideo = async ({
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
-  let texture = (Assets.cache.has(src)) ? Assets.cache.get(src) : Texture.from(src);
+  const texture = Texture.from(src);
   const video = texture.source.resource;
 
   video.pause();

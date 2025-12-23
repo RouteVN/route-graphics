@@ -412,7 +412,7 @@ const createRouteGraphics = () => {
       }
 
       // Load video assets
-      Object.entries(assetsByType.video).map(async ([key, asset]) => {
+      Object.entries(assetsByType.video).map(([key, asset]) => {
         const blob = new Blob([asset.buffer], { type: asset.type });
         const videoUrl = URL.createObjectURL(blob);
 
@@ -424,7 +424,7 @@ const createRouteGraphics = () => {
 
         const texture = Texture.from(video);
         Assets.cache.set(key, texture);
-      });
+      })
 
       const urls = Object.keys(assetsByType.texture);
       return Promise.all(urls.map((url) => Assets.load(url)));
