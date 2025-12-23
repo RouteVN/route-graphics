@@ -14,7 +14,7 @@ states:
         y: 100
         width: 400
         height: 300
-        src: "bullrun-video"
+        src: "escapes-video"
         volume: 500
         loop: true
         alpha: 1

@@ -26,7 +26,7 @@ export const addVideo = async ({
   video.muted = false;
   console.log("Video", video);
   console.log("Pause status:", video.paused);
-  // video.play();
+  video.play();
 
   const sprite = new Sprite(texture);
   sprite.label = id;
