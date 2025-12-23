@@ -16,9 +16,10 @@ export const addVideo = async ({
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
-  const video = document.createElement('video');
-  video.src = (Assets.cache.has(src))? Assets.cache.get(src) : src;
-  console.log("Video src:", video.src);
+
+  const texture = Texture.from(src);
+  const video = texture.source.resource;
+
   video.pause();
   video.currentTime = 0;
   video.loop = loop ?? false;
@@ -26,7 +27,6 @@ export const addVideo = async ({
   video.muted = false;
   video.play();
   
-  const texture = Texture.from(video);
 
   const sprite = new Sprite(texture);
   sprite.label = id;
