@@ -412,19 +412,19 @@ const createRouteGraphics = () => {
       }
 
       // Load video assets
-      Object.entries(assetsByType.video).map(([key, asset]) => {
-        const blob = new Blob([asset.buffer], { type: asset.type });
-        const videoUrl = URL.createObjectURL(blob);
+      // Object.entries(assetsByType.video).map(([key, asset]) => {
+      //   const blob = new Blob([asset.buffer], { type: asset.type });
+      //   const videoUrl = URL.createObjectURL(blob);
 
-        const video = document.createElement('video');
-        video.src = videoUrl;
-        video.preload = 'none';
-        video.loop = true;
-        video.muted = true;
+      //   const video = document.createElement('video');
+      //   video.src = videoUrl;
+      //   video.preload = 'none';
+      //   video.loop = true;
+      //   video.muted = true;
 
-        const texture = Texture.from(video);
-        Assets.cache.set(key, texture);
-      })
+      //   const texture = Texture.from(video);
+      //   Assets.cache.set(key, texture);
+      // })
 
       const urls = Object.keys(assetsByType.texture);
       return Promise.all(urls.map((url) => Assets.load(url)));
