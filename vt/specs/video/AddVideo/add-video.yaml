@@ -14,7 +14,7 @@ states:
         y: 100
         width: 400
         height: 300
-        src: "escapes-video"
+        src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
         volume: 100
         loop: true
         alpha: 1

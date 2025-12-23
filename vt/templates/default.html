@@ -41,9 +41,20 @@
             Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' }),
             Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' }),
             Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' }),
-            Assets.load({ alias: 'escapes-video', src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' }),
-            Assets.load({ alias: 'blazes-video', src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4' }),
+            // Assets.load({ alias: 'escapes-video', src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' }),
+            // Assets.load({ alias: 'blazes-video', src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4' }),
         ]);
+
+        // assetBufferManager.load({
+        //     "escapes-video": {
+        //         url: '/public/ForBiggerEscapes.mp4',
+        //         type: 'video/'
+        //     },
+        //     "blazes-video": {
+        //         url: '/public/ForBiggerBlazes.mp4',
+        //         type: 'video/'
+        //     }
+        // });
 
         // Pre-load audio files
         const audio1 = await fetch('/public/bgm-1.mp3');
@@ -61,7 +72,7 @@
 
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = createRouteGraphics();
-
+        // await app.loadAssets(assetBufferManager.getBufferMap());
         const plugins = {
             elements: [
                 textPlugin,
