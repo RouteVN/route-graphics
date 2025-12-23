@@ -1,45 +1,51 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Animated Sprite Element
-description: Schema for animated sprite element raw input
+title: Animated Sprite AST Node
+description: Schema for animated sprite AST node after parsing
 type: object
 required:
   - id
   - type
-  - x
-  - y
   - width
   - height
+  - x
+  - y
+  - originX
+  - originY
   - sheetSrc
   - metadataSrc
   - animation
+  - alpha
 properties:
   id:
     type: string
     description: Unique identifier for the animated sprite element
   type:
-    type: string
     const: animated-sprite
     description: Element type, must be 'animated-sprite'
-  x:
-    type: number
-    description: X position of the animated sprite
-  y:
-    type: number
-    description: Y position of the animated sprite
   width:
     type: number
-    description: Width of the animated sprite in pixels
+    description: Width of the animated sprite after scale is applied
   height:
     type: number
-    description: Height of the animated sprite in pixels
-  anchorX:
+    description: Height of the animated sprite after scale is applied
+  x:
     type: number
-    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
-    default: 0
-  anchorY:
+    description: X position adjusted for anchor point
+  y:
     type: number
-    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
-    default: 0
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  scaleX:
+    type: number
+    description: Horizontal scale multiplier
+  scaleY:
+    type: number
+    description: Vertical scale multiplier
   sheetSrc:
     type: string
     description: Alias of the sprite sheet image asset
@@ -56,19 +62,14 @@ properties:
         items:
           type: number
         description: Array of frame indexes for the animation sequence
-        example: [0, 1, 2, 3, 4, 5]
       animationSpeed:
         type: number
         description: Animation speed multiplier
-        minimum: 0.1
-        default: 0.5
       loop:
         type: boolean
         description: Whether the animation should loop
-        default: true
   alpha:
     type: number
     description: Opacity/transparency of the animated sprite (0-1)
     minimum: 0
     maximum: 1
-    default: 1

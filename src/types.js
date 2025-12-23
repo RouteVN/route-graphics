@@ -123,8 +123,8 @@
  * @property {'animated-sprite'} type
  * @property {number} alpha
  * @property {Object} animation
- * @property {string[]} animation.frames - Array of frame names for the animation sequence
- * @property {number} animation.frameRate - Animation frame rate (frames per second)
+ * @property {number[]} animation.frames - Array of frame indexes for the animation sequence
+ * @property {number} animation.animationSpeed - Animation speed multiplier
  * @property {boolean} [animation.loop=true] - Whether the animation should loop
  * @typedef {ASTNode & AnimatedSpriteASTProps} AnimatedSpriteASTNode
  */

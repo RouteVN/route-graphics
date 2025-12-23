@@ -1,4 +1,4 @@
-import { AnimatedSprite, Texture } from "pixi.js";
+import { AnimatedSprite, Assets, Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 
 /**
@@ -33,11 +33,19 @@ export const updateAnimatedSprite = async ({
         JSON.stringify(nextElement.animation)
       ) {
         animatedSpriteElement.animationSpeed =
-          nextElement.animation.frameRate / 60;
+          nextElement.animation.animationSpeed ?? 0.5;
         animatedSpriteElement.loop = nextElement.animation.loop ?? true;
 
-        const frameTextures = nextElement.animation.frames.map((frameName) =>
-          Texture.from(frameName),
+        const metadata = Assets.get(nextElement.metadataSrc).data;
+        const frameNames = Object.keys(metadata.frames);
+        const spriteSheet = new Spritesheet(
+          Texture.from(nextElement.sheetSrc),
+          metadata,
+        );
+        spriteSheet.parse();
+
+        const frameTextures = nextElement.animation.frames.map(
+          (index) => spriteSheet.textures[frameNames[index]],
         );
         animatedSpriteElement.textures = frameTextures;
         animatedSpriteElement.play();

@@ -59,6 +59,7 @@ out:
     lineHeight: 1.2
     wordWrap: true
     breakWords: true
+    wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with word wrapping
 in:
@@ -166,6 +167,7 @@ out:
     lineHeight: 1.2
     wordWrap: true
     breakWords: true
+    wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with multiple styled content segments
 in:
@@ -273,6 +275,7 @@ out:
     strokeWidth: 0
     strokeColor: transparent
     breakWords: false
+    wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with indicator props
 in:
@@ -343,6 +346,7 @@ out:
     strokeWidth: 0
     strokeColor: transparent
     breakWords: false
+    wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with indicator default values
 in:
@@ -408,3 +412,4 @@ out:
     strokeWidth: 0
     strokeColor: transparent
     breakWords: false
+    wordWrapWidth: 0
