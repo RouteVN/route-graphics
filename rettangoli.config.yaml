@@ -93,6 +93,15 @@ vt:
         - title: "Particles"
           files: "particles"
           description: "Particle effects (presets and custom configs)"
+    - title: "Animated Sprite"
+      type: "groupLabel"
+      items:
+        - title: "Animated Sprite"
+          files: "animatedsprite"
+          description: "Animated sprite rendering test"
+        - title: "Animated Sprite Transitions"
+          files: "animatedspritetransition"
+          description: "Animated sprite transitions rendering test"
     - title: "Video"
       type: "groupLabel"
       items:
