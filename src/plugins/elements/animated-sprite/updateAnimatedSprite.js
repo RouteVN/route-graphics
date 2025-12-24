@@ -1,4 +1,4 @@
-import { AnimatedSprite, Assets, Spritesheet, Texture } from "pixi.js";
+import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 
@@ -21,7 +21,7 @@ export const updateAnimatedSprite = async ({
 
   let isAnimationDone = true;
 
-  const updateElement = () => {
+  const updateElement = async () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
       animatedSpriteElement.x = Math.round(nextElement.x);
       animatedSpriteElement.y = Math.round(nextElement.y);
@@ -37,13 +37,13 @@ export const updateAnimatedSprite = async ({
           nextElement.animation.animationSpeed ?? 0.5;
         animatedSpriteElement.loop = nextElement.animation.loop ?? true;
 
-        const metadata = Assets.get(nextElement.metadataSrc).data;
+        const metadata = nextElement.spritesheetData;
         const frameNames = Object.keys(metadata.frames);
         const spriteSheet = new Spritesheet(
           Texture.from(nextElement.sheetSrc),
           metadata,
         );
-        spriteSheet.parse();
+        await spriteSheet.parse();
 
         const frameTextures = nextElement.animation.frames.map(
           (index) => spriteSheet.textures[frameNames[index]],
@@ -64,7 +64,7 @@ export const updateAnimatedSprite = async ({
 
   const abortHandler = async () => {
     if (!isAnimationDone) {
-      updateElement();
+      await updateElement();
     }
   };
 
@@ -81,7 +81,7 @@ export const updateAnimatedSprite = async ({
       });
       isAnimationDone = true;
     }
-    updateElement();
+    await updateElement();
     signal.removeEventListener("abort", abortHandler);
   }
 };

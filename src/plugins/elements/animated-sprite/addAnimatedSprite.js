@@ -1,4 +1,4 @@
-import { AnimatedSprite, Assets, Spritesheet, Texture } from "pixi.js";
+import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode } from "./util/debugUtils.js";
 
@@ -15,10 +15,19 @@ export const addAnimatedSprite = async ({
   signal,
 }) => {
   let isAnimationDone = true;
-  const { id, x, y, width, height, sheetSrc, metadataSrc, animation, alpha } =
-    element;
+  const {
+    id,
+    x,
+    y,
+    width,
+    height,
+    sheetSrc,
+    spritesheetData,
+    animation,
+    alpha,
+  } = element;
 
-  const metadata = Assets.get(metadataSrc).data;
+  const metadata = spritesheetData;
   const frameNames = Object.keys(metadata.frames);
 
   const spriteSheet = new Spritesheet(Texture.from(sheetSrc), metadata);
@@ -34,10 +43,8 @@ export const addAnimatedSprite = async ({
   animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
   animatedSprite.loop = animation.loop ?? true;
 
-  if (!app.debug) 
-    animatedSprite.play();
-  else
-    setupDebugMode(animatedSprite, id, app.debug);
+  if (!app.debug) animatedSprite.play();
+  else setupDebugMode(animatedSprite, id, app.debug);
 
   const drawSprite = () => {
     animatedSprite.x = Math.round(x);

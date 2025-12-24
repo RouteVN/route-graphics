@@ -17,7 +17,7 @@ export const parseAnimatedSprite = ({ state }) => {
   return {
     ...astObj,
     sheetSrc: state.sheetSrc ?? "",
-    metadataSrc: state.metadataSrc ?? "",
+    spritesheetData: { frames: {}, meta: {}, ...(state.spritesheetData ?? {}) },
     animation: {
       frames: [],
       animationSpeed: 0.5,

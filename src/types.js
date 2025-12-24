@@ -121,6 +121,8 @@
 /**
  * @typedef {Object} AnimatedSpriteASTProps
  * @property {'animated-sprite'} type
+ * @property {string} sheetSrc
+ * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
  * @property {number} alpha
  * @property {Object} animation
  * @property {number[]} animation.frames - Array of frame indexes for the animation sequence

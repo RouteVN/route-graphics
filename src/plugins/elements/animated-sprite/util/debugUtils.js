@@ -8,7 +8,10 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
   if (!isDebug) return;
 
   const handler = (event) => {
-    if (event?.detail?.elementId === elementId && typeof event?.detail?.frameIndex === "number") {
+    if (
+      event?.detail?.elementId === elementId &&
+      typeof event?.detail?.frameIndex === "number"
+    ) {
       animatedSprite.gotoAndStop(event?.detail?.frameIndex);
     }
   };
@@ -23,7 +26,10 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
  */
 export const cleanupDebugMode = (animatedSprite) => {
   if (animatedSprite._snapShotKeyFrameHandler) {
-    window.removeEventListener("snapShotKeyFrame", animatedSprite._snapShotKeyFrameHandler);
+    window.removeEventListener(
+      "snapShotKeyFrame",
+      animatedSprite._snapShotKeyFrameHandler,
+    );
     delete animatedSprite._snapShotKeyFrameHandler;
   }
 };

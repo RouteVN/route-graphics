@@ -212,12 +212,8 @@
     }
   },
   "meta": {
-    "app": "http://www.texturepacker.com",
-    "version": "1.0",
-    "image": "fighter.png",
     "format": "RGBA8888",
     "size": { "w": 1024, "h": 1024 },
-    "scale": "1",
-    "smartupdate": "$TexturePacker:SmartUpdate:2f213a6b451f9f5719773418dfe80ae8$"
+    "scale": "1"
   }
 }

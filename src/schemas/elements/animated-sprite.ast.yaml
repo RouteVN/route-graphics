@@ -12,7 +12,7 @@ required:
   - originX
   - originY
   - sheetSrc
-  - metadataSrc
+  - spritesheetData
   - animation
   - alpha
 properties:
@@ -40,18 +40,66 @@ properties:
   originY:
     type: number
     description: Calculated origin Y coordinate based on anchor
-  scaleX:
-    type: number
-    description: Horizontal scale multiplier
-  scaleY:
-    type: number
-    description: Vertical scale multiplier
   sheetSrc:
     type: string
     description: Alias of the sprite sheet image asset
-  metadataSrc:
-    type: string
-    description: Alias of the sprite sheet metadata JSON asset
+  spritesheetData:
+    type: object
+    description: Direct spritesheet metadata JSON data (frames and meta)
+    properties:
+      frames:
+        type: object
+        description: Frame definitions with frame data for each sprite
+        additionalProperties:
+          type: object
+          properties:
+            frame:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            rotated:
+              type: boolean
+            trimmed:
+              type: boolean
+            spriteSourceSize:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            sourceSize:
+              type: object
+              properties:
+                w:
+                  type: number
+                h:
+                  type: number
+      meta:
+        type: object
+        properties:
+          format:
+            type: string
+          size:
+            type: object
+            properties:
+              w:
+                type: number
+              h:
+                type: number
+          scale:
+            type: string
   animation:
     type: object
     required:

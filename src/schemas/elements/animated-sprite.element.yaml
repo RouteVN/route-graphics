@@ -10,7 +10,7 @@ required:
   - width
   - height
   - sheetSrc
-  - metadataSrc
+  - spritesheetData
   - animation
 properties:
   id:
@@ -43,9 +43,63 @@ properties:
   sheetSrc:
     type: string
     description: Alias of the sprite sheet image asset
-  metadataSrc:
-    type: string
-    description: Alias of the sprite sheet metadata JSON asset
+  spritesheetData:
+    type: object
+    description: Direct spritesheet metadata JSON data (frames and meta)
+    properties:
+      frames:
+        type: object
+        description: Frame definitions with frame data for each sprite
+        additionalProperties:
+          type: object
+          properties:
+            frame:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            rotated:
+              type: boolean
+            trimmed:
+              type: boolean
+            spriteSourceSize:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            sourceSize:
+              type: object
+              properties:
+                w:
+                  type: number
+                h:
+                  type: number
+      meta:
+        type: object
+        properties:
+          format:
+            type: string
+          size:
+            type: object
+            properties:
+              w:
+                type: number
+              h:
+                type: number
+          scale:
+            type: string
   animation:
     type: object
     required:
