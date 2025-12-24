@@ -1,0 +1,59 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Video Element
+description: Schema for video element raw input
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - width
+  - height
+  - src
+properties:
+  id:
+    type: string
+    description: Unique identifier for the video element
+  type:
+    type: string
+    const: video
+    description: Element type, must be 'video'
+  x:
+    type: number
+    description: X position of the video
+  y:
+    type: number
+    description: Y position of the video
+  width:
+    type: number
+    description: Width of the video in pixels
+  height:
+    type: number
+    description: Height of the video in pixels
+  anchorX:
+    type: number
+    description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
+    default: 0
+  anchorY:
+    type: number
+    description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+    default: 0
+  src:
+    type: string
+    description: Source URL of the video file
+  volume:
+    type: number
+    description: Volume of the video audio (0-1000)
+    minimum: 0
+    maximum: 1000
+    default: 1000
+  loop:
+    type: boolean
+    description: Whether the video should loop when it ends
+    default: false
+  alpha:
+    type: number
+    description: Opacity/transparency of the video (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1

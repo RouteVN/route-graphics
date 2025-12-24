@@ -1,6 +1,6 @@
 ---
 title: Support Keyboard Input
-status: low
+status: todo
 priority: high
 assignee: nghia
 ---

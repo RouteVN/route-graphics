@@ -46,6 +46,7 @@ const createAssetBufferManager = () => {
     for (const [key, value] of cache.entries()) {
       bufferMap[key] = value;
     }
+
     return bufferMap;
   };
 

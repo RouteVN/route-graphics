@@ -7,6 +7,12 @@ specs:
   - "thumb should move to exact click position"
   - "value should be calculated based on click position"
   - "step functionality should work with bar clicks"
+steps:
+  - move 200 105
+  - mouseDown
+  - screenshot
+  - move 250 105
+  - screenshot
 ---
 states:
   - elements:

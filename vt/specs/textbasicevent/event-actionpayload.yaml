@@ -5,6 +5,15 @@ specs:
   - "text should send actionPayload on click"
   - "text should send actionPayload on hover"
   - "actionPayload should contain custom data"
+steps:
+  - click 210 155
+  - screenshot
+  - move 210 255
+  - screenshot
+  - move 210 355
+  - screenshot
+  - click 210 355
+  - screenshot
 ---
 states:
   - elements:

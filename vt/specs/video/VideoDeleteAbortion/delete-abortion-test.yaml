@@ -1,0 +1,50 @@
+# ---
+# title: Video Delete Animation Abortion Test
+# description: Test aborting video delete animation and verify behavior
+# specs:
+#   - "video delete animation should be abortable"
+#   - "video should immediately stop playing when delete is aborted"
+#   - "video should be removed from stage when abort completes"
+#   - "video should not remain visible after aborted deletion"
+# steps:
+#   - keypress n
+#   - customEvent snapShotKeyFrame deltaMS=500
+#   - screenshot
+#   - keypress n
+#   - screenshot
+# ---
+# states:
+#   - elements:
+#       - id: 'video-1'
+#         type: "video"
+#         x: 100
+#         y: 100
+#         width: 400
+#         height: 300
+#         src: "escapes-video"
+#         volume: 500
+#         loop: false
+#         alpha: 1
+#   - elements: []
+#     animations:
+#       - id: 'video-fade-out'
+#         targetId: 'video-1'
+#         type: tween
+#         properties:
+#           alpha:
+#             initialValue: 1
+#             keyframes:
+#               - duration: 2000
+#                 value: 0
+#                 easing: linear
+#   - elements:
+#     - id: 'video-1'
+#       type: "video"
+#       x: 100
+#       y: 100
+#       width: 400
+#       height: 300
+#       src: "blazes-video"
+#       volume: 500
+#       loop: false
+#       alpha: 1

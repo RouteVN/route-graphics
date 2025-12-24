@@ -14,6 +14,7 @@ import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
+import { createKeyboardManager } from "./util/keyboardManager.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -114,6 +115,11 @@ const createRouteGraphics = () => {
   };
 
   /**
+   * @type {ReturnType<typeof createKeyboardManager>}
+   */
+  let keyboardManager;
+
+  /**
    * @type {AbortController}
    */
   let currentAbortController;
@@ -150,6 +156,8 @@ const createRouteGraphics = () => {
       return "font";
     }
 
+    if (mimeType.startsWith("video/")) return "video";
+
     return "texture";
   };
 
@@ -159,7 +167,11 @@ const createRouteGraphics = () => {
    * @param {GlobalConfiguration} [prevGlobal] - Previous global configuration
    * @param {GlobalConfiguration} [nextGlobal] - Next global configuration
    */
-  const applyGlobalCursorStyles = (appInstance, prevGlobal, nextGlobal) => {
+  const applyGlobalObjects = (appInstance, prevGlobal, nextGlobal) => {
+    if (keyboardManager) {
+      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? {});
+    }
+
     // Initialize default cursor styles if they don't exist
     if (!appInstance.renderer.events.cursorStyles) {
       appInstance.renderer.events.cursorStyles = {};
@@ -204,7 +216,7 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = async (appInstance, parent, nextState, handler) => {
-    applyGlobalCursorStyles(appInstance, state.global, nextState.global);
+    applyGlobalObjects(appInstance, state.global, nextState.global);
     if (currentAbortController && isProcessingRender)
       currentAbortController.abort();
     currentAbortController = new AbortController();
@@ -301,6 +313,8 @@ const createRouteGraphics = () => {
       };
       eventHandler = handler;
 
+      keyboardManager = createKeyboardManager(handler);
+
       /**
        * @type {ApplicationWithAudioStage}
        */
@@ -345,6 +359,7 @@ const createRouteGraphics = () => {
       const assetsByType = {
         audio: {},
         font: {},
+        video: {},
         texture: {}, // includes images and other PIXI-compatible assets
       };
 
@@ -397,6 +412,22 @@ const createRouteGraphics = () => {
         // Merge new texture assets into existing buffer map
         Object.assign(advancedLoader.bufferMap, assetsByType.texture);
       }
+
+      // Load video assets
+      // Note: WIP, still getting maximun call stack size exceeded error
+      // Object.entries(assetsByType.video).map( ([key, asset]) => {
+      // const blob = new Blob([asset.buffer], { type: asset.type });
+      // const videoUrl = URL.createObjectURL(blob);
+
+      // const video = document.createElement('video');
+      // video.src = videoUrl;
+      // video.preload = 'none';
+      // video.loop = true;
+      // video.muted = true;
+
+      // const texture = Texture.from(video);
+      // Assets.cache.set(key, videoUrl);
+      // });
 
       const urls = Object.keys(assetsByType.texture);
       return Promise.all(urls.map((url) => Assets.load(url)));

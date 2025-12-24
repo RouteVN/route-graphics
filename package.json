@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@pixi/unsafe-eval": "^7.4.3",
+    "hotkeys-js": "^4.0.0-beta.7",
     "pixi.js": "^8.7.1"
   },
   "devDependencies": {

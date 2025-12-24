@@ -7,6 +7,7 @@ import { createAudioPlugin } from "./plugins/audio/audioPlugin.js";
 import { textPlugin } from "./plugins/elements/text";
 import { rectPlugin } from "./plugins/elements/rect";
 import { spritePlugin } from "./plugins/elements/sprite";
+import { videoPlugin } from "./plugins/elements/video";
 import { sliderPlugin } from "./plugins/elements/slider";
 import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
@@ -39,6 +40,7 @@ export {
   textPlugin,
   rectPlugin,
   spritePlugin,
+  videoPlugin,
   sliderPlugin,
   containerPlugin,
   textRevealingPlugin,

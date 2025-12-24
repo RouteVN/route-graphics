@@ -6,9 +6,10 @@ import createRouteGraphics, {
     sliderPlugin,
     containerPlugin,
     textRevealingPlugin,
+    particlesPlugin,
     tweenPlugin,
     soundPlugin
-} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.8/+esm'
+} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.15/+esm'
 
 import jsYaml from 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm'
 
@@ -130,7 +131,8 @@ const initRouteGraphics = async () => {
                     spritePlugin,
                     sliderPlugin,
                     containerPlugin,
-                    textRevealingPlugin
+                    textRevealingPlugin,
+                    particlesPlugin
                 ],
                 animations: [tweenPlugin],
                 audio: [soundPlugin]

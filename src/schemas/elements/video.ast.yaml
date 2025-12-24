@@ -1,0 +1,64 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Video AST Node
+description: Schema for video element AST node
+type: object
+required:
+  - type
+  - id
+  - x
+  - y
+  - width
+  - height
+  - originX
+  - originY
+  - scaleX
+  - scaleY
+  - alpha
+  - volume
+  - loop
+properties:
+  type:
+    type: string
+    const: video
+    description: Node type, must be 'video'
+  id:
+    type: string
+    description: Unique identifier for the video element
+  x:
+    type: number
+    description: X position of the video
+  y:
+    type: number
+    description: Y position of the video
+  width:
+    type: number
+    description: Width of the video in pixels
+  height:
+    type: number
+    description: Height of the video in pixels
+  originX:
+    type: number
+    description: X origin point
+  originY:
+    type: number
+    description: Y origin point
+  scaleX:
+    type: number
+    description: X scale factor
+  scaleY:
+    type: number
+    description: Y scale factor
+  alpha:
+    type: number
+    description: Opacity/transparency of the video (0-1)
+  src:
+    type: string
+    description: Source URL of the video file
+  volume:
+    type: number
+    description: Volume of the video audio (0-1000)
+    minimum: 0
+    maximum: 1000
+  loop:
+    type: boolean
+    description: Whether the video should loop when it ends

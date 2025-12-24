@@ -5,6 +5,15 @@ specs:
   - "sprite should send actionPayload on click"
   - "sprite should send actionPayload on hover"
   - "actionPayload should contain custom data"
+steps:
+  - click 160 160
+  - screenshot
+  - move 425 175
+  - screenshot
+  - move 675 175
+  - screenshot
+  - click 675 175
+  - screenshot
 ---
 states:
   - elements:

@@ -374,6 +374,7 @@ export const ASTNodeType = {
   SLIDER: "slider",
   PARTICLES: "particles",
   ANIMATED_SPRITE: "animated-sprite",
+  VIDEO: "video",
 };
 
 /**

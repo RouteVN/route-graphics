@@ -5,6 +5,15 @@ specs:
   - "rect should send actionPayload on click"
   - "rect should send actionPayload on hover"
   - "actionPayload should contain custom data"
+steps:
+  - click 250 110
+  - screenshot
+  - move 250 260
+  - screenshot
+  - move 250 380
+  - screenshot
+  - click 250 380
+  - screenshot
 ---
 states:
   - elements:
