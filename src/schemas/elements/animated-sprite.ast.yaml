@@ -11,7 +11,7 @@ required:
   - y
   - originX
   - originY
-  - sheetSrc
+  - spritesheetSrc
   - spritesheetData
   - animation
   - alpha
@@ -40,7 +40,7 @@ properties:
   originY:
     type: number
     description: Calculated origin Y coordinate based on anchor
-  sheetSrc:
+  spritesheetSrc:
     type: string
     description: Alias of the sprite sheet image asset
   spritesheetData:

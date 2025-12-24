@@ -40,7 +40,7 @@ export const updateAnimatedSprite = async ({
         const metadata = nextElement.spritesheetData;
         const frameNames = Object.keys(metadata.frames);
         const spriteSheet = new Spritesheet(
-          Texture.from(nextElement.sheetSrc),
+          Texture.from(nextElement.spritesheetSrc),
           metadata,
         );
         await spriteSheet.parse();

@@ -9,7 +9,7 @@ required:
   - y
   - width
   - height
-  - sheetSrc
+  - spritesheetSrc
   - spritesheetData
   - animation
 properties:
@@ -40,7 +40,7 @@ properties:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
     default: 0
-  sheetSrc:
+  spritesheetSrc:
     type: string
     description: Alias of the sprite sheet image asset
   spritesheetData:

@@ -121,7 +121,7 @@
 /**
  * @typedef {Object} AnimatedSpriteASTProps
  * @property {'animated-sprite'} type
- * @property {string} sheetSrc
+ * @property {string} spritesheetSrc
  * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
  * @property {number} alpha
  * @property {Object} animation

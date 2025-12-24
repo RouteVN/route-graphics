@@ -21,7 +21,7 @@ export const addAnimatedSprite = async ({
     y,
     width,
     height,
-    sheetSrc,
+    spritesheetSrc,
     spritesheetData,
     animation,
     alpha,
@@ -30,7 +30,7 @@ export const addAnimatedSprite = async ({
   const metadata = spritesheetData;
   const frameNames = Object.keys(metadata.frames);
 
-  const spriteSheet = new Spritesheet(Texture.from(sheetSrc), metadata);
+  const spriteSheet = new Spritesheet(Texture.from(spritesheetSrc), metadata);
   await spriteSheet.parse();
 
   const frameTextures = animation.frames.map(

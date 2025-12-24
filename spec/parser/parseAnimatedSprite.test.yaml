@@ -14,7 +14,7 @@ in:
       y: 150
       width: 100
       height: 100
-      sheetSrc: "fighter-spritesheet"
+      spritesheetSrc: "fighter-spritesheet"
       metadataSrc: "fighter-spritesheet-metadata"
       animation:
         frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -30,7 +30,7 @@ out:
   y: 150
   originX: 0
   originY: 0
-  sheetSrc: "fighter-spritesheet"
+  spritesheetSrc: "fighter-spritesheet"
   metadataSrc: "fighter-spritesheet-metadata"
   animation:
     frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -47,7 +47,7 @@ in:
       y: 100
       width: 80
       height: 80
-      sheetSrc: "fighter-spritesheet"
+      spritesheetSrc: "fighter-spritesheet"
       metadataSrc: "fighter-spritesheet-metadata"
       animation:
         frames: [10, 11, 12]
@@ -60,7 +60,7 @@ out:
   y: 100
   originX: 0
   originY: 0
-  sheetSrc: "fighter-spritesheet"
+  spritesheetSrc: "fighter-spritesheet"
   metadataSrc: "fighter-spritesheet-metadata"
   animation:
     frames: [10, 11, 12]

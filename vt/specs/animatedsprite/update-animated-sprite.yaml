@@ -17,7 +17,7 @@ states:
         y: 150
         width: 100
         height: 100
-        sheetSrc: "fighter-spritesheet"
+        spritesheetSrc: "fighter-spritesheet"
         spritesheetData:
           frames:
             rollSequence0000.png:
@@ -214,7 +214,7 @@ states:
         y: 150
         width: 80
         height: 80
-        sheetSrc: "fighter-spritesheet"
+        spritesheetSrc: "fighter-spritesheet"
         spritesheetData:
           frames:
             rollSequence0000.png:
@@ -412,7 +412,7 @@ states:
         y: 250
         width: 120
         height: 120
-        sheetSrc: "fighter-spritesheet"
+        spritesheetSrc: "fighter-spritesheet"
         spritesheetData:
           frames:
             rollSequence0000.png:
@@ -609,7 +609,7 @@ states:
         y: 150
         width: 80
         height: 80
-        sheetSrc: "fighter-spritesheet"
+        spritesheetSrc: "fighter-spritesheet"
         spritesheetData:
           frames:
             rollSequence0000.png:
