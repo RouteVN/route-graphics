@@ -1,7 +1,7 @@
 ---
 title: Animated sprite
 steps:
-  - customEvent snapShotKeyFrame frameIndex=15 elementId=animated-sprite-1
+  - customEvent snapShotAnimatedSpriteFrame frameIndex=15 elementId=animated-sprite-1
   - screenshot
 ---
 states:

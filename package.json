@@ -30,7 +30,9 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "serve": "bunx serve -p 3005 .rettangoli/vt/_site"
+    "serve": "bunx serve -p 3005 .rettangoli/vt/_site",
+    "config:debug": "sed -i 's/debug: false/debug: true/g' vt/static/public/config.js",
+    "config:nodebug": "sed -i 's/debug: true/debug: false/g' vt/static/public/config.js"
   },
   "dependencies": {
     "@pixi/unsafe-eval": "^7.4.3",

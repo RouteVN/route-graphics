@@ -16,7 +16,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
     }
   };
 
-  window.addEventListener("snapShotKeyFrame", handler);
+  window.addEventListener("snapShotAnimatedSpriteFrame", handler);
   animatedSprite._snapShotKeyFrameHandler = handler;
 };
 
@@ -27,7 +27,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
 export const cleanupDebugMode = (animatedSprite) => {
   if (animatedSprite._snapShotKeyFrameHandler) {
     window.removeEventListener(
-      "snapShotKeyFrame",
+      "snapShotAnimatedSpriteFrame",
       animatedSprite._snapShotKeyFrameHandler,
     );
     delete animatedSprite._snapShotKeyFrameHandler;

@@ -1,12 +1,12 @@
 ---
 title: Delete Animated Sprite Elements
 steps:
-  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-1
-  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-2
-  - customEvent snapShotKeyFrame frameIndex=5 elementId=animated-sprite-3
+  - customEvent snapShotAnimatedSpriteFrame frameIndex=5 elementId=animated-sprite-1
+  - customEvent snapShotAnimatedSpriteFrame frameIndex=5 elementId=animated-sprite-2
+  - customEvent snapShotAnimatedSpriteFrame frameIndex=5 elementId=animated-sprite-3
   - screenshot
   - keypress n
-  - customEvent snapShotKeyFrame frameIndex=2 elementId=animated-sprite-2
+  - customEvent snapShotAnimatedSpriteFrame frameIndex=2 elementId=animated-sprite-2
   - screenshot
 ---
 states:

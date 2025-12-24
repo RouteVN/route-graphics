@@ -292,7 +292,6 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
-        useCustomTicker = false,
         debug = false,
       } = options;
 
@@ -326,7 +325,6 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: "webgl",
       });
-      app.useCustomTicker = useCustomTicker;
       app.debug = debug;
 
       const graphics = new Graphics();
