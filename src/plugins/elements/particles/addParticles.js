@@ -215,7 +215,7 @@ export const addParticle = async ({ app, parent, element, signal }) => {
   };
   container.tickerCallback = tickerCallback;
 
-  if (app.useCustomTicker) {
+  if (app?.debug) {
     // VT mode: use snapShotKeyFrame events for deterministic testing
     const customTickerHandler = (event) => {
       if (emitter.destroyed) {

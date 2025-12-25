@@ -22,6 +22,141 @@ Route Graphics follows a **render cycle** where:
 3. **Animation Functions** apply smooth transitions between states
 4. **Audio Functions** handle sound effects and background music
 
+## API Reference
+
+### createRouteGraphics()
+
+Creates and returns a RouteGraphics instance.
+
+```javascript
+const app = createRouteGraphics();
+```
+
+### Instance Methods
+
+#### `init(options)`
+
+Initialize the RouteGraphics application.
+
+**Parameters:**
+- `options` (Object)
+  - `width` (number) - Canvas width
+  - `height` (number) - Canvas height
+  - `backgroundColor` (number, optional) - Background color as hex (e.g., `0x000000`)
+  - `debug` (boolean, optional) - Enable debug mode (default: `false`)
+  - `eventHandler` (Function) - Callback for events `(eventName, payload) => void`
+  - `plugins` (Object)
+    - `elements` (Array) - Element plugins to register
+    - `animations` (Array) - Animation plugins to register
+    - `audio` (Array) - Audio plugins to register
+
+**Returns:** `Promise<RouteGraphicsInstance>`
+
+---
+
+#### `loadAssets(assetBufferMap)`
+
+Load assets from pre-loaded buffer data.
+
+**Parameters:**
+- `assetBufferMap` (Object) - Map of asset key to `{ buffer: ArrayBuffer, type: string }`
+  - Example: `{ "hero": { buffer: ArrayBuffer, type: "image/png" } }`
+
+**Returns:** `Promise<Array>` - Array of loaded assets
+
+---
+
+#### `render(state)`
+
+Render the UI from a state object.
+
+**Parameters:**
+- `state` (RouteGraphicsState)
+  - `elements` (Array) - Array of element definitions
+  - `animations` (Array) - Array of animation definitions
+  - `audio` (Array) - Array of audio definitions
+  - `global` (Object, optional) - Global configuration
+    - `cursorStyles` (Object) - Custom cursor styles
+    - `keyboard` (Object) - Keyboard hotkey mappings
+
+**Returns:** `void`
+
+---
+
+#### `parse(state)`
+
+Parse elements from state object using registered parser plugins (without rendering).
+
+**Parameters:**
+- `state` (RouteGraphicsState) - State object containing element definitions
+
+**Returns:** `RouteGraphicsState` - Parsed state with AST elements
+
+---
+
+#### `updatedBackgroundColor(color)`
+
+Update the canvas background color.
+
+**Parameters:**
+- `color` (string) - New background color as hex (e.g., `"0xffffff"`)
+
+**Returns:** `void`
+
+---
+
+#### `findElementByLabel(targetLabel)`
+
+Find an element in the stage by its label.
+
+**Parameters:**
+- `targetLabel` (string) - Label to search for
+
+**Returns:** `DisplayObject | null` - Found element or null
+
+---
+
+#### `extractBase64(element)`
+
+Extract a base64 representation of an element.
+
+**Parameters:**
+- `element` (DisplayObject) - Element to extract
+
+**Returns:** `Promise<string>` - Base64 string
+
+---
+
+#### `assignStageEvent(eventType, callback)`
+
+Assign an event listener to the stage.
+
+**Parameters:**
+- `eventType` (string) - Event type (e.g., `"click"`, `"pointermove"`)
+- `callback` (Function) - Event callback function
+
+**Returns:** `void`
+
+---
+
+#### `destroy()`
+
+Destroy the application and cleanup resources.
+
+**Returns:** `void`
+
+---
+
+### Instance Properties
+
+#### `canvas`
+
+The HTML canvas element.
+
+**Type:** `HTMLCanvasElement` (read-only)
+
+---
+
 ## Architecture Overview
 
 Route Graphics follows a modular plugin architecture with three main plugin categories:
@@ -109,7 +244,7 @@ await app.init({
   },
   eventHandler: (eventName, payload) => {
     console.log('Event:', eventName, payload);
-  }
+  }, 
 });
 
 // Load assets into the app and add to DOM

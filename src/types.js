@@ -119,6 +119,19 @@
  */
 
 /**
+ * @typedef {Object} AnimatedSpriteASTProps
+ * @property {'animated-sprite'} type
+ * @property {string} spritesheetSrc
+ * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
+ * @property {number} alpha
+ * @property {Object} animation
+ * @property {number[]} animation.frames - Array of frame indexes for the animation sequence
+ * @property {number} animation.animationSpeed - Animation speed multiplier
+ * @property {boolean} [animation.loop=true] - Whether the animation should loop
+ * @typedef {ASTNode & AnimatedSpriteASTProps} AnimatedSpriteASTNode
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
@@ -360,6 +373,7 @@ export const ASTNodeType = {
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
   PARTICLES: "particles",
+  ANIMATED_SPRITE: "animated-sprite",
   VIDEO: "video",
 };
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="/public/config.js"></script>
     <script>
       window.vtState = `
 {{ content }}
@@ -20,6 +21,7 @@
             sliderPlugin,
             containerPlugin,
             textRevealingPlugin,
+            animatedSpritePlugin,
             tweenPlugin,
             soundPlugin,
             particlesPlugin,
@@ -41,6 +43,7 @@
             Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' }),
             Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' }),
             Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' }),
+            Assets.load({ alias: 'fighter-spritesheet', src: '/public/fighter.png' }),
             // Assets.load({ alias: 'escapes-video', src: '/public/ForBiggerEscapes.mp4' }),
             // Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes' }),
         ]);
@@ -70,6 +73,7 @@
                 sliderPlugin,
                 containerPlugin,
                 textRevealingPlugin,
+                animatedSpritePlugin,
                 particlesPlugin,
             ],
             animations: [
@@ -111,8 +115,8 @@
                     }
                 )
             },
-            useCustomTicker: true,
-        })
+            debug: window?.APP_CONFIG?.debug ?? false, 
+        });
         document.body.appendChild(app.canvas);
 
         app.render({

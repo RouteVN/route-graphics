@@ -1,0 +1,123 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Animated Sprite AST Node
+description: Schema for animated sprite AST node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - spritesheetSrc
+  - spritesheetData
+  - animation
+  - alpha
+properties:
+  id:
+    type: string
+    description: Unique identifier for the animated sprite element
+  type:
+    const: animated-sprite
+    description: Element type, must be 'animated-sprite'
+  width:
+    type: number
+    description: Width of the animated sprite after scale is applied
+  height:
+    type: number
+    description: Height of the animated sprite after scale is applied
+  x:
+    type: number
+    description: X position adjusted for anchor point
+  y:
+    type: number
+    description: Y position adjusted for anchor point
+  originX:
+    type: number
+    description: Calculated origin X coordinate based on anchor
+  originY:
+    type: number
+    description: Calculated origin Y coordinate based on anchor
+  spritesheetSrc:
+    type: string
+    description: Alias of the sprite sheet image asset
+  spritesheetData:
+    type: object
+    description: Direct spritesheet metadata JSON data (frames and meta)
+    properties:
+      frames:
+        type: object
+        description: Frame definitions with frame data for each sprite
+        additionalProperties:
+          type: object
+          properties:
+            frame:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            rotated:
+              type: boolean
+            trimmed:
+              type: boolean
+            spriteSourceSize:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+                w:
+                  type: number
+                h:
+                  type: number
+            sourceSize:
+              type: object
+              properties:
+                w:
+                  type: number
+                h:
+                  type: number
+      meta:
+        type: object
+        properties:
+          format:
+            type: string
+          size:
+            type: object
+            properties:
+              w:
+                type: number
+              h:
+                type: number
+          scale:
+            type: string
+  animation:
+    type: object
+    required:
+      - frames
+    properties:
+      frames:
+        type: array
+        items:
+          type: number
+        description: Array of frame indexes for the animation sequence
+      animationSpeed:
+        type: number
+        description: Animation speed multiplier
+      loop:
+        type: boolean
+        description: Whether the animation should loop
+  alpha:
+    type: number
+    description: Opacity/transparency of the animated sprite (0-1)
+    minimum: 0
+    maximum: 1

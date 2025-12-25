@@ -11,6 +11,7 @@ import { videoPlugin } from "./plugins/elements/video";
 import { sliderPlugin } from "./plugins/elements/slider";
 import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
+import { animatedSpritePlugin } from "./plugins/elements/animated-sprite";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
 import {
@@ -43,6 +44,7 @@ export {
   sliderPlugin,
   containerPlugin,
   textRevealingPlugin,
+  animatedSpritePlugin,
   tweenPlugin,
   soundPlugin,
   particlesPlugin,

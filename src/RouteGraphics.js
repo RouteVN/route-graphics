@@ -292,7 +292,7 @@ const createRouteGraphics = () => {
         width,
         height,
         backgroundColor,
-        useCustomTicker = false,
+        debug = false,
       } = options;
 
       const parserPlugins = [];
@@ -325,7 +325,7 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: "webgl",
       });
-      app.useCustomTicker = useCustomTicker;
+      app.debug = debug;
 
       const graphics = new Graphics();
       graphics.rect(0, 0, width, height);
