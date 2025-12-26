@@ -272,7 +272,7 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
-      const element = app.stage.getChildByLabel(label,true);
+      const element = app.stage.getChildByLabel(label, true);
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
       }
