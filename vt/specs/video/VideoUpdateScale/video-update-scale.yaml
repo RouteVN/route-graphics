@@ -22,7 +22,7 @@
 #         y: 200
 #         width: 200  # Start small
 #         height: 150
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1
@@ -33,7 +33,7 @@
 #         y: 200
 #         width: 600  # Scale to large
 #         height: 450
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1

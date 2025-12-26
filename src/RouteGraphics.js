@@ -45,12 +45,13 @@ const createAdvancedBufferLoader = (bufferMap) => ({
       data: blob.buffer,
       type: blob.type,
       metadata: null,
+      alias: url,
     };
 
     return output;
   },
 
-  test: async (_) => true,
+  test: async (url) => !url.startsWith("blob:"),
 
   testParse: async (_) => true,
 
@@ -63,11 +64,11 @@ const createAdvancedBufferLoader = (bufferMap) => ({
     // Convert ArrayBuffer to Blob
     const blob = new Blob([asset.data], { type: asset.type });
 
-    // Convert Blob to ImageBitmap
+    // Convert Blob to ImageBitmap for images
     const imageBitmap = await createImageBitmap(blob);
 
     // Create and return Texture
-    return new Texture.from(imageBitmap);
+    return Texture.from(imageBitmap);
   },
 
   unload: async (texture) => texture.destroy(true),
@@ -398,8 +399,6 @@ const createRouteGraphics = () => {
       if (!advancedLoader) {
         advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
 
-        Assets.loader.parsers.length = 0;
-        Assets.reset();
         extensions.add({
           name: "advanced-buffer-loader",
           extension: ExtensionType.Asset,
@@ -415,24 +414,23 @@ const createRouteGraphics = () => {
         Object.assign(advancedLoader.bufferMap, assetsByType.texture);
       }
 
-      // Load video assets
-      // Note: WIP, still getting maximun call stack size exceeded error
-      // Object.entries(assetsByType.video).map( ([key, asset]) => {
-      // const blob = new Blob([asset.buffer], { type: asset.type });
-      // const videoUrl = URL.createObjectURL(blob);
+      // Load video assets - create blob URLs and load via PixiJS default video loader
+      const videoPromises = Object.entries(assetsByType.video).map(
+        ([key, asset]) => {
+          const blob = new Blob([asset.buffer], { type: asset.type });
+          const blobUrl = URL.createObjectURL(blob);
+          return Assets.load({
+            alias: key,
+            src: blobUrl,
+            loadParser: "loadVideo",
+          });
+        },
+      );
 
-      // const video = document.createElement('video');
-      // video.src = videoUrl;
-      // video.preload = 'none';
-      // video.loop = true;
-      // video.muted = true;
+      const textureUrls = Object.keys(assetsByType.texture);
+      const texturePromises = textureUrls.map((url) => Assets.load(url));
 
-      // const texture = Texture.from(video);
-      // Assets.cache.set(key, videoUrl);
-      // });
-
-      const urls = Object.keys(assetsByType.texture);
-      return Promise.all(urls.map((url) => Assets.load(url)));
+      return Promise.all([...texturePromises, ...videoPromises]);
     },
 
     loadAudioAssets: async (urls) => {

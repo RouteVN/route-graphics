@@ -15,7 +15,7 @@ steps:
 states:
   - elements: []
   - elements:
-      - id: 'rect1'
+      - id: "rect1"
         type: "rect"
         x: 200
         y: 150
@@ -24,8 +24,8 @@ states:
         fill: "#3498db"
         alpha: 1
     animations:
-      - id: 'rect-fade-in'
-        targetId: 'rect1'
+      - id: "rect-fade-in"
+        targetId: "rect1"
         type: tween
         properties:
           alpha:

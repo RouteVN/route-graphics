@@ -22,7 +22,7 @@
 #         y: 100
 #         width: 400
 #         height: 300
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1
