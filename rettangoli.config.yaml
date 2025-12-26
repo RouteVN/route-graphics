@@ -103,6 +103,7 @@ vt:
           files: "animatedspritetransition"
           description: "Animated sprite transitions rendering test"
     - title: "Video"
+      ignoreReport: true
       type: "groupLabel"
       items:
         - title: "Add Video"

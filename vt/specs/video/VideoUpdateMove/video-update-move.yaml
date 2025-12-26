@@ -21,7 +21,7 @@
 #         y: 50
 #         width: 320
 #         height: 240
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1
@@ -32,7 +32,7 @@
 #         y: 350
 #         width: 320
 #         height: 240
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1

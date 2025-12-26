@@ -25,7 +25,7 @@
 #         y: 100
 #         width: 300
 #         height: 225
-#         src: "escapes-video"
+#         src: "video-sample"
 #         volume: 500
 #         loop: false
 #         alpha: 1
@@ -36,7 +36,7 @@
 #         y: 300
 #         width: 500
 #         height: 375
-#         src: "blazes-video"
+#         src: "video-sample"
 #         volume: 800
 #         loop: true
 #         alpha: 0.7
@@ -64,7 +64,7 @@
 #         y: 400
 #         width: 500
 #         height: 375
-#         src: "blazes-video"
+#         src: "video-sample"
 #         volume: 800
 #         loop: true
 #         alpha: 0.7

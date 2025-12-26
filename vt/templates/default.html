@@ -28,41 +28,29 @@
             createAssetBufferManager,
         } from "/RouteGraphics.js"
 
-        // const assetBufferManager = createAssetBufferManager();
-
-        await Promise.all([
-            Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' }),
-            Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' }),
-            Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' }),
-            Assets.load({ alias: 'slider', src: '/public/slider.png' }),
-            Assets.load({ alias: 'horizontal-idle-bar', src: '/public/horizontal_idle_bar.png' }),
-            Assets.load({ alias: 'horizontal-hover-bar', src: '/public/horizontal_hover_bar.png' }),
-            Assets.load({ alias: 'horizontal-idle-thumb', src: '/public/horizontal_idle_thumb.png' }),
-            Assets.load({ alias: 'horizontal-hover-thumb', src: '/public/horizontal_hover_thumb.png' }),
-            Assets.load({ alias: 'vertical-idle-bar', src: '/public/vertical_idle_bar.png' }),
-            Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' }),
-            Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' }),
-            Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' }),
-            Assets.load({ alias: 'fighter-spritesheet', src: '/public/fighter.png' }),
-            // Assets.load({ alias: 'escapes-video', src: '/public/ForBiggerEscapes.mp4' }),
-            // Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes' }),
-        ]);
-
-        // Pre-load audio files
-        const audio1 = await fetch('/public/bgm-1.mp3');
-        const audio1Buffer = await audio1.arrayBuffer();
-        await AudioAsset.load('bgm-1', audio1Buffer);
-
-        const audio2 = await fetch('/public/bgm-2.mp3');
-        const audio2Buffer = await audio2.arrayBuffer();
-        await AudioAsset.load('bgm-2', audio2Buffer);
-
-        const audio3 = await fetch('/public/bgm-3.mp3');
-        const audio3Buffer = await audio3.arrayBuffer();
-        await AudioAsset.load('bgm-3', audio3Buffer);
-
-
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+
+        const assetBufferManager = createAssetBufferManager();
+        await assetBufferManager.load({
+            'circle-blue': { url: '/public/circle-blue.png', type: 'image/png' },
+            'circle-red': { url: '/public/circle-red.png', type: 'image/png' },
+            'circle-green': { url: '/public/circle-green.png', type: 'image/png' },
+            'slider': { url: '/public/slider.png', type: 'image/png' },
+            'horizontal-idle-bar': { url: '/public/horizontal_idle_bar.png', type: 'image/png' },
+            'horizontal-hover-bar': { url: '/public/horizontal_hover_bar.png', type: 'image/png' },
+            'horizontal-idle-thumb': { url: '/public/horizontal_idle_thumb.png', type: 'image/png' },
+            'horizontal-hover-thumb': { url: '/public/horizontal_hover_thumb.png', type: 'image/png' },
+            'vertical-idle-bar': { url: '/public/vertical_idle_bar.png', type: 'image/png' },
+            'vertical-hover-bar': { url: '/public/vertical_hover_bar.png', type: 'image/png' },
+            'vertical-idle-thumb': { url: '/public/vertical_idle_thumb.png', type: 'image/png' },
+            'vertical-hover-thumb': { url: '/public/vertical_hover_thumb.png', type: 'image/png' },
+            'fighter-spritesheet': { url: '/public/fighter.png', type: 'image/png' },
+            'video-sample': { url: '/public/video_sample.mp4', type: 'video/mp4' },
+            'bgm-1': { url: '/public/bgm-1.mp3', type: 'audio/mpeg' },
+            'bgm-2': { url: '/public/bgm-2.mp3', type: 'audio/mpeg' },
+            'bgm-3': { url: '/public/bgm-3.mp3', type: 'audio/mpeg' },
+        });
+
         const app = createRouteGraphics();
         const plugins = {
             elements: [
@@ -115,8 +103,9 @@
                     }
                 )
             },
-            debug: window?.APP_CONFIG?.debug ?? false, 
+            debug: window?.APP_CONFIG?.debug ?? false,
         });
+        await app.loadAssets(assetBufferManager.getBufferMap());
         document.body.appendChild(app.canvas);
 
         app.render({
