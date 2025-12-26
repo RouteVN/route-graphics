@@ -271,7 +271,11 @@ const createRouteGraphics = () => {
       return null;
     },
 
-    extractBase64: async (element) => {
+    extractBase64: async (label) => {
+      const element = this.findElementByLabel(label);
+      if (!element) {
+        throw new Error(`Element with label '${label}' not found`);
+      }
       await app.renderer.extract.base64(element);
     },
 
