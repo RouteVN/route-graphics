@@ -276,7 +276,7 @@ const createRouteGraphics = () => {
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
       }
-      await app.renderer.extract.base64(element);
+      return await app.renderer.extract.base64(element);
     },
 
     assignStageEvent: (eventType, callback) => {
