@@ -10,10 +10,14 @@ Renders particle-based visual effects: snow, rain, fire, sparkles, etc.
   id: snow-effect
   preset: snow
   count: 200
+  width: 1280
+  height: 720
 
 # Custom - define your own
 - type: particles
   id: sparkles
+  width: 1280
+  height: 720
   texture: { shape: circle, radius: 2 }
   behaviors:
     - type: spawnShape
@@ -37,6 +41,7 @@ Renders particle-based visual effects: snow, rain, fire, sparkles, etc.
 | ------------------ | ---------------- | -------- | ------------------------------------------------ |
 | `type`             | string           | Yes      | Must be `"particles"`                            |
 | `id`               | string           | Yes      | Unique identifier                                |
+| `width`, `height`  | number           | Yes      | Effect area dimensions                           |
 | `preset`           | string           | No\*     | Built-in preset: `snow`, `rain`, `fire`, `burst` |
 | `count`            | number           | No       | Max particles. Default: 100                      |
 | `texture`          | string \| object | No       | Particle appearance. Default: `circle`           |
@@ -44,7 +49,6 @@ Renders particle-based visual effects: snow, rain, fire, sparkles, etc.
 | `disableBehaviors` | array            | No       | Preset behaviors to remove                       |
 | `emitter`          | object           | No       | Spawning settings (all fields have defaults)     |
 | `x`, `y`           | number           | No       | Container position. Default: 0                   |
-| `width`, `height`  | number           | No       | Effect area. Default: screen size                |
 | `alpha`            | number           | No       | Container opacity (0-1). Default: 1              |
 | `emitX`, `emitY`   | number           | No       | Emission point for fire/burst presets            |
 
@@ -96,6 +100,8 @@ Override any preset default:
 - type: particles
   id: custom-snow
   preset: snow
+  width: 1280
+  height: 720
   count: 500 # More particles
   texture: my-custom-flake # Different texture
   disableBehaviors: [rotation] # Remove spinning
@@ -259,6 +265,8 @@ Example using both:
 ```yaml
 - type: particles
   preset: snow
+  width: 1280
+  height: 720
   alpha: 0.5 # Whole effect at 50%
   behaviors:
     - type: alpha # Each particle also fades
