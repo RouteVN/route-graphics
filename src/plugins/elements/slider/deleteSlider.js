@@ -11,6 +11,7 @@ export const deleteSlider = async ({
   animations,
   animationPlugins,
   signal,
+  eventHandler,
 }) => {
   if (signal?.aborted) {
     return;
@@ -42,6 +43,7 @@ export const deleteSlider = async ({
         element: sliderContainer,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

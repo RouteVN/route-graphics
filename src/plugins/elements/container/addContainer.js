@@ -75,6 +75,7 @@ export const addContainer = async ({
       element: container,
       animations,
       signal,
+      eventHandler,
     });
   }
   isAnimationDone = true;

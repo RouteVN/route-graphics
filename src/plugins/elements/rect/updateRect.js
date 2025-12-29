@@ -234,6 +234,7 @@ export const updateRect = async ({
         element: rectElement,
         animations: animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

@@ -249,6 +249,7 @@ const createRouteGraphics = () => {
       signal,
     });
     isProcessingRender = false;
+    currentAbortController = null;
     state = nextState;
   };
 

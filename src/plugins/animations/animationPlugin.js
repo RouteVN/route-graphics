@@ -15,6 +15,7 @@
  * @property {import('pixi.js').DisplayObject} element - Element to animate
  * @property {Object} animation - Animation configuration
  * @property {AbortSignal} signal - Abort signal
+ * @property {Function} eventHandler - Event handler function for emitting events
  */
 
 /**

@@ -13,6 +13,7 @@ export const updateAnimatedSprite = async ({
   nextElement,
   animations,
   animationPlugins,
+  eventHandler,
   signal,
 }) => {
   const animatedSpriteElement = parent.children.find(
@@ -78,6 +79,7 @@ export const updateAnimatedSprite = async ({
         element: animatedSpriteElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

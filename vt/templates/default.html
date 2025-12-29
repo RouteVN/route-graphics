@@ -91,7 +91,8 @@
             plugins,
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
-                app.render(
+                //Skip animation for now, it keep getting infinite render because this render abort the route-graphics
+                if(!payload?._event?.targetId) app.render(
                     {
                         elements: [
                             ...(states[index].elements ?? []),

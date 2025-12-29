@@ -215,6 +215,7 @@ export const addRect = async ({
       element: rect,
       animations,
       signal,
+      eventHandler,
     });
   }
   isAnimationDone = true;

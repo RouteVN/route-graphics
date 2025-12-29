@@ -190,6 +190,7 @@ export const updateText = async ({
         element: textElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

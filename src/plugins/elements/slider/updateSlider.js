@@ -252,6 +252,7 @@ export const updateSlider = async ({
         element: sliderElement,
         animations,
         signal,
+        eventHandler,
       });
     }
 

@@ -43,6 +43,7 @@ export const deleteAnimatedSprite = async ({
         element: animatedSpriteElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }
