@@ -1,1 +1,1 @@
-window.APP_CONFIG = { debug: false };
+window.APP_CONFIG = { debug: true };

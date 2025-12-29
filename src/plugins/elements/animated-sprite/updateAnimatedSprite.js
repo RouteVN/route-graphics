@@ -1,4 +1,4 @@
-import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
+import { Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 
