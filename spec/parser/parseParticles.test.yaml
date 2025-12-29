@@ -233,3 +233,50 @@ in:
       height: 720
       emitter: "not-an-object"
 throws: "Input Error: 'emitter' must be an object"
+---
+case: Error when width is missing
+in:
+  - state:
+      id: "no-width"
+      type: "particles"
+      height: 720
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+throws: "Input Error: Particles require both width and height"
+---
+case: Error when height is missing
+in:
+  - state:
+      id: "no-height"
+      type: "particles"
+      width: 1280
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+throws: "Input Error: Particles require both width and height"
+---
+case: Error when both width and height are missing
+in:
+  - state:
+      id: "no-dimensions"
+      type: "particles"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+throws: "Input Error: Particles require both width and height"
