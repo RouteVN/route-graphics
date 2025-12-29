@@ -437,3 +437,119 @@ out:
           rotation: 0
           x: 0
           y: 0
+---
+case: Test parsing container with particles children
+in:
+  - state:
+      id: 'container-particles'
+      type: "container"
+      direction: "horizontal"
+      gap: 10
+      width: 500
+      height: 300
+      children:
+        - id: 'particles-burst'
+          type: "particles"
+          preset: "burst"
+          count: 50
+          width: 200
+          height: 150
+        - id: 'rect-1'
+          type: "rect"
+          width: 100
+          height: 100
+          fill: "blue"
+  - parserPlugins: []
+out:
+  id: "container-particles"
+  type: "container"
+  direction: "horizontal"
+  alpha: 1
+  gap: 10
+  height: 300
+  originX: 0
+  originY: 0
+  rotation: 0
+  scroll: false
+  width: 500
+  x: 0
+  y: 0
+  children:
+    - id: 'particles-burst'
+      type: "particles"
+      preset: "burst"
+      count: 50
+      width: 200
+      height: 150
+      x: 0
+      y: 0
+      alpha: 1
+    - id: "rect-1"
+      type: "rect"
+      alpha: 1
+      cursor: ""
+      fill: blue
+      height: 100
+      width: 100
+      originX: 0
+      originY: 0
+      rotation: 0
+      x: 210
+      y: 0
+---
+case: Test parsing container with multiple particles
+in:
+  - state:
+      id: 'container-multi-particles'
+      type: "container"
+      direction: "vertical"
+      gap: 20
+      width: 400
+      height: 600
+      children:
+        - id: 'particles-snow'
+          type: "particles"
+          preset: "snow"
+          count: 100
+          width: 400
+          height: 200
+        - id: 'particles-fire'
+          type: "particles"
+          preset: "fire"
+          count: 75
+          width: 400
+          height: 180
+  - parserPlugins: []
+out:
+  id: "container-multi-particles"
+  type: "container"
+  direction: "vertical"
+  alpha: 1
+  gap: 20
+  height: 600
+  originX: 0
+  originY: 0
+  rotation: 0
+  scroll: false
+  width: 400
+  x: 0
+  y: 0
+  children:
+    - id: 'particles-snow'
+      type: "particles"
+      preset: "snow"
+      count: 100
+      width: 400
+      height: 200
+      x: 0
+      y: 0
+      alpha: 1
+    - id: 'particles-fire'
+      type: "particles"
+      preset: "fire"
+      count: 75
+      width: 400
+      height: 180
+      x: 0
+      y: 220
+      alpha: 1

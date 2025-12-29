@@ -12,5 +12,7 @@ states:
         type: "particles"
         preset: "rain"
         count: 300
+        width: 1280
+        height: 720
         emitter:
           seed: 12345

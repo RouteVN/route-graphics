@@ -3,13 +3,19 @@
  *
  * Note: Particles don't use parseCommonObject because:
  * - No anchor calculations needed (no single visual to anchor)
- * - Width/height are optional (defaults to screen size)
+ * - Width/height are required and must be provided by caller
  * - emitX/emitY handle point-based emission positioning
  */
 export const parseParticles = ({ state }) => {
   // Required field validation
   if (!state.id) {
     throw new Error("Input Error: Id is missing");
+  }
+
+  if (!state.width || !state.height) {
+    throw new Error(
+      "Input Error: Particles require both width and height"
+    );
   }
 
   // Must have either preset or behaviors

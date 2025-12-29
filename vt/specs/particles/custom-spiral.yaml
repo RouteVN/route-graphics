@@ -11,6 +11,8 @@ states:
   - elements:
       - id: 'spiral-fountain'
         type: "particles"
+        width: 1280
+        height: 720
         texture:
           shape: circle
           radius: 3

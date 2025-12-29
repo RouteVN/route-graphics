@@ -16,6 +16,8 @@ states:
   - elements:
       - id: 'snow-circles'
         type: "particles"
+        width: 1280
+        height: 720
         preset: "snow"
         texture: "circle"
         count: 150
@@ -26,6 +28,8 @@ states:
   - elements:
       - id: 'rain-flakes'
         type: "particles"
+        width: 1280
+        height: 720
         preset: "rain"
         texture: "snowflake"
         count: 200

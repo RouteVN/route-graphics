@@ -12,11 +12,15 @@ in:
       type: "particles"
       preset: "snow"
       count: 200
+      width: 1280
+      height: 720
 out:
   id: "snow-effect"
   type: "particles"
   preset: "snow"
   count: 200
+  width: 1280
+  height: 720
   x: 0
   y: 0
   alpha: 1
@@ -28,6 +32,8 @@ in:
       type: "particles"
       preset: "snow"
       count: 300
+      width: 1280
+      height: 720
       texture: "circle"
       disableBehaviors:
         - rotation
@@ -49,6 +55,8 @@ out:
   type: "particles"
   preset: "snow"
   count: 300
+  width: 1280
+  height: 720
   texture: "circle"
   disableBehaviors:
     - rotation
@@ -75,6 +83,8 @@ in:
   - state:
       id: "sparkles"
       type: "particles"
+      width: 1280
+      height: 720
       texture:
         shape: circle
         radius: 5
@@ -107,6 +117,8 @@ out:
   id: "sparkles"
   type: "particles"
   count: 50
+  width: 1280
+  height: 720
   texture:
     shape: circle
     radius: 5
@@ -172,11 +184,15 @@ in:
       id: "default-particles"
       type: "particles"
       preset: "rain"
+      width: 1280
+      height: 720
 out:
   id: "default-particles"
   type: "particles"
   preset: "rain"
   count: 100
+  width: 1280
+  height: 720
   x: 0
   y: 0
   alpha: 1
@@ -193,6 +209,8 @@ in:
   - state:
       id: "no-preset-or-behaviors"
       type: "particles"
+      width: 1280
+      height: 720
 throws: "Input Error: Particles require either 'preset' or 'behaviors'"
 ---
 case: Error when behaviors is not an array
@@ -200,6 +218,8 @@ in:
   - state:
       id: "invalid-behaviors"
       type: "particles"
+      width: 1280
+      height: 720
       behaviors: "not-an-array"
 throws: "Input Error: 'behaviors' must be an array"
 ---
@@ -209,5 +229,7 @@ in:
       id: "invalid-emitter"
       type: "particles"
       preset: "snow"
+      width: 1280
+      height: 720
       emitter: "not-an-object"
 throws: "Input Error: 'emitter' must be an object"

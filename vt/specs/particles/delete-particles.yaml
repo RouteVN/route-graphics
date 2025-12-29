@@ -23,12 +23,16 @@ states:
   - elements:
       - id: "snow-effect"
         type: "particles"
+        width: 1280
+        height: 720
         preset: "snow"
         count: 100
         emitter:
           seed: 12345
       - id: "rain-effect"
         type: "particles"
+        width: 1280
+        height: 720
         preset: "rain"
         count: 100
         emitter:
@@ -38,6 +42,8 @@ states:
   - elements:
       - id: "rain-effect"
         type: "particles"
+        width: 1280
+        height: 720
         preset: "rain"
         count: 100
         emitter:

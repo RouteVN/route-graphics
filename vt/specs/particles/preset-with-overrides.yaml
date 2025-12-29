@@ -12,6 +12,8 @@ states:
       # Snow preset with custom color gradient and no rotation
       - id: 'custom-snow'
         type: "particles"
+        width: 1280
+        height: 720
         preset: "snow"
         count: 200
         disableBehaviors:

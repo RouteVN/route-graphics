@@ -23,6 +23,8 @@ states:
   - elements:
       - id: "snow-effect"
         type: "particles"
+        width: 1280
+        height: 720
         preset: "snow"
         count: 50
         alpha: 1
@@ -33,6 +35,8 @@ states:
   - elements:
       - id: "snow-effect"
         type: "particles"
+        width: 1280
+        height: 720
         preset: "snow"
         count: 200
         alpha: 0.5
