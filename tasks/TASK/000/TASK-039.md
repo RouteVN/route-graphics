@@ -246,3 +246,9 @@ route-graphics renders sparkles
 This is demo for particle emitter, where we borrowed many code from. They have a demo that can be referred.
 
 https://particle-emitter-editor.pixijs.io/#pixieDust
+
+# Decision
+
+- Try to use values instead of names like "heavy". Use number from 0 to 1 for percentage where possible and exact numbers otherwise (e.g. count: 300)
+- Leave abstraction (preset) for client side to deal with, route-graphics just take whatever it gets and then render without caring about preset.
+- Decide later what options to expose in client side, choose the most important ones that users may use more often. We manage internally those values that are not exposed. JeffY will test whether some options are needed and whether to expose from client side.
