@@ -5,6 +5,8 @@ type: object
 required:
   - id
   - type
+  - width
+  - height
 properties:
   id:
     type: string
@@ -130,11 +132,11 @@ properties:
 
   width:
     type: number
-    description: Effect area width (defaults to screen width)
+    description: Effect area width (required)
 
   height:
     type: number
-    description: Effect area height (defaults to screen height)
+    description: Effect area height (required)
 
   emitX:
     type: number

@@ -4,6 +4,7 @@ import { parseSlider } from "../slider/parseSlider.js";
 import { parseSprite } from "../sprite/parseSprite.js";
 import { parseTextRevealing } from "../text-revealing/parseTextRevealing.js";
 import { parseText } from "../text/parseText.js";
+import { parseParticles } from "../particles/parseParticles.js";
 import { parseContainer } from "./parseContainer.js";
 
 // Mock plugins for testing
@@ -27,6 +28,10 @@ const mockParserPlugins = [
   createParserPlugin({
     type: "slider",
     parse: parseSlider,
+  }),
+  createParserPlugin({
+    type: "particles",
+    parse: parseParticles,
   }),
   createParserPlugin({
     type: "container",

@@ -12,6 +12,8 @@ states:
         type: "particles"
         preset: "fire"
         count: 100
+        width: 1280
+        height: 720
         emitX: 640
         emitY: 600
         emitter:

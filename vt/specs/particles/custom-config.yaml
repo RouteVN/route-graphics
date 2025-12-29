@@ -12,6 +12,8 @@ states:
   - elements:
       - id: 'custom-bubbles'
         type: "particles"
+        width: 1280
+        height: 720
         texture:
           shape: circle
           radius: 4

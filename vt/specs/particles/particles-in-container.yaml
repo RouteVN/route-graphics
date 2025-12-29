@@ -1,0 +1,89 @@
+---
+title: Particles inside container
+steps:
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+---
+states:
+  # Demonstrates particles working inside a container layout
+  - elements:
+      - id: 'particle-container'
+        type: "container"
+        direction: "horizontal"
+        gap: 20
+        x: 100
+        y: 100
+        width: 1080
+        height: 520
+        children:
+          # Left section: Snow effect
+          - id: 'snow-section'
+            type: "particles"
+            preset: "snow"
+            count: 150
+            width: 350
+            height: 520
+            emitter:
+              seed: 12345
+          # Middle section: Fire effect
+          - id: 'fire-section'
+            type: "particles"
+            preset: "fire"
+            count: 80
+            width: 350
+            height: 520
+            emitX: 175
+            emitY: 450
+            emitter:
+              seed: 12345
+          # Right section: Custom sparkles
+          - id: 'sparkle-section'
+            type: "particles"
+            width: 340
+            height: 520
+            texture: "snowflake"
+            behaviors:
+              - type: "spawnShape"
+                config:
+                  type: "rect"
+                  data:
+                    x: 50
+                    y: 50
+                    w: 240
+                    h: 420
+              - type: "speedStatic"
+                config:
+                  min: 0
+                  max: 0
+              - type: "scale"
+                config:
+                  list:
+                    - value: 0
+                      time: 0
+                    - value: 1.5
+                      time: 0.3
+                    - value: 1.5
+                      time: 0.7
+                    - value: 0
+                      time: 1
+              - type: "alpha"
+                config:
+                  list:
+                    - value: 0
+                      time: 0
+                    - value: 1
+                      time: 0.2
+                    - value: 1
+                      time: 0.8
+                    - value: 0
+                      time: 1
+            emitter:
+              lifetime:
+                min: 0.4
+                max: 0.8
+              frequency: 0.06
+              particlesPerWave: 1
+              maxParticles: 25
+              seed: 12345

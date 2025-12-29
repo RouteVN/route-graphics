@@ -12,6 +12,8 @@ states:
         type: "particles"
         preset: "burst"
         count: 50
+        width: 1280
+        height: 720
         emitX: 640
         emitY: 360
         emitter:
