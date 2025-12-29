@@ -13,9 +13,7 @@ export const parseParticles = ({ state }) => {
   }
 
   if (!state.width || !state.height) {
-    throw new Error(
-      "Input Error: Particles require both width and height"
-    );
+    throw new Error("Input Error: Particles require both width and height");
   }
 
   // Must have either preset or behaviors
