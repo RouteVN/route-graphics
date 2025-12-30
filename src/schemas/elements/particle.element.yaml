@@ -7,6 +7,9 @@ required:
   - type
   - width
   - height
+  - texture
+  - behaviors
+  - emitter
 properties:
   id:
     type: string
@@ -15,11 +18,6 @@ properties:
   type:
     const: particles
     description: Element type
-
-  preset:
-    type: string
-    enum: [snow, rain, fire, burst, explosion]
-    description: Built-in preset name
 
   count:
     type: number
@@ -56,7 +54,8 @@ properties:
 
   behaviors:
     type: array
-    description: Behavior configurations (merged with preset behaviors)
+    description: Behavior configurations (non-empty array)
+    minItems: 1
     items:
       type: object
       required:
@@ -69,19 +68,20 @@ properties:
           type: object
           description: Behavior-specific configuration
 
-  disableBehaviors:
-    type: array
-    description: List of preset behavior types to disable
-    items:
-      type: string
-
   emitter:
     type: object
-    description: Emitter configuration (merged with preset)
+    description: Emitter configuration
+    required:
+      - lifetime
+      - frequency
+      - particlesPerWave
     properties:
       lifetime:
         type: object
         description: Particle lifespan in seconds
+        required:
+          - min
+          - max
         properties:
           min:
             type: number
@@ -137,14 +137,6 @@ properties:
   height:
     type: number
     description: Effect area height (required)
-
-  emitX:
-    type: number
-    description: Emission point X (for point-based presets like fire/burst)
-
-  emitY:
-    type: number
-    description: Emission point Y (for point-based presets like fire/burst)
 
   alpha:
     type: number

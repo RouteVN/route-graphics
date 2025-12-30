@@ -11,6 +11,10 @@ import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
 
 /**
+ * @typedef {import('../../../types.js').ParticlesASTNode} ParticlesASTNode
+ */
+
+/**
  * Update particles element
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
@@ -83,8 +87,8 @@ export const updateParticles = async ({
 
 /**
  * Check if emitter configuration has changed in a way that requires recreation.
- * @param {Object} prev - Previous element state
- * @param {Object} next - Next element state
+ * @param {ParticlesASTNode} prev - Previous element state
+ * @param {ParticlesASTNode} next - Next element state
  * @returns {boolean} Whether emitter needs to be recreated
  */
 function hasConfigChanged(prev, next) {

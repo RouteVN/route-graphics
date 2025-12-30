@@ -3,10 +3,16 @@ import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./registries.js";
 
 /**
+ * @typedef {import('pixi.js').Application} Application
+ * @typedef {import('../../../types.js').ParticleTextureShape} ParticleTextureShape
+ */
+
+/**
  * Create a texture from inline shape definition.
  * Used when user specifies `texture: { shape: "circle", radius: 5 }` instead of a named texture.
  * @param {Application} app - PixiJS app for renderer access
- * @param {Object} shapeConfig - Shape definition with shape, color, radius/width/height
+ * @param {ParticleTextureShape} shapeConfig - Shape definition with shape, color, radius/width/height
+ * @return {import('pixi.js').Texture}
  */
 function createCustomTexture(app, shapeConfig) {
   const g = new Graphics();
@@ -43,6 +49,7 @@ function createCustomTexture(app, shapeConfig) {
 
 /**
  * Add a particle effect to the stage using custom behavior configs.
+ * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addParticle = async ({ app, parent, element, signal }) => {
   if (signal?.aborted) return;
