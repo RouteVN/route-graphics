@@ -1,3 +1,12 @@
+import {
+  validateBasicFields,
+  validateTexture,
+  validateBehaviors,
+  validateEmitter,
+  validateEmitterOptionalProps,
+  validateOptionalFields,
+} from "./util/validateParticles.js";
+
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').ParticlesASTNode} ParticlesASTNode
@@ -7,8 +16,9 @@
  * Parse particles element.
  *
  * Note: Particles don't use parseCommonObject because:
- * - No anchor calculations needed (no single visual to anchor)
- * - Width/height are required and must be provided by caller
+ * - No anchor calculations needed (particles container has many small sprites)
+ * - No scale calculations needed (particles use raw width/height for spawn bounds)
+ * - Width/height must be raw values, not scaled
  *
  * @param {Object} params
  * @param {BaseElement} params.state - The particles state to parse
@@ -16,38 +26,13 @@
  * @return {ParticlesASTNode}
  */
 export const parseParticles = ({ state }) => {
-  // Required field validation
-  if (!state.id) {
-    throw new Error("Input Error: Id is missing");
-  }
-
-  if (!state.width || !state.height) {
-    throw new Error("Input Error: Particles require both width and height");
-  }
-
-  if (!state.texture) {
-    throw new Error("Input Error: Particles require 'texture'");
-  }
-
-  if (!state.behaviors) {
-    throw new Error("Input Error: Particles require 'behaviors'");
-  }
-
-  if (!Array.isArray(state.behaviors)) {
-    throw new Error("Input Error: 'behaviors' must be an array");
-  }
-
-  if (state.behaviors.length === 0) {
-    throw new Error("Input Error: 'behaviors' array cannot be empty");
-  }
-
-  if (!state.emitter) {
-    throw new Error("Input Error: Particles require 'emitter'");
-  }
-
-  if (typeof state.emitter !== "object" || Array.isArray(state.emitter)) {
-    throw new Error("Input Error: 'emitter' must be an object");
-  }
+  // Run all validations
+  validateBasicFields(state);
+  validateTexture(state);
+  validateBehaviors(state);
+  validateEmitter(state);
+  validateEmitterOptionalProps(state);
+  validateOptionalFields(state);
 
   // Reconcile count with emitter.maxParticles
   const count = state.emitter?.maxParticles ?? state.count ?? 100;

@@ -2,28 +2,28 @@ import {
   createSnowflakeTexture,
   createRaindropTexture,
   createCircleTexture,
-} from "./textures/index.js";
-import { AlphaBehavior, StaticAlphaBehavior } from "./behaviors/alpha.js";
-import { ScaleBehavior, StaticScaleBehavior } from "./behaviors/scale.js";
+} from "../textures/index.js";
+import { AlphaBehavior, StaticAlphaBehavior } from "../behaviors/alpha.js";
+import { ScaleBehavior, StaticScaleBehavior } from "../behaviors/scale.js";
 import {
   SpeedBehavior,
   StaticSpeedBehavior,
   PointMovementBehavior,
-} from "./behaviors/speed.js";
+} from "../behaviors/speed.js";
 import {
   AccelerationBehavior,
   GravityBehavior,
-} from "./behaviors/acceleration.js";
+} from "../behaviors/acceleration.js";
 import {
   RotationBehavior,
   StaticRotationBehavior,
   NoRotationBehavior,
-} from "./behaviors/rotation.js";
-import { ColorBehavior, StaticColorBehavior } from "./behaviors/color.js";
+} from "../behaviors/rotation.js";
+import { ColorBehavior, StaticColorBehavior } from "../behaviors/color.js";
 import {
   SpawnShapeBehavior,
   BurstSpawnBehavior,
-} from "./behaviors/spawnShape.js";
+} from "../behaviors/spawnShape.js";
 
 const textureRegistry = new Map();
 const behaviorRegistry = new Map();

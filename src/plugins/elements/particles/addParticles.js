@@ -1,6 +1,6 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
-import { getTexture } from "./registries.js";
+import { getTexture } from "./util/registries.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
