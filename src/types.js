@@ -236,6 +236,7 @@
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
  * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
  * @property {string} [indicator.revealing.src] - Source of the indicator image while text is revealing

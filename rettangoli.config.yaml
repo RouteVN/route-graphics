@@ -60,6 +60,8 @@ vt:
         - title: "TextRevealing"
           files: "textrevealing"
           description: "Using textrevealing"
+        - title: "TextRevealing Events"
+          files: "textrevealingevent"
     - title: "Slider"
       type: "groupLabel"
       items:
