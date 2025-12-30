@@ -186,6 +186,7 @@ export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
     ...DEFAULT_TEXT_STYLE,
     wordWrap: true,
+    ...(state.textStyle || {}),
   };
 
   const processedContent = (state.content || []).map((item) => {
