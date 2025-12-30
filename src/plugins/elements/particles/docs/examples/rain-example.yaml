@@ -1,0 +1,72 @@
+# Rain Effect Example
+#
+# Creates fast falling raindrops that recycle at screen boundaries.
+# Raindrops fall at a slight angle with no rotation for realistic rain appearance.
+#
+# Customization tips:
+# - Change width/height to match your scene dimensions
+# - Update spawnShape.data.w to match width
+# - Update spawnBounds.width to width (no extra buffer needed for rain)
+# - Update spawnBounds.height to height
+# - Adjust maxParticles for lighter/heavier rain (200-500 recommended)
+# - Modify speed range for faster/slower rain
+# - Change direction for wind effect (85=slight angle, 90=straight down)
+
+elements:
+  - id: rain-effect
+    type: particles
+    width: 1280
+    height: 720
+    texture: raindrop
+    behaviors:
+      - type: spawnShape
+        config:
+          type: rect
+          data:
+            x: -50      # Spawn slightly off-screen left for angled rain
+            y: -50      # Spawn above screen
+            w: 1280     # Should match width
+            h: 10       # Thin spawn area
+
+      - type: movePoint
+        config:
+          speed:
+            min: 640    # Pixels per second (much faster than snow)
+            max: 960
+          direction: 85 # Slightly angled (85° = nearly vertical with slight drift)
+
+      - type: scaleStatic
+        config:
+          min: 0.8      # Slight size variation
+          max: 1.2
+
+      - type: alpha
+        config:
+          list:
+            - value: 0      # Start invisible
+              time: 0
+            - value: 0.6    # Fade in quickly (semi-transparent)
+              time: 0.1
+            - value: 0.6    # Stay visible
+              time: 0.8
+            - value: 0      # Fade out at end
+              time: 1
+
+      - type: noRotation
+        config:
+          rotation: -5  # Fixed angle (degrees) for raindrop streak
+
+    emitter:
+      lifetime:
+        min: 0.8        # Each raindrop lives 0.8-1.5 seconds
+        max: 1.5
+      frequency: 0.001  # Spawn every 1ms (very frequent)
+      particlesPerWave: 3
+      maxParticles: 300
+      emitterLifetime: -1  # Infinite
+      spawnBounds:
+        x: -100         # Recycle area
+        y: -100
+        width: 1280     # Match width (no buffer needed)
+        height: 720     # Match height (no buffer needed)
+      recycleOnBounds: true

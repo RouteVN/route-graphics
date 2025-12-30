@@ -1,0 +1,80 @@
+# Fire Effect Example
+#
+# Creates rising sparks with color gradient (yellow -> orange -> red).
+# Particles accelerate upward, shrink, and fade out over their lifetime.
+# Emits from a point (campfire, torch, etc.).
+#
+# Customization tips:
+# - Change spawnShape.data.x and y to position the fire source
+#   (x: 640, y: 600 would place fire at bottom-center of 1280x720 scene)
+# - Adjust spawnShape.data.w and h for wider/taller fire base
+# - Modify acceleration.accel.y for faster/slower rising (-200 = upward)
+# - Change maxParticles for bigger/smaller fire (50-200 recommended)
+# - Customize color gradient for different fire types (blue fire, green fire, etc.)
+
+elements:
+  - id: fire-effect
+    type: particles
+    width: 1280
+    height: 720
+    texture: circle
+    behaviors:
+      - type: spawnShape
+        config:
+          type: rect
+          data:
+            x: 200      # Fire source X position (centered horizontally)
+            y: 200      # Fire source Y position (near bottom for campfire effect)
+            w: 40       # Width of fire base
+            h: 10       # Height of fire base
+
+      - type: acceleration
+        config:
+          accel:
+            x: 0
+            y: -200     # Negative Y = upward acceleration
+          minStart: 50  # Starting speed range
+          maxStart: 150
+          rotate: false
+          maxSpeed: 0
+
+      - type: scale
+        config:
+          list:
+            - value: 1      # Start at full size
+              time: 0
+            - value: 0.3    # Shrink to 30% at end of life
+              time: 1
+          minMult: 0.5      # Scale multiplier variance
+
+      - type: alpha
+        config:
+          list:
+            - value: 1      # Start fully visible
+              time: 0
+            - value: 0      # Fade to invisible
+              time: 1
+
+      - type: color
+        config:
+          list:
+            - value: "#ffff00"  # Yellow at spawn
+              time: 0
+            - value: "#ff6600"  # Orange at mid-life
+              time: 0.5
+            - value: "#ff0000"  # Red at end of life
+              time: 1
+
+      - type: rotationStatic
+        config:
+          min: -90      # Fixed rotation (particles point upward)
+          max: -90
+
+    emitter:
+      lifetime:
+        min: 0.5        # Each spark lives 0.5-1.5 seconds
+        max: 1.5
+      frequency: 0.02   # Spawn every 20ms
+      particlesPerWave: 2
+      maxParticles: 100
+      emitterLifetime: -1  # Infinite

@@ -450,10 +450,44 @@ in:
       children:
         - id: 'particles-burst'
           type: "particles"
-          preset: "burst"
-          count: 50
           width: 200
           height: 150
+          texture: "circle"
+          behaviors:
+            - type: "spawnShape"
+              config:
+                type: "circle"
+                data:
+                  x: 100
+                  y: 75
+                  radius: 10
+                  affectRotation: true
+            - type: "speedStatic"
+              config:
+                min: 200
+                max: 400
+            - type: "scale"
+              config:
+                list:
+                  - value: 1
+                    time: 0
+                  - value: 0
+                    time: 1
+            - type: "alpha"
+              config:
+                list:
+                  - value: 1
+                    time: 0
+                  - value: 0
+                    time: 1
+          emitter:
+            lifetime:
+              min: 0.5
+              max: 1.0
+            frequency: 0
+            particlesPerWave: 50
+            maxParticles: 50
+            emitterLifetime: 0.1
         - id: 'rect-1'
           type: "rect"
           width: 100
@@ -477,10 +511,45 @@ out:
   children:
     - id: 'particles-burst'
       type: "particles"
-      preset: "burst"
       count: 50
       width: 200
       height: 150
+      texture: "circle"
+      behaviors:
+        - type: "spawnShape"
+          config:
+            type: "circle"
+            data:
+              x: 100
+              y: 75
+              radius: 10
+              affectRotation: true
+        - type: "speedStatic"
+          config:
+            min: 200
+            max: 400
+        - type: "scale"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+      emitter:
+        lifetime:
+          min: 0.5
+          max: 1.0
+        frequency: 0
+        particlesPerWave: 50
+        maxParticles: 50
+        emitterLifetime: 0.1
       x: 0
       y: 0
       alpha: 1
@@ -509,16 +578,118 @@ in:
       children:
         - id: 'particles-snow'
           type: "particles"
-          preset: "snow"
-          count: 100
           width: 400
           height: 200
+          texture: "snowflake"
+          behaviors:
+            - type: "spawnShape"
+              config:
+                type: "rect"
+                data:
+                  x: 0
+                  y: -20
+                  w: 400
+                  h: 10
+            - type: "movePoint"
+              config:
+                speed:
+                  min: 50
+                  max: 150
+                direction: 90
+            - type: "scaleStatic"
+              config:
+                min: 0.3
+                max: 1.0
+            - type: "alpha"
+              config:
+                list:
+                  - value: 0
+                    time: 0
+                  - value: 0.8
+                    time: 0.1
+                  - value: 0.8
+                    time: 0.8
+                  - value: 0
+                    time: 1
+            - type: "rotation"
+              config:
+                minStart: 0
+                maxStart: 360
+                minSpeed: -45
+                maxSpeed: 45
+          emitter:
+            lifetime:
+              min: 4
+              max: 8
+            frequency: 0.05
+            particlesPerWave: 2
+            maxParticles: 100
+            emitterLifetime: -1
+            spawnBounds:
+              x: -50
+              y: -50
+              width: 500
+              height: 300
+            recycleOnBounds: true
         - id: 'particles-fire'
           type: "particles"
-          preset: "fire"
-          count: 75
           width: 400
           height: 180
+          texture: "circle"
+          behaviors:
+            - type: "spawnShape"
+              config:
+                type: "rect"
+                data:
+                  x: 200
+                  y: 150
+                  w: 40
+                  h: 10
+            - type: "acceleration"
+              config:
+                accel:
+                  x: 0
+                  y: -200
+                minStart: 50
+                maxStart: 150
+                rotate: false
+                maxSpeed: 0
+            - type: "scale"
+              config:
+                list:
+                  - value: 1
+                    time: 0
+                  - value: 0.3
+                    time: 1
+                minMult: 0.5
+            - type: "alpha"
+              config:
+                list:
+                  - value: 1
+                    time: 0
+                  - value: 0
+                    time: 1
+            - type: "color"
+              config:
+                list:
+                  - value: "#ffff00"
+                    time: 0
+                  - value: "#ff6600"
+                    time: 0.5
+                  - value: "#ff0000"
+                    time: 1
+            - type: "rotationStatic"
+              config:
+                min: -90
+                max: -90
+          emitter:
+            lifetime:
+              min: 0.5
+              max: 1.5
+            frequency: 0.02
+            particlesPerWave: 2
+            maxParticles: 75
+            emitterLifetime: -1
   - parserPlugins: []
 out:
   id: "container-multi-particles"
@@ -537,19 +708,123 @@ out:
   children:
     - id: 'particles-snow'
       type: "particles"
-      preset: "snow"
       count: 100
       width: 400
       height: 200
+      texture: "snowflake"
+      behaviors:
+        - type: "spawnShape"
+          config:
+            type: "rect"
+            data:
+              x: 0
+              y: -20
+              w: 400
+              h: 10
+        - type: "movePoint"
+          config:
+            speed:
+              min: 50
+              max: 150
+            direction: 90
+        - type: "scaleStatic"
+          config:
+            min: 0.3
+            max: 1.0
+        - type: "alpha"
+          config:
+            list:
+              - value: 0
+                time: 0
+              - value: 0.8
+                time: 0.1
+              - value: 0.8
+                time: 0.8
+              - value: 0
+                time: 1
+        - type: "rotation"
+          config:
+            minStart: 0
+            maxStart: 360
+            minSpeed: -45
+            maxSpeed: 45
+      emitter:
+        lifetime:
+          min: 4
+          max: 8
+        frequency: 0.05
+        particlesPerWave: 2
+        maxParticles: 100
+        emitterLifetime: -1
+        spawnBounds:
+          x: -50
+          y: -50
+          width: 500
+          height: 300
+        recycleOnBounds: true
       x: 0
       y: 0
       alpha: 1
     - id: 'particles-fire'
       type: "particles"
-      preset: "fire"
       count: 75
       width: 400
       height: 180
+      texture: "circle"
+      behaviors:
+        - type: "spawnShape"
+          config:
+            type: "rect"
+            data:
+              x: 200
+              y: 150
+              w: 40
+              h: 10
+        - type: "acceleration"
+          config:
+            accel:
+              x: 0
+              y: -200
+            minStart: 50
+            maxStart: 150
+            rotate: false
+            maxSpeed: 0
+        - type: "scale"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0.3
+                time: 1
+            minMult: 0.5
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+              - value: 0
+                time: 1
+        - type: "color"
+          config:
+            list:
+              - value: "#ffff00"
+                time: 0
+              - value: "#ff6600"
+                time: 0.5
+              - value: "#ff0000"
+                time: 1
+        - type: "rotationStatic"
+          config:
+            min: -90
+            max: -90
+      emitter:
+        lifetime:
+          min: 0.5
+          max: 1.5
+        frequency: 0.02
+        particlesPerWave: 2
+        maxParticles: 75
+        emitterLifetime: -1
       x: 0
       y: 220
       alpha: 1
