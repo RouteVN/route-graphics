@@ -34,7 +34,7 @@ particles/
 ├── updateParticles.js    # Updates particle elements
 ├── deleteParticles.js    # Removes particle elements
 ├── parseParticles.js     # Parses YAML config to internal format
-├── registries.js         # Preset/texture/behavior registries
+├── registries.js         # Texture/behavior registries
 │
 ├── emitter/              # Core particle engine
 │   ├── emitter.js        # Emitter class - spawns and manages particles
@@ -51,16 +51,10 @@ particles/
 │   ├── color.js          # Tint changes
 │   └── spawnShape.js     # Spawn positioning
 │
-├── textures/             # Built-in texture generators
-│   ├── circle.js
-│   ├── snowflake.js
-│   └── raindrop.js
-│
-└── presets/              # Built-in preset configurations
-    ├── snow.js
-    ├── rain.js
-    ├── fire.js
-    └── burst.js
+└── textures/             # Built-in texture generators
+    ├── circle.js
+    ├── snowflake.js
+    └── raindrop.js
 ```
 
 ---
@@ -214,10 +208,12 @@ class MyBehavior {
 | `speed`          | Yes  | Yes    | Speed with acceleration     |
 | `speedStatic`    | Yes  | -      | Fixed outward speed         |
 | `acceleration`   | Yes  | Yes    | Apply forces (gravity)      |
+| `gravity`        | -    | Yes    | Simple gravity force        |
 | `rotation`       | Yes  | Yes    | Spin with acceleration      |
 | `rotationStatic` | Yes  | -      | Random fixed rotation       |
 | `noRotation`     | Yes  | -      | Fixed angle, no spin        |
 | `spawnShape`     | Yes  | -      | Position particles in shape |
+| `spawnBurst`     | Yes  | -      | Radial burst positioning    |
 
 ### Adding a Custom Behavior
 
@@ -256,37 +252,19 @@ registerParticleBehavior(WindBehavior);
 
 ## Registry System (`registries.js`)
 
-Three registries store extensible components:
+Two registries store extensible components:
 
 ```javascript
-const presetRegistry = new Map(); // name → config object or function
 const textureRegistry = new Map(); // name → Texture or generator function
 const behaviorRegistry = new Map(); // type → Behavior class
 ```
 
-### Preset Registry
-
-Presets can be:
-
-1. **Static object** - Config used as-is
-2. **Function** - Called with element options, returns config
-
-```javascript
-// Static
-registerParticlePreset('snow', {
-  texture: 'snowflake',
-  lifetime: { min: 4, max: 8 },
-  behaviors: [...]
-});
-
-// Dynamic
-registerParticlePreset('burst', (options) => ({
-  maxParticles: options.count || 50,
-  behaviors: [...]
-}));
-```
-
 ### Texture Registry
+
+Textures can be:
+
+1. **Pre-made Texture** - A PixiJS Texture object
+2. **Generator function** - Called with app, returns Texture
 
 ```javascript
 // Pre-made texture
@@ -301,23 +279,16 @@ registerParticleTexture("star", (app) => {
 });
 ```
 
-### Loading Presets from Config
+### Behavior Registry
 
-`loadParticlePresets(config)` registers presets from a parsed YAML/JSON object:
+Behaviors are registered by their class:
 
 ```javascript
-const config = {
-  presets: {
-    petals: { texture: 'petal', lifetime: { min: 4, max: 8 }, ... },
-    sparkle: { texture: 'circle', ... }
-  }
-};
+import { registerParticleBehavior } from "route-graphics";
 
-const result = loadParticlePresets(config);
-// result = { loaded: ['petals', 'sparkle'], skipped: [] }
+registerParticleBehavior(MyCustomBehavior);
+// Uses MyCustomBehavior.type as the registry key
 ```
-
-**Validation:** Invalid presets (missing behaviors, bad lifetime) are logged and skipped.
 
 ---
 
@@ -328,7 +299,7 @@ YAML Element Config
         │
         ▼
 ┌───────────────────┐
-│  parseParticles   │ → Resolves preset, merges overrides
+│  parseParticles   │ → Validates required fields
 └───────────────────┘
         │
         ▼

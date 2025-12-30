@@ -1,9 +1,19 @@
 /**
+ * @typedef {import('../../../types.js').BaseElement} BaseElement
+ * @typedef {import('../../../types.js').ParticlesASTNode} ParticlesASTNode
+ */
+
+/**
  * Parse particles element.
  *
  * Note: Particles don't use parseCommonObject because:
  * - No anchor calculations needed (no single visual to anchor)
  * - Width/height are required and must be provided by caller
+ *
+ * @param {Object} params
+ * @param {BaseElement} params.state - The particles state to parse
+ * @param {Array} [params.parserPlugins] - Array of parser plugins (not used by this parser)
+ * @return {ParticlesASTNode}
  */
 export const parseParticles = ({ state }) => {
   // Required field validation
