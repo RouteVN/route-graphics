@@ -46,9 +46,7 @@ export function validateTexture(state) {
 
   if (isTextureObject) {
     if (!state.texture.shape)
-      throw new Error(
-        "Input Error: texture object must have 'shape' property",
-      );
+      throw new Error("Input Error: texture object must have 'shape' property");
 
     if (!["circle", "ellipse", "rect"].includes(state.texture.shape))
       throw new Error(
