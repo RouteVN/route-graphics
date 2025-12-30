@@ -181,9 +181,9 @@ For radial burst effects:
 
 | Property           | Type           | Description                           | Default |
 | ------------------ | -------------- | ------------------------------------- | ------- |
-| `lifetime`         | `{ min, max }` | Particle lifespan in seconds          | *       |
-| `frequency`        | number         | Seconds between spawns (0 = burst)    | *       |
-| `particlesPerWave` | number         | Particles per spawn                   | *       |
+| `lifetime`         | `{ min, max }` | Particle lifespan in seconds          | \*      |
+| `frequency`        | number         | Seconds between spawns (0 = burst)    | \*      |
+| `particlesPerWave` | number         | Particles per spawn                   | \*      |
 | `maxParticles`     | number         | Maximum active particles              | 100     |
 | `emitterLifetime`  | number         | How long emitter runs (-1 = infinite) | -1      |
 | `seed`             | number         | For deterministic randomness          | null    |
