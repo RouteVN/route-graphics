@@ -6,7 +6,12 @@ import abortableSleep from "../../../util/abortableSleep";
  * Add text-revealing element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
  */
-export const addTextRevealing = async ({ parent, element, signal, eventHandler }) => {
+export const addTextRevealing = async ({
+  parent,
+  element,
+  signal,
+  eventHandler,
+}) => {
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
   const indicatorOffset = element?.indicator?.offset ?? 12;
@@ -143,12 +148,12 @@ export const addTextRevealing = async ({ parent, element, signal, eventHandler }
       element.indicator.complete.height ?? completeTexture.height;
   }
 
-  if(eventHandler){
-    eventHandler("complete",{
+  if (eventHandler && element?.complete?.actionPayload) {
+    eventHandler("complete", {
       _event: {
-        id: element.id
+        id: element.id,
       },
-      ...(element?.actionPayload ?? {})
-    })
+      ...(element?.complete?.actionPayload ?? {}),
+    });
   }
 };

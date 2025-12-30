@@ -1,10 +1,5 @@
 ---
 title: Text Revealing Completetion Event
-steps:
-  # - wait 14000
-  # - screenshot
-  # - wait 14000
-  # - screenshot
 ---
 states:
   - elements:
@@ -72,6 +67,7 @@ states:
         y: 50
         width: 600
         alpha: 1
+        revealEffect: none
         complete: 
           actionPayload:
             status: complete

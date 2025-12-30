@@ -148,14 +148,13 @@ export const updateTextRevealing = async (params) => {
         element.indicator.complete.height ?? completeTexture.height;
     }
 
-    
-    if(eventHandler){
-      eventHandler("complete",{
+    if (eventHandler && element?.complete?.actionPayload) {
+      eventHandler("complete", {
         _event: {
-          id: element.id
+          id: element.id,
         },
-        ...(element?.actionPayload ?? {})
-      })
+        ...(element?.complete?.actionPayload ?? {}),
+      });
     }
   }
 };
