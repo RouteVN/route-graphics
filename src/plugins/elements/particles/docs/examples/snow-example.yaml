@@ -1,0 +1,74 @@
+# Snow Effect Example
+#
+# Creates falling snowflakes that recycle at screen boundaries for continuous effect.
+# Snowflakes drift downward with gentle rotation and fade in/out smoothly.
+#
+# Customization tips:
+# - Change width/height to match your scene dimensions
+# - Update spawnShape.data.w to match width (spawn area should span full width)
+# - Update spawnBounds.width to width + 100 for recycling buffer
+# - Update spawnBounds.height to height + 100 for recycling buffer
+# - Adjust maxParticles for performance (100-300 recommended)
+# - Modify speed range for faster/slower falling
+
+elements:
+  - id: snow-effect
+    type: particles
+    width: 1280
+    height: 720
+    texture: snowflake
+    behaviors:
+      - type: spawnShape
+        config:
+          type: rect
+          data:
+            x: 0
+            y: -20      # Spawn slightly above screen for natural appearance
+            w: 1280     # Should match width
+            h: 10       # Thin spawn area
+
+      - type: movePoint
+        config:
+          speed:
+            min: 50     # Pixels per second
+            max: 150
+          direction: 90 # Downward (0=right, 90=down, 180=left, 270=up)
+
+      - type: scaleStatic
+        config:
+          min: 0.3      # Smallest snowflake size
+          max: 1.0      # Largest snowflake size
+
+      - type: alpha
+        config:
+          list:
+            - value: 0      # Start invisible
+              time: 0
+            - value: 0.8    # Fade in quickly
+              time: 0.1
+            - value: 0.8    # Stay visible
+              time: 0.8
+            - value: 0      # Fade out at end of life
+              time: 1
+
+      - type: rotation
+        config:
+          minStart: 0     # Random starting rotation (degrees)
+          maxStart: 360
+          minSpeed: -45   # Rotation speed (degrees per second)
+          maxSpeed: 45
+
+    emitter:
+      lifetime:
+        min: 4          # Each snowflake lives 4-8 seconds
+        max: 8
+      frequency: 0.05   # Spawn every 50ms
+      particlesPerWave: 2
+      maxParticles: 200
+      emitterLifetime: -1  # Infinite (-1 = continuous)
+      spawnBounds:
+        x: -50          # Recycle area (larger than visible area)
+        y: -50
+        width: 1380     # width + 100 for buffer
+        height: 820     # height + 100 for buffer
+      recycleOnBounds: true  # Reuse particles that leave bounds

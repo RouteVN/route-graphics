@@ -7,7 +7,6 @@ steps:
   - screenshot
 ---
 states:
-  # Demonstrates particles working inside a container layout
   - elements:
       - id: 'particle-container'
         type: "container"
@@ -18,27 +17,124 @@ states:
         width: 1080
         height: 520
         children:
-          # Left section: Snow effect
           - id: 'snow-section'
             type: "particles"
-            preset: "snow"
-            count: 150
             width: 350
             height: 520
+            texture: "snowflake"
+            behaviors:
+              - type: "spawnShape"
+                config:
+                  type: "rect"
+                  data:
+                    x: 0
+                    y: -20
+                    w: 350
+                    h: 10
+              - type: "movePoint"
+                config:
+                  speed:
+                    min: 50
+                    max: 150
+                  direction: 90
+              - type: "scaleStatic"
+                config:
+                  min: 0.3
+                  max: 1.0
+              - type: "alpha"
+                config:
+                  list:
+                    - value: 0
+                      time: 0
+                    - value: 0.8
+                      time: 0.1
+                    - value: 0.8
+                      time: 0.8
+                    - value: 0
+                      time: 1
+              - type: "rotation"
+                config:
+                  minStart: 0
+                  maxStart: 360
+                  minSpeed: -45
+                  maxSpeed: 45
             emitter:
+              lifetime:
+                min: 4
+                max: 8
+              frequency: 0.05
+              particlesPerWave: 2
+              maxParticles: 150
+              emitterLifetime: -1
+              spawnBounds:
+                x: -50
+                y: -50
+                width: 450
+                height: 620
+              recycleOnBounds: true
               seed: 12345
-          # Middle section: Fire effect
+
           - id: 'fire-section'
             type: "particles"
-            preset: "fire"
-            count: 80
             width: 350
             height: 520
-            emitX: 175
-            emitY: 450
+            texture: "circle"
+            behaviors:
+              - type: "spawnShape"
+                config:
+                  type: "rect"
+                  data:
+                    x: 175
+                    y: 450
+                    w: 40
+                    h: 10
+              - type: "acceleration"
+                config:
+                  accel:
+                    x: 0
+                    y: -200
+                  minStart: 50
+                  maxStart: 150
+                  rotate: false
+                  maxSpeed: 0
+              - type: "scale"
+                config:
+                  list:
+                    - value: 1
+                      time: 0
+                    - value: 0.3
+                      time: 1
+                  minMult: 0.5
+              - type: "alpha"
+                config:
+                  list:
+                    - value: 1
+                      time: 0
+                    - value: 0
+                      time: 1
+              - type: "color"
+                config:
+                  list:
+                    - value: "#ffff00"
+                      time: 0
+                    - value: "#ff6600"
+                      time: 0.5
+                    - value: "#ff0000"
+                      time: 1
+              - type: "rotationStatic"
+                config:
+                  min: -90
+                  max: -90
             emitter:
+              lifetime:
+                min: 0.5
+                max: 1.5
+              frequency: 0.02
+              particlesPerWave: 2
+              maxParticles: 80
+              emitterLifetime: -1
               seed: 12345
-          # Right section: Custom sparkles
+
           - id: 'sparkle-section'
             type: "particles"
             width: 340
