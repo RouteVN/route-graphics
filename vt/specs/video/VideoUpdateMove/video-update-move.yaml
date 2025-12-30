@@ -1,55 +1,56 @@
-# ---
-# title: Video Update Move Animation
-# description: Test animating video position from one location to another
-# specs:
-#   - "video should move from starting position to ending position"
-#   - "video should continue playing during position animation"
-#   - "video should maintain size and other properties during movement"
-# steps:
-#   - keypress n
-#   - screenshot
-#   - customEvent snapShotKeyFrame deltaMS=500
-#   - screenshot
-#   - customEvent snapShotKeyFrame deltaMS=500
-#   - screenshot
-# ---
-# states:
-#   - elements:
-#       - id: 'video-1'
-#         type: "video"
-#         x: 50
-#         y: 50
-#         width: 320
-#         height: 240
-#         src: "escapes-video"
-#         volume: 500
-#         loop: false
-#         alpha: 1
-#   - elements:
-#       - id: 'video-1'
-#         type: "video"
-#         x: 450  # Move to new position
-#         y: 350
-#         width: 320
-#         height: 240
-#         src: "escapes-video"
-#         volume: 500
-#         loop: false
-#         alpha: 1
-#     animations:
-#       - id: 'video-move'
-#         targetId: 'video-1'
-#         type: tween
-#         properties:
-#           x:
-#             initialValue: 50
-#             keyframes:
-#               - duration: 1000
-#                 value: 450
-#                 easing: linear
-#           y:
-#             initialValue: 50
-#             keyframes:
-#               - duration: 1000
-#                 value: 350
-#                 easing: linear
+---
+title: Video Update Move Animation
+description: Test animating video position from one location to another
+skipScreenshot: true
+specs:
+  - "video should move from starting position to ending position"
+  - "video should continue playing during position animation"
+  - "video should maintain size and other properties during movement"
+steps:
+  - keypress n
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'video-1'
+        type: "video"
+        x: 50
+        y: 50
+        width: 320
+        height: 240
+        src: "escapes-video"
+        volume: 500
+        loop: false
+        alpha: 1
+  - elements:
+      - id: 'video-1'
+        type: "video"
+        x: 450  # Move to new position
+        y: 350
+        width: 320
+        height: 240
+        src: "escapes-video"
+        volume: 500
+        loop: false
+        alpha: 1
+    animations:
+      - id: 'video-move'
+        targetId: 'video-1'
+        type: tween
+        properties:
+          x:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 450
+                easing: linear
+          y:
+            initialValue: 50
+            keyframes:
+              - duration: 1000
+                value: 350
+                easing: linear
