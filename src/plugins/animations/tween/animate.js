@@ -132,7 +132,13 @@ const getMaxOfArray = (numArray) => {
  * @param {AbortSignal} params.signal
  * @param {Function} params.eventHandler - Event handler function for emitting events
  */
-export const animate = async ({ app, element, animation, signal, eventHandler }) => {
+export const animate = async ({
+  app,
+  element,
+  animation,
+  signal,
+  eventHandler,
+}) => {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       app.ticker.remove(effect);
@@ -227,7 +233,7 @@ export const animate = async ({ app, element, animation, signal, eventHandler })
               id,
               targetId,
             },
-            ...(actionPayload ?? {})
+            ...(actionPayload ?? {}),
           });
         }
         resolve();
