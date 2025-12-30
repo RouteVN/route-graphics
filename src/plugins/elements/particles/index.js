@@ -4,9 +4,6 @@ import { deleteParticles } from "./deleteParticles.js";
 import { updateParticles } from "./updateParticles.js";
 import { parseParticles } from "./parseParticles.js";
 
-// Import presets to trigger registration (side effect)
-import "./presets/index.js";
-
 // Export the particles plugin
 export const particlesPlugin = createElementPlugin({
   type: "particles",
@@ -15,14 +12,3 @@ export const particlesPlugin = createElementPlugin({
   delete: deleteParticles,
   parse: parseParticles,
 });
-
-// Re-export emitter classes
-export { Emitter, Particle } from "./emitter/index.js";
-
-// Re-export registration functions for library users
-export {
-  registerParticlePreset,
-  registerParticleTexture,
-  registerParticleBehavior,
-  loadParticlePresets,
-} from "./registries.js";

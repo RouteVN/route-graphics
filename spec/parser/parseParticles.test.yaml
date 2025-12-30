@@ -5,79 +5,6 @@ suites: [parseParticles]
 suite: parseParticles
 exportName: parseParticles
 ---
-case: Test parsing particles with preset only (Level 1)
-in:
-  - state:
-      id: "snow-effect"
-      type: "particles"
-      preset: "snow"
-      count: 200
-      width: 1280
-      height: 720
-out:
-  id: "snow-effect"
-  type: "particles"
-  preset: "snow"
-  count: 200
-  width: 1280
-  height: 720
-  x: 0
-  y: 0
-  alpha: 1
----
-case: Test parsing particles with preset and overrides (Level 2)
-in:
-  - state:
-      id: "custom-snow"
-      type: "particles"
-      preset: "snow"
-      count: 300
-      width: 1280
-      height: 720
-      texture: "circle"
-      disableBehaviors:
-        - rotation
-      behaviors:
-        - type: "color"
-          config:
-            list:
-              - value: "#ffffff"
-                time: 0
-              - value: "#aaaaff"
-                time: 1
-      emitter:
-        frequency: 0.02
-        lifetime:
-          min: 5
-          max: 8
-out:
-  id: "custom-snow"
-  type: "particles"
-  preset: "snow"
-  count: 300
-  width: 1280
-  height: 720
-  texture: "circle"
-  disableBehaviors:
-    - rotation
-  behaviors:
-    - type: "color"
-      config:
-        list:
-          - value: "#ffffff"
-            time: 0
-          - value: "#aaaaff"
-            time: 1
-  emitter:
-    frequency: 0.02
-    lifetime:
-      min: 5
-      max: 8
-    maxParticles: 300
-  x: 0
-  y: 0
-  alpha: 1
----
 case: Test parsing particles with full custom config (Level 3)
 in:
   - state:
@@ -151,67 +78,67 @@ out:
   y: 0
   alpha: 1
 ---
-case: Test parsing particles with position and dimensions
-in:
-  - state:
-      id: "positioned-particles"
-      type: "particles"
-      preset: "fire"
-      count: 80
-      x: 100
-      y: 200
-      width: 500
-      height: 400
-      emitX: 250
-      emitY: 350
-      alpha: 0.8
-out:
-  id: "positioned-particles"
-  type: "particles"
-  preset: "fire"
-  count: 80
-  x: 100
-  y: 200
-  width: 500
-  height: 400
-  emitX: 250
-  emitY: 350
-  alpha: 0.8
----
-case: Test parsing particles with default values
-in:
-  - state:
-      id: "default-particles"
-      type: "particles"
-      preset: "rain"
-      width: 1280
-      height: 720
-out:
-  id: "default-particles"
-  type: "particles"
-  preset: "rain"
-  count: 100
-  width: 1280
-  height: 720
-  x: 0
-  y: 0
-  alpha: 1
----
 case: Error when id is missing
 in:
   - state:
       type: "particles"
-      preset: "snow"
+      width: 1280
+      height: 720
+      texture: "circle"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+      emitter:
+        maxParticles: 50
 throws: "Input Error: Id is missing"
 ---
-case: Error when neither preset nor behaviors provided
+case: Error when width or height is missing
 in:
   - state:
-      id: "no-preset-or-behaviors"
+      id: "no-dimensions"
+      type: "particles"
+      texture: "circle"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+      emitter:
+        maxParticles: 50
+throws: "Input Error: Particles require both width and height"
+---
+case: Error when texture is not provided
+in:
+  - state:
+      id: "no-texture"
       type: "particles"
       width: 1280
       height: 720
-throws: "Input Error: Particles require either 'preset' or 'behaviors'"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+      emitter:
+        maxParticles: 50
+throws: "Input Error: Particles require 'texture'"
+---
+case: Error when behaviors is not provided
+in:
+  - state:
+      id: "no-behaviors"
+      type: "particles"
+      width: 1280
+      height: 720
+      texture: "circle"
+      emitter:
+        maxParticles: 50
+throws: "Input Error: Particles require 'behaviors'"
 ---
 case: Error when behaviors is not an array
 in:
@@ -220,17 +147,55 @@ in:
       type: "particles"
       width: 1280
       height: 720
+      texture: "circle"
       behaviors: "not-an-array"
+      emitter:
+        maxParticles: 50
 throws: "Input Error: 'behaviors' must be an array"
+---
+case: Error when behaviors array is empty
+in:
+  - state:
+      id: "empty-behaviors"
+      type: "particles"
+      width: 1280
+      height: 720
+      texture: "circle"
+      behaviors: []
+      emitter:
+        maxParticles: 50
+throws: "Input Error: 'behaviors' array cannot be empty"
+---
+case: Error when emitter is not provided
+in:
+  - state:
+      id: "no-emitter"
+      type: "particles"
+      width: 1280
+      height: 720
+      texture: "circle"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
+throws: "Input Error: Particles require 'emitter'"
 ---
 case: Error when emitter is not an object
 in:
   - state:
       id: "invalid-emitter"
       type: "particles"
-      preset: "snow"
       width: 1280
       height: 720
+      texture: "circle"
+      behaviors:
+        - type: "alpha"
+          config:
+            list:
+              - value: 1
+                time: 0
       emitter: "not-an-object"
 throws: "Input Error: 'emitter' must be an object"
 ---
