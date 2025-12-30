@@ -34,7 +34,10 @@ particles/
 ├── updateParticles.js    # Updates particle elements
 ├── deleteParticles.js    # Removes particle elements
 ├── parseParticles.js     # Parses YAML config to internal format
-├── registries.js         # Texture/behavior registries
+│
+├── util/                 # Utility modules
+│   ├── registries.js     # Texture/behavior registries
+│   └── validateParticles.js # Validation helper functions
 │
 ├── emitter/              # Core particle engine
 │   ├── emitter.js        # Emitter class - spawns and manages particles
@@ -250,7 +253,7 @@ registerParticleBehavior(WindBehavior);
 
 ---
 
-## Registry System (`registries.js`)
+## Registry System (`util/registries.js`)
 
 Two registries store extensible components:
 

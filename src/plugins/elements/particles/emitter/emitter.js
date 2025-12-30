@@ -5,7 +5,7 @@
  */
 
 import { Particle } from "./particle.js";
-import { getBehavior } from "../registries.js";
+import { getBehavior } from "../util/registries.js";
 import { SeededRandom } from "./seededRandom.js";
 
 /**
