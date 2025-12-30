@@ -133,3 +133,9 @@ properties:
     description: Text animation.
     default: typewriter
   textStyle:
+  complete:
+    type: object
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for complete action event

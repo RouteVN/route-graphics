@@ -279,5 +279,6 @@ export const parseTextRevealing = ({ state }) => {
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
+    ...(state.complete ?? {})
   };
 };

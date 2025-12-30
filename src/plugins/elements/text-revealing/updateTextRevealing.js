@@ -7,7 +7,7 @@ import abortableSleep from "../../../util/abortableSleep";
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async (params) => {
-  const { parent, nextElement: element, signal } = params;
+  const { parent, nextElement: element, signal, eventHandler } = params;
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
@@ -146,6 +146,16 @@ export const updateTextRevealing = async (params) => {
         element.indicator.complete.width ?? completeTexture.width;
       indicatorSprite.height =
         element.indicator.complete.height ?? completeTexture.height;
+    }
+
+    
+    if(eventHandler){
+      eventHandler("complete",{
+        _event: {
+          id: element.id
+        },
+        ...(element?.actionPayload ?? {})
+      })
     }
   }
 };
