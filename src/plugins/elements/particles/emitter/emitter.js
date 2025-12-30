@@ -385,6 +385,13 @@ export class Emitter {
     while (particle) {
       const next = particle.next; // Store next before potential recycle
 
+      // Skip if particle was destroyed (race condition during cleanup)
+      // When deleteParticles is called, particles are destroyed but ticker may still fire
+      if (particle.destroyed || !particle._position) {
+        particle = next;
+        continue;
+      }
+
       // Age particle
       particle.age += deltaSec;
 
