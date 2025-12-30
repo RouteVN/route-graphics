@@ -12,7 +12,7 @@
 export default async function animateElements(
   id,
   animationPlugins,
-  { app, element, animations, signal },
+  { app, element, animations, signal, eventHandler },
 ) {
   const animatePromises = [];
   for (const animation of animations) {
@@ -31,6 +31,7 @@ export default async function animateElements(
           element,
           animation,
           signal,
+          eventHandler,
         }),
       );
     }

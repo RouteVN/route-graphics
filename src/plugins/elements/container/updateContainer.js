@@ -91,6 +91,7 @@ export const updateContainer = async ({
         element: containerElement,
         animations,
         signal,
+        eventHandler,
       });
     }
     isAnimationDone = true;

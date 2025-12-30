@@ -197,6 +197,7 @@ export const updateSprite = async ({
         element: spriteElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

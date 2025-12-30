@@ -11,6 +11,7 @@ export const deleteVideo = async ({
   animations,
   animationPlugins,
   signal,
+  eventHandler,
 }) => {
   const videoElement = parent.children.find(
     (child) => child.label === element.id,
@@ -45,6 +46,7 @@ export const deleteVideo = async ({
         element: videoElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

@@ -37,6 +37,10 @@ states:
       - id: 'rect-scale'
         targetId: 'rect1'
         type: tween
+        complete:
+          actionPayload:
+            animationType: tween
+            status: finished
         properties:
           scaleX:
             keyframes:

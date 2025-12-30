@@ -248,6 +248,7 @@ export const addSlider = async ({
       element: sliderContainer,
       animations,
       signal,
+      eventHandler,
     });
     isAnimationDone = true;
   }

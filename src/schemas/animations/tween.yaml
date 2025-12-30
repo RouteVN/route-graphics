@@ -51,6 +51,12 @@ properties:
     type: string
     const: tween
     description: Type of animation
+  complete:
+    type: object
+    properties:
+      actionPayload:
+        type: object
+        description: Payload for click action event
   properties:
     type: object
     description: Object defining which properties to animate
@@ -69,3 +75,14 @@ properties:
         "$ref": "#/$def/tweenProperty"
     additionalProperties: false
     minProperties: 1
+events:
+  complete: 
+    type: object
+    description: This event type is called "complete" and will be invoked when the animation is completed.
+    properties:
+      _event: 
+        type: object
+        properties:
+          id: 
+            type: string
+            description: The ID of the element that was hovered

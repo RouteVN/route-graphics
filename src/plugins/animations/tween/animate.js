@@ -130,8 +130,15 @@ const getMaxOfArray = (numArray) => {
  * @param {import('pixi.js').DisplayObject} params.element
  * @param {Object} params.animation - Animation configuration
  * @param {AbortSignal} params.signal
+ * @param {Function} params.eventHandler - Event handler function for emitting events
  */
-export const animate = async ({ app, element, animation, signal }) => {
+export const animate = async ({
+  app,
+  element,
+  animation,
+  signal,
+  eventHandler,
+}) => {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       app.ticker.remove(effect);
@@ -139,7 +146,7 @@ export const animate = async ({ app, element, animation, signal }) => {
       return;
     }
 
-    const { properties } = animation;
+    const { properties, complete, id, targetId } = animation;
 
     const animationProperties = Object.entries(properties).map(
       ([property, value]) => {
@@ -219,6 +226,16 @@ export const animate = async ({ app, element, animation, signal }) => {
       if (currentTimeDelta >= maxDuration) {
         app.ticker.remove(effect);
         applyAnimationState(maxDuration);
+        if (eventHandler && complete) {
+          const actionPayload = complete?.actionPayload;
+          eventHandler("complete", {
+            _event: {
+              id,
+              targetId,
+            },
+            ...(actionPayload ?? {}),
+          });
+        }
         resolve();
         return;
       }

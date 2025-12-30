@@ -41,6 +41,7 @@
  * @property {import('../../types.js').ASTNode} element - Element to delete
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Array} animationPlugins - Array of animation plugins
+ * @property {Function} eventHandler - Event handler function
  * @property {AbortSignal} signal - Abort signal
  */
 

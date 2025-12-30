@@ -11,6 +11,7 @@ export const deleteText = async ({
   animations,
   animationPlugins,
   signal,
+  eventHandler,
 }) => {
   const text = parent.getChildByLabel(element.id);
 
@@ -38,6 +39,7 @@ export const deleteText = async ({
         element: text,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

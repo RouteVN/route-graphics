@@ -109,7 +109,8 @@
                                 }
                             }
                         ],
-                        animations: states[index].animations ?? [], 
+                        // No animations to not get stuck in an infinite loop
+                        animations: [], 
                         audio: states[index].audio ?? [],
                         global: states[index].global ?? {}
                     }

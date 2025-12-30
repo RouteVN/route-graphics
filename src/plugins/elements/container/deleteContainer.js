@@ -11,6 +11,7 @@ export const deleteContainer = async ({
   animationPlugins,
   animations,
   signal,
+  eventHandler,
 }) => {
   const containerElement = parent.getChildByLabel(element.id);
 
@@ -43,6 +44,7 @@ export const deleteContainer = async ({
         element: containerElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }
