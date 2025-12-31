@@ -18,7 +18,7 @@ in:
         fontSize: 24
         fill: "#333333"
         fontFamily: "Arial"
-        breakWords: true
+        breakWords: false
 out:
   id: "tr1"
   type: "text-revealing"
@@ -58,7 +58,7 @@ out:
     align: "left"
     lineHeight: 1.2
     wordWrap: true
-    breakWords: true
+    breakWords: false
     wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with word wrapping
@@ -75,7 +75,7 @@ in:
         fontSize: 20
         fill: "#2c3e50"
         fontFamily: "Arial"
-        breakWords: true
+        breakWords: false
 out:
   id: "tr2"
   type: "text-revealing"
@@ -166,7 +166,7 @@ out:
     align: "left"
     lineHeight: 1.2
     wordWrap: true
-    breakWords: true
+    breakWords: false
     wordWrapWidth: 0
 ---
 case: Test parsing text-revealing with multiple styled content segments
