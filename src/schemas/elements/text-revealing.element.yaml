@@ -133,8 +133,6 @@ properties:
     description: Text animation.
     default: typewriter
   textStyle:
-    description: Default text style applied to all content items that don't specify their own textStyle
-    "$ref": "#/$def/textStyle"
   complete:
     type: object
     properties:

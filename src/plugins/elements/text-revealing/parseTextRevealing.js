@@ -190,6 +190,7 @@ export const parseTextRevealing = ({ state }) => {
   };
 
   const processedContent = (state.content || []).map((item) => {
+    // TODO: if breakwords is true this will crash
     const itemTextStyle = {
       ...defaultTextStyle,
       ...(item.textStyle || {}),
