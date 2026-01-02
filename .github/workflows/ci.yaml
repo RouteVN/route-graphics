@@ -34,7 +34,7 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install Dependencies
+      - name: Run unit tests
         run: bun run test
 
       - name: Install Dependencies
