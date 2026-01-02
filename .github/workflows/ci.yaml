@@ -34,6 +34,9 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
+      - name: Install Dependencies
+        run: bun install -g rtgl
+
       - name: Run Visual Tests (Docker)
         env:
           RTGL_VT_DEBUG: true
