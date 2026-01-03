@@ -59,8 +59,7 @@
         }
 
         const assetBufferManager = createAssetBufferManager();
-        await assetBufferManager.load({
-        });
+        await assetBufferManager.load(assetsObject);
 
         const app = createRouteGraphics();
         const plugins = {
