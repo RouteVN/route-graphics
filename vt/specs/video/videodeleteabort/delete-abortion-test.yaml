@@ -21,8 +21,8 @@ states:
         x: 100
         y: 100
         width: 400
-        height: 300
-        src: "escapes-video"
+        height: 225
+        src: "video-sample"
         volume: 500
         loop: false
         alpha: 1
@@ -44,8 +44,8 @@ states:
       x: 100
       y: 100
       width: 400
-      height: 300
-      src: "blazes-video"
+      height: 225
+      src: "video-sample-2"
       volume: 500
       loop: false
       alpha: 1
