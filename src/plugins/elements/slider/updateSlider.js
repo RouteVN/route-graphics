@@ -45,8 +45,10 @@ export const updateSlider = async ({
 
       // Check if handler configuration changed
       const handlerConfigChanged =
-        JSON.stringify(prevSliderASTNode.hover) !== JSON.stringify(nextSliderASTNode.hover) ||
-        JSON.stringify(prevSliderASTNode.change) !== JSON.stringify(nextSliderASTNode.change) ||
+        JSON.stringify(prevSliderASTNode.hover) !==
+          JSON.stringify(nextSliderASTNode.hover) ||
+        JSON.stringify(prevSliderASTNode.change) !==
+          JSON.stringify(nextSliderASTNode.change) ||
         prevSliderASTNode.min !== nextSliderASTNode.min ||
         prevSliderASTNode.max !== nextSliderASTNode.max ||
         prevSliderASTNode.step !== nextSliderASTNode.step ||
