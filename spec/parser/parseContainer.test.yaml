@@ -828,3 +828,72 @@ out:
       x: 0
       y: 220
       alpha: 1
+---
+case: Test parsing container with hover, click, and rightClick events
+in:
+  - state:
+      id: 'container-events'
+      type: "container"
+      direction: "horizontal"
+      gap: 5
+      x: 100
+      y: 100
+      hover:
+        cursor: "pointer"
+        soundSrc: "hover-sound"
+        actionPayload:
+          type: "hover"
+      click:
+        soundSrc: "click-sound"
+        actionPayload:
+          type: "click"
+      rightClick:
+        soundSrc: "rightclick-sound"
+        actionPayload:
+          type: "rightclick"
+      children:
+        - id: 'rect-1'
+          type: "rect"
+          width: 80
+          height: 100
+          fill: red
+out:
+  id: "container-events"
+  type: "container"
+  direction: "horizontal"
+  gap: 5
+  width: 80
+  height: 100
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  hover:
+    cursor: "pointer"
+    soundSrc: "hover-sound"
+    actionPayload:
+      type: "hover"
+  click:
+    soundSrc: "click-sound"
+    actionPayload:
+      type: "click"
+  rightClick:
+    soundSrc: "rightclick-sound"
+    actionPayload:
+      type: "rightclick"
+  children:
+    - id: 'rect-1'
+      type: "rect"
+      width: 80
+      height: 100
+      x: 0
+      y: 0
+      originX: 0
+      originY: 0
+      fill: red
+      cursor: ""
+      rotation: 0
+      alpha: 1

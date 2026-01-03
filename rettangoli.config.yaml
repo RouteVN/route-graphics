@@ -30,6 +30,9 @@ vt:
         - title: "Container Transitions"
           files: "containertransition"
           description: "Container transition test"
+        - title: "Container Events"
+          files: "containerevent"
+          description: "Container event interaction tests"
     - title: "Rect"
       type: "groupLabel"
       items:

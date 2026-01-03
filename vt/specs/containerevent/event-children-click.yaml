@@ -1,0 +1,58 @@
+---
+title: Container Events with Child Events
+description: Test that container events work when children have their own events
+specs:
+  - "container events should fire even when children have events"
+  - "child events should fire independently"
+  - "container and child events can coexist"
+steps:
+  - move 350 110
+  - screenshot
+  - click 350 110
+  - screenshot
+  - move 550 110
+  - screenshot
+  - click 550 110
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'container-with-events'
+        type: "container"
+        x: 300
+        y: 80
+        width: 400
+        height: 100
+        direction: "horizontal"
+        gap: 20
+        hover:
+          actionPayload:
+            type: "container-hover"
+            containerId: "main-container"
+        click:
+          actionPayload:
+            type: "container-click"
+            containerId: "main-container"
+        children:
+          - id: 'child-rect-1'
+            type: "rect"
+            width: 100
+            height: 50
+            fill: "#3498db"
+            hover:
+              actionPayload:
+                type: "child-hover"
+                childId: "rect-1"
+            click:
+              actionPayload:
+                type: "child-click"
+                childId: "rect-1"
+          - id: 'child-rect-2'
+            type: "rect"
+            width: 100
+            height: 50
+            fill: "#e74c3c"
+            hover:
+              cursor: "pointer"
+            click:
+              soundSrc: "bgm-1"
