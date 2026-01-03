@@ -129,13 +129,15 @@ properties:
     default: 50
   revealEffect:
     type: string
-    enum: [typewriter,none]
+    enum: [typewriter, none]
     description: Text animation.
     default: typewriter
   textStyle:
+    "$ref": "#/$def/textStyle"
   complete:
     type: object
     properties:
       actionPayload:
         type: object
         description: Payload for complete action event
+
