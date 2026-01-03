@@ -1,7 +1,7 @@
 ---
 title: bug rightclick event not triggering
 status: todo
-priority: low
+priority: high
 labels: [bug]
 ---
 
