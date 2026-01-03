@@ -18,7 +18,7 @@ states:
           fontSize: 42
           fill: "#3498db"
         click:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'text-click-2'
         type: "text"
         x: 200
@@ -29,7 +29,7 @@ states:
           fontSize: 42
           fill: "#e74c3c"
         click:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
       - id: 'text-click-3'
         type: "text"
         x: 200
@@ -40,4 +40,4 @@ states:
           fontSize: 42
           fill: "#2ecc71"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"

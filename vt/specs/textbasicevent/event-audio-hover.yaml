@@ -18,7 +18,7 @@ states:
           fontSize: 48
           fill: "#9b59b6"
         hover:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'text-hover-click'
         type: "text"
         x: 200
@@ -29,6 +29,6 @@ states:
           fontSize: 48
           fill: "#f39c12"
         hover:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"

@@ -61,6 +61,14 @@
         const audio3Buffer = await audio3.arrayBuffer();
         await AudioAsset.load('bgm-3', audio3Buffer);
 
+        const sfx1 = await fetch('/public/sfx-1.mp3');
+        const sfx1Buffer = await sfx1.arrayBuffer();
+        await AudioAsset.load('sfx-1', sfx1Buffer);
+
+        const sfx2 = await fetch('/public/sfx-2.wav');
+        const sfx2Buffer = await sfx2.arrayBuffer();
+        await AudioAsset.load('sfx-2', sfx2Buffer);
+
 
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
         const app = createRouteGraphics();

@@ -55,4 +55,4 @@ states:
             hover:
               cursor: "pointer"
             click:
-              soundSrc: "bgm-1"
+              soundSrc: "sfx-2"

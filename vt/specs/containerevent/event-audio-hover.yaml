@@ -15,7 +15,7 @@ states:
         width: 350
         height: 120
         hover:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
         children:
           - id: 'rect-1'
             type: "rect"
@@ -29,9 +29,9 @@ states:
         width: 350
         height: 120
         hover:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"
         children:
           - id: 'rect-2'
             type: "rect"
