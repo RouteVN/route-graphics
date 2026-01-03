@@ -132,6 +132,62 @@
  */
 
 /**
+ * @typedef {Object} ParticleTextureShape
+ * @property {'circle' | 'ellipse' | 'rect'} shape - Shape type
+ * @property {number} [radius] - Radius for circle shape
+ * @property {number} [width] - Width for ellipse/rect shapes
+ * @property {number} [height] - Height for ellipse/rect shapes
+ * @property {string} [color] - Fill color (hex)
+ */
+
+/**
+ * @typedef {string | ParticleTextureShape} ParticleTexture
+ */
+
+/**
+ * @typedef {Object} ParticleBehavior
+ * @property {string} type - Behavior type name
+ * @property {Object} [config] - Behavior-specific configuration
+ */
+
+/**
+ * @typedef {Object} ParticleEmitterLifetime
+ * @property {number} min - Minimum particle lifespan in seconds
+ * @property {number} max - Maximum particle lifespan in seconds
+ */
+
+/**
+ * @typedef {Object} ParticleSpawnBounds
+ * @property {number} x - X position
+ * @property {number} y - Y position
+ * @property {number} width - Width
+ * @property {number} height - Height
+ */
+
+/**
+ * @typedef {Object} ParticleEmitter
+ * @property {ParticleEmitterLifetime} lifetime - Particle lifespan in seconds
+ * @property {number} frequency - Seconds between spawns (0 = burst all at once)
+ * @property {number} particlesPerWave - Particles spawned per wave
+ * @property {number} [maxParticles] - Maximum active particles
+ * @property {number} [emitterLifetime] - How long emitter runs in seconds (-1 = infinite)
+ * @property {ParticleSpawnBounds} [spawnBounds] - Recycle boundary
+ * @property {boolean} [recycleOnBounds] - Recycle particles leaving bounds
+ * @property {number} [seed] - Seed for deterministic randomness
+ */
+
+/**
+ * @typedef {Object} ParticlesASTProps
+ * @property {'particles'} type
+ * @property {number} count - Max particles count
+ * @property {ParticleTexture} texture - Texture name or custom texture configuration
+ * @property {ParticleBehavior[]} behaviors - Behavior configurations
+ * @property {ParticleEmitter} emitter - Emitter configuration
+ * @property {number} alpha - Container opacity
+ * @typedef {ASTNode & ParticlesASTProps} ParticlesASTNode
+ */
+
+/**
  * @typedef {Object} ContainerASTProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
@@ -139,6 +195,9 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {HoverProps} hover
+ * @property {ClickProps} click
+ * @property {ClickProps} rightClick
  * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
  */
 
@@ -236,6 +295,7 @@
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
  * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
  * @property {string} [indicator.revealing.src] - Source of the indicator image while text is revealing

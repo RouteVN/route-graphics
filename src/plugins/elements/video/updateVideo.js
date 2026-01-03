@@ -12,6 +12,7 @@ export const updateVideo = async ({
   nextElement,
   animations,
   animationPlugins,
+  eventHandler,
   signal,
 }) => {
   const videoElement = parent.children.find(
@@ -70,6 +71,7 @@ export const updateVideo = async ({
         element: videoElement,
         animations: animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

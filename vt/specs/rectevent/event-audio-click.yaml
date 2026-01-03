@@ -16,7 +16,7 @@ states:
         height: 100
         fill: "#3498db"
         click:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'rect-click-2'
         type: "rect"
         x: 200
@@ -25,7 +25,7 @@ states:
         height: 100
         fill: "#e74c3c"
         click:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
       - id: 'rect-click-3'
         type: "rect"
         x: 200
@@ -34,4 +34,4 @@ states:
         height: 100
         fill: "#2ecc71"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"

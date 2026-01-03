@@ -1,16 +1,18 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
-import {
-  getPreset,
-  getTexture,
-  getPresetDefaultTexture,
-} from "./registries.js";
+import { getTexture } from "./util/registries.js";
+
+/**
+ * @typedef {import('pixi.js').Application} Application
+ * @typedef {import('../../../types.js').ParticleTextureShape} ParticleTextureShape
+ */
 
 /**
  * Create a texture from inline shape definition.
  * Used when user specifies `texture: { shape: "circle", radius: 5 }` instead of a named texture.
  * @param {Application} app - PixiJS app for renderer access
- * @param {Object} shapeConfig - Shape definition with shape, color, radius/width/height
+ * @param {ParticleTextureShape} shapeConfig - Shape definition with shape, color, radius/width/height
+ * @return {import('pixi.js').Texture}
  */
 function createCustomTexture(app, shapeConfig) {
   const g = new Graphics();
@@ -46,76 +48,8 @@ function createCustomTexture(app, shapeConfig) {
 }
 
 /**
- * Merge preset and custom behaviors.
- * Custom behaviors override preset behaviors of the same type.
- * @param {Array} presetBehaviors - Behaviors from the preset
- * @param {Array} customBehaviors - User-provided behaviors to add or override
- * @param {Array} disableBehaviors - Behavior types to remove (e.g., ["rotation"])
- */
-function mergeBehaviors(
-  presetBehaviors = [],
-  customBehaviors = [],
-  disableBehaviors = [],
-) {
-  const disableSet = new Set(disableBehaviors);
-  const merged = presetBehaviors.filter((b) => !disableSet.has(b.type));
-
-  for (const customBehavior of customBehaviors) {
-    const existingIndex = merged.findIndex(
-      (b) => b.type === customBehavior.type,
-    );
-    if (existingIndex >= 0) {
-      merged[existingIndex] = customBehavior;
-    } else {
-      merged.push(customBehavior);
-    }
-  }
-
-  return merged;
-}
-
-/** Emitter properties that can be overridden by user config. */
-const EMITTER_SCALAR_PROPS = [
-  "frequency",
-  "particlesPerWave",
-  "maxParticles",
-  "emitterLifetime",
-  "recycleOnBounds",
-  "seed",
-];
-
-/**
- * Merge user emitter overrides with preset defaults.
- * @param {Object} presetConfig - Default config from preset
- * @param {Object} customEmitter - User-provided emitter overrides
- */
-function mergeEmitterConfig(presetConfig, customEmitter) {
-  if (!customEmitter) return presetConfig;
-
-  const merged = { ...presetConfig };
-
-  if (customEmitter.lifetime) {
-    merged.lifetime = { ...presetConfig.lifetime, ...customEmitter.lifetime };
-  }
-  if (customEmitter.spawnBounds) {
-    merged.spawnBounds = {
-      ...presetConfig.spawnBounds,
-      ...customEmitter.spawnBounds,
-    };
-  }
-
-  for (const prop of EMITTER_SCALAR_PROPS) {
-    if (customEmitter[prop] !== undefined) {
-      merged[prop] = customEmitter[prop];
-    }
-  }
-
-  return merged;
-}
-
-/**
- * Add a particle effect to the stage.
- * Supports presets (snow, rain, fire, burst) or custom behavior configs.
+ * Add a particle effect to the stage using custom behavior configs.
+ * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addParticle = async ({ app, parent, element, signal }) => {
   if (signal?.aborted) return;
@@ -124,56 +58,30 @@ export const addParticle = async ({ app, parent, element, signal }) => {
   container.label = element.id;
   parent.addChild(container);
 
-  const width = element.width ?? app.screen.width;
-  const height = element.height ?? app.screen.height;
+  const width = element.width;
+  const height = element.height;
   container.x = element.x ?? 0;
   container.y = element.y ?? 0;
 
-  // Build emitter config from preset or custom behaviors
-  let emitterConfig;
+  // Build emitter config from custom behaviors
+  const emitterConfig = {
+    lifetime: element.emitter?.lifetime ?? { min: 1, max: 2 },
+    frequency: element.emitter?.frequency ?? 0.1,
+    particlesPerWave: element.emitter?.particlesPerWave ?? 1,
+    maxParticles: element.emitter?.maxParticles ?? element.count ?? 100,
+    emitterLifetime: element.emitter?.emitterLifetime ?? -1,
+    spawnBounds: element.emitter?.spawnBounds,
+    recycleOnBounds: element.emitter?.recycleOnBounds ?? false,
+    seed: element.emitter?.seed,
+    behaviors: element.behaviors,
+  };
 
-  if (element.preset) {
-    const presetConfig = getPreset(element.preset, {
-      width,
-      height,
-      count: element.count ?? 100,
-      x: element.emitX ?? width / 2,
-      y: element.emitY ?? height / 2,
-    });
-
-    if (!presetConfig) {
-      console.warn(`Unknown particle preset: ${element.preset}`);
-      return;
-    }
-
-    emitterConfig = mergeEmitterConfig(presetConfig, element.emitter);
-    emitterConfig.behaviors = mergeBehaviors(
-      presetConfig.behaviors,
-      element.behaviors,
-      element.disableBehaviors,
-    );
-  } else {
-    // Custom behaviors (no preset)
-    emitterConfig = {
-      lifetime: element.emitter?.lifetime ?? { min: 1, max: 2 },
-      frequency: element.emitter?.frequency ?? 0.1,
-      particlesPerWave: element.emitter?.particlesPerWave ?? 1,
-      maxParticles: element.emitter?.maxParticles ?? element.count ?? 100,
-      emitterLifetime: element.emitter?.emitterLifetime ?? -1,
-      spawnBounds: element.emitter?.spawnBounds,
-      recycleOnBounds: element.emitter?.recycleOnBounds ?? false,
-      seed: element.emitter?.seed,
-      behaviors: element.behaviors,
-    };
-  }
-
-  // Resolve texture: custom shape > named texture > preset default > circle
+  // Resolve texture: custom shape > named texture > circle
   let texture;
   if (typeof element.texture === "object" && element.texture.shape) {
     texture = createCustomTexture(app, element.texture);
   } else {
-    const textureName =
-      element.texture ?? getPresetDefaultTexture(element.preset) ?? "circle";
+    const textureName = element.texture ?? "circle";
     texture = getTexture(textureName, app);
     if (!texture) {
       try {

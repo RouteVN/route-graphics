@@ -113,7 +113,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     height: state.height ? state.height : containerHeight,
   });
 
-  return {
+  const finalContainer = {
     ...containerAST,
     children: parsedChildren,
     direction,
@@ -121,4 +121,10 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     scroll,
     rotation: state.rotation ?? 0,
   };
+
+  if (state.rightClick) {
+    finalContainer.rightClick = state.rightClick;
+  }
+
+  return finalContainer;
 };

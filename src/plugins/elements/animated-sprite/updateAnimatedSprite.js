@@ -1,4 +1,4 @@
-import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
+import { Spritesheet, Texture } from "pixi.js";
 import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 
@@ -13,6 +13,7 @@ export const updateAnimatedSprite = async ({
   nextElement,
   animations,
   animationPlugins,
+  eventHandler,
   signal,
 }) => {
   const animatedSpriteElement = parent.children.find(
@@ -78,6 +79,7 @@ export const updateAnimatedSprite = async ({
         element: animatedSpriteElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

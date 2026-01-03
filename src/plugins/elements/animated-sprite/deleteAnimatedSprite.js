@@ -12,6 +12,7 @@ export const deleteAnimatedSprite = async ({
   animations,
   animationPlugins,
   signal,
+  eventHandler,
 }) => {
   const animatedSpriteElement = parent.children.find(
     (child) => child.label === element.id,
@@ -43,6 +44,7 @@ export const deleteAnimatedSprite = async ({
         element: animatedSpriteElement,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

@@ -11,6 +11,7 @@ export const deleteRect = async ({
   animations,
   animationPlugins,
   signal,
+  eventHandler,
 }) => {
   const rect = parent.getChildByLabel(element.id);
 
@@ -38,6 +39,7 @@ export const deleteRect = async ({
         element: rect,
         animations,
         signal,
+        eventHandler,
       });
       isAnimationDone = true;
     }

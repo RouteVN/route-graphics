@@ -11,6 +11,8 @@ states:
   - elements:
       - id: 'sparkles'
         type: "particles"
+        width: 1280
+        height: 720
         texture: "snowflake"
         behaviors:
           - type: "spawnShape"

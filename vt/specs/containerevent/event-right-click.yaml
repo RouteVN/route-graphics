@@ -1,0 +1,26 @@
+---
+title: Container right click event
+description: Test right click event on container elements
+specs:
+  - "container should call callback with data when right-clicked"
+steps:
+  - rclick 250 110
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'container-right-click-1'
+        type: "container"
+        x: 200
+        y: 100
+        width: 300
+        height: 100
+        rightClick:
+          actionPayload:
+            message: "Container 1 right-clicked"
+        children:
+          - id: 'rect-1'
+            type: "rect"
+            width: 150
+            height: 50
+            fill: "#3498db"

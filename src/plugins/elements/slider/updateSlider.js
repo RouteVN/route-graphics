@@ -43,6 +43,17 @@ export const updateSlider = async ({
         `${nextSliderASTNode.id}-thumb`,
       );
 
+      // Check if handler configuration changed
+      const handlerConfigChanged =
+        JSON.stringify(prevSliderASTNode.hover) !==
+          JSON.stringify(nextSliderASTNode.hover) ||
+        JSON.stringify(prevSliderASTNode.change) !==
+          JSON.stringify(nextSliderASTNode.change) ||
+        prevSliderASTNode.min !== nextSliderASTNode.min ||
+        prevSliderASTNode.max !== nextSliderASTNode.max ||
+        prevSliderASTNode.step !== nextSliderASTNode.step ||
+        prevSliderASTNode.direction !== nextSliderASTNode.direction;
+
       if (bar && thumb) {
         // Update bar properties
         bar.width = nextSliderASTNode.width;
@@ -100,16 +111,21 @@ export const updateSlider = async ({
         }
       }
 
-      // Remove all existing event listeners from container, bar, and thumb
-      sliderElement.removeAllListeners("pointerover");
-      sliderElement.removeAllListeners("pointerout");
-      sliderElement.removeAllListeners("pointerup");
-      sliderElement.removeAllListeners("pointerupoutside");
-      sliderElement.removeAllListeners("pointerdown");
-      sliderElement.removeAllListeners("globalpointermove");
+      // Only recreate event handlers if the handler configuration actually changed
+      // This prevents unnecessary handler replacement and avoids the "ReferenceError: Can't find variable: id"
+      // error that occurs when PixiJS tries to complete pointer events on destroyed closures
+      if (handlerConfigChanged) {
+        // Remove all existing event listeners from container, bar, and thumb
+        sliderElement.removeAllListeners("pointerover");
+        sliderElement.removeAllListeners("pointerout");
+        sliderElement.removeAllListeners("pointerup");
+        sliderElement.removeAllListeners("pointerupoutside");
+        sliderElement.removeAllListeners("pointerdown");
+        sliderElement.removeAllListeners("globalpointermove");
+      }
 
-      // Re-attach event handlers if they exist
-      if (eventHandler) {
+      // Re-attach event handlers if they exist and configuration changed
+      if (eventHandler && handlerConfigChanged) {
         const { hover, change, min, max, step, direction, initialValue } =
           nextSliderASTNode;
 
@@ -252,6 +268,7 @@ export const updateSlider = async ({
         element: sliderElement,
         animations,
         signal,
+        eventHandler,
       });
     }
 

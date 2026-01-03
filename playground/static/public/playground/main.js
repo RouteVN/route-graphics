@@ -9,7 +9,7 @@ import createRouteGraphics, {
     particlesPlugin,
     tweenPlugin,
     soundPlugin
-} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.15/+esm'
+} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.21/+esm'
 
 import jsYaml from 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm'
 

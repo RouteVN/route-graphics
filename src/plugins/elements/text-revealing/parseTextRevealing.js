@@ -186,9 +186,11 @@ export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
     ...DEFAULT_TEXT_STYLE,
     wordWrap: true,
+    ...(state.textStyle || {}),
   };
 
   const processedContent = (state.content || []).map((item) => {
+    // TODO: if breakwords is true this will crash
     const itemTextStyle = {
       ...defaultTextStyle,
       ...(item.textStyle || {}),
@@ -279,5 +281,6 @@ export const parseTextRevealing = ({ state }) => {
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
+    ...(state.complete && { complete: state.complete }),
   };
 };

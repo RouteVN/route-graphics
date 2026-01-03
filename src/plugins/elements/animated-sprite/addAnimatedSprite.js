@@ -12,6 +12,7 @@ export const addAnimatedSprite = async ({
   element,
   animations,
   animationPlugins,
+  eventHandler,
   signal,
 }) => {
   let isAnimationDone = true;
@@ -72,6 +73,7 @@ export const addAnimatedSprite = async ({
       element: animatedSprite,
       animations,
       signal,
+      eventHandler,
     });
     isAnimationDone = true;
   }

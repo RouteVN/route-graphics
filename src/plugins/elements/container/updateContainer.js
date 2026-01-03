@@ -31,6 +31,90 @@ export const updateContainer = async ({
       containerElement.label = nextElement.id;
       containerElement.alpha = nextElement.alpha;
 
+      containerElement.removeAllListeners("pointerover");
+      containerElement.removeAllListeners("pointerout");
+      containerElement.removeAllListeners("pointerup");
+      containerElement.removeAllListeners("rightclick");
+
+      const hoverEvents = nextElement?.hover;
+      const clickEvents = nextElement?.click;
+      const rightClickEvents = nextElement?.rightClick;
+
+      if (hoverEvents) {
+        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        containerElement.eventMode = "static";
+
+        const overListener = () => {
+          if (actionPayload && eventHandler)
+            eventHandler(`hover`, {
+              _event: {
+                id: containerElement.label,
+              },
+              ...actionPayload,
+            });
+          if (cursor) containerElement.cursor = cursor;
+          if (soundSrc)
+            app.audioStage.add({
+              id: `hover-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+        };
+
+        const outListener = () => {
+          containerElement.cursor = "auto";
+        };
+
+        containerElement.on("pointerover", overListener);
+        containerElement.on("pointerout", outListener);
+      }
+
+      if (clickEvents) {
+        const { soundSrc, actionPayload } = clickEvents;
+        containerElement.eventMode = "static";
+
+        const releaseListener = () => {
+          if (actionPayload && eventHandler)
+            eventHandler(`click`, {
+              _event: {
+                id: containerElement.label,
+              },
+              ...actionPayload,
+            });
+          if (soundSrc)
+            app.audioStage.add({
+              id: `click-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+        };
+
+        containerElement.on("pointerup", releaseListener);
+      }
+
+      if (rightClickEvents) {
+        const { soundSrc, actionPayload } = rightClickEvents;
+        containerElement.eventMode = "static";
+
+        const rightClickListener = () => {
+          if (actionPayload && eventHandler)
+            eventHandler(`rightclick`, {
+              _event: {
+                id: containerElement.label,
+              },
+              ...actionPayload,
+            });
+          if (soundSrc)
+            app.audioStage.add({
+              id: `rightclick-${Date.now()}`,
+              url: soundSrc,
+              loop: false,
+            });
+        };
+
+        containerElement.on("rightclick", rightClickListener);
+      }
+
       if (prevElement.scroll !== nextElement.scroll) {
         if (nextElement.scroll) {
           setupScrolling({
@@ -91,6 +175,7 @@ export const updateContainer = async ({
         element: containerElement,
         animations,
         signal,
+        eventHandler,
       });
     }
     isAnimationDone = true;

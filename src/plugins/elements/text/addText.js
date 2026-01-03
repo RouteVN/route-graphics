@@ -178,6 +178,7 @@ export const addText = async ({
       element: text,
       animations,
       signal,
+      eventHandler,
     });
     isAnimationDone = true;
   }

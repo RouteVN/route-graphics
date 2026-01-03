@@ -12,7 +12,7 @@ jobs:
       # Setup Bun
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.2
+          bun-version: 1.3.5
 
       # Install dependencies from root
       - name: Install Dependencies
@@ -20,44 +20,36 @@ jobs:
 
       - name: Lint
         run: bun run lint
-  visualTest:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true 
+          lfs: true
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.2
+          bun-version: 1.3.5
 
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
-    
-      - name: Install rtgl
-        run: npm install -g rtgl
+      - name: Run unit tests
+        run: bun run test
 
-      - name: Install Playwright browsers
-        run:  npx playwright@1.57.0 install
+      - name: Install Dependencies
+        run: bun install -g rtgl
 
-      - name: Install Asian fonts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk
-
-      - name: Set debug mode
-        run: bun run config:debug
-
-      - name: Run vt report with debug
-        run: bun run esbuild.js && rtgl vt generate --screenshot-wait-time 13000 && rtgl vt report
+      - name: Run Visual Tests (Docker)
+        env:
+          RTGL_VT_DEBUG: true
+        run: bun run vt:report
 
       - name: Upload VT Images as Artifacts
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: vt-images-${{ github.run_number }}
-          path: |
-            .rettangoli/vt/_site/reference/
-            .rettangoli/vt/_site/candidate/
+          path: .rettangoli/
+          include-hidden-files: true
           retention-days: 30
