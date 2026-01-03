@@ -1,0 +1,67 @@
+---
+title: Container Hover Cursor Change
+description: Test cursor changes when hovering over container elements
+specs:
+  - "container should change cursor on hover"
+  - "cursor should return to auto on pointer out"
+  - "different cursors can be set"
+  - "cursor works with children elements"
+---
+states:
+  - elements:
+      - id: 'container-cursor-pointer'
+        type: "container"
+        x: 200
+        y: 80
+        width: 400
+        height: 70
+        hover:
+          cursor: "pointer"
+        children:
+          - id: 'rect-1'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#3498db"
+      - id: 'container-cursor-move'
+        type: "container"
+        x: 200
+        y: 180
+        width: 400
+        height: 70
+        hover:
+          cursor: "move"
+        children:
+          - id: 'rect-2'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#e74c3c"
+      - id: 'container-cursor-not-allowed'
+        type: "container"
+        x: 200
+        y: 280
+        width: 400
+        height: 70
+        hover:
+          cursor: "not-allowed"
+        children:
+          - id: 'rect-3'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#95a5a6"
+      - id: 'container-cursor-text'
+        type: "container"
+        x: 200
+        y: 380
+        width: 400
+        height: 70
+        hover:
+          cursor: "text"
+        children:
+          - id: 'rect-4'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#f39c12"

@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "0.0.22",
+  "version": "0.0.24",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -26,7 +26,9 @@
     "lint:fix": "bunx prettier --check --write src",
     "build": "bun run esbuild.js",
     "vt:generate": "bun run esbuild.js && rtgl vt generate --skip-screenshots",
-    "vt:report": "bun run esbuild.js && RTGL_VT_DEBUG=true rtgl vt generate --screenshot-wait-time 11000 && rtgl vt report",
+    "vt:docker": "bun run esbuild.js && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/app\" -w /app han4wluc/rtgl:playwright-v1.57.0-rtgl-v0.0.36 rtgl vt generate --canvas --screenshot-wait-time 15000 --concurrency 8",
+    "vt:report": "bun run vt:docker && rtgl vt report",
+    "vt:accept": "rtgl vt accept",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",

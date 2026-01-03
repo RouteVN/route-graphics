@@ -1,0 +1,33 @@
+---
+title: Update Video Element
+description: Test updating video element properties
+skipScreenshot: true
+specs:
+  - "video should update volume correctly"
+  - "video should update loop property correctly"
+  - "video should update position correctly"
+  - "video should update to different source correctly"
+---
+states:
+  - elements:
+      - id: 'video-1'
+        type: "video"
+        x: 100
+        y: 100
+        width: 400
+        height: 225
+        src: "video-sample"
+        volume: 500
+        loop: false
+        alpha: 1
+  - elements:
+      - id: 'video-1'
+        type: "video"
+        x: 200  # Changed position
+        y: 200
+        width: 400
+        height: 225
+        src: "video-sample-2"
+        volume: 800  # Changed volume
+        loop: false  # Changed loop
+        alpha: 1

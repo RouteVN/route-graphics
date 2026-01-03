@@ -31,7 +31,9 @@ out:
   originX: 0
   originY: 0
   spritesheetSrc: "fighter-spritesheet"
-  metadataSrc: "fighter-spritesheet-metadata"
+  spritesheetData:
+    frames: {}
+    meta: {}
   animation:
     frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     animationSpeed: 0.5
@@ -61,7 +63,9 @@ out:
   originX: 0
   originY: 0
   spritesheetSrc: "fighter-spritesheet"
-  metadataSrc: "fighter-spritesheet-metadata"
+  spritesheetData:
+    frames: {}
+    meta: {}
   animation:
     frames: [10, 11, 12]
     animationSpeed: 0.5

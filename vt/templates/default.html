@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="/public/config.js"></script>
     <script>
       window.vtState = `
 {{ content }}
@@ -28,41 +27,43 @@
             createAssetBufferManager,
         } from "/RouteGraphics.js"
 
-        // const assetBufferManager = createAssetBufferManager();
-
-        await Promise.all([
-            Assets.load({ alias: 'circle-blue', src: '/public/circle-blue.png' }),
-            Assets.load({ alias: 'circle-red', src: '/public/circle-red.png' }),
-            Assets.load({ alias: 'circle-green', src: '/public/circle-green.png' }),
-            Assets.load({ alias: 'slider', src: '/public/slider.png' }),
-            Assets.load({ alias: 'horizontal-idle-bar', src: '/public/horizontal_idle_bar.png' }),
-            Assets.load({ alias: 'horizontal-hover-bar', src: '/public/horizontal_hover_bar.png' }),
-            Assets.load({ alias: 'horizontal-idle-thumb', src: '/public/horizontal_idle_thumb.png' }),
-            Assets.load({ alias: 'horizontal-hover-thumb', src: '/public/horizontal_hover_thumb.png' }),
-            Assets.load({ alias: 'vertical-idle-bar', src: '/public/vertical_idle_bar.png' }),
-            Assets.load({ alias: 'vertical-hover-bar', src: '/public/vertical_hover_bar.png' }),
-            Assets.load({ alias: 'vertical-idle-thumb', src: '/public/vertical_idle_thumb.png' }),
-            Assets.load({ alias: 'vertical-hover-thumb', src: '/public/vertical_hover_thumb.png' }),
-            Assets.load({ alias: 'fighter-spritesheet', src: '/public/fighter.png' }),
-            // Assets.load({ alias: 'escapes-video', src: '/public/ForBiggerEscapes.mp4' }),
-            // Assets.load({ alias: 'blazes-video', src: '/public/ForBiggerBlazes' }),
-        ]);
-
-        // Pre-load audio files
-        const audio1 = await fetch('/public/bgm-1.mp3');
-        const audio1Buffer = await audio1.arrayBuffer();
-        await AudioAsset.load('bgm-1', audio1Buffer);
-
-        const audio2 = await fetch('/public/bgm-2.mp3');
-        const audio2Buffer = await audio2.arrayBuffer();
-        await AudioAsset.load('bgm-2', audio2Buffer);
-
-        const audio3 = await fetch('/public/bgm-3.mp3');
-        const audio3Buffer = await audio3.arrayBuffer();
-        await AudioAsset.load('bgm-3', audio3Buffer);
-
 
         import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+
+
+        const assetsObject = {
+            'circle-blue': { url: '/public/circle-blue.png', type: 'image/png' },
+            'circle-red': { url: '/public/circle-red.png', type: 'image/png' },
+            'circle-green': { url: '/public/circle-green.png', type: 'image/png' },
+            'slider': { url: '/public/slider.png', type: 'image/png' },
+            'horizontal-idle-bar': { url: '/public/horizontal_idle_bar.png', type: 'image/png' },
+            'horizontal-hover-bar': { url: '/public/horizontal_hover_bar.png', type: 'image/png' },
+            'horizontal-idle-thumb': { url: '/public/horizontal_idle_thumb.png', type: 'image/png' },
+            'horizontal-hover-thumb': { url: '/public/horizontal_hover_thumb.png', type: 'image/png' },
+            'vertical-idle-bar': { url: '/public/vertical_idle_bar.png', type: 'image/png' },
+            'vertical-hover-bar': { url: '/public/vertical_hover_bar.png', type: 'image/png' },
+            'vertical-idle-thumb': { url: '/public/vertical_idle_thumb.png', type: 'image/png' },
+            'vertical-hover-thumb': { url: '/public/vertical_hover_thumb.png', type: 'image/png' },
+            'fighter-spritesheet': { url: '/public/fighter.png', type: 'image/png' },
+            'sfx-1': { url: '/public/sfx-1.mp3', type: 'audio/mpeg' },
+            'sfx-2': { url: '/public/sfx-2.wav', type: 'audio/wav' },
+        }
+
+        // TODO: fix env var not working
+        // in playwright will fail to load video, so we skip loading video samples in that case
+        // if (!window?.RTGL_VT_DEBUG) {
+        //   Object.assign(assetsObject, {
+        //     'bgm-1': { url: '/public/bgm-1.mp3', type: 'audio/mpeg' },
+        //     'bgm-2': { url: '/public/bgm-2.mp3', type: 'audio/mpeg' },
+        //     'bgm-3': { url: '/public/bgm-3.mp3', type: 'audio/mpeg' },
+        //     'video-sample': { url: '/public/video_sample.mp4', type: 'video/mp4' },
+        //     'video-sample-2': { url: '/public/video_sample_2.mp4', type: 'video/mp4' },
+        //   })
+        // }
+
+        const assetBufferManager = createAssetBufferManager();
+        await assetBufferManager.load(assetsObject);
+
         const app = createRouteGraphics();
         const plugins = {
             elements: [
@@ -116,8 +117,9 @@
                     }
                 )
             },
-            debug: window?.RTGL_VT_DEBUG ?? false, 
+            debug: window?.RTGL_VT_DEBUG ?? false,
         });
+        await app.loadAssets(assetBufferManager.getBufferMap());
         document.body.appendChild(app.canvas);
 
         app.render({

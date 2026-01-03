@@ -16,7 +16,7 @@ states:
         height: 200
         src: "circle-blue"
         hover:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'sprite-hover-click'
         type: "sprite"
         x: 500
@@ -25,6 +25,6 @@ states:
         height: 200
         src: "circle-red"
         hover:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"

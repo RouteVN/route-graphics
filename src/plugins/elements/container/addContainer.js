@@ -68,6 +68,85 @@ export const addContainer = async ({
     });
   }
 
+  const hoverEvents = element?.hover;
+  const clickEvents = element?.click;
+  const rightClickEvents = element?.rightClick;
+
+  if (hoverEvents) {
+    const { cursor, soundSrc, actionPayload } = hoverEvents;
+    container.eventMode = "static";
+
+    const overListener = () => {
+      if (actionPayload && eventHandler)
+        eventHandler(`hover`, {
+          _event: {
+            id: container.label,
+          },
+          ...actionPayload,
+        });
+      if (cursor) container.cursor = cursor;
+      if (soundSrc)
+        app.audioStage.add({
+          id: `hover-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+    };
+
+    const outListener = () => {
+      container.cursor = "auto";
+    };
+
+    container.on("pointerover", overListener);
+    container.on("pointerout", outListener);
+  }
+
+  if (clickEvents) {
+    const { soundSrc, actionPayload } = clickEvents;
+    container.eventMode = "static";
+
+    const releaseListener = () => {
+      if (actionPayload && eventHandler)
+        eventHandler(`click`, {
+          _event: {
+            id: container.label,
+          },
+          ...actionPayload,
+        });
+      if (soundSrc)
+        app.audioStage.add({
+          id: `click-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+    };
+
+    container.on("pointerup", releaseListener);
+  }
+
+  if (rightClickEvents) {
+    const { soundSrc, actionPayload } = rightClickEvents;
+    container.eventMode = "static";
+
+    const rightClickListener = () => {
+      if (actionPayload && eventHandler)
+        eventHandler(`rightclick`, {
+          _event: {
+            id: container.label,
+          },
+          ...actionPayload,
+        });
+      if (soundSrc)
+        app.audioStage.add({
+          id: `rightclick-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+    };
+
+    container.on("rightclick", rightClickListener);
+  }
+
   if (animations && animations.length > 0) {
     isAnimationDone = false;
     await animateElements(id, animationPlugins, {

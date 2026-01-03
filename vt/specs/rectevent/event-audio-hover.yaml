@@ -16,7 +16,7 @@ states:
         height: 120
         fill: "#9b59b6"
         hover:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'rect-hover-click'
         type: "rect"
         x: 200
@@ -25,6 +25,6 @@ states:
         height: 120
         fill: "#f39c12"
         hover:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"
