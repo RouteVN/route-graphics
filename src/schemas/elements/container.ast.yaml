@@ -70,3 +70,33 @@ properties:
   rotation:
     type: number
     description: Rotation in degrees
+  hover:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when hovering over the container
+      cursor:
+        type: string
+        description: CSS cursor style when hovering over the container
+      actionPayload:
+        type: object
+        description: Payload for hover action event
+  click:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the container is clicked
+      actionPayload:
+        type: object
+        description: Payload for click action event
+  rightClick:
+    type: object
+    properties:
+      soundSrc:
+        type: string
+        description: source of sound to be played when the container is right-clicked
+      actionPayload:
+        type: object
+        description: Payload for right-click action event

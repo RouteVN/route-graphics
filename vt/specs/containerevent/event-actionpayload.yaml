@@ -1,0 +1,75 @@
+---
+title: Container Event ActionPayload
+description: Test actionPayload being sent through eventHandler on click and hover
+specs:
+  - "container should send actionPayload on click"
+  - "container should send actionPayload on hover"
+  - "actionPayload should contain custom data"
+steps:
+  - click 250 110
+  - screenshot
+  - move 250 260
+  - screenshot
+  - move 250 380
+  - screenshot
+  - click 250 380
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'container-payload-click'
+        type: "container"
+        x: 200
+        y: 100
+        width: 400
+        height: 80
+        click:
+          actionPayload:
+            action: "container-clicked"
+            buttonType: "primary"
+            data:
+              menuIndex: 1
+        children:
+          - id: 'rect-click'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#3498db"
+      - id: 'container-payload-hover'
+        type: "container"
+        x: 200
+        y: 220
+        width: 400
+        height: 80
+        hover:
+          actionPayload:
+            action: "container-hovered"
+            tooltip: "This is a hover tooltip"
+            zoneId: "zone-42"
+        children:
+          - id: 'rect-hover'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#e74c3c"
+      - id: 'container-payload-both'
+        type: "container"
+        x: 200
+        y: 340
+        width: 400
+        height: 80
+        hover:
+          actionPayload:
+            event: "hover"
+            message: "Hovering"
+        click:
+          actionPayload:
+            event: "click"
+            message: "Clicked"
+            confirmed: true
+        children:
+          - id: 'rect-both'
+            type: "rect"
+            width: 200
+            height: 50
+            fill: "#2ecc71"

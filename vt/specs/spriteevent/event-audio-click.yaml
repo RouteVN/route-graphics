@@ -16,7 +16,7 @@ states:
         height: 150
         src: "circle-blue"
         click:
-          soundSrc: "bgm-1"
+          soundSrc: "sfx-2"
       - id: 'sprite-click-2'
         type: "sprite"
         x: 400
@@ -25,7 +25,7 @@ states:
         height: 150
         src: "circle-red"
         click:
-          soundSrc: "bgm-2"
+          soundSrc: "sfx-2"
       - id: 'sprite-click-3'
         type: "sprite"
         x: 650
@@ -34,4 +34,4 @@ states:
         height: 150
         src: "circle-green"
         click:
-          soundSrc: "bgm-3"
+          soundSrc: "sfx-2"

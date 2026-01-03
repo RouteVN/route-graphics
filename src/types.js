@@ -195,6 +195,9 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {HoverProps} hover
+ * @property {ClickProps} click
+ * @property {ClickProps} rightClick
  * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
  */
 
