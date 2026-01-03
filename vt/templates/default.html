@@ -50,6 +50,7 @@
             'bgm-3': { url: '/public/bgm-3.mp3', type: 'audio/mpeg' },
         }
 
+        // TODO: fix env var not working
         // in playwright will fail to load video, so we skip loading video samples in that case
         if (!window?.RTGL_VT_DEBUG) {
           Object.assign(assetsObject, {
