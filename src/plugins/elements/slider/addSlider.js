@@ -62,7 +62,10 @@ export const addSlider = async ({
   thumb.eventMode = "static";
 
   // Calculate slider value and thumb position
-  let currentValue = initialValue ?? min;
+  // Store persistent state on the element (survives handler recreation)
+  sliderContainer._currentValue = sliderContainer._currentValue ?? (initialValue ?? min);
+  sliderContainer._isDragging = sliderContainer._isDragging ?? false;
+
   const valueRange = max - min;
 
   const updateThumbPosition = (value) => {
@@ -102,7 +105,7 @@ export const addSlider = async ({
     thumb.width = originalWidth * scale;
     thumb.height = originalHeight * scale;
 
-    updateThumbPosition(currentValue);
+    updateThumbPosition(sliderContainer._currentValue);
   };
 
   // Handle cleanup
@@ -118,9 +121,6 @@ export const addSlider = async ({
   // Store original textures for hover effects
   const originalThumbTexture = thumbTexture;
   const originalBarTexture = barTexture;
-
-  // Dragging state
-  let isDragging = false;
 
   // Calculate value from position
   const getValueFromPosition = (position) => {
@@ -155,13 +155,13 @@ export const addSlider = async ({
     const newPosition = sliderContainer.toLocal(event.global);
     const newValue = getValueFromPosition(newPosition);
 
-    if (newValue !== currentValue) {
-      currentValue = newValue;
-      updateThumbPosition(currentValue);
+    if (newValue !== sliderContainer._currentValue) {
+      sliderContainer._currentValue = newValue;
+      updateThumbPosition(sliderContainer._currentValue);
 
       if (change?.actionPayload && eventHandler) {
         eventHandler(`change`, {
-          _event: { id, value: currentValue },
+          _event: { id, value: sliderContainer._currentValue },
           ...change.actionPayload,
         });
       }
@@ -170,16 +170,16 @@ export const addSlider = async ({
 
   // Handle drag events
   const dragStartListener = (event) => {
-    isDragging = true;
+    sliderContainer._isDragging = true;
     onChange(event);
   };
 
   const dragMoveListener = (event) => {
-    if (isDragging) onChange(event);
+    if (sliderContainer._isDragging) onChange(event);
   };
 
   const dragEndListener = () => {
-    if (isDragging) isDragging = false;
+    if (sliderContainer._isDragging) sliderContainer._isDragging = false;
   };
 
   sliderContainer.on("pointerdown", dragStartListener);
@@ -218,7 +218,7 @@ export const addSlider = async ({
     };
 
     const outListener = () => {
-      if (!isDragging) {
+      if (!sliderContainer._isDragging) {
         bar.cursor = "auto";
         thumb.cursor = "auto";
 

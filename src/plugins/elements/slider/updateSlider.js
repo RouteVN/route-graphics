@@ -97,10 +97,14 @@ export const updateSlider = async ({
           thumb.texture = thumbTexture;
         }
 
-        // Update thumb position based on new value
+        // Update thumb position based on current value
+        // Use stored _currentValue if it exists, otherwise use initialValue
+        const currentValue = sliderElement._currentValue ?? nextSliderASTNode.initialValue ?? nextSliderASTNode.min;
+        sliderElement._currentValue = currentValue;
+
         const valueRange = nextSliderASTNode.max - nextSliderASTNode.min;
         const normalizedValue =
-          (nextSliderASTNode.initialValue - nextSliderASTNode.min) / valueRange;
+          (currentValue - nextSliderASTNode.min) / valueRange;
 
         if (nextSliderASTNode.direction === "horizontal") {
           thumb.x = normalizedValue * (bar.width - thumb.width);
@@ -129,7 +133,10 @@ export const updateSlider = async ({
         const { hover, change, min, max, step, direction, initialValue } =
           nextSliderASTNode;
 
-        let currentValue = initialValue ?? min;
+        // Initialize or restore persistent state on the element
+        sliderElement._currentValue = sliderElement._currentValue ?? (initialValue ?? min);
+        sliderElement._isDragging = sliderElement._isDragging ?? false;
+
         const valueRange = max - min;
         sliderElement.eventMode = "static";
 
@@ -175,20 +182,17 @@ export const updateSlider = async ({
         const originalThumbTexture = thumb.texture;
         const originalBarTexture = bar.texture;
 
-        // Handle drag events
-        let isDragging = false;
-
         const onChange = (event) => {
           const newPosition = sliderElement.toLocal(event.global);
           const newValue = getValueFromPosition(newPosition);
 
-          if (newValue !== currentValue) {
-            currentValue = newValue;
-            updateThumbPosition(currentValue);
+          if (newValue !== sliderElement._currentValue) {
+            sliderElement._currentValue = newValue;
+            updateThumbPosition(sliderElement._currentValue);
 
             if (change?.actionPayload && eventHandler) {
               eventHandler(`change`, {
-                _event: { id, value: currentValue },
+                _event: { id, value: sliderElement._currentValue },
                 ...change.actionPayload,
               });
             }
@@ -196,16 +200,16 @@ export const updateSlider = async ({
         };
 
         const dragStartListener = (event) => {
-          isDragging = true;
+          sliderElement._isDragging = true;
           onChange(event);
         };
 
         const dragMoveListener = (event) => {
-          if (isDragging) onChange(event);
+          if (sliderElement._isDragging) onChange(event);
         };
 
         const dragEndListener = () => {
-          if (isDragging) isDragging = false;
+          if (sliderElement._isDragging) sliderElement._isDragging = false;
         };
 
         sliderElement.on("pointerdown", dragStartListener);
@@ -243,7 +247,7 @@ export const updateSlider = async ({
           };
 
           const outListener = () => {
-            if (!isDragging) {
+            if (!sliderElement._isDragging) {
               sliderElement.cursor = "auto";
               thumb.cursor = "auto";
 
