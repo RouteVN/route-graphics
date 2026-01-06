@@ -228,7 +228,9 @@ export const parseTextRevealing = ({ state }) => {
     }
 
     // Replace trailing spaces with non-breaking spaces
-    const convertedText = String(item.text).replace(/ +$/, (match) => "\u00A0".repeat(match.length));
+    const convertedText = String(item.text).replace(/ +$/, (match) =>
+      "\u00A0".repeat(match.length),
+    );
 
     return {
       text: convertedText,
