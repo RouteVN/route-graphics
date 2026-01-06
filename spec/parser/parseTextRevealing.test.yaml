@@ -502,3 +502,162 @@ out:
     wordWrap: true
     breakWords: false
     wordWrapWidth: 0
+---
+case: Test parsing text-revealing with boolean content (true)
+in:
+  - state:
+      id: "tr-bool-true"
+      type: "text-revealing"
+      content:
+        - text: true
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "tr-bool-true"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "true"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 19
+            wordWrap: true
+            wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: typewriter
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: false
+    wordWrapWidth: 0
+---
+case: Test parsing text-revealing with boolean content (false)
+in:
+  - state:
+      id: "tr-bool-false"
+      type: "text-revealing"
+      content:
+        - text: false
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "tr-bool-false"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "false"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 19
+            wordWrap: true
+            wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: typewriter
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: false
+    wordWrapWidth: 0
+---
+case: Test parsing text-revealing with number content
+in:
+  - state:
+      id: "tr-number"
+      type: "text-revealing"
+      content:
+        - text: 42
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "tr-number"
+  type: "text-revealing"
+  content:
+    - lineParts:
+        - text: "42"
+          textStyle:
+            fontSize: 16
+            fill: "black"
+            fontFamily: "Arial"
+            align: "left"
+            lineHeight: 19
+            wordWrap: true
+            wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 0
+          y: 0
+      y: 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: typewriter
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fill: "black"
+    fontFamily: "Arial"
+    align: "left"
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: false
+    wordWrapWidth: 0
