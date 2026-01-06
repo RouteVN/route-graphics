@@ -259,3 +259,102 @@ out:
     strokeColor: "#000000"
     strokeWidth: 1
     wordWrapWidth: 0
+---
+case: Test parsing text with boolean content (true)
+in:
+  - state:
+      id: 'bool-text-true'
+      type: "text"
+      content: true
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "bool-text-true"
+  type: "text"
+  content: "true"
+  width: 28
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fontFamily: "Arial"
+    fill: "black"
+    align: "left"
+    lineHeight: 19
+    wordWrap: false
+    breakWords: false
+    wordWrapWidth: 0
+---
+case: Test parsing text with boolean content (false)
+in:
+  - state:
+      id: 'bool-text-false'
+      type: "text"
+      content: false
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "bool-text-false"
+  type: "text"
+  content: "false"
+  width: 34
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fontFamily: "Arial"
+    fill: "black"
+    align: "left"
+    lineHeight: 19
+    wordWrap: false
+    breakWords: false
+    wordWrapWidth: 0
+---
+case: Test parsing text with number content
+in:
+  - state:
+      id: 'number-text'
+      type: "text"
+      content: 42
+      x: 100
+      y: 100
+      textStyle:
+        fontSize: 16
+out:
+  id: "number-text"
+  type: "text"
+  content: "42"
+  width: 18
+  height: 19
+  x: 100
+  y: 100
+  originX: 0
+  originY: 0
+  alpha: 1
+  textStyle:
+    strokeColor: "transparent"
+    strokeWidth: 0
+    fontSize: 16
+    fontFamily: "Arial"
+    fill: "black"
+    align: "left"
+    lineHeight: 19
+    wordWrap: false
+    breakWords: false
+    wordWrapWidth: 0
