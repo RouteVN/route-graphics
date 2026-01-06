@@ -28,8 +28,11 @@ export const parseText = ({ state }) => {
     textStyle.wordWrap = true;
   }
 
+  // Convert content to string for measurement
+  const contentString = String(state.content ?? "");
+
   const { width, height } = CanvasTextMetrics.measureText(
-    state.content ?? "",
+    contentString,
     new TextStyle(textStyle),
   );
 
@@ -45,7 +48,7 @@ export const parseText = ({ state }) => {
 
   return {
     ...astObj,
-    content: state.content ?? "",
+    content: contentString,
     textStyle: {
       ...textStyle,
     },

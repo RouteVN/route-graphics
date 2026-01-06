@@ -222,14 +222,16 @@ export const parseTextRevealing = ({ state }) => {
       }
 
       furigana = {
-        text: item.furigana.text,
+        text: String(item.furigana.text),
         textStyle: furiganaTextStyle,
       };
     }
 
     // Replace trailing spaces with non-breaking spaces
+    const convertedText = String(item.text).replace(/ +$/, (match) => "\u00A0".repeat(match.length));
+
     return {
-      text: item.text.replace(/ +$/, (match) => "\u00A0".repeat(match.length)),
+      text: convertedText,
       textStyle: itemTextStyle,
       ...(furigana && { furigana }),
     };
