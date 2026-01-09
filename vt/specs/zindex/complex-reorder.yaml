@@ -1,0 +1,127 @@
+---
+title: Z-Index Complex Reorder With Multiple Changes
+description: Tests z-order with simultaneous add, remove, and reorder operations during animations
+specs:
+  - "multiple z-index changes should apply correctly in single transition"
+  - "removed elements should not affect z-order of remaining elements"
+  - "added elements should appear at correct z-index immediately"
+steps:
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=200
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=300
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+---
+states:
+  # State 1: Three overlapping circles - Red, Green, Blue (back to front)
+  - elements:
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 100
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-green'
+        type: "sprite"
+        src: "circle-green"
+        x: 140
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 180
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+  # State 2: Green removed, Blue moved to back, Red stays, new rect added in middle
+  # Final order: Blue (back), rect (middle), Red (front)
+  - elements:
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 100
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'rect-yellow'
+        type: "rect"
+        x: 140
+        y: 110
+        width: 100
+        height: 100
+        fill: "#FFD700"
+        alpha: 1
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 180
+        y: 100
+        width: 120
+        height: 120
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+    animations:
+      - id: 'blue-move'
+        targetId: 'circle-blue'
+        type: tween
+        properties:
+          x:
+            initialValue: 180
+            keyframes:
+              - duration: 1000
+                value: 100
+                easing: linear
+      - id: 'red-move'
+        targetId: 'circle-red'
+        type: tween
+        properties:
+          x:
+            initialValue: 100
+            keyframes:
+              - duration: 1000
+                value: 180
+                easing: linear
+      - id: 'rect-fade-in'
+        targetId: 'rect-yellow'
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+      - id: 'green-fade-out'
+        targetId: 'circle-green'
+        type: tween
+        properties:
+          alpha:
+            initialValue: 1
+            keyframes:
+              - duration: 500
+                value: 0
+                easing: linear

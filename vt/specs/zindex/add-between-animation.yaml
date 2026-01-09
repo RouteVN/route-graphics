@@ -1,0 +1,88 @@
+---
+title: Z-Index Add Element Between Existing
+description: Tests that a new element added between existing elements appears at correct z-index during fade-in animation
+specs:
+  - "new green circle should appear between red (back) and blue (front)"
+  - "z-order should be correct from first frame of animation"
+  - "green circle should fade in while maintaining correct z-position"
+steps:
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=100
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+---
+states:
+  # State 1: Red (back) and Blue (front) - overlapping
+  - elements:
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 100
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 200
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+  # State 2: Red (back), Green (middle), Blue (front) - green fades in
+  - elements:
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 100
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-green'
+        type: "sprite"
+        src: "circle-green"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 200
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+    animations:
+      - id: 'green-fade-in'
+        targetId: 'circle-green'
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
