@@ -51,11 +51,12 @@ function createCustomTexture(app, shapeConfig) {
  * Add a particle effect to the stage using custom behavior configs.
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addParticle = async ({ app, parent, element, signal }) => {
+export const addParticle = async ({ app, parent, element, signal, zIndex }) => {
   if (signal?.aborted) return;
 
   const container = new Container();
   container.label = element.id;
+  container.zIndex = zIndex;
   parent.addChild(container);
 
   const width = element.width;

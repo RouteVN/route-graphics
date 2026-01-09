@@ -18,10 +18,15 @@ export const updateContainer = async ({
   animationPlugins,
   elementPlugins,
   signal,
+  zIndex,
 }) => {
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  if (containerElement) {
+    containerElement.zIndex = zIndex;
+  }
   let isAnimationDone = true;
 
   const updateElement = async () => {

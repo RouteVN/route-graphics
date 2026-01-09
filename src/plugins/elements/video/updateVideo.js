@@ -14,10 +14,15 @@ export const updateVideo = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   const videoElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  if (videoElement) {
+    videoElement.zIndex = zIndex;
+  }
 
   let isAnimationDone = true;
 

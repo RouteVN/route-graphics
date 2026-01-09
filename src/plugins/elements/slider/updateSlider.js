@@ -14,6 +14,7 @@ export const updateSlider = async ({
   animations,
   animationPlugins,
   signal,
+  zIndex,
 }) => {
   if (signal?.aborted) {
     return;
@@ -22,6 +23,10 @@ export const updateSlider = async ({
   const sliderElement = parent.children.find(
     (child) => child.label === prevSliderASTNode.id,
   );
+
+  if (sliderElement) {
+    sliderElement.zIndex = zIndex;
+  }
 
   const updateElement = () => {
     if (

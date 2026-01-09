@@ -15,10 +15,15 @@ export const updateText = async ({
   animations,
   animationPlugins,
   signal,
+  zIndex,
 }) => {
   const textElement = parent.children.find(
     (child) => child.label === prevTextASTNode.id,
   );
+
+  if (textElement) {
+    textElement.zIndex = zIndex;
+  }
 
   let isAnimationDone = true;
 

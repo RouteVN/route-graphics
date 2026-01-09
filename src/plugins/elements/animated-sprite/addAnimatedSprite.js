@@ -14,6 +14,7 @@ export const addAnimatedSprite = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   let isAnimationDone = true;
   const {
@@ -40,6 +41,7 @@ export const addAnimatedSprite = async ({
 
   const animatedSprite = new AnimatedSprite(frameTextures);
   animatedSprite.label = id;
+  animatedSprite.zIndex = zIndex;
 
   animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
   animatedSprite.loop = animation.loop ?? true;

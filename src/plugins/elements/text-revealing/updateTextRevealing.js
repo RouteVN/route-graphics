@@ -7,7 +7,7 @@ import abortableSleep from "../../../util/abortableSleep";
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async (params) => {
-  const { parent, nextElement: element, signal, eventHandler } = params;
+  const { parent, nextElement: element, signal, eventHandler, zIndex } = params;
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
@@ -22,6 +22,7 @@ export const updateTextRevealing = async (params) => {
     (child) => child.label === element.id,
   );
   if (textRevealingElement) {
+    textRevealingElement.zIndex = zIndex;
     textRevealingElement.removeChildren();
 
     let indicatorSprite = new Sprite(Texture.EMPTY);

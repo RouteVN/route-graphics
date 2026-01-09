@@ -11,6 +11,7 @@ export const addTextRevealing = async ({
   element,
   signal,
   eventHandler,
+  zIndex,
 }) => {
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
@@ -23,6 +24,7 @@ export const addTextRevealing = async ({
 
   const container = new Container();
   container.label = element.id;
+  container.zIndex = zIndex;
 
   let indicatorSprite = new Sprite(Texture.EMPTY);
   if (element?.indicator?.revealing?.src) {

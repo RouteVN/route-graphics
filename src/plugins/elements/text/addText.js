@@ -14,12 +14,14 @@ export const addText = async ({
   eventHandler,
   animationPlugins,
   signal,
+  zIndex,
 }) => {
   let isAnimationDone = true;
 
   const text = new Text({
     label: textASTNode.id,
   });
+  text.zIndex = zIndex;
   const drawText = () => {
     text.text = textASTNode.content;
     applyTextStyle(text, textASTNode.textStyle);

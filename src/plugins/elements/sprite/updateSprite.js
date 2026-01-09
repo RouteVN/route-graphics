@@ -14,10 +14,15 @@ export const updateSprite = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   const spriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  if (spriteElement) {
+    spriteElement.zIndex = zIndex;
+  }
 
   let isAnimationDone = true;
 

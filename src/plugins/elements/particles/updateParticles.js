@@ -27,6 +27,7 @@ export const updateParticles = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   // Find the existing container
   const container = parent.children.find(
@@ -43,9 +44,13 @@ export const updateParticles = async ({
       animationPlugins,
       eventHandler,
       signal,
+      zIndex,
     });
     return;
   }
+
+  // Update zIndex
+  container.zIndex = zIndex;
 
   // Check if we need to recreate the emitter (config changes)
   const needsRecreate = hasConfigChanged(prevElement, nextElement);
@@ -70,6 +75,7 @@ export const updateParticles = async ({
       animationPlugins,
       eventHandler,
       signal,
+      zIndex,
     });
   } else {
     // Simple property updates that don't require emitter recreation
