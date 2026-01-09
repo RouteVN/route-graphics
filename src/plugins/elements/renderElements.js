@@ -32,6 +32,16 @@ export const renderElements = async ({
     nextASTTree,
     animations,
   );
+
+  // Update zIndex for ALL existing children BEFORE any add/update/delete operations
+  // This ensures correct z-ordering during animations
+  for (const child of parent.children) {
+    const expectedZIndex = nextASTTree.findIndex((e) => e.id === child.label);
+    if (expectedZIndex !== -1) {
+      child.zIndex = expectedZIndex;
+    }
+  }
+
   const asyncActions = [];
 
   // Delete elements
@@ -108,7 +118,6 @@ export const renderElements = async ({
 
   try {
     await Promise.all(asyncActions);
-    // zIndex-based sorting is handled automatically by PixiJS sortableChildren
   } catch (error) {
     // If render was aborted, don't throw - the next render will handle it
     if (signal.aborted) {
