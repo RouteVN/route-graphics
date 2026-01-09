@@ -13,11 +13,13 @@ export const addRect = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   const { id, x, y, width, height, fill, border, alpha } = element;
 
   const rect = new Graphics();
   rect.label = id;
+  rect.zIndex = zIndex;
   let isAnimationDone = true;
 
   const drawRect = () => {

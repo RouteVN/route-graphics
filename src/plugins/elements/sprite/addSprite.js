@@ -13,12 +13,14 @@ export const addSprite = async ({
   eventHandler,
   animationPlugins,
   signal,
+  zIndex,
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
+  sprite.zIndex = zIndex;
 
   const drawSprite = () => {
     sprite.x = Math.round(x);

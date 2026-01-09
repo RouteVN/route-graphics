@@ -24,6 +24,9 @@ export const renderElements = async ({
   elementPlugins,
   signal,
 }) => {
+  // Enable PixiJS built-in sorting by zIndex
+  parent.sortableChildren = true;
+
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
     prevASTTree,
     nextASTTree,
@@ -59,6 +62,9 @@ export const renderElements = async ({
       throw new Error(`No plugin found for element type: ${element.type}`);
     }
 
+    // Calculate zIndex based on position in nextASTTree
+    const zIndex = nextASTTree.findIndex((e) => e.id === element.id);
+
     asyncActions.push(
       plugin.add({
         app,
@@ -69,6 +75,7 @@ export const renderElements = async ({
         signal,
         animationPlugins,
         elementPlugins,
+        zIndex,
       }),
     );
   }
@@ -79,6 +86,9 @@ export const renderElements = async ({
     if (!plugin) {
       throw new Error(`No plugin found for element type: ${next.type}`);
     }
+
+    // Calculate zIndex based on position in nextASTTree
+    const zIndex = nextASTTree.findIndex((e) => e.id === next.id);
 
     asyncActions.push(
       plugin.update({
@@ -91,47 +101,20 @@ export const renderElements = async ({
         eventHandler,
         signal,
         elementPlugins,
+        zIndex,
       }),
     );
   }
 
   try {
     await Promise.all(asyncActions);
-
-    // Sort container children to maintain AST order
-    sortContainerChildren(parent, nextASTTree);
+    // zIndex-based sorting is handled automatically by PixiJS sortableChildren
   } catch (error) {
-    // If render was aborted, don't sort - the next render will handle it
+    // If render was aborted, don't throw - the next render will handle it
     if (signal.aborted) {
       console.log("Render aborted, skipping cleanup");
     } else {
       throw error;
     }
   }
-};
-
-/**
- * Sort container children to match AST order, considering zIndex
- * @param {import('pixi.js').Container} container - Container to sort
- * @param {import('../../types.js').ASTNode[]} nextAST - Target AST tree
- */
-const sortContainerChildren = (container, nextAST) => {
-  container.children = container.children
-    .sort((a, b) => {
-      const aIndex = nextAST.findIndex((element) => element.id === a.label);
-      const bIndex = nextAST.findIndex((element) => element.id === b.label);
-
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      }
-
-      // Keep elements that aren't in nextAST at their current position
-      if (aIndex === -1 && bIndex === -1) return 0;
-      if (aIndex === -1) return -1;
-      if (bIndex === -1) return 1;
-    })
-    .map((child, index) => {
-      child.zIndex = index;
-      return child;
-    });
 };
