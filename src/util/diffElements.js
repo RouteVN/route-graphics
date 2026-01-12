@@ -1,3 +1,5 @@
+import { collectAllElementIds } from "./collectElementIds.js";
+
 /**
  * @typedef {import("../types.js").ASTNode} ASTNode
  * @typedef {import("../types.js").DiffElementResult} DiffElementResult
@@ -42,15 +44,19 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
     } else if (prevEl && !nextEl) {
       // Element is deleted
       toDeleteElement.push(prevEl);
-    } else if (
-      JSON.stringify(prevEl) !== JSON.stringify(nextEl) ||
-      animations.find((transition) => transition.targetId === nextEl.id)
-    ) {
-      //Update element
-      toUpdateElement.push({
-        prev: prevEl,
-        next: nextEl,
-      });
+    } else {
+      const allIds = collectAllElementIds(nextEl);
+      const hasAnimation = animations.find((transition) =>
+        allIds.has(transition.targetId),
+      );
+
+      if (JSON.stringify(prevEl) !== JSON.stringify(nextEl) || hasAnimation) {
+        // Update element - definition changed or has animations targeting it or children
+        toUpdateElement.push({
+          prev: prevEl,
+          next: nextEl,
+        });
+      }
     }
   }
   return { toAddElement, toDeleteElement, toUpdateElement };

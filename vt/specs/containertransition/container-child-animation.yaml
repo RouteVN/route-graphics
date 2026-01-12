@@ -1,0 +1,69 @@
+---
+title: Container Child Animation
+description: Animation targeting child element when container definition is unchanged
+specs:
+  - "child sprite should fade out when container is unchanged"
+  - "animation should target child element directly"
+  - "sibling sprite should remain visible"
+steps:
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
+---
+states:
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 100
+        y: 100
+        direction: "horizontal"
+        gap: 20
+        alpha: 1
+        children:
+          - id: 'sprite1'
+            type: "sprite"
+            src: "circle-blue"
+            width: 150
+            height: 150
+            alpha: 1
+          - id: 'sprite2'
+            type: "sprite"
+            src: "circle-red"
+            width: 150
+            height: 150
+            alpha: 1
+    animations: []
+  - elements:
+      - id: 'container1'
+        type: "container"
+        x: 100
+        y: 100
+        direction: "horizontal"
+        gap: 20
+        alpha: 1
+        children:
+          - id: 'sprite1'
+            type: "sprite"
+            src: "circle-blue"
+            width: 150
+            height: 150
+            alpha: 1
+          - id: 'sprite2'
+            type: "sprite"
+            src: "circle-red"
+            width: 150
+            height: 150
+            alpha: 1
+    animations:
+      - id: 'child-fade-out'
+        targetId: 'sprite1'
+        type: tween
+        properties:
+          alpha:
+            keyframes:
+              - duration: 700
+                value: 0
+                easing: linear
