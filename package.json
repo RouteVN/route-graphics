@@ -51,6 +51,7 @@
     "playwright": "^1.44.0",
     "pngjs": "^7.0.0",
     "puty": "^0.0.5-rc1",
+    "rtgl": "0.0.36",
     "vitest": "^4.0.8"
   },
   "lint-staged": {
