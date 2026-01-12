@@ -43,7 +43,6 @@ export const renderElements = async ({
   }
 
   const asyncActions = [];
-
   // Delete elements
   for (const element of toDeleteElement) {
     const plugin = elementPlugins.find((p) => p.type === element.type);

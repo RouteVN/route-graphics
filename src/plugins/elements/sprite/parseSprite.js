@@ -17,7 +17,6 @@ export const parseSprite = ({ state }) => {
     ...astObj,
     src: state.src ?? "",
     alpha: state.alpha ?? 1,
-    cursor: state.cursor ?? "",
     ...(state.hover && { hover: state.hover }),
     ...(state.click && { click: state.click }),
     ...(state.rightClick && { rightClick: state.rightClick }),

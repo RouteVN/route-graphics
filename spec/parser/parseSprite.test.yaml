@@ -14,7 +14,6 @@ in:
       alpha: 0.8
       width: 80
       height: 100
-      cursor: pointer
       scaleX: 1.2
       scaleY: 0.8
       x: 240
@@ -45,7 +44,6 @@ out:
   originY: 40
   alpha: 0.8
   src: "file:circle-red"
-  cursor: pointer
   hover:
       soundSrc: "sound-1"
       cursor: "cursor-1"
@@ -84,4 +82,3 @@ out:
   originY: 40
   alpha: 1
   src: ""
-  cursor: ""
