@@ -28,7 +28,6 @@ export const parseRect = ({ state }) => {
 
   return {
     ...finalObj,
-    cursor: state.cursor ?? "",
     fill: state.fill ?? "white",
     rotation: state.rotation ?? 0,
     ...(state.drag && { drag: state.drag }),
