@@ -15,10 +15,15 @@ export const updateAnimatedSprite = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   const animatedSpriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  if (animatedSpriteElement) {
+    animatedSpriteElement.zIndex = zIndex;
+  }
 
   let isAnimationDone = true;
 

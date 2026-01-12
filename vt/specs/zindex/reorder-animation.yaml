@@ -1,0 +1,77 @@
+---
+title: Z-Index Reorder During Animation
+description: Tests that z-order updates correctly when elements are reordered in AST during animated transitions
+specs:
+  - "z-order should update immediately when AST order changes"
+  - "blue circle should move from back to front during reorder"
+  - "red circle should move from front to back during reorder"
+steps:
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=250
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=250
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - screenshot
+---
+states:
+  # State 1: Blue behind, Red in front (overlapping at center)
+  - elements:
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 150
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 200
+        y: 130
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+  # State 2: Red behind, Blue in front (swap z-order) with position animation
+  - elements:
+      - id: 'circle-red'
+        type: "sprite"
+        src: "circle-red"
+        x: 200
+        y: 130
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+      - id: 'circle-blue'
+        type: "sprite"
+        src: "circle-blue"
+        x: 220
+        y: 100
+        width: 150
+        height: 150
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        rotation: 0
+    animations:
+      - id: 'blue-move'
+        targetId: 'circle-blue'
+        type: tween
+        properties:
+          x:
+            initialValue: 150
+            keyframes:
+              - duration: 1000
+                value: 220
+                easing: linear
