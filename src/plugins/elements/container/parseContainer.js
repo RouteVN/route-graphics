@@ -54,7 +54,13 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
 
     const plugin = parserPlugins.find((p) => p.type === child.type);
     if (plugin) {
-      child = plugin.parse({ state: child, parserPlugins });
+      const childScaleX = (child.scaleX !== undefined ? child.scaleX : 1) * (state.scaleX ?? 1);
+      const childScaleY = (child.scaleY !== undefined ? child.scaleY : 1) * (state.scaleY ?? 1);
+      child = plugin.parse({ state: {
+        ...child,
+        scaleX: childScaleX,
+        scaleY: childScaleY
+      }, parserPlugins });
     }
 
     if (direction === "horizontal") {

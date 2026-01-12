@@ -174,10 +174,12 @@ export const animate = async ({
     // Store initial displayObject values
     const initialProperties = {};
     animationProperties.forEach((animationProperty) => {
-      initialProperties[animationProperty.property] = getTransitionProperty(
+      const initialValue = getTransitionProperty(
         element,
         animationProperty.property,
       );
+      initialProperties[animationProperty.property] = initialValue;
+      console.log("Initial element property:", animationProperty.property, "=", initialValue);
     });
 
     const propertyTimelines = animationProperties.map((animationProperty) => {
@@ -205,9 +207,11 @@ export const animate = async ({
     const applyAnimationState = (timeDelta) => {
       propertyTimelines.forEach(({ property, timeline }) => {
         const value = getValueAtTime(timeline, timeDelta);
+        console.log("Animation tick - property:", property, "value:", value);
 
         if (element && !element.destroyed) {
           setTransitionProperty(element, property, value);
+          console.log("After set - element[property]:", getTransitionProperty(element, property));
         }
       });
     };
