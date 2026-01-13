@@ -347,6 +347,7 @@ const createRouteGraphics = () => {
     destroy: () => {
       app.audioStage.destroy();
       app.destroy();
+      if(advancedLoader) extensions.remove(advancedLoader);
     },
 
     /**
