@@ -13,6 +13,7 @@ export const addVideo = async ({
   eventHandler,
   animationPlugins,
   signal,
+  zIndex,
 }) => {
   let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
@@ -29,6 +30,7 @@ export const addVideo = async ({
 
   const sprite = new Sprite(texture);
   sprite.label = id;
+  sprite.zIndex = zIndex;
 
   const drawVideo = () => {
     sprite.x = Math.round(x);

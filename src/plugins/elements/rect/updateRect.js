@@ -13,10 +13,15 @@ export const updateRect = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
+
+  if (rectElement) {
+    rectElement.zIndex = zIndex;
+  }
 
   let isAnimationDone = true;
 

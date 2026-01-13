@@ -13,6 +13,7 @@ export const addSlider = async ({
   animationPlugins,
   eventHandler,
   signal,
+  zIndex,
 }) => {
   let isAnimationDone = true;
   if (signal?.aborted) {
@@ -42,6 +43,7 @@ export const addSlider = async ({
   // Create container for the slider
   const sliderContainer = new Container();
   sliderContainer.label = id;
+  sliderContainer.zIndex = zIndex;
   sliderContainer.x = x;
   sliderContainer.y = y;
   sliderContainer.alpha = alpha;

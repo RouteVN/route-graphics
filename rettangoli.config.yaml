@@ -107,6 +107,12 @@ vt:
         - title: "Animated Sprite Transitions"
           files: "animatedspritetransition"
           description: "Animated sprite transitions rendering test"
+    - title: "Z-Index"
+      type: "groupLabel"
+      items:
+        - title: "Z-Index Ordering"
+          files: "zindex"
+          description: "Z-index ordering tests during animations"
     - title: "Video"
       type: "groupLabel"
       items:

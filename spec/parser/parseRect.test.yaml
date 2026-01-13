@@ -23,7 +23,6 @@ in:
         width: 15
         color: blue
         alpha: 0.25
-      cursor: pointer
       rotation: 90
 out:
   id: "rect-1"
@@ -39,7 +38,6 @@ out:
     width: 15
     color: blue
     alpha: 0.25
-  cursor: pointer
   rotation: 90
   alpha: 1
 ---
@@ -57,7 +55,6 @@ in:
       anchorX: 0.5
       anchorY: 0.5
       fill: red
-      cursor: pointer
       rotation: 90
 out:
   id: "rect-1"
@@ -69,7 +66,6 @@ out:
   originX: 48
   originY: 40
   fill: red
-  cursor: pointer
   rotation: 90
   alpha: 1
 ---
@@ -89,7 +85,6 @@ in:
       border:
         alpha: 0.8
       fill: red
-      cursor: pointer
       rotation: 90
 out:
   id: "rect-1"
@@ -105,7 +100,6 @@ out:
     width: 0
     color: black
   fill: red
-  cursor: pointer
   rotation: 90
   alpha: 1
 ---
@@ -138,6 +132,5 @@ out:
     width: 0
     color: black
   fill: white
-  cursor: ""
   rotation: 0
   alpha: 1

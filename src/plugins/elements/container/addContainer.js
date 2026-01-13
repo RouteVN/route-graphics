@@ -15,11 +15,13 @@ export const addContainer = async ({
   animationPlugins,
   elementPlugins,
   signal,
+  zIndex,
 }) => {
   const { id, x, y, children, scroll, alpha } = element;
 
   const container = new Container();
   container.label = id;
+  container.zIndex = zIndex;
   let isAnimationDone = true;
 
   const drawContainer = () => {
