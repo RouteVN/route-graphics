@@ -1,7 +1,7 @@
 {
   "name": "route-graphics",
   "version": "0.0.27",
-  "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
+  "description": "A declarative 2D graphics and sound library based on PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
   "license": "MIT",
@@ -10,12 +10,16 @@
     "url": "https://github.com/yuusoft-org/route-graphics.git"
   },
   "keywords": [
-    "2d",
-    "graphics",
+    "2d-graphics",
+    "graphics-engine",
+    "pixijs",
     "pixi",
-    "rendering",
+    "rendering-engine",
     "canvas",
-    "json"
+    "webgl",
+    "game-graphics",
+    "2d-rendering",
+    "graphics-library"
   ],
   "files": [
     "dist",
