@@ -10,12 +10,16 @@
     "url": "https://github.com/yuusoft-org/route-graphics.git"
   },
   "keywords": [
-    "2d",
-    "graphics",
+    "2d-graphics",
+    "graphics-engine",
+    "pixijs",
     "pixi",
-    "rendering",
+    "rendering-engine",
     "canvas",
-    "json"
+    "webgl",
+    "game-graphics",
+    "2d-rendering",
+    "graphics-library"
   ],
   "files": [
     "dist",
