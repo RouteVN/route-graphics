@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Rectangle } from "pixi.js";
 
 /**
  * @param {import("../../../../types").SetupScrollingOptions} params
@@ -45,6 +45,13 @@ export const setupScrolling = ({ container, element }) => {
 
     // Enable mouse events on the container
     container.eventMode = "static";
+    // Set hitArea to capture events in empty space (not just on children)
+    container.hitArea = new Rectangle(
+      0,
+      0,
+      element.width || totalWidth,
+      element.height || totalHeight,
+    );
 
     let scrollYOffset = 0;
     let scrollXOffset = 0;
@@ -126,5 +133,6 @@ export const removeScrolling = ({ container }) => {
   }
 
   container.eventMode = "auto";
+  container.hitArea = null;
   container.removeAllListeners("wheel");
 };
