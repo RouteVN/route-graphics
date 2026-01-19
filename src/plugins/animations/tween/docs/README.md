@@ -1,8 +1,6 @@
-
 # Tween Animations
 
 tween animations have 3 types. add, update and delete. it depends on the target element's state.
-
 
 ## Add
 
@@ -275,5 +273,3 @@ states:
                 value: 200
                 easing: linear
 ```
-
-
