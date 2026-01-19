@@ -51,7 +51,7 @@ states:
   - elements:
       - id: "rect1"
         type: "rect"
-        x: 200
+        x: 400
         y: 150
         width: 400
         height: 300
@@ -176,6 +176,7 @@ states:
         height: 300
         fill: "#3498db"
         alpha: 0.8
+    animations:
       - id: "rect-fade-in"
         targetId: "rect1"
         type: tween
