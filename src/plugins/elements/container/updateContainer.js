@@ -1,7 +1,6 @@
 import animateElements from "../../../util/animateElements.js";
 import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
-import { collectAllElementIds } from "../../../util/collectElementIds.js";
 
 /**
  * Update container element
@@ -141,36 +140,27 @@ export const updateContainer = async ({
           element: nextElement,
         });
       }
-    }
 
-    // Check if children definition changed
-    const childrenChanged =
-      JSON.stringify(prevElement.children) !==
-      JSON.stringify(nextElement.children);
-
-    // Check if any animation targets a child element
-    const childIds = collectAllElementIds({ children: nextElement.children });
-    const hasChildAnimation = animations?.some((anim) =>
-      childIds.has(anim.targetId),
-    );
-
-    // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation) {
-      await renderElements({
-        app,
-        parent: nextElement.scroll
-          ? containerElement.children.find(
-              (child) => child.label === `${nextElement.id}-content`,
-            )
-          : containerElement,
-        nextASTTree: nextElement.children,
-        prevASTTree: prevElement.children,
-        eventHandler,
-        elementPlugins,
-        animations,
-        animationPlugins,
-        signal,
-      });
+      if (
+        JSON.stringify(prevElement.children) !==
+        JSON.stringify(nextElement.children)
+      ) {
+        await renderElements({
+          app,
+          parent: nextElement.scroll
+            ? containerElement.children.find(
+                (child) => child.label === `${nextElement.id}-content`,
+              )
+            : containerElement,
+          nextASTTree: nextElement.children,
+          prevASTTree: prevElement.children,
+          eventHandler,
+          elementPlugins,
+          animations,
+          animationPlugins,
+          signal,
+        });
+      }
     }
   };
 
