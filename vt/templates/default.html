@@ -65,6 +65,7 @@
         await assetBufferManager.load(assetsObject);
 
         const app = createRouteGraphics();
+        window.takeVtScreenshotBase64 = async () => await app.extractBase64();
         const plugins = {
             elements: [
                 textPlugin,
@@ -111,11 +112,14 @@
                             }
                         ],
                         // No animations to not get stuck in an infinite loop
-                        animations: [], 
+                        animations: [],
                         audio: states[index].audio ?? [],
                         global: states[index].global ?? {}
                     }
                 )
+            },
+            onFirstRender: () => {
+                window.dispatchEvent(new CustomEvent('vt:ready'));
             },
             debug: window?.RTGL_VT_DEBUG ?? false,
         });

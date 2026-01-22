@@ -131,6 +131,16 @@ const createRouteGraphics = () => {
   let isProcessingRender = false;
 
   /**
+   * @type {Function|undefined}
+   */
+  let onFirstRenderCallback;
+
+  /**
+   * @type {boolean}
+   */
+  let hasRenderedOnce = false;
+
+  /**
    * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
    */
   let advancedLoader;
@@ -252,6 +262,13 @@ const createRouteGraphics = () => {
     isProcessingRender = false;
     currentAbortController = null;
     state = nextState;
+
+    if (!hasRenderedOnce) {
+      hasRenderedOnce = true;
+      if (onFirstRenderCallback) {
+        onFirstRenderCallback();
+      }
+    }
   };
 
   const routeGraphicsInstance = {
@@ -274,6 +291,9 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
+      if (!label) {
+        return await app.renderer.extract.base64(app.stage);
+      }
       const element = app.stage.getChildByLabel(label, true);
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
@@ -299,7 +319,10 @@ const createRouteGraphics = () => {
         height,
         backgroundColor,
         debug = false,
+        onFirstRender,
       } = options;
+
+      onFirstRenderCallback = onFirstRender;
 
       const parserPlugins = [];
 
