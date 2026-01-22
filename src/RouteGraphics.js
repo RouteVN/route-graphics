@@ -292,7 +292,12 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
-      const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
+      const frame = new Rectangle(
+        0,
+        0,
+        app.renderer.width,
+        app.renderer.height,
+      );
       if (!label) {
         return await app.renderer.extract.base64({ target: app.stage, frame });
       }
