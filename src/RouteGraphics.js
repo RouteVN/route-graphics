@@ -6,6 +6,7 @@ import {
   extensions,
   ExtensionType,
   Texture,
+  Rectangle,
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
@@ -291,14 +292,15 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
+      const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
       if (!label) {
-        return await app.renderer.extract.base64(app.stage);
+        return await app.renderer.extract.base64({ target: app.stage, frame });
       }
       const element = app.stage.getChildByLabel(label, true);
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
       }
-      return await app.renderer.extract.base64(element);
+      return await app.renderer.extract.base64({ target: element, frame });
     },
 
     assignStageEvent: (eventType, callback) => {

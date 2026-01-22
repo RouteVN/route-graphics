@@ -65,7 +65,7 @@
         await assetBufferManager.load(assetsObject);
 
         const app = createRouteGraphics();
-        window.takeVtScreenshotBase64 = async () => await app.extractBase64();
+        window.takeVtScreenshotBase64 = async (label) => await app.extractBase64(label);
         const plugins = {
             elements: [
                 textPlugin,
