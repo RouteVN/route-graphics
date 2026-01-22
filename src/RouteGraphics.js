@@ -6,6 +6,7 @@ import {
   extensions,
   ExtensionType,
   Texture,
+  Rectangle,
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
@@ -131,6 +132,16 @@ const createRouteGraphics = () => {
   let isProcessingRender = false;
 
   /**
+   * @type {Function|undefined}
+   */
+  let onFirstRenderCallback;
+
+  /**
+   * @type {boolean}
+   */
+  let hasRenderedOnce = false;
+
+  /**
    * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
    */
   let advancedLoader;
@@ -252,6 +263,13 @@ const createRouteGraphics = () => {
     isProcessingRender = false;
     currentAbortController = null;
     state = nextState;
+
+    if (!hasRenderedOnce) {
+      hasRenderedOnce = true;
+      if (onFirstRenderCallback) {
+        onFirstRenderCallback();
+      }
+    }
   };
 
   const routeGraphicsInstance = {
@@ -274,11 +292,20 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
+      const frame = new Rectangle(
+        0,
+        0,
+        app.renderer.width,
+        app.renderer.height,
+      );
+      if (!label) {
+        return await app.renderer.extract.base64({ target: app.stage, frame });
+      }
       const element = app.stage.getChildByLabel(label, true);
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
       }
-      return await app.renderer.extract.base64(element);
+      return await app.renderer.extract.base64({ target: element, frame });
     },
 
     assignStageEvent: (eventType, callback) => {
@@ -299,7 +326,10 @@ const createRouteGraphics = () => {
         height,
         backgroundColor,
         debug = false,
+        onFirstRender,
       } = options;
+
+      onFirstRenderCallback = onFirstRender;
 
       const parserPlugins = [];
 
