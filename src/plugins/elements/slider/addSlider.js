@@ -1,25 +1,19 @@
 import { Sprite, Texture, Container } from "pixi.js";
-import animateElements from "../../../util/animateElements";
 
 /**
  * Add slider element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
  */
-export const addSlider = async ({
+export const addSlider = ({
   app,
   parent,
   element: sliderASTNode,
   animations,
-  animationPlugins,
+  animationBus,
+  completionTracker,
   eventHandler,
-  signal,
   zIndex,
 }) => {
-  let isAnimationDone = true;
-  if (signal?.aborted) {
-    return;
-  }
-
   const {
     id,
     x,
@@ -107,14 +101,6 @@ export const addSlider = async ({
     updateThumbPosition(currentValue);
   };
 
-  // Handle cleanup
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      setupSlider();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
   setupSlider();
 
   // Store original textures for hover effects
@@ -162,7 +148,7 @@ export const addSlider = async ({
       updateThumbPosition(currentValue);
 
       if (change?.actionPayload && eventHandler) {
-        eventHandler(`change`, {
+        eventHandler("change", {
           _event: { id, value: currentValue },
           ...change.actionPayload,
         });
@@ -242,18 +228,24 @@ export const addSlider = async ({
 
   parent.addChild(sliderContainer);
 
-  // Apply animations if any
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: sliderContainer,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: sliderContainer,
+        properties: animation.properties,
+        targetState: { x, y, alpha },
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
+      },
+    });
+  }
 };

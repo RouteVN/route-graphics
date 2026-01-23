@@ -1,53 +1,47 @@
-import animateElements from "../../../util/animateElements";
-
 /**
  * Delete slider element
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
-export const deleteSlider = async ({
+export const deleteSlider = ({
   app,
   parent,
   element,
   animations,
-  animationPlugins,
-  signal,
-  eventHandler,
+  animationBus,
+  completionTracker,
 }) => {
-  if (signal?.aborted) {
+  const sliderContainer = parent.getChildByLabel(element.id);
+
+  if (!sliderContainer) return;
+
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === element.id) || [];
+
+  if (relevantAnimations.length === 0) {
+    // No animation, destroy immediately
+    sliderContainer.destroy({ children: true });
     return;
   }
 
-  const sliderContainer = parent.getChildByLabel(element.id);
+  // Dispatch delete animations to the bus
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
 
-  if (sliderContainer) {
-    let isAnimationDone = true;
-
-    const deleteElement = () => {
-      if (sliderContainer && !sliderContainer.destroyed) {
-        sliderContainer.destroy({ children: true });
-      }
-    };
-
-    const abortHandler = async () => {
-      if (!isAnimationDone) {
-        deleteElement();
-      }
-    };
-
-    signal.addEventListener("abort", abortHandler);
-
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(element.id, animationPlugins, {
-        app,
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
         element: sliderContainer,
-        animations,
-        signal,
-        eventHandler,
-      });
-      isAnimationDone = true;
-    }
-    deleteElement();
-    signal.removeEventListener("abort", abortHandler);
+        properties: animation.properties,
+        targetState: null, // null signals destroy on cancel
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          if (sliderContainer && !sliderContainer.destroyed) {
+            sliderContainer.destroy({ children: true });
+          }
+        },
+      },
+    });
   }
 };

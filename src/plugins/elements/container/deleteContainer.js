@@ -1,54 +1,57 @@
-import animateElements from "../../../util/animateElements";
-
 /**
- * Delete container element
+ * Delete container element (synchronous)
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
-export const deleteContainer = async ({
+export const deleteContainer = ({
   app,
   parent,
   element,
-  animationPlugins,
+  animationBus,
   animations,
-  signal,
   eventHandler,
+  completionTracker,
 }) => {
   const containerElement = parent.getChildByLabel(element.id);
 
-  if (containerElement) {
-    let isAnimationDone = true;
+  if (!containerElement) return;
 
-    const deleteElement = () => {
-      if (containerElement && !containerElement.destroyed) {
-        parent.removeChild(containerElement);
-        containerElement.destroy({
-          children: true,
-          texture: true,
-          baseTexture: true,
-        });
-      }
-    };
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === element.id) || [];
 
-    const abortHandler = async () => {
-      if (!isAnimationDone) {
-        deleteElement();
-      }
-    };
-
-    signal.addEventListener("abort", abortHandler);
-
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(element.id, animationPlugins, {
-        app,
-        element: containerElement,
-        animations,
-        signal,
-        eventHandler,
+  const deleteElement = () => {
+    if (containerElement && !containerElement.destroyed) {
+      parent.removeChild(containerElement);
+      containerElement.destroy({
+        children: true,
+        texture: true,
+        baseTexture: true,
       });
-      isAnimationDone = true;
     }
+  };
+
+  if (relevantAnimations.length === 0) {
+    // No animation, destroy immediately
     deleteElement();
-    signal.removeEventListener("abort", abortHandler);
+    return;
+  }
+
+  // Dispatch delete animations to the bus
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: containerElement,
+        properties: animation.properties,
+        targetState: null, // null signals destroy on cancel
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          deleteElement();
+        },
+      },
+    });
   }
 };

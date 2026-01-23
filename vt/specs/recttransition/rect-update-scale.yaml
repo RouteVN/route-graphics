@@ -13,7 +13,8 @@ steps:
   - screenshot
 ---
 states:
-  - elements:
+  - id: "initial"
+    elements:
       - id: 'rect1'
         type: "rect"
         x: 300
@@ -23,7 +24,8 @@ states:
         fill: "#e67e22"
         scaleX: 1
         scaleY: 1
-  - elements:
+  - id: "rect-scale-up-state"
+    elements:
       - id: 'rect1'
         type: "rect"
         x: 300
@@ -37,10 +39,6 @@ states:
       - id: 'rect-scale'
         targetId: 'rect1'
         type: tween
-        complete:
-          actionPayload:
-            animationType: tween
-            status: finished
         properties:
           scaleX:
             keyframes:

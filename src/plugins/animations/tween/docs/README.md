@@ -98,6 +98,20 @@ states:
                 easing: linear
 ```
 
+# Key Behaviors
+
+## All animations run simultaneously
+
+All elements and their animations should run and appear at the same time. Animations should not wait for other animations to complete before starting.
+
+## State transitions abort running animations
+
+When transitioning to the next state before an animation has finished, the current animation should stop immediately and proceed from the start of the next state (not from the end of the previous state or the current animation progress).
+
+## Consecutive render calls
+
+If render is called twice consecutively, it is treated as running next state twice, with the first one being aborted.
+
 # Implications
 
 ## When updating state when animation has not finished running

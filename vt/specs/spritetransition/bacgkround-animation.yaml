@@ -1,0 +1,111 @@
+---
+title: Test background
+description: Testing sprite rendering with nested containers, dialogue box, and fade-in animation
+states:
+  - elements: []
+  - elements:
+      - id: "story"
+        type: "container"
+        x: 0
+        y: 0
+        children:
+          - id: "base"
+            type: "container"
+            children:
+              - id: "jkfeklaf"
+                type: "sprite"
+                x: 0
+                y: 0
+                width: 1920
+                height: 1080
+                anchorX: 0
+                anchorY: 0
+                scaleX: 1
+                scaleY: 1
+                rotation: 0
+          - id: "bg-cg-Vrlc_6Tq_vUJJLq-yx4Mg"
+            type: "sprite"
+            x: 0
+            y: 0
+            src: "background-1"
+            width: 1920
+            height: 1080
+          - id: "dialogue-container"
+            type: "container"
+            x: 35
+            y: 495
+            width: 1850
+            height: 350
+            anchorX: 0
+            anchorY: 0
+            scaleX: 1
+            scaleY: 1
+            rotation: 0
+            gap: 0
+            children:
+              - id: "dialogue-box"
+                type: "sprite"
+                x: 0
+                y: 0
+                width: 1850
+                height: 350
+                anchorX: 0
+                anchorY: 0
+                scaleX: 1
+                scaleY: 1
+                rotation: 0
+                src: "horizontal-hover-bar"
+              - id: "character-name"
+                type: "text"
+                x: 40
+                y: 30
+                width: 400
+                height: 40
+                anchorX: 0
+                anchorY: 0
+                scaleX: 1
+                scaleY: 1
+                rotation: 0
+                content: ""
+                textStyle:
+                  fontSize: 48
+                  fontFamily: "sans-serif"
+                  fontWeight: "400"
+                  fill: "#FFFFFF"
+                  lineHeight: 1.5
+                  breakWords: true
+                  align: "left"
+                  wordWrapWidth: null
+              - id: "dialogue-content"
+                type: "text"
+                x: 40
+                y: 110
+                width: 1440
+                height: 140
+                anchorX: 0
+                anchorY: 0
+                scaleX: 1
+                scaleY: 1
+                rotation: 0
+                content: "Helloi"
+                textStyle:
+                  fontSize: 36
+                  fontFamily: "sans-serif"
+                  fontWeight: "400"
+                  fill: "#000000"
+                  lineHeight: 1.5
+                  breakWords: true
+                  align: "left"
+                  wordWrapWidth: null
+    animations:
+      - id: "bg-cg-animation-in"
+        type: "tween"
+        targetId: "bg-cg-Vrlc_6Tq_vUJJLq-yx4Mg"
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: "linear"
+                relative: false

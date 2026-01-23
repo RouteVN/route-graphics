@@ -1,5 +1,4 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode } from "./util/debugUtils.js";
 
 /**
@@ -11,12 +10,10 @@ export const addAnimatedSprite = async ({
   parent,
   element,
   animations,
-  animationPlugins,
-  eventHandler,
-  signal,
+  animationBus,
+  completionTracker,
   zIndex,
 }) => {
-  let isAnimationDone = true;
   const {
     id,
     x,
@@ -49,36 +46,32 @@ export const addAnimatedSprite = async ({
   if (!app.debug) animatedSprite.play();
   else setupDebugMode(animatedSprite, id, app.debug);
 
-  const drawSprite = () => {
-    animatedSprite.x = Math.round(x);
-    animatedSprite.y = Math.round(y);
-    animatedSprite.width = Math.round(width);
-    animatedSprite.height = Math.round(height);
-    animatedSprite.alpha = alpha;
-  };
-
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawSprite();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
-  drawSprite();
+  animatedSprite.x = Math.round(x);
+  animatedSprite.y = Math.round(y);
+  animatedSprite.width = Math.round(width);
+  animatedSprite.height = Math.round(height);
+  animatedSprite.alpha = alpha;
 
   parent.addChild(animatedSprite);
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: animatedSprite,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: animatedSprite,
+        properties: animation.properties,
+        targetState: { x, y, width, height, alpha },
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
+      },
+    });
+  }
 };

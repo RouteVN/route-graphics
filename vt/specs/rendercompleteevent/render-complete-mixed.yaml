@@ -1,0 +1,48 @@
+---
+title: Render Complete Event - Mixed Animation and Text Revealing
+description: Test that renderComplete fires after both animations AND text-revealing complete
+specs:
+  - "renderComplete should wait for both animation and text-revealing"
+  - "should not fire until all trackable items complete"
+  - "payload should have aborted: false when all complete"
+steps:
+  - customEvent snapShotKeyFrame deltaMS=800
+  - customEvent showRenderComplete
+  - screenshot
+---
+states:
+  - id: "mixed-state"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 100
+        y: 100
+        width: 200
+        height: 100
+        fill: "#9b59b6"
+        alpha: 1
+      - id: "revealing-text"
+        type: "text-revealing"
+        content:
+          - text: "Loading..."
+            textStyle:
+              fontSize: 28
+              fill: "#ffffff"
+              fontFamily: "Arial"
+        x: 100
+        y: 250
+        width: 400
+        alpha: 1
+        speed: 50
+        revealEffect: typewriter
+    animations:
+      - id: "fade-rect"
+        targetId: "rect1"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 400
+                value: 1
+                easing: linear

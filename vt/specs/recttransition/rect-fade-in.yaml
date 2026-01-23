@@ -13,8 +13,10 @@ steps:
   - screenshot
 ---
 states:
-  - elements: []
-  - elements:
+  - id: "initial"
+    elements: []
+  - id: "rect-fade-in-state"
+    elements:
       - id: "rect1"
         type: "rect"
         x: 200
@@ -27,10 +29,6 @@ states:
       - id: "rect-fade-in"
         targetId: "rect1"
         type: tween
-        complete:
-          actionPayload:
-            animationType: tween
-            status: finished
         properties:
           alpha:
             initialValue: 0

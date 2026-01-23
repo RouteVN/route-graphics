@@ -9,10 +9,12 @@ import abortableSleep from "../../../util/abortableSleep";
 export const addTextRevealing = async ({
   parent,
   element,
-  signal,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
+  // Track this text-revealing for completion
+  const stateVersion = completionTracker.getVersion();
+  completionTracker.track(stateVersion);
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
   const indicatorOffset = element?.indicator?.offset ?? 12;
@@ -54,7 +56,6 @@ export const addTextRevealing = async ({
 
     // Process each line part in the chunk
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
-      if (signal?.aborted) return;
       const part = chunk.lineParts[partIndex];
 
       // Create text objects for this part
@@ -84,7 +85,7 @@ export const addTextRevealing = async ({
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
 
-      if (skipAnimations || signal?.aborted) {
+      if (skipAnimations) {
         text.text = fullText;
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, fullText.length - 1) +
@@ -97,8 +98,6 @@ export const addTextRevealing = async ({
         const furiganaLength = fullFurigana.length;
 
         for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
-          if (signal?.aborted) return;
-
           // Add current character to text
           text.text = fullText.substring(0, charIndex + 1);
 
@@ -117,12 +116,7 @@ export const addTextRevealing = async ({
           // Wait before adding next character
           if (charIndex < fullText.length - 1) {
             // Don't wait after last character
-            try {
-              await abortableSleep(charDelay, signal);
-            } catch {
-              if (err.name === "AbortError") return;
-              throw err;
-            }
+            await abortableSleep(charDelay);
           }
         }
       }
@@ -130,12 +124,7 @@ export const addTextRevealing = async ({
 
     // Wait before processing next chunk (except for the last chunk)
     if (chunkIndex < element.content.length - 1) {
-      try {
-        await abortableSleep(chunkDelay, signal);
-      } catch {
-        if (err.name === "AbortError") return;
-        throw err;
-      }
+      await abortableSleep(chunkDelay);
     }
   }
 
@@ -150,12 +139,6 @@ export const addTextRevealing = async ({
       element.indicator.complete.height ?? completeTexture.height;
   }
 
-  if (eventHandler && element?.complete?.actionPayload) {
-    eventHandler("complete", {
-      _event: {
-        id: element.id,
-      },
-      ...(element?.complete?.actionPayload ?? {}),
-    });
-  }
+  // Mark text-revealing as complete
+  completionTracker.complete(stateVersion);
 };

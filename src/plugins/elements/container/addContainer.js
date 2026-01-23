@@ -1,45 +1,35 @@
 import { Container } from "pixi.js";
-import animateElements from "../../../util/animateElements";
 import { setupScrolling } from "./util/scrollingUtils.js";
 
 /**
- * Add container element to the stage
+ * Add container element to the stage (synchronous)
  * @param {import("../elementPlugin").AddElementOptions} params
  */
-export const addContainer = async ({
+export const addContainer = ({
   app,
   parent,
   element,
   animations,
   eventHandler,
-  animationPlugins,
+  animationBus,
   elementPlugins,
-  signal,
   zIndex,
+  completionTracker,
 }) => {
   const { id, x, y, children, scroll, alpha } = element;
 
   const container = new Container();
   container.label = id;
   container.zIndex = zIndex;
-  let isAnimationDone = true;
 
-  const drawContainer = () => {
-    container.x = Math.round(x);
-    container.y = Math.round(y);
-    container.alpha = alpha;
-  };
+  // Apply initial state
+  container.x = Math.round(x);
+  container.y = Math.round(y);
+  container.alpha = alpha;
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawContainer();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
-  drawContainer();
   parent.addChild(container);
 
+  // Add children recursively
   if (children && children.length > 0) {
     for (const child of children) {
       const childPlugin = elementPlugins.find((p) => p.type === child.type);
@@ -49,16 +39,15 @@ export const addContainer = async ({
         );
       }
 
-      await childPlugin.add({
+      childPlugin.add({
         app,
         parent: container,
         element: child,
         animations,
         eventHandler,
-        animationPlugins,
-        animateElements,
+        animationBus,
         elementPlugins,
-        signal,
+        completionTracker,
       });
     }
   }
@@ -149,17 +138,24 @@ export const addContainer = async ({
     container.on("rightclick", rightClickListener);
   }
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: container,
-      animations,
-      signal,
-      eventHandler,
+  // Dispatch animations to the bus
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
+
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: container,
+        properties: animation.properties,
+        targetState: { x, y, alpha },
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
+      },
     });
   }
-  isAnimationDone = true;
-
-  signal.removeEventListener("abort", abortHandler);
 };

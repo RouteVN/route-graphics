@@ -1,15 +1,23 @@
+// Track pending delayed sounds so they can be cancelled on state change
+const pendingTimeouts = new Set();
+
+/**
+ * Clear all pending delayed sound additions
+ */
+export const clearPendingSounds = () => {
+  for (const timeoutId of pendingTimeouts) {
+    clearTimeout(timeoutId);
+  }
+  pendingTimeouts.clear();
+};
+
 /**
  * Add sound element to the audio stage
  * @param {Object} params
  * @param {import('../../../types.js').Application} params.app - The PIXI application instance with audioStage
  * @param {import('../../../types.js').SoundElement} params.element - The sound element to add
- * @param {AbortSignal} params.signal - Optional AbortSignal for cancellation
  */
-export const addSound = ({ app, element, signal }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
+export const addSound = ({ app, element }) => {
   const audioElement = {
     id: element.id,
     url: element.src,
@@ -18,11 +26,11 @@ export const addSound = ({ app, element, signal }) => {
   };
 
   if (element.delay && element.delay > 0) {
-    setTimeout(() => {
-      if (!signal?.aborted) {
-        app.audioStage.add(audioElement);
-      }
+    const timeoutId = setTimeout(() => {
+      pendingTimeouts.delete(timeoutId);
+      app.audioStage.add(audioElement);
     }, element.delay);
+    pendingTimeouts.add(timeoutId);
   } else {
     app.audioStage.add(audioElement);
   }

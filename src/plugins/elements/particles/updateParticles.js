@@ -18,15 +18,14 @@ import { addParticle } from "./addParticles.js";
  * Update particles element
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
-export const updateParticles = async ({
+export const updateParticles = ({
   app,
   parent,
   prevElement,
   nextElement,
   animations,
-  animationPlugins,
-  eventHandler,
-  signal,
+  animationBus,
+  completionTracker,
   zIndex,
 }) => {
   // Find the existing container
@@ -36,14 +35,13 @@ export const updateParticles = async ({
 
   if (!container) {
     // Container doesn't exist, just add the new one
-    await addParticle({
+    addParticle({
       app,
       parent,
       element: nextElement,
       animations,
-      animationPlugins,
-      eventHandler,
-      signal,
+      animationBus,
+      completionTracker,
       zIndex,
     });
     return;
@@ -57,24 +55,22 @@ export const updateParticles = async ({
 
   if (needsRecreate) {
     // Delete old emitter and create new one
-    await deleteParticles({
+    deleteParticles({
       app,
       parent,
       element: prevElement,
       animations,
-      animationPlugins,
-      eventHandler,
-      signal,
+      animationBus,
+      completionTracker,
     });
 
-    await addParticle({
+    addParticle({
       app,
       parent,
       element: nextElement,
       animations,
-      animationPlugins,
-      eventHandler,
-      signal,
+      animationBus,
+      completionTracker,
       zIndex,
     });
   } else {

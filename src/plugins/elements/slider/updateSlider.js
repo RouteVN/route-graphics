@@ -1,32 +1,27 @@
 import { Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements";
 
 /**
  * Update slider element
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
-export const updateSlider = async ({
+export const updateSlider = ({
   app,
   parent,
   prevElement: prevSliderASTNode,
   nextElement: nextSliderASTNode,
-  eventHandler,
   animations,
-  animationPlugins,
-  signal,
+  animationBus,
+  completionTracker,
+  eventHandler,
   zIndex,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
-
   const sliderElement = parent.children.find(
     (child) => child.label === prevSliderASTNode.id,
   );
 
-  if (sliderElement) {
-    sliderElement.zIndex = zIndex;
-  }
+  if (!sliderElement) return;
+
+  sliderElement.zIndex = zIndex;
 
   const updateElement = () => {
     if (
@@ -129,8 +124,8 @@ export const updateSlider = async ({
         sliderElement.removeAllListeners("globalpointermove");
       }
 
-      // Re-attach event handlers if they exist and configuration changed
-      if (eventHandler && handlerConfigChanged) {
+      // Re-attach event handlers if configuration changed
+      if (handlerConfigChanged) {
         const { hover, change, min, max, step, direction, initialValue } =
           nextSliderASTNode;
 
@@ -192,8 +187,8 @@ export const updateSlider = async ({
             updateThumbPosition(currentValue);
 
             if (change?.actionPayload && eventHandler) {
-              eventHandler(`change`, {
-                _event: { id, value: currentValue },
+              eventHandler("change", {
+                _event: { id: nextSliderASTNode.id, value: currentValue },
                 ...change.actionPayload,
               });
             }
@@ -266,17 +261,33 @@ export const updateSlider = async ({
     }
   };
 
-  if (sliderElement) {
-    if (animations && animations.length > 0) {
-      await animateElements(prevSliderASTNode.id, animationPlugins, {
-        app,
-        element: sliderElement,
-        animations,
-        signal,
-        eventHandler,
+  const { x, y, alpha } = nextSliderASTNode;
+
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevSliderASTNode.id) || [];
+
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: sliderElement,
+          properties: animation.properties,
+          targetState: { x, y, alpha },
+          onComplete: () => {
+            completionTracker.complete(stateVersion);
+            updateElement();
+          },
+        },
       });
     }
-
+  } else {
+    // No animations, update immediately
     updateElement();
   }
 };

@@ -1,49 +1,48 @@
-import animateElements from "../../../util/animateElements.js";
-
 /**
- * Delete sprite element
+ * Delete sprite element (synchronous)
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
  */
-export const deleteSprite = async ({
-  app,
+export const deleteSprite = ({
   parent,
   element,
   animations,
-  animationPlugins,
-  signal,
-  eventHandler,
+  animationBus,
+  completionTracker,
 }) => {
   const spriteElement = parent.children.find(
     (child) => child.label === element.id,
   );
 
-  if (spriteElement) {
-    let isAnimationDone = true;
+  if (!spriteElement) return;
 
-    const deleteElement = () => {
-      if (spriteElement && !spriteElement.destroyed) {
-        spriteElement.destroy();
-      }
-    };
-    const abortHandler = async () => {
-      if (!isAnimationDone) {
-        deleteElement();
-      }
-    };
-    signal.addEventListener("abort", abortHandler);
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === element.id) || [];
 
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(element.id, animationPlugins, {
-        app,
+  if (relevantAnimations.length === 0) {
+    // No animation, destroy immediately
+    spriteElement.destroy();
+    return;
+  }
+
+  // Dispatch delete animations to the bus
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
         element: spriteElement,
-        animations,
-        signal,
-        eventHandler,
-      });
-      isAnimationDone = true;
-    }
-    deleteElement();
-    signal.removeEventListener("abort", abortHandler);
+        properties: animation.properties,
+        targetState: null, // null signals destroy on cancel
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          if (spriteElement && !spriteElement.destroyed) {
+            spriteElement.destroy();
+          }
+        },
+      },
+    });
   }
 };

@@ -1,49 +1,46 @@
-import animateElements from "../../../util/animateElements";
-
 /**
- * Delete text element
+ * Delete text element (synchronous)
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
-export const deleteText = async ({
-  app,
+export const deleteText = ({
   parent,
   element,
   animations,
-  animationPlugins,
-  signal,
-  eventHandler,
+  animationBus,
+  completionTracker,
 }) => {
   const text = parent.getChildByLabel(element.id);
 
-  if (text) {
-    let isAnimationDone = true;
+  if (!text) return;
 
-    const deleteElement = () => {
-      if (text && !text.destroyed) {
-        text.destroy();
-      }
-    };
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === element.id) || [];
 
-    const abortHandler = async () => {
-      if (!isAnimationDone) {
-        deleteElement();
-      }
-    };
+  if (relevantAnimations.length === 0) {
+    // No animation, destroy immediately
+    text.destroy();
+    return;
+  }
 
-    signal.addEventListener("abort", abortHandler);
+  // Dispatch delete animations to the bus
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
 
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(element.id, animationPlugins, {
-        app,
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
         element: text,
-        animations,
-        signal,
-        eventHandler,
-      });
-      isAnimationDone = true;
-    }
-    deleteElement();
-    signal.removeEventListener("abort", abortHandler);
+        properties: animation.properties,
+        targetState: null, // null signals destroy on cancel
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          if (text && !text.destroyed) {
+            text.destroy();
+          }
+        },
+      },
+    });
   }
 };

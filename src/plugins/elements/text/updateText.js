@@ -1,40 +1,38 @@
-import animateElements from "../../../util/animateElements.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 
 /**
- *
+ * Update text element (synchronous)
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
- * @returns
  */
-export const updateText = async ({
+export const updateText = ({
   app,
   parent,
   prevElement: prevTextASTNode,
   nextElement: nextTextASTNode,
   eventHandler,
   animations,
-  animationPlugins,
-  signal,
+  animationBus,
+  completionTracker,
   zIndex,
 }) => {
   const textElement = parent.children.find(
     (child) => child.label === prevTextASTNode.id,
   );
 
-  if (textElement) {
-    textElement.zIndex = zIndex;
-  }
+  if (!textElement) return;
 
-  let isAnimationDone = true;
+  textElement.zIndex = zIndex;
+
+  const { x, y, alpha } = nextTextASTNode;
 
   const updateElement = () => {
     if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
       textElement.text = nextTextASTNode.content;
       applyTextStyle(textElement, nextTextASTNode.textStyle);
 
-      textElement.x = nextTextASTNode.x;
-      textElement.y = nextTextASTNode.y;
-      textElement.alpha = nextTextASTNode.alpha;
+      textElement.x = x;
+      textElement.y = y;
+      textElement.alpha = alpha;
 
       textElement.removeAllListeners("pointerover");
       textElement.removeAllListeners("pointerout");
@@ -130,7 +128,7 @@ export const updateText = async ({
 
         const outListener = () => {
           events.isPressed = false;
-          updateTextStyle();
+          updateTextStyle(events);
         };
 
         textElement.on("pointerdown", clickListener);
@@ -179,27 +177,32 @@ export const updateText = async ({
       }
     }
   };
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      updateElement();
-    }
-  };
 
-  signal.addEventListener("abort", abortHandler);
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevTextASTNode.id) || [];
 
-  if (textElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(nextTextASTNode.id, animationPlugins, {
-        app,
-        element: textElement,
-        animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: textElement,
+          properties: animation.properties,
+          targetState: { x, y, alpha },
+          onComplete: () => {
+            completionTracker.complete(stateVersion);
+            updateElement();
+          },
+        },
       });
-      isAnimationDone = true;
     }
+  } else {
+    // No animations, update immediately
     updateElement();
-    signal.removeEventListener("abort", abortHandler);
   }
 };

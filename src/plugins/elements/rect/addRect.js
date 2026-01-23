@@ -1,26 +1,24 @@
-import animateElements from "../../../util/animateElements.js";
 import { Graphics } from "pixi.js";
 
 /**
- * Add rectangle element to the stage
+ * Add rectangle element to the stage (synchronous)
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addRect = async ({
+export const addRect = ({
   app,
   parent,
   element,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
+  completionTracker,
 }) => {
   const { id, x, y, width, height, fill, border, alpha } = element;
 
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
-  let isAnimationDone = true;
 
   const drawRect = () => {
     rect.clear();
@@ -38,13 +36,6 @@ export const addRect = async ({
     }
   };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawRect();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
   drawRect();
 
   const hoverEvents = element?.hover;
@@ -208,19 +199,27 @@ export const addRect = async ({
     rect.on("globalpointermove", moveListener);
     rect.on("pointerupoutside", upListener);
   }
+
   parent.addChild(rect);
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: rect,
-      animations,
-      signal,
-      eventHandler,
+  // Dispatch animations to the bus
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
+
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: rect,
+        properties: animation.properties,
+        targetState: { x, y, alpha },
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
+      },
     });
   }
-  isAnimationDone = true;
-
-  signal.removeEventListener("abort", abortHandler);
 };

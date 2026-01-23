@@ -16,6 +16,8 @@ import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
+import { createAnimationBus } from "./plugins/animations/animationBus.js";
+import { createCompletionTracker } from "./util/completionTracker.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -122,14 +124,14 @@ const createRouteGraphics = () => {
   let keyboardManager;
 
   /**
-   * @type {AbortController}
+   * @type {ReturnType<typeof createAnimationBus>}
    */
-  let currentAbortController;
+  let animationBus;
 
   /**
-   * @type {boolean}
+   * @type {ReturnType<typeof createCompletionTracker>}
    */
-  let isProcessingRender = false;
+  let completionTracker;
 
   /**
    * @type {Function|undefined}
@@ -221,48 +223,49 @@ const createRouteGraphics = () => {
   };
 
   /**
-   * Render function
+   * Render function (synchronous)
    * @param {Application} appInstance
    * @param {RouteGraphicsState} prevState
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = async (appInstance, parent, nextState, handler) => {
+  const renderInternal = (appInstance, parent, nextState, handler) => {
+    // Reset completion tracker for new state (emits aborted if previous had pending)
+    completionTracker.reset(nextState.id);
+
     applyGlobalObjects(appInstance, state.global, nextState.global);
-    if (currentAbortController && isProcessingRender)
-      currentAbortController.abort();
-    currentAbortController = new AbortController();
-    const signal = currentAbortController.signal;
 
-    //We are doing this in case render is called more than once consecutively, we need to make sure that
-    //the first render call has been completed before the second one begins.
-    while (isProcessingRender) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
+    // Cancel all running animations synchronously
+    animationBus.cancelAll();
 
-    isProcessingRender = true;
-    await renderElements({
+    // Render elements (now synchronous)
+    renderElements({
       app: appInstance,
       parent,
       prevASTTree: state.elements,
       nextASTTree: nextState.elements,
       animations: nextState.animations,
       elementPlugins: plugins.elements,
-      animationPlugins: plugins.animations,
+      animationBus,
+      completionTracker,
       eventHandler: handler,
-      signal,
     });
 
-    await renderAudio({
+    // Flush animation commands to apply initial values immediately
+    animationBus.flush();
+
+    // Render audio
+    renderAudio({
       app: appInstance,
       prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
       audioPlugins: plugins.audio,
-      signal,
     });
-    isProcessingRender = false;
-    currentAbortController = null;
+
     state = nextState;
+
+    // Fire stateComplete immediately if no animations/reveals to track
+    completionTracker.completeIfEmpty();
 
     if (!hasRenderedOnce) {
       hasRenderedOnce = true;
@@ -349,6 +352,7 @@ const createRouteGraphics = () => {
       eventHandler = handler;
 
       keyboardManager = createKeyboardManager(handler);
+      completionTracker = createCompletionTracker(handler);
 
       /**
        * @type {ApplicationWithAudioStage}
@@ -371,10 +375,23 @@ const createRouteGraphics = () => {
       app.stage.height = height;
       app.ticker.add(app.audioStage.tick);
 
+      // Create animation bus and attach to ticker
+      animationBus = createAnimationBus();
+      if (!debug) {
+        app.ticker.add((time) => animationBus.tick(time.deltaMS));
+      } else {
+        window.addEventListener("snapShotKeyFrame", (event) => {
+          if (event?.detail?.deltaMS) {
+            animationBus.tick(Number(event.detail.deltaMS));
+          }
+        });
+      }
+
       return routeGraphicsInstance;
     },
 
     destroy: () => {
+      if (animationBus) animationBus.destroy();
       app.audioStage.destroy();
       app.destroy();
       if (advancedLoader) extensions.remove(advancedLoader);

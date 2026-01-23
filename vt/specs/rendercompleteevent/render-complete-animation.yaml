@@ -1,0 +1,34 @@
+---
+title: Render Complete Event - Animation
+description: Test that renderComplete event fires after animation completes
+specs:
+  - "renderComplete event should fire after animation finishes"
+  - "payload should contain id"
+  - "payload should have aborted: false when animation completes normally"
+steps:
+  - customEvent snapShotKeyFrame deltaMS=1000
+  - customEvent showRenderComplete
+  - screenshot
+---
+states:
+  - id: "animation-state"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        fill: "#3498db"
+        alpha: 1
+    animations:
+      - id: "rect-fade-in"
+        targetId: "rect1"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 500
+                value: 1
+                easing: linear

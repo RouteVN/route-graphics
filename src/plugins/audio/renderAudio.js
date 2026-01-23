@@ -1,27 +1,27 @@
 import { diffAudio } from "../../util/diffAudio.js";
+import { clearPendingSounds } from "./sound/addSound.js";
 
 /**
- * Add audio using plugin system
+ * Render audio using plugin system (synchronous)
  * @param {Object} params
  * @param {import('../types.js').Application} params.app - The PixiJS application
  * @param {import('../types.js').SoundElement[]} params.prevAudioTree - Previous audio tree
  * @param {import('../types.js').SoundElement[]} params.nextAudioTree - Next audio tree
  * @param {import("./audio/audioPlugin.js").AudioPlugin[]} params.audioPlugins - Array of audio plugins
- * @param {AbortSignal} params.signal - Abort signal
  */
-export const renderAudio = async ({
+export const renderAudio = ({
   app,
   prevAudioTree,
   nextAudioTree,
   audioPlugins,
-  signal,
 }) => {
+  // Cancel any pending delayed sounds from previous state
+  clearPendingSounds();
+
   const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
     prevAudioTree,
     nextAudioTree,
   );
-
-  const asyncActions = [];
 
   // Delete audio elements
   for (const audio of toDeleteElement) {
@@ -30,13 +30,10 @@ export const renderAudio = async ({
       throw new Error(`No audio plugin found for type: ${audio.type}`);
     }
 
-    asyncActions.push(
-      plugin.delete({
-        app,
-        element: audio,
-        signal,
-      }),
-    );
+    plugin.delete({
+      app,
+      element: audio,
+    });
   }
 
   // Add audio elements
@@ -46,13 +43,10 @@ export const renderAudio = async ({
       throw new Error(`No audio plugin found for type: ${audio.type}`);
     }
 
-    asyncActions.push(
-      plugin.add({
-        app,
-        element: audio,
-        signal,
-      }),
-    );
+    plugin.add({
+      app,
+      element: audio,
+    });
   }
 
   // Update audio elements
@@ -62,15 +56,10 @@ export const renderAudio = async ({
       throw new Error(`No audio plugin found for type: ${next.type}`);
     }
 
-    asyncActions.push(
-      plugin.update({
-        app,
-        prevElement: prev,
-        nextElement: next,
-        signal,
-      }),
-    );
+    plugin.update({
+      app,
+      prevElement: prev,
+      nextElement: next,
+    });
   }
-
-  await Promise.all(asyncActions);
 };

@@ -1,57 +1,59 @@
-import animateElements from "../../../util/animateElements.js";
-
 /**
  * Delete video element
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
  */
-export const deleteVideo = async ({
+export const deleteVideo = ({
   app,
   parent,
   element,
   animations,
-  animationPlugins,
-  signal,
-  eventHandler,
+  animationBus,
+  completionTracker,
 }) => {
   const videoElement = parent.children.find(
     (child) => child.label === element.id,
   );
 
-  if (videoElement) {
-    let isAnimationDone = true;
+  if (!videoElement) return;
 
-    const deleteElement = () => {
-      if (videoElement && !videoElement.destroyed) {
-        const video = videoElement.texture.source.resource;
-        if (video) {
-          video.pause();
-        }
-        parent.removeChild(videoElement);
-        videoElement.destroy();
-      }
-    };
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === element.id) || [];
 
-    const abortHandler = async () => {
-      if (!isAnimationDone) {
-        deleteElement();
-      }
-    };
-
-    signal.addEventListener("abort", abortHandler);
-
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(element.id, animationPlugins, {
-        app,
-        element: videoElement,
-        animations,
-        signal,
-        eventHandler,
-      });
-      isAnimationDone = true;
+  if (relevantAnimations.length === 0) {
+    // No animation, destroy immediately
+    const video = videoElement.texture.source.resource;
+    if (video) {
+      video.pause();
     }
+    parent.removeChild(videoElement);
+    videoElement.destroy();
+    return;
+  }
 
-    deleteElement();
-    signal.removeEventListener("abort", abortHandler);
+  // Dispatch delete animations to the bus
+  for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: videoElement,
+        properties: animation.properties,
+        targetState: null, // null signals destroy on cancel
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          if (videoElement && !videoElement.destroyed) {
+            const video = videoElement.texture.source.resource;
+            if (video) {
+              video.pause();
+            }
+            parent.removeChild(videoElement);
+            videoElement.destroy();
+          }
+        },
+      },
+    });
   }
 };
