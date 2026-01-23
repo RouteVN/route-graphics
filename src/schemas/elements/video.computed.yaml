@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Video AST Node
-description: Schema for video element AST node
+title: Video Computed Node
+description: Schema for video element computed node
 type: object
 required:
   - type

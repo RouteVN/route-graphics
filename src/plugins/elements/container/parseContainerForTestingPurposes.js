@@ -43,7 +43,7 @@ const mockParserPlugins = [
  * Helper function for testing parseContainer with all available parsers
  * @param {Object} params
  * @param {import('../../../types.js').BaseElement} params.state - The container state to parse
- * @returns {import('../../../types.js').ContainerASTNode}
+ * @returns {import('../../../types.js').ContainerComputedNode}
  */
 export const parseContainerForTesting = ({ state }) => {
   return parseContainer({ state, parserPlugins: mockParserPlugins });

@@ -9,7 +9,7 @@ import {
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
- * @typedef {import('../../../types.js').ParticlesASTNode} ParticlesASTNode
+ * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode
  */
 
 /**
@@ -23,7 +23,7 @@ import {
  * @param {Object} params
  * @param {BaseElement} params.state - The particles state to parse
  * @param {Array} [params.parserPlugins] - Array of parser plugins (not used by this parser)
- * @return {ParticlesASTNode}
+ * @return {ParticlesComputedNode}
  */
 export const parseParticles = ({ state }) => {
   // Run all validations

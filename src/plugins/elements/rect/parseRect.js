@@ -1,23 +1,23 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement}
- *  @typedef {import('../../../types.js').RectASTNode}
+ *  @typedef {import('../../../types.js').RectComputedNode}
  */
 
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The rect state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @return {RectASTNode}
+ * @return {RectComputedNode}
  */
 export const parseRect = ({ state }) => {
-  const astObj = parseCommonObject(state);
+  const computedObj = parseCommonObject(state);
 
-  let finalObj = astObj;
+  let finalObj = computedObj;
 
   if (state.border) {
     finalObj = {
-      ...astObj,
+      ...computedObj,
       border: {
         alpha: state.border?.alpha ?? 1,
         color: state.border?.color ?? "black",

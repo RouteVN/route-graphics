@@ -4,7 +4,7 @@ import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
- * @typedef {import('../../../types.js').TextRevealingASTNode} TextRevealingASTNode
+ * @typedef {import('../../../types.js').TextRevealingComputedNode} TextRevealingComputedNode
  */
 
 /**
@@ -180,7 +180,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
  * @param {Object} params
  * @param {BaseElement} params.state - The text-revealing state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @returns {TextRevealingASTNode}
+ * @returns {TextRevealingComputedNode}
  */
 export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
@@ -250,17 +250,17 @@ export const parseTextRevealing = ({ state }) => {
   const finalWidth = state.width || calculatedWidth;
   const finalHeight = calculatedHeight;
 
-  let astObj = parseCommonObject({
+  let computedObj = parseCommonObject({
     ...state,
     width: finalWidth,
     height: finalHeight,
   });
 
-  astObj.alpha = state.alpha ?? 1;
+  computedObj.alpha = state.alpha ?? 1;
 
   if (state.indicator) {
     const indicator = state.indicator;
-    astObj.indicator = {
+    computedObj.indicator = {
       revealing: {
         src: indicator.revealing?.src ?? "",
         width: indicator.revealing?.width ?? 12,
@@ -276,7 +276,7 @@ export const parseTextRevealing = ({ state }) => {
   }
 
   return {
-    ...astObj,
+    ...computedObj,
     content: chunks,
     textStyle: {
       ...defaultTextStyle,

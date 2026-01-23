@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Sprite AST Node
-description: Schema for sprite AST node after parsing
+title: Sprite Computed Node
+description: Schema for sprite computed node after parsing
 type: object
 required:
   - id

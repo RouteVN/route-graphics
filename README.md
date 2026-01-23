@@ -14,7 +14,7 @@ Route Graphics is a declarative UI system that enables developers to create rich
 
 Route Graphics follows a **render cycle** where:
 
-1. **Parser Functions** convert your JSON input into Abstract Syntax Trees (AST)
+1. **Parser Functions** convert your JSON input into Computed Nodes
 2. **Element Functions** handle the lifecycle:
    - **Add Functions**: Create new visual elements when they appear in the state
    - **Update Functions**: Modify existing elements when their properties change
@@ -90,7 +90,7 @@ Parse elements from state object using registered parser plugins (without render
 **Parameters:**
 - `state` (RouteGraphicsState) - State object containing element definitions
 
-**Returns:** `RouteGraphicsState` - Parsed state with AST elements
+**Returns:** `RouteGraphicsState` - Parsed state with computed elements
 
 ---
 
@@ -303,7 +303,7 @@ app.render({
 
 Route Graphics follows a modular plugin architecture with three main plugin categories:
 
-1. **Parser Plugins** - Convert JSON to Abstract Syntax Trees (AST)
+1. **Parser Plugins** - Convert JSON to Computed Nodes
 2. **Element Plugins** - Render visual elements (add/update/delete)
 3. **Audio & Animation Plugins** - Handle dynamic content
 
@@ -849,9 +849,9 @@ const customPlugin = createElementPlugin({
       displayObject.destroy();
     }
   },
-  // Optional: Parse function for JSON to AST conversion
+  // Optional: Parse function for JSON to computed conversion
   parse: (element) => {
-    // Parse JSON element to AST format
+    // Parse JSON element to computed format
     return {
       ...element,
       parsed: true
@@ -934,7 +934,7 @@ const customAudioPlugin = createAudioPlugin({
 
 ## Parser System
 
-The parser system transforms your JSON input into Abstract Syntax Trees (AST) that the rendering engine can process. Each element plugin includes its own parser function that converts JSON definitions into the internal AST format.
+The parser system transforms your JSON input into Computed Nodes that the rendering engine can process. Each element plugin includes its own parser function that converts JSON definitions into the internal computed format.
 
 ### parseElements Function
 
@@ -962,7 +962,7 @@ const parsedElements = parseElements({
 - `parserPlugins`: Array of available parser plugins (useful for nested elements like containers)
 
 **Returns:**
-- AST (Abstract Syntax Tree) node with processed properties ready for rendering
+- Computed node with processed properties ready for rendering
 
 ### Parser Function Example
 

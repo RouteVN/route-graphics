@@ -7,7 +7,7 @@ import { Sprite, Texture, Container } from "pixi.js";
 export const addSlider = ({
   app,
   parent,
-  element: sliderASTNode,
+  element: sliderComputedNode,
   animations,
   animationBus,
   completionTracker,
@@ -32,7 +32,7 @@ export const addSlider = ({
     originY,
     hover,
     change,
-  } = sliderASTNode;
+  } = sliderComputedNode;
 
   // Create container for the slider
   const sliderContainer = new Container();

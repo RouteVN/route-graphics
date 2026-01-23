@@ -242,8 +242,8 @@ const createRouteGraphics = () => {
     renderElements({
       app: appInstance,
       parent,
-      prevASTTree: state.elements,
-      nextASTTree: nextState.elements,
+      prevComputedTree: state.elements,
+      nextComputedTree: nextState.elements,
       animations: nextState.animations,
       elementPlugins: plugins.elements,
       animationBus,

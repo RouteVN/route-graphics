@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Particles AST Node
-description: Schema for particles AST after parsing
+title: Particles Computed Node
+description: Schema for particles computed node after parsing
 type: object
 required:
   - id

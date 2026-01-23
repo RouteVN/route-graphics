@@ -1,20 +1,20 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement} BaseElement
- *  @typedef {import('../../../types.js').SpriteASTNode} SpriteASTNode
+ *  @typedef {import('../../../types.js').SpriteComputedNode} SpriteComputedNode
  */
 
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The sprite state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @return {SpriteASTNode}
+ * @return {SpriteComputedNode}
  */
 export const parseSprite = ({ state }) => {
-  const astObj = parseCommonObject(state);
+  const computedObj = parseCommonObject(state);
 
   return {
-    ...astObj,
+    ...computedObj,
     src: state.src ?? "",
     alpha: state.alpha ?? 1,
     ...(state.hover && { hover: state.hover }),

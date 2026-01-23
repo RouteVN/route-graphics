@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Container AST Node
-description: Schema for container AST node after parsing
+title: Container Computed Node
+description: Schema for container computed node after parsing
 type: object
 required:
   - id
@@ -46,10 +46,10 @@ properties:
     description: Parsed child elements with positions adjusted based on direction and gap
     items:
       oneOf:
-        - $ref: "./sprite.ast.yaml"
-        - $ref: "./text.ast.yaml"
-        - $ref: "./rect.ast.yaml"
-        - $ref: "./container.ast.yaml"
+        - $ref: "./sprite.computed.yaml"
+        - $ref: "./text.computed.yaml"
+        - $ref: "./rect.computed.yaml"
+        - $ref: "./container.computed.yaml"
   direction:
     type: string
     enum: [horizontal, vertical]

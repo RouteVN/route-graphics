@@ -2,17 +2,17 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
- * @typedef {import('../../../types.js').SliderASTNode} SliderASTNode
+ * @typedef {import('../../../types.js').SliderComputedNode} SliderComputedNode
  */
 
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The slider state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @return {SliderASTNode}
+ * @return {SliderComputedNode}
  */
 export const parseSlider = ({ state }) => {
-  const astObj = parseCommonObject(state);
+  const computedObj = parseCommonObject(state);
   const defaultMin = state.min ?? 0;
   const defaultMax = state.max ?? 100;
   if (defaultMax <= defaultMin)
@@ -21,7 +21,7 @@ export const parseSlider = ({ state }) => {
     );
 
   return {
-    ...astObj,
+    ...computedObj,
     direction: state.direction ?? "horizontal",
     thumbSrc: state.thumbSrc ?? "",
     barSrc: state.barSrc ?? "",
