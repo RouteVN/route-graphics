@@ -55,12 +55,13 @@
     "pixelmatch": "^5.3.0",
     "playwright": "^1.44.0",
     "pngjs": "^7.0.0",
+    "prettier": "^3.8.1",
     "puty": "^0.0.5-rc1",
     "vitest": "^4.0.8"
   },
   "lint-staged": {
     "src/**/*.js": [
-      "oxlint",
+      "oxlint --deny-warnings",
       "prettier --write"
     ]
   }
