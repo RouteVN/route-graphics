@@ -1,15 +1,7 @@
 import createRouteGraphics, {
     createAssetBufferManager,
-    textPlugin,
-    rectPlugin,
-    spritePlugin,
-    sliderPlugin,
-    containerPlugin,
-    textRevealingPlugin,
-    particlesPlugin,
-    tweenPlugin,
-    soundPlugin
-} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.21/+esm'
+    visualNovelPlugins,
+} from 'https://cdn.jsdelivr.net/npm/route-graphics@0.0.31/+esm'
 
 import jsYaml from 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm'
 
@@ -124,19 +116,7 @@ const initRouteGraphics = async () => {
         await app.init({
             width: outputCanvas.parentElement.clientWidth,
             height: outputCanvas.parentElement.clientHeight,
-            plugins: {
-                elements: [
-                    textPlugin,
-                    rectPlugin,
-                    spritePlugin,
-                    sliderPlugin,
-                    containerPlugin,
-                    textRevealingPlugin,
-                    particlesPlugin
-                ],
-                animations: [tweenPlugin],
-                audio: [soundPlugin]
-            },
+            plugins: visualNovelPlugins,
             backgroundColor: "#1D1D1D",
             eventHandler: (eventName, payload) => {
                 console.log('Route-Graphics Event:', eventName, payload)

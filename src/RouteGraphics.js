@@ -438,7 +438,7 @@ const createRouteGraphics = () => {
             await fontFace.load();
             document.fonts.add(fontFace);
           } catch (error) {
-            console.error(`Failed to load font ${key}:`, error);
+            throw new Error(`Failed to load font ${key}: ${error.message}`);
           } finally {
             URL.revokeObjectURL(url);
           }

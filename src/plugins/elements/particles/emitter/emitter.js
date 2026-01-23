@@ -192,8 +192,7 @@ export class Emitter {
       for (const behaviorConfig of config.behaviors) {
         const BehaviorClass = getBehavior(behaviorConfig.type);
         if (!BehaviorClass) {
-          console.warn(`Unknown behavior type: ${behaviorConfig.type}`);
-          continue;
+          throw new Error(`Unknown behavior type: ${behaviorConfig.type}`);
         }
 
         const behavior = new BehaviorClass(behaviorConfig.config);

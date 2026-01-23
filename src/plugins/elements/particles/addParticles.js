@@ -90,12 +90,7 @@ export const addParticle = ({
     const textureName = element.texture ?? "circle";
     texture = getTexture(textureName, app);
     if (!texture) {
-      try {
-        texture = Texture.from(textureName);
-      } catch {
-        console.warn(`Failed to load particle texture: ${textureName}`);
-        return;
-      }
+      texture = Texture.from(textureName);
     }
   }
   emitterConfig.texture = texture;
