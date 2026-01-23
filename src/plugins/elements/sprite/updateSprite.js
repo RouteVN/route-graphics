@@ -104,7 +104,7 @@ export const updateSprite = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, actionPayload } = clickEvents;
         spriteElement.eventMode = "static";
 
         const clickListener = () => {
@@ -128,6 +128,7 @@ export const updateSprite = ({
               id: `click-${Date.now()}`,
               url: soundSrc,
               loop: false,
+              volume: soundVolume ?? 1.0,
             });
         };
 

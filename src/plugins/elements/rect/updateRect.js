@@ -85,7 +85,7 @@ export const updateRect = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, actionPayload } = clickEvents;
         rectElement.eventMode = "static";
 
         const clickListener = () => {
@@ -101,6 +101,7 @@ export const updateRect = ({
               id: `click-${Date.now()}`,
               url: soundSrc,
               loop: false,
+              volume: soundVolume ?? 1.0,
             });
         };
 

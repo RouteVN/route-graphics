@@ -113,6 +113,12 @@ properties:
       soundSrc:
         type: string
         description: URL to sound file to play on click
+      soundVolume:
+        type: number
+        description: volume of sound to be played (0-1)
+        minimum: 0
+        maximum: 1
+        default: 1
       actionPayload:
         type: object
         description: Payload for click action event
