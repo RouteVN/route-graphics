@@ -144,8 +144,7 @@ export const createAnimationBus = () => {
   // --- Animation Lifecycle ---
 
   const startAnimation = (payload) => {
-    const { id, element, properties, targetState, onComplete, eventHandler } =
-      payload;
+    const { id, element, properties, targetState, onComplete } = payload;
 
     const timelines = buildPropertyTimelines(element, properties);
     const duration = calculateMaxDuration(timelines);
@@ -159,7 +158,6 @@ export const createAnimationBus = () => {
       stateVersion,
       targetState,
       onComplete,
-      eventHandler,
     };
 
     // Apply initial values immediately (at time=0)

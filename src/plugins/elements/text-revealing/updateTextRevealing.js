@@ -7,7 +7,11 @@ import abortableSleep from "../../../util/abortableSleep";
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async (params) => {
-  const { parent, nextElement: element, eventHandler, zIndex } = params;
+  const { parent, nextElement: element, completionTracker, zIndex } = params;
+
+  // Track this text-revealing for completion
+  const stateVersion = completionTracker.getVersion();
+  completionTracker.track(stateVersion);
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
@@ -137,13 +141,7 @@ export const updateTextRevealing = async (params) => {
         element.indicator.complete.height ?? completeTexture.height;
     }
 
-    if (eventHandler && element?.complete?.actionPayload) {
-      eventHandler("complete", {
-        _event: {
-          id: element.id,
-        },
-        ...(element?.complete?.actionPayload ?? {}),
-      });
-    }
+    // Mark text-revealing as complete
+    completionTracker.complete(stateVersion);
   }
 };

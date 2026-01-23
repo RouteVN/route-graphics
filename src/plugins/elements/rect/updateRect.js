@@ -11,6 +11,7 @@ export const updateRect = ({
   animationBus,
   eventHandler,
   zIndex,
+  completionTracker,
 }) => {
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -222,6 +223,9 @@ export const updateRect = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -230,12 +234,7 @@ export const updateRect = ({
           properties: animation.properties,
           targetState: { x, y, alpha },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevElement.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },

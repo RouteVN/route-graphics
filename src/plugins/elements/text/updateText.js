@@ -12,6 +12,7 @@ export const updateText = ({
   eventHandler,
   animations,
   animationBus,
+  completionTracker,
   zIndex,
 }) => {
   const textElement = parent.children.find(
@@ -183,6 +184,9 @@ export const updateText = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -191,12 +195,7 @@ export const updateText = ({
           properties: animation.properties,
           targetState: { x, y, alpha },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevTextASTNode.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },

@@ -13,7 +13,8 @@ steps:
   - screenshot
 ---
 states:
-  - elements:
+  - id: "initial"
+    elements:
       - id: 'rect1'
         type: "rect"
         x: 200
@@ -22,15 +23,12 @@ states:
         height: 300
         fill: "#9b59b6"
         alpha: 1
-  - elements: []
+  - id: "rect-fade-out-state"
+    elements: []
     animations:
       - id: 'rect-fade-out'
         targetId: 'rect1'
         type: tween
-        complete:
-          actionPayload:
-            animationType: tween
-            status: finished
         properties:
           alpha:
             keyframes:

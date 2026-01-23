@@ -11,7 +11,7 @@ export const addAnimatedSprite = async ({
   element,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
   const {
@@ -59,6 +59,9 @@ export const addAnimatedSprite = async ({
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -66,14 +69,9 @@ export const addAnimatedSprite = async ({
         element: animatedSprite,
         properties: animation.properties,
         targetState: { x, y, width, height, alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

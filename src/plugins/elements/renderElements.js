@@ -9,6 +9,7 @@ import { diffElements } from "../../util/diffElements.js";
  * @param {import('../../types.js').ASTNode[]} params.nextASTTree - Next AST tree
  * @param {import("./elementPlugin.js").ElementPlugin[]} params.elementPlugins - Array of element plugins
  * @param {import("../animations/animationBus.js").createAnimationBus} params.animationBus - Animation bus
+ * @param {Object} params.completionTracker - Completion tracker for state events
  * @param {Object[]} params.animations - Animation configurations
  * @param {Function} params.eventHandler - Event handler function
  */
@@ -19,6 +20,7 @@ export const renderElements = ({
   nextASTTree,
   animations,
   animationBus,
+  completionTracker,
   eventHandler,
   elementPlugins,
 }) => {
@@ -53,6 +55,7 @@ export const renderElements = ({
       element,
       animations,
       animationBus,
+      completionTracker,
       eventHandler,
       elementPlugins,
     });
@@ -75,6 +78,7 @@ export const renderElements = ({
       animations,
       eventHandler,
       animationBus,
+      completionTracker,
       elementPlugins,
       zIndex,
     });
@@ -97,6 +101,7 @@ export const renderElements = ({
       nextElement: next,
       animations,
       animationBus,
+      completionTracker,
       eventHandler,
       elementPlugins,
       zIndex,

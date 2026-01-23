@@ -14,6 +14,7 @@ export const addContainer = ({
   animationBus,
   elementPlugins,
   zIndex,
+  completionTracker,
 }) => {
   const { id, x, y, children, scroll, alpha } = element;
 
@@ -46,6 +47,7 @@ export const addContainer = ({
         eventHandler,
         animationBus,
         elementPlugins,
+        completionTracker,
       });
     }
   }
@@ -141,6 +143,9 @@ export const addContainer = ({
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -148,14 +153,9 @@ export const addContainer = ({
         element: container,
         properties: animation.properties,
         targetState: { x, y, alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

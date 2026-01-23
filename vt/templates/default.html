@@ -88,14 +88,21 @@
         }
         let index = 0
         const states = parse(window.vtState).states
+        let lastRenderCompleteEvent = null;
         await app.init({
             width: 1280,
             height: 720,
             plugins,
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
+                // Store renderComplete events for later display via custom event
+                if (eventName === 'renderComplete') {
+                    lastRenderCompleteEvent = { eventName, payload };
+                    return;
+                }
                 app.render(
                     {
+                        id: `${states[index].id ?? index}-event-render`,
                         elements: [
                             ...(states[index].elements ?? []),
                             {
@@ -128,8 +135,9 @@
         document.body.appendChild(app.canvas);
 
         app.render({
+            id: states[index].id ?? `state-${index}`,
             elements: states[index].elements ?? [],
-            animations: states[index].animations ?? [], 
+            animations: states[index].animations ?? [],
             audio: states[index].audio ?? [],
             global: states[index].global ?? {}
         })
@@ -140,14 +148,16 @@
                     if(states.length > index+1){
                         index++
                         app.render({
+                            id: states[index].id ?? `state-${index}`,
                             elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [], 
+                            animations: states[index].animations ?? [],
                             audio: states[index].audio ?? [],
                             global: states[index].global ?? {}
                         })
                         app.render({
+                            id: states[index].id ?? `state-${index}`,
                             elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [], 
+                            animations: states[index].animations ?? [],
                             audio: states[index].audio ?? [],
                             global: states[index].global ?? {}
                         })
@@ -157,8 +167,9 @@
                     if(states.length > index+1){
                         index++
                         app.render({
+                            id: states[index].id ?? `state-${index}`,
                             elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [], 
+                            animations: states[index].animations ?? [],
                             audio: states[index].audio ?? [],
                             global: states[index].global ?? {}
                         })
@@ -167,12 +178,41 @@
                     if(index - 1 >= 0 ){
                         index--;
                         app.render({
+                            id: states[index].id ?? `state-${index}`,
                             elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [], 
+                            animations: states[index].animations ?? [],
                             audio: states[index].audio ?? [],
                             global: states[index].global ?? {}
                         })
                     }
+                }
+            });
+
+            // Custom event to show the last renderComplete event
+            window.addEventListener('showRenderComplete', () => {
+                if (lastRenderCompleteEvent) {
+                    app.render({
+                        id: `${states[index].id ?? index}-show-render-complete`,
+                        elements: [
+                            ...(states[index].elements ?? []),
+                            {
+                                type: 'text',
+                                id: 'event-log',
+                                x: 500,
+                                y: 400,
+                                width: 300,
+                                content: `Event: ${lastRenderCompleteEvent.eventName}, Payload: ${JSON.stringify(lastRenderCompleteEvent.payload, null, 2)}`,
+                                textStyle: {
+                                    fill: '#ffffff',
+                                    fontSize: 24,
+                                    breakWords: true,
+                                }
+                            }
+                        ],
+                        animations: [],
+                        audio: states[index].audio ?? [],
+                        global: states[index].global ?? {}
+                    });
                 }
             });
         };

@@ -18,6 +18,7 @@ export const updateContainer = ({
   animationBus,
   elementPlugins,
   zIndex,
+  completionTracker,
 }) => {
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -168,6 +169,7 @@ export const updateContainer = ({
         elementPlugins,
         animations,
         animationBus,
+        completionTracker,
       });
     }
   };
@@ -178,6 +180,9 @@ export const updateContainer = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -186,12 +191,7 @@ export const updateContainer = ({
           properties: animation.properties,
           targetState: { x, y, alpha },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevElement.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },

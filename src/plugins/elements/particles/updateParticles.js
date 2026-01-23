@@ -25,7 +25,7 @@ export const updateParticles = ({
   nextElement,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
   // Find the existing container
@@ -41,7 +41,7 @@ export const updateParticles = ({
       element: nextElement,
       animations,
       animationBus,
-      eventHandler,
+      completionTracker,
       zIndex,
     });
     return;
@@ -61,7 +61,7 @@ export const updateParticles = ({
       element: prevElement,
       animations,
       animationBus,
-      eventHandler,
+      completionTracker,
     });
 
     addParticle({
@@ -70,7 +70,7 @@ export const updateParticles = ({
       element: nextElement,
       animations,
       animationBus,
-      eventHandler,
+      completionTracker,
       zIndex,
     });
   } else {

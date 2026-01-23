@@ -1,0 +1,58 @@
+---
+title: Render Complete Event - Aborted
+description: Test that renderComplete event fires with aborted=true when new render interrupts
+specs:
+  - "renderComplete event should fire with aborted: true when render is interrupted"
+  - "first state should show aborted: true"
+  - "second state should complete normally with aborted: false"
+steps:
+  - customEvent snapShotKeyFrame deltaMS=250
+  - keypress n
+  - customEvent showRenderComplete
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=1000
+  - customEvent showRenderComplete
+  - screenshot
+---
+states:
+  - id: "first-animation-state"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        fill: "#e74c3c"
+        alpha: 1
+    animations:
+      - id: "rect-fade-in"
+        targetId: "rect1"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: "second-animation-state"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 200
+        y: 150
+        width: 400
+        height: 300
+        fill: "#9b59b6"
+        alpha: 1
+    animations:
+      - id: "rect-slide"
+        targetId: "rect1"
+        type: tween
+        properties:
+          x:
+            keyframes:
+              - duration: 500
+                value: 400
+                easing: linear

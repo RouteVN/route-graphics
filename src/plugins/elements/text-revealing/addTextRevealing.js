@@ -9,9 +9,12 @@ import abortableSleep from "../../../util/abortableSleep";
 export const addTextRevealing = async ({
   parent,
   element,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
+  // Track this text-revealing for completion
+  const stateVersion = completionTracker.getVersion();
+  completionTracker.track(stateVersion);
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
   const indicatorOffset = element?.indicator?.offset ?? 12;
@@ -136,12 +139,6 @@ export const addTextRevealing = async ({
       element.indicator.complete.height ?? completeTexture.height;
   }
 
-  if (eventHandler && element?.complete?.actionPayload) {
-    eventHandler("complete", {
-      _event: {
-        id: element.id,
-      },
-      ...(element?.complete?.actionPayload ?? {}),
-    });
-  }
+  // Mark text-revealing as complete
+  completionTracker.complete(stateVersion);
 };

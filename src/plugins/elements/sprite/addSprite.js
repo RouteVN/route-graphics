@@ -11,6 +11,7 @@ export const addSprite = ({
   animations,
   eventHandler,
   animationBus,
+  completionTracker,
   zIndex,
 }) => {
   const { id, x, y, width, height, src, alpha } = element;
@@ -164,11 +165,14 @@ export const addSprite = ({
 
   parent.addChild(sprite);
 
-  // Dispatch animations to the bus (no await needed)
+  // Dispatch animations to the bus
   const relevantAnimations =
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -176,14 +180,9 @@ export const addSprite = ({
         element: sprite,
         properties: animation.properties,
         targetState: { x, y, width, height, alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

@@ -12,6 +12,7 @@ export const addText = ({
   animations,
   eventHandler,
   animationBus,
+  completionTracker,
   zIndex,
 }) => {
   const text = new Text({
@@ -166,6 +167,9 @@ export const addText = ({
     animations?.filter((a) => a.targetId === textASTNode.id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -173,14 +177,9 @@ export const addText = ({
         element: text,
         properties: animation.properties,
         targetState: { x: textASTNode.x, y: textASTNode.y, alpha: textASTNode.alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: textASTNode.id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

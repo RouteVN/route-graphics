@@ -12,7 +12,7 @@ export const updateAnimatedSprite = async ({
   nextElement,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
   const animatedSpriteElement = parent.children.find(
@@ -72,6 +72,9 @@ export const updateAnimatedSprite = async ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -80,12 +83,7 @@ export const updateAnimatedSprite = async ({
           properties: animation.properties,
           targetState: { x, y, width, height, alpha },
           onComplete: async () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevElement.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             await updateElement();
           },
         },

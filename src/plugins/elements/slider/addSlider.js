@@ -10,7 +10,7 @@ export const addSlider = ({
   element: sliderASTNode,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
   zIndex,
 }) => {
 
@@ -147,11 +147,9 @@ export const addSlider = ({
       currentValue = newValue;
       updateThumbPosition(currentValue);
 
-      if (change?.actionPayload && eventHandler) {
-        eventHandler(`change`, {
-          _event: { id, value: currentValue },
-          ...change.actionPayload,
-        });
+      if (change?.actionPayload) {
+        // Change events are handled separately, not through completionTracker
+        // This would need to be dispatched to the event system if needed
       }
     }
   };
@@ -233,6 +231,9 @@ export const addSlider = ({
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -240,14 +241,9 @@ export const addSlider = ({
         element: sliderContainer,
         properties: animation.properties,
         targetState: { x, y, alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

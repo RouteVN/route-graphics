@@ -17,6 +17,7 @@ import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
+import { createCompletionTracker } from "./util/completionTracker.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -128,6 +129,11 @@ const createRouteGraphics = () => {
   let animationBus;
 
   /**
+   * @type {ReturnType<typeof createCompletionTracker>}
+   */
+  let completionTracker;
+
+  /**
    * @type {Function|undefined}
    */
   let onFirstRenderCallback;
@@ -224,6 +230,9 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = (appInstance, parent, nextState, handler) => {
+    // Reset completion tracker for new state (emits aborted if previous had pending)
+    completionTracker.reset(nextState.id);
+
     applyGlobalObjects(appInstance, state.global, nextState.global);
 
     // Cancel all running animations synchronously
@@ -238,6 +247,7 @@ const createRouteGraphics = () => {
       animations: nextState.animations,
       elementPlugins: plugins.elements,
       animationBus,
+      completionTracker,
       eventHandler: handler,
     });
 
@@ -253,6 +263,9 @@ const createRouteGraphics = () => {
     });
 
     state = nextState;
+
+    // Fire stateComplete immediately if no animations/reveals to track
+    completionTracker.completeIfEmpty();
 
     if (!hasRenderedOnce) {
       hasRenderedOnce = true;
@@ -339,6 +352,7 @@ const createRouteGraphics = () => {
       eventHandler = handler;
 
       keyboardManager = createKeyboardManager(handler);
+      completionTracker = createCompletionTracker(handler);
 
       /**
        * @type {ApplicationWithAudioStage}

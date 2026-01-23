@@ -11,6 +11,7 @@ export const updateSprite = ({
   nextElement,
   animations,
   animationBus,
+  completionTracker,
   eventHandler,
   zIndex,
 }) => {
@@ -188,6 +189,9 @@ export const updateSprite = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -196,12 +200,7 @@ export const updateSprite = ({
           properties: animation.properties,
           targetState: { x, y, width, height, alpha },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevElement.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },

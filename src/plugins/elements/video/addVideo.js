@@ -11,6 +11,7 @@ export const addVideo = ({
   animations,
   eventHandler,
   animationBus,
+  completionTracker,
   zIndex,
 }) => {
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
@@ -42,6 +43,9 @@ export const addVideo = ({
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -49,14 +53,9 @@ export const addVideo = ({
         element: sprite,
         properties: animation.properties,
         targetState: { x, y, width, height, alpha: alpha ?? 1 },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

@@ -65,6 +65,12 @@ vt:
           description: "Using textrevealing"
         - title: "TextRevealing Events"
           files: "textrevealingevent"
+    - title: "Render Complete"
+      type: "groupLabel"
+      items:
+        - title: "Render Complete Events"
+          files: "rendercompleteevent"
+          description: "Tests for renderComplete event firing"
     - title: "Slider"
       type: "groupLabel"
       items:

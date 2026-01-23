@@ -3,12 +3,11 @@
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
 export const deleteText = ({
-  app,
   parent,
   element,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
 }) => {
   const text = parent.getChildByLabel(element.id);
 
@@ -25,6 +24,9 @@ export const deleteText = ({
 
   // Dispatch delete animations to the bus
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -33,12 +35,7 @@ export const deleteText = ({
         properties: animation.properties,
         targetState: null, // null signals destroy on cancel
         onComplete: () => {
-          if (animation.complete) {
-            eventHandler?.("complete", {
-              _event: { id: animation.id, targetId: element.id },
-              ...animation.complete.actionPayload,
-            });
-          }
+          completionTracker.complete(stateVersion);
           if (text && !text.destroyed) {
             text.destroy();
           }

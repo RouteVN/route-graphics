@@ -12,6 +12,7 @@ export const updateVideo = ({
   animations,
   animationBus,
   eventHandler,
+  completionTracker,
   zIndex,
 }) => {
   const videoElement = parent.children.find(
@@ -58,6 +59,9 @@ export const updateVideo = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -66,12 +70,7 @@ export const updateVideo = ({
           properties: animation.properties,
           targetState: { x, y, width, height, alpha: alpha ?? 1 },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevElement.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },

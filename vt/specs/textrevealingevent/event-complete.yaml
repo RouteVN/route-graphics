@@ -1,8 +1,10 @@
 ---
-title: Text Revealing Completetion Event
+title: Text Revealing Completion Event
+description: Test that renderComplete event fires after text revealing completes
 ---
 states:
-  - elements:
+  - id: "text-revealing-state"
+    elements:
       - id: 'showcase-text'
         type: "text-revealing"
         content:
@@ -68,6 +70,3 @@ states:
         width: 600
         alpha: 1
         revealEffect: none
-        complete: 
-          actionPayload:
-            status: complete

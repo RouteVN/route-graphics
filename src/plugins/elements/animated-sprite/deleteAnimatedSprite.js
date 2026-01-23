@@ -10,7 +10,7 @@ export const deleteAnimatedSprite = ({
   element,
   animations,
   animationBus,
-  eventHandler,
+  completionTracker,
 }) => {
   const animatedSpriteElement = parent.children.find(
     (child) => child.label === element.id,
@@ -39,6 +39,9 @@ export const deleteAnimatedSprite = ({
 
   // Dispatch delete animations to the bus
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -47,12 +50,7 @@ export const deleteAnimatedSprite = ({
         properties: animation.properties,
         targetState: null, // null signals destroy on cancel
         onComplete: () => {
-          if (animation.complete) {
-            eventHandler?.("complete", {
-              _event: { id: animation.id, targetId: element.id },
-              ...animation.complete.actionPayload,
-            });
-          }
+          completionTracker.complete(stateVersion);
           deleteElement();
         },
       },

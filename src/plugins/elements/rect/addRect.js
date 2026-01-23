@@ -12,6 +12,7 @@ export const addRect = ({
   animationBus,
   eventHandler,
   zIndex,
+  completionTracker,
 }) => {
   const { id, x, y, width, height, fill, border, alpha } = element;
 
@@ -206,6 +207,9 @@ export const addRect = ({
     animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -213,14 +217,9 @@ export const addRect = ({
         element: rect,
         properties: animation.properties,
         targetState: { x, y, alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

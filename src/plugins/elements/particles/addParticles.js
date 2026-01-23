@@ -51,7 +51,7 @@ function createCustomTexture(app, shapeConfig) {
  * Add a particle effect to the stage using custom behavior configs.
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addParticle = ({ app, parent, element, animations, animationBus, eventHandler, zIndex }) => {
+export const addParticle = ({ app, parent, element, animations, animationBus, completionTracker, zIndex }) => {
 
   const container = new Container();
   container.label = element.id;
@@ -149,6 +149,9 @@ export const addParticle = ({ app, parent, element, animations, animationBus, ev
     animations?.filter((a) => a.targetId === element.id) || [];
 
   for (const animation of relevantAnimations) {
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -156,14 +159,9 @@ export const addParticle = ({ app, parent, element, animations, animationBus, ev
         element: container,
         properties: animation.properties,
         targetState: { x: element.x ?? 0, y: element.y ?? 0, alpha: element.alpha },
-        onComplete: animation.complete
-          ? () => {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: element.id },
-                ...animation.complete.actionPayload,
-              });
-            }
-          : undefined,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+        },
       },
     });
   }

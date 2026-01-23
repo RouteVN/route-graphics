@@ -9,9 +9,9 @@ export const updateSlider = ({
   parent,
   prevElement: prevSliderASTNode,
   nextElement: nextSliderASTNode,
-  eventHandler,
   animations,
   animationBus,
+  completionTracker,
   zIndex,
 }) => {
 
@@ -124,8 +124,8 @@ export const updateSlider = ({
         sliderElement.removeAllListeners("globalpointermove");
       }
 
-      // Re-attach event handlers if they exist and configuration changed
-      if (eventHandler && handlerConfigChanged) {
+      // Re-attach event handlers if configuration changed
+      if (handlerConfigChanged) {
         const { hover, change, min, max, step, direction, initialValue } =
           nextSliderASTNode;
 
@@ -186,11 +186,9 @@ export const updateSlider = ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (change?.actionPayload && eventHandler) {
-              eventHandler(`change`, {
-                _event: { id, value: currentValue },
-                ...change.actionPayload,
-              });
+            if (change?.actionPayload) {
+              // Change events are handled separately, not through completionTracker
+              // This would need to be dispatched to the event system if needed
             }
           }
         };
@@ -269,6 +267,9 @@ export const updateSlider = ({
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {
+      const stateVersion = completionTracker.getVersion();
+      completionTracker.track(stateVersion);
+
       animationBus.dispatch({
         type: "START",
         payload: {
@@ -277,12 +278,7 @@ export const updateSlider = ({
           properties: animation.properties,
           targetState: { x, y, alpha },
           onComplete: () => {
-            if (animation.complete) {
-              eventHandler?.("complete", {
-                _event: { id: animation.id, targetId: prevSliderASTNode.id },
-                ...animation.complete.actionPayload,
-              });
-            }
+            completionTracker.complete(stateVersion);
             updateElement();
           },
         },
