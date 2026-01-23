@@ -11,6 +11,7 @@ export const addSlider = ({
   animations,
   animationBus,
   completionTracker,
+  eventHandler,
   zIndex,
 }) => {
   const {
@@ -146,9 +147,11 @@ export const addSlider = ({
       currentValue = newValue;
       updateThumbPosition(currentValue);
 
-      if (change?.actionPayload) {
-        // Change events are handled separately, not through completionTracker
-        // This would need to be dispatched to the event system if needed
+      if (change?.actionPayload && eventHandler) {
+        eventHandler("change", {
+          _event: { id, value: currentValue },
+          ...change.actionPayload,
+        });
       }
     }
   };

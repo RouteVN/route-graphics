@@ -12,6 +12,7 @@ export const updateSlider = ({
   animations,
   animationBus,
   completionTracker,
+  eventHandler,
   zIndex,
 }) => {
   const sliderElement = parent.children.find(
@@ -185,9 +186,11 @@ export const updateSlider = ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (change?.actionPayload) {
-              // Change events are handled separately, not through completionTracker
-              // This would need to be dispatched to the event system if needed
+            if (change?.actionPayload && eventHandler) {
+              eventHandler("change", {
+                _event: { id: nextSliderASTNode.id, value: currentValue },
+                ...change.actionPayload,
+              });
             }
           }
         };
