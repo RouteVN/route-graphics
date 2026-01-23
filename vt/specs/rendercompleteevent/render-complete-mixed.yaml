@@ -6,7 +6,7 @@ specs:
   - "should not fire until all trackable items complete"
   - "payload should have aborted: false when all complete"
 steps:
-  - customEvent snapShotKeyFrame deltaMS=600
+  - customEvent snapShotKeyFrame deltaMS=800
   - customEvent showRenderComplete
   - screenshot
 ---
