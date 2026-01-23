@@ -26,7 +26,10 @@ export const updateText = ({
   const { x, y, alpha } = nextTextComputedNode;
 
   const updateElement = () => {
-    if (JSON.stringify(prevTextComputedNode) !== JSON.stringify(nextTextComputedNode)) {
+    if (
+      JSON.stringify(prevTextComputedNode) !==
+      JSON.stringify(nextTextComputedNode)
+    ) {
       textElement.text = nextTextComputedNode.content;
       applyTextStyle(textElement, nextTextComputedNode.textStyle);
 

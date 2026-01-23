@@ -36,7 +36,9 @@ export const renderElements = ({
   // Update zIndex for ALL existing children BEFORE any add/update/delete operations
   // This ensures correct z-ordering during animations
   for (const child of parent.children) {
-    const expectedZIndex = nextComputedTree.findIndex((e) => e.id === child.label);
+    const expectedZIndex = nextComputedTree.findIndex(
+      (e) => e.id === child.label,
+    );
     if (expectedZIndex !== -1) {
       child.zIndex = expectedZIndex;
     }

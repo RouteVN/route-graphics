@@ -25,7 +25,8 @@ export const updateSlider = ({
 
   const updateElement = () => {
     if (
-      JSON.stringify(prevSliderComputedNode) !== JSON.stringify(nextSliderComputedNode)
+      JSON.stringify(prevSliderComputedNode) !==
+      JSON.stringify(nextSliderComputedNode)
     ) {
       // Update container properties
       sliderElement.x = nextSliderComputedNode.x;
@@ -38,7 +39,9 @@ export const updateSlider = ({
       );
 
       // Get bar and thumb sprites
-      const bar = sliderElement.getChildByLabel(`${nextSliderComputedNode.id}-bar`);
+      const bar = sliderElement.getChildByLabel(
+        `${nextSliderComputedNode.id}-bar`,
+      );
       const thumb = sliderElement.getChildByLabel(
         `${nextSliderComputedNode.id}-thumb`,
       );
@@ -90,7 +93,9 @@ export const updateSlider = ({
           bar.texture = barTexture;
         }
 
-        if (prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc) {
+        if (
+          prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc
+        ) {
           const thumbTexture = nextSliderComputedNode.thumbSrc
             ? Texture.from(nextSliderComputedNode.thumbSrc)
             : Texture.EMPTY;
@@ -98,9 +103,11 @@ export const updateSlider = ({
         }
 
         // Update thumb position based on new value
-        const valueRange = nextSliderComputedNode.max - nextSliderComputedNode.min;
+        const valueRange =
+          nextSliderComputedNode.max - nextSliderComputedNode.min;
         const normalizedValue =
-          (nextSliderComputedNode.initialValue - nextSliderComputedNode.min) / valueRange;
+          (nextSliderComputedNode.initialValue - nextSliderComputedNode.min) /
+          valueRange;
 
         if (nextSliderComputedNode.direction === "horizontal") {
           thumb.x = normalizedValue * (bar.width - thumb.width);
