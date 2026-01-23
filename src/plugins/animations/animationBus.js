@@ -1,7 +1,7 @@
 import {
   WhiteListTransitionProps,
   TRANSITION_PROPERTY_PATH_MAP,
-} from "../../types.js";
+} from "../../constants.js";
 
 // --- Easing Functions ---
 const easings = {

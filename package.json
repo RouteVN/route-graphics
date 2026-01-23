@@ -36,7 +36,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "serve": "bunx serve -p 3005 .rettangoli/vt/_site"
+    "serve": "bunx serve -p 3005 .rettangoli/vt/_site",
+    "prepare": "husky"
   },
   "dependencies": {
     "@pixi/unsafe-eval": "^7.4.3",
@@ -58,8 +59,9 @@
     "vitest": "^4.0.8"
   },
   "lint-staged": {
-    "src/**/*.{js}": [
-      "oxlint && bunx prettier --write"
+    "src/**/*.js": [
+      "oxlint",
+      "prettier --write"
     ]
   }
 }

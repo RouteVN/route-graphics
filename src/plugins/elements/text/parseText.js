@@ -1,6 +1,6 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
-import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { DEFAULT_TEXT_STYLE } from "../../../constants.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement

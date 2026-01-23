@@ -1,4 +1,4 @@
-import { ComputedNodeType } from "../../../../types.js";
+import { ComputedNodeType } from "../../../../constants.js";
 
 /**
  * Validation helpers for particles parser.
