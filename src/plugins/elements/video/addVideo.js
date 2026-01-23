@@ -39,8 +39,7 @@ export const addVideo = ({
   parent.addChild(sprite);
 
   // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === id) || [];
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
     const stateVersion = completionTracker.getVersion();

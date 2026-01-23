@@ -13,7 +13,6 @@ export const addSlider = ({
   completionTracker,
   zIndex,
 }) => {
-
   const {
     id,
     x,
@@ -227,8 +226,7 @@ export const addSlider = ({
   parent.addChild(sliderContainer);
 
   // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === id) || [];
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
     const stateVersion = completionTracker.getVersion();

@@ -203,8 +203,7 @@ export const addRect = ({
   parent.addChild(rect);
 
   // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === id) || [];
+  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
 
   for (const animation of relevantAnimations) {
     const stateVersion = completionTracker.getVersion();

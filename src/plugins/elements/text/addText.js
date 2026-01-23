@@ -176,7 +176,11 @@ export const addText = ({
         id: animation.id,
         element: text,
         properties: animation.properties,
-        targetState: { x: textASTNode.x, y: textASTNode.y, alpha: textASTNode.alpha },
+        targetState: {
+          x: textASTNode.x,
+          y: textASTNode.y,
+          alpha: textASTNode.alpha,
+        },
         onComplete: () => {
           completionTracker.complete(stateVersion);
         },

@@ -27,9 +27,7 @@ export const updateRect = ({
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
       rectElement.clear();
 
-      rectElement
-        .rect(0, 0, Math.round(width), Math.round(height))
-        .fill(fill);
+      rectElement.rect(0, 0, Math.round(width), Math.round(height)).fill(fill);
       rectElement.x = Math.round(x);
       rectElement.y = Math.round(y);
       rectElement.alpha = alpha;

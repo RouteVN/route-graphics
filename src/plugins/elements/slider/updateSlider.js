@@ -14,7 +14,6 @@ export const updateSlider = ({
   completionTracker,
   zIndex,
 }) => {
-
   const sliderElement = parent.children.find(
     (child) => child.label === prevSliderASTNode.id,
   );
