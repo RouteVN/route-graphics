@@ -1,5 +1,4 @@
 import { Spritesheet, Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 
 /**
@@ -12,20 +11,17 @@ export const updateAnimatedSprite = async ({
   prevElement,
   nextElement,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
 }) => {
   const animatedSpriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
 
-  if (animatedSpriteElement) {
-    animatedSpriteElement.zIndex = zIndex;
-  }
+  if (!animatedSpriteElement) return;
 
-  let isAnimationDone = true;
+  animatedSpriteElement.zIndex = zIndex;
 
   const updateElement = async () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
@@ -68,27 +64,35 @@ export const updateAnimatedSprite = async ({
     }
   };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      await updateElement();
-    }
-  };
+  const { x, y, width, height, alpha } = nextElement;
 
-  signal.addEventListener("abort", abortHandler);
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevElement.id) || [];
 
-  if (animatedSpriteElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(prevElement.id, animationPlugins, {
-        app,
-        element: animatedSpriteElement,
-        animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: animatedSpriteElement,
+          properties: animation.properties,
+          targetState: { x, y, width, height, alpha },
+          onComplete: async () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevElement.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            await updateElement();
+          },
+        },
       });
-      isAnimationDone = true;
     }
+  } else {
+    // No animations, update immediately
     await updateElement();
-    signal.removeEventListener("abort", abortHandler);
   }
 };

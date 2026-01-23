@@ -18,8 +18,7 @@
  * @property {import('../../types.js').ASTNode} element - Element to add
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
- * @property {Array} animationPlugins - Array of animation plugins
- * @property {AbortSignal} signal - Abort signal
+ * @property {Object} animationBus - Animation bus for dispatching animations
  */
 
 /**
@@ -30,8 +29,7 @@
  * @property {import('../../types.js').ASTNode} nextElement - Next element state
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
- * @property {Array} animationPlugins - Array of animation plugins
- * @property {AbortSignal} signal - Abort signal
+ * @property {Object} animationBus - Animation bus for dispatching animations
  */
 
 /**
@@ -40,9 +38,8 @@
  * @property {import('../../types.js').Container} parent - Parent container
  * @property {import('../../types.js').ASTNode} element - Element to delete
  * @property {Object[]} animations - Animation configurations for the element
- * @property {Array} animationPlugins - Array of animation plugins
  * @property {Function} eventHandler - Event handler function
- * @property {AbortSignal} signal - Abort signal
+ * @property {Object} animationBus - Animation bus for dispatching animations
  */
 
 /**

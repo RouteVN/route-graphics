@@ -1,43 +1,30 @@
-import { Assets, Sprite, Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
+import { Sprite, Texture } from "pixi.js";
 
 /**
- * Add sprite element to the stage
+ * Add sprite element to the stage (synchronous)
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addSprite = async ({
+export const addSprite = ({
   app,
   parent,
   element,
   animations,
   eventHandler,
-  animationPlugins,
-  signal,
+  animationBus,
   zIndex,
 }) => {
-  let isAnimationDone = true;
   const { id, x, y, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
 
-  const drawSprite = () => {
-    sprite.x = Math.round(x);
-    sprite.y = Math.round(y);
-    sprite.width = Math.round(width);
-    sprite.height = Math.round(height);
-    sprite.alpha = alpha;
-  };
-
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawSprite();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
-  drawSprite();
+  // Apply initial state
+  sprite.x = Math.round(x);
+  sprite.y = Math.round(y);
+  sprite.width = Math.round(width);
+  sprite.height = Math.round(height);
+  sprite.alpha = alpha;
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
@@ -177,17 +164,27 @@ export const addSprite = async ({
 
   parent.addChild(sprite);
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: sprite,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus (no await needed)
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: sprite,
+        properties: animation.properties,
+        targetState: { x, y, width, height, alpha },
+        onComplete: animation.complete
+          ? () => {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: id },
+                ...animation.complete.actionPayload,
+              });
+            }
+          : undefined,
+      },
+    });
+  }
 };

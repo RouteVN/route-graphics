@@ -15,7 +15,6 @@
  * @typedef {Object} AddAudioOptions
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').SoundElement} audio - Audio element to add
- * @property {AbortSignal} signal - Abort signal
  */
 
 /**
@@ -23,14 +22,12 @@
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').SoundElement} prevAudio - Previous audio state
  * @property {import('../../types.js').SoundElement} nextAudio - Next audio state
- * @property {AbortSignal} signal - Abort signal
  */
 
 /**
  * @typedef {Object} DeleteAudioOptions
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').SoundElement} audio - Audio element to delete
- * @property {AbortSignal} signal - Abort signal
  */
 
 /**

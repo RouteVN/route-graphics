@@ -1,41 +1,40 @@
-import animateElements from "../../../util/animateElements.js";
 import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 
 /**
- * Update container element
+ * Update container element (synchronous)
  * @typedef {import("../elementPlugin.js").UpdateElementOptions} UpdateElementOptions
  * @typedef {import("../elementPlugin.js").ElementPlugin} ElementPlugin
  * @param {UpdateElementOptions && {elementPlugins: ElementPlugin[]}} params
  */
-export const updateContainer = async ({
+export const updateContainer = ({
   app,
   parent,
   prevElement,
   nextElement,
   eventHandler,
   animations,
-  animationPlugins,
+  animationBus,
   elementPlugins,
-  signal,
   zIndex,
 }) => {
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
 
-  if (containerElement) {
-    containerElement.zIndex = zIndex;
-  }
-  let isAnimationDone = true;
+  if (!containerElement) return;
 
-  const updateElement = async () => {
+  containerElement.zIndex = zIndex;
+
+  const { x, y, alpha } = nextElement;
+
+  const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      containerElement.x = Math.round(nextElement.x);
-      containerElement.y = Math.round(nextElement.y);
+      containerElement.x = Math.round(x);
+      containerElement.y = Math.round(y);
       containerElement.label = nextElement.id;
-      containerElement.alpha = nextElement.alpha;
+      containerElement.alpha = alpha;
 
       containerElement.removeAllListeners("pointerover");
       containerElement.removeAllListeners("pointerout");
@@ -156,7 +155,7 @@ export const updateContainer = async ({
 
     // Render children if definition changed OR animation targets children
     if (childrenChanged || hasChildAnimation) {
-      await renderElements({
+      renderElements({
         app,
         parent: nextElement.scroll
           ? containerElement.children.find(
@@ -168,33 +167,38 @@ export const updateContainer = async ({
         eventHandler,
         elementPlugins,
         animations,
-        animationPlugins,
-        signal,
+        animationBus,
       });
     }
   };
 
-  const abortController = async () => {
-    if (!isAnimationDone) {
-      await updateElement();
-    }
-  };
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevElement.id) || [];
 
-  signal.addEventListener("abort", abortController);
-
-  if (containerElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(prevElement.id, animationPlugins, {
-        app,
-        element: containerElement,
-        animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: containerElement,
+          properties: animation.properties,
+          targetState: { x, y, alpha },
+          onComplete: () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevElement.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            updateElement();
+          },
+        },
       });
     }
-    isAnimationDone = true;
-    await updateElement();
-    signal.removeEventListener("abort", abortController);
+  } else {
+    // No animations, update immediately
+    updateElement();
   }
 };

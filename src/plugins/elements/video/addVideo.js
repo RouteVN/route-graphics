@@ -1,21 +1,18 @@
 import { Texture, Sprite, Assets } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
 
 /**
  * Add video element to the stage
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addVideo = async ({
+export const addVideo = ({
   app,
   parent,
   element,
   animations,
   eventHandler,
-  animationPlugins,
-  signal,
+  animationBus,
   zIndex,
 }) => {
-  let isAnimationDone = true;
   const { id, x, y, width, height, src, volume, loop, alpha } = element;
 
   const texture = Texture.from(src);
@@ -32,36 +29,35 @@ export const addVideo = async ({
   sprite.label = id;
   sprite.zIndex = zIndex;
 
-  const drawVideo = () => {
-    sprite.x = Math.round(x);
-    sprite.y = Math.round(y);
-    sprite.width = Math.round(width);
-    sprite.height = Math.round(height);
-    sprite.alpha = alpha ?? 1;
-  };
-
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawVideo();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
-  drawVideo();
+  sprite.x = Math.round(x);
+  sprite.y = Math.round(y);
+  sprite.width = Math.round(width);
+  sprite.height = Math.round(height);
+  sprite.alpha = alpha ?? 1;
 
   parent.addChild(sprite);
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: sprite,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: sprite,
+        properties: animation.properties,
+        targetState: { x, y, width, height, alpha: alpha ?? 1 },
+        onComplete: animation.complete
+          ? () => {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: id },
+                ...animation.complete.actionPayload,
+              });
+            }
+          : undefined,
+      },
+    });
+  }
 };

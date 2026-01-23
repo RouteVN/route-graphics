@@ -1,38 +1,36 @@
 import { Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
 
 /**
  * Update video element
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
-export const updateVideo = async ({
+export const updateVideo = ({
   app,
   parent,
   prevElement,
   nextElement,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
 }) => {
   const videoElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
 
-  if (videoElement) {
-    videoElement.zIndex = zIndex;
-  }
+  if (!videoElement) return;
 
-  let isAnimationDone = true;
+  videoElement.zIndex = zIndex;
+
+  const { x, y, width, height, alpha } = nextElement;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      videoElement.x = Math.round(nextElement.x);
-      videoElement.y = Math.round(nextElement.y);
-      videoElement.width = Math.round(nextElement.width);
-      videoElement.height = Math.round(nextElement.height);
-      videoElement.alpha = nextElement.alpha ?? 1;
+      videoElement.x = Math.round(x);
+      videoElement.y = Math.round(y);
+      videoElement.width = Math.round(width);
+      videoElement.height = Math.round(height);
+      videoElement.alpha = alpha ?? 1;
 
       if (prevElement.src !== nextElement.src) {
         const oldVideo = videoElement.texture.source.resource;
@@ -51,36 +49,36 @@ export const updateVideo = async ({
       }
       videoElement.texture.source.resource.volume = nextElement.volume / 1000;
       videoElement.texture.source.resource.loop = nextElement.loop ?? false;
-
-      // if (audioElement) {
-      //   audioElement.url = nextElement.src;
-      //   audioElement.volume = nextElement.volume / 1000;
-      //   audioElement.loop = nextElement.loop ?? false;
-      // }
     }
   };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      updateElement();
-    }
-  };
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevElement.id) || [];
 
-  signal.addEventListener("abort", abortHandler);
-
-  if (videoElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(prevElement.id, animationPlugins, {
-        app,
-        element: videoElement,
-        animations: animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: videoElement,
+          properties: animation.properties,
+          targetState: { x, y, width, height, alpha: alpha ?? 1 },
+          onComplete: () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevElement.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            updateElement();
+          },
+        },
       });
-      isAnimationDone = true;
     }
+  } else {
+    // No animations, update immediately
     updateElement();
-    signal.removeEventListener("abort", abortHandler);
   }
 };

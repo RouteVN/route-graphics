@@ -1,43 +1,31 @@
-import { Text, TextStyle } from "pixi.js";
+import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
-import animateElements from "../../../util/animateElements.js";
 
 /**
- * Add text element to the stage
+ * Add text element to the stage (synchronous)
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
-export const addText = async ({
+export const addText = ({
   app,
   parent,
   element: textASTNode,
   animations,
   eventHandler,
-  animationPlugins,
-  signal,
+  animationBus,
   zIndex,
 }) => {
-  let isAnimationDone = true;
-
   const text = new Text({
     label: textASTNode.id,
   });
   text.zIndex = zIndex;
-  const drawText = () => {
-    text.text = textASTNode.content;
-    applyTextStyle(text, textASTNode.textStyle);
-    text.alpha = textASTNode.alpha;
-    text.x = textASTNode.x;
-    text.y = textASTNode.y;
-  };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      drawText();
-    }
-  };
+  // Apply initial state
+  text.text = textASTNode.content;
+  applyTextStyle(text, textASTNode.textStyle);
+  text.alpha = textASTNode.alpha;
+  text.x = textASTNode.x;
+  text.y = textASTNode.y;
 
-  signal.addEventListener("abort", abortHandler);
-  drawText();
   const hoverEvents = textASTNode?.hover;
   const clickEvents = textASTNode?.click;
   const rightClickEvents = textASTNode?.rightClick;
@@ -173,17 +161,27 @@ export const addText = async ({
 
   parent.addChild(text);
 
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(textASTNode.id, animationPlugins, {
-      app,
-      element: text,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === textASTNode.id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: text,
+        properties: animation.properties,
+        targetState: { x: textASTNode.x, y: textASTNode.y, alpha: textASTNode.alpha },
+        onComplete: animation.complete
+          ? () => {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: textASTNode.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+          : undefined,
+      },
+    });
+  }
 };

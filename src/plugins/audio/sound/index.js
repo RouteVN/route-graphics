@@ -1,5 +1,5 @@
 import { createAudioPlugin } from "../audioPlugin.js";
-import { addSound } from "./addSound.js";
+import { addSound, clearPendingSounds } from "./addSound.js";
 import { updateSound } from "./updateSound.js";
 import { deleteSound } from "./deleteSound.js";
 
@@ -10,3 +10,5 @@ export const soundPlugin = createAudioPlugin({
   update: updateSound,
   delete: deleteSound,
 });
+
+export { clearPendingSounds };

@@ -1,51 +1,43 @@
-import animateElements from "../../../util/animateElements.js";
-
 /**
- * Update rectangle element
+ * Update rectangle element (synchronous)
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
-export const updateRect = async ({
+export const updateRect = ({
   app,
   parent,
   prevElement,
   nextElement,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
 }) => {
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
 
-  if (rectElement) {
-    rectElement.zIndex = zIndex;
-  }
+  if (!rectElement) return;
 
-  let isAnimationDone = true;
+  rectElement.zIndex = zIndex;
+
+  const { x, y, width, height, fill, border, alpha } = nextElement;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
       rectElement.clear();
 
       rectElement
-        .rect(
-          0,
-          0,
-          Math.round(nextElement.width),
-          Math.round(nextElement.height),
-        )
-        .fill(nextElement.fill);
-      rectElement.x = Math.round(nextElement.x);
-      rectElement.y = Math.round(nextElement.y);
-      rectElement.alpha = nextElement.alpha;
+        .rect(0, 0, Math.round(width), Math.round(height))
+        .fill(fill);
+      rectElement.x = Math.round(x);
+      rectElement.y = Math.round(y);
+      rectElement.alpha = alpha;
 
-      if (nextElement.border) {
+      if (border) {
         rectElement.stroke({
-          color: nextElement.border.color,
-          alpha: nextElement.border.alpha,
-          width: Math.round(nextElement.border.width),
+          color: border.color,
+          alpha: border.alpha,
+          width: Math.round(border.width),
         });
       }
 
@@ -138,6 +130,7 @@ export const updateRect = async ({
 
         rectElement.on("rightclick", rightClickListener);
       }
+
       if (scrollEvents) {
         rectElement.eventMode = "static";
 
@@ -223,27 +216,33 @@ export const updateRect = async ({
     }
   };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      updateElement();
-    }
-  };
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevElement.id) || [];
 
-  signal.addEventListener("abort", abortHandler);
-
-  if (rectElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(prevElement.id, animationPlugins, {
-        app,
-        element: rectElement,
-        animations: animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: rectElement,
+          properties: animation.properties,
+          targetState: { x, y, alpha },
+          onComplete: () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevElement.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            updateElement();
+          },
+        },
       });
-      isAnimationDone = true;
     }
+  } else {
+    // No animations, update immediately
     updateElement();
-    signal.removeEventListener("abort", abortHandler);
   }
 };

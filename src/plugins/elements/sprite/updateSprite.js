@@ -1,43 +1,39 @@
 import { Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements.js";
 
 /**
- * Update sprite element
+ * Update sprite element (synchronous)
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
-export const updateSprite = async ({
+export const updateSprite = ({
   app,
   parent,
   prevElement,
   nextElement,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
 }) => {
   const spriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
 
-  if (spriteElement) {
-    spriteElement.zIndex = zIndex;
-  }
+  if (!spriteElement) return;
 
-  let isAnimationDone = true;
+  spriteElement.zIndex = zIndex;
+
+  const { id, x, y, width, height, src, alpha } = nextElement;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
-      const texture = nextElement.src
-        ? Texture.from(nextElement.src)
-        : Texture.EMPTY;
+      const texture = src ? Texture.from(src) : Texture.EMPTY;
       spriteElement.texture = texture;
 
-      spriteElement.x = Math.round(nextElement.x);
-      spriteElement.y = Math.round(nextElement.y);
-      spriteElement.width = Math.round(nextElement.width);
-      spriteElement.height = Math.round(nextElement.height);
-      spriteElement.alpha = nextElement.alpha;
+      spriteElement.x = Math.round(x);
+      spriteElement.y = Math.round(y);
+      spriteElement.width = Math.round(width);
+      spriteElement.height = Math.round(height);
+      spriteElement.alpha = alpha;
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");
@@ -186,27 +182,33 @@ export const updateSprite = async ({
     }
   };
 
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      updateElement();
-    }
-  };
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevElement.id) || [];
 
-  signal.addEventListener("abort", abortHandler);
-
-  if (spriteElement) {
-    if (animations && animations.length > 0) {
-      isAnimationDone = false;
-      await animateElements(prevElement.id, animationPlugins, {
-        app,
-        element: spriteElement,
-        animations,
-        signal,
-        eventHandler,
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: spriteElement,
+          properties: animation.properties,
+          targetState: { x, y, width, height, alpha },
+          onComplete: () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevElement.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            updateElement();
+          },
+        },
       });
-      isAnimationDone = true;
     }
+  } else {
+    // No animations, update immediately
     updateElement();
-    signal.removeEventListener("abort", abortHandler);
   }
 };

@@ -1,32 +1,27 @@
 import { Texture } from "pixi.js";
-import animateElements from "../../../util/animateElements";
 
 /**
  * Update slider element
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
-export const updateSlider = async ({
+export const updateSlider = ({
   app,
   parent,
   prevElement: prevSliderASTNode,
   nextElement: nextSliderASTNode,
   eventHandler,
   animations,
-  animationPlugins,
-  signal,
+  animationBus,
   zIndex,
 }) => {
-  if (signal?.aborted) {
-    return;
-  }
 
   const sliderElement = parent.children.find(
     (child) => child.label === prevSliderASTNode.id,
   );
 
-  if (sliderElement) {
-    sliderElement.zIndex = zIndex;
-  }
+  if (!sliderElement) return;
+
+  sliderElement.zIndex = zIndex;
 
   const updateElement = () => {
     if (
@@ -266,17 +261,35 @@ export const updateSlider = async ({
     }
   };
 
-  if (sliderElement) {
-    if (animations && animations.length > 0) {
-      await animateElements(prevSliderASTNode.id, animationPlugins, {
-        app,
-        element: sliderElement,
-        animations,
-        signal,
-        eventHandler,
+  const { x, y, alpha } = nextSliderASTNode;
+
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === prevSliderASTNode.id) || [];
+
+  if (relevantAnimations.length > 0) {
+    for (const animation of relevantAnimations) {
+      animationBus.dispatch({
+        type: "START",
+        payload: {
+          id: animation.id,
+          element: sliderElement,
+          properties: animation.properties,
+          targetState: { x, y, alpha },
+          onComplete: () => {
+            if (animation.complete) {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: prevSliderASTNode.id },
+                ...animation.complete.actionPayload,
+              });
+            }
+            updateElement();
+          },
+        },
       });
     }
-
+  } else {
+    // No animations, update immediately
     updateElement();
   }
 };

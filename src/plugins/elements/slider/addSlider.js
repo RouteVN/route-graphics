@@ -1,24 +1,18 @@
 import { Sprite, Texture, Container } from "pixi.js";
-import animateElements from "../../../util/animateElements";
 
 /**
  * Add slider element to the stage
  * @param {import("../elementPlugin").AddElementOptions} params
  */
-export const addSlider = async ({
+export const addSlider = ({
   app,
   parent,
   element: sliderASTNode,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
-  signal,
   zIndex,
 }) => {
-  let isAnimationDone = true;
-  if (signal?.aborted) {
-    return;
-  }
 
   const {
     id,
@@ -107,14 +101,6 @@ export const addSlider = async ({
     updateThumbPosition(currentValue);
   };
 
-  // Handle cleanup
-  const abortHandler = async () => {
-    if (!isAnimationDone) {
-      setupSlider();
-    }
-  };
-
-  signal.addEventListener("abort", abortHandler);
   setupSlider();
 
   // Store original textures for hover effects
@@ -242,18 +228,27 @@ export const addSlider = async ({
 
   parent.addChild(sliderContainer);
 
-  // Apply animations if any
-  if (animations && animations.length > 0) {
-    isAnimationDone = false;
-    await animateElements(id, animationPlugins, {
-      app,
-      element: sliderContainer,
-      animations,
-      signal,
-      eventHandler,
-    });
-    isAnimationDone = true;
-  }
+  // Dispatch animations to the bus
+  const relevantAnimations =
+    animations?.filter((a) => a.targetId === id) || [];
 
-  signal.removeEventListener("abort", abortHandler);
+  for (const animation of relevantAnimations) {
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        element: sliderContainer,
+        properties: animation.properties,
+        targetState: { x, y, alpha },
+        onComplete: animation.complete
+          ? () => {
+              eventHandler?.("complete", {
+                _event: { id: animation.id, targetId: id },
+                ...animation.complete.actionPayload,
+              });
+            }
+          : undefined,
+      },
+    });
+  }
 };

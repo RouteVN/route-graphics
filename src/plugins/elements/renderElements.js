@@ -1,28 +1,26 @@
 import { diffElements } from "../../util/diffElements.js";
 
 /**
- * Add elements using plugin system
+ * Render elements using plugin system (synchronous)
  * @param {Object} params
  * @param {import('../../types.js').Application} params.app - The PixiJS application
  * @param {import('../../types.js').Container} params.parent - Parent container
  * @param {import('../../types.js').ASTNode[]} params.prevASTTree - Previous AST tree
  * @param {import('../../types.js').ASTNode[]} params.nextASTTree - Next AST tree
  * @param {import("./elementPlugin.js").ElementPlugin[]} params.elementPlugins - Array of element plugins
- * @param {import("../animations/animationPlugin.js").AnimationPlugin[]} params.animationPlugins - Array of animation plugins
+ * @param {import("../animations/animationBus.js").createAnimationBus} params.animationBus - Animation bus
  * @param {Object[]} params.animations - Animation configurations
  * @param {Function} params.eventHandler - Event handler function
- * @param {AbortSignal} params.signal - Abort signal
  */
-export const renderElements = async ({
+export const renderElements = ({
   app,
   parent,
   prevASTTree,
   nextASTTree,
   animations,
-  animationPlugins,
+  animationBus,
   eventHandler,
   elementPlugins,
-  signal,
 }) => {
   // Enable PixiJS built-in sorting by zIndex
   parent.sortableChildren = true;
@@ -42,29 +40,25 @@ export const renderElements = async ({
     }
   }
 
-  const asyncActions = [];
-  // Delete elements
+  // Delete elements (synchronous)
   for (const element of toDeleteElement) {
     const plugin = elementPlugins.find((p) => p.type === element.type);
     if (!plugin) {
       throw new Error(`No plugin found for element type: ${element.type}`);
     }
 
-    asyncActions.push(
-      plugin.delete({
-        app,
-        parent,
-        element,
-        animations,
-        animationPlugins,
-        eventHandler,
-        signal,
-        elementPlugins,
-      }),
-    );
+    plugin.delete({
+      app,
+      parent,
+      element,
+      animations,
+      animationBus,
+      eventHandler,
+      elementPlugins,
+    });
   }
 
-  // Add elements
+  // Add elements (synchronous)
   for (const element of toAddElement) {
     const plugin = elementPlugins.find((p) => p.type === element.type);
     if (!plugin) {
@@ -74,22 +68,19 @@ export const renderElements = async ({
     // Calculate zIndex based on position in nextASTTree
     const zIndex = nextASTTree.findIndex((e) => e.id === element.id);
 
-    asyncActions.push(
-      plugin.add({
-        app,
-        parent,
-        element,
-        animations,
-        eventHandler,
-        signal,
-        animationPlugins,
-        elementPlugins,
-        zIndex,
-      }),
-    );
+    plugin.add({
+      app,
+      parent,
+      element,
+      animations,
+      eventHandler,
+      animationBus,
+      elementPlugins,
+      zIndex,
+    });
   }
 
-  // Update elements
+  // Update elements (synchronous)
   for (const { prev, next } of toUpdateElement) {
     const plugin = elementPlugins.find((p) => p.type === next.type);
     if (!plugin) {
@@ -99,30 +90,16 @@ export const renderElements = async ({
     // Calculate zIndex based on position in nextASTTree
     const zIndex = nextASTTree.findIndex((e) => e.id === next.id);
 
-    asyncActions.push(
-      plugin.update({
-        app,
-        parent,
-        prevElement: prev,
-        nextElement: next,
-        animations, // Use animations from next element
-        animationPlugins,
-        eventHandler,
-        signal,
-        elementPlugins,
-        zIndex,
-      }),
-    );
-  }
-
-  try {
-    await Promise.all(asyncActions);
-  } catch (error) {
-    // If render was aborted, don't throw - the next render will handle it
-    if (signal.aborted) {
-      console.log("Render aborted, skipping cleanup");
-    } else {
-      throw error;
-    }
+    plugin.update({
+      app,
+      parent,
+      prevElement: prev,
+      nextElement: next,
+      animations,
+      animationBus,
+      eventHandler,
+      elementPlugins,
+      zIndex,
+    });
   }
 };
