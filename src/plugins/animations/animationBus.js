@@ -232,7 +232,7 @@ export const createAnimationBus = () => {
       for (const [property, value] of Object.entries(targetState)) {
         try {
           setTransitionProperty(element, property, value);
-        } catch (e) {
+        } catch {
           // Skip properties that fail to apply
         }
       }
@@ -289,7 +289,7 @@ export const createAnimationBus = () => {
       const value = getValueAtTime(timeline, time);
       try {
         setTransitionProperty(element, property, value);
-      } catch (e) {
+      } catch {
         // Element might be in invalid state, skip
       }
     }
@@ -303,7 +303,7 @@ export const createAnimationBus = () => {
     if (onComplete) {
       try {
         onComplete();
-      } catch (e) {
+      } catch {
         // Skip onComplete errors
       }
     }
@@ -327,7 +327,7 @@ export const createAnimationBus = () => {
     listeners.get(event)?.forEach((cb) => {
       try {
         cb(data);
-      } catch (e) {
+      } catch {
         // Skip listener errors
       }
     });

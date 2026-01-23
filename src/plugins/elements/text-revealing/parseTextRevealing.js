@@ -186,14 +186,14 @@ export const parseTextRevealing = ({ state }) => {
   const defaultTextStyle = {
     ...DEFAULT_TEXT_STYLE,
     wordWrap: true,
-    ...(state.textStyle || {}),
+    ...state.textStyle,
   };
 
   const processedContent = (state.content || []).map((item) => {
     // TODO: if breakwords is true this will crash
     const itemTextStyle = {
       ...defaultTextStyle,
-      ...(item.textStyle || {}),
+      ...item.textStyle,
     };
 
     itemTextStyle.lineHeight = Math.round(
@@ -209,7 +209,7 @@ export const parseTextRevealing = ({ state }) => {
     if (item.furigana) {
       const furiganaTextStyle = {
         ...defaultTextStyle,
-        ...(item.furigana.textStyle || {}),
+        ...item.furigana.textStyle,
       };
 
       furiganaTextStyle.lineHeight = Math.round(
@@ -280,7 +280,7 @@ export const parseTextRevealing = ({ state }) => {
     content: chunks,
     textStyle: {
       ...defaultTextStyle,
-      ...(state.textStyle || {}),
+      ...state.textStyle,
     },
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",

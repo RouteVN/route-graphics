@@ -442,3 +442,4 @@
  * @property {number} strokeWidth - The stroke width of the text
  */
 
+export {};

@@ -11,19 +11,7 @@
     </script>
     <script type="module">
         import createRouteGraphics, {
-            Assets,
-            AudioAsset,
-            textPlugin,
-            rectPlugin,
-            spritePlugin,
-            videoPlugin,
-            sliderPlugin,
-            containerPlugin,
-            textRevealingPlugin,
-            animatedSpritePlugin,
-            tweenPlugin,
-            soundPlugin,
-            particlesPlugin,
+            visualNovelPlugins,
             createAssetBufferManager,
         } from "/RouteGraphics.js"
 
@@ -67,32 +55,13 @@
 
         const app = createRouteGraphics();
         window.takeVtScreenshotBase64 = async (label) => await app.extractBase64(label);
-        const plugins = {
-            elements: [
-                textPlugin,
-                rectPlugin,
-                spritePlugin,
-                videoPlugin,
-                sliderPlugin,
-                containerPlugin,
-                textRevealingPlugin,
-                animatedSpritePlugin,
-                particlesPlugin,
-            ],
-            animations: [
-                tweenPlugin
-            ],
-            audio: [
-                soundPlugin
-            ],
-        }
         let index = 0
         const states = parse(window.vtState).states
         let lastRenderCompleteEvent = null;
         await app.init({
             width: 1280,
             height: 720,
-            plugins,
+            plugins: visualNovelPlugins,
             eventHandler: (eventName, payload) => {
                 console.log('eventHandler', eventName, payload)
                 // Store renderComplete events for later display via custom event

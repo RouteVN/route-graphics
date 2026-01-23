@@ -65,7 +65,6 @@ export const addParticle = ({
   container.zIndex = zIndex;
   parent.addChild(container);
 
-  const width = element.width;
   const height = element.height;
   container.x = element.x ?? 0;
   container.y = element.y ?? 0;
@@ -93,7 +92,7 @@ export const addParticle = ({
     if (!texture) {
       try {
         texture = Texture.from(textureName);
-      } catch (e) {
+      } catch {
         console.warn(`Failed to load particle texture: ${textureName}`);
         return;
       }

@@ -97,7 +97,7 @@ export class StaticRotationBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Static - no update
   }
 }
@@ -130,7 +130,7 @@ export class NoRotationBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(particle, _deltaSec) {
     particle.rotation = this.rotation;
   }
 }

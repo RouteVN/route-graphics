@@ -51,7 +51,7 @@ export class AlphaBehavior {
    * @param {Particle} particle
    * @param {number} deltaSec - Delta time in seconds
    */
-  updateParticle(particle, deltaSec) {
+  updateParticle(particle, _deltaSec) {
     particle.alpha = this.list.getValue(particle.agePercent);
   }
 }
@@ -84,7 +84,7 @@ export class StaticAlphaBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Static - no update needed
   }
 }

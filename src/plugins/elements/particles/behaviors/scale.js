@@ -52,7 +52,7 @@ export class ScaleBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(particle, _deltaSec) {
     const scale =
       this.list.getValue(particle.agePercent) * particle.config.scaleMult;
     particle.scale.set(scale, scale);
@@ -91,7 +91,7 @@ export class StaticScaleBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Static - no update needed
   }
 }

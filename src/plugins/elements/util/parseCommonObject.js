@@ -39,8 +39,8 @@ export const parseCommonObject = (state) => {
   const {
     x: adjustedPositionX,
     y: adjustedPositionY,
-    originX: originX,
-    originY: originY,
+    originX,
+    originY,
   } = calculatePositionAfterAnchor({
     positionX: state.x,
     positionY: state.y,

@@ -28,8 +28,6 @@ export const addSlider = ({
     max,
     step,
     initialValue,
-    originX,
-    originY,
     hover,
     change,
   } = sliderComputedNode;

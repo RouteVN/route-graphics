@@ -84,7 +84,7 @@ export class PointShape {
     this.y = data.y;
   }
 
-  getRandPos(point, emitter) {
+  getRandPos(point, _emitter) {
     point.x = this.x;
     point.y = this.y;
   }
@@ -177,7 +177,7 @@ export class SpawnShapeBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Spawn shapes don't update
   }
 }
@@ -226,7 +226,7 @@ export class BurstSpawnBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Burst spawn doesn't update
   }
 }

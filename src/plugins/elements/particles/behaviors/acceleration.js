@@ -4,8 +4,6 @@
  * Original Copyright (c) 2015 CloudKid
  */
 
-const DEG_TO_RAD = Math.PI / 180;
-
 /**
  * Applies constant acceleration (like gravity) to particles.
  *
@@ -110,7 +108,7 @@ export class GravityBehavior {
     this.gravity = config.gravity;
   }
 
-  initParticles(first) {
+  initParticles(_first) {
     // No initialization needed
   }
 

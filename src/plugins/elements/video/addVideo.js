@@ -1,15 +1,13 @@
-import { Texture, Sprite, Assets } from "pixi.js";
+import { Texture, Sprite } from "pixi.js";
 
 /**
  * Add video element to the stage
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addVideo = ({
-  app,
   parent,
   element,
   animations,
-  eventHandler,
   animationBus,
   completionTracker,
   zIndex,
