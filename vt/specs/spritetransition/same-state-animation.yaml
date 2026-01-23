@@ -1,0 +1,91 @@
+---
+title: Same State Animation Test
+description: Test that animations work correctly when both states have identical content
+specs:
+  - "animation should play on first state"
+  - "animation should replay when same state is rendered again"
+  - "sprite should fade in each time"
+steps:
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=2100
+  - screenshot
+  - keypress n
+  - screenshot
+  - customEvent snapShotKeyFrame deltaMS=2100
+  - screenshot
+---
+states:
+  - id: "state-1"
+    elements:
+      - id: "story"
+        type: "container"
+        x: 0
+        y: 0
+        children:
+          - id: "base"
+            type: "container"
+            children:
+              - id: "bg-rect"
+                type: "rect"
+                fill: "#000000"
+                width: 1280
+                height: 720
+                click:
+                  actionPayload:
+                    actions:
+                      nextLine: {}
+          - id: "bg-sprite"
+            type: "sprite"
+            x: 0
+            y: 0
+            src: "background-1"
+            width: 1280
+            height: 720
+    animations:
+      - id: "bg-animation-in"
+        type: "tween"
+        targetId: "bg-sprite"
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 2000
+                value: 1
+                easing: linear
+  - id: "state-2"
+    elements:
+      - id: "story"
+        type: "container"
+        x: 0
+        y: 0
+        children:
+          - id: "base"
+            type: "container"
+            children:
+              - id: "bg-rect"
+                type: "rect"
+                fill: "#000000"
+                width: 1280
+                height: 720
+                click:
+                  actionPayload:
+                    actions:
+                      nextLine: {}
+          - id: "bg-sprite"
+            type: "sprite"
+            x: 0
+            y: 0
+            src: "background-1"
+            width: 1280
+            height: 720
+    animations:
+      - id: "bg-animation-in"
+        type: "tween"
+        targetId: "bg-sprite"
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 2000
+                value: 1
+                easing: linear
