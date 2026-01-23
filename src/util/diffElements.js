@@ -1,7 +1,7 @@
 import { collectAllElementIds } from "./collectElementIds.js";
 
 /**
- * @typedef {import("../types.js").ASTNode} ASTNode
+ * @typedef {import("../types.js").ComputedNode} ComputedNode
  * @typedef {import("../types.js").DiffElementResult} DiffElementResult
  * @typedef {import("../types.js").HoverProps} HoverPops
  * @typedef {import("../types.js").ClickProps} ClickProps
@@ -10,8 +10,8 @@ import { collectAllElementIds } from "./collectElementIds.js";
 
 /**
  *
- * @param {ASTNode} prevElements
- * @param {ASTNode} nextElements
+ * @param {ComputedNode} prevElements
+ * @param {ComputedNode} nextElements
  * @param {Object[]} animations
  * @returns {DiffElementResult}
  */

@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Text AST Node
-description: Schema for text AST node after parsing
+title: Text Computed Node
+description: Schema for text computed node after parsing
 type: object
 $def:
   textStyle:

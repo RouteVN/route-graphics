@@ -11,7 +11,7 @@ import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
 
 /**
- * @typedef {import('../../../types.js').ParticlesASTNode} ParticlesASTNode
+ * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode
  */
 
 /**
@@ -89,8 +89,8 @@ export const updateParticles = ({
 
 /**
  * Check if emitter configuration has changed in a way that requires recreation.
- * @param {ParticlesASTNode} prev - Previous element state
- * @param {ParticlesASTNode} next - Next element state
+ * @param {ParticlesComputedNode} prev - Previous element state
+ * @param {ParticlesComputedNode} next - Next element state
  * @returns {boolean} Whether emitter needs to be recreated
  */
 function hasConfigChanged(prev, next) {

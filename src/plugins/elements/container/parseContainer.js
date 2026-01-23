@@ -2,14 +2,14 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
- * @typedef {import('../../../types.js').ContainerASTNode} ContainerASTNode
+ * @typedef {import('../../../types.js').ContainerComputedNode} ContainerComputedNode
  */
 
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The container state to parse
  * @param {import("../parserPlugin.js").ParserPlugin[]} params.parserPlugins - Array of parser plugins
- * @returns {ContainerASTNode}
+ * @returns {ContainerComputedNode}
  *
  * This will parse the container element.
  *
@@ -116,14 +116,14 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     parsedChildren.push(child);
   }
 
-  const containerAST = parseCommonObject({
+  const containerComputed = parseCommonObject({
     ...state,
     width: state.width ? state.width : containerWidth,
     height: state.height ? state.height : containerHeight,
   });
 
   const finalContainer = {
-    ...containerAST,
+    ...containerComputed,
     children: parsedChildren,
     direction,
     gap,

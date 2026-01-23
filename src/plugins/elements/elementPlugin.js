@@ -15,7 +15,7 @@
  * @typedef {Object} AddElementOptions
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').Container} parent - Parent container
- * @property {import('../../types.js').ASTNode} element - Element to add
+ * @property {import('../../types.js').ComputedNode} element - Element to add
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
@@ -25,8 +25,8 @@
  * @typedef {Object} UpdateElementOptions
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').Container} parent - Parent container
- * @property {import('../../types.js').ASTNode} prevElement - Previous element state
- * @property {import('../../types.js').ASTNode} nextElement - Next element state
+ * @property {import('../../types.js').ComputedNode} prevElement - Previous element state
+ * @property {import('../../types.js').ComputedNode} nextElement - Next element state
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
@@ -36,7 +36,7 @@
  * @typedef {Object} DeleteElementOptions
  * @property {import('../../types.js').Application} app - The PixiJS application
  * @property {import('../../types.js').Container} parent - Parent container
- * @property {import('../../types.js').ASTNode} element - Element to delete
+ * @property {import('../../types.js').ComputedNode} element - Element to delete
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations

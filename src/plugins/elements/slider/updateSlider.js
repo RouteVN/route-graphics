@@ -7,8 +7,8 @@ import { Texture } from "pixi.js";
 export const updateSlider = ({
   app,
   parent,
-  prevElement: prevSliderASTNode,
-  nextElement: nextSliderASTNode,
+  prevElement: prevSliderComputedNode,
+  nextElement: nextSliderComputedNode,
   animations,
   animationBus,
   completionTracker,
@@ -16,7 +16,7 @@ export const updateSlider = ({
   zIndex,
 }) => {
   const sliderElement = parent.children.find(
-    (child) => child.label === prevSliderASTNode.id,
+    (child) => child.label === prevSliderComputedNode.id,
   );
 
   if (!sliderElement) return;
@@ -25,50 +25,53 @@ export const updateSlider = ({
 
   const updateElement = () => {
     if (
-      JSON.stringify(prevSliderASTNode) !== JSON.stringify(nextSliderASTNode)
+      JSON.stringify(prevSliderComputedNode) !==
+      JSON.stringify(nextSliderComputedNode)
     ) {
       // Update container properties
-      sliderElement.x = nextSliderASTNode.x;
-      sliderElement.y = nextSliderASTNode.y;
-      sliderElement.alpha = nextSliderASTNode.alpha;
-      sliderElement.label = nextSliderASTNode.id;
+      sliderElement.x = nextSliderComputedNode.x;
+      sliderElement.y = nextSliderComputedNode.y;
+      sliderElement.alpha = nextSliderComputedNode.alpha;
+      sliderElement.label = nextSliderComputedNode.id;
       sliderElement.pivot.set(
-        nextSliderASTNode.originX,
-        nextSliderASTNode.originY,
+        nextSliderComputedNode.originX,
+        nextSliderComputedNode.originY,
       );
 
       // Get bar and thumb sprites
-      const bar = sliderElement.getChildByLabel(`${nextSliderASTNode.id}-bar`);
+      const bar = sliderElement.getChildByLabel(
+        `${nextSliderComputedNode.id}-bar`,
+      );
       const thumb = sliderElement.getChildByLabel(
-        `${nextSliderASTNode.id}-thumb`,
+        `${nextSliderComputedNode.id}-thumb`,
       );
 
       // Check if handler configuration changed
       const handlerConfigChanged =
-        JSON.stringify(prevSliderASTNode.hover) !==
-          JSON.stringify(nextSliderASTNode.hover) ||
-        JSON.stringify(prevSliderASTNode.change) !==
-          JSON.stringify(nextSliderASTNode.change) ||
-        prevSliderASTNode.min !== nextSliderASTNode.min ||
-        prevSliderASTNode.max !== nextSliderASTNode.max ||
-        prevSliderASTNode.step !== nextSliderASTNode.step ||
-        prevSliderASTNode.direction !== nextSliderASTNode.direction;
+        JSON.stringify(prevSliderComputedNode.hover) !==
+          JSON.stringify(nextSliderComputedNode.hover) ||
+        JSON.stringify(prevSliderComputedNode.change) !==
+          JSON.stringify(nextSliderComputedNode.change) ||
+        prevSliderComputedNode.min !== nextSliderComputedNode.min ||
+        prevSliderComputedNode.max !== nextSliderComputedNode.max ||
+        prevSliderComputedNode.step !== nextSliderComputedNode.step ||
+        prevSliderComputedNode.direction !== nextSliderComputedNode.direction;
 
       if (bar && thumb) {
         // Update bar properties
-        bar.width = nextSliderASTNode.width;
-        bar.height = nextSliderASTNode.height;
+        bar.width = nextSliderComputedNode.width;
+        bar.height = nextSliderComputedNode.height;
 
         // Update thumb dimensions maintaining aspect ratio with margin (like renderSlider)
         const barPadding = 0;
         const maxThumbSize =
-          nextSliderASTNode.direction === "horizontal"
-            ? nextSliderASTNode.height - barPadding * 2
-            : nextSliderASTNode.width - barPadding * 2;
+          nextSliderComputedNode.direction === "horizontal"
+            ? nextSliderComputedNode.height - barPadding * 2
+            : nextSliderComputedNode.width - barPadding * 2;
 
         // Get original texture dimensions
-        const thumbTexture = nextSliderASTNode.thumbSrc
-          ? Texture.from(nextSliderASTNode.thumbSrc)
+        const thumbTexture = nextSliderComputedNode.thumbSrc
+          ? Texture.from(nextSliderComputedNode.thumbSrc)
           : Texture.EMPTY;
         const originalWidth = thumbTexture.width || 16;
         const originalHeight = thumbTexture.height || 16;
@@ -83,26 +86,30 @@ export const updateSlider = ({
         thumb.height = originalHeight * scale;
 
         // Update textures if they changed
-        if (prevSliderASTNode.barSrc !== nextSliderASTNode.barSrc) {
-          const barTexture = nextSliderASTNode.barSrc
-            ? Texture.from(nextSliderASTNode.barSrc)
+        if (prevSliderComputedNode.barSrc !== nextSliderComputedNode.barSrc) {
+          const barTexture = nextSliderComputedNode.barSrc
+            ? Texture.from(nextSliderComputedNode.barSrc)
             : Texture.EMPTY;
           bar.texture = barTexture;
         }
 
-        if (prevSliderASTNode.thumbSrc !== nextSliderASTNode.thumbSrc) {
-          const thumbTexture = nextSliderASTNode.thumbSrc
-            ? Texture.from(nextSliderASTNode.thumbSrc)
+        if (
+          prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc
+        ) {
+          const thumbTexture = nextSliderComputedNode.thumbSrc
+            ? Texture.from(nextSliderComputedNode.thumbSrc)
             : Texture.EMPTY;
           thumb.texture = thumbTexture;
         }
 
         // Update thumb position based on new value
-        const valueRange = nextSliderASTNode.max - nextSliderASTNode.min;
+        const valueRange =
+          nextSliderComputedNode.max - nextSliderComputedNode.min;
         const normalizedValue =
-          (nextSliderASTNode.initialValue - nextSliderASTNode.min) / valueRange;
+          (nextSliderComputedNode.initialValue - nextSliderComputedNode.min) /
+          valueRange;
 
-        if (nextSliderASTNode.direction === "horizontal") {
+        if (nextSliderComputedNode.direction === "horizontal") {
           thumb.x = normalizedValue * (bar.width - thumb.width);
           thumb.y = (bar.height - thumb.height) / 2;
         } else {
@@ -127,7 +134,7 @@ export const updateSlider = ({
       // Re-attach event handlers if configuration changed
       if (handlerConfigChanged) {
         const { hover, change, min, max, step, direction, initialValue } =
-          nextSliderASTNode;
+          nextSliderComputedNode;
 
         let currentValue = initialValue ?? min;
         const valueRange = max - min;
@@ -188,7 +195,7 @@ export const updateSlider = ({
 
             if (change?.actionPayload && eventHandler) {
               eventHandler("change", {
-                _event: { id: nextSliderASTNode.id, value: currentValue },
+                _event: { id: nextSliderComputedNode.id, value: currentValue },
                 ...change.actionPayload,
               });
             }
@@ -261,11 +268,11 @@ export const updateSlider = ({
     }
   };
 
-  const { x, y, alpha } = nextSliderASTNode;
+  const { x, y, alpha } = nextSliderComputedNode;
 
   // Dispatch animations to the bus
   const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevSliderASTNode.id) || [];
+    animations?.filter((a) => a.targetId === prevSliderComputedNode.id) || [];
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {

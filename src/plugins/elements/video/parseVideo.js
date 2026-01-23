@@ -1,19 +1,19 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement}
- *  @typedef {import('../../../types.js').VideoASTNode}
+ *  @typedef {import('../../../types.js').VideoComputedNode}
  */
 
 /**
  * @param {Object} params
  * @param {BaseElement} params.state - The video state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @return {VideoASTNode}
+ * @return {VideoComputedNode}
  */
 export const parseVideo = ({ state }) => {
-  const astObj = parseCommonObject(state);
+  const computedObj = parseCommonObject(state);
 
-  let finalObj = astObj;
+  let finalObj = computedObj;
 
   return {
     ...finalObj,

@@ -5,8 +5,8 @@ import { diffElements } from "../../util/diffElements.js";
  * @param {Object} params
  * @param {import('../../types.js').Application} params.app - The PixiJS application
  * @param {import('../../types.js').Container} params.parent - Parent container
- * @param {import('../../types.js').ASTNode[]} params.prevASTTree - Previous AST tree
- * @param {import('../../types.js').ASTNode[]} params.nextASTTree - Next AST tree
+ * @param {import('../../types.js').ComputedNode[]} params.prevComputedTree - Previous computed tree
+ * @param {import('../../types.js').ComputedNode[]} params.nextComputedTree - Next computed tree
  * @param {import("./elementPlugin.js").ElementPlugin[]} params.elementPlugins - Array of element plugins
  * @param {import("../animations/animationBus.js").createAnimationBus} params.animationBus - Animation bus
  * @param {Object} params.completionTracker - Completion tracker for state events
@@ -16,8 +16,8 @@ import { diffElements } from "../../util/diffElements.js";
 export const renderElements = ({
   app,
   parent,
-  prevASTTree,
-  nextASTTree,
+  prevComputedTree,
+  nextComputedTree,
   animations,
   animationBus,
   completionTracker,
@@ -28,15 +28,17 @@ export const renderElements = ({
   parent.sortableChildren = true;
 
   const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
-    prevASTTree,
-    nextASTTree,
+    prevComputedTree,
+    nextComputedTree,
     animations,
   );
 
   // Update zIndex for ALL existing children BEFORE any add/update/delete operations
   // This ensures correct z-ordering during animations
   for (const child of parent.children) {
-    const expectedZIndex = nextASTTree.findIndex((e) => e.id === child.label);
+    const expectedZIndex = nextComputedTree.findIndex(
+      (e) => e.id === child.label,
+    );
     if (expectedZIndex !== -1) {
       child.zIndex = expectedZIndex;
     }
@@ -68,8 +70,8 @@ export const renderElements = ({
       throw new Error(`No plugin found for element type: ${element.type}`);
     }
 
-    // Calculate zIndex based on position in nextASTTree
-    const zIndex = nextASTTree.findIndex((e) => e.id === element.id);
+    // Calculate zIndex based on position in nextComputedTree
+    const zIndex = nextComputedTree.findIndex((e) => e.id === element.id);
 
     plugin.add({
       app,
@@ -91,8 +93,8 @@ export const renderElements = ({
       throw new Error(`No plugin found for element type: ${next.type}`);
     }
 
-    // Calculate zIndex based on position in nextASTTree
-    const zIndex = nextASTTree.findIndex((e) => e.id === next.id);
+    // Calculate zIndex based on position in nextComputedTree
+    const zIndex = nextComputedTree.findIndex((e) => e.id === next.id);
 
     plugin.update({
       app,

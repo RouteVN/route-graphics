@@ -4,7 +4,7 @@ import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
- * @typedef {import('../../../types.js').TextASTNode} TextASTNode
+ * @typedef {import('../../../types.js').TextComputedNode} TextComputedNode
  */
 
 /**
@@ -12,7 +12,7 @@ import { DEFAULT_TEXT_STYLE } from "../../../types.js";
  * @param {Object} params
  * @param {BaseElement} params.state - The text state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @returns {TextASTNode}
+ * @returns {TextComputedNode}
  */
 export const parseText = ({ state }) => {
   const textStyle = {
@@ -40,14 +40,14 @@ export const parseText = ({ state }) => {
   const roundedWidth = Math.round(width);
   const roundedHeight = Math.round(height);
 
-  let astObj = parseCommonObject({
+  let computedObj = parseCommonObject({
     ...state,
     width: roundedWidth,
     height: roundedHeight,
   });
 
   return {
-    ...astObj,
+    ...computedObj,
     content: contentString,
     textStyle: {
       ...textStyle,

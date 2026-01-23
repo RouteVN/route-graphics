@@ -163,8 +163,8 @@ export const updateContainer = ({
               (child) => child.label === `${nextElement.id}-content`,
             )
           : containerElement,
-        nextASTTree: nextElement.children,
-        prevASTTree: prevElement.children,
+        nextComputedTree: nextElement.children,
+        prevComputedTree: prevElement.children,
         eventHandler,
         elementPlugins,
         animations,

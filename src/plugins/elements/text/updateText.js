@@ -7,8 +7,8 @@ import applyTextStyle from "../../../util/applyTextStyle.js";
 export const updateText = ({
   app,
   parent,
-  prevElement: prevTextASTNode,
-  nextElement: nextTextASTNode,
+  prevElement: prevTextComputedNode,
+  nextElement: nextTextComputedNode,
   eventHandler,
   animations,
   animationBus,
@@ -16,19 +16,22 @@ export const updateText = ({
   zIndex,
 }) => {
   const textElement = parent.children.find(
-    (child) => child.label === prevTextASTNode.id,
+    (child) => child.label === prevTextComputedNode.id,
   );
 
   if (!textElement) return;
 
   textElement.zIndex = zIndex;
 
-  const { x, y, alpha } = nextTextASTNode;
+  const { x, y, alpha } = nextTextComputedNode;
 
   const updateElement = () => {
-    if (JSON.stringify(prevTextASTNode) !== JSON.stringify(nextTextASTNode)) {
-      textElement.text = nextTextASTNode.content;
-      applyTextStyle(textElement, nextTextASTNode.textStyle);
+    if (
+      JSON.stringify(prevTextComputedNode) !==
+      JSON.stringify(nextTextComputedNode)
+    ) {
+      textElement.text = nextTextComputedNode.content;
+      applyTextStyle(textElement, nextTextComputedNode.textStyle);
 
       textElement.x = x;
       textElement.y = y;
@@ -43,9 +46,9 @@ export const updateText = ({
       textElement.removeAllListeners("rightup");
       textElement.removeAllListeners("rightupoutside");
 
-      const hoverEvents = nextTextASTNode?.hover;
-      const clickEvents = nextTextASTNode?.click;
-      const rightClickEvents = nextTextASTNode?.rightClick;
+      const hoverEvents = nextTextComputedNode?.hover;
+      const clickEvents = nextTextComputedNode?.click;
+      const rightClickEvents = nextTextComputedNode?.rightClick;
 
       let events = {
         isHovering: false,
@@ -61,7 +64,7 @@ export const updateText = ({
         } else if (isHovering && hoverEvents?.textStyle) {
           applyTextStyle(textElement, hoverEvents.textStyle);
         } else {
-          applyTextStyle(textElement, nextTextASTNode.textStyle);
+          applyTextStyle(textElement, nextTextComputedNode.textStyle);
         }
       };
 
@@ -180,7 +183,7 @@ export const updateText = ({
 
   // Dispatch animations to the bus
   const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevTextASTNode.id) || [];
+    animations?.filter((a) => a.targetId === prevTextComputedNode.id) || [];
 
   if (relevantAnimations.length > 0) {
     for (const animation of relevantAnimations) {

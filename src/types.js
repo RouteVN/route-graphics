@@ -42,13 +42,13 @@
  */
 
 /**
- * @typedef {Object} ASTNode
- * @property {string} type - Type of the AST node
- * @property {string} id - ID of the AST node
- * @property {number} x - X position of the AST node
- * @property {number} y - Y position of the AST node
- * @property {number} width - Width of the AST node
- * @property {number} height - Height of the AST node
+ * @typedef {Object} ComputedNode
+ * @property {string} type - Type of the computed node
+ * @property {string} id - ID of the computed node
+ * @property {number} x - X position of the computed node
+ * @property {number} y - Y position of the computed node
+ * @property {number} width - Width of the computed node
+ * @property {number} height - Height of the computed node
  * @property {number} originX
  * @property {number} originY
  * @property {number} scaleX
@@ -56,13 +56,13 @@
  */
 
 /**
- * @typedef {Object} SpriteASTProps
+ * @typedef {Object} SpriteComputedProps
  * @property {'sprite'} type
  * @property {number} alpha
  * @property {string} url
  * @property {SpriteHover} hover
  * @property {SpriteClick} click
- * @typedef {ASTNode & SpriteASTProps } SpriteASTNode
+ * @typedef {ComputedNode & SpriteComputedProps } SpriteComputedNode
  */
 
 /**
@@ -78,7 +78,7 @@
  */
 
 /**
- * @typedef {Object} SliderASTProps
+ * @typedef {Object} SliderComputedProps
  * @property {'slider'} type
  * @property {number} alpha
  * @property {string} direction
@@ -92,7 +92,7 @@
  * @property {SliderDrag} drag
  * @property {SliderDragStart} dragStart
  * @property {SliderDragEnd} dragEnd
- * @typedef {ASTNode & SliderASTProps} SliderASTNode
+ * @typedef {ComputedNode & SliderComputedProps} SliderComputedNode
  */
 
 /**
@@ -119,7 +119,7 @@
  */
 
 /**
- * @typedef {Object} AnimatedSpriteASTProps
+ * @typedef {Object} AnimatedSpriteComputedProps
  * @property {'animated-sprite'} type
  * @property {string} spritesheetSrc
  * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
@@ -128,7 +128,7 @@
  * @property {number[]} animation.frames - Array of frame indexes for the animation sequence
  * @property {number} animation.animationSpeed - Animation speed multiplier
  * @property {boolean} [animation.loop=true] - Whether the animation should loop
- * @typedef {ASTNode & AnimatedSpriteASTProps} AnimatedSpriteASTNode
+ * @typedef {ComputedNode & AnimatedSpriteComputedProps} AnimatedSpriteComputedNode
  */
 
 /**
@@ -177,28 +177,28 @@
  */
 
 /**
- * @typedef {Object} ParticlesASTProps
+ * @typedef {Object} ParticlesComputedProps
  * @property {'particles'} type
  * @property {number} count - Max particles count
  * @property {ParticleTexture} texture - Texture name or custom texture configuration
  * @property {ParticleBehavior[]} behaviors - Behavior configurations
  * @property {ParticleEmitter} emitter - Emitter configuration
  * @property {number} alpha - Container opacity
- * @typedef {ASTNode & ParticlesASTProps} ParticlesASTNode
+ * @typedef {ComputedNode & ParticlesComputedProps} ParticlesComputedNode
  */
 
 /**
- * @typedef {Object} ContainerASTProps
+ * @typedef {Object} ContainerComputedProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
- * @property {SpriteASTNode | TextASTNode | RectASTNode | ContainerASTNode} children
+ * @property {SpriteComputedNode | TextComputedNode | RectComputedNode | ContainerComputedNode} children
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
  * @property {HoverProps} hover
  * @property {ClickProps} click
  * @property {ClickProps} rightClick
- * @typedef {ASTNode & ContainerASTProps } ContainerASTNode
+ * @typedef {ComputedNode & ContainerComputedProps } ContainerComputedNode
  */
 
 /**
@@ -217,8 +217,8 @@
  * @typedef {Object} RenderAppOptions
  * @property {Application} app
  * @property {Container} parent
- * @property {ASTNode[]} prevASTTree
- * @property {ASTNode[]} nextASTTree
+ * @property {ComputedNode[]} prevComputedTree
+ * @property {ComputedNode[]} nextComputedTree
  * @property {Object[]} transitions
  * @property {Function} eventHandler
  * @property {AbortSignal[]} signal
@@ -228,7 +228,7 @@
  * @typedef {Object} AnimateElementsOptions
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
- * @property {SpriteASTNode} spriteASTNode
+ * @property {SpriteComputedNode} spriteComputedNode
  * @property {Object[]} transitions
  * @param {Function} params.transitionElements
  * @property {Function} signalAbortCb
@@ -236,7 +236,7 @@
  */
 
 /**
- * @typedef {Object} RectASTProps
+ * @typedef {Object} RectComputedProps
  * @property {'rect'} type
  * @property {string} fill - Fill color (e.g., "red")
  * @property {Object} border
@@ -250,7 +250,7 @@
  * @property {number} rotation - Rotation in degrees
  * @property {HoverProps} hover
  * @property {ClickProps} click
- * @typedef {(ASTNode & RectASTProps)} RectASTNode
+ * @typedef {(ComputedNode & RectComputedProps)} RectComputedNode
  */
 
 /**
@@ -280,16 +280,16 @@
  */
 
 /**
- * @typedef {Object} TextASTProps
+ * @typedef {Object} TextComputedProps
  * @property {string} content - The text content to display
  * @property {Object} textStyle - Text style object
  * @property {TextHover} [hover]
  * @property {TextClick} [click]
- * @typedef {ASTNode & TextASTProps} TextASTNode
+ * @typedef {ComputedNode & TextComputedProps} TextComputedNode
  */
 
 /**
- * @typedef {Object} TextRevealingASTProps
+ * @typedef {Object} TextRevealingComputedProps
  * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
  * @property {number} alpha - Opacity/transparency (0-1)
@@ -306,7 +306,7 @@
  * @property {number} [indicator.complete.width] - Width of the indicator image when complete
  * @property {number} [indicator.complete.height] - Height of the indicator image when complete
  * @property {'typewriter' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = normal animation, none = skip animation)
- * @typedef {ASTNode & TextRevealingASTProps} TextRevealingASTNode
+ * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 
 /**
@@ -357,9 +357,9 @@
 
 /**
  * @typedef {Object} DiffElementResult
- * @property {ASTNode[]} toAddElement
- * @property {ASTNode[]} toDeleteElement
- * @property {{"prev":ASTNode[],"next":ASTNode[]}} toUpdateElement
+ * @property {ComputedNode[]} toAddElement
+ * @property {ComputedNode[]} toDeleteElement
+ * @property {{"prev":ComputedNode[],"next":ComputedNode[]}} toUpdateElement
  */
 
 /**
@@ -425,7 +425,7 @@ export const TransitionEvent = {
  * @readonly
  * @enum {string}
  */
-export const ASTNodeType = {
+export const ComputedNodeType = {
   RECT: "rect",
   TEXT: "text",
   CONTAINER: "container",

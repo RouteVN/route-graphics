@@ -8,7 +8,7 @@ import applyTextStyle from "../../../util/applyTextStyle.js";
 export const addText = ({
   app,
   parent,
-  element: textASTNode,
+  element: textComputedNode,
   animations,
   eventHandler,
   animationBus,
@@ -16,20 +16,20 @@ export const addText = ({
   zIndex,
 }) => {
   const text = new Text({
-    label: textASTNode.id,
+    label: textComputedNode.id,
   });
   text.zIndex = zIndex;
 
   // Apply initial state
-  text.text = textASTNode.content;
-  applyTextStyle(text, textASTNode.textStyle);
-  text.alpha = textASTNode.alpha;
-  text.x = textASTNode.x;
-  text.y = textASTNode.y;
+  text.text = textComputedNode.content;
+  applyTextStyle(text, textComputedNode.textStyle);
+  text.alpha = textComputedNode.alpha;
+  text.x = textComputedNode.x;
+  text.y = textComputedNode.y;
 
-  const hoverEvents = textASTNode?.hover;
-  const clickEvents = textASTNode?.click;
-  const rightClickEvents = textASTNode?.rightClick;
+  const hoverEvents = textComputedNode?.hover;
+  const clickEvents = textComputedNode?.click;
+  const rightClickEvents = textComputedNode?.rightClick;
 
   let events = {
     isHovering: false,
@@ -45,7 +45,7 @@ export const addText = ({
     } else if (isHovering && hoverEvents?.textStyle) {
       applyTextStyle(text, hoverEvents.textStyle);
     } else {
-      applyTextStyle(text, textASTNode.textStyle);
+      applyTextStyle(text, textComputedNode.textStyle);
     }
   };
 
@@ -164,7 +164,7 @@ export const addText = ({
 
   // Dispatch animations to the bus
   const relevantAnimations =
-    animations?.filter((a) => a.targetId === textASTNode.id) || [];
+    animations?.filter((a) => a.targetId === textComputedNode.id) || [];
 
   for (const animation of relevantAnimations) {
     const stateVersion = completionTracker.getVersion();
@@ -177,9 +177,9 @@ export const addText = ({
         element: text,
         properties: animation.properties,
         targetState: {
-          x: textASTNode.x,
-          y: textASTNode.y,
-          alpha: textASTNode.alpha,
+          x: textComputedNode.x,
+          y: textComputedNode.y,
+          alpha: textComputedNode.alpha,
         },
         onComplete: () => {
           completionTracker.complete(stateVersion);

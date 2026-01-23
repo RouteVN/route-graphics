@@ -1,4 +1,4 @@
-import { ASTNodeType } from "../../../../types.js";
+import { ComputedNodeType } from "../../../../types.js";
 
 /**
  * Validation helpers for particles parser.
@@ -13,10 +13,10 @@ import { ASTNodeType } from "../../../../types.js";
 export function validateBasicFields(state) {
   if (!state.id) throw new Error("Input Error: Id is missing");
 
-  if (!Object.values(ASTNodeType).includes(state.type))
+  if (!Object.values(ComputedNodeType).includes(state.type))
     throw new Error(
       "Input Error: Type must be one of " +
-        Object.values(ASTNodeType).join(", "),
+        Object.values(ComputedNodeType).join(", "),
     );
 
   if (!(typeof state.width === "number") || !(typeof state.height === "number"))
