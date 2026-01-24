@@ -90,7 +90,7 @@ export const addRect = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
-          volume: soundVolume ?? 1.0,
+          volume: (soundVolume ?? 1000) / 1000,
         });
     };
 

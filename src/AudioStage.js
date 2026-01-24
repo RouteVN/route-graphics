@@ -119,7 +119,6 @@ export const createAudioStage = () => {
 
       // add
       if (!audioPlayer) {
-        console.log('[AudioStage] Creating player with volume:', audio.volume);
         const player = createAudioPlayer(audio.id, {
           url: audio.url,
           loop: audio.loop,

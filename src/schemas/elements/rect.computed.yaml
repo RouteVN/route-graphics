@@ -78,10 +78,10 @@ properties:
         description: source of sound to be played when the sprite is clicked
       soundVolume:
         type: number
-        description: volume of sound to be played (0-1)
+        description: Volume. 0 means muted. 1000 means original full volume.
         minimum: 0
-        maximum: 1
-        default: 1
+        maximum: 1000
+        default: 1000
       actionPayload:
         type: object
         description: Payload for click action event
