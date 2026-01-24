@@ -93,7 +93,7 @@ export const addContainer = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, actionPayload } = clickEvents;
     container.eventMode = "static";
 
     const releaseListener = () => {
@@ -109,6 +109,7 @@ export const addContainer = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
+          volume: (soundVolume ?? 1000) / 1000,
         });
     };
 

@@ -83,7 +83,7 @@ export const addText = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, actionPayload } = clickEvents;
     text.eventMode = "static";
 
     const clickListener = () => {
@@ -107,6 +107,7 @@ export const addText = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
+          volume: (soundVolume ?? 1000) / 1000,
         });
     };
 
