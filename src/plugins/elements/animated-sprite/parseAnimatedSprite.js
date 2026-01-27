@@ -17,12 +17,12 @@ export const parseAnimatedSprite = ({ state }) => {
   return {
     ...computedObj,
     spritesheetSrc: state.spritesheetSrc ?? "",
-    spritesheetData: { frames: {}, meta: {}, ...(state.spritesheetData ?? {}) },
+    spritesheetData: { frames: {}, meta: {}, ...state.spritesheetData },
     animation: {
       frames: [],
       animationSpeed: 0.5,
       loop: true,
-      ...(state.animation ?? {}),
+      ...state.animation,
     },
     alpha: state.alpha ?? 1,
   };

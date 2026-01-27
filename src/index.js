@@ -19,6 +19,22 @@ import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
 import createRouteGraphics from "./RouteGraphics.js";
 
+const visualNovelPlugins = {
+  elements: [
+    textPlugin,
+    rectPlugin,
+    spritePlugin,
+    videoPlugin,
+    sliderPlugin,
+    containerPlugin,
+    textRevealingPlugin,
+    animatedSpritePlugin,
+    particlesPlugin,
+  ],
+  animations: [tweenPlugin],
+  audio: [soundPlugin],
+};
+
 export default createRouteGraphics;
 
 export {
@@ -42,4 +58,5 @@ export {
   particlesPlugin,
   renderElements,
   renderAudio,
+  visualNovelPlugins,
 };

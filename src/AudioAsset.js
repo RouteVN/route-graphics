@@ -9,12 +9,8 @@ const load = async (key, arrayBuffer) => {
   if (arrayBuffer.byteLength === 0) {
     return;
   }
-  try {
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    loadedAssets[key] = audioBuffer;
-  } catch (error) {
-    console.error(`AudioAsset.load: Failed to decode ${key}:`, error);
-  }
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  loadedAssets[key] = audioBuffer;
 };
 
 const getAsset = (url) => {

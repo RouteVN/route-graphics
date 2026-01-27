@@ -5,13 +5,11 @@ import { Texture } from "pixi.js";
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
 export const updateVideo = ({
-  app,
   parent,
   prevElement,
   nextElement,
   animations,
   animationBus,
-  eventHandler,
   completionTracker,
   zIndex,
 }) => {

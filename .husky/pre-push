@@ -1,0 +1,1 @@
+npx oxlint --deny-warnings src && npx prettier --check src

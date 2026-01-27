@@ -42,7 +42,7 @@ export class ColorBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(particle, _deltaSec) {
     particle.tint = this.list.getValue(particle.agePercent);
   }
 }
@@ -75,7 +75,7 @@ export class StaticColorBehavior {
     }
   }
 
-  updateParticle(particle, deltaSec) {
+  updateParticle(_particle, _deltaSec) {
     // Static - no update
   }
 }
