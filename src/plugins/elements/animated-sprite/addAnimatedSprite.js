@@ -48,8 +48,8 @@ export const addAnimatedSprite = async ({
 
   animatedSprite.x = Math.round(x);
   animatedSprite.y = Math.round(y);
-  animatedSprite.width = Math.round(width);
-  animatedSprite.height = Math.round(height);
+  if (width !== undefined) animatedSprite.width = Math.round(width);
+  if (height !== undefined) animatedSprite.height = Math.round(height);
   animatedSprite.alpha = alpha;
 
   parent.addChild(animatedSprite);
