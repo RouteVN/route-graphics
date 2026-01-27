@@ -7,8 +7,6 @@ required:
   - type
   - x
   - y
-  - width
-  - height
   - spritesheetSrc
   - spritesheetData
   - animation
