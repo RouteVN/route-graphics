@@ -70,7 +70,7 @@ properties:
   autoScroll:
     type: string
     enum: [start, end]
-    description: Automatically position scroll offset. "end" scrolls to bottom (vertical) or right (horizontal) when content is set up or updated.
+    description: Auto-position scroll offset. "start" anchors top/left, "end" anchors bottom/right. If not set, scroll position is unmanaged.
   hover:
     type: object
     properties:

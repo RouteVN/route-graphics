@@ -129,7 +129,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     direction,
     gap,
     scroll,
-    ...(autoScroll ? { autoScroll } : {}),
+    autoScroll,
     rotation: state.rotation ?? 0,
   };
 
