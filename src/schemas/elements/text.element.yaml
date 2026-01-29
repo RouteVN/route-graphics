@@ -23,6 +23,15 @@ $def:
         type: number
         description: Font size in pixels
         default: 16
+      fontWeight:
+        type: string
+        description: Font weight
+        default: "normal"
+      fontStyle:
+        type: string
+        description: Font style
+        enum: [normal, italic, oblique]
+        default: normal
       align:
         type: string
         enum: [left, center, right]

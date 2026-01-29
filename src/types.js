@@ -454,6 +454,8 @@ export const DEFAULT_TEXT_STYLE = {
   fill: "black",
   fontFamily: "Arial",
   fontSize: 16,
+  fontWeight: "normal",
+  fontStyle: "normal",
   align: "left",
   lineHeight: 1.2,
   wordWrap: false,

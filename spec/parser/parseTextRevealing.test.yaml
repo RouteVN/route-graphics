@@ -27,6 +27,8 @@ out:
         - text: "This is a simple text revealing example"
           textStyle:
             fontSize: 24
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#333333"
             fontFamily: "Arial"
             align: "left"
@@ -53,6 +55,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 24
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "#333333"
     fontFamily: "Arial"
     align: "left"
@@ -84,6 +88,8 @@ out:
         - text: "This is a longer text that should"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#2c3e50"
             fontFamily: "Arial"
             align: "left"
@@ -101,6 +107,8 @@ out:
         - text: "wrap to multiple lines when it"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#2c3e50"
             fontFamily: "Arial"
             align: "left"
@@ -118,6 +126,8 @@ out:
         - text: "exceeds the specified width"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#2c3e50"
             fontFamily: "Arial"
             align: "left"
@@ -135,6 +145,8 @@ out:
         - text: "constraint for proper text layout"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#2c3e50"
             fontFamily: "Arial"
             align: "left"
@@ -152,6 +164,8 @@ out:
         - text: "demonstration."
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#2c3e50"
             fontFamily: "Arial"
             align: "left"
@@ -178,6 +192,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 20
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "#2c3e50"
     fontFamily: "Arial"
     align: "left"
@@ -217,6 +233,8 @@ out:
         - text: "Hello"
           textStyle:
             fontSize: 24
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#e74c3c"
             fontFamily: "Arial"
             align: "left"
@@ -231,16 +249,18 @@ out:
         - text: " "
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
             lineHeight: 19
             wordWrap: true
-            wordWrapWidth: 145
+            wordWrapWidth: 144
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 55
+          x: 56
           y: 19
         - text: "World"
           textStyle:
@@ -251,25 +271,28 @@ out:
             lineHeight: 38
             wordWrap: true
             fontWeight: "bold"
-            wordWrapWidth: 141
+            fontStyle: "normal"
+            wordWrapWidth: 140
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 59
+          x: 60
           y: 0
         - text: "!"
           textStyle:
             fontSize: 28
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#27ae60"
             fontFamily: "Arial"
             align: "left"
             lineHeight: 34
             wordWrap: true
-            wordWrapWidth: 51
+            wordWrapWidth: 50
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
-          x: 149
+          x: 150
           y: 4
       y: 0
       lineMaxHeight: 38
@@ -284,6 +307,8 @@ out:
   revealEffect: typewriter
   textStyle:
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"
@@ -321,6 +346,8 @@ out:
         - text: "Text with indicator"
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
@@ -355,6 +382,8 @@ out:
     offset: 8
   textStyle:
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"
@@ -387,6 +416,8 @@ out:
         - text: "Text with indicator defaults"
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
@@ -421,6 +452,8 @@ out:
     offset: 12
   textStyle:
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"
@@ -455,6 +488,8 @@ out:
         - text: "Red"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#ff0000"
             fontFamily: "Arial"
             align: "left"
@@ -469,6 +504,8 @@ out:
         - text: "Blue"
           textStyle:
             fontSize: 20
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "#0000ff"
             fontFamily: "Arial"
             align: "left"
@@ -495,6 +532,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 20
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "#ff0000"
     fontFamily: "Arial"
     align: "left"
@@ -522,6 +561,8 @@ out:
         - text: "true"
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
@@ -548,6 +589,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"
@@ -575,6 +618,8 @@ out:
         - text: "false"
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
@@ -601,6 +646,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"
@@ -628,6 +675,8 @@ out:
         - text: "42"
           textStyle:
             fontSize: 16
+            fontWeight: "normal"
+            fontStyle: "normal"
             fill: "black"
             fontFamily: "Arial"
             align: "left"
@@ -654,6 +703,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "black"
     fontFamily: "Arial"
     align: "left"

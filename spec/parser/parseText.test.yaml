@@ -42,9 +42,9 @@ out:
   id: "tl"
   type: "text"
   content: "This text is aligned to the top left corner"
-  width: 419
+  width: 420
   height: 29
-  x: 451
+  x: 450
   y: 226
   originX: 210
   originY: 15
@@ -53,6 +53,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 24
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Arial"
     fill: "white"
     align: "left"
@@ -111,6 +113,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 24
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Arial"
     fill: "white"
     align: "left"
@@ -146,6 +150,8 @@ out:
     fill: "black"
     fontFamily: "Arial"
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     align: "left"
     lineHeight: 19
     wordWrap: false
@@ -178,6 +184,8 @@ out:
     fill: "black"
     fontFamily: "Arial"
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     align: "left"
     lineHeight: 19
     wordWrap: false
@@ -211,6 +219,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 20
+    fontWeight: "normal"
+    fontStyle: "normal"
     fill: "blue"
     fontFamily: "Arial"
     align: "left"
@@ -250,6 +260,8 @@ out:
   alpha: 1
   textStyle:
     fontSize: 18
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Times New Roman"
     fill: "#FF5733"
     align: "center"
@@ -285,6 +297,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Arial"
     fill: "black"
     align: "left"
@@ -318,6 +332,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Arial"
     fill: "black"
     align: "left"
@@ -351,6 +367,8 @@ out:
     strokeColor: "transparent"
     strokeWidth: 0
     fontSize: 16
+    fontWeight: "normal"
+    fontStyle: "normal"
     fontFamily: "Arial"
     fill: "black"
     align: "left"
