@@ -53,10 +53,16 @@ export const setupScrolling = ({ container, element }) => {
       element.height || totalHeight,
     );
 
-    let scrollYOffset = 0;
-    let scrollXOffset = 0;
     let minScrollY = -(totalHeight - (element.height || totalHeight));
     let minScrollX = -(totalWidth - (element.width || totalWidth));
+    let scrollYOffset = element.autoScroll === "end" && needsVerticalScroll ? minScrollY : 0;
+    let scrollXOffset = element.autoScroll === "end" && needsHorizontalScroll ? minScrollX : 0;
+
+    // Apply initial auto-scroll position
+    if (element.autoScroll === "end") {
+      contentContainer.y = scrollYOffset;
+      contentContainer.x = scrollXOffset;
+    }
 
     container.on("wheel", (e) => {
       e.preventDefault(); // Prevent page scrolling

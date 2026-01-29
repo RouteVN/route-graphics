@@ -67,6 +67,10 @@ properties:
   scroll:
     type: boolean
     description: Enable scrolling for overflow content. Scroll direction will follow direction property
+  autoScroll:
+    type: string
+    enum: [start, end]
+    description: Automatically position scroll offset. "end" scrolls to bottom (vertical) or right (horizontal).
   rotation:
     type: number
     description: Rotation in degrees

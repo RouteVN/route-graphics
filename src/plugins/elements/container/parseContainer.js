@@ -20,6 +20,7 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 export const parseContainer = ({ state, parserPlugins = [] }) => {
   const direction = state.direction ?? "";
   const scroll = state.scroll ? true : false;
+  const autoScroll = state.autoScroll || undefined;
   const gap = state.gap || 0;
   const children = structuredClone(state.children || []);
   const parsedChildren = [];
@@ -128,6 +129,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     direction,
     gap,
     scroll,
+    ...(autoScroll ? { autoScroll } : {}),
     rotation: state.rotation ?? 0,
   };
 

@@ -67,6 +67,10 @@ properties:
     type: boolean
     description: Enable scrolling for overflow content. Scroll direction will follow direction property
     default: false
+  autoScroll:
+    type: string
+    enum: [start, end]
+    description: Automatically position scroll offset. "end" scrolls to bottom (vertical) or right (horizontal) when content is set up or updated.
   hover:
     type: object
     properties:
