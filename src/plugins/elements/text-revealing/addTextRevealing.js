@@ -1,6 +1,7 @@
 import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
+import { abortRevealingLoop } from "./abortRevealingLoop";
 
 /**
  * Add text-revealing element to the stage
@@ -15,6 +16,9 @@ export const addTextRevealing = async ({
   // Track this text-revealing for completion
   const stateVersion = completionTracker.getVersion();
   completionTracker.track(stateVersion);
+
+  const signal = abortRevealingLoop(parent, element.id);
+
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
   const indicatorOffset = element?.indicator?.offset ?? 12;
@@ -48,84 +52,96 @@ export const addTextRevealing = async ({
   parent.addChild(container);
 
   // Process each chunk sequentially
-  for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
-    const chunk = element.content[chunkIndex];
-    indicatorSprite.x = indicatorOffset;
-    indicatorSprite.y =
-      chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
+  try {
+    for (
+      let chunkIndex = 0;
+      chunkIndex < element.content.length;
+      chunkIndex++
+    ) {
+      if (signal.aborted) return;
+      const chunk = element.content[chunkIndex];
+      indicatorSprite.x = indicatorOffset;
+      indicatorSprite.y =
+        chunk.y + (chunk.lineMaxHeight - indicatorSprite.height);
 
-    // Process each line part in the chunk
-    for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
-      const part = chunk.lineParts[partIndex];
+      // Process each line part in the chunk
+      for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
+        if (signal.aborted) return;
+        const part = chunk.lineParts[partIndex];
 
-      // Create text objects for this part
-      const textStyle = new TextStyle(part.textStyle);
-      const text = new Text({
-        text: "",
-        style: textStyle,
-        x: Math.round(part.x),
-        y: Math.round(part.y),
-      });
-
-      let furiganaText = null;
-      if (part.furigana) {
-        const furiganaTextStyle = new TextStyle(part.furigana.textStyle);
-        furiganaText = new Text({
+        // Create text objects for this part
+        const textStyle = new TextStyle(part.textStyle);
+        const text = new Text({
           text: "",
-          style: furiganaTextStyle,
-          x: Math.round(part.furigana.x),
-          y: Math.round(part.furigana.y),
+          style: textStyle,
+          x: Math.round(part.x),
+          y: Math.round(part.y),
         });
-        container.addChild(furiganaText);
-      }
 
-      container.addChild(text);
-
-      // Reveal text character by character or all at once if skipping animations
-      const fullText = part.text;
-      const fullFurigana = part.furigana?.text || "";
-
-      if (skipAnimations) {
-        text.text = fullText;
-        indicatorSprite.x =
-          getCharacterXPositionInATextObject(text, fullText.length - 1) +
-          indicatorOffset;
-        if (furiganaText) {
-          furiganaText.text = fullFurigana;
+        let furiganaText = null;
+        if (part.furigana) {
+          const furiganaTextStyle = new TextStyle(part.furigana.textStyle);
+          furiganaText = new Text({
+            text: "",
+            style: furiganaTextStyle,
+            x: Math.round(part.furigana.x),
+            y: Math.round(part.furigana.y),
+          });
+          container.addChild(furiganaText);
         }
-      } else {
-        // Animate character by character
-        const furiganaLength = fullFurigana.length;
 
-        for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
-          // Add current character to text
-          text.text = fullText.substring(0, charIndex + 1);
+        container.addChild(text);
 
+        // Reveal text character by character or all at once if skipping animations
+        const fullText = part.text;
+        const fullFurigana = part.furigana?.text || "";
+
+        if (skipAnimations) {
+          text.text = fullText;
           indicatorSprite.x =
-            getCharacterXPositionInATextObject(text, charIndex) +
+            getCharacterXPositionInATextObject(text, fullText.length - 1) +
             indicatorOffset;
-
-          // Calculate how much furigana to show based on text progress
-          const furiganaProgress = Math.round(
-            ((charIndex + 1) / fullText.length) * furiganaLength,
-          );
           if (furiganaText) {
-            furiganaText.text = fullFurigana.substring(0, furiganaProgress);
+            furiganaText.text = fullFurigana;
           }
+        } else {
+          // Animate character by character
+          const furiganaLength = fullFurigana.length;
 
-          // Wait before adding next character
-          if (charIndex < fullText.length - 1) {
-            // Don't wait after last character
-            await abortableSleep(charDelay);
+          for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
+            if (signal.aborted) return;
+            // Add current character to text
+            text.text = fullText.substring(0, charIndex + 1);
+
+            indicatorSprite.x =
+              getCharacterXPositionInATextObject(text, charIndex) +
+              indicatorOffset;
+
+            // Calculate how much furigana to show based on text progress
+            const furiganaProgress = Math.round(
+              ((charIndex + 1) / fullText.length) * furiganaLength,
+            );
+            if (furiganaText) {
+              furiganaText.text = fullFurigana.substring(0, furiganaProgress);
+            }
+
+            // Wait before adding next character
+            if (charIndex < fullText.length - 1) {
+              // Don't wait after last character
+              await abortableSleep(charDelay, signal);
+            }
           }
         }
       }
-    }
 
-    // Wait before processing next chunk (except for the last chunk)
-    if (chunkIndex < element.content.length - 1) {
-      await abortableSleep(chunkDelay);
+      // Wait before processing next chunk (except for the last chunk)
+      if (chunkIndex < element.content.length - 1) {
+        await abortableSleep(chunkDelay, signal);
+      }
     }
+  } catch (e) {
+    if (e?.name === "AbortError") return;
+    throw e;
   }
 
   if (element?.indicator?.complete?.src) {
