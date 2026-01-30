@@ -56,12 +56,12 @@ export const setupScrolling = ({ container, element }) => {
     let minScrollY = -(totalHeight - (element.height || totalHeight));
     let minScrollX = -(totalWidth - (element.width || totalWidth));
     let scrollYOffset =
-      element.autoScroll === "end" && needsVerticalScroll ? minScrollY : 0;
+      element.anchorToBottom && needsVerticalScroll ? minScrollY : 0;
     let scrollXOffset =
-      element.autoScroll === "end" && needsHorizontalScroll ? minScrollX : 0;
+      element.anchorToBottom && needsHorizontalScroll ? minScrollX : 0;
 
-    // Apply initial auto-scroll position
-    if (element.autoScroll === "end") {
+    // Apply initial anchor-to-bottom position
+    if (element.anchorToBottom) {
       contentContainer.y = scrollYOffset;
       contentContainer.x = scrollXOffset;
     }

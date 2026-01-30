@@ -1,0 +1,150 @@
+---
+title: Auto Scroll
+steps:
+  - screenshot
+  # Scroll container-2 (anchorToBottom: true) back to top
+  - move 350 150
+  - scroll 0 -100
+  - screenshot
+---
+states:
+  - elements:
+      # Without anchorToBottom — shows top (red, blue visible)
+      - id: 'container-1'
+        type: "container"
+        direction: "vertical"
+        x: 50
+        y: 50
+        height: 200
+        gap: 5
+        scroll: true
+        zIndex: 0
+        children:
+          - id: 'rect-1'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "red"
+          - id: 'rect-2'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "blue"
+          - id: 'rect-3'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "green"
+          - id: 'rect-4'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "yellow"
+
+      # With anchorToBottom: true — shows bottom (green, yellow visible)
+      - id: 'container-2'
+        type: "container"
+        direction: "vertical"
+        x: 300
+        y: 50
+        height: 200
+        gap: 5
+        scroll: true
+        anchorToBottom: true
+        zIndex: 0
+        children:
+          - id: 'rect-5'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "red"
+          - id: 'rect-6'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "blue"
+          - id: 'rect-7'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "green"
+          - id: 'rect-8'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "yellow"
+  - elements:
+      # Without anchorToBottom — shows top (red, blue visible)
+      - id: 'container-1'
+        type: "container"
+        direction: "vertical"
+        x: 50
+        y: 50
+        height: 200
+        gap: 5
+        scroll: true
+        zIndex: 0
+        children:
+          - id: 'rect-1'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "red"
+          - id: 'rect-2'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "blue"
+          - id: 'rect-3'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "green"
+          - id: 'rect-4'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "yellow"
+          - id: 'rect-5'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "888888"
+
+      # With anchorToBottom: true — shows bottom (green, yellow visible)
+      - id: 'container-2'
+        type: "container"
+        direction: "vertical"
+        x: 300
+        y: 50
+        height: 200
+        gap: 5
+        scroll: true
+        anchorToBottom: true
+        zIndex: 0
+        children:
+          - id: 'rect-5'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "red"
+          - id: 'rect-6'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "blue"
+          - id: 'rect-7'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "green"
+          - id: 'rect-8'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "yellow"
+          - id: 'rect-9'
+            type: "rect"
+            width: 100
+            height: 100
+            fill: "888888"
