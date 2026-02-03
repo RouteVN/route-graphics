@@ -3,7 +3,6 @@
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
 export const deleteSlider = ({
-  app,
   parent,
   element,
   animations,

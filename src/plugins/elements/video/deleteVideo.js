@@ -3,7 +3,6 @@
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
  */
 export const deleteVideo = ({
-  app,
   parent,
   element,
   animations,

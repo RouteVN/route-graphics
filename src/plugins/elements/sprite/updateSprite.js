@@ -23,7 +23,7 @@ export const updateSprite = ({
 
   spriteElement.zIndex = zIndex;
 
-  const { id, x, y, width, height, src, alpha } = nextElement;
+  const { x, y, width, height, src, alpha } = nextElement;
 
   const updateElement = () => {
     if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {

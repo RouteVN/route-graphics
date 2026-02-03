@@ -26,8 +26,8 @@
     "package.json"
   ],
   "scripts": {
-    "lint": "bunx prettier --check src",
-    "lint:fix": "bunx prettier --check --write src",
+    "lint": "oxlint --deny-warnings src && prettier --check src",
+    "lint:fix": "oxlint --deny-warnings src && prettier --write src",
     "build": "bun run esbuild.js",
     "vt:generate": "bun run esbuild.js && rtgl vt generate --skip-screenshots",
     "vt:docker": "bun run esbuild.js && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/app\" -w /app han4wluc/rtgl:playwright-v1.57.0-rtgl-v0.0.38 rtgl vt generate --wait-event vt:ready --concurrency 8",
@@ -36,7 +36,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "serve": "bunx serve -p 3005 .rettangoli/vt/_site"
+    "serve": "bunx serve -p 3005 .rettangoli/vt/_site",
+    "prepare": "husky"
   },
   "dependencies": {
     "@pixi/unsafe-eval": "^7.4.3",
@@ -54,12 +55,14 @@
     "pixelmatch": "^5.3.0",
     "playwright": "^1.44.0",
     "pngjs": "^7.0.0",
+    "prettier": "^3.8.1",
     "puty": "^0.0.5-rc1",
     "vitest": "^4.0.8"
   },
   "lint-staged": {
-    "src/**/*.{js}": [
-      "oxlint && bunx prettier --write"
+    "src/**/*.js": [
+      "oxlint --deny-warnings",
+      "prettier --write"
     ]
   }
 }

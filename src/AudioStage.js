@@ -27,8 +27,7 @@ export const createAudioPlayer = (id, options) => {
   const play = () => {
     const audioBuffer = AudioAsset.getAsset(state.url);
     if (!audioBuffer) {
-      console.warn("AudioPlayer.play: Asset not found", state.url);
-      return;
+      throw new Error(`AudioPlayer.play: Asset not found: ${state.url}`);
     }
     audioSource = audioContext.createBufferSource();
     audioSource.buffer = audioBuffer;

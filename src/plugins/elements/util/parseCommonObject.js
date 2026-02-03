@@ -1,5 +1,5 @@
 import { calculatePositionAfterAnchor } from "./common.js";
-import { ComputedNodeType } from "../../../types.js";
+import { ComputedNodeType } from "../../../constants.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -39,8 +39,8 @@ export const parseCommonObject = (state) => {
   const {
     x: adjustedPositionX,
     y: adjustedPositionY,
-    originX: originX,
-    originY: originY,
+    originX,
+    originY,
   } = calculatePositionAfterAnchor({
     positionX: state.x,
     positionY: state.y,

@@ -1,4 +1,4 @@
-import { DEFAULT_TEXT_STYLE } from "../types.js";
+import { DEFAULT_TEXT_STYLE } from "../constants.js";
 
 export default (element, style) => {
   const appliedStyle = {

@@ -3,12 +3,10 @@
  * @param {import("../elementPlugin").DeleteElementOptions} params
  */
 export const deleteContainer = ({
-  app,
   parent,
   element,
   animationBus,
   animations,
-  eventHandler,
   completionTracker,
 }) => {
   const containerElement = parent.getChildByLabel(element.id);
