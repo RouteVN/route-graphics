@@ -219,9 +219,9 @@
  * @property {Container} parent
  * @property {ComputedNode[]} prevComputedTree
  * @property {ComputedNode[]} nextComputedTree
- * @property {Object[]} transitions
+ * @property {Object[]} animations
  * @property {Function} eventHandler
- * @property {AbortSignal[]} signal
+ * @property {AbortSignal} [signal]
  */
 
 /**
@@ -229,7 +229,7 @@
  * @property {import('./RouteGraphics').ApplicationWithSoundStage} app
  * @property {Container} parent
  * @property {SpriteComputedNode} spriteComputedNode
- * @property {Object[]} transitions
+ * @property {Object[]} animations
  * @param {Function} params.transitionElements
  * @property {Function} signalAbortCb
  * @property {AbortSignal} signal
@@ -485,7 +485,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @typedef {Object} RouteGraphicsState
  * @property {string} id - ID
  * @property {E[]} elements - Array of elements
- * @property {T[]} transitions - Array of transitions
+ * @property {T[]} animations - Array of animations
  * @property {GlobalConfiguration} [global] - Global configuration options
  */
 
@@ -566,7 +566,7 @@ export class BaseRendererPlugin {
    * @param {Object} options
    * @param {Container} options.parent - The parent container to add the element to
    * @param {E} options.element - The sprite element to add
-   * @param {T[]} [options.transitions=[]] - Array of transitions
+   * @param {T[]} [options.animations=[]] - Array of animations
    * @param {Function} options.getTransitionByType - Function to get a transition by type
    * @param {Function} options.getRendererByElement
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
@@ -583,7 +583,7 @@ export class BaseRendererPlugin {
    * @param {Container} options.parent
    * @param {Object} options.element - The sprite element to remove
    * @param {E} options.element - The element to remove
-   * @param {T[]} [options.transitions=[]] - Array of transitions
+   * @param {T[]} [options.animations=[]] - Array of animations
    * @param {Function} options.getTransitionByType - Function to get a transition by type
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
@@ -599,7 +599,7 @@ export class BaseRendererPlugin {
    * @param {Container} options.parent
    * @param {E} options.prevElement - The previous state of the sprite element
    * @param {E} options.nextElement - The next state of the sprite element
-   * @param {T[]} [options.transitions=[]] - Array of transitions
+   * @param {T[]} [options.animations=[]] - Array of animations
    * @param {Function} options.getRendererByElement
    * @param {Function} options.getTransitionByType - Function to get a transition by type
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation

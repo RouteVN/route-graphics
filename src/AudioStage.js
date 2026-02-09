@@ -1,4 +1,4 @@
-import { AudioAsset } from "./AudioAsset";
+import { AudioAsset } from "./AudioAsset.js";
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -77,10 +77,18 @@ export const createAudioPlayer = (id, options) => {
     setUrl,
     setLoop,
     setVolume,
-    id: state.id,
-    url: state.url,
-    loop: state.loop,
-    volume: state.volume,
+    get id() {
+      return state.id;
+    },
+    get url() {
+      return state.url;
+    },
+    get loop() {
+      return state.loop;
+    },
+    get volume() {
+      return state.volume;
+    },
     gainNode,
   };
 };
@@ -126,7 +134,7 @@ export const createAudioStage = () => {
         });
         audioPlayers.push(player);
         player.play();
-        return;
+        continue;
       }
 
       // check if need update

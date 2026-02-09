@@ -1,4 +1,5 @@
 import { Texture } from "pixi.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update slider element
@@ -24,10 +25,7 @@ export const updateSlider = ({
   sliderElement.zIndex = zIndex;
 
   const updateElement = () => {
-    if (
-      JSON.stringify(prevSliderComputedNode) !==
-      JSON.stringify(nextSliderComputedNode)
-    ) {
+    if (!isDeepEqual(prevSliderComputedNode, nextSliderComputedNode)) {
       // Update container properties
       sliderElement.x = nextSliderComputedNode.x;
       sliderElement.y = nextSliderComputedNode.y;
@@ -48,10 +46,14 @@ export const updateSlider = ({
 
       // Check if handler configuration changed
       const handlerConfigChanged =
-        JSON.stringify(prevSliderComputedNode.hover) !==
-          JSON.stringify(nextSliderComputedNode.hover) ||
-        JSON.stringify(prevSliderComputedNode.change) !==
-          JSON.stringify(nextSliderComputedNode.change) ||
+        !isDeepEqual(
+          prevSliderComputedNode.hover,
+          nextSliderComputedNode.hover,
+        ) ||
+        !isDeepEqual(
+          prevSliderComputedNode.change,
+          nextSliderComputedNode.change,
+        ) ||
         prevSliderComputedNode.min !== nextSliderComputedNode.min ||
         prevSliderComputedNode.max !== nextSliderComputedNode.max ||
         prevSliderComputedNode.step !== nextSliderComputedNode.step ||

@@ -13,7 +13,10 @@ export const addAnimatedSprite = async ({
   animationBus,
   completionTracker,
   zIndex,
+  signal,
 }) => {
+  if (signal?.aborted) return;
+
   const {
     id,
     x,
@@ -31,6 +34,7 @@ export const addAnimatedSprite = async ({
 
   const spriteSheet = new Spritesheet(Texture.from(spritesheetSrc), metadata);
   await spriteSheet.parse();
+  if (signal?.aborted || parent.destroyed) return;
 
   const frameTextures = animation.frames.map(
     (index) => spriteSheet.textures[frameNames[index]],

@@ -1,4 +1,7 @@
 import hotkeys from "hotkeys-js";
+import { isDeepEqual } from "./isDeepEqual.js";
+
+const hasOwn = Object.prototype.hasOwnProperty;
 
 /**
  * Create keyboard manager for handling global hotkeys
@@ -24,8 +27,7 @@ export const createKeyboardManager = (eventHandler) => {
       if (!active) {
         keysToAdd.push(key);
       } else if (
-        JSON.stringify(active.payload) !==
-        JSON.stringify(hotkeyConfigs[key].actionPayload)
+        !isDeepEqual(active.payload, hotkeyConfigs[key].actionPayload)
       ) {
         keysToUpdate.push(key);
         hotkeys.unbind(key);
@@ -33,7 +35,7 @@ export const createKeyboardManager = (eventHandler) => {
     });
 
     activeHotkeys.forEach((_, key) => {
-      if (!hotkeyConfigs.hasOwnProperty(key)) {
+      if (!hasOwn.call(hotkeyConfigs, key)) {
         keysToRemove.push(key);
       }
     });
@@ -67,7 +69,15 @@ export const createKeyboardManager = (eventHandler) => {
     });
   };
 
+  const destroy = () => {
+    for (const key of activeHotkeys.keys()) {
+      hotkeys.unbind(key);
+    }
+    activeHotkeys.clear();
+  };
+
   return {
     registerHotkeys,
+    destroy,
   };
 };

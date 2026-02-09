@@ -12,12 +12,21 @@ const abortableSleep = async (ms, signal) => {
       );
     }
 
+    let abortListener;
+    const cleanup = () => {
+      if (abortListener) {
+        signal?.removeEventListener("abort", abortListener);
+      }
+    };
+
     const timerId = setTimeout(() => {
+      cleanup();
       resolve();
     }, ms);
 
-    const abortListener = () => {
+    abortListener = () => {
       clearTimeout(timerId);
+      cleanup();
       reject(signal.reason);
     };
 
