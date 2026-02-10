@@ -1,5 +1,4 @@
 import { diffAudio } from "../../util/diffAudio.js";
-import { clearPendingSounds } from "./sound/addSound.js";
 
 /**
  * Render audio using plugin system (synchronous)
@@ -15,9 +14,6 @@ export const renderAudio = ({
   nextAudioTree,
   audioPlugins,
 }) => {
-  // Cancel any pending delayed sounds from previous state
-  clearPendingSounds();
-
   const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
     prevAudioTree,
     nextAudioTree,

@@ -1,4 +1,5 @@
 import { Texture } from "pixi.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update video element
@@ -26,7 +27,7 @@ export const updateVideo = ({
   const { x, y, width, height, alpha } = nextElement;
 
   const updateElement = () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (!isDeepEqual(prevElement, nextElement)) {
       videoElement.x = Math.round(x);
       videoElement.y = Math.round(y);
       videoElement.width = Math.round(width);

@@ -110,6 +110,7 @@ in:
       height: 10
       x: 50
       y: 75
+      initialValue: 10
 out:
   id: "minimal-slider"
   type: "slider"
@@ -122,8 +123,39 @@ out:
   width: 100
   height: 10
   step: 1
-  initialValue: 0
+  initialValue: 10
   x: 50
   y: 75
   originX: 0
   originY: 0
+---
+case: Test parsing slider throws when initialValue is missing
+in:
+  - state:
+      id: "missing-initial-value-slider"
+      type: "slider"
+      barSrc: "file:bar-minimal"
+      thumbSrc: "file:thumb-minimal"
+      direction: "vertical"
+      width: 100
+      height: 10
+      x: 50
+      y: 75
+throws: "Input error: slider initialValue is required"
+---
+case: Test parsing slider throws when initialValue is outside min and max
+in:
+  - state:
+      id: "outside-initial-value-slider"
+      type: "slider"
+      barSrc: "file:bar-minimal"
+      thumbSrc: "file:thumb-minimal"
+      direction: "vertical"
+      width: 100
+      height: 10
+      x: 50
+      y: 75
+      min: 10
+      max: 20
+      initialValue: 30
+throws: "Input error: slider initialValue must be between min and max"

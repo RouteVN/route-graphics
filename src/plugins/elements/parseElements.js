@@ -14,7 +14,9 @@ const parseElements = ({ JSONObject, parserPlugins = [] }) => {
   const parsedComputedTree = JSONObject.map((node) => {
     const plugin = parserPlugins.find((p) => p.type === node.type);
     if (!plugin) {
-      return JSONObject;
+      throw new Error(
+        `No parser plugin found for element type: ${node.type} (id: ${node.id ?? "unknown"})`,
+      );
     }
     return plugin.parse({ state: node, parserPlugins });
   });
@@ -22,4 +24,5 @@ const parseElements = ({ JSONObject, parserPlugins = [] }) => {
   return parsedComputedTree;
 };
 
+export { parseElements };
 export default parseElements;

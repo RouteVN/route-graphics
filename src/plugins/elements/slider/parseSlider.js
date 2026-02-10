@@ -20,6 +20,23 @@ export const parseSlider = ({ state }) => {
       "Input error: the max value of a slider must be larger than the min value",
     );
 
+  if (state.initialValue === undefined) {
+    throw new Error("Input error: slider initialValue is required");
+  }
+
+  if (
+    typeof state.initialValue !== "number" ||
+    Number.isNaN(state.initialValue)
+  ) {
+    throw new Error("Input error: slider initialValue must be a valid number");
+  }
+
+  if (state.initialValue < defaultMin || state.initialValue > defaultMax) {
+    throw new Error(
+      "Input error: slider initialValue must be between min and max",
+    );
+  }
+
   return {
     ...computedObj,
     direction: state.direction ?? "horizontal",
@@ -29,7 +46,7 @@ export const parseSlider = ({ state }) => {
     min: defaultMin,
     max: defaultMax,
     step: state.step ?? 1,
-    initialValue: state.initialValue ?? 0,
+    initialValue: state.initialValue,
     ...(state.hover && { hover: state.hover }),
     ...(state.change && { change: state.change }),
   };

@@ -1,4 +1,5 @@
 import { Texture } from "pixi.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update sprite element (synchronous)
@@ -26,7 +27,7 @@ export const updateSprite = ({
   const { id, x, y, width, height, src, alpha } = nextElement;
 
   const updateElement = () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (!isDeepEqual(prevElement, nextElement)) {
       const texture = src ? Texture.from(src) : Texture.EMPTY;
       spriteElement.texture = texture;
 

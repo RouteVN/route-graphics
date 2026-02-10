@@ -7,11 +7,14 @@ import abortableSleep from "../../../util/abortableSleep";
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async (params) => {
-  const { parent, nextElement: element, completionTracker, zIndex } = params;
-
-  // Track this text-revealing for completion
-  const stateVersion = completionTracker.getVersion();
-  completionTracker.track(stateVersion);
+  const {
+    parent,
+    nextElement: element,
+    completionTracker,
+    zIndex,
+    signal,
+  } = params;
+  if (signal?.aborted) return;
 
   const speed = element.speed ?? 50;
   const revealEffect = element.revealEffect ?? "typewriter";
@@ -25,7 +28,13 @@ export const updateTextRevealing = async (params) => {
   const textRevealingElement = parent.children.find(
     (child) => child.label === element.id,
   );
-  if (textRevealingElement) {
+  if (!textRevealingElement) return;
+
+  // Track this text-revealing for completion
+  const stateVersion = completionTracker.getVersion();
+  completionTracker.track(stateVersion);
+
+  try {
     textRevealingElement.zIndex = zIndex;
     textRevealingElement.removeChildren();
 
@@ -52,6 +61,8 @@ export const updateTextRevealing = async (params) => {
       chunkIndex < element.content.length;
       chunkIndex++
     ) {
+      if (signal?.aborted || textRevealingElement.destroyed) return;
+
       const chunk = element.content[chunkIndex];
       indicatorSprite.x = indicatorOffset;
       indicatorSprite.y =
@@ -59,6 +70,8 @@ export const updateTextRevealing = async (params) => {
 
       // Process each line part in the chunk
       for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
+        if (signal?.aborted || textRevealingElement.destroyed) return;
+
         const part = chunk.lineParts[partIndex];
 
         // Create text objects for this part
@@ -100,6 +113,8 @@ export const updateTextRevealing = async (params) => {
           const furiganaLength = fullFurigana.length;
 
           for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
+            if (signal?.aborted || textRevealingElement.destroyed) return;
+
             // Add current character to text
             text.text = fullText.substring(0, charIndex + 1);
 
@@ -118,7 +133,7 @@ export const updateTextRevealing = async (params) => {
             // Wait before adding next character
             if (charIndex < fullText.length - 1) {
               // Don't wait after last character
-              await abortableSleep(charDelay);
+              await abortableSleep(charDelay, signal);
             }
           }
         }
@@ -126,9 +141,11 @@ export const updateTextRevealing = async (params) => {
 
       // Wait before processing next chunk (except for the last chunk)
       if (chunkIndex < element.content.length - 1) {
-        await abortableSleep(chunkDelay);
+        await abortableSleep(chunkDelay, signal);
       }
     }
+
+    if (signal?.aborted || textRevealingElement.destroyed) return;
 
     if (element?.indicator?.complete?.src) {
       const completeTexture = element.indicator.complete.src
@@ -143,5 +160,9 @@ export const updateTextRevealing = async (params) => {
 
     // Mark text-revealing as complete
     completionTracker.complete(stateVersion);
+  } catch (error) {
+    if (error?.name !== "AbortError" && !signal?.aborted) {
+      throw error;
+    }
   }
 };
