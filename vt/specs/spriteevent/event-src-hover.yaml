@@ -6,6 +6,10 @@ specs:
   - "sprite texture should revert on pointer out"
   - "different sprites can have different hover textures"
 steps:
+  - action: keypress
+    key: n
+  - action: wait
+    ms: 50
   - action: move
     x: 20
     y: 20
@@ -31,6 +35,28 @@ steps:
   - action: screenshot
 ---
 states:
+  - elements:
+      - id: 'sprite-hover-1'
+        type: "sprite"
+        x: 150
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-blue"
+      - id: 'sprite-hover-2'
+        type: "sprite"
+        x: 400
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-red"
+      - id: 'sprite-hover-3'
+        type: "sprite"
+        x: 650
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-green"
   - elements:
       - id: 'sprite-hover-1'
         type: "sprite"

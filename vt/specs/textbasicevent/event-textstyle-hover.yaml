@@ -6,6 +6,10 @@ specs:
   - "text style should revert on pointer out"
   - "color, font, and size can all change"
 steps:
+  - action: keypress
+    key: n
+  - action: wait
+    ms: 50
   - action: move
     x: 20
     y: 20
@@ -31,6 +35,34 @@ steps:
   - action: screenshot
 ---
 states:
+  - elements:
+      - id: 'text-hover-color'
+        type: "text"
+        x: 200
+        y: 100
+        content: "Hover to change color"
+        textStyle:
+          fontFamily: "Arial"
+          fontSize: 42
+          fill: "#A6A6A6"
+      - id: 'text-hover-size'
+        type: "text"
+        x: 200
+        y: 200
+        content: "Hover to get bigger"
+        textStyle:
+          fontFamily: "Arial"
+          fontSize: 36
+          fill: "#737373"
+      - id: 'text-hover-all'
+        type: "text"
+        x: 200
+        y: 300
+        content: "Hover for complete transformation"
+        textStyle:
+          fontFamily: "Arial"
+          fontSize: 38
+          fill: "#4D4D4D"
   - elements:
       - id: 'text-hover-color'
         type: "text"
