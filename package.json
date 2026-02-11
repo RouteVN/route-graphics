@@ -38,10 +38,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "serve": "bunx serve -p 3005 .rettangoli/vt/_site",
-    "playground:install": "npm --prefix playground install",
-    "playground:watch": "npm --prefix playground run watch",
-    "playground:build": "npm --prefix playground run build"
+    "serve": "bunx serve -p 3005 .rettangoli/vt/_site"
   },
   "dependencies": {
     "@pixi/unsafe-eval": "^7.4.3",
