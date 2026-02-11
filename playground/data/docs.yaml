@@ -11,6 +11,3 @@ items:
       - id: getting-started
         title: "Getting Started"
         href: "/docs/introduction/getting-started/"
-      - id: playground-guide
-        title: "Playground Guide"
-        href: "/docs/introduction/playground-guide/"
