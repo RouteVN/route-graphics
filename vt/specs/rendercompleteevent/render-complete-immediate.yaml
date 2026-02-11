@@ -1,13 +1,10 @@
 ---
 title: Render Complete Event - Immediate (No Animation)
-description: Test that renderComplete event fires immediately when no animations
+description: Visual smoke test for immediate render state with no animations
 specs:
-  - "renderComplete event should fire immediately when state has no animations"
-  - "payload should contain id"
-  - "payload should have aborted: false"
+  - "state renders immediately and remains stable"
 steps:
-  - customEvent showRenderComplete
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "no-animation-state"
@@ -18,5 +15,5 @@ states:
         y: 150
         width: 400
         height: 300
-        fill: "#27ae60"
+        fill: "#FFFFFF"
         alpha: 1

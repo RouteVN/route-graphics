@@ -1,19 +1,62 @@
 ---
 title: Sprite Src Change on Hover
-description: Test src property in hover event changing sprite texture
+description: Test src property in hover event changing sprite texture; uses colored sprite assets intentionally to make texture transitions explicit (guideline exception for asset-based tests).
 specs:
   - "sprite texture should change on hover"
   - "sprite texture should revert on pointer out"
   - "different sprites can have different hover textures"
 steps:
-  - move 175 175
-  - screenshot
-  - move 400 175
-  - screenshot
-  - move 675 175
-  - screenshot
+  - action: keypress
+    key: n
+  - action: wait
+    ms: 50
+  - action: move
+    x: 20
+    y: 20
+  - action: wait
+    ms: 50
+  - action: move
+    x: 175
+    y: 175
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: move
+    x: 400
+    y: 175
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: move
+    x: 675
+    y: 175
+  - action: wait
+    ms: 50
+  - action: screenshot
 ---
 states:
+  - elements:
+      - id: 'sprite-hover-1'
+        type: "sprite"
+        x: 150
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-blue"
+      - id: 'sprite-hover-2'
+        type: "sprite"
+        x: 400
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-red"
+      - id: 'sprite-hover-3'
+        type: "sprite"
+        x: 650
+        y: 150
+        width: 150
+        height: 150
+        src: "circle-green"
   - elements:
       - id: 'sprite-hover-1'
         type: "sprite"

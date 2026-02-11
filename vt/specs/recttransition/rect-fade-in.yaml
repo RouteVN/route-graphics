@@ -6,11 +6,12 @@ specs:
   - "rect should appear gradually over 1 second"
   - "rect should use linear easing"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "initial"
@@ -23,7 +24,7 @@ states:
         y: 150
         width: 400
         height: 300
-        fill: "#3498db"
+        fill: "#A6A6A6"
         alpha: 1
     animations:
       - id: "rect-fade-in"

@@ -4,8 +4,25 @@ description: Test right click event on container elements
 specs:
   - "container should call callback with data when right-clicked"
 steps:
-  - rclick 250 110
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: click
+    x: 250
+    y: 110
+  - action: rclick
+    x: 250
+    y: 110
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [rightclick]
+    value:
+      - _event:
+          id: container-right-click-1
+        message: "Container 1 right-clicked"
 ---
 states:
   - elements:
@@ -23,4 +40,4 @@ states:
             type: "rect"
             width: 150
             height: 50
-            fill: "#3498db"
+            fill: "#A6A6A6"

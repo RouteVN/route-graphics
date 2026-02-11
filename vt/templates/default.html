@@ -88,43 +88,49 @@
         }
         let index = 0
         const states = parse(window.vtState).states
-        let lastRenderCompleteEvent = null;
+        window.__VT_EVENTS__ = [];
+        window.__VT_ALL_EVENTS__ = [];
+
+        const getEventStore = (scope) => {
+            if (scope === "all") return window.__VT_ALL_EVENTS__;
+            return window.__VT_EVENTS__;
+        };
+
+        const clearEvents = () => {
+            window.__VT_EVENTS__ = [];
+            window.__VT_ALL_EVENTS__ = [];
+        };
+
+        window.getVtEvents = (scope = "default") => {
+            const store = getEventStore(scope);
+            return store.map((event) => ({
+                name: event.name,
+                payload: event.payload,
+            }));
+        };
+
+        window.vtAssert = {
+            payloadDeepEquals: (eventName, scope = "default") =>
+                window
+                    .getVtEvents(scope)
+                    .filter((event) => event.name === eventName)
+                    .map((event) => event.payload),
+        };
+
         await app.init({
             width: 1280,
             height: 720,
             plugins,
             eventHandler: (eventName, payload) => {
-                console.log('eventHandler', eventName, payload)
-                // Store renderComplete events for later display via custom event
+                const eventData = {
+                    name: eventName,
+                    payload,
+                };
+                window.__VT_ALL_EVENTS__.push(eventData);
                 if (eventName === 'renderComplete') {
-                    lastRenderCompleteEvent = { eventName, payload };
                     return;
                 }
-                app.render(
-                    {
-                        id: `${states[index].id ?? index}-event-render`,
-                        elements: [
-                            ...(states[index].elements ?? []),
-                            {
-                                type: 'text',
-                                id: 'event-log',
-                                x: 500,
-                                y: 400,
-                                width: 300,
-                                content: `Event: ${eventName}, Payload: ${JSON.stringify(payload, null, 2)}`,
-                                textStyle: {
-                                    fill: '#ffffff',
-                                    fontSize: 24,
-                                    breakWords: true,
-                                }
-                            }
-                        ],
-                        // No animations to not get stuck in an infinite loop
-                        animations: [],
-                        audio: states[index].audio ?? [],
-                        global: states[index].global ?? {}
-                    }
-                )
+                window.__VT_EVENTS__.push(eventData);
             },
             onFirstRender: () => {
                 window.dispatchEvent(new CustomEvent('vt:ready'));
@@ -188,32 +194,8 @@
                 }
             });
 
-            // Custom event to show the last renderComplete event
-            window.addEventListener('showRenderComplete', () => {
-                if (lastRenderCompleteEvent) {
-                    app.render({
-                        id: `${states[index].id ?? index}-show-render-complete`,
-                        elements: [
-                            ...(states[index].elements ?? []),
-                            {
-                                type: 'text',
-                                id: 'event-log',
-                                x: 500,
-                                y: 400,
-                                width: 300,
-                                content: `Event: ${lastRenderCompleteEvent.eventName}, Payload: ${JSON.stringify(lastRenderCompleteEvent.payload, null, 2)}`,
-                                textStyle: {
-                                    fill: '#ffffff',
-                                    fontSize: 24,
-                                    breakWords: true,
-                                }
-                            }
-                        ],
-                        animations: [],
-                        audio: states[index].audio ?? [],
-                        global: states[index].global ?? {}
-                    });
-                }
+            window.addEventListener('clearEvents', () => {
+                clearEvents();
             });
         };
         listenEvents()

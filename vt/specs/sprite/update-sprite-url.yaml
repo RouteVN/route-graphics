@@ -1,10 +1,13 @@
 ---
 title: Update Sprite Src
+description: Uses colored sprite assets intentionally to validate src/texture swap behavior (guideline exception for asset-based tests).
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
 ---
 states:
   - elements:

@@ -8,17 +8,33 @@ specs:
   - "text should send correct actionPayload for each event type"
   - "text should support all three: hover, right-click, and click"
 steps:
-  - move 155 110
-  - screenshot
-  - rMouseDown
-  - screenshot
-  - rMouseUp
-  - screenshot
-  - rMouseDown
-  - move 0 0
-  - screenshot
-  - rMouseUp
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 155
+    y: 110
+  - action: screenshot
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
+  - action: rightMouseDown
+  - action: move
+    x: 0
+    y: 0
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [hover]
+    value:
+      - _event:
+          id: text-hover-rightclick
+        action: text-hovered
+        eventType: hover
+        status: over
 ---
 states:
   - elements:
@@ -30,13 +46,13 @@ states:
         content: "Hover then Right-click"
         textStyle:
           fontSize: 24
-          fill: "blue"
+          fill: "#A6A6A6"
           fontFamily: "Arial"
         hover:
           cursor: "pointer"
           textStyle:
             fontSize: 24
-            fill: "green"
+            fill: "#737373"
             fontFamily: "Arial"
           actionPayload:
             action: "text-hovered"
@@ -45,5 +61,5 @@ states:
         rightClick:
           textStyle:
             fontSize: 24
-            fill: "purple"
+            fill: "#737373"
             fontFamily: "Arial"

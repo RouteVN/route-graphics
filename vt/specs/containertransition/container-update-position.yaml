@@ -6,11 +6,12 @@ specs:
   - "all children should move with container"
   - "animation should take 1 second"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:
@@ -25,12 +26,12 @@ states:
             type: "rect"
             width: 60
             height: 60
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
           - id: 'rect2'
             type: "rect"
             width: 60
             height: 60
-            fill: "#3498db"
+            fill: "#A6A6A6"
   - elements:
       - id: 'container1'
         type: "container"
@@ -43,12 +44,12 @@ states:
             type: "rect"
             width: 60
             height: 60
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
           - id: 'rect2'
             type: "rect"
             width: 60
             height: 60
-            fill: "#3498db"
+            fill: "#A6A6A6"
     animations:
       - id: 'container-move'
         targetId: 'container1'

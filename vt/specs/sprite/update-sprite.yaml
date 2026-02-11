@@ -1,10 +1,13 @@
 ---
 title: Update Sprite Position and Properties
+description: Uses colored sprite assets intentionally to differentiate multi-sprite update states (guideline exception for asset-based tests).
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
 ---
 states:
   - elements:

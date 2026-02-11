@@ -6,14 +6,50 @@ specs:
   - "child events should fire independently"
   - "container and child events can coexist"
 steps:
-  - move 350 110
-  - screenshot
-  - click 350 110
-  - screenshot
-  - move 550 110
-  - screenshot
-  - click 550 110
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 350
+    y: 110
+  - action: screenshot
+  - action: click
+    x: 350
+    y: 110
+  - action: screenshot
+  - action: move
+    x: 550
+    y: 110
+  - action: screenshot
+  - action: click
+    x: 550
+    y: 110
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [hover]
+    value:
+      - _event:
+          id: child-rect-1
+        type: child-hover
+        childId: rect-1
+      - _event:
+          id: container-with-events
+        type: container-hover
+        containerId: main-container
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [click]
+    value:
+      - _event:
+          id: child-rect-1
+        type: child-click
+        childId: rect-1
+      - _event:
+          id: container-with-events
+        type: container-click
+        containerId: main-container
 ---
 states:
   - elements:
@@ -38,7 +74,7 @@ states:
             type: "rect"
             width: 100
             height: 50
-            fill: "#3498db"
+            fill: "#A6A6A6"
             hover:
               actionPayload:
                 type: "child-hover"
@@ -51,7 +87,7 @@ states:
             type: "rect"
             width: 100
             height: 50
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
             hover:
               cursor: "pointer"
             click:

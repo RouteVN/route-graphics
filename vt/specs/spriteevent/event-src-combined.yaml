@@ -1,34 +1,42 @@
 ---
 title: Sprite Src Change on Hover AND Click
-description: Test src in both hover and click events working together
+description: Test src in both hover and click events working together; uses colored sprite assets intentionally to track source changes (guideline exception for asset-based tests).
 specs:
   - "hover src should work"
   - "click src should work"
   - "both events can have different src values"
 steps:
-  - move 220 175
-  - screenshot
-  - mouseDown
-  - screenshot
-  - mouseUp # We want to check when the pointer is realease inside the element and outside of it too
-  - screenshot
-  - mouseDown
-  - screenshot
-  - move 0 0
-  - screenshot
-  - mouseUp
-  - screenshot
-  - move 520 175
-  - screenshot
-  - mouseDown
-  - mouseUp # We want to check when the pointer is realease inside the element and outside of it too
-  - screenshot
-  - mouseDown
-  - screenshot
-  - move 0 0
-  - screenshot
-  - mouseUp
-  - screenshot
+  - action: move
+    x: 220
+    y: 175
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: mouseUp # We want to check when the pointer is realease inside the element and outside of it too
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: move
+    x: 0
+    y: 0
+  - action: screenshot
+  - action: mouseUp
+  - action: screenshot
+  - action: move
+    x: 520
+    y: 175
+  - action: screenshot
+  - action: mouseDown
+  - action: mouseUp # We want to check when the pointer is realease inside the element and outside of it too
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: move
+    x: 0
+    y: 0
+  - action: screenshot
+  - action: mouseUp
+  - action: screenshot
 ---
 states:
   - elements:

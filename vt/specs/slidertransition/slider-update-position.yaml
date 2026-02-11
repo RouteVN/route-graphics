@@ -7,11 +7,12 @@ specs:
   - "slider should remain visible throughout"
   - "thumb should maintain relative position on bar"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:

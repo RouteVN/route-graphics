@@ -6,11 +6,12 @@ specs:
   - "text should appear gradually over 1 second"
   - "text content should be visible after animation"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements: []
@@ -22,7 +23,7 @@ states:
         y: 200
         textStyle:
           fontSize: 48
-          fill: "#2ecc71"
+          fill: "#737373"
           fontFamily: "Arial"
     animations:
       - id: 'text-fade-in'

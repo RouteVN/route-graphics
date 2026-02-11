@@ -1,6 +1,6 @@
 ---
 title: Sprite Combined Hover and Right-Click Tests
-description: Test right-click functionality combined with hover events on sprite elements
+description: Test right-click functionality combined with hover events on sprite elements; uses colored sprite assets intentionally to validate src/texture transitions (guideline exception for asset-based tests).
 specs:
   - "sprite should handle right-click and hover events independently"
   - "sprite should show hover cursor and still support right-click"
@@ -8,17 +8,33 @@ specs:
   - "sprite should send correct actionPayload for each event type"
   - "sprite should support all three: hover, right-click, and click"
 steps:
-  - move 155 110
-  - screenshot
-  - rMouseDown
-  - screenshot
-  - rMouseUp
-  - screenshot
-  - rMouseDown
-  - move 0 0
-  - screenshot
-  - rMouseUp
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 155
+    y: 110
+  - action: screenshot
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
+  - action: rightMouseDown
+  - action: move
+    x: 0
+    y: 0
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [hover]
+    value:
+      - _event:
+          id: sprite-hover-rightclick
+        action: sprite-hovered
+        eventType: hover
+        status: over
 ---
 states:
   - elements:

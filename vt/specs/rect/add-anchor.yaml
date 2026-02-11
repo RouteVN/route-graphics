@@ -14,7 +14,7 @@ states:
       y: 120
       width: 80
       height: 80
-      fill: red
+      fill: "#FFFFFF"
       anchorX: 0
       anchorY: 0
     - id: 'rect-tc'
@@ -23,7 +23,7 @@ states:
       y: 120
       width: 80
       height: 80
-      fill: green
+      fill: "#737373"
       anchorX: 0.5
       anchorY: 0
     - id: 'rect-tr'
@@ -32,7 +32,7 @@ states:
       y: 120
       width: 80
       height: 80
-      fill: blue
+      fill: "#A6A6A6"
       anchorX: 1
       anchorY: 0
     - id: 'rect-cl'
@@ -41,7 +41,7 @@ states:
       y: 360
       width: 80
       height: 80
-      fill: yellow
+      fill: "#D9D9D9"
       anchorX: 0
       anchorY: 0.5
     - id: 'rect-cc'
@@ -50,7 +50,7 @@ states:
       y: 360
       width: 80
       height: 80
-      fill: orange
+      fill: "#4D4D4D"
       anchorX: 0.5
       anchorY: 0.5
     - id: 'rect-cr'
@@ -59,7 +59,7 @@ states:
       y: 360
       width: 80
       height: 80
-      fill: purple
+      fill: "#737373"
       anchorX: 1
       anchorY: 0.5
     - id: 'rect-bl'
@@ -68,7 +68,7 @@ states:
       y: 600
       width: 80
       height: 80
-      fill: cyan
+      fill: "#A6A6A6"
       anchorX: 0
       anchorY: 1
     - id: 'rect-bc'
@@ -77,7 +77,7 @@ states:
       y: 600
       width: 80
       height: 80
-      fill: magenta
+      fill: "#D9D9D9"
       anchorX: 0.5
       anchorY: 1
     - id: 'rect-br'
@@ -86,6 +86,6 @@ states:
       y: 600
       width: 80
       height: 80
-      fill: brown
+      fill: "#4D4D4D"
       anchorX: 1
       anchorY: 1

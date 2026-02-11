@@ -1,20 +1,22 @@
 ---
 title: Sprite Render Abortion Test
-description: Test abortion callback during sprite render with 3 keyframes
+description: Test abortion callback during sprite render with 3 keyframes; uses colored sprite assets intentionally to distinguish animated sources (guideline exception for asset-based tests).
 specs:
   - "sprite should render with 3 keyframe animation"
   - "abortion callback should be testable during render"
   - "element props differ from animation final state"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=1200   
-  - screenshot
-  - keypress n      
-  - screenshot
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=1200      
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=1200    
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements: []

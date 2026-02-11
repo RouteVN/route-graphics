@@ -37,9 +37,6 @@ jobs:
       - name: Run unit tests
         run: bun run test
 
-      - name: Install Dependencies
-        run: bun install -g rtgl
-
       - name: Run Visual Tests (Docker)
         env:
           RTGL_VT_DEBUG: true
