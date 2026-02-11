@@ -1,0 +1,22 @@
+- html lang="en":
+    - head:
+        - meta charset="utf-8":
+        - meta name="viewport" content="width=device-width,initial-scale=1":
+        - title: "${title}"
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/base.css":
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/theme-rtgl-mono.css":
+        - link rel="stylesheet" href="/public/docs-base.css":
+        - script src="https://cdn.jsdelivr.net/npm/construct-style-sheets-polyfill@3.1.0/dist/adoptedStyleSheets.min.js":
+        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/rettangoli-iife-ui.min.js":
+    - body.dark:
+        - rtgl-view bgc="bg" w="f" d=h:
+            - 'rtgl-view md-hide pos=fix h=100vh bgc=bg style="left: 0"':
+                - rtgl-sidebar selected-item-id=${sidebarId} header="${encodeURIComponent(jsonStringify(docs.header))}" items="${encodeURIComponent(jsonStringify(docs.items))}":
+            - rtgl-view md-hide xl-show hide w=272:
+            - rtgl-view w="1fg" ah=c:
+                - rtgl-view pv="lg" lg-w="100vw" w="720" ph="xl" sv id="content-container":
+                    - rtgl-text s="h1" mb="lg": ${title}
+                    - "${content}"
+                    - rtgl-view h=200:
+            - 'rtgl-view xl-hide style="position: fixed; right: 0"':
+                - rtgl-page-outline id="page-outline" target-id="content-container" scroll-container-id="window" offset-top="80":
