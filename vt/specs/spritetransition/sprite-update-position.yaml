@@ -1,6 +1,6 @@
 ---
 title: Sprite Update Position Transition
-description: A sprite animating position during update
+description: A sprite animating position during update; uses a colored sprite texture intentionally to make motion checkpoints clear (guideline exception for asset-based tests).
 specs:
   - "sprite should move from (100, 100) to (500, 350)"
   - "animation should take 1 second"

@@ -15,7 +15,7 @@ states:
         y: 20
         textStyle:
           fontSize: 16
-          fill: "white"
+          fill: "#FFFFFF"
           breakWords: false
           wordWrapWidth: 200
   - elements:
@@ -27,6 +27,6 @@ states:
         width: 200
         textStyle:
           fontSize: 16
-          fill: "white"
+          fill: "#FFFFFF"
           wordWrap: true
           breakWords: true

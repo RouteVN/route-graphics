@@ -1,6 +1,6 @@
 ---
 title: Sprite Src Change on Hover AND Click
-description: Test src in both hover and click events working together
+description: Test src in both hover and click events working together; uses colored sprite assets intentionally to track source changes (guideline exception for asset-based tests).
 specs:
   - "hover src should work"
   - "click src should work"

@@ -1,6 +1,6 @@
 ---
 title: Text Style Change on Hover AND Click
-description: Test textStyle in both hover and click events working together
+description: Test textStyle in both hover and click events working together; color change is intentional to validate textStyle.fill behavior (guideline exception).
 specs:
   - "hover textStyle should work"
   - "click textStyle should work"
@@ -40,16 +40,16 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 42
-          fill: "#3498db"
+          fill: "#A6A6A6"
         hover:
           cursor: "pointer"
           textStyle:
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
             fontSize: 42
             fontFamily: "Arial"
         click:
           textStyle:
-            fill: "#f39c12"
+            fill: "#D9D9D9"
             fontSize: 48
             fontFamily: "Arial"
       - id: 'text-both-2'
@@ -60,15 +60,15 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 36
-          fill: "#2ecc71"
+          fill: "#737373"
         hover:
           cursor: "pointer"
           textStyle:
-            fill: "#2ecc71"
+            fill: "#737373"
             fontSize: 52
             fontFamily: "Arial"
         click:
           textStyle:
-            fill: "#9b59b6"
+            fill: "#4D4D4D"
             fontSize: 48
             fontFamily: "Georgia"

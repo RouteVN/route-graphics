@@ -1,6 +1,6 @@
 ---
 title: Text Style Change on Hover
-description: Test textStyle property in hover event changing text appearance
+description: Test textStyle property in hover event changing text appearance; textStyle.fill variation is intentional for visual style-state validation (guideline exception).
 specs:
   - "text style should change on hover"
   - "text style should revert on pointer out"
@@ -23,11 +23,11 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 42
-          fill: "#3498db"
+          fill: "#A6A6A6"
         hover:
           cursor: "pointer"
           textStyle:
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
             fontSize: 42
             fontFamily: "Arial"
       - id: 'text-hover-size'
@@ -38,11 +38,11 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 36
-          fill: "#2ecc71"
+          fill: "#737373"
         hover:
           cursor: "pointer"
           textStyle:
-            fill: "#2ecc71"
+            fill: "#737373"
             fontSize: 52
             fontFamily: "Arial"
       - id: 'text-hover-all'
@@ -53,11 +53,11 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 38
-          fill: "#9b59b6"
+          fill: "#4D4D4D"
 
         hover:
           cursor: "pointer"
           textStyle:
-            fill: "#f39c12"
+            fill: "#D9D9D9"
             fontSize: 48
             fontFamily: "Georgia"

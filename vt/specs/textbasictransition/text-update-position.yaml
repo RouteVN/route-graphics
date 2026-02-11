@@ -21,7 +21,7 @@ states:
         y: 100
         textStyle:
           fontSize: 28
-          fill: "#1abc9c"
+          fill: "#A6A6A6"
           fontFamily: "Arial"
   - elements:
       - id: 'text1'
@@ -31,7 +31,7 @@ states:
         y: 300
         textStyle:
           fontSize: 28
-          fill: "#1abc9c"
+          fill: "#A6A6A6"
           fontFamily: "Arial"
     animations:
       - id: 'text-move'

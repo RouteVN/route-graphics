@@ -33,6 +33,17 @@ Refactor VT specs so they are:
 - VT should only cover visual/render outcomes.
 - Non-visual behavior (payload correctness, audio runtime semantics, renderComplete payload semantics) moves to `vitest`.
 
+## Implementation Status (2026-02-10)
+
+- VT suite reduced to **72 specs**.
+- `rendercompleteevent` reduced to 3 visual-only smoke tests.
+- Event/payload text assertions removed from VT harness.
+- Audio/Video VT suites removed from active config and deferred.
+- VT references regenerated and accepted for the retained 72-spec suite.
+- Non-visual callback/payload assertions migrated to unit tests:
+  - `spec/util/completionTracker.spec.js`
+  - `spec/elements/eventSemantics.spec.js`
+
 ## Target Counts By Section
 
 | Section | Current | Target | Notes |

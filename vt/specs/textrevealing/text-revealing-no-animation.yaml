@@ -1,6 +1,6 @@
 ---
 title: Text Revealing - No Animation
-description: Testing text-revealing element with revealEffect set to none
+description: Testing text-revealing element with revealEffect set to none; uses colored indicator assets intentionally for revealing/complete state distinction (guideline exception for asset-based tests).
 steps:
   - keypress n
   - screenshot
@@ -15,7 +15,7 @@ states:
           - text: "This text appears immediately without animation"
             textStyle:
               fontSize: 14
-              fill: "#333333"
+              fill: "#4D4D4D"
         x: 0
         y: 0
         width: 200
@@ -37,7 +37,7 @@ states:
           - text: "This text appears immediately without animation"
             textStyle:
               fontSize: 14
-              fill: "#333333"
+              fill: "#4D4D4D"
         x: 0
         y: 0
         width: 400

@@ -15,7 +15,7 @@ states:
         y: 20
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
   - elements:
       - id: 'text-1'
         type: "text"
@@ -24,4 +24,4 @@ states:
         y: 80
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"

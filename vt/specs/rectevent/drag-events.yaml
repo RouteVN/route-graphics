@@ -6,6 +6,8 @@ specs:
   - "rect should send actionPayload on drag.move"
   - "rect should send actionPayload on drag.up"
 steps:
+  - action: customEvent
+    name: clearEvents
   - move 220 160
   - mouseDown
   - screenshot
@@ -14,6 +16,55 @@ steps:
   - move 400 300
   - mouseUp
   - screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.hasEvent
+    args: ["drag-start"]
+    value: true
+  - action: assert
+    type: js
+    fn: vtAssert.hasEvent
+    args: ["drag-move"]
+    value: true
+  - action: assert
+    type: js
+    fn: vtAssert.hasEvent
+    args: ["drag-end"]
+    value: true
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - drag-start
+      - - _event:
+            id: rect-draggable
+          action: drag-start
+    value: true
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - drag-move
+      - - _event:
+            id: rect-draggable
+            x: 300
+            y: 200
+          action: drag-move
+        - _event:
+            id: rect-draggable
+            x: 400
+            y: 300
+          action: drag-move
+    value: true
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - drag-end
+      - - _event:
+            id: rect-draggable
+          action: drag-end
+    value: true
 ---
 states:
   - elements:
@@ -23,7 +74,7 @@ states:
         y: 150
         width: 200
         height: 100
-        fill: "blue"
+        fill: "#A6A6A6"
         cursor: "pointer"
         drag:
           start:

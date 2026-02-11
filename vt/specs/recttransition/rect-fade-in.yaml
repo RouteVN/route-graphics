@@ -23,7 +23,7 @@ states:
         y: 150
         width: 400
         height: 300
-        fill: "#3498db"
+        fill: "#A6A6A6"
         alpha: 1
     animations:
       - id: "rect-fade-in"

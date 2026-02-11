@@ -1,6 +1,6 @@
 ---
 title: Slider Hover Events
-description: Test hover events with cursor and texture changes
+description: Test hover events with cursor and texture changes; texture assets are used intentionally as a visual-state exception (asset-based).
 specs:
   - "slider thumb should change cursor on hover"
   - "slider thumb should change texture on hover"

@@ -26,7 +26,7 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 32
-          fill: "white"
+          fill: "#FFFFFF"
         alpha: 1
     animations:
       - id: 'text-render-abortion'
@@ -60,7 +60,7 @@ states:
         textStyle:
           fontFamily: "Arial"
           fontSize: 48
-          fill: "white"
+          fill: "#FFFFFF"
         alpha: 1
     animations:
       - id: 'text-render-abortion-2'

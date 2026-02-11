@@ -1,6 +1,6 @@
 ---
 title: Sprite Update Rotation Transition
-description: A sprite rotating during update
+description: A sprite rotating during update; uses a colored sprite texture intentionally to make rotation checkpoints clear (guideline exception for asset-based tests).
 specs:
   - "sprite should rotate from 0 to 360 degrees"
   - "animation should take 1.5 seconds"

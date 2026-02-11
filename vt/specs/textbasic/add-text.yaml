@@ -10,7 +10,7 @@ states:
         y: 20
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
       - id: 'b'
         type: "text"
         content: "Hi, how are you?"
@@ -18,7 +18,7 @@ states:
         y: 60
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
       - id: 'c'
         type: "text"
         content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
@@ -26,4 +26,4 @@ states:
         y: 100
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"

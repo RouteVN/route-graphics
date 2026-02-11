@@ -25,12 +25,12 @@ states:
             type: "rect"
             width: 60
             height: 60
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
           - id: 'rect2'
             type: "rect"
             width: 60
             height: 60
-            fill: "#3498db"
+            fill: "#A6A6A6"
   - elements:
       - id: 'container1'
         type: "container"
@@ -43,12 +43,12 @@ states:
             type: "rect"
             width: 60
             height: 60
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
           - id: 'rect2'
             type: "rect"
             width: 60
             height: 60
-            fill: "#3498db"
+            fill: "#A6A6A6"
     animations:
       - id: 'container-move'
         targetId: 'container1'

@@ -15,7 +15,7 @@ states:
         y: 20
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
       - id: 'text-2'
         type: "text"
         content: "This text will remain"
@@ -23,7 +23,7 @@ states:
         y: 60
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
       - id: 'text-3'
         type: "text"
         content: "This text will also be deleted"
@@ -31,7 +31,7 @@ states:
         y: 100
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"
   - elements:
       - id: 'text-2'
         type: "text"
@@ -40,4 +40,4 @@ states:
         y: 60
         textStyle:
           fontSize: 24
-          fill: "white"
+          fill: "#FFFFFF"

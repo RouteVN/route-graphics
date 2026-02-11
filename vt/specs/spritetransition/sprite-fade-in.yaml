@@ -1,6 +1,6 @@
 ---
 title: Sprite Fade In Transition
-description: A sprite element fading in with alpha animation
+description: A sprite element fading in with alpha animation; uses a colored sprite texture intentionally to validate visual alpha progression (guideline exception for asset-based tests).
 specs:
   - "sprite should fade from 0 to 1 alpha"
   - "sprite should appear gradually over 1 second"

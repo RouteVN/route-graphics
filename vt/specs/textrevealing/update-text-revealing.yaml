@@ -1,6 +1,6 @@
 ---
 title: Update Text Revealing Content and Properties
-description: Tests updating text-revealing elements with different content, positions, and properties
+description: Tests updating text-revealing elements with different content, positions, and properties; uses colored indicator assets intentionally for reveal-state cues (guideline exception for asset-based tests).
 specs:
   - "Text content should update from original to new text"
   - "Position should update from original to new coordinates"
@@ -8,11 +8,11 @@ specs:
   - "Speed property should affect animation timing"
   - "Width constraint should be respected after update"
 steps:
-  # - wait 2000
-  # - screenshot
-  # - keypress n
-  # - wait 5000
-  # - screenshot
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
+  - keypress n
+  - customEvent snapShotKeyFrame deltaMS=400
+  - screenshot
 ---
 states:
   - elements:
@@ -22,7 +22,7 @@ states:
           - text: "Original text content"
             textStyle:
               fontSize: 20
-              fill: "#3498db"
+              fill: "#A6A6A6"
               fontFamily: "Arial"
         x: 50
         y: 50
@@ -37,12 +37,12 @@ states:
           - text: "Updated content with new text"
             textStyle:
               fontSize: 24
-              fill: "#e74c3c"
+              fill: "#FFFFFF"
               fontFamily: "Georgia"
           - text: " Additional segment"
             textStyle:
               fontSize: 18
-              fill: "#27ae60"
+              fill: "#737373"
               fontFamily: "Arial"
         x: 100
         y: 100

@@ -1,6 +1,6 @@
 ---
 title: Sprite Src Change on Hover
-description: Test src property in hover event changing sprite texture
+description: Test src property in hover event changing sprite texture; uses colored sprite assets intentionally to make texture transitions explicit (guideline exception for asset-based tests).
 specs:
   - "sprite texture should change on hover"
   - "sprite texture should revert on pointer out"

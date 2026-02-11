@@ -24,7 +24,7 @@ states:
         y: 100
         width: 200
         height: 200
-        fill: "#3498db"
+        fill: "#A6A6A6"
         alpha: 1
     animations:
       - id: 'rect-render-abortion'
@@ -65,7 +65,7 @@ states:
         y: 300
         width: 300
         height: 250
-        fill: "#e74c3c"
+        fill: "#FFFFFF"
         alpha: 1
     animations:
       - id: 'rect-render-abortion-2'

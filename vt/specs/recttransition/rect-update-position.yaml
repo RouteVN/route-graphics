@@ -23,7 +23,7 @@ states:
         y: 100
         width: 200
         height: 200
-        fill: "#1abc9c"
+        fill: "#A6A6A6"
   - elements:
       - id: 'rect1'
         type: "rect"
@@ -31,7 +31,7 @@ states:
         y: 150
         width: 200
         height: 200
-        fill: "#1abc9c"
+        fill: "#A6A6A6"
     animations:
       - id: 'rect-move'
         targetId: 'rect1'
@@ -60,7 +60,7 @@ states:
         y: 500
         width: 200
         height: 200
-        fill: "#1abc9c"
+        fill: "#A6A6A6"
     animations:
       - id: 'rect-move'
         targetId: 'rect1'

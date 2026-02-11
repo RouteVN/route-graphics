@@ -1058,8 +1058,17 @@ bun run test
 ### Code Quality
 
 ```bash
-# Build visual tests
+# Build VT pages
 bun run vt:generate
+
+# Capture screenshots with Docker
+bun run vt:screenshot
+
+# Generate visual diff report
+bun run vt:report
+
+# Accept expected diffs
+bun run vt:accept
 
 
 # Fix linting issues
@@ -1146,5 +1155,4 @@ Join us on [Discord](https://discord.gg/8J9dyZSu9C) to ask questions, report bug
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
 

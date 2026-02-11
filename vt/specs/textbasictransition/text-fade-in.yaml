@@ -22,7 +22,7 @@ states:
         y: 200
         textStyle:
           fontSize: 48
-          fill: "#2ecc71"
+          fill: "#737373"
           fontFamily: "Arial"
     animations:
       - id: 'text-fade-in'

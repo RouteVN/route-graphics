@@ -1,5 +1,6 @@
 ---
 title: Delete Sprite Elements
+description: Uses colored sprite assets intentionally to verify delete/presence behavior through source textures (guideline exception for asset-based tests).
 steps:
   - keypress n
   - screenshot
