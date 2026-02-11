@@ -7,11 +7,10 @@
         - link rel="stylesheet" href="/public/playground/theme.css":
         - script src="/public/playground/main.js" type="module" defer:
         - script src="https://cdn.jsdelivr.net/npm/construct-style-sheets-polyfill@3.1.0/dist/adoptedStyleSheets.min.js":
-        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@0.1.8/dist/rettangoli-iife-ui.min.js":
+        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/rettangoli-iife-ui.min.js":
 
         - link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css":
         - script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js":
         - script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js":
     - body:
         - "${content}"
-
