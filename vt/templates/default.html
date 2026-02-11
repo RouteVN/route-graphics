@@ -110,19 +110,6 @@
         };
 
         window.vtAssert = {
-            events: (scope = "default") => window.getVtEvents(scope),
-            eventNames: (scope = "default") =>
-                window.getVtEvents(scope).map((event) => event.name),
-            hasEvent: (eventName, scope = "default") =>
-                window.vtAssert.eventNames(scope).includes(eventName),
-            includesAllEvents: (eventNames = [], scope = "default") => {
-                const names = window.vtAssert.eventNames(scope);
-                return eventNames.every((eventName) => names.includes(eventName));
-            },
-            eventCount: (eventName, scope = "default") =>
-                window.vtAssert
-                    .eventNames(scope)
-                    .filter((name) => name === eventName).length,
             payloadDeepEquals: (eventName, scope = "default") =>
                 window
                     .getVtEvents(scope)

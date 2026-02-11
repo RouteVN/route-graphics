@@ -7,11 +7,17 @@ specs:
 steps:
   - action: customEvent
     name: clearEvents
-  - move 260 340
-  - scroll 0 -120
-  - screenshot
-  - scroll 0 120
-  - screenshot
+  - action: move
+    x: 260
+    y: 340
+  - action: scroll
+    deltaX: 0
+    deltaY: -120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals

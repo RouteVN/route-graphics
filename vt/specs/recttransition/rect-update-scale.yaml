@@ -6,11 +6,12 @@ specs:
   - "animation should take 800ms"
   - "uses scaleX and scaleY properties"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "initial"

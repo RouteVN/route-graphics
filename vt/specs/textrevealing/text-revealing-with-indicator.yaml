@@ -2,7 +2,7 @@
 title: Text Revealing Showcase with indicator
 description: Showcasing text-revealing element with indicator; uses colored indicator assets intentionally for visual state cues (guideline exception for asset-based tests).
 steps:
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:

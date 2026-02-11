@@ -4,21 +4,20 @@ description: Test global keyboard event handling
 steps:
   - action: customEvent
     name: clearEvents
-  - keypress a
-  - screenshot
-  - keypress b
-  - screenshot
-  - keypress n
-  - keypress Shift+c
-  - screenshot
-  - keypress c
-  - screenshot
-  - action: assert
-    type: js
-    fn: vtAssert.includesAllEvents
-    args:
-      - [keydown]
-    value: true
+  - action: keypress
+    key: a
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: keypress
+    key: Shift+c
+  - action: screenshot
+  - action: keypress
+    key: c
+  - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals

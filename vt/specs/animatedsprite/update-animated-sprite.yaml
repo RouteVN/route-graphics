@@ -3,11 +3,12 @@ title: Update Animated Sprite Position and Animation
 steps:
   - customEvent snapShotAnimatedSpriteFrame frameIndex=3 elementId=animated-sprite-1
   - customEvent snapShotAnimatedSpriteFrame frameIndex=4 elementId=animated-sprite-2
-  - screenshot
-  - keypress n
+  - action: screenshot
+  - action: keypress
+    key: n
   - customEvent snapShotAnimatedSpriteFrame frameIndex=6 elementId=animated-sprite-1
   - customEvent snapShotAnimatedSpriteFrame frameIndex=5 elementId=animated-sprite-2
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:

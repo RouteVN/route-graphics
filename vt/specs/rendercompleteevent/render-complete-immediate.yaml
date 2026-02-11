@@ -4,7 +4,7 @@ description: Visual smoke test for immediate render state with no animations
 specs:
   - "state renders immediately and remains stable"
 steps:
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "no-animation-state"

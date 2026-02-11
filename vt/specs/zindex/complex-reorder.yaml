@@ -6,14 +6,15 @@ specs:
   - "removed elements should not affect z-order of remaining elements"
   - "added elements should appear at correct z-index immediately"
 steps:
-  - screenshot
-  - keypress n
+  - action: screenshot
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=200
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   # State 1: Three overlapping circles - Red, Green, Blue (back to front)

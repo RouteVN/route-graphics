@@ -9,10 +9,11 @@ specs:
   - "Width constraint should be respected after update"
 steps:
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
-  - keypress n
+  - action: screenshot
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:

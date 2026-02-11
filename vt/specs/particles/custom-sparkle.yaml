@@ -2,9 +2,9 @@
 title: Custom sparkle/twinkle effect (Level 3 - Full Custom)
 steps:
   - customEvent snapShotKeyFrame deltaMS=200
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=200
-  - screenshot
+  - action: screenshot
 ---
 states:
   # Sparkles that appear and fade randomly across the screen

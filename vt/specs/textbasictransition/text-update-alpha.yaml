@@ -6,11 +6,12 @@ specs:
   - "animation should take 600ms"
   - "demonstrates alpha update transition"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:

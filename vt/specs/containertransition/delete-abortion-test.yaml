@@ -6,11 +6,13 @@ specs:
   - "abortion callback should be testable during deletion"
   - "new element added in third state"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=1500
-  - screenshot
-  - keypress n
-  - screenshot
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
 ---
 states:
   - elements:

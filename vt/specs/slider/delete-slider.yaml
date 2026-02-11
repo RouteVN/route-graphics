@@ -6,11 +6,13 @@ specs:
   - "slider container and all children should be destroyed"
   - "other elements should remain unaffected"
 steps:
-  - screenshot
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
 ---
 states:
   - elements:

@@ -6,11 +6,13 @@ specs:
   - "sprite should support different src for different events"
   - "sprite should maintain dimensions when changing src"
 steps:
-  - move 225 175
-  - rightMouseDown
-  - screenshot
-  - rightMouseUp
-  - screenshot
+  - action: move
+    x: 225
+    y: 175
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
 ---
 states:
   - elements:

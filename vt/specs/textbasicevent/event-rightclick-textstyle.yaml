@@ -8,11 +8,13 @@ specs:
 steps:
   - action: customEvent
     name: clearEvents
-  - move 155 110
-  - rightMouseDown
-  - screenshot
-  - rightMouseUp
-  - screenshot
+  - action: move
+    x: 155
+    y: 110
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals

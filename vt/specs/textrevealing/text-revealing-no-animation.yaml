@@ -2,10 +2,12 @@
 title: Text Revealing - No Animation
 description: Testing text-revealing element with revealEffect set to none; uses colored indicator assets intentionally for revealing/complete state distinction (guideline exception for asset-based tests).
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
 ---
 states:
   - elements:

@@ -5,7 +5,7 @@ specs:
   - "animation and text-revealing both reach a final visual state"
 steps:
   - customEvent snapShotKeyFrame deltaMS=800
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "mixed-state"

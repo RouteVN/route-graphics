@@ -6,10 +6,11 @@ specs:
   - "second state renders to a stable frame"
 steps:
   - customEvent snapShotKeyFrame deltaMS=250
-  - keypress n
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=1000
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "first-animation-state"

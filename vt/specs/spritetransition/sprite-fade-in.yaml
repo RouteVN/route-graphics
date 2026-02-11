@@ -6,12 +6,13 @@ specs:
   - "sprite should appear gradually over 1 second"
   - "sprite image should load and fade in"
 steps:
-  - keypress n
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements: []

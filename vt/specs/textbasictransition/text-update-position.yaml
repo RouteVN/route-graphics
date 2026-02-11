@@ -6,11 +6,12 @@ specs:
   - "text content remains the same"
   - "animation should take 1 second"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:
