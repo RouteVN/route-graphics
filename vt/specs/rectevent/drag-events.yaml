@@ -18,53 +18,35 @@ steps:
   - screenshot
   - action: assert
     type: js
-    fn: vtAssert.hasEvent
-    args: ["drag-start"]
-    value: true
-  - action: assert
-    type: js
-    fn: vtAssert.hasEvent
-    args: ["drag-move"]
-    value: true
-  - action: assert
-    type: js
-    fn: vtAssert.hasEvent
-    args: ["drag-end"]
-    value: true
+    fn: vtAssert.payloadDeepEquals
+    args: [drag-start]
+    value:
+      - _event:
+          id: rect-draggable
+        action: drag-start
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - drag-start
-      - - _event:
-            id: rect-draggable
-          action: drag-start
-    value: true
+    args: [drag-move]
+    value:
+      - _event:
+          id: rect-draggable
+          x: 300
+          y: 200
+        action: drag-move
+      - _event:
+          id: rect-draggable
+          x: 400
+          y: 300
+        action: drag-move
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - drag-move
-      - - _event:
-            id: rect-draggable
-            x: 300
-            y: 200
-          action: drag-move
-        - _event:
-            id: rect-draggable
-            x: 400
-            y: 300
-          action: drag-move
-    value: true
-  - action: assert
-    type: js
-    fn: vtAssert.payloadDeepEquals
-    args:
-      - drag-end
-      - - _event:
-            id: rect-draggable
-          action: drag-end
-    value: true
+    args: [drag-end]
+    value:
+      - _event:
+          id: rect-draggable
+        action: drag-end
 ---
 states:
   - elements:

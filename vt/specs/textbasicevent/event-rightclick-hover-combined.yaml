@@ -24,14 +24,13 @@ steps:
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - hover
+    args: [hover]
+    value:
       - _event:
           id: text-hover-rightclick
         action: text-hovered
         eventType: hover
         status: over
-    value: true
 ---
 states:
   - elements:

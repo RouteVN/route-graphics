@@ -22,21 +22,20 @@ steps:
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - keydown
-      - - _event:
-            key: a
-          action: keyA_Pressed
-        - _event:
-            key: b
-          action: keyB_Pressed
-        - _event:
-            key: shift+c
-          action: shift_c_Pressed
-        - _event:
-            key: c
-          action: keyC_Pressed
-    value: true
+    args: [keydown]
+    value:
+      - _event:
+          key: a
+        action: keyA_Pressed
+      - _event:
+          key: b
+        action: keyB_Pressed
+      - _event:
+          key: shift+c
+        action: shift_c_Pressed
+      - _event:
+          key: c
+        action: keyC_Pressed
 ---
 states: 
   - elements:

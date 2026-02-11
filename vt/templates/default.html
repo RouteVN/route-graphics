@@ -101,30 +101,6 @@
             window.__VT_ALL_EVENTS__ = [];
         };
 
-        const deepEqual = (actual, expected) => {
-            if (Object.is(actual, expected)) return true;
-            if (Array.isArray(actual) && Array.isArray(expected)) {
-                if (actual.length !== expected.length) return false;
-                return actual.every((value, idx) => deepEqual(value, expected[idx]));
-            }
-            if (
-                actual !== null &&
-                expected !== null &&
-                typeof actual === "object" &&
-                typeof expected === "object"
-            ) {
-                const actualKeys = Object.keys(actual);
-                const expectedKeys = Object.keys(expected);
-                if (actualKeys.length !== expectedKeys.length) return false;
-                return actualKeys.every(
-                    (key) =>
-                        Object.prototype.hasOwnProperty.call(expected, key) &&
-                        deepEqual(actual[key], expected[key]),
-                );
-            }
-            return false;
-        };
-
         window.getVtEvents = (scope = "default") => {
             const store = getEventStore(scope);
             return store.map((event) => ({
@@ -147,16 +123,11 @@
                 window.vtAssert
                     .eventNames(scope)
                     .filter((name) => name === eventName).length,
-            payloadDeepEquals: (eventName, expectedPayload, scope = "default") => {
-                const actualPayloads = window
+            payloadDeepEquals: (eventName, scope = "default") =>
+                window
                     .getVtEvents(scope)
                     .filter((event) => event.name === eventName)
-                    .map((event) => event.payload);
-                const expectedPayloads = Array.isArray(expectedPayload)
-                    ? expectedPayload
-                    : [expectedPayload];
-                return deepEqual(actualPayloads, expectedPayloads);
-            },
+                    .map((event) => event.payload),
         };
 
         await app.init({

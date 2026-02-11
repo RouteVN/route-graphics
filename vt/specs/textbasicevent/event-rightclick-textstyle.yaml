@@ -15,21 +15,15 @@ steps:
   - screenshot
   - action: assert
     type: js
-    fn: vtAssert.hasEvent
-    args: ["rightclick"]
-    value: true
-  - action: assert
-    type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - rightclick
+    args: [rightclick]
+    value:
       - _event:
           id: text-rightclick-style
         action: text-right-clicked
         eventType: rightclick
         button: right
         contextMenu: true
-    value: true
 ---
 states:
   - elements:

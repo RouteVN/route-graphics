@@ -14,32 +14,20 @@ steps:
   - screenshot
   - action: assert
     type: js
-    fn: vtAssert.hasEvent
-    args: ["scrollup"]
-    value: true
-  - action: assert
-    type: js
-    fn: vtAssert.hasEvent
-    args: ["scrolldown"]
-    value: true
-  - action: assert
-    type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - scrollup
+    args: [scrollup]
+    value:
       - _event:
           id: rect-scroll
         message: scrolled up
-    value: true
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - scrolldown
+    args: [scrolldown]
+    value:
       - _event:
           id: rect-scroll
         message: scrolled down
-    value: true
 ---
 states:
   - elements:

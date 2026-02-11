@@ -19,31 +19,29 @@ steps:
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - hover
-      - - _event:
-            id: child-rect-1
-          type: child-hover
-          childId: rect-1
-        - _event:
-            id: container-with-events
-          type: container-hover
-          containerId: main-container
-    value: true
+    args: [hover]
+    value:
+      - _event:
+          id: child-rect-1
+        type: child-hover
+        childId: rect-1
+      - _event:
+          id: container-with-events
+        type: container-hover
+        containerId: main-container
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - click
-      - - _event:
-            id: child-rect-1
-          type: child-click
-          childId: rect-1
-        - _event:
-            id: container-with-events
-          type: container-click
-          containerId: main-container
-    value: true
+    args: [click]
+    value:
+      - _event:
+          id: child-rect-1
+        type: child-click
+        childId: rect-1
+      - _event:
+          id: container-with-events
+        type: container-click
+        containerId: main-container
 ---
 states:
   - elements:

@@ -6,22 +6,18 @@ specs:
 steps:
   - action: customEvent
     name: clearEvents
-  - rclick 250 110
+  - move 250 110
+  - rightMouseDown
+  - rightMouseUp
   - screenshot
   - action: assert
     type: js
-    fn: vtAssert.hasEvent
-    args: ["rightclick"]
-    value: true
-  - action: assert
-    type: js
     fn: vtAssert.payloadDeepEquals
-    args:
-      - rightclick
+    args: [rightclick]
+    value:
       - _event:
           id: container-right-click-1
         message: "Container 1 right-clicked"
-    value: true
 ---
 states:
   - elements:
