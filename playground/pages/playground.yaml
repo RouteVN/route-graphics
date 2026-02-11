@@ -4,8 +4,11 @@ title: Route-Graphics Playground
 ---
 - body.dark:
     - rtgl-view w=f h=f p=lg g=md:
-        - rtgl-text s="h2":
-            - "Route-Graphics Playground"
+        - rtgl-view d=h av=c w=f:
+            - rtgl-text s="h2":
+                - "Route-Graphics Playground"
+            - rtgl-view w=1fg:
+            - rtgl-button href="/" v=se: "Back to Index"
         - rtgl-view d=h w="f" av=c:
             - rtgl-text mr=md ellipsis: "Load Template"
             - select#template-select:
