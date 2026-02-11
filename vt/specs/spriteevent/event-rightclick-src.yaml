@@ -7,11 +7,20 @@ specs:
   - "sprite should maintain dimensions when changing src"
 steps:
   - action: move
+    x: 20
+    y: 20
+  - action: wait
+    ms: 50
+  - action: move
     x: 225
     y: 175
   - action: rightMouseDown
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: rightMouseUp
+  - action: wait
+    ms: 50
   - action: screenshot
 ---
 states:

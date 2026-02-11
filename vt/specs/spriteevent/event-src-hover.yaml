@@ -7,16 +7,27 @@ specs:
   - "different sprites can have different hover textures"
 steps:
   - action: move
+    x: 20
+    y: 20
+  - action: wait
+    ms: 50
+  - action: move
     x: 175
     y: 175
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: move
     x: 400
     y: 175
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: move
     x: 675
     y: 175
+  - action: wait
+    ms: 50
   - action: screenshot
 ---
 states:

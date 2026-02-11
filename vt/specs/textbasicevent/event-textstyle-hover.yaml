@@ -7,16 +7,27 @@ specs:
   - "color, font, and size can all change"
 steps:
   - action: move
+    x: 20
+    y: 20
+  - action: wait
+    ms: 50
+  - action: move
     x: 205
     y: 105
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: move
     x: 205
     y: 205
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: move
     x: 205
     y: 305
+  - action: wait
+    ms: 50
   - action: screenshot
 ---
 states:
