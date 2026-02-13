@@ -37,6 +37,10 @@ export const updateVideo = ({
       if (prevElement.src !== nextElement.src) {
         const oldVideo = videoElement.texture.source.resource;
         if (oldVideo) {
+          // Remove old listener before switching
+          if (videoElement._videoEndedListener) {
+            oldVideo.removeEventListener("ended", videoElement._videoEndedListener);
+          }
           oldVideo.pause();
         }
 
@@ -44,6 +48,18 @@ export const updateVideo = ({
         videoElement.texture = newTexture;
 
         const newVideo = newTexture.source.resource;
+
+        // Add new listener
+        const onEnded = () => {
+          if (eventHandler) {
+            eventHandler("videoEnd", {
+              _event: { id: nextElement.id },
+            });
+          }
+        };
+        newVideo.addEventListener("ended", onEnded);
+        videoElement._videoEndedListener = onEnded;
+
         newVideo.muted = false;
         newVideo.pause();
         newVideo.currentTime = 0;

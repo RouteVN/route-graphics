@@ -24,11 +24,23 @@ export const addVideo = ({
   video.loop = loop ?? false;
   video.volume = volume / 1000;
   video.muted = false;
+
+  // Add ended event listener
+  const onEnded = () => {
+    if (eventHandler) {
+      eventHandler("videoEnd", {
+        _event: { id },
+      });
+    }
+  };
+  video.addEventListener("ended", onEnded);
+
   video.play();
 
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
+  sprite._videoEndedListener = onEnded;
 
   sprite.x = Math.round(x);
   sprite.y = Math.round(y);

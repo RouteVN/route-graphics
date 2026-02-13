@@ -23,6 +23,9 @@ export const deleteVideo = ({
     // No animation, destroy immediately
     const video = videoElement.texture.source.resource;
     if (video) {
+      if (videoElement._videoEndedListener) {
+        video.removeEventListener("ended", videoElement._videoEndedListener);
+      }
       video.pause();
     }
     parent.removeChild(videoElement);
@@ -47,6 +50,9 @@ export const deleteVideo = ({
           if (videoElement && !videoElement.destroyed) {
             const video = videoElement.texture.source.resource;
             if (video) {
+              if (videoElement._videoEndedListener) {
+                video.removeEventListener("ended", videoElement._videoEndedListener);
+              }
               video.pause();
             }
             parent.removeChild(videoElement);
