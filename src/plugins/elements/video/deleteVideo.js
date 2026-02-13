@@ -57,7 +57,10 @@ export const deleteVideo = ({
             const video = videoElement.texture.source.resource;
             if (video) {
               if (videoElement._videoEndedListener) {
-                video.removeEventListener("ended", videoElement._videoEndedListener);
+                video.removeEventListener(
+                  "ended",
+                  videoElement._videoEndedListener,
+                );
               }
               video.pause();
             }

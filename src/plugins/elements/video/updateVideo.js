@@ -38,7 +38,10 @@ export const updateVideo = ({
         const oldVideo = videoElement.texture.source.resource;
         if (oldVideo) {
           if (videoElement._videoEndedListener) {
-            oldVideo.removeEventListener("ended", videoElement._videoEndedListener);
+            oldVideo.removeEventListener(
+              "ended",
+              videoElement._videoEndedListener,
+            );
           }
           oldVideo.pause();
         }
