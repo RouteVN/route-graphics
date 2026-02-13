@@ -37,6 +37,9 @@ export const updateVideo = ({
       if (prevElement.src !== nextElement.src) {
         const oldVideo = videoElement.texture.source.resource;
         if (oldVideo) {
+          if (videoElement._videoEndedListener) {
+            oldVideo.removeEventListener("ended", videoElement._videoEndedListener);
+          }
           oldVideo.pause();
         }
 
@@ -44,6 +47,23 @@ export const updateVideo = ({
         videoElement.texture = newTexture;
 
         const newVideo = newTexture.source.resource;
+
+        // Track playback completion for non-looping videos
+        let playbackStateVersion = null;
+        if (!(nextElement.loop ?? false)) {
+          playbackStateVersion = completionTracker.getVersion();
+          completionTracker.track(playbackStateVersion);
+        }
+
+        const onEnded = () => {
+          if (playbackStateVersion !== null) {
+            completionTracker.complete(playbackStateVersion);
+          }
+        };
+        newVideo.addEventListener("ended", onEnded);
+        videoElement._videoEndedListener = onEnded;
+        videoElement._playbackStateVersion = playbackStateVersion;
+
         newVideo.muted = false;
         newVideo.pause();
         newVideo.currentTime = 0;
