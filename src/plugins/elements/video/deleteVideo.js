@@ -21,8 +21,14 @@ export const deleteVideo = ({
 
   if (relevantAnimations.length === 0) {
     // No animation, destroy immediately
+    if (videoElement._playbackStateVersion !== null) {
+      completionTracker.complete(videoElement._playbackStateVersion);
+    }
     const video = videoElement.texture.source.resource;
     if (video) {
+      if (videoElement._videoEndedListener) {
+        video.removeEventListener("ended", videoElement._videoEndedListener);
+      }
       video.pause();
     }
     parent.removeChild(videoElement);
@@ -45,8 +51,17 @@ export const deleteVideo = ({
         onComplete: () => {
           completionTracker.complete(stateVersion);
           if (videoElement && !videoElement.destroyed) {
+            if (videoElement._playbackStateVersion !== null) {
+              completionTracker.complete(videoElement._playbackStateVersion);
+            }
             const video = videoElement.texture.source.resource;
             if (video) {
+              if (videoElement._videoEndedListener) {
+                video.removeEventListener(
+                  "ended",
+                  videoElement._videoEndedListener,
+                );
+              }
               video.pause();
             }
             parent.removeChild(videoElement);
