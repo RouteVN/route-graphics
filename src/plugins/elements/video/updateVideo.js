@@ -52,8 +52,20 @@ export const updateVideo = ({
 
         const newVideo = newTexture.source.resource;
 
+        // Track playback completion for non-looping videos
+        let playbackStateVersion = null;
+        const shouldTrackPlayback = !(nextElement.loop ?? false);
+
+        if (shouldTrackPlayback) {
+          playbackStateVersion = completionTracker.getVersion();
+          completionTracker.track(playbackStateVersion);
+        }
+
         // Add new listener
         const onEnded = () => {
+          if (playbackStateVersion !== null) {
+            completionTracker.complete(playbackStateVersion);
+          }
           if (eventHandler) {
             eventHandler("videoEnd", {
               _event: { id: nextElement.id },
@@ -62,6 +74,7 @@ export const updateVideo = ({
         };
         newVideo.addEventListener("ended", onEnded);
         videoElement._videoEndedListener = onEnded;
+        videoElement._playbackStateVersion = playbackStateVersion;
 
         newVideo.muted = false;
         newVideo.pause();

@@ -25,8 +25,20 @@ export const addVideo = ({
   video.volume = volume / 1000;
   video.muted = false;
 
+  // Track playback completion for non-looping videos
+  let playbackStateVersion = null;
+  const shouldTrackPlayback = !(loop ?? false);
+
+  if (shouldTrackPlayback) {
+    playbackStateVersion = completionTracker.getVersion();
+    completionTracker.track(playbackStateVersion);
+  }
+
   // Add ended event listener
   const onEnded = () => {
+    if (playbackStateVersion !== null) {
+      completionTracker.complete(playbackStateVersion);
+    }
     if (eventHandler) {
       eventHandler("videoEnd", {
         _event: { id },
@@ -41,6 +53,7 @@ export const addVideo = ({
   sprite.label = id;
   sprite.zIndex = zIndex;
   sprite._videoEndedListener = onEnded;
+  sprite._playbackStateVersion = playbackStateVersion;
 
   sprite.x = Math.round(x);
   sprite.y = Math.round(y);
