@@ -39,7 +39,10 @@ export const updateVideo = ({
         if (oldVideo) {
           // Remove old listener before switching
           if (videoElement._videoEndedListener) {
-            oldVideo.removeEventListener("ended", videoElement._videoEndedListener);
+            oldVideo.removeEventListener(
+              "ended",
+              videoElement._videoEndedListener,
+            );
           }
           oldVideo.pause();
         }

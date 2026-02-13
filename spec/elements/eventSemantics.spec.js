@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Container, Texture } from "pixi.js";
 import hotkeys from "hotkeys-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { addRect } from "../../src/plugins/elements/rect/addRect.js";
@@ -6,6 +6,7 @@ import { addSprite } from "../../src/plugins/elements/sprite/addSprite.js";
 import { addText } from "../../src/plugins/elements/text/addText.js";
 import { addContainer } from "../../src/plugins/elements/container/addContainer.js";
 import { addSlider } from "../../src/plugins/elements/slider/addSlider.js";
+import { addVideo } from "../../src/plugins/elements/video/addVideo.js";
 import { createKeyboardManager } from "../../src/util/keyboardManager.js";
 
 const createSharedParams = () => ({
@@ -344,5 +345,69 @@ describe("event semantics", () => {
     });
 
     keyboardManager.destroy();
+  });
+
+  it("video emits videoEnd event when video ends", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    // Create mock video element
+    const mockVideo = {
+      pause: vi.fn(),
+      play: vi.fn(),
+      currentTime: 0,
+      loop: false,
+      volume: 1,
+      muted: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+
+    // Mock Texture.from to return a texture with mock video
+    const mockTexture = {
+      source: {
+        resource: mockVideo,
+      },
+    };
+    vi.spyOn(Texture, "from").mockReturnValue(mockTexture);
+
+    addVideo({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "video-1",
+        type: "video",
+        x: 0,
+        y: 0,
+        width: 640,
+        height: 480,
+        src: "test.mp4",
+        volume: 800,
+        loop: false,
+        alpha: 1,
+      },
+    });
+
+    // Get the ended callback that was registered
+    expect(mockVideo.addEventListener).toHaveBeenCalledWith(
+      "ended",
+      expect.any(Function),
+    );
+    const endedCallback = mockVideo.addEventListener.mock.calls.find(
+      (call) => call[0] === "ended",
+    )[1];
+
+    // Simulate video ending
+    endedCallback();
+
+    expect(eventHandler).toHaveBeenCalledWith("videoEnd", {
+      _event: { id: "video-1" },
+    });
+
+    // Restore mock
+    vi.restoreAllMocks();
   });
 });
