@@ -440,6 +440,24 @@ const createRouteGraphics = () => {
       clearPendingSounds();
       if (animationBus) animationBus.destroy();
       if (app?.audioStage) app.audioStage.destroy();
+
+      // Pause all video elements before destroying
+      const pauseVideosRecursively = (container) => {
+        for (const child of container.children) {
+          const resource = child.texture?.source?.resource;
+          if (resource instanceof HTMLVideoElement) {
+            resource.pause();
+          }
+          if (child.children) {
+            pauseVideosRecursively(child);
+          }
+        }
+      };
+
+      if (app?.stage) {
+        pauseVideosRecursively(app.stage);
+      }
+
       if (app) app.destroy();
       if (advancedLoader) {
         extensions.remove(advancedLoader);
