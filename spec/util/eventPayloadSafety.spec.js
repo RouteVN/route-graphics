@@ -45,31 +45,33 @@ describe("event payload safety", () => {
   });
 
   it("creates a plain stage event payload", () => {
+    const circularRef = {};
+    circularRef.self = circularRef;
+
     const payload = createStageEventPayload("pointermove", {
+      pointerType: "mouse",
+      button: 0,
       global: { x: 12, y: 34 },
+      deltaY: 4,
       target: { label: "rect-1" },
       currentTarget: { label: "stage-root" },
       nativeEvent: { ctrlKey: true, shiftKey: false, key: "a" },
+      internal: {
+        circularRef,
+        callback: () => {},
+      },
     });
 
-    expect(payload).toEqual({
-      type: "pointermove",
-      id: "rect-1",
-      currentId: "stage-root",
-      pointerType: undefined,
-      button: undefined,
-      buttons: undefined,
-      x: 12,
-      y: 34,
-      deltaX: undefined,
-      deltaY: undefined,
-      key: "a",
-      code: undefined,
-      ctrlKey: true,
-      shiftKey: false,
-      altKey: undefined,
-      metaKey: undefined,
-    });
+    expect(payload.type).toBe("pointermove");
+    expect(payload.pointerType).toBe("mouse");
+    expect(payload.button).toBe(0);
+    expect(payload.global).toEqual({ x: 12, y: 34 });
+    expect(payload.deltaY).toBe(4);
+    expect(payload.target.label).toBe("rect-1");
+    expect(payload.currentTarget.label).toBe("stage-root");
+    expect(payload.nativeEvent.ctrlKey).toBe(true);
+    expect(payload.internal.callback).toBeUndefined();
+    expect(payload.internal.circularRef).toEqual({});
     expect(() => structuredClone(payload)).not.toThrow();
   });
 });

@@ -3,28 +3,53 @@ import { cloneSerializableData } from "./cloneSerializableData.js";
 export const sanitizePayloadForEvent = (payload = {}) =>
   cloneSerializableData(payload);
 
-export const createStageEventPayload = (eventType, event) => {
-  const native = event?.nativeEvent ?? {};
-  const global = event?.global ?? {};
+const MAX_STAGE_EVENT_DEPTH = 6;
 
-  return {
-    type: eventType,
-    id: event?.target?.label,
-    currentId: event?.currentTarget?.label,
-    pointerType: event?.pointerType,
-    button: event?.button,
-    buttons: event?.buttons,
-    x: global.x,
-    y: global.y,
-    deltaX: event?.deltaX,
-    deltaY: event?.deltaY,
-    key: native.key,
-    code: native.code,
-    ctrlKey: native.ctrlKey,
-    shiftKey: native.shiftKey,
-    altKey: native.altKey,
-    metaKey: native.metaKey,
-  };
+const cloneStageValue = (value, seen, depth = 0) => {
+  if (depth > MAX_STAGE_EVENT_DEPTH) return undefined;
+  if (value === null) return null;
+
+  const valueType = typeof value;
+  if (valueType === "string" || valueType === "number" || valueType === "boolean")
+    return value;
+  if (valueType === "bigint") return value.toString();
+  if (valueType === "undefined" || valueType === "function" || valueType === "symbol")
+    return undefined;
+  if (valueType !== "object") return undefined;
+
+  if (seen.has(value)) return undefined;
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      const cloned = cloneStageValue(item, seen, depth + 1);
+      return cloned === undefined ? null : cloned;
+    });
+  }
+
+  const output = {};
+  for (const key of Object.keys(value)) {
+    let child;
+    try {
+      child = value[key];
+    } catch (_error) {
+      continue;
+    }
+    const cloned = cloneStageValue(child, seen, depth + 1);
+    if (cloned !== undefined) {
+      output[key] = cloned;
+    }
+  }
+
+  return output;
+};
+
+export const createStageEventPayload = (eventType, event) => {
+  const payload = cloneStageValue(event, new WeakSet()) ?? {};
+  if (payload.type === undefined) {
+    payload.type = eventType;
+  }
+  return payload;
 };
 
 export const createSafeEventHandler = (eventHandler) => {
