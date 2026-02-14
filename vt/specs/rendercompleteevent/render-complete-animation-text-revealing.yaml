@@ -1,0 +1,68 @@
+---
+title: Render Complete Event - Animation and Text Revealing
+description: Asserts renderComplete waits for both tween animation and text revealing completion.
+specs:
+  - "renderComplete should fire once with aborted=false after animation and text reveal complete"
+skipScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - customEvent snapShotKeyFrame deltaMS=700
+  - action: wait
+    ms: 2000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "animation-text-revealing"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "baseline-rect"
+        type: "rect"
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: "animation-text-revealing"
+    elements:
+      - id: "fade-rect"
+        type: "rect"
+        x: 120
+        y: 120
+        width: 320
+        height: 170
+        fill: "#A6A6A6"
+        alpha: 1
+      - id: "revealing-text"
+        type: "text-revealing"
+        content:
+          - text: "Render complete"
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: "Helvetica"
+        x: 120
+        y: 340
+        width: 700
+        alpha: 1
+        speed: 20
+        revealEffect: typewriter
+    animations:
+      - id: "fade-in"
+        targetId: "fade-rect"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 600
+                value: 1
+                easing: linear
