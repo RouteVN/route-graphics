@@ -1,0 +1,51 @@
+---
+title: Render Complete Event - Animation Only
+description: Asserts renderComplete for a state that only has tween animation work.
+specs:
+  - "renderComplete should fire once with aborted=false after animation completion"
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - customEvent snapShotKeyFrame deltaMS=700
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "animation-only"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "baseline-rect"
+        type: "rect"
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: "animation-only"
+    elements:
+      - id: "fade-rect"
+        type: "rect"
+        x: 320
+        y: 180
+        width: 280
+        height: 180
+        fill: "#FFFFFF"
+        alpha: 1
+    animations:
+      - id: "fade-in"
+        targetId: "fade-rect"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 600
+                value: 1
+                easing: linear

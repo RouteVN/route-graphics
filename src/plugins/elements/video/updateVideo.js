@@ -67,13 +67,17 @@ export const updateVideo = ({
         videoElement._videoEndedListener = onEnded;
         videoElement._playbackStateVersion = playbackStateVersion;
 
-        newVideo.muted = false;
+        newVideo.playsInline = true;
+        newVideo.muted = (nextElement.volume ?? 1000) <= 0;
         newVideo.pause();
         newVideo.currentTime = 0;
+        newVideo.volume = (nextElement.volume ?? 1000) / 1000;
+        newVideo.loop = nextElement.loop ?? false;
         newVideo.play();
       }
-      videoElement.texture.source.resource.volume = nextElement.volume / 1000;
+      videoElement.texture.source.resource.volume = (nextElement.volume ?? 1000) / 1000;
       videoElement.texture.source.resource.loop = nextElement.loop ?? false;
+      videoElement.texture.source.resource.muted = (nextElement.volume ?? 1000) <= 0;
     }
   };
 

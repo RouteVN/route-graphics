@@ -1,0 +1,43 @@
+---
+title: Render Complete Event - Video Only
+description: Asserts renderComplete waits for non-looping video playback completion; video asset colors are an intentional visual exception.
+specs:
+  - "renderComplete should fire once with aborted=false after video end"
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - action: wait
+    ms: 7000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "video-only"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "baseline-rect"
+        type: "rect"
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: "video-only"
+    elements:
+      - id: "video-1"
+        type: "video"
+        x: 120
+        y: 120
+        width: 480
+        height: 270
+        src: "video-sample"
+        volume: 0
+        loop: false
+        alpha: 1

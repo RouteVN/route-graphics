@@ -21,9 +21,10 @@ export const addVideo = ({
 
   video.pause();
   video.currentTime = 0;
+  video.playsInline = true;
   video.loop = loop ?? false;
   video.volume = volume / 1000;
-  video.muted = false;
+  video.muted = (volume ?? 1000) <= 0;
 
   // Track playback completion for non-looping videos
   let playbackStateVersion = null;
