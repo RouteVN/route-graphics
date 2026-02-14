@@ -1,5 +1,6 @@
 import hotkeys from "hotkeys-js";
 import { isDeepEqual } from "./isDeepEqual.js";
+import { cloneSerializableData } from "./cloneSerializableData.js";
 
 const hasOwn = Object.prototype.hasOwnProperty;
 
@@ -47,7 +48,7 @@ export const createKeyboardManager = (eventHandler) => {
 
     [...keysToAdd, ...keysToUpdate].forEach((key) => {
       const config = hotkeyConfigs[key];
-      const payload = config.actionPayload ?? {};
+      const payload = cloneSerializableData(config.actionPayload ?? {});
 
       const handler = () => {
         if (eventHandler) {

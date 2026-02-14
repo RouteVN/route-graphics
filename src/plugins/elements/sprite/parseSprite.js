@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement} BaseElement
  *  @typedef {import('../../../types.js').SpriteComputedNode} SpriteComputedNode
@@ -17,8 +18,10 @@ export const parseSprite = ({ state }) => {
     ...computedObj,
     src: state.src ?? "",
     alpha: state.alpha ?? 1,
-    ...(state.hover && { hover: state.hover }),
-    ...(state.click && { click: state.click }),
-    ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.hover && { hover: cloneSerializableData(state.hover) }),
+    ...(state.click && { click: cloneSerializableData(state.click) }),
+    ...(state.rightClick && {
+      rightClick: cloneSerializableData(state.rightClick),
+    }),
   };
 };

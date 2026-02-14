@@ -1,6 +1,7 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -285,6 +286,6 @@ export const parseTextRevealing = ({ state }) => {
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.width !== undefined && { width: state.width }),
-    ...(state.complete && { complete: state.complete }),
+    ...(state.complete && { complete: cloneSerializableData(state.complete) }),
   };
 };

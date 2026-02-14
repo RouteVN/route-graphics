@@ -1,6 +1,7 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -52,8 +53,10 @@ export const parseText = ({ state }) => {
     textStyle: {
       ...textStyle,
     },
-    ...(state.hover && { hover: state.hover }),
-    ...(state.click && { click: state.click }),
-    ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.hover && { hover: cloneSerializableData(state.hover) }),
+    ...(state.click && { click: cloneSerializableData(state.click) }),
+    ...(state.rightClick && {
+      rightClick: cloneSerializableData(state.rightClick),
+    }),
   };
 };

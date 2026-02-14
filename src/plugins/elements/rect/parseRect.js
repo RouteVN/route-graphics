@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement}
  *  @typedef {import('../../../types.js').RectComputedNode}
@@ -30,8 +31,10 @@ export const parseRect = ({ state }) => {
     ...finalObj,
     fill: state.fill ?? "white",
     rotation: state.rotation ?? 0,
-    ...(state.drag && { drag: state.drag }),
-    ...(state.rightClick && { rightClick: state.rightClick }),
-    ...(state.scroll && { scroll: state.scroll }),
+    ...(state.drag && { drag: cloneSerializableData(state.drag) }),
+    ...(state.rightClick && {
+      rightClick: cloneSerializableData(state.rightClick),
+    }),
+    ...(state.scroll && { scroll: cloneSerializableData(state.scroll) }),
   };
 };

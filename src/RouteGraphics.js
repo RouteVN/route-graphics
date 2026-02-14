@@ -21,6 +21,10 @@ import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
+import {
+  createStageEventPayload,
+  createSafeEventHandler,
+} from "./util/eventPayloadSafety.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -349,7 +353,9 @@ const createRouteGraphics = () => {
 
     assignStageEvent: (eventType, callback) => {
       app.stage.eventMode = "static";
-      app.stage.on(eventType, callback);
+      app.stage.on(eventType, (event) => {
+        callback(createStageEventPayload(eventType, event));
+      });
     },
 
     /**
@@ -385,10 +391,11 @@ const createRouteGraphics = () => {
         audio: pluginConfig?.audio ?? [],
         parsers: parserPlugins,
       };
-      eventHandler = handler;
+      const safeEventHandler = createSafeEventHandler(handler);
+      eventHandler = safeEventHandler;
 
-      keyboardManager = createKeyboardManager(handler);
-      completionTracker = createCompletionTracker(handler);
+      keyboardManager = createKeyboardManager(safeEventHandler);
+      completionTracker = createCompletionTracker(safeEventHandler);
 
       /**
        * @type {ApplicationWithAudioStage}

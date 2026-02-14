@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -47,7 +48,7 @@ export const parseSlider = ({ state }) => {
     max: defaultMax,
     step: state.step ?? 1,
     initialValue: state.initialValue,
-    ...(state.hover && { hover: state.hover }),
-    ...(state.change && { change: state.change }),
+    ...(state.hover && { hover: cloneSerializableData(state.hover) }),
+    ...(state.change && { change: cloneSerializableData(state.change) }),
   };
 };

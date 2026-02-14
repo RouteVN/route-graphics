@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -132,7 +133,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
   };
 
   if (state.rightClick) {
-    finalContainer.rightClick = state.rightClick;
+    finalContainer.rightClick = cloneSerializableData(state.rightClick);
   }
 
   return finalContainer;

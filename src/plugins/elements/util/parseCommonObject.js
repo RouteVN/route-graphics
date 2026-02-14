@@ -1,5 +1,6 @@
 import { calculatePositionAfterAnchor } from "./common.js";
 import { ComputedNodeType } from "../../../types.js";
+import { cloneSerializableData } from "../../../util/cloneSerializableData.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -64,11 +65,11 @@ export const parseCommonObject = (state) => {
   };
 
   if (state.hover) {
-    computedObj.hover = state.hover;
+    computedObj.hover = cloneSerializableData(state.hover);
   }
 
   if (state.click) {
-    computedObj.click = state.click;
+    computedObj.click = cloneSerializableData(state.click);
   }
 
   return computedObj;
