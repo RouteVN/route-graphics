@@ -354,7 +354,7 @@ const createRouteGraphics = () => {
     assignStageEvent: (eventType, callback) => {
       app.stage.eventMode = "static";
       app.stage.on(eventType, (event) => {
-        callback(createStageEventPayload(eventType, event));
+        callback(createStageEventPayload(event));
       });
     },
 

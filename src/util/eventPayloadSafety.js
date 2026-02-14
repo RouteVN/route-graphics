@@ -44,13 +44,8 @@ const cloneStageValue = (value, seen, depth = 0) => {
   return output;
 };
 
-export const createStageEventPayload = (eventType, event) => {
-  const payload = cloneStageValue(event, new WeakSet()) ?? {};
-  if (payload.type === undefined) {
-    payload.type = eventType;
-  }
-  return payload;
-};
+export const createStageEventPayload = (event) =>
+  cloneStageValue(event, new WeakSet()) ?? {};
 
 export const createSafeEventHandler = (eventHandler) => {
   if (typeof eventHandler !== "function") return undefined;

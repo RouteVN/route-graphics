@@ -48,7 +48,8 @@ describe("event payload safety", () => {
     const circularRef = {};
     circularRef.self = circularRef;
 
-    const payload = createStageEventPayload("pointermove", {
+    const payload = createStageEventPayload({
+      type: "pointermove",
       pointerType: "mouse",
       button: 0,
       global: { x: 12, y: 34 },
