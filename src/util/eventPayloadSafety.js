@@ -1,6 +1,6 @@
 import { cloneSerializableData } from "./cloneSerializableData.js";
 
-export const sanitizePayloadForEvent = (payload = {}) =>
+export const clonePayloadForEvent = (payload = {}) =>
   cloneSerializableData(payload);
 
 const MAX_STAGE_EVENT_DEPTH = 6;
@@ -51,7 +51,7 @@ export const createSafeEventHandler = (eventHandler) => {
   if (typeof eventHandler !== "function") return undefined;
 
   return (eventName, payload = {}) => {
-    eventHandler(eventName, cloneSerializableData(payload));
+    eventHandler(eventName, clonePayloadForEvent(payload));
   };
 };
 

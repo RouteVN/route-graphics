@@ -9,11 +9,11 @@
 export const cloneSerializableData = (value) => {
   if (value === undefined) return value;
 
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
+  if (typeof structuredClone !== "function") {
+    throw new Error("structuredClone is required to clone serializable data.");
   }
 
-  return JSON.parse(JSON.stringify(value));
+  return structuredClone(value);
 };
 
 export default cloneSerializableData;

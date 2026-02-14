@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  clonePayloadForEvent,
   createStageEventPayload,
   createSafeEventHandler,
-  sanitizePayloadForEvent,
 } from "../../src/util/eventPayloadSafety.js";
 
 describe("event payload safety", () => {
@@ -13,7 +13,7 @@ describe("event payload safety", () => {
       },
     };
 
-    const safe = sanitizePayloadForEvent(source);
+    const safe = clonePayloadForEvent(source);
     source.nested.value = 2;
 
     expect(safe).toEqual({
