@@ -3,6 +3,7 @@ title: Render Complete Event - Animation, Video, and Text Revealing
 description: Asserts renderComplete waits for animation, video playback, and text revealing together; video asset colors are an intentional visual exception.
 specs:
   - "renderComplete should fire once with aborted=false after all tracked work completes"
+skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents

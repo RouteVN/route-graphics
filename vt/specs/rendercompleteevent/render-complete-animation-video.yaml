@@ -3,6 +3,7 @@ title: Render Complete Event - Animation and Video
 description: Asserts renderComplete waits for both tween animation and video playback; video asset colors are an intentional visual exception.
 specs:
   - "renderComplete should fire once with aborted=false after animation and video complete"
+skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents

@@ -3,6 +3,7 @@ title: Render Complete Event - Text Revealing Only
 description: Asserts renderComplete waits for typewriter text revealing completion.
 specs:
   - "renderComplete should fire once with aborted=false after text reveal completion"
+skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents

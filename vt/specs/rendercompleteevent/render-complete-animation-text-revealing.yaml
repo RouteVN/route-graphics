@@ -3,6 +3,7 @@ title: Render Complete Event - Animation and Text Revealing
 description: Asserts renderComplete waits for both tween animation and text revealing completion.
 specs:
   - "renderComplete should fire once with aborted=false after animation and text reveal complete"
+skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents

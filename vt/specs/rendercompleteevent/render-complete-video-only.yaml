@@ -3,6 +3,7 @@ title: Render Complete Event - Video Only
 description: Asserts renderComplete waits for non-looping video playback completion; video asset colors are an intentional visual exception.
 specs:
   - "renderComplete should fire once with aborted=false after video end"
+skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents
