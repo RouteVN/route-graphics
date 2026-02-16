@@ -195,6 +195,7 @@
  * @property {number} gap
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {boolean} [anchorToBottom]
  * @property {HoverProps} hover
  * @property {ClickProps} click
  * @property {ClickProps} rightClick
