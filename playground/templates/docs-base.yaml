@@ -1,0 +1,24 @@
+- html lang="en":
+    - head:
+        - meta charset="utf-8":
+        - meta name="viewport" content="width=device-width,initial-scale=1":
+        - title: "${title}"
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/base.css":
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/theme-rtgl-mono.css":
+        - link rel="stylesheet" href="https://rettangoli.dev/public/base.css":
+        - script src="https://cdn.jsdelivr.net/npm/construct-style-sheets-polyfill@3.1.0/dist/adoptedStyleSheets.min.js":
+        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/rettangoli-iife-ui.min.js":
+    - body.dark:
+        - rtgl-view:
+            - rtgl-view bwb=xs w=f ah=c pos=fix bgc=bg:
+                - rtgl-view md-w="100vw" lg-w="768" w="1024" d=h av=c h=64 ph=lg:
+                    - rtgl-text s=h4: "Route Graphics Docs"
+                    - rtgl-view w=1fg:
+                    - rtgl-view d=h g=sm:
+                        - rtgl-button href="/docs/introduction/introduction/": "Docs"
+                        - rtgl-button href="/playground/" v=se: "Playground"
+            - rtgl-view w=f:
+                - rtgl-view h=72:
+                - rtgl-view w=f ah=c:
+                    - rtgl-view w="1024" md-w="100vw" ph="lg" pb="xl":
+                        - "${content}"

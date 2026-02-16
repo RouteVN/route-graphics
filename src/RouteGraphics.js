@@ -14,10 +14,13 @@ import parseElements from "./plugins/elements/parseElements.js";
 import { AudioAsset } from "./AudioAsset.js";
 import { renderElements } from "./plugins/elements/renderElements.js";
 import { renderAudio } from "./plugins/audio/renderAudio.js";
+import { clearPendingSounds } from "./plugins/audio/sound/addSound.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
+import { normalizeRenderState } from "./util/normalizeRenderState.js";
+import { isDeepEqual } from "./util/isDeepEqual.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -149,6 +152,22 @@ const createRouteGraphics = () => {
   let advancedLoader;
 
   /**
+   * @type {AbortController|undefined}
+   */
+  let renderAbortController;
+
+  /**
+   * @type {Function|undefined}
+   */
+  let debugAnimationListener;
+
+  /**
+   * Video blob URLs created in loadAssets; revoked on destroy.
+   * @type {Set<string>}
+   */
+  const videoBlobUrls = new Set();
+
+  /**
    * Classify asset by type
    * @param {string} mimeType - The MIME type of the asset
    * @returns {string} Asset category
@@ -173,6 +192,17 @@ const createRouteGraphics = () => {
     if (mimeType.startsWith("video/")) return "video";
 
     return "texture";
+  };
+
+  const trackVideoBlobUrl = (url) => {
+    videoBlobUrls.add(url);
+  };
+
+  const revokeVideoBlobUrls = () => {
+    for (const url of videoBlobUrls) {
+      URL.revokeObjectURL(url);
+    }
+    videoBlobUrls.clear();
   };
 
   /**
@@ -201,7 +231,7 @@ const createRouteGraphics = () => {
     const nextCursorStyles = nextGlobal?.cursorStyles;
 
     // Only update if cursor styles have changed
-    if (JSON.stringify(prevCursorStyles) !== JSON.stringify(nextCursorStyles)) {
+    if (!isDeepEqual(prevCursorStyles, nextCursorStyles)) {
       if (nextCursorStyles) {
         // Apply new cursor styles
         if (nextCursorStyles.default) {
@@ -223,13 +253,18 @@ const createRouteGraphics = () => {
   };
 
   /**
-   * Render function (synchronous)
+   * Render function (synchronous public API, with internal async cancellation).
    * @param {Application} appInstance
-   * @param {RouteGraphicsState} prevState
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
   const renderInternal = (appInstance, parent, nextState, handler) => {
+    if (renderAbortController) {
+      renderAbortController.abort();
+    }
+    renderAbortController = new AbortController();
+    const signal = renderAbortController.signal;
+
     // Reset completion tracker for new state (emits aborted if previous had pending)
     completionTracker.reset(nextState.id);
 
@@ -249,6 +284,7 @@ const createRouteGraphics = () => {
       animationBus,
       completionTracker,
       eventHandler: handler,
+      signal,
     });
 
     // Flush animation commands to apply initial values immediately
@@ -344,9 +380,9 @@ const createRouteGraphics = () => {
       });
 
       plugins = {
-        animations: pluginConfig.animations ?? [],
-        elements: pluginConfig.elements ?? [],
-        audio: pluginConfig.audio ?? [],
+        animations: pluginConfig?.animations ?? [],
+        elements: pluginConfig?.elements ?? [],
+        audio: pluginConfig?.audio ?? [],
         parsers: parserPlugins,
       };
       eventHandler = handler;
@@ -380,21 +416,54 @@ const createRouteGraphics = () => {
       if (!debug) {
         app.ticker.add((time) => animationBus.tick(time.deltaMS));
       } else {
-        window.addEventListener("snapShotKeyFrame", (event) => {
+        debugAnimationListener = (event) => {
           if (event?.detail?.deltaMS) {
             animationBus.tick(Number(event.detail.deltaMS));
           }
-        });
+        };
+        window.addEventListener("snapShotKeyFrame", debugAnimationListener);
       }
 
       return routeGraphicsInstance;
     },
 
     destroy: () => {
+      if (renderAbortController) {
+        renderAbortController.abort();
+        renderAbortController = undefined;
+      }
+      if (debugAnimationListener) {
+        window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
+        debugAnimationListener = undefined;
+      }
+      keyboardManager?.destroy();
+      clearPendingSounds();
       if (animationBus) animationBus.destroy();
-      app.audioStage.destroy();
-      app.destroy();
-      if (advancedLoader) extensions.remove(advancedLoader);
+      if (app?.audioStage) app.audioStage.destroy();
+
+      // Pause all video elements before destroying
+      const pauseVideosRecursively = (container) => {
+        for (const child of container.children) {
+          const resource = child.texture?.source?.resource;
+          if (resource instanceof HTMLVideoElement) {
+            resource.pause();
+          }
+          if (child.children) {
+            pauseVideosRecursively(child);
+          }
+        }
+      };
+
+      if (app?.stage) {
+        pauseVideosRecursively(app.stage);
+      }
+
+      if (app) app.destroy();
+      if (advancedLoader) {
+        extensions.remove(advancedLoader);
+        advancedLoader = undefined;
+      }
+      revokeVideoBlobUrls();
     },
 
     /**
@@ -468,10 +537,15 @@ const createRouteGraphics = () => {
         ([key, asset]) => {
           const blob = new Blob([asset.buffer], { type: asset.type });
           const blobUrl = URL.createObjectURL(blob);
+          trackVideoBlobUrl(blobUrl);
           return Assets.load({
             alias: key,
             src: blobUrl,
             loadParser: "loadVideo",
+          }).catch((error) => {
+            videoBlobUrls.delete(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+            throw error;
           });
         },
       );
@@ -505,11 +579,12 @@ const createRouteGraphics = () => {
      * @param {RouteGraphicsState} stateParam
      */
     render: (stateParam) => {
+      const normalizedState = normalizeRenderState(stateParam);
       const parsedElements = parseElements({
-        JSONObject: stateParam.elements,
+        JSONObject: normalizedState.elements,
         parserPlugins: plugins.parsers,
       });
-      const parsedState = { ...stateParam, elements: parsedElements };
+      const parsedState = { ...normalizedState, elements: parsedElements };
       renderInternal(app, app.stage, parsedState, eventHandler);
     },
 
@@ -518,11 +593,12 @@ const createRouteGraphics = () => {
      * @param {RouteGraphicsState} stateParam - The state object containing element definitions
      */
     parse: (stateParam) => {
+      const normalizedState = normalizeRenderState(stateParam);
       const parsedElements = parseElements({
-        JSONObject: stateParam.elements,
+        JSONObject: normalizedState.elements,
         parserPlugins: plugins.parsers,
       });
-      const parsedState = { ...stateParam, elements: parsedElements };
+      const parsedState = { ...normalizedState, elements: parsedElements };
       return parsedState;
     },
   };

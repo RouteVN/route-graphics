@@ -1,0 +1,20 @@
+file: "../../src/plugins/elements/parseElements.js"
+group: parser
+suites: [parseElements]
+---
+suite: parseElements
+exportName: parseElements
+---
+case: Parse empty element list
+in:
+  - JSONObject: []
+    parserPlugins: []
+out: []
+---
+case: Throws when parser plugin is missing for element type
+in:
+  - JSONObject:
+      - id: "unknown-1"
+        type: "unknown-type"
+    parserPlugins: []
+throws: "No parser plugin found for element type: unknown-type (id: unknown-1)"

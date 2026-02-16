@@ -6,10 +6,12 @@ specs:
   - "slider should maintain the same bar properties"
   - "slider should recalculate normalized value correctly"
 steps:
-  - keypress n
-  - screenshot
-  - keypress b
-  - screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
 ---
 states:
   - elements:

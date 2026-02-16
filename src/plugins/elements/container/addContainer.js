@@ -15,6 +15,7 @@ export const addContainer = ({
   elementPlugins,
   zIndex,
   completionTracker,
+  signal,
 }) => {
   const { id, x, y, children, scroll, alpha } = element;
 
@@ -48,6 +49,7 @@ export const addContainer = ({
         animationBus,
         elementPlugins,
         completionTracker,
+        signal,
       });
     }
   }

@@ -6,12 +6,14 @@ specs:
   - "abortion callback should be testable during render"
   - "element appears with animation on render"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotAnimatedSpriteFrame frameIndex=0 elementId=animated-sprite-render-test
   - customEvent snapShotKeyFrame deltaMS=1500
-  - screenshot
-  - keypress n
-  - screenshot
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
 ---
 states:
   - elements: []

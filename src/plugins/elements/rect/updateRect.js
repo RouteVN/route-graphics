@@ -1,3 +1,5 @@
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
+
 /**
  * Update rectangle element (synchronous)
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
@@ -24,7 +26,7 @@ export const updateRect = ({
   const { x, y, width, height, fill, border, alpha } = nextElement;
 
   const updateElement = () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (!isDeepEqual(prevElement, nextElement)) {
       rectElement.clear();
 
       rectElement.rect(0, 0, Math.round(width), Math.round(height)).fill(fill);

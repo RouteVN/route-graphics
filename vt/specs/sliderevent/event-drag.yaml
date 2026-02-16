@@ -7,11 +7,32 @@ specs:
   - "change events should include current slider value"
   - "actionPayload should include custom data"
 steps:
-  - move 250 110
-  - mouseDown
-  - screenshot
-  - move 200 110
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 250
+    y: 110
+  - action: mouseDown
+  - action: screenshot
+  - action: move
+    x: 200
+    y: 110
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [change]
+    value:
+      - _event:
+          id: slider-drag-test
+          value: 50
+        action: slider-change
+        component: volume-slider
+      - _event:
+          id: slider-drag-test
+          value: 33
+        action: slider-change
+        component: volume-slider
 ---
 states:
   - elements:

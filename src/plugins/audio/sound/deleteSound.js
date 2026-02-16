@@ -1,3 +1,5 @@
+import { cancelPendingSound } from "./addSound.js";
+
 /**
  * Delete sound element from the audio stage
  * @param {Object} params
@@ -5,5 +7,6 @@
  * @param {import('../../../types.js').SoundElement} params.element - The sound element to delete
  */
 export const deleteSound = ({ app, element }) => {
+  cancelPendingSound(element.id);
   app.audioStage.remove(element.id);
 };

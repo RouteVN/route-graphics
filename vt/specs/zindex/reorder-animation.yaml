@@ -1,19 +1,20 @@
 ---
 title: Z-Index Reorder During Animation
-description: Tests that z-order updates correctly when elements are reordered in AST during animated transitions
+description: Tests that z-order updates correctly when elements are reordered in AST during animated transitions; uses colored sprite assets intentionally to track layer swaps (guideline exception for asset-based tests).
 specs:
   - "z-order should update immediately when AST order changes"
   - "blue circle should move from back to front during reorder"
   - "red circle should move from front to back during reorder"
 steps:
-  - screenshot
-  - keypress n
+  - action: screenshot
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=250
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=250
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
 ---
 states:
   # State 1: Blue behind, Red in front (overlapping at center)

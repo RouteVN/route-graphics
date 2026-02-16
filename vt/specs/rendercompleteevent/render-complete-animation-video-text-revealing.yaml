@@ -1,0 +1,78 @@
+---
+title: Render Complete Event - Animation, Video, and Text Revealing
+description: Asserts renderComplete waits for animation, video playback, and text revealing together; video asset colors are an intentional visual exception.
+specs:
+  - "renderComplete should fire once with aborted=false after all tracked work completes"
+skipScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - customEvent snapShotKeyFrame deltaMS=700
+  - action: wait
+    ms: 7000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "animation-video-text-revealing"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "baseline-rect"
+        type: "rect"
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: "animation-video-text-revealing"
+    elements:
+      - id: "video-1"
+        type: "video"
+        x: 120
+        y: 120
+        width: 480
+        height: 270
+        src: "video-sample"
+        volume: 0
+        loop: false
+        alpha: 1
+      - id: "fade-rect"
+        type: "rect"
+        x: 680
+        y: 160
+        width: 240
+        height: 180
+        fill: "#FFFFFF"
+        alpha: 1
+      - id: "revealing-text"
+        type: "text-revealing"
+        content:
+          - text: "Render complete"
+            textStyle:
+              fontSize: 42
+              fill: "#D9D9D9"
+              fontFamily: "Helvetica"
+        x: 120
+        y: 430
+        width: 700
+        alpha: 1
+        speed: 20
+        revealEffect: typewriter
+    animations:
+      - id: "fade-in"
+        targetId: "fade-rect"
+        type: tween
+        properties:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 600
+                value: 1
+                easing: linear

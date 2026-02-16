@@ -1,16 +1,27 @@
 ---
 title: Sprite Right-Click Source/Texture Tests
-description: Test sprite source/texture changes on right-click events
+description: Test sprite source/texture changes on right-click events; uses colored sprite assets intentionally to validate texture swap behavior (guideline exception for asset-based tests).
 specs:
   - "sprite should change src on right-click"
   - "sprite should support different src for different events"
   - "sprite should maintain dimensions when changing src"
 steps:
-  - move 225 175
-  - rMouseDown
-  - screenshot
-  - rMouseUp
-  - screenshot
+  - action: move
+    x: 20
+    y: 20
+  - action: wait
+    ms: 50
+  - action: move
+    x: 225
+    y: 175
+  - action: rightMouseDown
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: rightMouseUp
+  - action: wait
+    ms: 50
+  - action: screenshot
 ---
 states:
   - elements:

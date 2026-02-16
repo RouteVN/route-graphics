@@ -1,6 +1,7 @@
 import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update container element (synchronous)
@@ -19,6 +20,7 @@ export const updateContainer = ({
   elementPlugins,
   zIndex,
   completionTracker,
+  signal,
 }) => {
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -31,7 +33,7 @@ export const updateContainer = ({
   const { x, y, alpha } = nextElement;
 
   const updateElement = () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (!isDeepEqual(prevElement, nextElement)) {
       containerElement.x = Math.round(x);
       containerElement.y = Math.round(y);
       containerElement.label = nextElement.id;
@@ -145,9 +147,10 @@ export const updateContainer = ({
     }
 
     // Check if children definition changed
-    const childrenChanged =
-      JSON.stringify(prevElement.children) !==
-      JSON.stringify(nextElement.children);
+    const childrenChanged = !isDeepEqual(
+      prevElement.children,
+      nextElement.children,
+    );
 
     // Check if any animation targets a child element
     const childIds = collectAllElementIds({ children: nextElement.children });
@@ -157,13 +160,15 @@ export const updateContainer = ({
 
     // Render children if definition changed OR animation targets children
     if (childrenChanged || hasChildAnimation) {
+      const renderParent = nextElement.scroll
+        ? containerElement.children.find(
+            (child) => child.label === `${nextElement.id}-content`,
+          ) || containerElement
+        : containerElement;
+
       renderElements({
         app,
-        parent: nextElement.scroll
-          ? containerElement.children.find(
-              (child) => child.label === `${nextElement.id}-content`,
-            )
-          : containerElement,
+        parent: renderParent,
         nextComputedTree: nextElement.children,
         prevComputedTree: prevElement.children,
         eventHandler,
@@ -171,6 +176,7 @@ export const updateContainer = ({
         animations,
         animationBus,
         completionTracker,
+        signal,
       });
     }
   };

@@ -1,16 +1,31 @@
 ---
 title: Text Style Right-Click Tests
-description: Test text style changes on right-click events
+description: Test text style changes on right-click events; textStyle.fill variation is intentional for visual style-state validation (guideline exception).
 specs:
   - "text should change textStyle on right-click"
   - "text should maintain different styles for different events"
   - "text should support fontSize, fill, and fontFamily changes on right-click"
 steps:
-  - move 155 110
-  - rMouseDown
-  - screenshot
-  - rMouseUp
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 155
+    y: 110
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [rightclick]
+    value:
+      - _event:
+          id: text-rightclick-style
+        action: text-right-clicked
+        eventType: rightclick
+        button: right
+        contextMenu: true
 ---
 states:
   - elements:
@@ -22,12 +37,12 @@ states:
         content: "Right-click Me"
         textStyle:
           fontSize: 24
-          fill: "blue"
+          fill: "#A6A6A6"
           fontFamily: "Arial"
         rightClick:
           textStyle:
             fontSize: 24
-            fill: "purple"
+            fill: "#737373"
             fontFamily: "Arial"
           actionPayload:
             action: "text-right-clicked"

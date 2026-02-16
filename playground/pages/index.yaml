@@ -1,0 +1,18 @@
+---
+template: docs-base
+title: Route Graphics
+---
+- rtgl-view d=v g=lg:
+    - rtgl-text s=h1: "Route Graphics"
+    - rtgl-text s=lg c="mu-fg": "Declarative 2D UI rendering with JSON, animations, audio, and interactions."
+    - rtgl-view d=h sm-d=v g=lg w=f:
+        - rtgl-view w="1fg" sm-w="f" h="220" d="v" g="md" bw="xs" br="md" bgc="mu" p="lg":
+            - rtgl-text s=h4: "Documentation"
+            - rtgl-text c="mu-fg": "Read the core concepts and setup guide for Route Graphics."
+            - rtgl-view h="1fg":
+            - rtgl-button href="/docs/introduction/introduction/": "Open Docs"
+        - rtgl-view w="1fg" sm-w="f" h="220" d="v" g="md" bw="xs" br="md" bgc="mu" p="lg":
+            - rtgl-text s=h4: "Playground"
+            - rtgl-text c="mu-fg": "Edit templates and preview visual output interactively."
+            - rtgl-view h="1fg":
+            - rtgl-button href="/playground/": "Open Playground"

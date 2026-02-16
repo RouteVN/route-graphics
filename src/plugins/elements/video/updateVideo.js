@@ -1,4 +1,5 @@
 import { Texture } from "pixi.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update video element
@@ -26,7 +27,7 @@ export const updateVideo = ({
   const { x, y, width, height, alpha } = nextElement;
 
   const updateElement = () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (!isDeepEqual(prevElement, nextElement)) {
       videoElement.x = Math.round(x);
       videoElement.y = Math.round(y);
       videoElement.width = Math.round(width);
@@ -36,6 +37,12 @@ export const updateVideo = ({
       if (prevElement.src !== nextElement.src) {
         const oldVideo = videoElement.texture.source.resource;
         if (oldVideo) {
+          if (videoElement._videoEndedListener) {
+            oldVideo.removeEventListener(
+              "ended",
+              videoElement._videoEndedListener,
+            );
+          }
           oldVideo.pause();
         }
 
@@ -43,6 +50,23 @@ export const updateVideo = ({
         videoElement.texture = newTexture;
 
         const newVideo = newTexture.source.resource;
+
+        // Track playback completion for non-looping videos
+        let playbackStateVersion = null;
+        if (!(nextElement.loop ?? false)) {
+          playbackStateVersion = completionTracker.getVersion();
+          completionTracker.track(playbackStateVersion);
+        }
+
+        const onEnded = () => {
+          if (playbackStateVersion !== null) {
+            completionTracker.complete(playbackStateVersion);
+          }
+        };
+        newVideo.addEventListener("ended", onEnded);
+        videoElement._videoEndedListener = onEnded;
+        videoElement._playbackStateVersion = playbackStateVersion;
+
         newVideo.muted = false;
         newVideo.pause();
         newVideo.currentTime = 0;

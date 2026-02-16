@@ -2,15 +2,39 @@
 title: Global Keyboard Events
 description: Test global keyboard event handling
 steps:
-  - keypress a
-  - screenshot
-  - keypress b
-  - screenshot
-  - keypress n
-  - keypress Shift+c
-  - screenshot
-  - keypress c
-  - screenshot
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: a
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: keypress
+    key: Shift+c
+  - action: screenshot
+  - action: keypress
+    key: c
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [keydown]
+    value:
+      - _event:
+          key: a
+        action: keyA_Pressed
+      - _event:
+          key: b
+        action: keyB_Pressed
+      - _event:
+          key: shift+c
+        action: shift_c_Pressed
+      - _event:
+          key: c
+        action: keyC_Pressed
 ---
 states: 
   - elements:
@@ -20,7 +44,7 @@ states:
         y: 100
         width: 500
         height: 400
-        fill: "#3498db"
+        fill: "#A6A6A6"
         alpha: 1
     global:
       keyboard:
@@ -37,7 +61,7 @@ states:
         y: 100
         width: 500
         height: 400
-        fill: "#3498db"
+        fill: "#A6A6A6"
         alpha: 1
     global:
       keyboard:

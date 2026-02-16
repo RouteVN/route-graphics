@@ -1,0 +1,56 @@
+file: "../../src/util/normalizeRenderState.js"
+group: parser
+suites: [normalizeRenderState]
+---
+suite: normalizeRenderState
+exportName: normalizeRenderState
+---
+case: Normalize missing arrays to defaults
+in:
+  - id: "state-1"
+out:
+  id: "state-1"
+  elements: []
+  animations: []
+  audio: []
+---
+case: Preserve provided arrays
+in:
+  - id: "state-2"
+    elements:
+      - id: "text-1"
+        type: "text"
+    animations:
+      - id: "anim-1"
+        targetId: "text-1"
+    audio:
+      - id: "sound-1"
+        type: "sound"
+out:
+  id: "state-2"
+  elements:
+    - id: "text-1"
+      type: "text"
+  animations:
+    - id: "anim-1"
+      targetId: "text-1"
+  audio:
+    - id: "sound-1"
+      type: "sound"
+---
+case: Throw when transitions field is provided
+in:
+  - id: "state-3"
+    transitions: []
+throws: "Input error: `transitions` is no longer supported. Use `animations` instead."
+---
+case: Throw when animations is not an array
+in:
+  - id: "state-4"
+    animations: {}
+throws: "Input error: `animations` must be an array."
+---
+case: Throw when state is not an object
+in:
+  - "invalid"
+throws: "Input error: render state must be an object."

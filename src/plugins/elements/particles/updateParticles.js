@@ -9,6 +9,7 @@
 
 import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode
@@ -96,12 +97,9 @@ export const updateParticles = ({
 function hasConfigChanged(prev, next) {
   // Changes that require emitter recreation
   if (prev.count !== next.count) return true;
-  if (JSON.stringify(prev.texture) !== JSON.stringify(next.texture))
-    return true;
-  if (JSON.stringify(prev.behaviors) !== JSON.stringify(next.behaviors))
-    return true;
-  if (JSON.stringify(prev.emitter) !== JSON.stringify(next.emitter))
-    return true;
+  if (!isDeepEqual(prev.texture, next.texture)) return true;
+  if (!isDeepEqual(prev.behaviors, next.behaviors)) return true;
+  if (!isDeepEqual(prev.emitter, next.emitter)) return true;
   if (prev.width !== next.width) return true;
   if (prev.height !== next.height) return true;
 

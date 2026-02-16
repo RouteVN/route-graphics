@@ -1,5 +1,6 @@
 import { Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update animated sprite element
@@ -14,7 +15,10 @@ export const updateAnimatedSprite = async ({
   animationBus,
   completionTracker,
   zIndex,
+  signal,
 }) => {
+  if (signal?.aborted) return;
+
   const animatedSpriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
   );
@@ -24,17 +28,16 @@ export const updateAnimatedSprite = async ({
   animatedSpriteElement.zIndex = zIndex;
 
   const updateElement = async () => {
-    if (JSON.stringify(prevElement) !== JSON.stringify(nextElement)) {
+    if (signal?.aborted || animatedSpriteElement.destroyed) return;
+
+    if (!isDeepEqual(prevElement, nextElement)) {
       animatedSpriteElement.x = Math.round(nextElement.x);
       animatedSpriteElement.y = Math.round(nextElement.y);
       animatedSpriteElement.width = Math.round(nextElement.width);
       animatedSpriteElement.height = Math.round(nextElement.height);
       animatedSpriteElement.alpha = nextElement.alpha;
 
-      if (
-        JSON.stringify(prevElement.animation) !==
-        JSON.stringify(nextElement.animation)
-      ) {
+      if (!isDeepEqual(prevElement.animation, nextElement.animation)) {
         animatedSpriteElement.animationSpeed =
           nextElement.animation.animationSpeed ?? 0.5;
         animatedSpriteElement.loop = nextElement.animation.loop ?? true;
@@ -46,6 +49,7 @@ export const updateAnimatedSprite = async ({
           metadata,
         );
         await spriteSheet.parse();
+        if (signal?.aborted || animatedSpriteElement.destroyed) return;
 
         const frameTextures = nextElement.animation.frames.map(
           (index) => spriteSheet.textures[frameNames[index]],

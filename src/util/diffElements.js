@@ -1,4 +1,5 @@
 import { collectAllElementIds } from "./collectElementIds.js";
+import { isDeepEqual } from "./isDeepEqual.js";
 
 /**
  * @typedef {import("../types.js").ComputedNode} ComputedNode
@@ -50,7 +51,7 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
         allIds.has(transition.targetId),
       );
 
-      if (JSON.stringify(prevEl) !== JSON.stringify(nextEl) || hasAnimation) {
+      if (!isDeepEqual(prevEl, nextEl) || hasAnimation) {
         // Update element - definition changed or has animations targeting it or children
         toUpdateElement.push({
           prev: prevEl,

@@ -6,11 +6,13 @@ specs:
   - "abortion callback should be testable during deletion"
   - "new element added in third state"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=1500
-  - screenshot
-  - keypress n
-  - screenshot
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
 ---
 states:
   - elements:
@@ -27,12 +29,12 @@ states:
             type: "rect"
             width: 300
             height: 80
-            fill: "#2ecc71"
+            fill: "#737373"
           - id: 'child-rect-2'
             type: "rect"
             width: 300
             height: 80
-            fill: "#f39c12"
+            fill: "#D9D9D9"
   - elements: []
     animations:
       - id: 'container-delete-abortion'
@@ -64,4 +66,4 @@ states:
             type: "rect"
             width: 80
             height: 180
-            fill: "#9b59b6"
+            fill: "#4D4D4D"

@@ -6,11 +6,12 @@ specs:
   - "animation should take 800ms"
   - "uses scaleX and scaleY properties"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=400
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "initial"
@@ -21,7 +22,7 @@ states:
         y: 200
         width: 200
         height: 200
-        fill: "#e67e22"
+        fill: "#737373"
         scaleX: 1
         scaleY: 1
   - id: "rect-scale-up-state"
@@ -32,7 +33,7 @@ states:
         y: 200
         width: 200
         height: 200
-        fill: "#e67e22"
+        fill: "#737373"
         scaleX: 1.5
         scaleY: 1.5
     animations:

@@ -1,4 +1,5 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
+import { isDeepEqual } from "../../../util/isDeepEqual.js";
 
 /**
  * Update text element (synchronous)
@@ -26,10 +27,7 @@ export const updateText = ({
   const { x, y, alpha } = nextTextComputedNode;
 
   const updateElement = () => {
-    if (
-      JSON.stringify(prevTextComputedNode) !==
-      JSON.stringify(nextTextComputedNode)
-    ) {
+    if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
       textElement.text = nextTextComputedNode.content;
       applyTextStyle(textElement, nextTextComputedNode.textStyle);
 

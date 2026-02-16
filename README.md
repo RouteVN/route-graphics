@@ -1055,11 +1055,44 @@ src: hero-sprite
 # Run all tests
 bun run test
 ```
+
+### Playground (Rettangoli Sites)
+
+The playground is managed as its own local Sites project in `playground/`.
+
+```bash
+# Install playground deps
+cd playground
+bun install
+
+# Start watch/dev server (default port 3001)
+bun run watch
+
+# Build static output
+bun run build
+```
+
+Notes:
+
+- Sites config is YAML-only: `playground/sites.config.yaml`
+- Playground scripts live in `playground/package.json`
+- Template source of truth: `playground/data/templates.yaml`
+- Runtime template catalog: `playground/static/public/playground/templates.yaml`
+
 ### Code Quality
 
 ```bash
-# Build visual tests
+# Build VT pages
 bun run vt:generate
+
+# Capture screenshots with Docker
+bun run vt:screenshot
+
+# Generate visual diff report
+bun run vt:report
+
+# Accept expected diffs
+bun run vt:accept
 
 
 # Fix linting issues
@@ -1146,5 +1179,3 @@ Join us on [Discord](https://discord.gg/8J9dyZSu9C) to ask questions, report bug
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-

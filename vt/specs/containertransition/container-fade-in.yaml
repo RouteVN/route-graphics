@@ -6,11 +6,12 @@ specs:
   - "all children should fade in with container"
   - "animation should take 1 second"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=500
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=1000
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements: []
@@ -27,17 +28,17 @@ states:
             type: "rect"
             width: 80
             height: 80
-            fill: "#e74c3c"
+            fill: "#FFFFFF"
           - id: 'rect2'
             type: "rect"
             width: 80
             height: 80
-            fill: "#3498db"
+            fill: "#A6A6A6"
           - id: 'rect3'
             type: "rect"
             width: 80
             height: 80
-            fill: "#2ecc71"
+            fill: "#737373"
     animations:
       - id: 'container-fade-in'
         targetId: 'container1'

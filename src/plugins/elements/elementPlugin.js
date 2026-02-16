@@ -19,6 +19,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
 /**
@@ -30,6 +31,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
 /**
@@ -40,6 +42,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
 /**

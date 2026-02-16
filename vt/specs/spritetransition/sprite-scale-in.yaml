@@ -1,16 +1,17 @@
 ---
 title: Sprite Scale In Transition
-description: A sprite scaling up from zero when added
+description: A sprite scaling up from zero when added; uses a colored sprite texture intentionally to track scale transition visibility (guideline exception for asset-based tests).
 specs:
   - "sprite should scale from 0 to 1 on both axes"
   - "sprite should appear to grow from center"
   - "animation should take 1.2 seconds"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=600
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=600
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements: []

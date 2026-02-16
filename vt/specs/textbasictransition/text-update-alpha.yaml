@@ -6,11 +6,12 @@ specs:
   - "animation should take 600ms"
   - "demonstrates alpha update transition"
 steps:
-  - keypress n
+  - action: keypress
+    key: n
   - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
+  - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=300
-  - screenshot
+  - action: screenshot
 ---
 states:
   - elements:
@@ -22,7 +23,7 @@ states:
         alpha: 1
         textStyle:
           fontSize: 36
-          fill: "#f39c12"
+          fill: "#D9D9D9"
           fontFamily: "Arial"
   - elements:
       - id: 'text1'
@@ -33,7 +34,7 @@ states:
         alpha: 0.5
         textStyle:
           fontSize: 36
-          fill: "#f39c12"
+          fill: "#D9D9D9"
           fontFamily: "Arial"
     animations:
       - id: 'text-fade'

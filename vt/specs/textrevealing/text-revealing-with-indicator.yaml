@@ -1,11 +1,8 @@
 ---
 title: Text Revealing Showcase with indicator
-description: Showcasing text-revealing element with indicator
+description: Showcasing text-revealing element with indicator; uses colored indicator assets intentionally for visual state cues (guideline exception for asset-based tests).
 steps:
-  # - wait 14000
-  # - screenshot
-  # - wait 14000
-  # - screenshot
+  - action: screenshot
 ---
 states:
   - elements:
@@ -15,57 +12,57 @@ states:
           - text: "Hello"
             textStyle:
               fontSize: 32
-              fill: "#e74c3c"
+              fill: "#FFFFFF"
               fontFamily: "Arial"
               fontWeight: "bold"
           - text: "jhlasdfa"
             textStyle:
               fontSize: 36
-              fill: "#3498db"
+              fill: "#A6A6A6"
               fontFamily: "Arial"
             furigana:
               text: "asll;ajs;foga"
               textStyle:
                 fontSize: 14
-                fill: "#f39c12"
+                fill: "#D9D9D9"
                 fontFamily: "Arial"
           - text: "!"
             textStyle:
               fontSize: 28
-              fill: "#27ae60"
+              fill: "#737373"
               fontFamily: "Arial"
               fontStyle: "italic"
           - text: " This is a demonstration of the text-revealing element with multiple styled segments that should wrap properly when they exceed the specified width constraint."
             textStyle:
               fontSize: 20
-              fill: "#11a285"
+              fill: "#737373"
               fontFamily: "Georgia"
               lineHeight: 1.4
           - text: " Different colors"
             textStyle:
               fontSize: 24
-              fill: "#9b59b6"
+              fill: "#4D4D4D"
               fontFamily: "Arial"
           - text: " sizes"
             textStyle:
               fontSize: 18
-              fill: "#e67e22"
+              fill: "#737373"
               fontFamily: "Arial"
           - text: " and fonts"
             textStyle:
               fontSize: 22
-              fill: "#16a085"
+              fill: "#4D4D4D"
               fontFamily: "Courier New"
             furigana:
               text: "fonts"
               textStyle:
                 fontSize: 10
-                fill: "#95a5a6"
+                fill: "#A6A6A6"
                 fontFamily: "Arial"
           - text: " can all be mixed together in a single text-revealing element."
             textStyle:
               fontSize: 20
-              fill: "#ff0000"
+              fill: "#FFFFFF"
               fontFamily: "Georgia"
               fontStyle: "italic"
               lineHeight: 1.4

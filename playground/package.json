@@ -1,0 +1,12 @@
+{
+  "name": "route-graphics-playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "watch": "rtgl sites watch --root-dir . --output-path _site",
+    "build": "rtgl sites build --root-dir . --output-path _site"
+  },
+  "devDependencies": {
+    "rtgl": "1.0.0-rc12"
+  }
+}

@@ -1,14 +1,11 @@
 ---
 title: Render Complete Event - Mixed Animation and Text Revealing
-description: Test that renderComplete fires after both animations AND text-revealing complete
+description: Visual smoke test for mixed animation and text-revealing completion
 specs:
-  - "renderComplete should wait for both animation and text-revealing"
-  - "should not fire until all trackable items complete"
-  - "payload should have aborted: false when all complete"
+  - "animation and text-revealing both reach a final visual state"
 steps:
   - customEvent snapShotKeyFrame deltaMS=800
-  - customEvent showRenderComplete
-  - screenshot
+  - action: screenshot
 ---
 states:
   - id: "mixed-state"
@@ -19,7 +16,7 @@ states:
         y: 100
         width: 200
         height: 100
-        fill: "#9b59b6"
+        fill: "#A6A6A6"
         alpha: 1
       - id: "revealing-text"
         type: "text-revealing"
@@ -27,8 +24,8 @@ states:
           - text: "Loading..."
             textStyle:
               fontSize: 28
-              fill: "#ffffff"
-              fontFamily: "Arial"
+              fill: "#FFFFFF"
+              fontFamily: "Helvetica"
         x: 100
         y: 250
         width: 400

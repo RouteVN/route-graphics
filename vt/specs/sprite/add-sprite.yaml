@@ -1,5 +1,6 @@
 ---
 title: Sprite Elements
+description: Uses colored sprite assets intentionally to verify texture/source rendering behavior (guideline exception for asset-based tests).
 ---
 states:
   - elements:

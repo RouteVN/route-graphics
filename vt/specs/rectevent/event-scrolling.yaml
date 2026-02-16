@@ -1,6 +1,39 @@
 ---
 title: Rect scrolling events
-description: Test srolling up and down events on rect element
+description: Test scrolling up and down interactions on a rect element
+specs:
+  - "scroll up and scroll down interactions are accepted"
+  - "rect remains visually stable while interaction events fire"
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 260
+    y: 340
+  - action: scroll
+    deltaX: 0
+    deltaY: -120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [scrollup]
+    value:
+      - _event:
+          id: rect-scroll
+        message: scrolled up
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: [scrolldown]
+    value:
+      - _event:
+          id: rect-scroll
+        message: scrolled down
 ---
 states:
   - elements:
@@ -10,7 +43,7 @@ states:
         y: 300
         width: 350
         height: 120
-        fill: "#f39c12"
+        fill: "#D9D9D9"
         scroll:
           up:
             actionPayload:

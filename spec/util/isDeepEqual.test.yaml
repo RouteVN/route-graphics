@@ -1,0 +1,51 @@
+file: "../../src/util/isDeepEqual.js"
+group: util
+suites: [isDeepEqual]
+---
+suite: isDeepEqual
+exportName: isDeepEqual
+---
+case: Returns true for equal primitives
+in:
+  - 42
+  - 42
+out: true
+---
+case: Returns false for different primitives
+in:
+  - "a"
+  - "b"
+out: false
+---
+case: Returns true for deep equal arrays and objects
+in:
+  - a:
+      - 1
+      - nested:
+          flag: true
+    b: "x"
+  - a:
+      - 1
+      - nested:
+          flag: true
+    b: "x"
+out: true
+---
+case: Returns false when nested value differs
+in:
+  - a:
+      - 1
+      - nested:
+          flag: true
+  - a:
+      - 1
+      - nested:
+          flag: false
+out: false
+---
+case: Returns false when object keys differ
+in:
+  - a: 1
+    b: 2
+  - a: 1
+out: false

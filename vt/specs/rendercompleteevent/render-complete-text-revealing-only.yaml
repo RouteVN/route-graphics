@@ -1,0 +1,48 @@
+---
+title: Render Complete Event - Text Revealing Only
+description: Asserts renderComplete waits for typewriter text revealing completion.
+specs:
+  - "renderComplete should fire once with aborted=false after text reveal completion"
+skipScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - action: wait
+    ms: 2000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "text-revealing-only"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "baseline-rect"
+        type: "rect"
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: "text-revealing-only"
+    elements:
+      - id: "revealing-text"
+        type: "text-revealing"
+        content:
+          - text: "Render complete"
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: "Helvetica"
+        x: 120
+        y: 240
+        width: 700
+        alpha: 1
+        speed: 20
+        revealEffect: typewriter
