@@ -1,11 +1,21 @@
 ---
 title: Auto Scroll
 steps:
-  - screenshot
-  # Scroll container-2 (anchorToBottom: true) back to top
-  - move 350 150
-  - scroll 0 -100
-  - screenshot
+  # Initial render: compare non-anchored vs anchored container
+  - action: screenshot
+  # Move to next state where new messages are appended
+  - action: keypress
+    key: n
+  # After update: anchored container should still show latest messages
+  - action: screenshot
+  # Scroll anchored container upward to verify wheel scrolling still works
+  - action: move
+    x: 350
+    y: 150
+  - action: scroll
+    deltaX: 0
+    deltaY: -100
+  - action: screenshot
 ---
 states:
   - elements:

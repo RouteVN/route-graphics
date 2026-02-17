@@ -593,6 +593,7 @@ Groups and manages layout of multiple elements.
 - `gap`: Spacing between children in pixels (default: 0)
 - `rotation`: Rotation in degrees (default: 0)
 - `scroll`: Enable scrolling for overflow content (default: false)
+- `anchorToBottom`: Start overflow content from the bottom/right edge (default: false, only when `scroll: true`)
 
 **Events:** None
 
@@ -625,6 +626,60 @@ children:
     width: 200
     height: 50
     src: button-normal
+```
+
+**Message Feed Update Example:**
+```yaml
+states:
+  - elements:
+      - id: message-log
+        type: container
+        x: 50
+        y: 50
+        width: 500
+        height: 220
+        direction: vertical
+        gap: 8
+        scroll: true
+        anchorToBottom: true
+        children:
+          - id: message-1
+            type: text
+            x: 0
+            y: 0
+            content: "Hello"
+          - id: message-2
+            type: text
+            x: 0
+            y: 32
+            content: "How are you?"
+  - elements:
+      - id: message-log
+        type: container
+        x: 50
+        y: 50
+        width: 500
+        height: 220
+        direction: vertical
+        gap: 8
+        scroll: true
+        anchorToBottom: true
+        children:
+          - id: message-1
+            type: text
+            x: 0
+            y: 0
+            content: "Hello"
+          - id: message-2
+            type: text
+            x: 0
+            y: 32
+            content: "How are you?"
+          - id: message-3
+            type: text
+            x: 0
+            y: 64
+            content: "I'm fine."
 ```
 
 #### Text Revealing Plugin
