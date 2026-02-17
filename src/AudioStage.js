@@ -1,17 +1,21 @@
 import { AudioAsset } from "./AudioAsset.js";
 
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const createDefaultAudioContext = () =>
+  new (window.AudioContext || window.webkitAudioContext)();
 
 /**
  * Creates an audio player instance
- * @param {string} id
- * @param {Object} options
- * @param {string} options.url
- * @param {boolean} [options.loop=false]
- * @param {number} [options.volume=1.0]
+ * @param {Object} params
+ * @param {AudioContext} params.audioContext
+ * @param {Function} params.getAssetByUrl
+ * @param {string} params.id
+ * @param {Object} params.options
+ * @param {string} params.options.url
+ * @param {boolean} [params.options.loop=false]
+ * @param {number} [params.options.volume=1.0]
  * @returns {Object} Audio player instance
  */
-export const createAudioPlayer = (id, options) => {
+export const createAudioPlayer = ({ audioContext, getAssetByUrl, id, options }) => {
   let audioSource;
   const gainNode = audioContext.createGain();
   gainNode.gain.value = options.volume ?? 1.0;
@@ -25,7 +29,7 @@ export const createAudioPlayer = (id, options) => {
   };
 
   const play = () => {
-    const audioBuffer = AudioAsset.getAsset(state.url);
+    const audioBuffer = getAssetByUrl(state.url);
     if (!audioBuffer) {
       console.warn("AudioPlayer.play: Asset not found", state.url);
       return;
@@ -105,7 +109,10 @@ export const createAudioPlayer = (id, options) => {
  * Creates an audio stage instance
  * @returns {Object} Audio stage instance
  */
-export const createAudioStage = () => {
+export const createAudioStage = ({
+  audioContext = createDefaultAudioContext(),
+  getAssetByUrl = AudioAsset.getAsset,
+} = {}) => {
   let audioPlayers = [];
   let stageAudios = [];
 
@@ -127,10 +134,15 @@ export const createAudioStage = () => {
 
       // add
       if (!audioPlayer) {
-        const player = createAudioPlayer(audio.id, {
-          url: audio.url,
-          loop: audio.loop,
-          volume: audio.volume ?? 1.0,
+        const player = createAudioPlayer({
+          audioContext,
+          getAssetByUrl,
+          id: audio.id,
+          options: {
+            url: audio.url,
+            loop: audio.loop,
+            volume: audio.volume ?? 1.0,
+          },
         });
         audioPlayers.push(player);
         player.play();
@@ -171,11 +183,24 @@ export const createAudioStage = () => {
     stageAudios = [];
   };
 
+  const resume = async () => {
+    if (audioContext.state === "running") {
+      return;
+    }
+
+    try {
+      await audioContext.resume();
+    } catch (error) {
+      console.warn("Failed to resume audio context:", error);
+    }
+  };
+
   return {
     add,
     remove,
     getById,
     tick,
+    resume,
     destroy,
   };
 };

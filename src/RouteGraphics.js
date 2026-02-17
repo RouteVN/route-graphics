@@ -80,6 +80,29 @@ const createAdvancedBufferLoader = (bufferMap) => ({
   unload: async (texture) => texture.destroy(true),
 });
 
+const VIDEO_ASSET_LOAD_CONCURRENCY = 2;
+
+const mapWithConcurrency = async (items, concurrency, mapper) => {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const resolvedConcurrency = Math.max(1, Math.min(concurrency, items.length));
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  const workers = Array.from({ length: resolvedConcurrency }, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
+};
+
 /**
  * @typedef {Object} ApplicationWithAudioStageOptions
  * @property {AudioStage} audioStage
@@ -352,6 +375,13 @@ const createRouteGraphics = () => {
       app.stage.on(eventType, callback);
     },
 
+    resumeAudioContext: async () => {
+      if (!app?.audioStage?.resume) {
+        return;
+      }
+      await app.audioStage.resume();
+    },
+
     /**
      *
      * @param {RouteGraphicsInitOptions} options
@@ -532,28 +562,33 @@ const createRouteGraphics = () => {
         Object.assign(advancedLoader.bufferMap, assetsByType.texture);
       }
 
-      // Load video assets - create blob URLs and load via PixiJS default video loader
-      const videoPromises = Object.entries(assetsByType.video).map(
-        ([key, asset]) => {
-          const blob = new Blob([asset.buffer], { type: asset.type });
-          const blobUrl = URL.createObjectURL(blob);
-          trackVideoBlobUrl(blobUrl);
-          return Assets.load({
-            alias: key,
-            src: blobUrl,
-            loadParser: "loadVideo",
-          }).catch((error) => {
-            videoBlobUrls.delete(blobUrl);
-            URL.revokeObjectURL(blobUrl);
-            throw error;
-          });
-        },
-      );
-
       const textureUrls = Object.keys(assetsByType.texture);
       const texturePromises = textureUrls.map((url) => Assets.load(url));
+      const videoEntries = Object.entries(assetsByType.video);
 
-      return Promise.all([...texturePromises, ...videoPromises]);
+      const [textureResults, videoResults] = await Promise.all([
+        Promise.all(texturePromises),
+        mapWithConcurrency(
+          videoEntries,
+          VIDEO_ASSET_LOAD_CONCURRENCY,
+          async ([key, asset]) => {
+            const blob = new Blob([asset.buffer], { type: asset.type });
+            const blobUrl = URL.createObjectURL(blob);
+            trackVideoBlobUrl(blobUrl);
+            return Assets.load({
+              alias: key,
+              src: blobUrl,
+              loadParser: "loadVideo",
+            }).catch((error) => {
+              videoBlobUrls.delete(blobUrl);
+              URL.revokeObjectURL(blobUrl);
+              throw error;
+            });
+          },
+        ),
+      ]);
+
+      return [...textureResults, ...videoResults];
     },
 
     loadAudioAssets: async (urls) => {
