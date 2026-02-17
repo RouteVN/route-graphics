@@ -128,6 +128,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     direction,
     gap,
     scroll,
+    ...(state.anchorToBottom && { anchorToBottom: true }),
     rotation: state.rotation ?? 0,
   };
 

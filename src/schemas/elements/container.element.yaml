@@ -67,6 +67,10 @@ properties:
     type: boolean
     description: Enable scrolling for overflow content. Scroll direction will follow direction property
     default: false
+  anchorToBottom:
+    type: boolean
+    description: When true, automatically scrolls to show bottom/right content instead of top/left. Only applies when scroll is enabled.
+    default: false
   hover:
     type: object
     properties:

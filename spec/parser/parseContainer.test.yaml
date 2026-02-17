@@ -1007,3 +1007,50 @@ out:
       fill: blue
       rotation: 0
       alpha: 1
+---
+case: Test parsing container with anchorToBottom enabled
+in:
+  - state:
+      id: "container-anchor-bottom"
+      type: "container"
+      direction: "vertical"
+      gap: 5
+      width: 120
+      height: 120
+      x: 25
+      y: 40
+      scroll: true
+      anchorToBottom: true
+      children:
+        - id: "rect-1"
+          type: "rect"
+          width: 80
+          height: 50
+          fill: red
+out:
+  id: "container-anchor-bottom"
+  type: "container"
+  direction: "vertical"
+  gap: 5
+  width: 120
+  height: 120
+  x: 25
+  y: 40
+  originX: 0
+  originY: 0
+  scroll: true
+  anchorToBottom: true
+  rotation: 0
+  alpha: 1
+  children:
+    - id: "rect-1"
+      type: "rect"
+      width: 80
+      height: 50
+      x: 0
+      y: 0
+      originX: 0
+      originY: 0
+      fill: red
+      rotation: 0
+      alpha: 1
