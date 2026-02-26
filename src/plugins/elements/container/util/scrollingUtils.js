@@ -19,13 +19,9 @@ export const setupScrolling = ({
   });
 
   const hasVerticalOverflow = !!(
-    element.height &&
-    totalHeight > element.height
+    element.height && totalHeight > element.height
   );
-  const hasHorizontalOverflow = !!(
-    element.width &&
-    totalWidth > element.width
-  );
+  const hasHorizontalOverflow = !!(element.width && totalWidth > element.width);
   const shouldEnableViewport =
     (element.scroll || allowViewportWithoutScroll) &&
     (hasVerticalOverflow || hasHorizontalOverflow);
