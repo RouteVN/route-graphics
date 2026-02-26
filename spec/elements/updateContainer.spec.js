@@ -169,6 +169,8 @@ describe("updateContainer", () => {
     expect(nextContentContainer).toBeDefined();
     expect(nextContentContainer).not.toBe(previousContentContainer);
     expect(nextContentContainer.y).toBe(-215);
+    expect(containerElement.eventMode).toBe("static");
+    expect(containerElement.hitArea).not.toBeNull();
     expect(renderElements).toHaveBeenCalledTimes(1);
     expect(renderElements.mock.calls[0][0].parent).toBe(nextContentContainer);
   });
@@ -256,6 +258,8 @@ describe("updateContainer", () => {
 
     expect(contentContainer).toBeDefined();
     expect(contentContainer.y).toBe(-215);
+    expect(containerElement.eventMode).not.toBe("static");
+    expect(containerElement.hitArea).toBeNull();
     expect(renderElements).toHaveBeenCalledTimes(1);
     expect(renderElements.mock.calls[0][0].parent).toBe(contentContainer);
 

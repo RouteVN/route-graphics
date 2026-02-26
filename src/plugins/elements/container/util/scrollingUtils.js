@@ -50,16 +50,6 @@ export const setupScrolling = ({
     // Apply the mask to the content container
     contentContainer.mask = clip;
 
-    // Enable mouse events on the container
-    container.eventMode = "static";
-    // Set hitArea to capture events in empty space (not just on children)
-    container.hitArea = new Rectangle(
-      0,
-      0,
-      element.width || totalWidth,
-      element.height || totalHeight,
-    );
-
     let minScrollY = -(totalHeight - (element.height || totalHeight));
     let minScrollX = -(totalWidth - (element.width || totalWidth));
     let scrollYOffset =
@@ -74,6 +64,15 @@ export const setupScrolling = ({
     }
 
     if (interactive) {
+      // Capture wheel input in the viewport area when interactive scrolling is enabled.
+      container.eventMode = "static";
+      container.hitArea = new Rectangle(
+        0,
+        0,
+        element.width || totalWidth,
+        element.height || totalHeight,
+      );
+
       container.on("wheel", (e) => {
         e.preventDefault(); // Prevent page scrolling
 
