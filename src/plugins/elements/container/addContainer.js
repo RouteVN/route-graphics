@@ -54,10 +54,13 @@ export const addContainer = ({
     }
   }
 
-  if (scroll) {
+  const shouldUseViewport = scroll || element.anchorToBottom;
+  if (shouldUseViewport) {
     setupScrolling({
       container,
       element,
+      interactive: !!scroll,
+      allowViewportWithoutScroll: !!element.anchorToBottom,
     });
   }
 

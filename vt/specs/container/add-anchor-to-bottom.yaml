@@ -1,14 +1,14 @@
 ---
-title: Auto Scroll
+title: Anchor To Bottom Viewport Parity
 steps:
-  # Initial render: compare non-anchored vs anchored container
+  # Initial render: compare scroll=true top view vs anchorToBottom viewport parity
   - action: screenshot
   # Move to next state where new messages are appended
   - action: keypress
     key: n
   # After update: anchored container should still show latest messages
   - action: screenshot
-  # Scroll anchored container upward to verify wheel scrolling still works
+  # Attempt wheel on non-scroll anchored container: viewport should not move
   - action: move
     x: 350
     y: 150
@@ -51,7 +51,7 @@ states:
             height: 100
             fill: "yellow"
 
-      # With anchorToBottom: true — shows bottom (green, yellow visible)
+      # With anchorToBottom and scroll=false — should visually match bottom viewport
       - id: 'container-2'
         type: "container"
         direction: "vertical"
@@ -59,7 +59,6 @@ states:
         y: 50
         height: 200
         gap: 5
-        scroll: true
         anchorToBottom: true
         zIndex: 0
         children:
@@ -121,7 +120,7 @@ states:
             height: 100
             fill: "888888"
 
-      # With anchorToBottom: true — shows bottom (green, yellow visible)
+      # With anchorToBottom and scroll=false — should still show latest bottom items
       - id: 'container-2'
         type: "container"
         direction: "vertical"
@@ -129,7 +128,6 @@ states:
         y: 50
         height: 200
         gap: 5
-        scroll: true
         anchorToBottom: true
         zIndex: 0
         children:
