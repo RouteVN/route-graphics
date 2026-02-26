@@ -206,6 +206,8 @@
  * @typedef {Object} SetupScrollingOptions
  * @property {Container} container - The PIXI Container to enable scrolling on
  * @property {ContainerContainerElement} element - The container element
+ * @property {boolean} [interactive] - Enable wheel interaction when viewport is active
+ * @property {boolean} [allowViewportWithoutScroll] - Allow masked viewport without scroll=true
  */
 
 /**

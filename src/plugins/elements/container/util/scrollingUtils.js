@@ -4,7 +4,12 @@ import { Container, Graphics, Rectangle } from "pixi.js";
  * @param {import("../../../../types").SetupScrollingOptions} params
  * @returns
  */
-export const setupScrolling = ({ container, element }) => {
+export const setupScrolling = ({
+  container,
+  element,
+  interactive = true,
+  allowViewportWithoutScroll = false,
+}) => {
   let totalWidth = 0;
   let totalHeight = 0;
 
@@ -13,13 +18,19 @@ export const setupScrolling = ({ container, element }) => {
     totalHeight = Math.max(child.height + child.y, totalHeight);
   });
 
-  // Only apply scrolling if scroll is enabled and content overflows
-  const needsVerticalScroll =
-    element.scroll && element.height && totalHeight > element.height;
-  const needsHorizontalScroll =
-    element.scroll && element.width && totalWidth > element.width;
+  const hasVerticalOverflow = !!(
+    element.height &&
+    totalHeight > element.height
+  );
+  const hasHorizontalOverflow = !!(
+    element.width &&
+    totalWidth > element.width
+  );
+  const shouldEnableViewport =
+    (element.scroll || allowViewportWithoutScroll) &&
+    (hasVerticalOverflow || hasHorizontalOverflow);
 
-  if (needsVerticalScroll || needsHorizontalScroll) {
+  if (shouldEnableViewport) {
     // Create a content container that will hold all the children
     const contentContainer = new Container({
       label: `${container.label}-content`,
@@ -56,9 +67,9 @@ export const setupScrolling = ({ container, element }) => {
     let minScrollY = -(totalHeight - (element.height || totalHeight));
     let minScrollX = -(totalWidth - (element.width || totalWidth));
     let scrollYOffset =
-      element.anchorToBottom && needsVerticalScroll ? minScrollY : 0;
+      element.anchorToBottom && hasVerticalOverflow ? minScrollY : 0;
     let scrollXOffset =
-      element.anchorToBottom && needsHorizontalScroll ? minScrollX : 0;
+      element.anchorToBottom && hasHorizontalOverflow ? minScrollX : 0;
 
     // Apply initial anchor-to-bottom position
     if (element.anchorToBottom) {
@@ -66,51 +77,53 @@ export const setupScrolling = ({ container, element }) => {
       contentContainer.x = scrollXOffset;
     }
 
-    container.on("wheel", (e) => {
-      e.preventDefault(); // Prevent page scrolling
+    if (interactive) {
+      container.on("wheel", (e) => {
+        e.preventDefault(); // Prevent page scrolling
 
-      // Handle vertical scrolling
-      if (needsVerticalScroll && e.deltaY !== 0) {
-        const newScrollY = scrollYOffset - e.deltaY;
+        // Handle vertical scrolling
+        if (hasVerticalOverflow && e.deltaY !== 0) {
+          const newScrollY = scrollYOffset - e.deltaY;
 
-        // Boundary checking
-        if (newScrollY > 0) {
-          // At top edge
-          scrollYOffset = 0;
-        } else if (newScrollY < minScrollY) {
-          // At bottom edge
-          scrollYOffset = minScrollY;
-        } else {
-          // Normal scrolling
-          scrollYOffset = newScrollY;
+          // Boundary checking
+          if (newScrollY > 0) {
+            // At top edge
+            scrollYOffset = 0;
+          } else if (newScrollY < minScrollY) {
+            // At bottom edge
+            scrollYOffset = minScrollY;
+          } else {
+            // Normal scrolling
+            scrollYOffset = newScrollY;
+          }
+
+          contentContainer.y = scrollYOffset;
         }
 
-        contentContainer.y = scrollYOffset;
-      }
+        // Handle horizontal scrolling (shift+wheel or deltaX)
+        if (
+          hasHorizontalOverflow &&
+          (e.deltaX !== 0 || (e.shiftKey && e.deltaY !== 0))
+        ) {
+          const deltaX = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+          const newScrollX = scrollXOffset - deltaX;
 
-      // Handle horizontal scrolling (shift+wheel or deltaX)
-      if (
-        needsHorizontalScroll &&
-        (e.deltaX !== 0 || (e.shiftKey && e.deltaY !== 0))
-      ) {
-        const deltaX = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-        const newScrollX = scrollXOffset - deltaX;
+          // Boundary checking
+          if (newScrollX > 0) {
+            // At left edge
+            scrollXOffset = 0;
+          } else if (newScrollX < minScrollX) {
+            // At right edge
+            scrollXOffset = minScrollX;
+          } else {
+            // Normal scrolling
+            scrollXOffset = newScrollX;
+          }
 
-        // Boundary checking
-        if (newScrollX > 0) {
-          // At left edge
-          scrollXOffset = 0;
-        } else if (newScrollX < minScrollX) {
-          // At right edge
-          scrollXOffset = minScrollX;
-        } else {
-          // Normal scrolling
-          scrollXOffset = newScrollX;
+          contentContainer.x = scrollXOffset;
         }
-
-        contentContainer.x = scrollXOffset;
-      }
-    });
+      });
+    }
   }
 };
 

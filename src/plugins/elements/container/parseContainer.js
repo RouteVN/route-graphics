@@ -70,7 +70,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       if (
         state.width &&
         child.width + currentRowWidth > state.width &&
-        !scroll
+        !scroll &&
+        !state.anchorToBottom
       ) {
         //Wrap the child
         currentX = 0;
@@ -91,7 +92,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       if (
         state.height &&
         child.height + currentColHeight > state.height &&
-        !scroll
+        !scroll &&
+        !state.anchorToBottom
       ) {
         //Wrap the child
         currentY = 0;

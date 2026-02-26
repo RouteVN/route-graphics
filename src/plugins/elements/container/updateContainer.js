@@ -124,24 +124,31 @@ export const updateContainer = ({
         containerElement.on("rightclick", rightClickListener);
       }
 
-      if (prevElement.scroll !== nextElement.scroll) {
-        if (nextElement.scroll) {
+      const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
+      const nextUsesViewport = nextElement.scroll || nextElement.anchorToBottom;
+
+      if (prevUsesViewport !== nextUsesViewport) {
+        if (nextUsesViewport) {
           setupScrolling({
             container: containerElement,
             element: nextElement,
+            interactive: !!nextElement.scroll,
+            allowViewportWithoutScroll: !!nextElement.anchorToBottom,
           });
         } else {
           removeScrolling({
             container: containerElement,
           });
         }
-      } else if (nextElement.scroll) {
+      } else if (nextUsesViewport) {
         removeScrolling({
           container: containerElement,
         });
         setupScrolling({
           container: containerElement,
           element: nextElement,
+          interactive: !!nextElement.scroll,
+          allowViewportWithoutScroll: !!nextElement.anchorToBottom,
         });
       }
     }
@@ -160,11 +167,10 @@ export const updateContainer = ({
 
     // Render children if definition changed OR animation targets children
     if (childrenChanged || hasChildAnimation) {
-      const renderParent = nextElement.scroll
-        ? containerElement.children.find(
-            (child) => child.label === `${nextElement.id}-content`,
-          ) || containerElement
-        : containerElement;
+      const contentContainer = containerElement.children.find(
+        (child) => child.label === `${nextElement.id}-content`,
+      );
+      const renderParent = contentContainer || containerElement;
 
       renderElements({
         app,
