@@ -9,6 +9,13 @@ Route Graphics is a declarative rendering engine built on PixiJS.
 
 You describe UI with JSON states, then render transitions between states without directly manipulating canvas objects.
 
+This documentation is organized around the actual runtime surfaces:
+
+- setup and asset loading
+- global config and events
+- node reference pages
+- live playground templates you can edit immediately
+
 ## What It Handles
 
 - Element lifecycle: add, update, and delete
@@ -24,4 +31,4 @@ You describe UI with JSON states, then render transitions between states without
 3. Call `render(state)` with `elements`, `animations`, `audio`, and optional `global`.
 4. Push the next state to transition UI.
 
-Continue with [Getting Started](/docs/introduction/getting-started/) for a minimal setup.
+Continue with [Getting Started](/docs/introduction/getting-started/) for a minimal setup, then use [Assets & Loading](/docs/guides/assets-loading/) and [Using the Playground](/docs/guides/playground/) as the practical next steps.

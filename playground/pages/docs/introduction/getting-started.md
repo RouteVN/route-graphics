@@ -19,6 +19,7 @@ You can load from your built bundle (or CDN equivalent):
     textPlugin,
     rectPlugin,
     spritePlugin,
+    videoPlugin,
     sliderPlugin,
     containerPlugin,
     textRevealingPlugin,
@@ -37,6 +38,7 @@ You can load from your built bundle (or CDN equivalent):
 const assetsObject = {
   "circle-red": { url: "/public/circle-red.png", type: "image/png" },
   "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
+  "intro-video": { url: "/public/video_sample.mp4", type: "video/mp4" },
 };
 
 const assetBufferManager = createAssetBufferManager();
@@ -56,6 +58,7 @@ await app.init({
       textPlugin,
       rectPlugin,
       spritePlugin,
+      videoPlugin,
       sliderPlugin,
       containerPlugin,
       textRevealingPlugin,
@@ -102,3 +105,9 @@ app.render({
 
 Call `app.render(nextState)` whenever your UI state changes.
 Route Graphics diffs the previous and next tree, then applies add/update/delete and animations automatically.
+
+From here:
+
+- [Assets & Loading](/docs/guides/assets-loading/) explains aliases and runtime asset classes.
+- [Events & Render Complete](/docs/guides/events-render-complete/) covers lifecycle timing.
+- [Using the Playground](/docs/guides/playground/) shows how to turn examples into shareable repros.

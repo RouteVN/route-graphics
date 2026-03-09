@@ -11,3 +11,63 @@ items:
       - id: getting-started
         title: "Getting Started"
         href: "/docs/introduction/getting-started/"
+  - title: "Guides"
+    type: groupLabel
+    items:
+      - id: guide-assets-loading
+        title: "Assets & Loading"
+        href: "/docs/guides/assets-loading/"
+      - id: guide-global-config
+        title: "Global Config"
+        href: "/docs/guides/global-config/"
+      - id: guide-events-render-complete
+        title: "Events & Render Complete"
+        href: "/docs/guides/events-render-complete/"
+      - id: guide-custom-plugins
+        title: "Custom Plugins"
+        href: "/docs/guides/custom-plugins/"
+      - id: guide-playground
+        title: "Using the Playground"
+        href: "/docs/guides/playground/"
+  - title: "Elements"
+    type: groupLabel
+    items:
+      - id: node-text
+        title: "Text"
+        href: "/docs/nodes/text/"
+      - id: node-rect
+        title: "Rect"
+        href: "/docs/nodes/rect/"
+      - id: node-sprite
+        title: "Sprite"
+        href: "/docs/nodes/sprite/"
+      - id: node-video
+        title: "Video"
+        href: "/docs/nodes/video/"
+      - id: node-slider
+        title: "Slider"
+        href: "/docs/nodes/slider/"
+      - id: node-container
+        title: "Container"
+        href: "/docs/nodes/container/"
+      - id: node-text-revealing
+        title: "Text Revealing"
+        href: "/docs/nodes/text-revealing/"
+      - id: node-animated-sprite
+        title: "Animated Sprite"
+        href: "/docs/nodes/animated-sprite/"
+      - id: node-particles
+        title: "Particles"
+        href: "/docs/nodes/particles/"
+  - title: "Animations"
+    type: groupLabel
+    items:
+      - id: node-tween
+        title: "Tween"
+        href: "/docs/nodes/tween/"
+  - title: "Audio"
+    type: groupLabel
+    items:
+      - id: node-sound
+        title: "Sound"
+        href: "/docs/nodes/sound/"
