@@ -1,11 +1,13 @@
-
 ## Overview
 
 Route Graphics is a declarative UI system that enables developers to create rich, interactive 2D interfaces through JSON configurations. Instead of manipulating DOM elements directly, you define your interface structure using JSON, and Route Graphics handles the rendering, animations, audio, and interactions automatically.
 
+If you want the guided setup and live examples first, start with the hosted docs and playground below.
+
 ## Links
 
-- [Playground](http://route-graphics.routevn.com/playground)
+- [Documentation](http://route-graphics.routevn.com/docs/introduction/introduction/)
+- [Playground](http://route-graphics.routevn.com/playground/)
 - [Tasks & Roadmap](http://route-graphics.routevn.com/tasks)
 
 ## Typical Usage Patterns
@@ -39,6 +41,7 @@ const app = createRouteGraphics();
 Initialize the RouteGraphics application.
 
 **Parameters:**
+
 - `options` (Object)
   - `width` (number) - Canvas width
   - `height` (number) - Canvas height
@@ -59,6 +62,7 @@ Initialize the RouteGraphics application.
 Load assets from pre-loaded buffer data.
 
 **Parameters:**
+
 - `assetBufferMap` (Object) - Map of asset key to `{ buffer: ArrayBuffer, type: string }`
   - Example: `{ "hero": { buffer: ArrayBuffer, type: "image/png" } }`
 
@@ -71,6 +75,7 @@ Load assets from pre-loaded buffer data.
 Render the UI from a state object.
 
 **Parameters:**
+
 - `state` (RouteGraphicsState)
   - `elements` (Array) - Array of element definitions
   - `animations` (Array) - Array of animation definitions
@@ -88,6 +93,7 @@ Render the UI from a state object.
 Parse elements from state object using registered parser plugins (without rendering).
 
 **Parameters:**
+
 - `state` (RouteGraphicsState) - State object containing element definitions
 
 **Returns:** `RouteGraphicsState` - Parsed state with computed elements
@@ -99,6 +105,7 @@ Parse elements from state object using registered parser plugins (without render
 Update the canvas background color.
 
 **Parameters:**
+
 - `color` (number) - New background color as hex (e.g., `0xffffff`)
 
 **Returns:** `void`
@@ -110,6 +117,7 @@ Update the canvas background color.
 Find an element in the stage by its label.
 
 **Parameters:**
+
 - `targetLabel` (string) - Label to search for
 
 **Returns:** `DisplayObject | null` - Found element or null
@@ -121,6 +129,7 @@ Find an element in the stage by its label.
 Extract a base64 representation of an element.
 
 **Parameters:**
+
 - `label` (string, optional) - Label of the element to extract. Omit to extract the full stage.
 
 **Returns:** `Promise<string>` - Base64 string
@@ -132,6 +141,7 @@ Extract a base64 representation of an element.
 Assign an event listener to the stage.
 
 **Parameters:**
+
 - `eventType` (string) - Event type (e.g., `"click"`, `"pointermove"`)
 - `callback` (Function) - Event callback function
 
@@ -186,7 +196,7 @@ import createRouteGraphics, {
   tweenPlugin,
   soundPlugin,
   createAssetBufferManager,
-} from 'route-graphics';
+} from "route-graphics";
 
 // Define assets with URL and type
 const assets = {
@@ -202,7 +212,7 @@ const assets = {
     url: "/public/circle-green.png",
     type: "image/png",
   },
-  "slider": {
+  slider: {
     url: "/public/slider.png",
     type: "image/png",
   },
@@ -213,7 +223,7 @@ const assets = {
   "bgm-2": {
     url: "/public/bgm-2.mp3",
     type: "audio/mpeg",
-  }
+  },
 };
 
 // Load assets using asset buffer manager
@@ -233,18 +243,14 @@ await app.init({
       spritePlugin,
       sliderPlugin,
       containerPlugin,
-      textRevealingPlugin
+      textRevealingPlugin,
     ],
-    animations: [
-      tweenPlugin
-    ],
-    audio: [
-      soundPlugin
-    ],
+    animations: [tweenPlugin],
+    audio: [soundPlugin],
   },
   eventHandler: (eventName, payload) => {
-    console.log('Event:', eventName, payload);
-  }, 
+    console.log("Event:", eventName, payload);
+  },
 });
 
 // Load assets into the app and add to DOM
@@ -264,15 +270,15 @@ app.render({
       height: 64,
       hover: {
         src: "file:circle-blue",
-        soundSrc: "file:hover-sound"
+        soundSrc: "file:hover-sound",
       },
       click: {
         actionPayload: {
-          action: "handleClick"
+          action: "handleClick",
         },
-        soundSrc: "file:click-sound"
-      }
-    }
+        soundSrc: "file:click-sound",
+      },
+    },
   ],
   animations: [
     {
@@ -282,12 +288,10 @@ app.render({
       properties: {
         alpha: {
           initialValue: 0,
-          keyframes: [
-            { duration: 1000, value: 1, easing: "linear" }
-          ]
-        }
-      }
-    }
+          keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+        },
+      },
+    },
   ],
   audio: [
     {
@@ -295,9 +299,9 @@ app.render({
       type: "sound",
       src: "file:bgm-1",
       volume: 600,
-      loop: true
-    }
-  ]
+      loop: true,
+    },
+  ],
 });
 ```
 
@@ -309,10 +313,10 @@ Route Graphics follows a modular plugin architecture with three main plugin cate
 2. **Element Plugins** - Render visual elements (add/update/delete)
 3. **Audio & Animation Plugins** - Handle dynamic content
 
-
 ### The Render Function
 
 The main `render()` function is called whenever you want to update your interface. It automatically:
+
 - Compares the previous state with the new state
 - Determines which elements to add, update, or remove
 - Executes the appropriate element functions
@@ -327,31 +331,39 @@ routeGraphics.render(updatedState); // Automatically adds/updates/removes elemen
 ```
 
 **Example Lifecycle:**
+
 ```javascript
 // State 1: Show a button
 const state1 = {
-  elements: [{
-    id: "button1",
-    type: "rect",
-    width: 100, height: 40,
-    fill: "blue"
-  }]
+  elements: [
+    {
+      id: "button1",
+      type: "rect",
+      width: 100,
+      height: 40,
+      fill: "blue",
+    },
+  ],
 };
 
 // State 2: Button changes color and moves
 const state2 = {
-  elements: [{
-    id: "button1",
-    type: "rect",
-    width: 100, height: 40,
-    fill: "red",  // Update: color changes
-    x: 50, y: 50  // Update: position moves
-  }]
+  elements: [
+    {
+      id: "button1",
+      type: "rect",
+      width: 100,
+      height: 40,
+      fill: "red", // Update: color changes
+      x: 50,
+      y: 50, // Update: position moves
+    },
+  ],
 };
 
 // State 3: Button is gone
 const state3 = {
-  elements: [] // Delete: button1 is removed
+  elements: [], // Delete: button1 is removed
 };
 ```
 
@@ -362,26 +374,30 @@ Element plugins handle the creation, updating, and deletion of visual elements. 
 ```javascript
 createElementPlugin({
   type: "element-type",
-  add: addFunction,      // Create element
+  add: addFunction, // Create element
   update: updateFunction, // Update existing element
-  delete: deleteFunction  // Remove element
+  delete: deleteFunction, // Remove element
 });
 ```
 
 ### Available Element Plugins
 
 #### Sprite Plugin
+
 Renders image-based sprites with rich interactions.
 
 **Required Properties:**
+
 - `id`, `type`, `x`, `y`, `width`, `height`
 
 **Optional Properties:**
+
 - `src`: Source of the sprite image (asset alias)
 - `anchorX`, `anchorY`: Anchor points (default: 0)
 - `alpha`: Opacity/transparency (0-1, default: 1)
 
 **Events:**
+
 - **click**: Triggered when sprite is clicked
   - `src` (string, optional): Change sprite image
   - `soundSrc` (string, optional): Play sound effect
@@ -393,6 +409,7 @@ Renders image-based sprites with rich interactions.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
+
 ```yaml
 id: character
 type: sprite
@@ -415,14 +432,18 @@ click:
 ```
 
 **Event Data Structure:**
+
 - **Click Event:**
+
 ```yaml
 _event:
   id: character
 # All actionPayload properties are spread directly here
 action: activateHero
 ```
+
 - **Hover Event:**
+
 ```yaml
 _event:
   id: character
@@ -431,12 +452,15 @@ action: hoverHero
 ```
 
 #### Text Plugin
+
 Renders styled text with comprehensive formatting options.
 
 **Required Properties:**
+
 - `id`, `type`, `x`, `y`
 
 **Optional Properties:**
+
 - `content`: Text content to display (default: "")
 - `width`: Width constraint for text wrapping
 - `anchorX`, `anchorY`: Anchor points (default: 0)
@@ -444,6 +468,7 @@ Renders styled text with comprehensive formatting options.
 - `textStyle`: Complete text styling object
 
 **TextStyle Options:**
+
 - `fill`: Text color (default: "black")
 - `fontFamily`: Font family
 - `fontSize`: Font size in pixels (default: 16)
@@ -455,6 +480,7 @@ Renders styled text with comprehensive formatting options.
 - `strokeWidth`: Text outline width
 
 **Events:**
+
 - **click**: Triggered when text is clicked
   - `textStyle` (object, optional): Change text styling
   - `soundSrc` (string, optional): Play sound effect
@@ -466,6 +492,7 @@ Renders styled text with comprehensive formatting options.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
+
 ```yaml
 id: title
 type: text
@@ -493,14 +520,18 @@ click:
 ```
 
 **Event Data Structure:**
+
 - **Click Event:**
+
 ```yaml
 _event:
   id: title
 # All actionPayload properties are spread directly here
 action: clickTitle
 ```
+
 - **Hover Event:**
+
 ```yaml
 _event:
   id: title
@@ -509,12 +540,15 @@ action: hoverTitle
 ```
 
 #### Rectangle Plugin
+
 Creates filled and bordered rectangles with rotation support.
 
 **Required Properties:**
+
 - `id`, `type`, `width`, `height`
 
 **Optional Properties:**
+
 - `x`, `y`: Position (default: 0)
 - `anchorX`, `anchorY`: Anchor points (default: 0)
 - `alpha`: Opacity (0-1, default: 1)
@@ -523,11 +557,13 @@ Creates filled and bordered rectangles with rotation support.
 - `border`: Border styling object
 
 **Border Options:**
+
 - `width`: Border width in pixels (default: 0)
 - `color`: Border color (default: "black")
 - `alpha`: Border opacity (0-1, default: 1)
 
 **Events:**
+
 - **click**: Triggered when rectangle is clicked
   - `soundSrc` (string, optional): Play sound effect
   - `actionPayload` (object, optional): Custom data sent to event handler
@@ -537,6 +573,7 @@ Creates filled and bordered rectangles with rotation support.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
+
 ```yaml
 id: panel
 type: rect
@@ -565,6 +602,7 @@ click:
 For an element with `actionPayload: { action: "clickPanel", panelType: "settings" }`:
 
 - **Click Event:**
+
 ```yaml
 _event:
   id: panel
@@ -573,6 +611,7 @@ panelType: settings
 ```
 
 - **Hover Event:**
+
 ```yaml
 _event:
   id: panel
@@ -581,12 +620,15 @@ panelType: settings
 ```
 
 #### Container Plugin
+
 Groups and manages layout of multiple elements.
 
 **Required Properties:**
+
 - `id`, `type`, `x`, `y`
 
 **Optional Properties:**
+
 - `width`, `height`: Container dimensions (calculated from children if not set)
 - `anchorX`, `anchorY`: Anchor points (must be 0, 0.5, or 1 for containers)
 - `alpha`: Opacity (0-1, default: 1)
@@ -600,10 +642,12 @@ Groups and manages layout of multiple elements.
 **Events:** None
 
 **Layout Directions:**
+
 - `horizontal`: Left-to-right arrangement
 - `vertical`: Top-to-bottom arrangement
 
 **Example:**
+
 ```yaml
 id: menu
 type: container
@@ -631,6 +675,7 @@ children:
 ```
 
 **Message Feed Update Example:**
+
 ```yaml
 states:
   - elements:
@@ -685,12 +730,15 @@ states:
 ```
 
 #### Text Revealing Plugin
+
 Animated text display with typewriter effects.
 
 **Required Properties:**
+
 - `id`, `type`, `x`, `y`
 
 **Optional Properties:**
+
 - `content`: Array of text segments with individual styling
 - `width`: Width constraint for text wrapping
 - `anchorX`, `anchorY`: Anchor points (default: 0)
@@ -701,12 +749,13 @@ Animated text display with typewriter effects.
 - `indicator`: Continuation indicator settings
 
 **Content Structure:**
+
 ```yaml
 content:
   - text: "Hello "
-    textStyle:                     # Optional individual styling
+    textStyle: # Optional individual styling
       fill: red
-    furigana:                      # Optional Japanese annotations
+    furigana: # Optional Japanese annotations
       text: "こ"
       textStyle:
         fontSize: 12
@@ -714,6 +763,7 @@ content:
 ```
 
 **Indicator Options:**
+
 - `revealing`: `src`, `width`, `height` - indicator during animation
 - `complete`: `src`, `width`, `height` - indicator when finished
 - `offset`: Distance between text and indicator (default: 12)
@@ -721,6 +771,7 @@ content:
 **Events:** None (Text Revealing elements do not support events)
 
 **Example:**
+
 ```yaml
 id: story
 type: textRevealing
@@ -738,12 +789,15 @@ revealEffect: typewriter
 ```
 
 #### Slider Plugin
+
 Interactive slider controls for value input.
 
 **Required Properties:**
+
 - `id`, `type`, `x`, `y`, `direction`, `thumbSrc`, `barSrc`
 
 **Optional Properties:**
+
 - `anchorX`, `anchorY`: Anchor points (default: 0)
 - `alpha`: Opacity (0-1, default: 1)
 - `width`, `height`: Slider dimensions
@@ -753,6 +807,7 @@ Interactive slider controls for value input.
 - `initialValue`: Starting value (default: 0)
 
 **Events:**
+
 - **hover**: Triggered when mouse enters/exits slider
   - `thumbSrc` (string, optional): Change thumb sprite image
   - `barSrc` (string, optional): Change bar sprite image
@@ -762,6 +817,7 @@ Interactive slider controls for value input.
   - `actionPayload` (object, optional): Custom data sent to event handler
 
 **Example:**
+
 ```yaml
 id: volumeSlider
 type: slider
@@ -785,8 +841,10 @@ change:
 ```
 
 **Event Data Structure:**
+
 - **Hover Event:** None (slider hover doesn't trigger event data)
 - **Change Event:** For a slider with `actionPayload: { action: "updateVolume" }` and current value of 75:
+
 ```yaml
 _event:
   id: volumeSlider
@@ -801,19 +859,23 @@ Integrated audio system for sound effects and background music.
 ### Sound Plugin Properties
 
 **Required Properties:**
+
 - `id`, `type`, `src`
 
 **Optional Properties:**
+
 - `volume`: Volume level (default: 800, minimum: 0)
 - `loop`: Whether to loop the audio (default: false)
 - `delay`: Delay before playing in milliseconds (default: 0)
 
 **Volume Details:**
+
 - 0 = muted
 - 1000 = original full volume
 - Values above 1000 = amplified (may clip)
 
 **Example:**
+
 ```yaml
 id: bgMusic
 type: sound
@@ -832,9 +894,9 @@ id: button
 type: sprite
 # ... other properties
 hover:
-  soundSrc: file:hover-sound        # Plays on hover
+  soundSrc: file:hover-sound # Plays on hover
 click:
-  soundSrc: file:click-sound        # Plays on click
+  soundSrc: file:click-sound # Plays on click
 ```
 
 ## Animation System
@@ -844,12 +906,15 @@ Keyframe-based animation system for smooth transitions and effects.
 ### Tween Animation Plugin
 
 **Properties:**
+
 - `id`, `targetId`, `type`, `properties`
 
 **Animatable Properties:**
+
 - `alpha`, `x`, `y`, `scaleX`, `scaleY`, `rotation`
 
 **Example:**
+
 ```yaml
 id: fadeSlide
 targetId: myElement
@@ -879,7 +944,7 @@ The plugin system makes it easy to add new element types, animations, or audio h
 ### Element Plugin Creation
 
 ```javascript
-import { createElementPlugin } from 'route-graphics';
+import { createElementPlugin } from "route-graphics";
 
 // Create custom element plugin
 const customPlugin = createElementPlugin({
@@ -911,9 +976,9 @@ const customPlugin = createElementPlugin({
     // Parse JSON element to computed format
     return {
       ...element,
-      parsed: true
+      parsed: true,
     };
-  }
+  },
 });
 
 // Register plugin in your app
@@ -922,18 +987,22 @@ await app.init({
   plugins: {
     elements: [
       // ... existing plugins
-      customPlugin
+      customPlugin,
     ],
-    animations: [/* ... */],
-    audio: [/* ... */]
-  }
+    animations: [
+      /* ... */
+    ],
+    audio: [
+      /* ... */
+    ],
+  },
 });
 ```
 
 ### Animation Plugin Creation
 
 ```javascript
-import { createAnimationPlugin } from 'route-graphics';
+import { createAnimationPlugin } from "route-graphics";
 
 const customAnimationPlugin = createAnimationPlugin({
   type: "myCustomAnimation",
@@ -942,7 +1011,7 @@ const customAnimationPlugin = createAnimationPlugin({
     return {
       animation,
       startTime: Date.now(),
-      active: true
+      active: true,
     };
   },
   update: ({ animation, app, animationData }) => {
@@ -957,14 +1026,14 @@ const customAnimationPlugin = createAnimationPlugin({
   delete: ({ animation, app, animationData }) => {
     // Animation cleanup logic
     // Stop any ongoing animations
-  }
+  },
 });
 ```
 
 ### Audio Plugin Creation
 
 ```javascript
-import { createAudioPlugin } from 'route-graphics';
+import { createAudioPlugin } from "route-graphics";
 
 const customAudioPlugin = createAudioPlugin({
   type: "myCustomAudio",
@@ -973,7 +1042,7 @@ const customAudioPlugin = createAudioPlugin({
     return {
       audio,
       startTime: Date.now(),
-      playing: true
+      playing: true,
     };
   },
   update: ({ audio, app, audioData }) => {
@@ -985,7 +1054,7 @@ const customAudioPlugin = createAudioPlugin({
   delete: ({ audio, app, audioData }) => {
     // Audio cleanup logic
     // Stop audio playback
-  }
+  },
 });
 ```
 
@@ -1015,10 +1084,12 @@ const parsedElements = parseElements({
 ### Parser Function Properties
 
 **Parameters:**
+
 - `state`: The raw JSON element definition from the input
 - `parserPlugins`: Array of available parser plugins (useful for nested elements like containers)
 
 **Returns:**
+
 - Computed node with processed properties ready for rendering
 
 ### Parser Function Example
@@ -1027,7 +1098,7 @@ const parsedElements = parseElements({
 const parseMyElement = ({ state, parserPlugins }) => {
   // Validate required properties
   if (!state.id || !state.type) {
-    throw new Error('Missing required properties');
+    throw new Error("Missing required properties");
   }
 
   // Apply defaults and type conversion
@@ -1041,7 +1112,7 @@ const parseMyElement = ({ state, parserPlugins }) => {
     // Custom property with default
     customProperty: state.customProperty ?? "default",
     // Example: Hex color to number conversion
-    color: state.color ? parseInt(state.color.replace('#', ''), 16) : 0x000000,
+    color: state.color ? parseInt(state.color.replace("#", ""), 16) : 0x000000,
   };
 };
 ```
@@ -1057,7 +1128,7 @@ Route Graphics uses a sophisticated asset management system with aliasing.
 Load assets using the `createAssetBufferManager`:
 
 ```javascript
-import { createAssetBufferManager } from 'route-graphics';
+import { createAssetBufferManager } from "route-graphics";
 
 // Define assets with URL and type
 const assets = {
@@ -1067,7 +1138,7 @@ const assets = {
   },
   "background-image": {
     url: "./assets/background.jpg",
-    type: "image/jpeg"
+    type: "image/jpeg",
   },
   "bg-music": {
     url: "./audio/background.mp3",
@@ -1075,8 +1146,8 @@ const assets = {
   },
   "click-sound": {
     url: "./audio/click.wav",
-    type: "audio/wav"
-  }
+    type: "audio/wav",
+  },
 };
 
 // Load assets using asset buffer manager
@@ -1218,7 +1289,6 @@ audio:
     volume: 600
     loop: true
 ```
-
 
 ## Schemas
 
