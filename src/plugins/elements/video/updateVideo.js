@@ -1,5 +1,9 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import {
+  clearVideoPlaybackTracking,
+  syncVideoPlaybackTracking,
+} from "./playbackTracking.js";
 
 /**
  * Update video element
@@ -34,46 +38,41 @@ export const updateVideo = ({
       videoElement.height = Math.round(height);
       videoElement.alpha = alpha ?? 1;
 
+      let activeVideo = videoElement.texture.source.resource;
+
       if (prevElement.src !== nextElement.src) {
-        const oldVideo = videoElement.texture.source.resource;
+        const oldVideo = activeVideo;
+        clearVideoPlaybackTracking({
+          videoElement,
+          video: oldVideo,
+        });
+
         if (oldVideo) {
-          if (videoElement._videoEndedListener) {
-            oldVideo.removeEventListener(
-              "ended",
-              videoElement._videoEndedListener,
-            );
-          }
           oldVideo.pause();
         }
 
         const newTexture = Texture.from(nextElement.src);
         videoElement.texture = newTexture;
+        activeVideo = newTexture.source.resource;
 
-        const newVideo = newTexture.source.resource;
-
-        // Track playback completion for non-looping videos
-        let playbackStateVersion = null;
-        if (!(nextElement.loop ?? false)) {
-          playbackStateVersion = completionTracker.getVersion();
-          completionTracker.track(playbackStateVersion);
-        }
-
-        const onEnded = () => {
-          if (playbackStateVersion !== null) {
-            completionTracker.complete(playbackStateVersion);
-          }
-        };
-        newVideo.addEventListener("ended", onEnded);
-        videoElement._videoEndedListener = onEnded;
-        videoElement._playbackStateVersion = playbackStateVersion;
-
-        newVideo.muted = false;
-        newVideo.pause();
-        newVideo.currentTime = 0;
-        newVideo.play();
+        activeVideo.muted = false;
+        activeVideo.pause();
+        activeVideo.currentTime = 0;
       }
-      videoElement.texture.source.resource.volume = nextElement.volume / 1000;
-      videoElement.texture.source.resource.loop = nextElement.loop ?? false;
+
+      syncVideoPlaybackTracking({
+        videoElement,
+        video: activeVideo,
+        loop: nextElement.loop,
+        completionTracker,
+      });
+
+      activeVideo.volume = nextElement.volume / 1000;
+      activeVideo.loop = nextElement.loop ?? false;
+
+      if (prevElement.src !== nextElement.src) {
+        activeVideo.play();
+      }
     }
   };
 

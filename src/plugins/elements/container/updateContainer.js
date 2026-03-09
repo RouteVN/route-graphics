@@ -43,10 +43,15 @@ export const updateContainer = ({
       containerElement.removeAllListeners("pointerout");
       containerElement.removeAllListeners("pointerup");
       containerElement.removeAllListeners("rightclick");
+      containerElement.eventMode = "auto";
+      containerElement.cursor = "auto";
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
+      const hasPointerInteraction = Boolean(
+        hoverEvents || clickEvents || rightClickEvents,
+      );
 
       if (hoverEvents) {
         const { cursor, soundSrc, actionPayload } = hoverEvents;
@@ -150,6 +155,10 @@ export const updateContainer = ({
           interactive: !!nextElement.scroll,
           allowViewportWithoutScroll: !!nextElement.anchorToBottom,
         });
+      }
+
+      if (!nextElement.scroll && hasPointerInteraction) {
+        containerElement.eventMode = "static";
       }
     }
 

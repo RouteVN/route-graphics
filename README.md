@@ -99,7 +99,7 @@ Parse elements from state object using registered parser plugins (without render
 Update the canvas background color.
 
 **Parameters:**
-- `color` (string) - New background color as hex (e.g., `"0xffffff"`)
+- `color` (number) - New background color as hex (e.g., `0xffffff`)
 
 **Returns:** `void`
 
@@ -116,12 +116,12 @@ Find an element in the stage by its label.
 
 ---
 
-#### `extractBase64(element)`
+#### `extractBase64(label)`
 
 Extract a base64 representation of an element.
 
 **Parameters:**
-- `element` (DisplayObject) - Element to extract
+- `label` (string, optional) - Label of the element to extract. Omit to extract the full stage.
 
 **Returns:** `Promise<string>` - Base64 string
 
@@ -263,11 +263,13 @@ app.render({
       width: 64,
       height: 64,
       hover: {
-        imageSrc: "file:circle-blue",
+        src: "file:circle-blue",
         soundSrc: "file:hover-sound"
       },
       click: {
-        action: "handleClick",
+        actionPayload: {
+          action: "handleClick"
+        },
         soundSrc: "file:click-sound"
       }
     }
