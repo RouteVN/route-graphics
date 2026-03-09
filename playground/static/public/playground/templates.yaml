@@ -217,7 +217,7 @@
         type: text
         x: 40
         y: 328
-        content: "Events are logged in the browser console"
+        content: "Events are recorded in the playground event log"
         textStyle:
           fill: "#D9D9D9"
           fontSize: 14
@@ -321,6 +321,77 @@
         textStyle:
           fill: "#D9D9D9"
           fontSize: 16
+
+- id: video-demo
+  name: Video Demo
+  description: Video playback with a non-looping intro followed by a looping ambient clip.
+  content:
+    - elements:
+        - id: stage-bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#000000"
+        - id: title
+          type: text
+          x: 40
+          y: 36
+          content: "Video Demo"
+          textStyle:
+            fill: "#FFFFFF"
+            fontSize: 30
+        - id: video-preview
+          type: video
+          x: 40
+          y: 92
+          width: 720
+          height: 405
+          src: video-sample
+          volume: 0
+          loop: false
+        - id: caption
+          type: text
+          x: 40
+          y: 530
+          content: "State 1 tracks a non-looping sample and should emit renderComplete after playback ends."
+          textStyle:
+            fill: "#D9D9D9"
+            fontSize: 16
+    - elements:
+        - id: stage-bg
+          type: rect
+          x: 0
+          y: 0
+          width: 1280
+          height: 720
+          fill: "#000000"
+        - id: title
+          type: text
+          x: 40
+          y: 36
+          content: "Video Demo"
+          textStyle:
+            fill: "#FFFFFF"
+            fontSize: 30
+        - id: video-preview
+          type: video
+          x: 40
+          y: 92
+          width: 720
+          height: 405
+          src: video-sample-2
+          volume: 0
+          loop: true
+        - id: caption
+          type: text
+          x: 40
+          y: 530
+          content: "State 2 swaps to a looping clip so renderComplete fires immediately after render."
+          textStyle:
+            fill: "#D9D9D9"
+            fontSize: 16
 
 - id: animations-showcase
   name: Animation Showcase
@@ -887,7 +958,7 @@
         type: text
         x: 40
         y: 176
-        content: "Keyboard and interaction payloads are logged in console"
+        content: "Keyboard and interaction payloads are logged in the event log"
         textStyle:
           fill: "#D9D9D9"
           fontSize: 14

@@ -14,22 +14,36 @@ title: Route-Graphics Playground
             - select#template-select:
                 - option value="": "Select template"
         - rtgl-view d=h sm-d=v w=f h=1fg g=lg p=md:
-            - rtgl-view w=1fg h=f:
-                - rtgl-text s=lg: "Template (YAML):"
+            - rtgl-view w=1fg h=f g=sm:
+                - rtgl-view w="f" av=c d=h:
+                    - rtgl-text s=lg: "Template (YAML):"
+                    - rtgl-view w=1fg:
+                    - rtgl-button#reset-template-button s=sm v=se: "Reset"
+                    - rtgl-button#copy-yaml-button s=sm v=se: "Copy YAML"
+                    - rtgl-button#share-link-button s=sm v=se: "Share Link"
                 - div class="highlighted-textarea":
                     - textarea#input-template spellcheck="false" placeholder="Enter your YAML here with {elements, animations, audio}..." rows="10" cols="50":
                     - pre#highlighted-input-template aria-hidden="true":
                         - code#highlighted-input-template-content class="language-yaml":
 
-            - rtgl-view w=1fg h=f:
+            - rtgl-view w=1fg h=f g=sm:
                 - rtgl-view w="f" av=c d=h:
                     - rtgl-text s="lg": "Visual Output:"
+                    - rtgl-text#runtime-source s=sm c=muted-fg:
                     - rtgl-view w=1fg:
                     - rtgl-view d="h" g=sm:
                         - rtgl-button#prev-button s=sm v=se: "Previous"
                         - span#state-indicator:
                         - rtgl-button#next-button s=sm v=se: "Next"
-                - rtgl-view#output-canvas w=f h=f:
+                - rtgl-view#output-canvas w=f h=1fg:
                     - rtgl-view#error-overlay class="error-overlay":
                         - rtgl-text s="lg" c="red": "Error:"
                         - rtgl-text#error-message:
+                - rtgl-view class="event-log-panel" w=f:
+                    - rtgl-view w="f" av=c d=h class="event-log-header":
+                        - rtgl-text s=lg: "Event Log"
+                        - rtgl-view w=1fg:
+                        - rtgl-button#clear-events-button s=sm v=se: "Clear"
+                    - div#event-log-empty class="event-log-empty":
+                        - "No events yet. Interact with the preview or use keyboard shortcuts."
+                    - div#event-log class="event-log":

@@ -480,6 +480,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} [cursorStyles.hover] - Hover cursor style
  * @property {string} [cursorStyles.disabled] - Disabled cursor style
  * @property {string} [cursorStyles.loading] - Loading cursor style
+ * @property {Object<string, {actionPayload?: Object}>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
  */
 
 /**
