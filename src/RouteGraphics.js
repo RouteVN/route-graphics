@@ -112,7 +112,7 @@ const createRouteGraphics = () => {
   let eventHandler;
 
   /**
-   * @type {RouteGraphicsPlugins[]}
+   * @type {RouteGraphicsPlugins & { parsers: Function[] }}
    */
   let plugins = {
     animations: [],
@@ -166,6 +166,18 @@ const createRouteGraphics = () => {
    * @type {Set<string>}
    */
   const videoBlobUrls = new Set();
+
+  /**
+   * Visible stage background graphic.
+   * @type {Graphics|undefined}
+   */
+  let backgroundGraphic;
+
+  const drawBackgroundGraphic = (graphic, width, height, color) => {
+    graphic.clear();
+    graphic.rect(0, 0, width, height);
+    graphic.fill(color ?? 0x000000);
+  };
 
   /**
    * Classify asset by type
@@ -319,15 +331,7 @@ const createRouteGraphics = () => {
     },
 
     findElementByLabel: (targetLabel) => {
-      if (app.stage.children && app.stage.children.length > 0) {
-        for (const child of app.stage.children) {
-          const found = findElementByLabel(child, targetLabel);
-          if (found) {
-            return found;
-          }
-        }
-      }
-      return null;
+      return app.stage.getChildByLabel(targetLabel, true) ?? null;
     },
 
     extractBase64: async (label) => {
@@ -403,10 +407,10 @@ const createRouteGraphics = () => {
       });
       app.debug = debug;
 
-      const graphics = new Graphics();
-      graphics.rect(0, 0, width, height);
-      graphics.fill(backgroundColor || 0x000000);
-      app.stage.addChild(graphics);
+      backgroundGraphic = new Graphics();
+      backgroundGraphic.label = "__route_graphics_background__";
+      drawBackgroundGraphic(backgroundGraphic, width, height, backgroundColor);
+      app.stage.addChild(backgroundGraphic);
       app.stage.width = width;
       app.stage.height = height;
       app.ticker.add(app.audioStage.tick);
@@ -459,6 +463,7 @@ const createRouteGraphics = () => {
       }
 
       if (app) app.destroy();
+      backgroundGraphic = undefined;
       if (advancedLoader) {
         extensions.remove(advancedLoader);
         advancedLoader = undefined;
@@ -568,10 +573,18 @@ const createRouteGraphics = () => {
 
     /**
      *
-     * @param {string} color
+     * @param {number} color
      */
     updatedBackgroundColor: (color) => {
       app.renderer.background.color = color;
+      if (backgroundGraphic) {
+        drawBackgroundGraphic(
+          backgroundGraphic,
+          app.renderer.width,
+          app.renderer.height,
+          color,
+        );
+      }
     },
 
     /**

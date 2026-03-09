@@ -496,16 +496,18 @@ export const DEFAULT_TEXT_STYLE = {
  * @typedef {Object} RouteGraphicsInitOptions
  * @property {number} width - Width of the renderer
  * @property {number} height - Height of the renderer
- * @property {string} backgroundColor - Background color of the renderer
- * @property {Function} eventHandler - Event handler function
- * @property {BaseRendererPlugin[]} plugins - Array of renderer plugins
+ * @property {number} [backgroundColor] - Background color of the renderer as a hex number
+ * @property {Function} [eventHandler] - Event handler function
+ * @property {RouteGraphicsPlugins} [plugins] - Plugin groups to register
+ * @property {boolean} [debug] - Whether debug mode is enabled
+ * @property {Function} [onFirstRender] - Callback fired after the first render completes
  */
 
 /**
  * @typedef {Object} RouteGraphicsPlugins
- * @property {import('./plugins/elements/elementPlugin').ElementPlugin[]} elementPlugins
- * @property {import('./plugins/animations/animationPlugin').AnimationPlugin[]} animationPlugins
- * @property {import('./plugins/audio/audioPlugin').AudioPlugin[]} audioPlugins
+ * @property {import('./plugins/elements/elementPlugin').ElementPlugin[]} [elements]
+ * @property {import('./plugins/animations/animationPlugin').AnimationPlugin[]} [animations]
+ * @property {import('./plugins/audio/audioPlugin').AudioPlugin[]} [audio]
  */
 
 /**

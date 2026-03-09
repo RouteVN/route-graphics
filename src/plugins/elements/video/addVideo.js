@@ -1,4 +1,5 @@
-import { Texture, Sprite, Assets } from "pixi.js";
+import { Texture, Sprite } from "pixi.js";
+import { syncVideoPlaybackTracking } from "./playbackTracking.js";
 
 /**
  * Add video element to the stage
@@ -25,33 +26,26 @@ export const addVideo = ({
   video.volume = volume / 1000;
   video.muted = false;
 
-  // Track playback completion for non-looping videos
-  let playbackStateVersion = null;
-  if (!(loop ?? false)) {
-    playbackStateVersion = completionTracker.getVersion();
-    completionTracker.track(playbackStateVersion);
-  }
-
-  const onEnded = () => {
-    if (playbackStateVersion !== null) {
-      completionTracker.complete(playbackStateVersion);
-    }
-  };
-  video.addEventListener("ended", onEnded);
-
-  video.play();
-
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
-  sprite._videoEndedListener = onEnded;
-  sprite._playbackStateVersion = playbackStateVersion;
+  sprite._videoEndedListener = undefined;
+  sprite._playbackStateVersion = null;
 
   sprite.x = Math.round(x);
   sprite.y = Math.round(y);
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha ?? 1;
+
+  syncVideoPlaybackTracking({
+    videoElement: sprite,
+    video,
+    loop,
+    completionTracker,
+  });
+
+  video.play();
 
   parent.addChild(sprite);
 

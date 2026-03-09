@@ -68,6 +68,56 @@ describe("updateContainer", () => {
     expect(renderElements.mock.calls[0][0].parent).toBe(containerElement);
   });
 
+  it("keeps pointer interactivity when scroll is toggled off", () => {
+    const parent = new Container();
+    const containerElement = new Container();
+    containerElement.label = "container-1";
+    parent.addChild(containerElement);
+
+    updateContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      prevElement: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        width: 200,
+        height: 200,
+        alpha: 1,
+        scroll: true,
+        children: [],
+      },
+      nextElement: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        width: 200,
+        height: 200,
+        alpha: 1,
+        scroll: false,
+        children: [],
+        hover: {
+          actionPayload: { source: "hover" },
+        },
+      },
+      eventHandler: vi.fn(),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(containerElement.eventMode).toBe("static");
+  });
+
   it("rebuilds scrolling and anchors to bottom when messages are appended", () => {
     const parent = new Container();
     const containerElement = new Container();
