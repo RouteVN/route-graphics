@@ -36,8 +36,11 @@ const destroyDisplayObject = (parent, displayObject) => {
   displayObject.destroy({ children: true });
 };
 
+const getLocalBoundsRectangle = (displayObject) =>
+  displayObject.getLocalBounds().rectangle.clone();
+
 const createSnapshotSubject = (app, displayObject) => {
-  const frame = displayObject.getLocalBounds().clone();
+  const frame = getLocalBoundsRectangle(displayObject);
   const texture = app.renderer.generateTexture({
     target: displayObject,
     frame,
@@ -242,7 +245,7 @@ const createDissolveOverlay = (
   const boundsContainer = new Container();
   boundsContainer.addChild(prevSubject.wrapper);
   boundsContainer.addChild(nextSubject.wrapper);
-  const unionBounds = boundsContainer.getLocalBounds().clone();
+  const unionBounds = getLocalBoundsRectangle(boundsContainer);
 
   const prevCaptureRoot = new Container();
   prevCaptureRoot.addChild(prevSubject.wrapper);
@@ -300,7 +303,7 @@ const createDissolveOverlay = (
           textures.length - 1,
           Math.max(0, Math.round(progress * (textures.length - 1))),
         );
-        filter.resources.uMaskTexture = Texture.from(textures[index]);
+        filter.setMaskTexture(Texture.from(textures[index]));
       }
     },
     destroy: () => {

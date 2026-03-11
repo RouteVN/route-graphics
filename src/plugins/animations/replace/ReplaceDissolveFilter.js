@@ -119,8 +119,8 @@ export class ReplaceDissolveFilter extends Filter {
       glProgram,
       resources: {
         replaceUniforms: uniforms,
-        uNextTexture: nextTexture,
-        uMaskTexture: maskTexture,
+        uNextTexture: nextTexture.source,
+        uMaskTexture: maskTexture.source,
       },
     });
 
@@ -129,6 +129,10 @@ export class ReplaceDissolveFilter extends Filter {
 
   setProgress(value) {
     this.resources.replaceUniforms.uniforms.uProgress = value;
+  }
+
+  setMaskTexture(texture) {
+    this.resources.uMaskTexture = texture.source;
   }
 }
 
