@@ -118,9 +118,8 @@ states:
 ## Current Replace Rules
 
 - `mask` is replace-only.
-- `shader` is replace-only.
-- `shader` currently requires `mask`.
-- subject property animation cannot currently be combined with `mask` or `shader` in one replace animation.
+- custom shader-backed replace is not supported right now.
+- subject property animation cannot currently be combined with `mask` in one replace animation.
 
 The design notes live in:
 

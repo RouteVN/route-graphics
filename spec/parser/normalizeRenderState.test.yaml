@@ -98,7 +98,7 @@ in:
                 value: 20
 throws: "animations[0].operation must be a non-empty string."
 ---
-case: Throw when replace shader is missing mask
+case: Throw when replace shader is provided
 in:
   - id: "state-3b"
     animations:
@@ -107,7 +107,7 @@ in:
         operation: "replace"
         shader:
           name: "burn-dissolve"
-throws: "animations[0].shader currently requires animations[0].mask."
+throws: "animations[0].shader is not supported."
 ---
 case: Throw when animations is not an array
 in:

@@ -214,20 +214,6 @@ const normalizeMask = (mask, path) => {
   return normalized;
 };
 
-const normalizeShader = (shader, path) => {
-  assertPlainObject(shader, path);
-  assertString(shader.name, `${path}.name`);
-
-  if (shader.uniforms !== undefined) {
-    assertPlainObject(shader.uniforms, `${path}.uniforms`);
-  }
-
-  return {
-    name: shader.name,
-    ...(shader.uniforms ? { uniforms: shader.uniforms } : {}),
-  };
-};
-
 const normalizeSubjects = (subjects, path) => {
   assertPlainObject(subjects, path);
 
@@ -286,6 +272,10 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.complete = animation.complete;
     }
 
+    if (animation.shader !== undefined) {
+      throw new Error(`${path}.shader is not supported.`);
+    }
+
     if (LIVE_OPERATIONS.has(animation.operation)) {
       normalizedAnimation.properties = normalizePropertyMap(
         animation.properties,
@@ -300,9 +290,6 @@ export const normalizeAnimations = (animations = []) => {
       }
       if (animation.mask !== undefined) {
         throw new Error(`${path}.mask is only valid for replace animations.`);
-      }
-      if (animation.shader !== undefined) {
-        throw new Error(`${path}.shader is only valid for replace animations.`);
       }
 
       return normalizedAnimation;
@@ -325,20 +312,12 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.mask = normalizeMask(animation.mask, `${path}.mask`);
     }
 
-    if (animation.shader !== undefined) {
-      normalizedAnimation.shader = normalizeShader(
-        animation.shader,
-        `${path}.shader`,
-      );
-    }
-
     if (
       normalizedAnimation.subjects === undefined &&
-      normalizedAnimation.mask === undefined &&
-      normalizedAnimation.shader === undefined
+      normalizedAnimation.mask === undefined
     ) {
       throw new Error(
-        `${path} replace animations must define subjects, mask, or shader.`,
+        `${path} replace animations must define subjects or mask.`,
       );
     }
 
@@ -346,17 +325,10 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.subjects?.prev?.properties !== undefined ||
       normalizedAnimation.subjects?.next?.properties !== undefined;
 
-    if (
-      (normalizedAnimation.mask || normalizedAnimation.shader) &&
-      hasSubjectProperties
-    ) {
+    if (normalizedAnimation.mask && hasSubjectProperties) {
       throw new Error(
-        `${path} cannot combine subject property animation with mask or shader replace.`,
+        `${path} cannot combine subject property animation with mask replace.`,
       );
-    }
-
-    if (normalizedAnimation.shader && !normalizedAnimation.mask) {
-      throw new Error(`${path}.shader currently requires ${path}.mask.`);
     }
 
     return normalizedAnimation;

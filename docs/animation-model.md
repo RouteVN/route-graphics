@@ -11,7 +11,7 @@ See also:
 Define one animation model that can express both:
 
 - normal element animation during play
-- visual replacement effects such as push, wipe, rule dissolve, and shader-based scene changes
+- visual replacement effects such as push, wipe, and rule dissolve
 
 This keeps the core renderer small and general-purpose while still supporting VN-style transitions.
 
@@ -23,8 +23,9 @@ Current known replace limitations are:
 
 - `animated-sprite` replace still needs async setup support
 - `text-revealing` replace still needs a pure fully-resolved builder
-- subject transforms cannot yet be combined with `mask` or `shader` in one
-  replace animation
+- subject transforms cannot yet be combined with `mask` in one replace
+  animation
+- custom shader-backed replace is intentionally not supported for now
 
 These are tracked in the "Immediate Next Steps" section of
 `docs/animation-implementation-plan.md`.
@@ -118,7 +119,6 @@ Use this for:
 - slide
 - wipe
 - rule dissolve
-- shader-based replacement effects
 - replacing one portrait with another while keeping the same `targetId`
 
 ## Property Timelines
@@ -198,9 +198,8 @@ animations:
 - `subjects.prev.properties`
 - `subjects.next.properties`
 - `mask`
-- `shader`
 
-`mask` and `shader` are only valid when `operation` is `replace`.
+`mask` is only valid when `operation` is `replace`.
 
 ### Replace Push Example
 
@@ -336,39 +335,6 @@ animations:
             easing: "linear"
 ```
 
-## Shader
-
-Shader is an optional replace-only primitive.
-
-It should be used as the escape hatch for custom compositing or stylized reveals.
-
-### Shader Example
-
-```yaml
-animations:
-  - id: "scene-burn"
-    targetId: "scene-root"
-    operation: "replace"
-    mask:
-      kind: "single"
-      texture: "masks/spiral-07.png"
-      channel: "red"
-      softness: 0.1
-      progress:
-        initialValue: 0
-        keyframes:
-          - duration: 1000
-            value: 1
-            easing: "linear"
-    shader:
-      name: "burn-dissolve"
-      uniforms:
-        lowColor: [0.08, 0.02, 0.02]
-        midColor: [1.0, 0.9, 0.4]
-        highColor: [0.8, 0.2, 0.0]
-        maxColor: [1.0, 0.3, 0.0]
-```
-
 ## Validation Rules
 
 - `enter` requires the target to exist only in the next state
@@ -376,7 +342,6 @@ animations:
 - `update` requires the target to exist in both states
 - `replace` requires the target to exist in both states
 - `mask` is only valid for `replace`
-- `shader` is only valid for `replace`
 
 ## Summary
 

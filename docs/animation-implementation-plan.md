@@ -6,7 +6,7 @@ Last updated: 2026-03-12
 
 Move from the current `type: tween` live-object animation system to the new
 `animations[]` model with required `operation`, same-id `replace`, mask-based
-reveal, and shader-based replacement effects.
+reveal, and same-id replacement effects.
 
 This will be done as a hard cutover. No backward compatibility layer will be
 kept for the old public `type: tween` shape.
@@ -36,7 +36,6 @@ Current architectural limits:
 - no way to represent same-id `replace`
 - no way to keep `prev` and `next` visuals alive at the same time
 - no mask pipeline
-- no shader pipeline for replacement
 - animation dispatch logic is duplicated across every element plugin
 
 Primary files involved today:
@@ -65,7 +64,7 @@ Target public model:
   - `replace`
 - `update` uses one live display object
 - `replace` uses `prev` and `next` subjects for the same `targetId`
-- `mask` and `shader` are valid only for `replace`
+- `mask` is valid only for `replace`
 - mask kinds are:
   - `single`
   - `sequence`
@@ -110,7 +109,6 @@ Work:
   - `replace`
   - replace-only `subjects`
   - replace-only `mask`
-  - replace-only `shader`
 - update `normalizeRenderState` to validate only the new shape
 
 Files likely touched:
@@ -224,7 +222,7 @@ Why texture-backed replace first:
 
 - it avoids keeping two full live trees wired to events
 - it matches VN-style scene and portrait transitions
-- it is the cleanest base for mask and shader composition
+- it is the cleanest base for mask composition
 
 ## Step 5: Add Replace Subject Properties
 
@@ -283,30 +281,7 @@ Reason:
 - `sequence` and `composite` are useful, but they are not required to validate
   the architecture
 
-## Step 7: Add Shader Hook
-
-Goal:
-
-- support styled replacement effects without bloating the core API
-
-Work:
-
-- add optional `shader` support on `replace`
-- start with named built-ins plus uniforms
-- do not start with arbitrary user-provided GLSL
-
-Suggested first use:
-
-- burn dissolve
-- shine dissolve
-
-Why:
-
-- this matches the external VN pack use case closely
-- it gives flexibility without turning the public API into a shader authoring
-  system
-
-## Step 8: Broaden Element-Type Support
+## Step 7: Broaden Element-Type Support
 
 Goal:
 
@@ -328,7 +303,7 @@ Important:
 - that is better than pretending all types behave identically and shipping
   unstable behavior
 
-## Step 9: Update All Public Assets In The Same Branch
+## Step 8: Update All Public Assets In The Same Branch
 
 Goal:
 
@@ -378,8 +353,6 @@ Use VT to validate at least:
 - push and slide geometry transitions
 - crossfade and fade-through-color
 - single-mask dissolve edge quality
-- shader-based replace effects once added
-
 Relevant repo commands:
 
 - `bun run vt:screenshot`
@@ -417,9 +390,8 @@ Recommended merge sequence:
 4. replace MVP
 5. geometry-style replace properties
 6. single-mask dissolve
-7. shader hook
-8. broader type coverage
-9. public docs and playground update completion
+7. broader type coverage
+8. public docs and playground update completion
 
 This order keeps the implementation coherent inside one migration branch while
 still respecting runtime dependencies.
@@ -466,17 +438,16 @@ What to change:
 
 This is the required base step for `text-revealing` replace support.
 
-### 3. Unify Subject Transforms With Mask And Shader Replace
+### 3. Unify Subject Transforms With Mask Replace
 
 Current problem:
 
 - replace currently has two separate paths:
   - subject transforms
-  - mask or shader dissolve
-- the mask/shader path bakes `prev` and `next` into textures once, so there is
+  - mask dissolve
+- the mask path bakes `prev` and `next` into textures once, so there is
   no live subject motion left to animate
-- because of that, subject transforms and mask/shader are currently mutually
-  exclusive
+- because of that, subject transforms and mask are currently mutually exclusive
 
 What to change:
 
@@ -485,7 +456,7 @@ What to change:
 - apply subject property tracks every frame
 - re-render the current `prev` and `next` subjects into intermediate textures
   every frame
-- feed those textures into the dissolve filter
+- feed those textures into the mask dissolve filter
 
 This unlocks:
 

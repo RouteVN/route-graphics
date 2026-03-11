@@ -154,16 +154,6 @@ $defs:
         then:
           required:
             - items
-  shader:
-    type: object
-    required:
-      - name
-    properties:
-      name:
-        type: string
-      uniforms:
-        type: object
-    additionalProperties: false
 properties:
   id:
     type: string
@@ -194,8 +184,6 @@ properties:
     minProperties: 1
   mask:
     $ref: "#/$defs/mask"
-  shader:
-    $ref: "#/$defs/shader"
 allOf:
   - if:
       properties:
@@ -208,7 +196,6 @@ allOf:
         anyOf:
           - required: [subjects]
           - required: [mask]
-          - required: [shader]
   - if:
       properties:
         operation:
@@ -219,15 +206,8 @@ allOf:
       anyOf:
         - required: [subjects]
         - required: [mask]
-        - required: [shader]
       allOf:
-        - if:
-            required: [shader]
-          then:
-            required: [mask]
         - not:
             allOf:
-              - anyOf:
-                  - required: [mask]
-                  - required: [shader]
+              - required: [mask]
               - required: [subjects]

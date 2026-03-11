@@ -278,7 +278,6 @@ const createDissolveOverlay = (
     nextTexture,
     maskTexture: maskTexture ?? Texture.EMPTY,
     mask: animation.mask,
-    shader: animation.shader,
   });
 
   sprite.filters = [filter];
@@ -421,17 +420,10 @@ export const runReplaceAnimation = ({
   }
 
   if (
-    (animation.mask || animation.shader) &&
-    hasAnimatedSubjectProperties(animation)
+    animation.mask && hasAnimatedSubjectProperties(animation)
   ) {
     throw new Error(
-      `Animation "${animation.id}" cannot combine subject transforms with mask/shader replace yet.`,
-    );
-  }
-
-  if (animation.shader && !animation.mask) {
-    throw new Error(
-      `Animation "${animation.id}" must provide a mask when using shader-based replace.`,
+      `Animation "${animation.id}" cannot combine subject transforms with mask replace yet.`,
     );
   }
 
@@ -470,7 +462,7 @@ export const runReplaceAnimation = ({
   nextDisplayObject.visible = false;
 
   const replaceOverlay =
-    animation.mask || animation.shader
+    animation.mask
       ? createDissolveOverlay(app, animation, prevSubject, nextSubject, zIndex)
       : createSubjectOverlay(app, animation, prevSubject, nextSubject, zIndex);
 
