@@ -17,7 +17,22 @@ const createPixiModuleMock = () => {
 
     addChild(child) {
       this.children.push(child);
+      child.parent = this;
       return child;
+    }
+
+    removeChild(child) {
+      this.children = this.children.filter((candidate) => candidate !== child);
+      if (child) child.parent = null;
+      return child;
+    }
+
+    removeFromParent() {
+      this.parent?.removeChild(this);
+    }
+
+    destroy() {
+      this.destroyed = true;
     }
 
     on() {
@@ -40,6 +55,53 @@ const createPixiModuleMock = () => {
     fill(value) {
       this.lastFill = value;
       return this;
+    }
+  }
+
+  class MockContainer extends MockDisplayObject {
+    constructor(label = null) {
+      super(label);
+      this.scale = { x: 1, y: 1, set: vi.fn() };
+      this.rotation = 0;
+      this.sortableChildren = false;
+    }
+
+    getLocalBounds() {
+      return {
+        x: 0,
+        y: 0,
+        width: this.width || 1,
+        height: this.height || 1,
+        clone() {
+          return { ...this, clone: this.clone };
+        },
+      };
+    }
+  }
+
+  class MockSprite extends MockDisplayObject {
+    constructor(texture = null) {
+      super();
+      this.texture = texture;
+      this.scale = { x: 1, y: 1, set: vi.fn() };
+      this.rotation = 0;
+      this.filters = [];
+    }
+  }
+
+  class MockFilter {}
+
+  class MockUniformGroup {
+    constructor(uniforms) {
+      this.uniforms = Object.fromEntries(
+        Object.entries(uniforms).map(([key, entry]) => [key, entry.value]),
+      );
+    }
+  }
+
+  class MockGlProgram {
+    static from(config) {
+      return config;
     }
   }
 
@@ -78,6 +140,10 @@ const createPixiModuleMock = () => {
         events: {},
         width: 0,
         height: 0,
+        generateTexture: vi.fn(() => ({
+          destroy: vi.fn(),
+          source: { resource: { width: 1, height: 1 } },
+        })),
         extract: {
           base64: vi.fn(),
         },
@@ -111,7 +177,21 @@ const createPixiModuleMock = () => {
     ExtensionType: {
       Asset: "asset",
     },
-    Texture: class MockTexture {},
+    Container: MockContainer,
+    Sprite: MockSprite,
+    Filter: MockFilter,
+    GlProgram: MockGlProgram,
+    UniformGroup: MockUniformGroup,
+    defaultFilterVert: "void main() {}",
+    Texture: class MockTexture {
+      static EMPTY = {};
+      static from() {
+        return {
+          source: { resource: { width: 1, height: 1 } },
+          destroy: vi.fn(),
+        };
+      }
+    },
     Rectangle: class MockRectangle {},
     __getLastApplication: () => lastApplication,
   };

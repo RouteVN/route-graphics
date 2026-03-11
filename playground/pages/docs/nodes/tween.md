@@ -1,11 +1,11 @@
 ---
 template: docs-documentation
-title: Tween Node
+title: Animation Node
 tags: documentation
 sidebarId: node-tween
 ---
 
-`tween` is the built-in animation node used to interpolate display-object properties.
+`animations[]` is the built-in state animation surface. Every animation now declares a required `operation` so the renderer knows whether it is handling an enter, update, exit, or same-id replace.
 
 Try it in the [Playground](/playground/?template=animations-showcase).
 
@@ -15,15 +15,27 @@ Try it in the [Playground](/playground/?template=animations-showcase).
 
 ## Field Reference
 
-| Field        | Type   | Required | Default | Notes                                                                         |
-| ------------ | ------ | -------- | ------- | ----------------------------------------------------------------------------- |
-| `id`         | string | Yes      | -       | Animation id.                                                                 |
-| `targetId`   | string | Yes      | -       | Must match an element id in the same render state.                            |
-| `type`       | string | Yes      | -       | Must be `tween`.                                                              |
-| `properties` | object | Yes      | -       | At least one property entry is required.                                      |
-| `complete`   | object | No       | -       | Schema supports it, runtime currently tracks completion via `renderComplete`. |
+| Field        | Type   | Required | Default | Notes                                                                 |
+| ------------ | ------ | -------- | ------- | --------------------------------------------------------------------- |
+| `id`         | string | Yes      | -       | Animation id.                                                         |
+| `targetId`   | string | Yes      | -       | Must match an element id in the same render state.                    |
+| `operation`  | string | Yes      | -       | One of `enter`, `update`, `exit`, `replace`.                          |
+| `properties` | object | Live ops | -       | Required for `enter`, `update`, and `exit`.                           |
+| `subjects`   | object | Replace   | -       | Optional for `replace`; drives `prev` and `next` surfaces separately. |
+| `mask`       | object | Replace   | -       | Optional for `replace`; image-driven reveal field.                    |
+| `shader`     | object | Replace   | -       | Optional for `replace`; currently requires `mask`.                    |
+| `complete`   | object | No       | -       | Schema supports it, runtime completion is still tracked globally.     |
 
-### Supported properties
+## Operations
+
+- `enter`: target exists only in the next state.
+- `update`: target exists in both states and stays a single live object.
+- `exit`: target exists only in the previous state.
+- `replace`: target exists in both states, but old and new visuals are animated separately.
+
+## Live Properties
+
+These properties are valid on `enter`, `update`, and `exit`:
 
 - `alpha`
 - `x`
@@ -45,22 +57,53 @@ Each keyframe accepts:
 | ---------- | ------- | -------- | ------- | ------------------------------------- |
 | `value`    | number  | Yes      | -       | Target value.                         |
 | `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.  |
-| `easing`   | string  | Yes      | -       | Currently only `linear` is supported. |
+| `easing`   | string  | Yes      | -       | Currently `linear`, `easeIn`, `easeOut`, `easeInOut` are supported. |
 | `relative` | boolean | No       | `false` | Applies `value` as delta when true.   |
+
+## Replace Subjects
+
+`replace` animations can drive `prev` and `next` separately through `subjects`.
+
+Supported subject properties:
+
+- `translateX`
+- `translateY`
+- `alpha`
+- `scaleX`
+- `scaleY`
+- `rotation`
+
+`translateX` and `translateY` use screen-relative units, so `1` means one full screen width or height.
+
+## Replace Mask
+
+`mask` is only valid for `replace`. Supported kinds:
+
+- `single`
+- `sequence`
+- `composite`
+
+Supported mask channels:
+
+- `red`
+- `green`
+- `blue`
+- `alpha`
 
 ## Behavior Notes
 
-- Tween updates are driven by the central animation bus.
-- On render interruption, pending animations are canceled and target state is applied.
-- Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations/reveals settle.
+- Live-object animations are driven by the central animation bus.
+- `replace` animations snapshot the previous and next visuals for the same `targetId`.
+- On render interruption, pending animations are canceled and the current render is marked aborted through `renderComplete`.
+- Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations and reveals settle.
 
-## Example: Minimal Fade
+## Example: Enter Fade
 
 ```yaml
 animations:
   - id: title-fade
     targetId: title
-    type: tween
+    operation: enter
     properties:
       alpha:
         initialValue: 0
@@ -70,28 +113,25 @@ animations:
             easing: linear
 ```
 
-## Example: Multi-Property Motion
+## Example: Update Motion
 
 ```yaml
 animations:
-  - id: card-enter
+  - id: card-shift
     targetId: card-1
-    type: tween
+    operation: update
     properties:
       x:
-        initialValue: 1400
         keyframes:
           - value: 800
             duration: 450
-            easing: linear
+            easing: easeOut
       y:
-        initialValue: 120
         keyframes:
           - value: 180
             duration: 450
-            easing: linear
+            easing: easeOut
       alpha:
-        initialValue: 0
         keyframes:
           - value: 1
             duration: 300
@@ -104,10 +144,9 @@ animations:
 animations:
   - id: pulse-x
     targetId: chip
-    type: tween
+    operation: update
     properties:
       x:
-        initialValue: 100
         keyframes:
           - value: 20
             duration: 120
@@ -121,4 +160,49 @@ animations:
             duration: 120
             easing: linear
             relative: true
+```
+
+## Example: Replace Push
+
+```yaml
+animations:
+  - id: scene-push-left
+    targetId: scene-root
+    operation: replace
+    subjects:
+      prev:
+        properties:
+          translateX:
+            keyframes:
+              - value: -1
+                duration: 500
+                easing: linear
+      next:
+        properties:
+          translateX:
+            initialValue: 1
+            keyframes:
+              - value: 0
+                duration: 500
+                easing: linear
+```
+
+## Example: Replace Dissolve
+
+```yaml
+animations:
+  - id: portrait-dissolve
+    targetId: makkuro
+    operation: replace
+    mask:
+      kind: single
+      texture: masks/spiral-07.png
+      channel: red
+      softness: 0.08
+      progress:
+        initialValue: 0
+        keyframes:
+          - value: 1
+            duration: 900
+            easing: linear
 ```

@@ -2,12 +2,12 @@
 title: Sprite Update Rotation Transition
 description: A sprite rotating during update; uses a colored sprite texture intentionally to make rotation checkpoints clear (guideline exception for asset-based tests).
 specs:
-  - "sprite should rotate from 0 to 360 degrees"
-  - "animation should take 1.5 seconds"
-  - "demonstrates rotation property"
+  - sprite should rotate from 0 to 360 degrees
+  - animation should take 1.5 seconds
+  - demonstrates rotation property
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=750
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=750
@@ -15,30 +15,30 @@ steps:
 ---
 states:
   - elements:
-      - id: 'sprite1'
-        type: "sprite"
-        src: "circle-red"
+      - id: sprite1
+        type: sprite
+        src: circle-red
         x: 350
-        y: 250
+        "y": 250
         width: 150
         height: 150
         rotation: 0
   - elements:
-      - id: 'sprite1'
-        type: "sprite"
-        src: "circle-red"
+      - id: sprite1
+        type: sprite
+        src: circle-red
         x: 350
-        y: 250
+        "y": 250
         width: 150
         height: 150
         rotation: 6.28318
     animations:
-      - id: 'sprite-rotate'
-        targetId: 'sprite1'
-        type: tween
+      - id: sprite-rotate
+        targetId: sprite1
         properties:
           rotation:
             keyframes:
               - duration: 1500
                 value: 6.28318
                 easing: linear
+        operation: update

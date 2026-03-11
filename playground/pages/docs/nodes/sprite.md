@@ -82,7 +82,7 @@ elements:
         action: openHeroMenu
 ```
 
-## Example: Sprite With Tween Motion
+## Example: Sprite With Enter Motion
 
 ```yaml
 elements:
@@ -96,8 +96,8 @@ elements:
 
 animations:
   - id: token-slide
-    type: tween
     targetId: token
+    operation: enter
     properties:
       x:
         initialValue: 80

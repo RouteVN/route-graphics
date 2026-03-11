@@ -1,4 +1,10 @@
 import { diffElements } from "../../util/diffElements.js";
+import {
+  getAnimationsForOperation,
+  groupAnimationsByTarget,
+  validateTargetOperations,
+} from "../animations/planAnimations.js";
+import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.js";
 
 /**
  * Render elements using plugin system (synchronous)
@@ -32,6 +38,7 @@ export const renderElements = ({
   const pluginByType = new Map(
     elementPlugins.map((plugin) => [plugin.type, plugin]),
   );
+  const animationsByTarget = groupAnimationsByTarget(animations);
   const nextIndexById = new Map();
   for (let index = 0; index < nextComputedTree.length; index++) {
     nextIndexById.set(nextComputedTree[index].id, index);
@@ -54,6 +61,8 @@ export const renderElements = ({
 
   // Delete elements (synchronous)
   for (const element of toDeleteElement) {
+    validateTargetOperations(animationsByTarget, element.id, ["exit"]);
+
     const plugin = pluginByType.get(element.type);
     if (!plugin) {
       throw new Error(`No plugin found for element type: ${element.type}`);
@@ -63,7 +72,7 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations,
+      animations: animationsByTarget,
       animationBus,
       completionTracker,
       eventHandler,
@@ -74,6 +83,8 @@ export const renderElements = ({
 
   // Add elements (synchronous)
   for (const element of toAddElement) {
+    validateTargetOperations(animationsByTarget, element.id, ["enter"]);
+
     const plugin = pluginByType.get(element.type);
     if (!plugin) {
       throw new Error(`No plugin found for element type: ${element.type}`);
@@ -86,7 +97,7 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations,
+      animations: animationsByTarget,
       eventHandler,
       animationBus,
       completionTracker,
@@ -98,6 +109,11 @@ export const renderElements = ({
 
   // Update elements (synchronous)
   for (const { prev, next } of toUpdateElement) {
+    validateTargetOperations(animationsByTarget, next.id, [
+      "update",
+      "replace",
+    ]);
+
     const plugin = pluginByType.get(next.type);
     if (!plugin) {
       throw new Error(`No plugin found for element type: ${next.type}`);
@@ -106,12 +122,36 @@ export const renderElements = ({
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(next.id) ?? -1;
 
+    const replaceAnimations = getAnimationsForOperation(
+      animationsByTarget,
+      next.id,
+      "replace",
+    );
+
+    if (replaceAnimations.length > 0) {
+      runReplaceAnimation({
+        app,
+        parent,
+        prevElement: prev,
+        nextElement: next,
+        animation: replaceAnimations[0],
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        plugin,
+        zIndex,
+        signal,
+      });
+      continue;
+    }
+
     plugin.update({
       app,
       parent,
       prevElement: prev,
       nextElement: next,
-      animations,
+      animations: animationsByTarget,
       animationBus,
       completionTracker,
       eventHandler,

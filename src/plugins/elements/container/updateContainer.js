@@ -2,6 +2,8 @@ import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { getTargetAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update container element (synchronous)
@@ -170,8 +172,8 @@ export const updateContainer = ({
 
     // Check if any animation targets a child element
     const childIds = collectAllElementIds({ children: nextElement.children });
-    const hasChildAnimation = animations?.some((anim) =>
-      childIds.has(anim.targetId),
+    const hasChildAnimation = Array.from(childIds).some(
+      (childId) => getTargetAnimations(animations, childId).length > 0,
     );
 
     // Render children if definition changed OR animation targets children
@@ -196,30 +198,20 @@ export const updateContainer = ({
     }
   };
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevElement.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevElement.id,
+    operation: "update",
+    animationBus,
+    completionTracker,
+    element: containerElement,
+    targetState: { x, y, alpha },
+    onComplete: () => {
+      updateElement();
+    },
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: containerElement,
-          properties: animation.properties,
-          targetState: { x, y, alpha },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

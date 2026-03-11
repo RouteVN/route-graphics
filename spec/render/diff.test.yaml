@@ -97,7 +97,12 @@ in:
         - id: "sprite1"
           type: "sprite"
   - - targetId: "sprite1"
-      type: "tween"
+      operation: "update"
+      properties:
+        x:
+          keyframes:
+            - duration: 100
+              value: 10
 out:
   toAddElement: []
   toDeleteElement: []
@@ -134,7 +139,12 @@ in:
             - id: "sprite1"
               type: "sprite"
   - - targetId: "sprite1"
-      type: "tween"
+      operation: "update"
+      properties:
+        x:
+          keyframes:
+            - duration: 100
+              value: 10
 out:
   toAddElement: []
   toDeleteElement: []
@@ -171,7 +181,12 @@ in:
         - id: "sprite1"
           type: "sprite"
   - - targetId: "nonexistent"
-      type: "tween"
+      operation: "update"
+      properties:
+        x:
+          keyframes:
+            - duration: 100
+              value: 10
 out:
   toAddElement: []
   toDeleteElement: []

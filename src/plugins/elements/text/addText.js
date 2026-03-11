@@ -1,5 +1,6 @@
 import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -163,29 +164,17 @@ export const addText = ({
 
   parent.addChild(text);
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === textComputedNode.id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: text,
-        properties: animation.properties,
-        targetState: {
-          x: textComputedNode.x,
-          y: textComputedNode.y,
-          alpha: textComputedNode.alpha,
-        },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: textComputedNode.id,
+    operation: "enter",
+    animationBus,
+    completionTracker,
+    element: text,
+    targetState: {
+      x: textComputedNode.x,
+      y: textComputedNode.y,
+      alpha: textComputedNode.alpha,
+    },
+  });
 };

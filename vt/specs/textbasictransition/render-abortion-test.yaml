@@ -2,38 +2,37 @@
 title: Text Render Abortion Test
 description: Test abortion callback during text render with 3 keyframes
 specs:
-  - "text should render with 3 keyframe animation"
-  - "abortion callback should be testable during render"
-  - "element props differ from animation final state"
+  - text should render with 3 keyframe animation
+  - abortion callback should be testable during render
+  - element props differ from animation final state
 steps:
   - action: keypress
-    key: n
-  - customEvent snapShotKeyFrame deltaMS=1200 
+    key: "n"
+  - customEvent snapShotKeyFrame deltaMS=1200
   - action: screenshot
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1200 
+  - customEvent snapShotKeyFrame deltaMS=1200
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=800 
+  - customEvent snapShotKeyFrame deltaMS=800
 ---
 states:
   - elements: []
   - elements:
-      - id: 'text-render-test'
-        type: "text"
+      - id: text-render-test
+        type: text
         x: 100
-        y: 100
-        content: "Render Test"
+        "y": 100
+        content: Render Test
         textStyle:
-          fontFamily: "Arial"
+          fontFamily: Arial
           fontSize: 32
           fill: "#FFFFFF"
         alpha: 1
     animations:
-      - id: 'text-render-abortion'
-        targetId: 'text-render-test'
-        type: tween
+      - id: text-render-abortion
+        targetId: text-render-test
         properties:
           x:
             initialValue: 50
@@ -44,7 +43,7 @@ states:
               - duration: 1000
                 value: 250
                 easing: linear
-          y:
+          "y":
             initialValue: 50
             keyframes:
               - duration: 1000
@@ -53,21 +52,21 @@ states:
               - duration: 1000
                 value: 200
                 easing: linear
+        operation: enter
   - elements:
-      - id: 'text-render-test'
-        type: "text"
+      - id: text-render-test
+        type: text
         x: 400
-        y: 300
-        content: "Continued Render"
+        "y": 300
+        content: Continued Render
         textStyle:
-          fontFamily: "Arial"
+          fontFamily: Arial
           fontSize: 48
           fill: "#FFFFFF"
         alpha: 1
     animations:
-      - id: 'text-render-abortion-2'
-        targetId: 'text-render-test'
-        type: tween
+      - id: text-render-abortion-2
+        targetId: text-render-test
         properties:
           x:
             initialValue: 250
@@ -87,3 +86,4 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
+        operation: update

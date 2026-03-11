@@ -1,4 +1,5 @@
 import { cleanupDebugMode } from "./util/debugUtils.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Delete animated sprite element
@@ -28,32 +29,18 @@ export const deleteAnimatedSprite = ({
     }
   };
 
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === element.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    operation: "exit",
+    animationBus,
+    completionTracker,
+    element: animatedSpriteElement,
+    targetState: null,
+    onComplete: deleteElement,
+  });
 
-  if (relevantAnimations.length === 0) {
-    // No animation, destroy immediately
+  if (!dispatched) {
     deleteElement();
-    return;
-  }
-
-  // Dispatch delete animations to the bus
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: animatedSpriteElement,
-        properties: animation.properties,
-        targetState: null, // null signals destroy on cancel
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          deleteElement();
-        },
-      },
-    });
   }
 };

@@ -10,6 +10,7 @@
 import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode
@@ -75,15 +76,35 @@ export const updateParticles = ({
       zIndex,
     });
   } else {
-    // Simple property updates that don't require emitter recreation
-    if (nextElement.alpha !== undefined) {
-      container.alpha = nextElement.alpha;
-    }
-    if (nextElement.x !== undefined) {
-      container.x = nextElement.x;
-    }
-    if (nextElement.y !== undefined) {
-      container.y = nextElement.y;
+    const updateElement = () => {
+      if (nextElement.alpha !== undefined) {
+        container.alpha = nextElement.alpha;
+      }
+      if (nextElement.x !== undefined) {
+        container.x = nextElement.x;
+      }
+      if (nextElement.y !== undefined) {
+        container.y = nextElement.y;
+      }
+    };
+
+    const dispatched = dispatchLiveAnimations({
+      animations,
+      targetId: prevElement.id,
+      operation: "update",
+      animationBus,
+      completionTracker,
+      element: container,
+      targetState: {
+        x: nextElement.x ?? container.x,
+        y: nextElement.y ?? container.y,
+        alpha: nextElement.alpha ?? container.alpha,
+      },
+      onComplete: updateElement,
+    });
+
+    if (!dispatched) {
+      updateElement();
     }
   }
 };

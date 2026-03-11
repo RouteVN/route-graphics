@@ -28,7 +28,7 @@
         } from "/RouteGraphics.js"
 
 
-        import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+        import { parseAllDocuments } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
 
 
         const assetsObject = {
@@ -46,6 +46,7 @@
             'vertical-idle-thumb': { url: '/public/vertical_idle_thumb.png', type: 'image/png' },
             'vertical-hover-thumb': { url: '/public/vertical_hover_thumb.png', type: 'image/png' },
             'fighter-spritesheet': { url: '/public/fighter.png', type: 'image/png' },
+            'mask-diagonal': { url: '/public/mask_diagonal.png', type: 'image/png' },
             'sfx-1': { url: '/public/sfx-1.mp3', type: 'audio/mpeg' },
             'sfx-2': { url: '/public/sfx-2.wav', type: 'audio/wav' },
         }
@@ -86,7 +87,9 @@
             ],
         }
         let index = 0
-        const states = parse(window.vtState).states
+        const vtDocuments = parseAllDocuments(window.vtState).map((doc) => doc.toJSON() ?? {});
+        const vtState = Object.assign({}, ...vtDocuments);
+        const states = vtState.states ?? []
         window.__VT_EVENTS__ = [];
         window.__VT_ALL_EVENTS__ = [];
         const shouldLogEvents = true;

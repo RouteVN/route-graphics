@@ -2,34 +2,33 @@
 title: Rect Fade In Transition
 description: A rect element fading in with alpha animation
 specs:
-  - "rect should fade from 0 to 1 alpha"
-  - "rect should appear gradually over 1 second"
-  - "rect should use linear easing"
+  - rect should fade from 0 to 1 alpha
+  - rect should appear gradually over 1 second
+  - rect should use linear easing
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
 ---
 states:
-  - id: "initial"
+  - id: initial
     elements: []
-  - id: "rect-fade-in-state"
+  - id: rect-fade-in-state
     elements:
-      - id: "rect1"
-        type: "rect"
+      - id: rect1
+        type: rect
         x: 200
-        y: 150
+        "y": 150
         width: 400
         height: 300
         fill: "#A6A6A6"
         alpha: 1
     animations:
-      - id: "rect-fade-in"
-        targetId: "rect1"
-        type: tween
+      - id: rect-fade-in
+        targetId: rect1
         properties:
           alpha:
             initialValue: 0
@@ -37,3 +36,4 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
+        operation: enter

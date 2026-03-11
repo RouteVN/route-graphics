@@ -23,6 +23,12 @@ in:
     animations:
       - id: "anim-1"
         targetId: "text-1"
+        operation: "update"
+        properties:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
     audio:
       - id: "sound-1"
         type: "sound"
@@ -34,15 +40,74 @@ out:
   animations:
     - id: "anim-1"
       targetId: "text-1"
+      operation: "update"
+      properties:
+        x:
+          keyframes:
+            - duration: 100
+              value: 20
+              easing: "linear"
   audio:
     - id: "sound-1"
       type: "sound"
+---
+case: Normalize replace animation with mask defaults
+in:
+  - id: "state-2-replace"
+    animations:
+      - id: "anim-replace"
+        targetId: "scene-root"
+        operation: "replace"
+        mask:
+          kind: "single"
+          texture: "masks/wipe.png"
+out:
+  id: "state-2-replace"
+  elements: []
+  animations:
+    - id: "anim-replace"
+      targetId: "scene-root"
+      operation: "replace"
+      mask:
+        kind: "single"
+        texture: "masks/wipe.png"
+        progress:
+          initialValue: 0
+          keyframes:
+            - duration: 0
+              value: 1
+              easing: "linear"
+  audio: []
 ---
 case: Throw when transitions field is provided
 in:
   - id: "state-3"
     transitions: []
 throws: "Input error: `transitions` is no longer supported. Use `animations` instead."
+---
+case: Throw when animation operation is missing
+in:
+  - id: "state-3a"
+    animations:
+      - id: "anim-1"
+        targetId: "text-1"
+        properties:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+throws: "animations[0].operation must be a non-empty string."
+---
+case: Throw when replace shader is missing mask
+in:
+  - id: "state-3b"
+    animations:
+      - id: "anim-1"
+        targetId: "scene-root"
+        operation: "replace"
+        shader:
+          name: "burn-dissolve"
+throws: "animations[0].shader currently requires animations[0].mask."
 ---
 case: Throw when animations is not an array
 in:

@@ -80,8 +80,8 @@ elements:
 
 animations:
   - id: cutscene-fade
-    type: tween
     targetId: cutscene
+    operation: enter
     properties:
       alpha:
         initialValue: 0

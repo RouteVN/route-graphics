@@ -2,12 +2,12 @@
 title: Text Update Position Transition
 description: A text element animating position during update
 specs:
-  - "text should move from (100, 100) to (400, 300)"
-  - "text content remains the same"
-  - "animation should take 1 second"
+  - text should move from (100, 100) to (400, 300)
+  - text content remains the same
+  - animation should take 1 second
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
@@ -15,37 +15,37 @@ steps:
 ---
 states:
   - elements:
-      - id: 'text1'
-        type: "text"
-        content: "Moving Text"
+      - id: text1
+        type: text
+        content: Moving Text
         x: 100
-        y: 100
+        "y": 100
         textStyle:
           fontSize: 28
           fill: "#A6A6A6"
-          fontFamily: "Arial"
+          fontFamily: Arial
   - elements:
-      - id: 'text1'
-        type: "text"
-        content: "Moving Text"
+      - id: text1
+        type: text
+        content: Moving Text
         x: 400
-        y: 300
+        "y": 300
         textStyle:
           fontSize: 28
           fill: "#A6A6A6"
-          fontFamily: "Arial"
+          fontFamily: Arial
     animations:
-      - id: 'text-move'
-        targetId: 'text1'
-        type: tween
+      - id: text-move
+        targetId: text1
         properties:
           x:
             keyframes:
               - duration: 1000
                 value: 400
                 easing: linear
-          y:
+          "y":
             keyframes:
               - duration: 1000
                 value: 300
                 easing: linear
+        operation: update

@@ -1,5 +1,6 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Update sprite element (synchronous)
@@ -185,30 +186,20 @@ export const updateSprite = ({
     }
   };
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevElement.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevElement.id,
+    operation: "update",
+    animationBus,
+    completionTracker,
+    element: spriteElement,
+    targetState: { x, y, width, height, alpha },
+    onComplete: () => {
+      updateElement();
+    },
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: spriteElement,
-          properties: animation.properties,
-          targetState: { x, y, width, height, alpha },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

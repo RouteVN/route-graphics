@@ -1,4 +1,5 @@
 import { Sprite, Texture, Container } from "pixi.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Add slider element to the stage
@@ -228,24 +229,13 @@ export const addSlider = ({
 
   parent.addChild(sliderContainer);
 
-  // Dispatch animations to the bus
-  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: sliderContainer,
-        properties: animation.properties,
-        targetState: { x, y, alpha },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    operation: "enter",
+    animationBus,
+    completionTracker,
+    element: sliderContainer,
+    targetState: { x, y, alpha },
+  });
 };

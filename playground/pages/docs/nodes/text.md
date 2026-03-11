@@ -105,7 +105,7 @@ elements:
         target: start
 ```
 
-## Example: Text With Tween
+## Example: Text With Enter Fade
 
 ```yaml
 elements:
@@ -120,8 +120,8 @@ elements:
 
 animations:
   - id: status-fade
-    type: tween
     targetId: status
+    operation: enter
     properties:
       alpha:
         initialValue: 0

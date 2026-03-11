@@ -395,7 +395,7 @@
 
 - id: animations-showcase
   name: Animation Showcase
-  description: Tween animation checkpoints with grayscale visuals.
+  description: Operation-based animation checkpoints with grayscale visuals.
   content:
     elements:
       - id: stage-bg
@@ -424,16 +424,16 @@
     animations:
       - id: glide-and-fade
         targetId: animated-rect
-        type: tween
+        operation: enter
         properties:
           x:
             initialValue: -160
             keyframes:
               - duration: 600
-                value: 40
+                value: 280
                 easing: linear
               - duration: 600
-                value: 280
+                value: 40
                 easing: linear
           alpha:
             initialValue: 0
@@ -442,7 +442,7 @@
                 value: 1
                 easing: linear
               - duration: 600
-                value: 0.45
+                value: 1
                 easing: linear
 
 - id: multi-state-demo

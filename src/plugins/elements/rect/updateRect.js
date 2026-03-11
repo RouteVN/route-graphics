@@ -1,4 +1,5 @@
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -218,30 +219,20 @@ export const updateRect = ({
     }
   };
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevElement.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevElement.id,
+    operation: "update",
+    animationBus,
+    completionTracker,
+    element: rectElement,
+    targetState: { x, y, alpha },
+    onComplete: () => {
+      updateElement();
+    },
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: rectElement,
-          properties: animation.properties,
-          targetState: { x, y, alpha },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

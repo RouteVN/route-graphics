@@ -1,5 +1,6 @@
 import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Add video element to the stage
@@ -49,24 +50,13 @@ export const addVideo = ({
 
   parent.addChild(sprite);
 
-  // Dispatch animations to the bus
-  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: sprite,
-        properties: animation.properties,
-        targetState: { x, y, width, height, alpha: alpha ?? 1 },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    operation: "enter",
+    animationBus,
+    completionTracker,
+    element: sprite,
+    targetState: { x, y, width, height, alpha: alpha ?? 1 },
+  });
 };

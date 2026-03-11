@@ -4,6 +4,7 @@ import {
   clearVideoPlaybackTracking,
   syncVideoPlaybackTracking,
 } from "./playbackTracking.js";
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
 
 /**
  * Update video element
@@ -76,30 +77,18 @@ export const updateVideo = ({
     }
   };
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevElement.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevElement.id,
+    operation: "update",
+    animationBus,
+    completionTracker,
+    element: videoElement,
+    targetState: { x, y, width, height, alpha: alpha ?? 1 },
+    onComplete: updateElement,
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: videoElement,
-          properties: animation.properties,
-          targetState: { x, y, width, height, alpha: alpha ?? 1 },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

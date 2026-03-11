@@ -1,3 +1,5 @@
+import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+
 /**
  * Delete video element
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
@@ -16,59 +18,35 @@ export const deleteVideo = ({
 
   if (!videoElement) return;
 
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === element.id) || [];
-
-  if (relevantAnimations.length === 0) {
-    // No animation, destroy immediately
-    if (videoElement._playbackStateVersion !== null) {
-      completionTracker.complete(videoElement._playbackStateVersion);
-    }
-    const video = videoElement.texture.source.resource;
-    if (video) {
-      if (videoElement._videoEndedListener) {
-        video.removeEventListener("ended", videoElement._videoEndedListener);
+  const deleteElement = () => {
+    if (videoElement && !videoElement.destroyed) {
+      if (videoElement._playbackStateVersion !== null) {
+        completionTracker.complete(videoElement._playbackStateVersion);
       }
-      video.pause();
+      const video = videoElement.texture.source.resource;
+      if (video) {
+        if (videoElement._videoEndedListener) {
+          video.removeEventListener("ended", videoElement._videoEndedListener);
+        }
+        video.pause();
+      }
+      parent.removeChild(videoElement);
+      videoElement.destroy();
     }
-    parent.removeChild(videoElement);
-    videoElement.destroy();
-    return;
-  }
+  };
 
-  // Dispatch delete animations to the bus
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    operation: "exit",
+    animationBus,
+    completionTracker,
+    element: videoElement,
+    targetState: null,
+    onComplete: deleteElement,
+  });
 
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: videoElement,
-        properties: animation.properties,
-        targetState: null, // null signals destroy on cancel
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          if (videoElement && !videoElement.destroyed) {
-            if (videoElement._playbackStateVersion !== null) {
-              completionTracker.complete(videoElement._playbackStateVersion);
-            }
-            const video = videoElement.texture.source.resource;
-            if (video) {
-              if (videoElement._videoEndedListener) {
-                video.removeEventListener(
-                  "ended",
-                  videoElement._videoEndedListener,
-                );
-              }
-              video.pause();
-            }
-            parent.removeChild(videoElement);
-            videoElement.destroy();
-          }
-        },
-      },
-    });
+  if (!dispatched) {
+    deleteElement();
   }
 };

@@ -5,7 +5,7 @@ type: object
 properties:
   complete:
     type: object
-    description: This event type is called "complete" and will be invoked when an animation completes.
+    description: Fired when an animation completes.
     properties:
       _event:
         type: object
@@ -15,4 +15,11 @@ properties:
             description: The ID of the animation that completed
           targetId:
             type: string
-            description: The ID of the element that was animated
+            description: The ID of the element targeted by the animation
+          operation:
+            type: string
+            enum: [enter, update, exit, replace]
+            description: The operation that completed
+        additionalProperties: true
+    additionalProperties: true
+additionalProperties: false

@@ -2,12 +2,12 @@
 title: Container Update Position Transition
 description: A container animating position during update
 specs:
-  - "container should move from (100, 100) to (400, 250)"
-  - "all children should move with container"
-  - "animation should take 1 second"
+  - container should move from (100, 100) to (400, 250)
+  - all children should move with container
+  - animation should take 1 second
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
@@ -15,53 +15,53 @@ steps:
 ---
 states:
   - elements:
-      - id: 'container1'
-        type: "container"
+      - id: container1
+        type: container
         x: 100
-        y: 100
-        direction: "horizontal"
+        "y": 100
+        direction: horizontal
         gap: 20
         children:
-          - id: 'rect1'
-            type: "rect"
+          - id: rect1
+            type: rect
             width: 60
             height: 60
             fill: "#FFFFFF"
-          - id: 'rect2'
-            type: "rect"
+          - id: rect2
+            type: rect
             width: 60
             height: 60
             fill: "#A6A6A6"
   - elements:
-      - id: 'container1'
-        type: "container"
+      - id: container1
+        type: container
         x: 400
-        y: 250
-        direction: "horizontal"
+        "y": 250
+        direction: horizontal
         gap: 20
         children:
-          - id: 'rect1'
-            type: "rect"
+          - id: rect1
+            type: rect
             width: 60
             height: 60
             fill: "#FFFFFF"
-          - id: 'rect2'
-            type: "rect"
+          - id: rect2
+            type: rect
             width: 60
             height: 60
             fill: "#A6A6A6"
     animations:
-      - id: 'container-move'
-        targetId: 'container1'
-        type: tween
+      - id: container-move
+        targetId: container1
         properties:
           x:
             keyframes:
               - duration: 1000
                 value: 400
                 easing: linear
-          y:
+          "y":
             keyframes:
               - duration: 1000
                 value: 250
                 easing: linear
+        operation: update
