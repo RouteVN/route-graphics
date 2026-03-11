@@ -1,5 +1,5 @@
 import { Sprite, Texture } from "pixi.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add sprite element to the stage (synchronous)

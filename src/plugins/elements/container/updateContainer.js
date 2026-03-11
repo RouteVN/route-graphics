@@ -2,7 +2,7 @@ import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { getTargetAnimations } from "../../animations/planAnimations.js";
 
 /**

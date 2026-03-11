@@ -1,5 +1,5 @@
 import { Graphics } from "pixi.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add rectangle element to the stage (synchronous)

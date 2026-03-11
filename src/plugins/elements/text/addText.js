@@ -1,6 +1,6 @@
 import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add text element to the stage (synchronous)

@@ -1,6 +1,6 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add animated sprite element to the stage

@@ -1,6 +1,6 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update text element (synchronous)

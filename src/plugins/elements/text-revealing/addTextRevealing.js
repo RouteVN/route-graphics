@@ -1,7 +1,7 @@
 import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add text-revealing element to the stage

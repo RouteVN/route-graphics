@@ -1,5 +1,5 @@
 import { cleanupDebugMode } from "./util/debugUtils.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Delete animated sprite element

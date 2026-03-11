@@ -1,7 +1,7 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application

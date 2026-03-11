@@ -1,6 +1,6 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add container element to the stage (synchronous)

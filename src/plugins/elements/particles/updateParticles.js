@@ -10,7 +10,7 @@
 import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode

@@ -1,6 +1,6 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update slider element

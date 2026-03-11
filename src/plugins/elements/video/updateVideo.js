@@ -4,7 +4,7 @@ import {
   clearVideoPlaybackTracking,
   syncVideoPlaybackTracking,
 } from "./playbackTracking.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update video element

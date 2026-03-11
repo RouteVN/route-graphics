@@ -1,5 +1,5 @@
 import { Sprite, Texture, Container } from "pixi.js";
-import { dispatchLiveAnimations } from "../../animations/liveAnimationUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add slider element to the stage
