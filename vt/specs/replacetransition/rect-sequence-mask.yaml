@@ -1,0 +1,55 @@
+---
+title: Rect Replace Sequence Mask
+description: A same-id rect replace animation that swaps between multiple mask textures over progress
+specs:
+  - "sequence masks should select the first texture at progress 0"
+  - "sequence masks should switch to a different reveal pattern by 500ms"
+  - "replace should still settle on the final next rect state after completion"
+steps:
+  - action: keypress
+    key: n
+  - action: screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+---
+states:
+  - id: "sequence-start"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: "sequence-end"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: "rect-sequence-replace"
+        targetId: "rect1"
+        operation: "replace"
+        mask:
+          kind: "sequence"
+          textures:
+            - "mask-left-band"
+            - "mask-center-band"
+            - "mask-right-band"
+          channel: "alpha"
+          softness: 0.01
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

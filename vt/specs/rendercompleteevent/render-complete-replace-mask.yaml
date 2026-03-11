@@ -1,0 +1,64 @@
+---
+title: Render Complete Event - Replace Mask
+description: Asserts renderComplete waits for same-id replace mask completion.
+specs:
+  - "renderComplete should not fire halfway through the replace mask animation"
+  - "renderComplete should fire once with aborted=false after replace completion"
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: n
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value: []
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args: ["renderComplete", "all"]
+    value:
+      - id: "replace-mask-complete"
+        aborted: false
+---
+states:
+  - id: "baseline"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: "replace-mask-complete"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: "rect-mask-complete"
+        targetId: "rect1"
+        operation: "replace"
+        mask:
+          kind: "single"
+          texture: "mask-diagonal"
+          channel: "red"
+          softness: 0.06
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

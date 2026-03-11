@@ -1,0 +1,55 @@
+---
+title: Rect Replace Composite Mask
+description: A same-id rect replace animation using a composite mask built from multiple textures
+specs:
+  - "composite masks should combine multiple mask textures into one reveal field"
+  - "the combined left and right reveal regions should be visible at 500ms"
+  - "replace should finish on the next rect state after 1000ms"
+steps:
+  - action: keypress
+    key: n
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+  - customEvent snapShotKeyFrame deltaMS=500
+  - action: screenshot
+---
+states:
+  - id: "composite-start"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: "composite-end"
+    elements:
+      - id: "rect1"
+        type: "rect"
+        x: 160
+        y: 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: "rect-composite-replace"
+        targetId: "rect1"
+        operation: "replace"
+        mask:
+          kind: "composite"
+          combine: "max"
+          softness: 0.01
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+          items:
+            - texture: "mask-left-band"
+              channel: "alpha"
+            - texture: "mask-right-band"
+              channel: "alpha"
