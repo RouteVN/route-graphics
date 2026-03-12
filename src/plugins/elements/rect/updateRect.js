@@ -222,7 +222,6 @@ export const updateRect = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevElement.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: rectElement,

@@ -28,7 +28,8 @@ states:
     animations:
       - id: sprite-scale-in
         targetId: sprite1
-        properties:
+        type: live
+        tween:
           scaleX:
             initialValue: 0
             keyframes:
@@ -41,4 +42,3 @@ states:
               - duration: 1200
                 value: 1
                 easing: linear
-        operation: enter

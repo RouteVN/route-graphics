@@ -66,11 +66,11 @@ states:
     animations:
       - id: blue-move
         targetId: circle-blue
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 150
             keyframes:
               - duration: 1000
                 value: 220
                 easing: linear
-        operation: update

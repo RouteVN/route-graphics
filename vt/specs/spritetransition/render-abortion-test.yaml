@@ -32,7 +32,8 @@ states:
     animations:
       - id: sprite-render-abortion
         targetId: sprite-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 50
             keyframes:
@@ -60,7 +61,6 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter
   - elements:
       - id: sprite-render-test
         type: sprite
@@ -73,7 +73,8 @@ states:
     animations:
       - id: sprite-render-abortion-2
         targetId: sprite-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 250
             keyframes:
@@ -92,4 +93,3 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: update

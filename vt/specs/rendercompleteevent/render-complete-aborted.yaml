@@ -26,14 +26,14 @@ states:
     animations:
       - id: rect-fade-in
         targetId: rect1
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter
   - id: second-animation-state
     elements:
       - id: rect1
@@ -47,10 +47,10 @@ states:
     animations:
       - id: rect-slide
         targetId: rect1
-        properties:
+        type: live
+        tween:
           x:
             keyframes:
               - duration: 500
                 value: 400
                 easing: linear
-        operation: update

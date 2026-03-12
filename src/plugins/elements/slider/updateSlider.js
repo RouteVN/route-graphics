@@ -276,7 +276,6 @@ export const updateSlider = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevSliderComputedNode.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: sliderElement,

@@ -35,7 +35,8 @@ states:
     animations:
       - id: sprite-move
         targetId: sprite1
-        properties:
+        type: live
+        tween:
           x:
             keyframes:
               - duration: 1000
@@ -46,4 +47,3 @@ states:
               - duration: 1000
                 value: 350
                 easing: linear
-        operation: update

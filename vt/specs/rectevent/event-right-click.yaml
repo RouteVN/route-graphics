@@ -2,37 +2,38 @@
 title: Rect right click event
 description: Test right clicke event on rect elements
 specs:
-  - "rect should call the callback with data when right-clicked"
+  - rect should call the callback with data when right-clicked
 steps:
   - action: customEvent
     name: clearEvents
   - action: click
     x: 250
-    y: 110
+    "y": 110
   - action: rclick
     x: 250
-    y: 110
+    "y": 110
   - action: wait
     ms: 100
   - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [rightclick]
+    args:
+      - rightclick
     value:
       - _event:
           id: rect-right-click-1
-        message: "Rect 1 right-clicked"
+        message: Rect 1 right-clicked
 ---
 states:
   - elements:
-      - id: 'rect-right-click-1'
-        type: "rect"
+      - id: rect-right-click-1
+        type: rect
         x: 200
-        y: 100
+        "y": 100
         width: 300
         height: 100
         fill: "#A6A6A6"
         rightClick:
           actionPayload:
-            message: "Rect 1 right-clicked"
+            message: Rect 1 right-clicked

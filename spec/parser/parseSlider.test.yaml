@@ -1,6 +1,7 @@
-file: "../../src/plugins/elements/slider/parseSlider.js"
+file: ../../src/plugins/elements/slider/parseSlider.js
 group: parser
-suites: [parseSlider]
+suites:
+  - parseSlider
 ---
 suite: parseSlider
 exportName: parseSlider
@@ -8,11 +9,11 @@ exportName: parseSlider
 case: Test parsing slider with all properties
 in:
   - state:
-      id: "volume-slider"
-      type: "slider"
-      barSrc: "file:slider-bar"
-      thumbSrc: "file:slider-thumb"
-      direction: "horizontal"
+      id: volume-slider
+      type: slider
+      barSrc: file:slider-bar
+      thumbSrc: file:slider-thumb
+      direction: horizontal
       alpha: 0.8
       width: 80
       height: 100
@@ -23,14 +24,14 @@ in:
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       hover:
-        thumbSrc: "file:thumb-hover"
-        barSrc: "file:bar-hover"
-        soundSrc: "sound-1"
-        cursor: "cursor-1"
+        thumbSrc: file:thumb-hover
+        barSrc: file:bar-hover
+        soundSrc: sound-1
+        cursor: cursor-1
         actionPayload:
           prop1: "44"
           prop2: "55"
@@ -38,27 +39,27 @@ in:
         actionPayload:
           volume: 33
 out:
-  id: "volume-slider"
-  type: "slider"
+  id: volume-slider
+  type: slider
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   alpha: 0.8
-  barSrc: "file:slider-bar"
-  thumbSrc: "file:slider-thumb"
-  direction: "horizontal"
+  barSrc: file:slider-bar
+  thumbSrc: file:slider-thumb
+  direction: horizontal
   min: 10
   max: 200
   step: 5
   initialValue: 50
   hover:
-    thumbSrc: "file:thumb-hover"
-    barSrc: "file:bar-hover"
-    soundSrc: "sound-1"
-    cursor: "cursor-1"
+    thumbSrc: file:thumb-hover
+    barSrc: file:bar-hover
+    soundSrc: sound-1
+    cursor: cursor-1
     actionPayload:
       prop1: "44"
       prop2: "55"
@@ -69,15 +70,15 @@ out:
 case: Test parsing slider throws when min is larger than max
 in:
   - state:
-      id: "error-slider"
-      type: "slider"
-      barSrc: "file:slider-bar"
-      thumbSrc: "file:slider-thumb"
-      direction: "horizontal"
+      id: error-slider
+      type: slider
+      barSrc: file:slider-bar
+      thumbSrc: file:slider-thumb
+      direction: horizontal
       width: 100
       height: 10
       x: 100
-      y: 100
+      "y": 100
       min: 150
       max: 100
 throws: "Input error: the max value of a slider must be larger than the min value"
@@ -85,15 +86,15 @@ throws: "Input error: the max value of a slider must be larger than the min valu
 case: Test parsing slider throws when min equals max
 in:
   - state:
-      id: "error-slider"
-      type: "slider"
-      barSrc: "file:slider-bar"
-      thumbSrc: "file:slider-thumb"
-      direction: "horizontal"
+      id: error-slider
+      type: slider
+      barSrc: file:slider-bar
+      thumbSrc: file:slider-thumb
+      direction: horizontal
       width: 100
       height: 10
       x: 100
-      y: 100
+      "y": 100
       min: 100
       max: 100
 throws: "Input error: the max value of a slider must be larger than the min value"
@@ -101,22 +102,22 @@ throws: "Input error: the max value of a slider must be larger than the min valu
 case: Test parsing slider with minimum required props
 in:
   - state:
-      id: "minimal-slider"
-      type: "slider"
-      barSrc: "file:bar-minimal"
-      thumbSrc: "file:thumb-minimal"
-      direction: "vertical"
+      id: minimal-slider
+      type: slider
+      barSrc: file:bar-minimal
+      thumbSrc: file:thumb-minimal
+      direction: vertical
       width: 100
       height: 10
       x: 50
-      y: 75
+      "y": 75
       initialValue: 10
 out:
-  id: "minimal-slider"
-  type: "slider"
-  barSrc: "file:bar-minimal"
-  thumbSrc: "file:thumb-minimal"
-  direction: "vertical"
+  id: minimal-slider
+  type: slider
+  barSrc: file:bar-minimal
+  thumbSrc: file:thumb-minimal
+  direction: vertical
   alpha: 1
   min: 0
   max: 100
@@ -125,36 +126,36 @@ out:
   step: 1
   initialValue: 10
   x: 50
-  y: 75
+  "y": 75
   originX: 0
   originY: 0
 ---
 case: Test parsing slider throws when initialValue is missing
 in:
   - state:
-      id: "missing-initial-value-slider"
-      type: "slider"
-      barSrc: "file:bar-minimal"
-      thumbSrc: "file:thumb-minimal"
-      direction: "vertical"
+      id: missing-initial-value-slider
+      type: slider
+      barSrc: file:bar-minimal
+      thumbSrc: file:thumb-minimal
+      direction: vertical
       width: 100
       height: 10
       x: 50
-      y: 75
+      "y": 75
 throws: "Input error: slider initialValue is required"
 ---
 case: Test parsing slider throws when initialValue is outside min and max
 in:
   - state:
-      id: "outside-initial-value-slider"
-      type: "slider"
-      barSrc: "file:bar-minimal"
-      thumbSrc: "file:thumb-minimal"
-      direction: "vertical"
+      id: outside-initial-value-slider
+      type: slider
+      barSrc: file:bar-minimal
+      thumbSrc: file:thumb-minimal
+      direction: vertical
       width: 100
       height: 10
       x: 50
-      y: 75
+      "y": 75
       min: 10
       max: 20
       initialValue: 30

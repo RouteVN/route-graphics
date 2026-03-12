@@ -56,11 +56,11 @@ states:
     animations:
       - id: fade-in
         targetId: fade-rect
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 600
                 value: 1
                 easing: linear
-        operation: enter

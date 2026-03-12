@@ -37,7 +37,8 @@ states:
     animations:
       - id: text-move
         targetId: text1
-        properties:
+        type: live
+        tween:
           x:
             keyframes:
               - duration: 1000
@@ -48,4 +49,3 @@ states:
               - duration: 1000
                 value: 300
                 easing: linear
-        operation: update

@@ -1,6 +1,7 @@
-file: "../../src/plugins/elements/text-revealing/parseTextRevealing.js"
+file: ../../src/plugins/elements/text-revealing/parseTextRevealing.js
 group: parser
-suites: [parseTextRevealing]
+suites:
+  - parseTextRevealing
 ---
 suite: parseTextRevealing
 exportName: parseTextRevealing
@@ -8,54 +9,54 @@ exportName: parseTextRevealing
 case: Test parsing simple text-revealing object with single content
 in:
   - state:
-      id: "tr1"
-      type: "text-revealing"
+      id: tr1
+      type: text-revealing
       content:
-        - text: "This is a simple text revealing example"
+        - text: This is a simple text revealing example
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 24
         fill: "#333333"
-        fontFamily: "Arial"
+        fontFamily: Arial
         breakWords: false
 out:
-  id: "tr1"
-  type: "text-revealing"
+  id: tr1
+  type: text-revealing
   content:
     - lineParts:
-        - text: "This is a simple text revealing example"
+        - text: This is a simple text revealing example
           textStyle:
             fontSize: 24
             fill: "#333333"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 29
             wordWrap: true
             wordWrapWidth: 500
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 29
   width: 500
   height: 29
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 24
     fill: "#333333"
-    fontFamily: "Arial"
-    align: "left"
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false
@@ -64,123 +65,123 @@ out:
 case: Test parsing text-revealing with word wrapping
 in:
   - state:
-      id: "tr2"
-      type: "text-revealing"
+      id: tr2
+      type: text-revealing
       content:
-        - text: "This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration."
+        - text: This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration.
       x: 50
-      y: 50
+      "y": 50
       width: 300
       textStyle:
         fontSize: 20
         fill: "#2c3e50"
-        fontFamily: "Arial"
+        fontFamily: Arial
         breakWords: false
 out:
-  id: "tr2"
-  type: "text-revealing"
+  id: tr2
+  type: text-revealing
   content:
     - lineParts:
-        - text: "This is a longer text that should"
+        - text: This is a longer text that should
           textStyle:
             fontSize: 20
             fill: "#2c3e50"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 300
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 24
     - lineParts:
-        - text: "wrap to multiple lines when it"
+        - text: wrap to multiple lines when it
           textStyle:
             fontSize: 20
             fill: "#2c3e50"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 300
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 24
-      y: 24
+          "y": 24
+      "y": 24
       lineMaxHeight: 24
     - lineParts:
-        - text: "exceeds the specified width"
+        - text: exceeds the specified width
           textStyle:
             fontSize: 20
             fill: "#2c3e50"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 300
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 48
-      y: 48
+          "y": 48
+      "y": 48
       lineMaxHeight: 24
     - lineParts:
-        - text: "constraint for proper text layout"
+        - text: constraint for proper text layout
           textStyle:
             fontSize: 20
             fill: "#2c3e50"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 300
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 72
-      y: 72
+          "y": 72
+      "y": 72
       lineMaxHeight: 24
     - lineParts:
-        - text: "demonstration."
+        - text: demonstration.
           textStyle:
             fontSize: 20
             fill: "#2c3e50"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 300
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 96
-      y: 96
+          "y": 96
+      "y": 96
       lineMaxHeight: 24
   width: 300
   height: 120
   x: 50
-  y: 50
+  "y": 50
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 20
     fill: "#2c3e50"
-    fontFamily: "Arial"
-    align: "left"
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false
@@ -189,37 +190,37 @@ out:
 case: Test parsing text-revealing with multiple styled content segments
 in:
   - state:
-      id: "tr4"
-      type: "text-revealing"
+      id: tr4
+      type: text-revealing
       content:
-        - text: "Hello"
+        - text: Hello
           textStyle:
             fontSize: 24
             fill: "#e74c3c"
         - text: " "
-        - text: "World"
+        - text: World
           textStyle:
             fontSize: 32
             fill: "#3498db"
-            fontWeight: "bold"
+            fontWeight: bold
         - text: "!"
           textStyle:
             fontSize: 28
             fill: "#27ae60"
       x: 200
-      y: 200
+      "y": 200
       width: 200
 out:
-  id: "tr4"
-  type: "text-revealing"
+  id: tr4
+  type: text-revealing
   content:
     - lineParts:
-        - text: "Hello"
+        - text: Hello
           textStyle:
             fontSize: 24
             fill: "#e74c3c"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 29
             wordWrap: true
             wordWrapWidth: 200
@@ -227,13 +228,13 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 9
-        - text: " "
+          "y": 9
+        - text: "\_"
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 145
@@ -241,28 +242,28 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 55
-          y: 19
-        - text: "World"
+          "y": 19
+        - text: World
           textStyle:
             fontSize: 32
             fill: "#3498db"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 38
             wordWrap: true
-            fontWeight: "bold"
+            fontWeight: bold
             wordWrapWidth: 141
             strokeWidth: 0
             strokeColor: transparent
             breakWords: false
           x: 59
-          y: 0
+          "y": 0
         - text: "!"
           textStyle:
             fontSize: 28
             fill: "#27ae60"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 34
             wordWrap: true
             wordWrapWidth: 51
@@ -270,13 +271,13 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 149
-          y: 4
-      y: 0
+          "y": 4
+      "y": 0
       lineMaxHeight: 38
   width: 200
   height: 38
   x: 200
-  y: 200
+  "y": 200
   originX: 0
   originY: 0
   alpha: 1
@@ -284,9 +285,9 @@ out:
   revealEffect: typewriter
   textStyle:
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     strokeWidth: 0
@@ -297,33 +298,33 @@ out:
 case: Test parsing text-revealing with indicator props
 in:
   - state:
-      id: "tr5"
-      type: "text-revealing"
+      id: tr5
+      type: text-revealing
       content:
-        - text: "Text with indicator"
+        - text: Text with indicator
       x: 100
-      y: 100
+      "y": 100
       indicator:
         revealing:
-          src: "arrow-right"
+          src: arrow-right
           width: 12
           height: 12
         complete:
-          src: "checkmark"
+          src: checkmark
           width: 14
           height: 14
         offset: 8
 out:
-  id: "tr5"
-  type: "text-revealing"
+  id: tr5
+  type: text-revealing
   content:
     - lineParts:
-        - text: "Text with indicator"
+        - text: Text with indicator
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
@@ -331,13 +332,13 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 19
   width: 500
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
@@ -345,19 +346,19 @@ out:
   revealEffect: typewriter
   indicator:
     revealing:
-      src: "arrow-right"
+      src: arrow-right
       width: 12
       height: 12
     complete:
-      src: "checkmark"
+      src: checkmark
       width: 14
       height: 14
     offset: 8
   textStyle:
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     strokeWidth: 0
@@ -368,28 +369,28 @@ out:
 case: Test parsing text-revealing with indicator default values
 in:
   - state:
-      id: "tr6"
-      type: "text-revealing"
+      id: tr6
+      type: text-revealing
       content:
-        - text: "Text with indicator defaults"
+        - text: Text with indicator defaults
       x: 50
-      y: 50
+      "y": 50
       indicator:
         revealing:
-          src: "circle-blue"
+          src: circle-blue
         complete:
-          src: "circle-green"
+          src: circle-green
 out:
-  id: "tr6"
-  type: "text-revealing"
+  id: tr6
+  type: text-revealing
   content:
     - lineParts:
-        - text: "Text with indicator defaults"
+        - text: Text with indicator defaults
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
@@ -397,13 +398,13 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 19
   width: 500
   height: 19
   x: 50
-  y: 50
+  "y": 50
   originX: 0
   originY: 0
   alpha: 1
@@ -413,17 +414,17 @@ out:
     revealing:
       height: 12
       width: 12
-      src: "circle-blue"
+      src: circle-blue
     complete:
       height: 12
       width: 12
-      src: "circle-green"
+      src: circle-green
     offset: 12
   textStyle:
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     strokeWidth: 0
@@ -434,70 +435,70 @@ out:
 case: Test parsing text-revealing with base style and override segments
 in:
   - state:
-      id: "tr7"
-      type: "text-revealing"
+      id: tr7
+      type: text-revealing
       content:
-        - text: "Red"
-        - text: "Blue"
+        - text: Red
+        - text: Blue
           textStyle:
             fill: "#0000ff"
       x: 50
-      y: 50
+      "y": 50
       textStyle:
         fontSize: 20
         fill: "#ff0000"
-        fontFamily: "Arial"
+        fontFamily: Arial
 out:
-  id: "tr7"
-  type: "text-revealing"
+  id: tr7
+  type: text-revealing
   content:
     - lineParts:
-        - text: "Red"
+        - text: Red
           textStyle:
             fontSize: 20
             fill: "#ff0000"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 500
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 0
-          y: 0
-        - text: "Blue"
+          "y": 0
+        - text: Blue
           textStyle:
             fontSize: 20
             fill: "#0000ff"
-            fontFamily: "Arial"
-            align: "left"
+            fontFamily: Arial
+            align: left
             lineHeight: 24
             wordWrap: true
             wordWrapWidth: 463
             breakWords: false
-            strokeColor: "transparent"
+            strokeColor: transparent
             strokeWidth: 0
           x: 37
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 24
   width: 500
   height: 24
   x: 50
-  y: 50
+  "y": 50
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 20
     fill: "#ff0000"
-    fontFamily: "Arial"
-    align: "left"
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false
@@ -506,25 +507,25 @@ out:
 case: Test parsing text-revealing with boolean content (true)
 in:
   - state:
-      id: "tr-bool-true"
-      type: "text-revealing"
+      id: tr-bool-true
+      type: text-revealing
       content:
         - text: true
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "tr-bool-true"
-  type: "text-revealing"
+  id: tr-bool-true
+  type: text-revealing
   content:
     - lineParts:
         - text: "true"
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
@@ -532,25 +533,25 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 19
   width: 500
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false
@@ -559,25 +560,25 @@ out:
 case: Test parsing text-revealing with boolean content (false)
 in:
   - state:
-      id: "tr-bool-false"
-      type: "text-revealing"
+      id: tr-bool-false
+      type: text-revealing
       content:
         - text: false
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "tr-bool-false"
-  type: "text-revealing"
+  id: tr-bool-false
+  type: text-revealing
   content:
     - lineParts:
         - text: "false"
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
@@ -585,25 +586,25 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 19
   width: 500
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false
@@ -612,25 +613,25 @@ out:
 case: Test parsing text-revealing with number content
 in:
   - state:
-      id: "tr-number"
-      type: "text-revealing"
+      id: tr-number
+      type: text-revealing
       content:
         - text: 42
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "tr-number"
-  type: "text-revealing"
+  id: tr-number
+  type: text-revealing
   content:
     - lineParts:
         - text: "42"
           textStyle:
             fontSize: 16
-            fill: "black"
-            fontFamily: "Arial"
-            align: "left"
+            fill: black
+            fontFamily: Arial
+            align: left
             lineHeight: 19
             wordWrap: true
             wordWrapWidth: 500
@@ -638,25 +639,25 @@ out:
             strokeColor: transparent
             breakWords: false
           x: 0
-          y: 0
-      y: 0
+          "y": 0
+      "y": 0
       lineMaxHeight: 19
   width: 500
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   speed: 50
   revealEffect: typewriter
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fill: "black"
-    fontFamily: "Arial"
-    align: "left"
+    fill: black
+    fontFamily: Arial
+    align: left
     lineHeight: 1.2
     wordWrap: true
     breakWords: false

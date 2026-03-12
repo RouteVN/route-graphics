@@ -31,7 +31,6 @@ export const deleteContainer = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "exit",
     animationBus,
     completionTracker,
     element: containerElement,

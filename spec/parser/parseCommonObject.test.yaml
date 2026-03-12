@@ -1,16 +1,17 @@
-file: '../../src/plugins/elements/util/parseCommonObject.js'
+file: ../../src/plugins/elements/util/parseCommonObject.js
 group: parser
-suites: [parseCommonObject]
+suites:
+  - parseCommonObject
 ---
 suite: parseCommonObject
 exportName: parseCommonObject
 ---
 case: Test parsing simple common object
-in: 
-  - id: 'tl'
-    type: "text"
+in:
+  - id: tl
+    type: text
     x: 660
-    y: 240
+    "y": 240
     anchorX: 0.5
     anchorY: 0.5
     scaleX: 1.5
@@ -18,181 +19,181 @@ in:
     width: 483.94921875
     height: 29
     hover:
-      soundSrc: "sound-1"
-      cursor: "cursor-1"
+      soundSrc: sound-1
+      cursor: cursor-1
       actionPayload:
         prop1: "44"
         prop2: "55"
     click:
-      soundSrc: "sound-2"
+      soundSrc: sound-2
       actionPayload:
         prop3: "00"
         prop4: "22"
 out:
-  id: "tl"
-  type: "text"
+  id: tl
+  type: text
   width: 726
   height: 44
   x: 297
-  y: 218
+  "y": 218
   originX: 363
   originY: 22
   alpha: 1
   hover:
-    soundSrc: "sound-1"
-    cursor: "cursor-1"
+    soundSrc: sound-1
+    cursor: cursor-1
     actionPayload:
       prop1: "44"
       prop2: "55"
   click:
-    soundSrc: "sound-2"
+    soundSrc: sound-2
     actionPayload:
       prop3: "00"
       prop4: "22"
 ---
 case: Parsing object with no width or height
-in: 
-  - id: 'tl'
-    type: "text"
+in:
+  - id: tl
+    type: text
     x: 660
-    y: 240
+    "y": 240
     anchorX: 0.5
     anchorY: 0.5
 throws: "Input Error: Width or height is missing"
 ---
 case: Parsing object with no id
-in: 
-    - type: "text"
-      x: 660
-      y: 240
-      anchorX: 0.5
-      anchorY: 0.5
-      scaleX: 1.5
-      scaleY: 1.5
-      width: 483.94921875
-      height: 29
+in:
+  - type: text
+    x: 660
+    "y": 240
+    anchorX: 0.5
+    anchorY: 0.5
+    scaleX: 1.5
+    scaleY: 1.5
+    width: 483.94921875
+    height: 29
 throws: "Input Error: Id is missing"
 ---
 case: Parsing object with incorrect type
 in:
-    - type: "blob"
-      x: 660
-      y: 240
-      anchorX: 0.5
-      anchorY: 0.5
-      scaleX: 1.5
-      scaleY: 1.5
-      width: 483.94921875
-      height: 29
+  - type: blob
+    x: 660
+    "y": 240
+    anchorX: 0.5
+    anchorY: 0.5
+    scaleX: 1.5
+    scaleY: 1.5
+    width: 483.94921875
+    height: 29
 throws: "Input Error: Type must be one of rect, text, container, sprite, text-revealing, slider"
 ---
 case: Parsing object with hover property only
 in:
-  - id: 'obj-with-hover'
-    type: "rect"
+  - id: obj-with-hover
+    type: rect
     x: 100
-    y: 200
+    "y": 200
     width: 50
     height: 60
     hover:
-      soundSrc: "hover-sound"
-      cursor: "pointer"
+      soundSrc: hover-sound
+      cursor: pointer
       actionPayload:
         hoverAction: true
 out:
-  id: "obj-with-hover"
-  type: "rect"
+  id: obj-with-hover
+  type: rect
   width: 50
   height: 60
   x: 100
-  y: 200
+  "y": 200
   originX: 0
   originY: 0
   alpha: 1
   hover:
-    soundSrc: "hover-sound"
-    cursor: "pointer"
+    soundSrc: hover-sound
+    cursor: pointer
     actionPayload:
       hoverAction: true
 ---
 case: Parsing object with click property only
 in:
-  - id: 'obj-with-click'
-    type: "sprite"
+  - id: obj-with-click
+    type: sprite
     x: 50
-    y: 75
+    "y": 75
     width: 100
     height: 120
     click:
-      soundSrc: "click-sound"
+      soundSrc: click-sound
       actionPayload:
-        clickAction: "test-click"
+        clickAction: test-click
         value: 42
 out:
-  id: "obj-with-click"
-  type: "sprite"
+  id: obj-with-click
+  type: sprite
   width: 100
   height: 120
   x: 50
-  y: 75
+  "y": 75
   originX: 0
   originY: 0
   alpha: 1
   click:
-    soundSrc: "click-sound"
+    soundSrc: click-sound
     actionPayload:
-      clickAction: "test-click"
+      clickAction: test-click
       value: 42
 ---
 case: Parsing object with both hover and click properties
 in:
-  - id: 'obj-with-both'
-    type: "container"
+  - id: obj-with-both
+    type: container
     x: 0
-    y: 0
+    "y": 0
     width: 300
     height: 400
     hover:
-      soundSrc: "hover-bg"
-      cursor: "move"
+      soundSrc: hover-bg
+      cursor: move
     click:
-      soundSrc: "click-bg"
+      soundSrc: click-bg
       actionPayload:
         containerClicked: true
 out:
-  id: "obj-with-both"
-  type: "container"
+  id: obj-with-both
+  type: container
   width: 300
   height: 400
   x: 0
-  y: 0
+  "y": 0
   originX: 0
   originY: 0
   alpha: 1
   hover:
-    soundSrc: "hover-bg"
-    cursor: "move"
+    soundSrc: hover-bg
+    cursor: move
   click:
-    soundSrc: "click-bg"
+    soundSrc: click-bg
     actionPayload:
       containerClicked: true
 ---
 case: Parsing object with custom alpha value
 in:
-  - id: 'semi-transparent-rect'
-    type: "rect"
+  - id: semi-transparent-rect
+    type: rect
     x: 100
-    y: 100
+    "y": 100
     width: 200
     height: 150
     alpha: 0.75
 out:
-  id: "semi-transparent-rect"
-  type: "rect"
+  id: semi-transparent-rect
+  type: rect
   width: 200
   height: 150
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 0.75

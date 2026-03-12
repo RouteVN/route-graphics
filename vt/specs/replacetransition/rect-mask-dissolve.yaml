@@ -2,50 +2,51 @@
 title: Rect Replace Mask Dissolve
 description: A same-id rect replace animation using a mask-driven dissolve
 specs:
-  - "replace should keep the same target id while transitioning to the next fill color"
-  - "mask progress should partially reveal the next rect at 500ms"
-  - "replace should fully complete by 1000ms"
+  - replace should keep the same target id while transitioning to the next fill color
+  - mask progress should partially reveal the next rect at 500ms
+  - replace should fully complete by 1000ms
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
 ---
 states:
-  - id: "replace-start"
+  - id: replace-start
     elements:
-      - id: "rect1"
-        type: "rect"
+      - id: rect1
+        type: rect
         x: 160
-        y: 120
+        "y": 120
         width: 960
         height: 480
         fill: "#F2F2F2"
         alpha: 1
-  - id: "replace-end"
+  - id: replace-end
     elements:
-      - id: "rect1"
-        type: "rect"
+      - id: rect1
+        type: rect
         x: 160
-        y: 120
+        "y": 120
         width: 960
         height: 480
         fill: "#4D4D4D"
         alpha: 1
     animations:
-      - id: "rect-mask-replace"
-        targetId: "rect1"
-        operation: "replace"
-        mask:
-          kind: "single"
-          texture: "mask-diagonal"
-          channel: "red"
-          softness: 0.06
-          progress:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 1
-                easing: linear
+      - id: rect-mask-replace
+        targetId: rect1
+        type: replace
+        replace:
+          mask:
+            kind: single
+            texture: mask-diagonal
+            channel: red
+            softness: 0.06
+            progress:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

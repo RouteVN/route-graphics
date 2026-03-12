@@ -1,6 +1,7 @@
-file: "../../src/plugins/elements/sprite/parseSprite.js"
+file: ../../src/plugins/elements/sprite/parseSprite.js
 group: parser
-suites: [parseSprite]
+suites:
+  - parseSprite
 ---
 suite: parseSprite
 exportName: parseSprite
@@ -8,76 +9,76 @@ exportName: parseSprite
 case: Test parsing sprite
 in:
   - state:
-      id: "circle-red"
-      type: "sprite"
-      src: "file:circle-red"
+      id: circle-red
+      type: sprite
+      src: file:circle-red
       alpha: 0.8
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       hover:
-        soundSrc: "sound-1"
-        cursor: "cursor-1"
+        soundSrc: sound-1
+        cursor: cursor-1
         actionPayload:
           prop1: "44"
           prop2: "55"
-        src: "hover-src"
+        src: hover-src
       click:
-        soundSrc: "sound-2"
+        soundSrc: sound-2
         actionPayload:
           prop3: "00"
           prop4: "22"
-        src: "click-src"
+        src: click-src
 out:
-  id: "circle-red"
-  type: "sprite"
+  id: circle-red
+  type: sprite
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   alpha: 0.8
-  src: "file:circle-red"
+  src: file:circle-red
   hover:
-      soundSrc: "sound-1"
-      cursor: "cursor-1"
-      actionPayload:
-        prop1: "44"
-        prop2: "55"
-      src: "hover-src"
+    soundSrc: sound-1
+    cursor: cursor-1
+    actionPayload:
+      prop1: "44"
+      prop2: "55"
+    src: hover-src
   click:
-    soundSrc: "sound-2"
+    soundSrc: sound-2
     actionPayload:
       prop3: "00"
       prop4: "22"
-    src: "click-src"
+    src: click-src
 ---
 case: Test parsing sprite to see the default value of url, alpha, and interactive props
 in:
   - state:
-      id: "circle-red"
-      type: "sprite"
+      id: circle-red
+      type: sprite
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
 out:
-  id: "circle-red"
-  type: "sprite"
+  id: circle-red
+  type: sprite
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   alpha: 1

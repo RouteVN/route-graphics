@@ -170,7 +170,6 @@ export const addSprite = ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: sprite,

@@ -1,6 +1,5 @@
-const LIVE_OPERATIONS = new Set(["enter", "update", "exit"]);
-const ALL_OPERATIONS = new Set([...LIVE_OPERATIONS, "replace"]);
-const LIVE_PROPERTIES = new Set([
+const ANIMATION_TYPES = new Set(["live", "replace"]);
+const LIVE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
   "y",
@@ -8,7 +7,7 @@ const LIVE_PROPERTIES = new Set([
   "scaleY",
   "rotation",
 ]);
-const REPLACE_SUBJECT_PROPERTIES = new Set([
+const REPLACE_TWEEN_PROPERTIES = new Set([
   "translateX",
   "translateY",
   "alpha",
@@ -85,20 +84,18 @@ const normalizeKeyframes = (propertyConfig, path) => {
   return normalized;
 };
 
-const normalizePropertyMap = (properties, path, allowedProperties) => {
-  assertPlainObject(properties, path);
+const normalizeTweenMap = (tween, path, allowedProperties) => {
+  assertPlainObject(tween, path);
 
-  const normalizedEntries = Object.entries(properties).map(
-    ([property, config]) => {
-      if (!allowedProperties.has(property)) {
-        throw new Error(
-          `${path}.${property} is not a supported animation property.`,
-        );
-      }
+  const normalizedEntries = Object.entries(tween).map(([property, config]) => {
+    if (!allowedProperties.has(property)) {
+      throw new Error(
+        `${path}.${property} is not a supported animation property.`,
+      );
+    }
 
-      return [property, normalizeKeyframes(config, `${path}.${property}`)];
-    },
-  );
+    return [property, normalizeKeyframes(config, `${path}.${property}`)];
+  });
 
   if (normalizedEntries.length === 0) {
     throw new Error(`${path} must define at least one property.`);
@@ -214,33 +211,66 @@ const normalizeMask = (mask, path) => {
   return normalized;
 };
 
-const normalizeSubjects = (subjects, path) => {
-  assertPlainObject(subjects, path);
+const normalizeReplaceSide = (side, path) => {
+  assertPlainObject(side, path);
+
+  if (side.mask !== undefined) {
+    throw new Error(`${path}.mask is not valid. Define mask on ${path}.`);
+  }
 
   const normalized = {};
 
-  for (const subject of ["prev", "next"]) {
-    if (!subjects[subject]) continue;
-
-    assertPlainObject(subjects[subject], `${path}.${subject}`);
-    const subjectEntry = {};
-
-    if (subjects[subject].properties !== undefined) {
-      subjectEntry.properties = normalizePropertyMap(
-        subjects[subject].properties,
-        `${path}.${subject}.properties`,
-        REPLACE_SUBJECT_PROPERTIES,
-      );
-    }
-
-    normalized[subject] = subjectEntry;
+  if (side.tween !== undefined) {
+    normalized.tween = normalizeTweenMap(
+      side.tween,
+      `${path}.tween`,
+      REPLACE_TWEEN_PROPERTIES,
+    );
   }
 
-  if (!normalized.prev && !normalized.next) {
-    throw new Error(`${path} must define prev and/or next.`);
+  if (Object.keys(normalized).length === 0) {
+    throw new Error(`${path} must define tween.`);
   }
 
   return normalized;
+};
+
+const normalizeReplace = (replace, path) => {
+  assertPlainObject(replace, path);
+
+  if (replace.shader !== undefined) {
+    throw new Error(`${path}.shader is not supported.`);
+  }
+
+  const normalized = {};
+
+  if (replace.prev !== undefined) {
+    normalized.prev = normalizeReplaceSide(replace.prev, `${path}.prev`);
+  }
+
+  if (replace.next !== undefined) {
+    normalized.next = normalizeReplaceSide(replace.next, `${path}.next`);
+  }
+
+  if (replace.mask !== undefined) {
+    normalized.mask = normalizeMask(replace.mask, `${path}.mask`);
+  }
+
+  if (
+    normalized.prev === undefined &&
+    normalized.next === undefined &&
+    normalized.mask === undefined
+  ) {
+    throw new Error(`${path} must define prev, next, or mask.`);
+  }
+
+  return normalized;
+};
+
+const assertLegacyFieldAbsent = (value, path, message) => {
+  if (value !== undefined) {
+    throw new Error(`${path} ${message}`);
+  }
 };
 
 export const normalizeAnimations = (animations = []) => {
@@ -253,18 +283,18 @@ export const normalizeAnimations = (animations = []) => {
     assertPlainObject(animation, path);
     assertString(animation.id, `${path}.id`);
     assertString(animation.targetId, `${path}.targetId`);
-    assertString(animation.operation, `${path}.operation`);
+    assertString(animation.type, `${path}.type`);
 
-    if (!ALL_OPERATIONS.has(animation.operation)) {
+    if (!ANIMATION_TYPES.has(animation.type)) {
       throw new Error(
-        `${path}.operation must be one of: ${Array.from(ALL_OPERATIONS).join(", ")}.`,
+        `${path}.type must be one of: ${Array.from(ANIMATION_TYPES).join(", ")}.`,
       );
     }
 
     const normalizedAnimation = {
       id: animation.id,
       targetId: animation.targetId,
-      operation: animation.operation,
+      type: animation.type,
     };
 
     if (animation.complete !== undefined) {
@@ -272,80 +302,74 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.complete = animation.complete;
     }
 
-    if (animation.shader !== undefined) {
-      throw new Error(`${path}.shader is not supported.`);
-    }
+    assertLegacyFieldAbsent(
+      animation.operation,
+      `${path}.operation`,
+      "is no longer supported. Use `type: live | replace` instead.",
+    );
+    assertLegacyFieldAbsent(
+      animation.properties,
+      `${path}.properties`,
+      "is no longer supported. Use `tween` instead.",
+    );
+    assertLegacyFieldAbsent(
+      animation.subjects,
+      `${path}.subjects`,
+      "is no longer supported. Use `replace.prev` / `replace.next` instead.",
+    );
+    assertLegacyFieldAbsent(
+      animation.mask,
+      `${path}.mask`,
+      "is no longer supported. Use `replace.mask` instead.",
+    );
+    assertLegacyFieldAbsent(
+      animation.shader,
+      `${path}.shader`,
+      "is not supported.",
+    );
 
-    if (LIVE_OPERATIONS.has(animation.operation)) {
-      normalizedAnimation.properties = normalizePropertyMap(
-        animation.properties,
-        `${path}.properties`,
-        LIVE_PROPERTIES,
+    if (animation.type === "live") {
+      normalizedAnimation.tween = normalizeTweenMap(
+        animation.tween,
+        `${path}.tween`,
+        LIVE_TWEEN_PROPERTIES,
       );
 
-      if (animation.subjects !== undefined) {
+      if (animation.replace !== undefined) {
         throw new Error(
-          `${path}.subjects is only valid for replace animations.`,
+          `${path}.replace is only valid for replace animations.`,
         );
-      }
-      if (animation.mask !== undefined) {
-        throw new Error(`${path}.mask is only valid for replace animations.`);
       }
 
       return normalizedAnimation;
     }
 
-    if (animation.properties !== undefined) {
-      throw new Error(
-        `${path}.properties is not valid for replace animations.`,
-      );
+    if (animation.tween !== undefined) {
+      throw new Error(`${path}.tween is not valid for replace animations.`);
     }
 
-    if (animation.subjects !== undefined) {
-      normalizedAnimation.subjects = normalizeSubjects(
-        animation.subjects,
-        `${path}.subjects`,
-      );
-    }
-
-    if (animation.mask !== undefined) {
-      normalizedAnimation.mask = normalizeMask(animation.mask, `${path}.mask`);
-    }
-
-    if (
-      normalizedAnimation.subjects === undefined &&
-      normalizedAnimation.mask === undefined
-    ) {
-      throw new Error(
-        `${path} replace animations must define subjects or mask.`,
-      );
-    }
-
-    const hasSubjectProperties =
-      normalizedAnimation.subjects?.prev?.properties !== undefined ||
-      normalizedAnimation.subjects?.next?.properties !== undefined;
-
-    if (normalizedAnimation.mask && hasSubjectProperties) {
-      throw new Error(
-        `${path} cannot combine subject property animation with mask replace.`,
-      );
-    }
+    normalizedAnimation.replace = normalizeReplace(
+      animation.replace,
+      `${path}.replace`,
+    );
 
     return normalizedAnimation;
   });
 
-  const replaceTargets = new Set();
+  const targetKinds = new Map();
 
   for (const animation of normalized) {
-    if (animation.operation !== "replace") continue;
+    const kinds = targetKinds.get(animation.targetId) ?? new Set();
+    kinds.add(animation.type);
+    targetKinds.set(animation.targetId, kinds);
+  }
 
-    if (replaceTargets.has(animation.targetId)) {
+  for (const [targetId, kinds] of targetKinds) {
+    if (kinds.has("replace") && kinds.size > 1) {
       throw new Error(
-        `Only one replace animation may target "${animation.targetId}" in the same state.`,
+        `Animations targeting "${targetId}" cannot mix live and replace types in the same state.`,
       );
     }
-
-    replaceTargets.add(animation.targetId);
   }
 
   return normalized;

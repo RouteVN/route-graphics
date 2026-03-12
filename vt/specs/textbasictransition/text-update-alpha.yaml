@@ -39,10 +39,10 @@ states:
     animations:
       - id: text-fade
         targetId: text1
-        properties:
+        type: live
+        tween:
           alpha:
             keyframes:
               - duration: 600
                 value: 0.5
                 easing: linear
-        operation: update

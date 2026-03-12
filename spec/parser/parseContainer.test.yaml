@@ -1,6 +1,7 @@
-file: '../../src/plugins/elements/container/parseContainerForTestingPurposes.js'
+file: ../../src/plugins/elements/container/parseContainerForTestingPurposes.js
 group: parser
-suites: [parseContainer]
+suites:
+  - parseContainer
 ---
 suite: parseContainerForTesting
 exportName: parseContainerForTesting
@@ -8,34 +9,34 @@ exportName: parseContainerForTesting
 case: Test parsing container with no width or height horizontally
 in:
   - state:
-      id: 'container-1'
-      type: "container"
-      direction: "horizontal"
+      id: container-1
+      type: container
+      direction: horizontal
       gap: 5
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       rotation: 90
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 100
           scaleX: 1.2
           scaleY: 0.8
           fill: red
           rotation: 90
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 120
           scaleX: 1.2
           scaleY: 0.8
           fill: blue
           rotation: 90
-        - id: 'rect-3'
-          type: "rect"
+        - id: rect-3
+          type: rect
           width: 80
           height: 100
           scaleX: 1.2
@@ -43,48 +44,48 @@ in:
           fill: red
           rotation: 90
 out:
-  id: "container-1"
-  type: "container"
-  direction: "horizontal"
+  id: container-1
+  type: container
+  direction: horizontal
   gap: 5
   width: 322
   height: 96
   x: 79
-  y: 192
+  "y": 192
   originX: 161
   originY: 48
   scroll: false
   rotation: 90
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 96
       height: 80
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 90
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 120
       height: 96
       x: 101
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: blue
       rotation: 90
       alpha: 1
-    - id: 'rect-3'
-      type: "rect"
+    - id: rect-3
+      type: rect
       width: 96
       height: 80
       x: 226
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
@@ -94,83 +95,83 @@ out:
 case: Test parsing container with no width or height vertically
 in:
   - state:
-      id: 'container-1'
-      type: "container"
-      direction: "vertical"
+      id: container-1
+      type: container
+      direction: vertical
       gap: 5
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       rotation: 90
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 100
           scaleX: 1.2
           scaleY: 0.8
           fill: red
           rotation: 90
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 120
           x: 240
-          y: 240
+          "y": 240
           fill: blue
           rotation: 90
-        - id: 'rect-3'
-          type: "rect"
+        - id: rect-3
+          type: rect
           width: 80
           height: 100
           x: 240
-          y: 240
+          "y": 240
           fill: red
           rotation: 90
 out:
-  id: "container-1"
-  type: "container"
-  direction: "vertical"
+  id: container-1
+  type: container
+  direction: vertical
   gap: 5
   width: 100
   height: 310
   x: 190
-  y: 85
+  "y": 85
   originX: 50
   originY: 155
   scroll: false
   rotation: 90
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 96
       height: 80
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 90
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 100
       height: 120
       x: 0
-      y: 85
+      "y": 85
       originX: 0
       originY: 0
       fill: blue
       rotation: 90
       alpha: 1
-    - id: 'rect-3'
-      type: "rect"
+    - id: rect-3
+      type: rect
       width: 80
       height: 100
       x: 0
-      y: 210
+      "y": 210
       originX: 0
       originY: 0
       fill: red
@@ -180,27 +181,27 @@ out:
 case: Test parsing container with no width or height and width overflow-horizontal
 in:
   - state:
-      id: 'container-1'
-      type: "container"
-      direction: "horizontal"
+      id: container-1
+      type: container
+      direction: horizontal
       width: 200
       gap: 5
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       rotation: 90
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 100
           scaleX: 1.2
           scaleY: 0.8
           fill: red
           rotation: 90
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 120
           scaleX: 1.2
@@ -208,37 +209,37 @@ in:
           fill: blue
           rotation: 90
 out:
-  id: "container-1"
-  type: "container"
-  direction: "horizontal"
+  id: container-1
+  type: container
+  direction: horizontal
   gap: 5
   width: 200
   height: 181
   x: 140
-  y: 150
+  "y": 150
   originX: 100
   originY: 91
   scroll: false
   rotation: 90
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 96
       height: 80
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 90
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 120
       height: 96
       x: 0
-      y: 85
+      "y": 85
       originX: 0
       originY: 0
       fill: blue
@@ -248,35 +249,35 @@ out:
 case: Test parsing container with no width or height and width overflow-vertical
 in:
   - state:
-      id: 'container-1'
-      type: "container"
-      direction: "vertical"
+      id: container-1
+      type: container
+      direction: vertical
       height: 200
       gap: 5
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       rotation: 90
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 100
           scaleX: 1.2
           scaleY: 0.8
           fill: red
           rotation: 90
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 120
           scaleX: 1.2
           scaleY: 0.8
           fill: blue
           rotation: 90
-        - id: 'rect-3'
-          type: "rect"
+        - id: rect-3
+          type: rect
           width: 100
           height: 120
           scaleX: 1.2
@@ -284,48 +285,48 @@ in:
           fill: blue
           rotation: 90
 out:
-  id: "container-1"
-  type: "container"
-  direction: "vertical"
+  id: container-1
+  type: container
+  direction: vertical
   gap: 5
   width: 245
   height: 200
   x: 118
-  y: 140
+  "y": 140
   originX: 123
   originY: 100
   scroll: false
   rotation: 90
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 96
       height: 80
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 90
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 120
       height: 96
       x: 0
-      y: 85
+      "y": 85
       originX: 0
       originY: 0
       fill: blue
       rotation: 90
       alpha: 1
-    - id: 'rect-3'
-      type: "rect"
+    - id: rect-3
+      type: rect
       width: 120
       height: 96
       x: 125
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: blue
@@ -335,37 +336,37 @@ out:
 case: Test parsing vertical container anchors to bottom without scroll
 in:
   - state:
-      id: "container-anchor-bottom-vertical"
-      type: "container"
-      direction: "vertical"
+      id: container-anchor-bottom-vertical
+      type: container
+      direction: vertical
       height: 200
       gap: 5
       anchorToBottom: true
       children:
-        - id: "rect-1"
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 100
           height: 100
           fill: red
-        - id: "rect-2"
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 100
           fill: blue
-        - id: "rect-3"
-          type: "rect"
+        - id: rect-3
+          type: rect
           width: 100
           height: 100
           fill: green
 out:
-  id: "container-anchor-bottom-vertical"
-  type: "container"
-  direction: "vertical"
+  id: container-anchor-bottom-vertical
+  type: container
+  direction: vertical
   gap: 5
   width: 100
   height: 200
   x: 0
-  y: 0
+  "y": 0
   originX: 0
   originY: 0
   scroll: false
@@ -373,34 +374,34 @@ out:
   rotation: 0
   alpha: 1
   children:
-    - id: "rect-1"
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 100
       height: 100
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 0
       alpha: 1
-    - id: "rect-2"
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 100
       height: 100
       x: 0
-      y: 105
+      "y": 105
       originX: 0
       originY: 0
       fill: blue
       rotation: 0
       alpha: 1
-    - id: "rect-3"
-      type: "rect"
+    - id: rect-3
+      type: rect
       width: 100
       height: 100
       x: 0
-      y: 210
+      "y": 210
       originX: 0
       originY: 0
       fill: green
@@ -410,37 +411,37 @@ out:
 case: Test parsing horizontal container anchors to right without scroll
 in:
   - state:
-      id: "container-anchor-bottom-horizontal"
-      type: "container"
-      direction: "horizontal"
+      id: container-anchor-bottom-horizontal
+      type: container
+      direction: horizontal
       width: 200
       gap: 5
       anchorToBottom: true
       children:
-        - id: "rect-1"
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 100
           height: 100
           fill: red
-        - id: "rect-2"
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 100
           height: 100
           fill: blue
-        - id: "rect-3"
-          type: "rect"
+        - id: rect-3
+          type: rect
           width: 100
           height: 100
           fill: green
 out:
-  id: "container-anchor-bottom-horizontal"
-  type: "container"
-  direction: "horizontal"
+  id: container-anchor-bottom-horizontal
+  type: container
+  direction: horizontal
   gap: 5
   width: 200
   height: 100
   x: 0
-  y: 0
+  "y": 0
   originX: 0
   originY: 0
   scroll: false
@@ -448,34 +449,34 @@ out:
   rotation: 0
   alpha: 1
   children:
-    - id: "rect-1"
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 100
       height: 100
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 0
       alpha: 1
-    - id: "rect-2"
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 100
       height: 100
       x: 105
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: blue
       rotation: 0
       alpha: 1
-    - id: "rect-3"
-      type: "rect"
+    - id: rect-3
+      type: rect
       width: 100
       height: 100
       x: 210
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: green
@@ -485,24 +486,24 @@ out:
 case: Test parsing empty container
 in:
   - state:
-      id: 'container-1'
-      type: "container"
-      direction: "vertical"
+      id: container-1
+      type: container
+      direction: vertical
       gap: 5
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       rotation: 90
 out:
-  id: "container-1"
-  type: "container"
-  direction: "vertical"
+  id: container-1
+  type: container
+  direction: vertical
   gap: 5
   width: 0
   height: 0
   x: 240
-  y: 240
+  "y": 240
   originX: 0
   originY: 0
   scroll: false
@@ -536,8 +537,8 @@ in:
               x: 0
               "y": 0
 out:
-  id: "outer-container"
-  type: "container"
+  id: outer-container
+  type: container
   direction: ""
   alpha: 1
   gap: 0
@@ -548,7 +549,7 @@ out:
   scroll: false
   width: 350
   x: 0
-  y: 0
+  "y": 0
   children:
     - id: inner-container
       type: container
@@ -556,16 +557,16 @@ out:
       height: 100
       width: 100
       x: 250
-      y: 0
+      "y": 0
       originX: 50
       originY: 100
       scroll: false
       rotation: 0
       gap: 0
       alpha: 1
-      children: 
-        - id: "reactid"
-          type: "rect"
+      children:
+        - id: reactid
+          type: rect
           alpha: 1
           fill: red
           height: 100
@@ -574,44 +575,44 @@ out:
           originY: 0
           rotation: 0
           x: 0
-          y: 0
+          "y": 0
 ---
 case: Test parsing container with particles children
 in:
   - state:
-      id: 'container-particles'
-      type: "container"
-      direction: "horizontal"
+      id: container-particles
+      type: container
+      direction: horizontal
       gap: 10
       width: 500
       height: 300
       children:
-        - id: 'particles-burst'
-          type: "particles"
+        - id: particles-burst
+          type: particles
           width: 200
           height: 150
-          texture: "circle"
+          texture: circle
           behaviors:
-            - type: "spawnShape"
+            - type: spawnShape
               config:
-                type: "circle"
+                type: circle
                 data:
                   x: 100
-                  y: 75
+                  "y": 75
                   radius: 10
                   affectRotation: true
-            - type: "speedStatic"
+            - type: speedStatic
               config:
                 min: 200
                 max: 400
-            - type: "scale"
+            - type: scale
               config:
                 list:
                   - value: 1
                     time: 0
                   - value: 0
                     time: 1
-            - type: "alpha"
+            - type: alpha
               config:
                 list:
                   - value: 1
@@ -621,21 +622,21 @@ in:
           emitter:
             lifetime:
               min: 0.5
-              max: 1.0
+              max: 1
             frequency: 0
             particlesPerWave: 50
             maxParticles: 50
             emitterLifetime: 0.1
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 100
           height: 100
-          fill: "blue"
+          fill: blue
   - parserPlugins: []
 out:
-  id: "container-particles"
-  type: "container"
-  direction: "horizontal"
+  id: container-particles
+  type: container
+  direction: horizontal
   alpha: 1
   gap: 10
   height: 300
@@ -645,35 +646,35 @@ out:
   scroll: false
   width: 500
   x: 0
-  y: 0
+  "y": 0
   children:
-    - id: 'particles-burst'
-      type: "particles"
+    - id: particles-burst
+      type: particles
       count: 50
       width: 200
       height: 150
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "spawnShape"
+        - type: spawnShape
           config:
-            type: "circle"
+            type: circle
             data:
               x: 100
-              y: 75
+              "y": 75
               radius: 10
               affectRotation: true
-        - type: "speedStatic"
+        - type: speedStatic
           config:
             min: 200
             max: 400
-        - type: "scale"
+        - type: scale
           config:
             list:
               - value: 1
                 time: 0
               - value: 0
                 time: 1
-        - type: "alpha"
+        - type: alpha
           config:
             list:
               - value: 1
@@ -683,16 +684,16 @@ out:
       emitter:
         lifetime:
           min: 0.5
-          max: 1.0
+          max: 1
         frequency: 0
         particlesPerWave: 50
         maxParticles: 50
         emitterLifetime: 0.1
       x: 0
-      y: 0
+      "y": 0
       alpha: 1
-    - id: "rect-1"
-      type: "rect"
+    - id: rect-1
+      type: rect
       alpha: 1
       fill: blue
       height: 100
@@ -701,43 +702,43 @@ out:
       originY: 0
       rotation: 0
       x: 210
-      y: 0
+      "y": 0
 ---
 case: Test parsing container with multiple particles
 in:
   - state:
-      id: 'container-multi-particles'
-      type: "container"
-      direction: "vertical"
+      id: container-multi-particles
+      type: container
+      direction: vertical
       gap: 20
       width: 400
       height: 600
       children:
-        - id: 'particles-snow'
-          type: "particles"
+        - id: particles-snow
+          type: particles
           width: 400
           height: 200
-          texture: "snowflake"
+          texture: snowflake
           behaviors:
-            - type: "spawnShape"
+            - type: spawnShape
               config:
-                type: "rect"
+                type: rect
                 data:
                   x: 0
-                  y: -20
+                  "y": -20
                   w: 400
                   h: 10
-            - type: "movePoint"
+            - type: movePoint
               config:
                 speed:
                   min: 50
                   max: 150
                 direction: 90
-            - type: "scaleStatic"
+            - type: scaleStatic
               config:
                 min: 0.3
-                max: 1.0
-            - type: "alpha"
+                max: 1
+            - type: alpha
               config:
                 list:
                   - value: 0
@@ -748,7 +749,7 @@ in:
                     time: 0.8
                   - value: 0
                     time: 1
-            - type: "rotation"
+            - type: rotation
               config:
                 minStart: 0
                 maxStart: 360
@@ -764,34 +765,34 @@ in:
             emitterLifetime: -1
             spawnBounds:
               x: -50
-              y: -50
+              "y": -50
               width: 500
               height: 300
             recycleOnBounds: true
-        - id: 'particles-fire'
-          type: "particles"
+        - id: particles-fire
+          type: particles
           width: 400
           height: 180
-          texture: "circle"
+          texture: circle
           behaviors:
-            - type: "spawnShape"
+            - type: spawnShape
               config:
-                type: "rect"
+                type: rect
                 data:
                   x: 200
-                  y: 150
+                  "y": 150
                   w: 40
                   h: 10
-            - type: "acceleration"
+            - type: acceleration
               config:
                 accel:
                   x: 0
-                  y: -200
+                  "y": -200
                 minStart: 50
                 maxStart: 150
                 rotate: false
                 maxSpeed: 0
-            - type: "scale"
+            - type: scale
               config:
                 list:
                   - value: 1
@@ -799,14 +800,14 @@ in:
                   - value: 0.3
                     time: 1
                 minMult: 0.5
-            - type: "alpha"
+            - type: alpha
               config:
                 list:
                   - value: 1
                     time: 0
                   - value: 0
                     time: 1
-            - type: "color"
+            - type: color
               config:
                 list:
                   - value: "#ffff00"
@@ -815,7 +816,7 @@ in:
                     time: 0.5
                   - value: "#ff0000"
                     time: 1
-            - type: "rotationStatic"
+            - type: rotationStatic
               config:
                 min: -90
                 max: -90
@@ -829,9 +830,9 @@ in:
             emitterLifetime: -1
   - parserPlugins: []
 out:
-  id: "container-multi-particles"
-  type: "container"
-  direction: "vertical"
+  id: container-multi-particles
+  type: container
+  direction: vertical
   alpha: 1
   gap: 20
   height: 600
@@ -841,34 +842,34 @@ out:
   scroll: false
   width: 400
   x: 0
-  y: 0
+  "y": 0
   children:
-    - id: 'particles-snow'
-      type: "particles"
+    - id: particles-snow
+      type: particles
       count: 100
       width: 400
       height: 200
-      texture: "snowflake"
+      texture: snowflake
       behaviors:
-        - type: "spawnShape"
+        - type: spawnShape
           config:
-            type: "rect"
+            type: rect
             data:
               x: 0
-              y: -20
+              "y": -20
               w: 400
               h: 10
-        - type: "movePoint"
+        - type: movePoint
           config:
             speed:
               min: 50
               max: 150
             direction: 90
-        - type: "scaleStatic"
+        - type: scaleStatic
           config:
             min: 0.3
-            max: 1.0
-        - type: "alpha"
+            max: 1
+        - type: alpha
           config:
             list:
               - value: 0
@@ -879,7 +880,7 @@ out:
                 time: 0.8
               - value: 0
                 time: 1
-        - type: "rotation"
+        - type: rotation
           config:
             minStart: 0
             maxStart: 360
@@ -895,38 +896,38 @@ out:
         emitterLifetime: -1
         spawnBounds:
           x: -50
-          y: -50
+          "y": -50
           width: 500
           height: 300
         recycleOnBounds: true
       x: 0
-      y: 0
+      "y": 0
       alpha: 1
-    - id: 'particles-fire'
-      type: "particles"
+    - id: particles-fire
+      type: particles
       count: 75
       width: 400
       height: 180
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "spawnShape"
+        - type: spawnShape
           config:
-            type: "rect"
+            type: rect
             data:
               x: 200
-              y: 150
+              "y": 150
               w: 40
               h: 10
-        - type: "acceleration"
+        - type: acceleration
           config:
             accel:
               x: 0
-              y: -200
+              "y": -200
             minStart: 50
             maxStart: 150
             rotate: false
             maxSpeed: 0
-        - type: "scale"
+        - type: scale
           config:
             list:
               - value: 1
@@ -934,14 +935,14 @@ out:
               - value: 0.3
                 time: 1
             minMult: 0.5
-        - type: "alpha"
+        - type: alpha
           config:
             list:
               - value: 1
                 time: 0
               - value: 0
                 time: 1
-        - type: "color"
+        - type: color
           config:
             list:
               - value: "#ffff00"
@@ -950,7 +951,7 @@ out:
                 time: 0.5
               - value: "#ff0000"
                 time: 1
-        - type: "rotationStatic"
+        - type: rotationStatic
           config:
             min: -90
             max: -90
@@ -963,71 +964,71 @@ out:
         maxParticles: 75
         emitterLifetime: -1
       x: 0
-      y: 220
+      "y": 220
       alpha: 1
 ---
 case: Test parsing container with hover, click, and rightClick events
 in:
   - state:
-      id: 'container-events'
-      type: "container"
-      direction: "horizontal"
+      id: container-events
+      type: container
+      direction: horizontal
       gap: 5
       x: 100
-      y: 100
+      "y": 100
       hover:
-        cursor: "pointer"
-        soundSrc: "hover-sound"
+        cursor: pointer
+        soundSrc: hover-sound
         actionPayload:
-          type: "hover"
+          type: hover
       click:
-        soundSrc: "click-sound"
+        soundSrc: click-sound
         actionPayload:
-          type: "click"
+          type: click
       rightClick:
-        soundSrc: "rightclick-sound"
+        soundSrc: rightclick-sound
         actionPayload:
-          type: "rightclick"
+          type: rightclick
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 100
           fill: red
 out:
-  id: "container-events"
-  type: "container"
-  direction: "horizontal"
+  id: container-events
+  type: container
+  direction: horizontal
   gap: 5
   width: 80
   height: 100
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   scroll: false
   rotation: 0
   alpha: 1
   hover:
-    cursor: "pointer"
-    soundSrc: "hover-sound"
+    cursor: pointer
+    soundSrc: hover-sound
     actionPayload:
-      type: "hover"
+      type: hover
   click:
-    soundSrc: "click-sound"
+    soundSrc: click-sound
     actionPayload:
-      type: "click"
+      type: click
   rightClick:
-    soundSrc: "rightclick-sound"
+    soundSrc: rightclick-sound
     actionPayload:
-      type: "rightclick"
+      type: rightclick
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 80
       height: 100
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
@@ -1035,59 +1036,59 @@ out:
       alpha: 1
 ---
 case: Test parsing container with children no scale
-in: 
+in:
   - state:
-      id: 'container-scaled-children'
-      type: "container"
-      direction: "horizontal"
+      id: container-scaled-children
+      type: container
+      direction: horizontal
       gap: 5
       x: 0
-      y: 0
+      "y": 0
       scaleX: 2
       scaleY: 2
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 100
           height: 100
           fill: red
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 200
           height: 150
           fill: blue
-out: 
-  id: "container-scaled-children"
-  type: "container"
-  direction: "horizontal"
+out:
+  id: container-scaled-children
+  type: container
+  direction: horizontal
   gap: 5
   width: 605
   height: 300
   x: 0
-  y: 0
+  "y": 0
   originX: 0
   originY: 0
   scroll: false
   rotation: 0
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 200
       height: 200
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 0
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 400
       height: 300
       x: 205
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: blue
@@ -1095,63 +1096,63 @@ out:
       alpha: 1
 ---
 case: Test parsing container with scaled children
-in: 
+in:
   - state:
-      id: 'container-scaled-children'
-      type: "container"
-      direction: "horizontal"
+      id: container-scaled-children
+      type: container
+      direction: horizontal
       gap: 5
       x: 0
-      y: 0
+      "y": 0
       scaleX: 2
       scaleY: 2
       children:
-        - id: 'rect-1'
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 100
           height: 100
           scaleX: 2
           scaleY: 2
           fill: red
-        - id: 'rect-2'
-          type: "rect"
+        - id: rect-2
+          type: rect
           width: 200
           height: 150
           scaleX: 2
           scaleY: 2
           fill: blue
-out: 
-  id: "container-scaled-children"
-  type: "container"
-  direction: "horizontal"
+out:
+  id: container-scaled-children
+  type: container
+  direction: horizontal
   gap: 5
   width: 1205
   height: 600
   x: 0
-  y: 0
+  "y": 0
   originX: 0
   originY: 0
   scroll: false
   rotation: 0
   alpha: 1
   children:
-    - id: 'rect-1'
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 400
       height: 400
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red
       rotation: 0
       alpha: 1
-    - id: 'rect-2'
-      type: "rect"
+    - id: rect-2
+      type: rect
       width: 800
       height: 600
       x: 405
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: blue
@@ -1161,31 +1162,31 @@ out:
 case: Test parsing container with anchorToBottom enabled
 in:
   - state:
-      id: "container-anchor-bottom"
-      type: "container"
-      direction: "vertical"
+      id: container-anchor-bottom
+      type: container
+      direction: vertical
       gap: 5
       width: 120
       height: 120
       x: 25
-      y: 40
+      "y": 40
       scroll: true
       anchorToBottom: true
       children:
-        - id: "rect-1"
-          type: "rect"
+        - id: rect-1
+          type: rect
           width: 80
           height: 50
           fill: red
 out:
-  id: "container-anchor-bottom"
-  type: "container"
-  direction: "vertical"
+  id: container-anchor-bottom
+  type: container
+  direction: vertical
   gap: 5
   width: 120
   height: 120
   x: 25
-  y: 40
+  "y": 40
   originX: 0
   originY: 0
   scroll: true
@@ -1193,12 +1194,12 @@ out:
   rotation: 0
   alpha: 1
   children:
-    - id: "rect-1"
-      type: "rect"
+    - id: rect-1
+      type: rect
       width: 80
       height: 50
       x: 0
-      y: 0
+      "y": 0
       originX: 0
       originY: 0
       fill: red

@@ -1,6 +1,7 @@
-file: '../../src/plugins/elements/text/parseText.js'
+file: ../../src/plugins/elements/text/parseText.js
 group: parser
-suites: [parseText]
+suites:
+  - parseText
 ---
 suite: parseText
 exportName: parseText
@@ -8,112 +9,112 @@ exportName: parseText
 case: Test parsing simple text object
 in:
   - state:
-      id: 'tl'
-      type: "text"
-      content: "This text is aligned to the top left corner"
+      id: tl
+      type: text
+      content: This text is aligned to the top left corner
       x: 660
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       textStyle:
         fontSize: 24
-        fontFamily: "Arial"
-        fill: "white"
+        fontFamily: Arial
+        fill: white
       hover:
-        soundSrc: "sound-1"
-        cursor: "cursor-1"
+        soundSrc: sound-1
+        cursor: cursor-1
         actionPayload:
           prop1: "44"
           prop2: "55"
         textStyle:
           fontSize: 16
-          fontFamily: "Arial"
-          fill: "black"
+          fontFamily: Arial
+          fill: black
       click:
-        soundSrc: "sound-2"
+        soundSrc: sound-2
         actionPayload:
           prop3: "00"
           prop4: "22"
         textStyle:
           fontSize: 16
-          fontFamily: "Arial"
-          fill: "black"
+          fontFamily: Arial
+          fill: black
 out:
-  id: "tl"
-  type: "text"
-  content: "This text is aligned to the top left corner"
+  id: tl
+  type: text
+  content: This text is aligned to the top left corner
   width: 419
   height: 29
   x: 451
-  y: 226
+  "y": 226
   originX: 210
   originY: 15
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 24
-    fontFamily: "Arial"
-    fill: "white"
-    align: "left"
+    fontFamily: Arial
+    fill: white
+    align: left
     lineHeight: 29
     wordWrap: false
     breakWords: false
     wordWrapWidth: 0
   hover:
-      soundSrc: "sound-1"
-      cursor: "cursor-1"
-      actionPayload:
-        prop1: "44"
-        prop2: "55"
-      textStyle:
-        fontSize: 16
-        fontFamily: "Arial"
-        fill: "black"
+    soundSrc: sound-1
+    cursor: cursor-1
+    actionPayload:
+      prop1: "44"
+      prop2: "55"
+    textStyle:
+      fontSize: 16
+      fontFamily: Arial
+      fill: black
   click:
-    soundSrc: "sound-2"
+    soundSrc: sound-2
     actionPayload:
       prop3: "00"
       prop4: "22"
     textStyle:
       fontSize: 16
-      fontFamily: "Arial"
-      fill: "black"
+      fontFamily: Arial
+      fill: black
 ---
 case: Test parsing with word wrap
 in:
   - state:
-      id: 'tl'
-      type: "text"
-      content: "This text is wrap"
+      id: tl
+      type: text
+      content: This text is wrap
       x: 660
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       width: 200
       textStyle:
         fontSize: 24
-        fontFamily: "Arial"
-        fill: "white"
+        fontFamily: Arial
+        fill: white
         breakWords: true
 out:
-  id: "tl"
-  type: "text"
-  content: "This text is wrap"
+  id: tl
+  type: text
+  content: This text is wrap
   width: 173
   height: 29
   x: 574
-  y: 226
+  "y": 226
   originX: 87
   originY: 15
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 24
-    fontFamily: "Arial"
-    fill: "white"
-    align: "left"
+    fontFamily: Arial
+    fill: white
+    align: left
     lineHeight: 29
     wordWrap: true
     breakWords: true
@@ -122,31 +123,31 @@ out:
 case: Test parsing simple text object with no textStyle
 in:
   - state:
-      id: 'tl'
-      type: "text"
-      content: "This text is aligned to the top left corner"
+      id: tl
+      type: text
+      content: This text is aligned to the top left corner
       x: 660
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
 out:
-  id: "tl"
-  type: "text"
-  content: "This text is aligned to the top left corner"
+  id: tl
+  type: text
+  content: This text is aligned to the top left corner
   width: 280
   height: 19
   x: 520
-  y: 231
+  "y": 231
   originX: 140
   originY: 10
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
-    fill: "black"
-    fontFamily: "Arial"
+    fill: black
+    fontFamily: Arial
     fontSize: 16
-    align: "left"
+    align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
@@ -155,30 +156,30 @@ out:
 case: Test parsing simple text object with no content
 in:
   - state:
-      id: 'tl'
-      type: "text"
+      id: tl
+      type: text
       x: 660
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
 out:
-  id: "tl"
-  type: "text"
+  id: tl
+  type: text
   content: ""
   width: 0
   height: 19
   x: 660
-  y: 231
+  "y": 231
   originX: 0
   originY: 10
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
-    fill: "black"
-    fontFamily: "Arial"
+    fill: black
+    fontFamily: Arial
     fontSize: 16
-    align: "left"
+    align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
@@ -187,33 +188,33 @@ out:
 case: Test parsing text with alpha property
 in:
   - state:
-      id: 'transparent-text'
-      type: "text"
-      content: "Semi-transparent text"
+      id: transparent-text
+      type: text
+      content: Semi-transparent text
       x: 100
-      y: 50
+      "y": 50
       alpha: 0.5
       textStyle:
         fontSize: 20
-        fill: "blue"
+        fill: blue
 out:
-  id: "transparent-text"
-  type: "text"
-  content: "Semi-transparent text"
+  id: transparent-text
+  type: text
+  content: Semi-transparent text
   width: 192
   height: 24
   x: 100
-  y: 50
+  "y": 50
   originX: 0
   originY: 0
   alpha: 0.5
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 20
-    fill: "blue"
-    fontFamily: "Arial"
-    align: "left"
+    fill: blue
+    fontFamily: Arial
+    align: left
     lineHeight: 24
     wordWrap: false
     breakWords: false
@@ -222,37 +223,37 @@ out:
 case: Test parsing text with all textStyle properties
 in:
   - state:
-      id: 'full-style-text'
-      type: "text"
-      content: "Fully styled text"
+      id: full-style-text
+      type: text
+      content: Fully styled text
       x: 50
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 18
-        fontFamily: "Times New Roman"
+        fontFamily: Times New Roman
         fill: "#FF5733"
-        align: "center"
+        align: center
         lineHeight: 1.5
         wordWrap: false
         breakWords: false
         strokeColor: "#000000"
         strokeWidth: 1
 out:
-  id: "full-style-text"
-  type: "text"
-  content: "Fully styled text"
+  id: full-style-text
+  type: text
+  content: Fully styled text
   width: 117
   height: 27
   x: 50
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   textStyle:
     fontSize: 18
-    fontFamily: "Times New Roman"
+    fontFamily: Times New Roman
     fill: "#FF5733"
-    align: "center"
+    align: center
     lineHeight: 27
     wordWrap: false
     breakWords: false
@@ -263,31 +264,31 @@ out:
 case: Test parsing text with boolean content (true)
 in:
   - state:
-      id: 'bool-text-true'
-      type: "text"
+      id: bool-text-true
+      type: text
       content: true
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "bool-text-true"
-  type: "text"
+  id: bool-text-true
+  type: text
   content: "true"
   width: 28
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fontFamily: "Arial"
-    fill: "black"
-    align: "left"
+    fontFamily: Arial
+    fill: black
+    align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
@@ -296,31 +297,31 @@ out:
 case: Test parsing text with boolean content (false)
 in:
   - state:
-      id: 'bool-text-false'
-      type: "text"
+      id: bool-text-false
+      type: text
       content: false
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "bool-text-false"
-  type: "text"
+  id: bool-text-false
+  type: text
   content: "false"
   width: 34
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fontFamily: "Arial"
-    fill: "black"
-    align: "left"
+    fontFamily: Arial
+    fill: black
+    align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
@@ -329,31 +330,31 @@ out:
 case: Test parsing text with number content
 in:
   - state:
-      id: 'number-text'
-      type: "text"
+      id: number-text
+      type: text
       content: 42
       x: 100
-      y: 100
+      "y": 100
       textStyle:
         fontSize: 16
 out:
-  id: "number-text"
-  type: "text"
+  id: number-text
+  type: text
   content: "42"
   width: 18
   height: 19
   x: 100
-  y: 100
+  "y": 100
   originX: 0
   originY: 0
   alpha: 1
   textStyle:
-    strokeColor: "transparent"
+    strokeColor: transparent
     strokeWidth: 0
     fontSize: 16
-    fontFamily: "Arial"
-    fill: "black"
-    align: "left"
+    fontFamily: Arial
+    fill: black
+    align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false

@@ -1,6 +1,7 @@
-file: '../../src/plugins/elements/rect/parseRect.js'
+file: ../../src/plugins/elements/rect/parseRect.js
 group: parser
-suites: [parseRect]
+suites:
+  - parseRect
 ---
 suite: parseRect
 exportName: parseRect
@@ -8,14 +9,14 @@ exportName: parseRect
 case: Test parsing rect
 in:
   - state:
-      id: 'rect-1'
-      type: "rect"
+      id: rect-1
+      type: rect
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       fill: red
@@ -25,16 +26,16 @@ in:
         alpha: 0.25
       rotation: 90
 out:
-  id: "rect-1"
-  type: "rect"
+  id: rect-1
+  type: rect
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   fill: red
-  border: 
+  border:
     width: 15
     color: blue
     alpha: 0.25
@@ -44,25 +45,25 @@ out:
 case: Test parsing rect with no border
 in:
   - state:
-      id: 'rect-1'
-      type: "rect"
+      id: rect-1
+      type: rect
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       fill: red
       rotation: 90
 out:
-  id: "rect-1"
-  type: "rect"
+  id: rect-1
+  type: rect
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   fill: red
@@ -72,14 +73,14 @@ out:
 case: Test parsing rect with border property but only have alpha value
 in:
   - state:
-      id: 'rect-1'
-      type: "rect"
+      id: rect-1
+      type: rect
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       border:
@@ -87,12 +88,12 @@ in:
       fill: red
       rotation: 90
 out:
-  id: "rect-1"
-  type: "rect"
+  id: rect-1
+  type: rect
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   border:
@@ -106,25 +107,25 @@ out:
 case: Test parsing rect default to see the default values for cursor, fill, rotation and interactive props
 in:
   - state:
-      id: 'rect-1'
-      type: "rect"
+      id: rect-1
+      type: rect
       width: 80
       height: 100
       scaleX: 1.2
       scaleY: 0.8
       x: 240
-      y: 240
+      "y": 240
       anchorX: 0.5
       anchorY: 0.5
       border:
         alpha: 0.8
 out:
-  id: "rect-1"
-  type: "rect"
+  id: rect-1
+  type: rect
   width: 96
   height: 80
   x: 192
-  y: 200
+  "y": 200
   originX: 48
   originY: 40
   border:

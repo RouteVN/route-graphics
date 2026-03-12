@@ -33,7 +33,8 @@ states:
     animations:
       - id: text-render-abortion
         targetId: text-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 50
             keyframes:
@@ -52,7 +53,6 @@ states:
               - duration: 1000
                 value: 200
                 easing: linear
-        operation: enter
   - elements:
       - id: text-render-test
         type: text
@@ -67,7 +67,8 @@ states:
     animations:
       - id: text-render-abortion-2
         targetId: text-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 250
             keyframes:
@@ -86,4 +87,3 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: update

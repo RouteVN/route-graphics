@@ -1,12 +1,11 @@
-import { Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Container, Matrix, RenderTexture, Sprite, Texture } from "pixi.js";
 import {
   buildTimeline,
   calculateMaxDuration,
   getValueAtTime,
 } from "../../../util/animationTimeline.js";
-import ReplaceDissolveFilter from "./ReplaceDissolveFilter.js";
 
-const UNSUPPORTED_REPLACE_TYPES = new Set([
+const UNSUPPORTED_NEXT_REPLACE_TYPES = new Set([
   "animated-sprite",
   "text-revealing",
 ]);
@@ -24,6 +23,17 @@ const NOOP_COMPLETION_TRACKER = {
   complete: () => {},
 };
 
+const clamp01 = (value) => Math.min(1, Math.max(0, value));
+
+const smoothstep = (edge0, edge1, value) => {
+  if (edge0 === edge1) {
+    return value < edge0 ? 0 : 1;
+  }
+
+  const t = clamp01((value - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+};
+
 const destroyDisplayObject = (parent, displayObject) => {
   if (!displayObject || displayObject.destroyed) return;
 
@@ -39,8 +49,14 @@ const destroyDisplayObject = (parent, displayObject) => {
 const getLocalBoundsRectangle = (displayObject) =>
   displayObject.getLocalBounds().rectangle.clone();
 
+const normalizeFrame = (frame) => {
+  frame.width = Math.max(1, Math.ceil(frame.width));
+  frame.height = Math.max(1, Math.ceil(frame.height));
+  return frame;
+};
+
 const createSnapshotSubject = (app, displayObject) => {
-  const frame = getLocalBoundsRectangle(displayObject);
+  const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
   const texture = app.renderer.generateTexture({
     target: displayObject,
     frame,
@@ -60,13 +76,12 @@ const createSnapshotSubject = (app, displayObject) => {
 
   return {
     wrapper,
-    frame,
     texture,
   };
 };
 
-const buildSubjectTimelines = (properties = {}) =>
-  Object.entries(properties).map(([property, config]) => ({
+const buildSubjectTimelines = (tween = {}) =>
+  Object.entries(tween).map(([property, config]) => ({
     property,
     timeline: buildTimeline([
       {
@@ -76,8 +91,15 @@ const buildSubjectTimelines = (properties = {}) =>
     ]),
   }));
 
-const createSubjectController = (wrapper, properties, app) => {
-  const timelines = buildSubjectTimelines(properties);
+const createSubjectController = (wrapper, tween, app) => {
+  if (!wrapper || !tween) {
+    return {
+      duration: 0,
+      apply: () => {},
+    };
+  }
+
+  const timelines = buildSubjectTimelines(tween);
   const base = {
     x: wrapper.x,
     y: wrapper.y,
@@ -125,228 +147,279 @@ const createSubjectController = (wrapper, properties, app) => {
   };
 };
 
-const hasAnimatedSubjectProperties = (animation) =>
-  Boolean(animation.subjects?.prev?.properties) ||
-  Boolean(animation.subjects?.next?.properties);
+const createMaskProgressTimeline = (mask) =>
+  buildTimeline([
+    {
+      value: mask?.progress?.initialValue ?? 0,
+    },
+    ...(mask?.progress?.keyframes ?? []),
+  ]);
 
-const createMaskTexture = (mask) => {
+const createCanvasContext = (width, height) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    throw new Error("Replace mask composition could not create a 2D canvas.");
+  }
+
+  return {
+    canvas,
+    context,
+  };
+};
+
+const readChannelValue = (pixelData, offset, channel = "red") => {
+  switch (channel) {
+    case "green":
+      return pixelData[offset + 1];
+    case "blue":
+      return pixelData[offset + 2];
+    case "alpha":
+      return pixelData[offset + 3];
+    default:
+      return pixelData[offset];
+  }
+};
+
+const extractMaskPixelsFromTexture = ({
+  app,
+  texture,
+  width,
+  height,
+  channel = "red",
+  invert = false,
+}) => {
+  const values = new Uint8ClampedArray(width * height);
+  const maskSprite = new Sprite(Texture.from(texture));
+  maskSprite.width = width;
+  maskSprite.height = height;
+
+  const maskContainer = new Container();
+  maskContainer.addChild(maskSprite);
+
+  const maskRenderTexture = RenderTexture.create({
+    width,
+    height,
+  });
+
+  app.renderer.render({
+    container: maskContainer,
+    target: maskRenderTexture,
+    clear: true,
+  });
+
+  const imageData = app.renderer.extract.pixels(maskRenderTexture).pixels;
+
+  for (let index = 0, offset = 0; index < values.length; index++, offset += 4) {
+    let value = readChannelValue(imageData, offset, channel);
+
+    if (invert) {
+      value = 255 - value;
+    }
+
+    values[index] = value;
+  }
+
+  maskContainer.destroy({ children: true });
+  maskRenderTexture.destroy(true);
+
+  return values;
+};
+
+const buildCompositeMaskPixels = (app, mask, width, height) => {
+  let combined = null;
+
+  for (const item of mask.items) {
+    const current = extractMaskPixelsFromTexture({
+      app,
+      texture: item.texture,
+      width,
+      height,
+      channel: item.channel ?? "red",
+      invert: item.invert ?? false,
+    });
+
+    if (!combined) {
+      combined = current;
+      continue;
+    }
+
+    for (let index = 0; index < combined.length; index++) {
+      switch (mask.combine ?? "max") {
+        case "min":
+          combined[index] = Math.min(combined[index], current[index]);
+          break;
+        case "multiply":
+          combined[index] = Math.round(
+            (combined[index] / 255) * (current[index] / 255) * 255,
+          );
+          break;
+        case "add":
+          combined[index] = Math.min(255, combined[index] + current[index]);
+          break;
+        default:
+          combined[index] = Math.max(combined[index], current[index]);
+          break;
+      }
+    }
+  }
+
+  return combined ?? new Uint8ClampedArray(width * height);
+};
+
+const createMaskSampler = (app, mask, width, height) => {
+  const progressTimeline = createMaskProgressTimeline(mask);
+  const duration = calculateMaxDuration([{ timeline: progressTimeline }]);
+  const softness = Math.max(mask?.softness ?? 0.001, 0.0001);
+
   if (!mask) {
-    return Texture.EMPTY;
+    return {
+      duration,
+      progressTimeline,
+      sample: () => 0,
+      destroy: () => {},
+    };
   }
 
   if (mask.kind === "single") {
-    return Texture.from(mask.texture);
+    const pixels = extractMaskPixelsFromTexture({
+      app,
+      texture: mask.texture,
+      width,
+      height,
+      channel: mask.channel ?? "red",
+      invert: mask.invert ?? false,
+    });
+
+    return {
+      duration,
+      progressTimeline,
+      sample: (progress, index) =>
+        smoothstep(
+          progress - softness,
+          progress + softness,
+          pixels[index] / 255,
+        ),
+      destroy: () => {},
+    };
   }
 
   if (mask.kind === "sequence") {
-    return Texture.from(mask.textures[0]);
+    const frames = mask.textures.map((texture) =>
+      extractMaskPixelsFromTexture({
+        app,
+        texture,
+        width,
+        height,
+        channel: mask.channel ?? "red",
+        invert: mask.invert ?? false,
+      }),
+    );
+
+    return {
+      duration,
+      progressTimeline,
+      sample: (progress, index) => {
+        const scaled = clamp01(progress) * Math.max(0, frames.length - 1);
+
+        if (mask.sample === "linear" && frames.length > 1) {
+          const lowerIndex = Math.floor(scaled);
+          const upperIndex = Math.min(frames.length - 1, lowerIndex + 1);
+          const ratio = scaled - lowerIndex;
+          const maskValue =
+            (frames[lowerIndex][index] * (1 - ratio) +
+              frames[upperIndex][index] * ratio) /
+            255;
+
+          return smoothstep(
+            progress - softness,
+            progress + softness,
+            maskValue,
+          );
+        }
+
+        const frameIndex = Math.min(
+          frames.length - 1,
+          Math.max(0, Math.round(scaled)),
+        );
+
+        return smoothstep(
+          progress - softness,
+          progress + softness,
+          frames[frameIndex][index] / 255,
+        );
+      },
+      destroy: () => {},
+    };
   }
 
-  return null;
-};
-
-const buildCompositeMaskTexture = (mask) => {
-  const canvas = document.createElement("canvas");
-  const contexts = [];
-
-  for (const item of mask.items) {
-    const texture = Texture.from(item.texture);
-    const resource = texture.source.resource;
-    if (!resource) continue;
-    contexts.push({ item, resource });
-  }
-
-  const first = contexts[0];
-  const width = first?.resource?.width ?? 1;
-  const height = first?.resource?.height ?? 1;
-  canvas.width = width;
-  canvas.height = height;
-
-  const workingCanvas = document.createElement("canvas");
-  workingCanvas.width = width;
-  workingCanvas.height = height;
-  const workingContext = workingCanvas.getContext("2d");
-  const outputContext = canvas.getContext("2d");
-
-  const readChannel = (data, channel) => {
-    switch (channel) {
-      case "green":
-        return data[1];
-      case "blue":
-        return data[2];
-      case "alpha":
-        return data[3];
-      default:
-        return data[0];
-    }
-  };
-
-  const combined = new Uint8ClampedArray(width * height * 4);
-  const combineMode = mask.combine ?? "max";
-
-  for (let index = 0; index < contexts.length; index++) {
-    const { item, resource } = contexts[index];
-    workingContext.clearRect(0, 0, width, height);
-    workingContext.drawImage(resource, 0, 0, width, height);
-    const imageData = workingContext.getImageData(0, 0, width, height).data;
-
-    for (let offset = 0; offset < combined.length; offset += 4) {
-      let value = readChannel(
-        imageData.subarray(offset, offset + 4),
-        item.channel ?? "red",
-      );
-      if (item.invert) {
-        value = 255 - value;
-      }
-
-      if (index === 0) {
-        combined[offset] = value;
-        combined[offset + 1] = value;
-        combined[offset + 2] = value;
-        combined[offset + 3] = 255;
-        continue;
-      }
-
-      const current = combined[offset];
-
-      switch (combineMode) {
-        case "min":
-          value = Math.min(current, value);
-          break;
-        case "multiply":
-          value = Math.round((current / 255) * (value / 255) * 255);
-          break;
-        case "add":
-          value = Math.min(255, current + value);
-          break;
-        default:
-          value = Math.max(current, value);
-          break;
-      }
-
-      combined[offset] = value;
-      combined[offset + 1] = value;
-      combined[offset + 2] = value;
-      combined[offset + 3] = 255;
-    }
-  }
-
-  outputContext.putImageData(new ImageData(combined, width, height), 0, 0);
-  return Texture.from(canvas);
-};
-
-const createDissolveOverlay = (
-  app,
-  animation,
-  prevSubject,
-  nextSubject,
-  zIndex,
-) => {
-  const boundsContainer = new Container();
-  boundsContainer.addChild(prevSubject.wrapper);
-  boundsContainer.addChild(nextSubject.wrapper);
-  const unionBounds = getLocalBoundsRectangle(boundsContainer);
-
-  const prevCaptureRoot = new Container();
-  prevCaptureRoot.addChild(prevSubject.wrapper);
-  const nextCaptureRoot = new Container();
-  nextCaptureRoot.addChild(nextSubject.wrapper);
-
-  const prevTexture = app.renderer.generateTexture({
-    target: prevCaptureRoot,
-    frame: unionBounds,
-  });
-  const nextTexture = app.renderer.generateTexture({
-    target: nextCaptureRoot,
-    frame: unionBounds,
-  });
-
-  const overlay = new Container();
-  overlay.zIndex = zIndex;
-
-  const sprite = new Sprite(prevTexture);
-  sprite.x = unionBounds.x;
-  sprite.y = unionBounds.y;
-  overlay.addChild(sprite);
-
-  const maskTexture =
-    animation.mask?.kind === "composite"
-      ? buildCompositeMaskTexture(animation.mask)
-      : createMaskTexture(animation.mask);
-
-  const filter = new ReplaceDissolveFilter({
-    nextTexture,
-    maskTexture: maskTexture ?? Texture.EMPTY,
-    mask: animation.mask,
-  });
-
-  sprite.filters = [filter];
-
-  const progressTimeline = buildTimeline([
-    {
-      value: animation.mask?.progress?.initialValue ?? 0,
-    },
-    ...(animation.mask?.progress?.keyframes ?? []),
-  ]);
+  const pixels = buildCompositeMaskPixels(app, mask, width, height);
 
   return {
-    overlay,
-    duration: calculateMaxDuration([{ timeline: progressTimeline }]),
-    apply: (time) => {
-      const progress = getValueAtTime(progressTimeline, time);
-      filter.setProgress(progress);
-
-      if (animation.mask?.kind === "sequence") {
-        const textures = animation.mask.textures;
-        const index = Math.min(
-          textures.length - 1,
-          Math.max(0, Math.round(progress * (textures.length - 1))),
-        );
-        filter.setMaskTexture(Texture.from(textures[index]));
-      }
-    },
-    destroy: () => {
-      overlay.removeFromParent();
-      overlay.destroy({ children: true });
-      prevSubject.texture.destroy(true);
-      nextSubject.texture.destroy(true);
-      prevTexture.destroy(true);
-      nextTexture.destroy(true);
-      if (animation.mask?.kind === "composite" && maskTexture) {
-        maskTexture.destroy(true);
-      }
-    },
+    duration,
+    progressTimeline,
+    sample: (progress, index) =>
+      smoothstep(progress - softness, progress + softness, pixels[index] / 255),
+    destroy: () => {},
   };
 };
 
-const createSubjectOverlay = (
+const getUnionBounds = (subjects) => {
+  const boundsContainer = new Container();
+
+  for (const subject of subjects) {
+    if (subject?.wrapper) {
+      boundsContainer.addChild(subject.wrapper);
+    }
+  }
+
+  return normalizeFrame(getLocalBoundsRectangle(boundsContainer));
+};
+
+const renderOffscreenContainer = ({ app, container, target, frame }) => {
+  app.renderer.render({
+    container,
+    target,
+    clear: true,
+    transform: new Matrix(1, 0, 0, 1, -frame.x, -frame.y),
+  });
+};
+
+const destroySubjectSnapshot = (subject) => {
+  subject?.texture?.destroy(true);
+};
+
+const createPlainOverlay = ({
   app,
   animation,
   prevSubject,
   nextSubject,
   zIndex,
-) => {
+}) => {
   const overlay = new Container();
   overlay.zIndex = zIndex;
 
-  overlay.addChild(prevSubject.wrapper);
-  overlay.addChild(nextSubject.wrapper);
+  if (prevSubject?.wrapper) {
+    overlay.addChild(prevSubject.wrapper);
+  }
 
-  const prevController = animation.subjects?.prev?.properties
-    ? createSubjectController(
-        prevSubject.wrapper,
-        animation.subjects.prev.properties,
-        app,
-      )
-    : { duration: 0, apply: () => {} };
+  if (nextSubject?.wrapper) {
+    overlay.addChild(nextSubject.wrapper);
+  }
 
-  const nextController = animation.subjects?.next?.properties
-    ? createSubjectController(
-        nextSubject.wrapper,
-        animation.subjects.next.properties,
-        app,
-      )
-    : { duration: 0, apply: () => {} };
+  const prevController = createSubjectController(
+    prevSubject?.wrapper ?? null,
+    animation.replace?.prev?.tween,
+    app,
+  );
+  const nextController = createSubjectController(
+    nextSubject?.wrapper ?? null,
+    animation.replace?.next?.tween,
+    app,
+  );
 
   return {
     overlay,
@@ -358,10 +431,181 @@ const createSubjectOverlay = (
     destroy: () => {
       overlay.removeFromParent();
       overlay.destroy({ children: true });
-      prevSubject.texture.destroy(true);
-      nextSubject.texture.destroy(true);
+      destroySubjectSnapshot(prevSubject);
+      destroySubjectSnapshot(nextSubject);
     },
   };
+};
+
+const createMaskedOverlay = ({
+  app,
+  animation,
+  prevSubject,
+  nextSubject,
+  zIndex,
+}) => {
+  const unionBounds = getUnionBounds([prevSubject, nextSubject]);
+  const prevRoot = new Container();
+  const nextRoot = new Container();
+
+  if (prevSubject?.wrapper) {
+    prevRoot.addChild(prevSubject.wrapper);
+  }
+
+  if (nextSubject?.wrapper) {
+    nextRoot.addChild(nextSubject.wrapper);
+  }
+
+  const prevTexture = RenderTexture.create({
+    width: unionBounds.width,
+    height: unionBounds.height,
+  });
+  const nextTexture = RenderTexture.create({
+    width: unionBounds.width,
+    height: unionBounds.height,
+  });
+
+  const { canvas: outputCanvas, context: outputContext } = createCanvasContext(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const outputImageData = outputContext.createImageData(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const outputTexture = Texture.from(outputCanvas);
+
+  const overlay = new Container();
+  overlay.zIndex = zIndex;
+
+  const sprite = new Sprite(outputTexture);
+  sprite.x = unionBounds.x;
+  sprite.y = unionBounds.y;
+  overlay.addChild(sprite);
+
+  const maskSampler = createMaskSampler(
+    app,
+    animation.replace?.mask,
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const prevController = createSubjectController(
+    prevSubject?.wrapper ?? null,
+    animation.replace?.prev?.tween,
+    app,
+  );
+  const nextController = createSubjectController(
+    nextSubject?.wrapper ?? null,
+    animation.replace?.next?.tween,
+    app,
+  );
+  const transparentPixels = new Uint8ClampedArray(
+    unionBounds.width * unionBounds.height * 4,
+  );
+
+  return {
+    overlay,
+    duration: Math.max(
+      prevController.duration,
+      nextController.duration,
+      maskSampler.duration,
+    ),
+    apply: (time) => {
+      prevController.apply(time);
+      nextController.apply(time);
+
+      let prevPixels = transparentPixels;
+      let nextPixels = transparentPixels;
+
+      if (prevSubject?.wrapper) {
+        renderOffscreenContainer({
+          app,
+          container: prevRoot,
+          target: prevTexture,
+          frame: unionBounds,
+        });
+        prevPixels = app.renderer.extract.pixels(prevTexture).pixels;
+      }
+
+      if (nextSubject?.wrapper) {
+        renderOffscreenContainer({
+          app,
+          container: nextRoot,
+          target: nextTexture,
+          frame: unionBounds,
+        });
+        nextPixels = app.renderer.extract.pixels(nextTexture).pixels;
+      }
+
+      const progress = clamp01(
+        getValueAtTime(maskSampler.progressTimeline, time),
+      );
+      const outputPixels = outputImageData.data;
+
+      for (
+        let offset = 0, pixelIndex = 0;
+        offset < outputPixels.length;
+        offset += 4, pixelIndex += 1
+      ) {
+        const reveal = maskSampler.sample(progress, pixelIndex);
+        const keep = 1 - reveal;
+
+        outputPixels[offset] = Math.round(
+          prevPixels[offset] * keep + nextPixels[offset] * reveal,
+        );
+        outputPixels[offset + 1] = Math.round(
+          prevPixels[offset + 1] * keep + nextPixels[offset + 1] * reveal,
+        );
+        outputPixels[offset + 2] = Math.round(
+          prevPixels[offset + 2] * keep + nextPixels[offset + 2] * reveal,
+        );
+        outputPixels[offset + 3] = Math.round(
+          prevPixels[offset + 3] * keep + nextPixels[offset + 3] * reveal,
+        );
+      }
+
+      outputContext.putImageData(outputImageData, 0, 0);
+      outputTexture.source.update();
+    },
+    destroy: () => {
+      overlay.removeFromParent();
+      overlay.destroy({ children: true });
+      prevRoot.destroy({ children: true });
+      nextRoot.destroy({ children: true });
+      prevTexture.destroy(true);
+      nextTexture.destroy(true);
+      outputTexture.destroy(true);
+      destroySubjectSnapshot(prevSubject);
+      destroySubjectSnapshot(nextSubject);
+      maskSampler.destroy();
+    },
+  };
+};
+
+const createReplaceOverlay = ({
+  app,
+  animation,
+  prevSubject,
+  nextSubject,
+  zIndex,
+}) => {
+  if (animation.replace?.mask) {
+    return createMaskedOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  }
+
+  return createPlainOverlay({
+    app,
+    animation,
+    prevSubject,
+    nextSubject,
+    zIndex,
+  });
 };
 
 const instantiateNextLiveElement = ({
@@ -375,6 +619,10 @@ const instantiateNextLiveElement = ({
   zIndex,
   signal,
 }) => {
+  if (!nextElement) {
+    return null;
+  }
+
   const result = plugin.add({
     app,
     parent,
@@ -413,58 +661,71 @@ export const runReplaceAnimation = ({
   zIndex,
   signal,
 }) => {
-  if (UNSUPPORTED_REPLACE_TYPES.has(nextElement.type)) {
+  if (!prevElement && !nextElement) {
+    throw new Error(
+      `Replace animation "${animation.id}" must receive prevElement and/or nextElement.`,
+    );
+  }
+
+  if (nextElement && UNSUPPORTED_NEXT_REPLACE_TYPES.has(nextElement.type)) {
     throw new Error(
       `Replace animations are not supported for element type "${nextElement.type}" yet.`,
     );
   }
 
-  if (
-    animation.mask && hasAnimatedSubjectProperties(animation)
-  ) {
-    throw new Error(
-      `Animation "${animation.id}" cannot combine subject transforms with mask replace yet.`,
-    );
-  }
+  const prevDisplayObject = prevElement
+    ? (parent.children.find((child) => child.label === prevElement.id) ?? null)
+    : null;
 
-  const prevDisplayObject = parent.children.find(
-    (child) => child.label === prevElement.id,
-  );
-
-  if (!prevDisplayObject) {
+  if (prevElement && !prevDisplayObject) {
     throw new Error(
       `Replace animation "${animation.id}" could not find the previous live element "${prevElement.id}".`,
     );
   }
 
-  const prevSubject = createSnapshotSubject(app, prevDisplayObject);
-  destroyDisplayObject(parent, prevDisplayObject);
+  const prevSubject = prevDisplayObject
+    ? createSnapshotSubject(app, prevDisplayObject)
+    : null;
 
-  const nextDisplayObject = instantiateNextLiveElement({
-    app,
-    parent,
-    nextElement,
-    plugin,
-    eventHandler,
-    animationBus,
-    elementPlugins,
-    zIndex,
-    signal,
-  });
+  if (prevDisplayObject) {
+    destroyDisplayObject(parent, prevDisplayObject);
+  }
 
-  if (!nextDisplayObject) {
+  const nextDisplayObject = nextElement
+    ? instantiateNextLiveElement({
+        app,
+        parent,
+        nextElement,
+        plugin,
+        eventHandler,
+        animationBus,
+        elementPlugins,
+        zIndex,
+        signal,
+      })
+    : null;
+
+  if (nextElement && !nextDisplayObject) {
     throw new Error(
       `Replace animation "${animation.id}" could not create the next live element "${nextElement.id}".`,
     );
   }
 
-  const nextSubject = createSnapshotSubject(app, nextDisplayObject);
-  nextDisplayObject.visible = false;
+  const nextSubject = nextDisplayObject
+    ? createSnapshotSubject(app, nextDisplayObject)
+    : null;
 
-  const replaceOverlay =
-    animation.mask
-      ? createDissolveOverlay(app, animation, prevSubject, nextSubject, zIndex)
-      : createSubjectOverlay(app, animation, prevSubject, nextSubject, zIndex);
+  if (nextDisplayObject) {
+    nextDisplayObject.visible = false;
+  }
+
+  const replaceOverlay = createReplaceOverlay({
+    app,
+    animation,
+    prevSubject,
+    nextSubject,
+    zIndex,
+  });
 
   parent.addChild(replaceOverlay.overlay);
   const stateVersion = completionTracker.getVersion();
@@ -501,8 +762,7 @@ export const runReplaceAnimation = ({
       isValid: () =>
         Boolean(replaceOverlay.overlay) &&
         !replaceOverlay.overlay.destroyed &&
-        Boolean(nextDisplayObject) &&
-        !nextDisplayObject.destroyed,
+        (!nextDisplayObject || !nextDisplayObject.destroyed),
     },
   });
 };

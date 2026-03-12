@@ -85,41 +85,41 @@ states:
     animations:
       - id: blue-move
         targetId: circle-blue
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 180
             keyframes:
               - duration: 1000
                 value: 100
                 easing: linear
-        operation: update
       - id: red-move
         targetId: circle-red
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 100
             keyframes:
               - duration: 1000
                 value: 180
                 easing: linear
-        operation: update
       - id: rect-fade-in
         targetId: rect-yellow
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter
       - id: green-fade-out
         targetId: circle-green
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 1
             keyframes:
               - duration: 500
                 value: 0
                 easing: linear
-        operation: exit

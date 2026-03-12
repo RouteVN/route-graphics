@@ -28,11 +28,11 @@ states:
     animations:
       - id: sprite-fade-in
         targetId: sprite1
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter

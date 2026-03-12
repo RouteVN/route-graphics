@@ -64,13 +64,15 @@ describe("renderElements replace handling", () => {
         {
           id: "rect-replace",
           targetId: "rect1",
-          operation: "replace",
-          mask: {
-            kind: "single",
-            texture: "mask-diagonal",
-            progress: {
-              initialValue: 0,
-              keyframes: [{ duration: 500, value: 1, easing: "linear" }],
+          type: "replace",
+          replace: {
+            mask: {
+              kind: "single",
+              texture: "mask-diagonal",
+              progress: {
+                initialValue: 0,
+                keyframes: [{ duration: 500, value: 1, easing: "linear" }],
+              },
             },
           },
         },
@@ -88,7 +90,7 @@ describe("renderElements replace handling", () => {
       expect.objectContaining({
         animation: expect.objectContaining({
           id: "rect-replace",
-          operation: "replace",
+          type: "replace",
         }),
         completionTracker,
         plugin,

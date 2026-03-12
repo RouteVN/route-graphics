@@ -18,7 +18,6 @@ export const deleteText = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "exit",
     animationBus,
     completionTracker,
     element: text,

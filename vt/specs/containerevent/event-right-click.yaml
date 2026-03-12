@@ -2,42 +2,43 @@
 title: Container right click event
 description: Test right click event on container elements
 specs:
-  - "container should call callback with data when right-clicked"
+  - container should call callback with data when right-clicked
 steps:
   - action: customEvent
     name: clearEvents
   - action: click
     x: 250
-    y: 110
+    "y": 110
   - action: rclick
     x: 250
-    y: 110
+    "y": 110
   - action: wait
     ms: 100
   - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [rightclick]
+    args:
+      - rightclick
     value:
       - _event:
           id: container-right-click-1
-        message: "Container 1 right-clicked"
+        message: Container 1 right-clicked
 ---
 states:
   - elements:
-      - id: 'container-right-click-1'
-        type: "container"
+      - id: container-right-click-1
+        type: container
         x: 200
-        y: 100
+        "y": 100
         width: 300
         height: 100
         rightClick:
           actionPayload:
-            message: "Container 1 right-clicked"
+            message: Container 1 right-clicked
         children:
-          - id: 'rect-1'
-            type: "rect"
+          - id: rect-1
+            type: rect
             width: 150
             height: 50
             fill: "#A6A6A6"

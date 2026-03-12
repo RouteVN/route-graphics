@@ -2,13 +2,13 @@
 title: Update Particles Properties
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=300
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=300
   - action: screenshot
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=300
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=300
@@ -22,34 +22,33 @@ steps:
 ---
 states:
   - elements: []
-
   - elements:
-      - id: "snow-effect"
-        type: "particles"
+      - id: snow-effect
+        type: particles
         width: 1280
         height: 720
         alpha: 1
-        texture: "snowflake"
+        texture: snowflake
         behaviors:
-          - type: "spawnShape"
+          - type: spawnShape
             config:
-              type: "rect"
+              type: rect
               data:
                 x: 0
-                y: -20
+                "y": -20
                 w: 1280
                 h: 10
-          - type: "movePoint"
+          - type: movePoint
             config:
               speed:
                 min: 50
                 max: 150
               direction: 90
-          - type: "scaleStatic"
+          - type: scaleStatic
             config:
               min: 0.3
-              max: 1.0
-          - type: "alpha"
+              max: 1
+          - type: alpha
             config:
               list:
                 - value: 0
@@ -60,7 +59,7 @@ states:
                   time: 0.8
                 - value: 0
                   time: 1
-          - type: "rotation"
+          - type: rotation
             config:
               minStart: 0
               maxStart: 360
@@ -76,39 +75,38 @@ states:
           emitterLifetime: -1
           spawnBounds:
             x: -50
-            y: -50
+            "y": -50
             width: 1380
             height: 820
           recycleOnBounds: true
           seed: 12345
-
   - elements:
-      - id: "snow-effect"
-        type: "particles"
+      - id: snow-effect
+        type: particles
         width: 1280
         height: 720
         alpha: 0.5
-        texture: "snowflake"
+        texture: snowflake
         behaviors:
-          - type: "spawnShape"
+          - type: spawnShape
             config:
-              type: "rect"
+              type: rect
               data:
                 x: 0
-                y: -20
+                "y": -20
                 w: 1280
                 h: 10
-          - type: "movePoint"
+          - type: movePoint
             config:
               speed:
                 min: 50
                 max: 150
               direction: 90
-          - type: "scaleStatic"
+          - type: scaleStatic
             config:
               min: 0.3
-              max: 1.0
-          - type: "alpha"
+              max: 1
+          - type: alpha
             config:
               list:
                 - value: 0
@@ -119,7 +117,7 @@ states:
                   time: 0.8
                 - value: 0
                   time: 1
-          - type: "rotation"
+          - type: rotation
             config:
               minStart: 0
               maxStart: 360
@@ -135,7 +133,7 @@ states:
           emitterLifetime: -1
           spawnBounds:
             x: -50
-            y: -50
+            "y": -50
             width: 1380
             height: 820
           recycleOnBounds: true

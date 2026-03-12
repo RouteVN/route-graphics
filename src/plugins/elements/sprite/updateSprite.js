@@ -189,7 +189,6 @@ export const updateSprite = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevElement.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: spriteElement,

@@ -7,27 +7,26 @@ steps:
   - action: screenshot
 ---
 states:
-  # Sparkles that appear and fade randomly across the screen
   - elements:
-      - id: 'sparkles'
-        type: "particles"
+      - id: sparkles
+        type: particles
         width: 1280
         height: 720
-        texture: "snowflake"
+        texture: snowflake
         behaviors:
-          - type: "spawnShape"
+          - type: spawnShape
             config:
-              type: "rect"
+              type: rect
               data:
                 x: 100
-                y: 100
+                "y": 100
                 w: 1080
                 h: 520
-          - type: "speedStatic"
+          - type: speedStatic
             config:
               min: 0
               max: 0
-          - type: "scale"
+          - type: scale
             config:
               list:
                 - value: 0
@@ -38,7 +37,7 @@ states:
                   time: 0.7
                 - value: 0
                   time: 1
-          - type: "alpha"
+          - type: alpha
             config:
               list:
                 - value: 0
@@ -49,7 +48,7 @@ states:
                   time: 0.8
                 - value: 0
                   time: 1
-          - type: "rotation"
+          - type: rotation
             config:
               minStart: 0
               maxStart: 360

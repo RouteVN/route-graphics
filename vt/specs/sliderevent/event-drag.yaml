@@ -2,26 +2,27 @@
 title: Slider Change Events
 description: Test change events with actionPayload
 specs:
-  - "slider should send change event when thumb is pressed"
-  - "slider should send change event during thumb movement"
-  - "change events should include current slider value"
-  - "actionPayload should include custom data"
+  - slider should send change event when thumb is pressed
+  - slider should send change event during thumb movement
+  - change events should include current slider value
+  - actionPayload should include custom data
 steps:
   - action: customEvent
     name: clearEvents
   - action: move
     x: 250
-    y: 110
+    "y": 110
   - action: mouseDown
   - action: screenshot
   - action: move
     x: 200
-    y: 110
+    "y": 110
   - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [change]
+    args:
+      - change
     value:
       - _event:
           id: slider-drag-test
@@ -36,15 +37,15 @@ steps:
 ---
 states:
   - elements:
-      - id: 'slider-drag-test'
-        type: "slider"
-        direction: "horizontal"
-        thumbSrc: "horizontal-idle-thumb"
-        barSrc: "horizontal-idle-bar"
+      - id: slider-drag-test
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
         width: 300
         height: 25
         x: 100
-        y: 100
+        "y": 100
         alpha: 1
         anchorX: 0
         anchorY: 0
@@ -55,5 +56,5 @@ states:
         initialValue: 25
         change:
           actionPayload:
-            action: "slider-change"
-            component: "volume-slider"
+            action: slider-change
+            component: volume-slider

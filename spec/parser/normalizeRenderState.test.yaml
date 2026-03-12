@@ -1,121 +1,125 @@
-file: "../../src/util/normalizeRenderState.js"
+file: ../../src/util/normalizeRenderState.js
 group: parser
-suites: [normalizeRenderState]
+suites:
+  - normalizeRenderState
 ---
 suite: normalizeRenderState
 exportName: normalizeRenderState
 ---
 case: Normalize missing arrays to defaults
 in:
-  - id: "state-1"
+  - id: state-1
 out:
-  id: "state-1"
+  id: state-1
   elements: []
   animations: []
   audio: []
 ---
 case: Preserve provided arrays
 in:
-  - id: "state-2"
+  - id: state-2
     elements:
-      - id: "text-1"
-        type: "text"
+      - id: text-1
+        type: text
     animations:
-      - id: "anim-1"
-        targetId: "text-1"
-        operation: "update"
-        properties:
+      - id: anim-1
+        targetId: text-1
+        type: live
+        tween:
           x:
             keyframes:
               - duration: 100
                 value: 20
     audio:
-      - id: "sound-1"
-        type: "sound"
+      - id: sound-1
+        type: sound
 out:
-  id: "state-2"
+  id: state-2
   elements:
-    - id: "text-1"
-      type: "text"
+    - id: text-1
+      type: text
   animations:
-    - id: "anim-1"
-      targetId: "text-1"
-      operation: "update"
-      properties:
+    - id: anim-1
+      targetId: text-1
+      type: live
+      tween:
         x:
           keyframes:
             - duration: 100
               value: 20
-              easing: "linear"
+              easing: linear
   audio:
-    - id: "sound-1"
-      type: "sound"
+    - id: sound-1
+      type: sound
 ---
 case: Normalize replace animation with mask defaults
 in:
-  - id: "state-2-replace"
+  - id: state-2-replace
     animations:
-      - id: "anim-replace"
-        targetId: "scene-root"
-        operation: "replace"
-        mask:
-          kind: "single"
-          texture: "masks/wipe.png"
+      - id: anim-replace
+        targetId: scene-root
+        type: replace
+        replace:
+          mask:
+            kind: single
+            texture: masks/wipe.png
 out:
-  id: "state-2-replace"
+  id: state-2-replace
   elements: []
   animations:
-    - id: "anim-replace"
-      targetId: "scene-root"
-      operation: "replace"
-      mask:
-        kind: "single"
-        texture: "masks/wipe.png"
-        progress:
-          initialValue: 0
-          keyframes:
-            - duration: 0
-              value: 1
-              easing: "linear"
+    - id: anim-replace
+      targetId: scene-root
+      type: replace
+      replace:
+        mask:
+          kind: single
+          texture: masks/wipe.png
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 0
+                value: 1
+                easing: linear
   audio: []
 ---
 case: Throw when transitions field is provided
 in:
-  - id: "state-3"
+  - id: state-3
     transitions: []
 throws: "Input error: `transitions` is no longer supported. Use `animations` instead."
 ---
-case: Throw when animation operation is missing
+case: Throw when animation type is missing
 in:
-  - id: "state-3a"
+  - id: state-3a
     animations:
-      - id: "anim-1"
-        targetId: "text-1"
-        properties:
+      - id: anim-1
+        targetId: text-1
+        tween:
           x:
             keyframes:
               - duration: 100
                 value: 20
-throws: "animations[0].operation must be a non-empty string."
+throws: animations[0].type must be a non-empty string.
 ---
 case: Throw when replace shader is provided
 in:
-  - id: "state-3b"
+  - id: state-3b
     animations:
-      - id: "anim-1"
-        targetId: "scene-root"
-        operation: "replace"
-        shader:
-          name: "burn-dissolve"
-throws: "animations[0].shader is not supported."
+      - id: anim-1
+        targetId: scene-root
+        type: replace
+        replace:
+          shader:
+            name: burn-dissolve
+throws: animations[0].replace.shader is not supported.
 ---
 case: Throw when animations is not an array
 in:
-  - id: "state-4"
+  - id: state-4
     animations: {}
 throws: "Input error: `animations` must be an array."
 ---
 case: Throw when state is not an object
 in:
-  - "invalid"
+  - invalid
 throws: "Input error: render state must be an object."

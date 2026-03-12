@@ -74,7 +74,6 @@ export const updateAnimatedSprite = async ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevElement.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: animatedSpriteElement,

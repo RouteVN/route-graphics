@@ -56,7 +56,6 @@ export const addTextRevealing = async ({
   dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: container,

@@ -165,7 +165,8 @@ states:
     animations:
       - id: animated-sprite-scale-in
         targetId: animated-sprite1
-        properties:
+        type: live
+        tween:
           scaleX:
             initialValue: 0
             keyframes:
@@ -178,4 +179,3 @@ states:
               - duration: 1000
                 value: 0.6
                 easing: linear
-        operation: update

@@ -24,48 +24,26 @@ export const getTargetAnimations = (animationsOrMap, targetId) => {
   return animationsOrMap.filter((animation) => animation.targetId === targetId);
 };
 
-export const getAnimationsForOperation = (
-  animationsOrMap,
-  targetId,
-  operation,
-) =>
+export const getLiveAnimations = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).filter(
-    (animation) => animation.operation === operation,
+    (animation) => animation.type === "live",
   );
 
-export const validateTargetOperations = (
-  animationsOrMap,
-  targetId,
-  allowedOperations,
-) => {
-  const relevantAnimations = getTargetAnimations(animationsOrMap, targetId);
-
-  for (const animation of relevantAnimations) {
-    if (!allowedOperations.includes(animation.operation)) {
-      throw new Error(
-        `Animation "${animation.id}" targets "${targetId}" with operation "${animation.operation}", which is not valid for this lifecycle.`,
-      );
-    }
-  }
-
-  return relevantAnimations;
-};
+export const getReplaceAnimation = (animationsOrMap, targetId) =>
+  getTargetAnimations(animationsOrMap, targetId).find(
+    (animation) => animation.type === "replace",
+  ) ?? null;
 
 export const dispatchLiveAnimations = ({
   animations,
   targetId,
-  operation,
   animationBus,
   completionTracker,
   element,
   targetState,
   onComplete,
 }) => {
-  const relevantAnimations = getAnimationsForOperation(
-    animations,
-    targetId,
-    operation,
-  );
+  const relevantAnimations = getLiveAnimations(animations, targetId);
 
   if (relevantAnimations.length === 0) {
     return false;
@@ -80,7 +58,7 @@ export const dispatchLiveAnimations = ({
       payload: {
         id: animation.id,
         element,
-        properties: animation.properties,
+        properties: animation.tween,
         targetState,
         onComplete: () => {
           completionTracker.complete(stateVersion);

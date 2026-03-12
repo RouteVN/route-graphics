@@ -35,11 +35,11 @@ states:
     animations:
       - id: fade-rect
         targetId: rect1
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 400
                 value: 1
                 easing: linear
-        operation: enter

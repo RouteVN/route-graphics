@@ -1,6 +1,7 @@
-file: '../../src/plugins/elements/util/common.js'
+file: ../../src/plugins/elements/util/common.js
 group: common
-suites: [calculatePositionAfterAnchor]
+suites:
+  - calculatePositionAfterAnchor
 ---
 suite: calculatePositionAfterAnchor
 exportName: calculatePositionAfterAnchor
@@ -15,6 +16,6 @@ in:
     anchorY: 0.5
 out:
   x: 300
-  y: 210
+  "y": 210
   originX: 100
   originY: 50

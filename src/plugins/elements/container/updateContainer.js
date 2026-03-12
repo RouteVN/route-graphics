@@ -201,7 +201,6 @@ export const updateContainer = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevElement.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: containerElement,

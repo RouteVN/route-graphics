@@ -53,7 +53,6 @@ export const addVideo = ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: sprite,

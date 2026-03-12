@@ -8,26 +8,23 @@ See also:
 
 ## Goal
 
-Define one animation model that can express both:
+Define one public animation model that can express both:
 
 - normal element animation during play
-- visual replacement effects such as push, wipe, and rule dissolve
+- visual replacement effects such as push, slide, wipe, and rule dissolve
 
-This keeps the core renderer small and general-purpose while still supporting VN-style transitions.
+## Status
 
-## Current Status
+This document describes the current public model.
 
-The migration to the new `animations` model is implemented.
+The runtime now exposes:
 
-Current known replace limitations are:
+- top-level `animations`
+- required `type: live | replace`
+- `tween` as the motion payload
+- `mask` only inside `replace`
 
-- `animated-sprite` replace still needs async setup support
-- `text-revealing` replace still needs a pure fully-resolved builder
-- subject transforms cannot yet be combined with `mask` in one replace
-  animation
-- custom shader-backed replace is intentionally not supported for now
-
-These are tracked in the "Immediate Next Steps" section of
+Current known runtime limitations are still tracked in
 `docs/animation-implementation-plan.md`.
 
 ## Naming
@@ -40,16 +37,14 @@ Reason:
 - `transitions` is too narrow because many valid uses are not scene changes
 - `effects` is too vague and easy to confuse with post-processing or programming side effects
 
-In this model, transitions are expressed as `replace` animations.
-
 ## Core Shape
 
 ```yaml
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    operation: "update"
-    properties:
+    type: "live"
+    tween:
       x:
         initialValue: 640
         keyframes:
@@ -64,7 +59,7 @@ Every animation must define:
 
 - `id`
 - `targetId`
-- `operation`
+- `type`
 
 ### `targetId`
 
@@ -77,51 +72,69 @@ That id may be:
 
 Whole-scene transitions should target a stable root container id.
 
-## Operations
+## Types
 
-`operation` is required and must be one of:
+`type` must be one of:
 
-- `enter`
-- `update`
-- `exit`
+- `live`
 - `replace`
 
-### `enter`
+### `live`
 
-The target exists only in the next state.
+`live` means one continuing object.
 
-Use this for add animations.
-
-### `update`
-
-The target exists in both states and remains one live object.
-
-Use this for:
+Use it for:
 
 - moving a character
 - fading a character
 - scaling a portrait
 - changing properties on a persistent element
 
-### `exit`
+`live` supports:
 
-The target exists only in the previous state.
+- `tween`
 
-Use this for remove animations.
+`live` does not support:
+
+- `mask`
+- `shader`
+- `prev`
+- `next`
 
 ### `replace`
 
-The target exists in both states, but the animation needs both previous and next visuals.
+`replace` means a visual handoff between up to two surfaces:
 
-Use this for:
+- `prev`
+- `next`
+
+Use it for:
 
 - push
 - slide
 - wipe
 - rule dissolve
 - replacing one portrait with another while keeping the same `targetId`
+- opening from empty into a scene
+- closing from a scene to empty
 
-## Property Timelines
+`replace` supports:
+
+- `prev.tween`
+- `next.tween`
+- `mask`
+- future `shader`
+
+`replace` may define:
+
+- `prev` only
+- `next` only
+- both `prev` and `next`
+- `mask` with no explicit `prev`/`next` tween overrides
+
+The missing side is treated as transparent.
+
+## Tween Payload
 
 The existing keyframe format stays the standard:
 
@@ -137,20 +150,25 @@ x:
       easing: "easeIn"
 ```
 
-This format is preferred over normalized time stamps because:
+This format is preferred because:
 
 - it matches the current tween engine
 - it is better for authoring multi-stage motion
 - total duration can be derived from the keyframes
 
-## Update Animation Example
+The same payload is reused in two places:
+
+- `live.tween`
+- `replace.prev.tween` / `replace.next.tween`
+
+## Live Example
 
 ```yaml
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    operation: "update"
-    properties:
+    type: "live"
+    tween:
       x:
         initialValue: 640
         keyframes:
@@ -159,58 +177,56 @@ animations:
             easing: "linear"
 ```
 
-## Enter Animation Example
+## Replace Examples
+
+### Open From Empty
+
+Useful when first opening the scene.
 
 ```yaml
 animations:
-  - id: "makkuro-enter"
-    targetId: "makkuro"
-    operation: "enter"
-    properties:
-      x:
-        initialValue: 1280
-        keyframes:
-          - duration: 500
-            value: 640
-            easing: "linear"
+  - id: "scene-open"
+    targetId: "scene-root"
+    type: "replace"
+    replace:
+      next:
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 500
+                value: 1
+                easing: "linear"
 ```
 
-## Exit Animation Example
+### Close To Empty
 
 ```yaml
 animations:
-  - id: "makkuro-exit"
-    targetId: "makkuro"
-    operation: "exit"
-    properties:
-      alpha:
-        initialValue: 1
-        keyframes:
-          - duration: 300
-            value: 0
-            easing: "linear"
+  - id: "scene-close"
+    targetId: "scene-root"
+    type: "replace"
+    replace:
+      prev:
+        tween:
+          alpha:
+            initialValue: 1
+            keyframes:
+              - duration: 500
+                value: 0
+                easing: "linear"
 ```
 
-## Replace Animation
-
-`replace` animations may define:
-
-- `subjects.prev.properties`
-- `subjects.next.properties`
-- `mask`
-
-`mask` is only valid when `operation` is `replace`.
-
-### Replace Push Example
+### Push Left
 
 ```yaml
 animations:
   - id: "scene-push-left"
     targetId: "scene-root"
-    operation: "replace"
-    subjects:
+    type: "replace"
+    replace:
       prev:
-        properties:
+        tween:
           translateX:
             initialValue: 0
             keyframes:
@@ -218,7 +234,7 @@ animations:
                 value: -1
                 easing: "linear"
       next:
-        properties:
+        tween:
           translateX:
             initialValue: 1
             keyframes:
@@ -227,11 +243,75 @@ animations:
                 easing: "linear"
 ```
 
+### Rule Dissolve
+
+```yaml
+animations:
+  - id: "scene-rule-dissolve"
+    targetId: "scene-root"
+    type: "replace"
+    replace:
+      mask:
+        kind: "single"
+        texture: "masks/spiral-07.png"
+        channel: "red"
+        softness: 0.08
+        invert: false
+        progress:
+          initialValue: 0
+          keyframes:
+            - duration: 900
+              value: 1
+              easing: "linear"
+```
+
+### Push Plus Mask
+
+This is the target composed shape for richer VN transitions.
+
+```yaml
+animations:
+  - id: "scene-push-mask"
+    targetId: "scene-root"
+    type: "replace"
+    replace:
+      prev:
+        tween:
+          translateX:
+            initialValue: 0
+            keyframes:
+              - duration: 500
+                value: -1
+                easing: "linear"
+      next:
+        tween:
+          translateX:
+            initialValue: 1
+            keyframes:
+              - duration: 500
+                value: 0
+                easing: "linear"
+      mask:
+        kind: "single"
+        texture: "masks/spiral-07.png"
+        channel: "red"
+        softness: 0.08
+        progress:
+          initialValue: 0
+          keyframes:
+            - duration: 500
+              value: 1
+              easing: "linear"
+```
+
+This composition is supported by the runtime.
+
 ## Mask
 
 Mask is always a replace primitive.
 
-A mask defines a reveal field that controls how previous and next visuals hand off over time.
+A mask defines a reveal field that controls how previous and next visuals hand
+off over time.
 
 Supported kinds:
 
@@ -264,89 +344,28 @@ Defines how sharp or feathered the reveal edge is.
 - lower value: harder edge
 - higher value: softer edge
 
-### Single Mask Example
+## Future Shader
 
-```yaml
-animations:
-  - id: "makkuro-dissolve"
-    targetId: "makkuro"
-    operation: "replace"
-    mask:
-      kind: "single"
-      texture: "masks/spiral-07.png"
-      channel: "red"
-      softness: 0.08
-      invert: false
-      progress:
-        initialValue: 0
-        keyframes:
-          - duration: 900
-            value: 1
-            easing: "linear"
-```
+If shader support comes back later, it should be `replace`-only.
 
-### Sequence Mask Example
-
-```yaml
-animations:
-  - id: "scene-sequence-mask"
-    targetId: "scene-root"
-    operation: "replace"
-    mask:
-      kind: "sequence"
-      textures:
-        - "masks/rule-01.png"
-        - "masks/rule-02.png"
-        - "masks/rule-03.png"
-      sample: "linear"
-      channel: "alpha"
-      softness: 0.05
-      invert: false
-      progress:
-        initialValue: 0
-        keyframes:
-          - duration: 1000
-            value: 1
-            easing: "linear"
-```
-
-### Composite Mask Example
-
-```yaml
-animations:
-  - id: "scene-composite-mask"
-    targetId: "scene-root"
-    operation: "replace"
-    mask:
-      kind: "composite"
-      combine: "max"
-      items:
-        - texture: "masks/noise.png"
-          channel: "red"
-        - texture: "masks/slashes.png"
-          channel: "alpha"
-          invert: true
-      softness: 0.04
-      progress:
-        initialValue: 0
-        keyframes:
-          - duration: 1200
-            value: 1
-            easing: "linear"
-```
+It should live inside `replace` next to `mask`, not on `live`.
 
 ## Validation Rules
 
-- `enter` requires the target to exist only in the next state
-- `exit` requires the target to exist only in the previous state
-- `update` requires the target to exist in both states
-- `replace` requires the target to exist in both states
-- `mask` is only valid for `replace`
+- `live` requires `tween`
+- `live` cannot define `replace`
+- `replace` requires at least one of:
+  - `prev`
+  - `next`
+  - `mask`
+- `replace.mask` is replace-only
+- future `replace.shader` would also be replace-only
 
 ## Summary
 
 - keep `animations` as the top-level field
-- require `operation` for every animation
-- treat transitions as `replace` animations
-- keep the existing `initialValue + keyframes[].duration` format
-- allow stable container ids such as `scene-root` for whole-scene replacement effects
+- use required `type: live | replace`
+- use `tween` instead of generic `properties`
+- let `replace` define `prev` and/or `next`
+- keep `mask` as a replace-only primitive
+- keep future `shader` replace-only as well

@@ -232,7 +232,6 @@ export const addSlider = ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: sliderContainer,

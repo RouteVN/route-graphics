@@ -5,7 +5,7 @@ type: object
 required:
   - id
   - targetId
-  - operation
+  - type
 $defs:
   keyframe:
     type: object
@@ -28,7 +28,7 @@ $defs:
         description: Whether the value is relative to the previous keyframe value.
         default: false
     additionalProperties: false
-  property:
+  tweenProperty:
     type: object
     properties:
       initialValue:
@@ -42,48 +42,50 @@ $defs:
     required:
       - keyframes
     additionalProperties: false
-  liveProperties:
+  liveTween:
     type: object
     properties:
       alpha:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       x:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       y:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       scaleX:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       scaleY:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       rotation:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
     additionalProperties: false
     minProperties: 1
-  subjectProperties:
+  replaceTween:
     type: object
     properties:
       translateX:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       translateY:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       alpha:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       scaleX:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       scaleY:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
       rotation:
-        $ref: "#/$defs/property"
+        $ref: "#/$defs/tweenProperty"
     additionalProperties: false
     minProperties: 1
-  replaceSubject:
+  replaceSide:
     type: object
+    required:
+      - tween
     properties:
-      properties:
-        $ref: "#/$defs/subjectProperties"
+      tween:
+        $ref: "#/$defs/replaceTween"
     additionalProperties: false
   maskProgress:
-    $ref: "#/$defs/property"
+    $ref: "#/$defs/tweenProperty"
   compositeMaskItem:
     type: object
     required:
@@ -154,6 +156,20 @@ $defs:
         then:
           required:
             - items
+  replacePayload:
+    type: object
+    properties:
+      prev:
+        $ref: "#/$defs/replaceSide"
+      next:
+        $ref: "#/$defs/replaceSide"
+      mask:
+        $ref: "#/$defs/mask"
+    additionalProperties: false
+    anyOf:
+      - required: [prev]
+      - required: [next]
+      - required: [mask]
 properties:
   id:
     type: string
@@ -161,53 +177,36 @@ properties:
   targetId:
     type: string
     description: Element id this animation applies to.
-  operation:
+  type:
     type: string
-    enum: [enter, update, exit, replace]
-    description: Lifecycle operation this animation is authored for.
+    enum: [live, replace]
+    description: Animation structure.
   complete:
     type: object
     properties:
       actionPayload:
         type: object
     additionalProperties: true
-  properties:
-    $ref: "#/$defs/liveProperties"
-  subjects:
-    type: object
-    properties:
-      prev:
-        $ref: "#/$defs/replaceSubject"
-      next:
-        $ref: "#/$defs/replaceSubject"
-    additionalProperties: false
-    minProperties: 1
-  mask:
-    $ref: "#/$defs/mask"
+  tween:
+    $ref: "#/$defs/liveTween"
+  replace:
+    $ref: "#/$defs/replacePayload"
 allOf:
   - if:
       properties:
-        operation:
-          enum: [enter, update, exit]
+        type:
+          const: live
     then:
       required:
-        - properties
+        - tween
       not:
-        anyOf:
-          - required: [subjects]
-          - required: [mask]
+        required: [replace]
   - if:
       properties:
-        operation:
+        type:
           const: replace
     then:
+      required:
+        - replace
       not:
-        required: [properties]
-      anyOf:
-        - required: [subjects]
-        - required: [mask]
-      allOf:
-        - not:
-            allOf:
-              - required: [mask]
-              - required: [subjects]
+        required: [tween]

@@ -92,7 +92,8 @@ states:
     animations:
       - id: animated-sprite-render-abortion
         targetId: animated-sprite-render-test
-        properties:
+        type: live
+        tween:
           alpha:
             keyframes:
               - duration: 1000
@@ -126,7 +127,6 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter
   - elements:
       - id: animated-sprite-render-test
         type: animated-sprite

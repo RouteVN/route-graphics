@@ -148,7 +148,6 @@ export const addContainer = ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: container,

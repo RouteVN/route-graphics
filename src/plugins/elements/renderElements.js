@@ -1,8 +1,7 @@
 import { diffElements } from "../../util/diffElements.js";
 import {
-  getAnimationsForOperation,
+  getReplaceAnimation,
   groupAnimationsByTarget,
-  validateTargetOperations,
 } from "../animations/planAnimations.js";
 import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.js";
 
@@ -50,6 +49,18 @@ export const renderElements = ({
     animations,
   );
 
+  const getPlugin = (type) => {
+    const plugin = pluginByType.get(type);
+    if (!plugin) {
+      throw new Error(`No plugin found for element type: ${type}`);
+    }
+
+    return plugin;
+  };
+
+  const getExistingChildZIndex = (targetId) =>
+    parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
+
   // Update zIndex for ALL existing children BEFORE any add/update/delete operations
   // This ensures correct z-ordering during animations
   for (const child of parent.children) {
@@ -61,11 +72,28 @@ export const renderElements = ({
 
   // Delete elements (synchronous)
   for (const element of toDeleteElement) {
-    validateTargetOperations(animationsByTarget, element.id, ["exit"]);
+    const replaceAnimation = getReplaceAnimation(
+      animationsByTarget,
+      element.id,
+    );
+    const plugin = getPlugin(element.type);
 
-    const plugin = pluginByType.get(element.type);
-    if (!plugin) {
-      throw new Error(`No plugin found for element type: ${element.type}`);
+    if (replaceAnimation) {
+      runReplaceAnimation({
+        app,
+        parent,
+        prevElement: element,
+        nextElement: null,
+        animation: replaceAnimation,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        plugin,
+        zIndex: getExistingChildZIndex(element.id),
+        signal,
+      });
+      continue;
     }
 
     plugin.delete({
@@ -83,15 +111,32 @@ export const renderElements = ({
 
   // Add elements (synchronous)
   for (const element of toAddElement) {
-    validateTargetOperations(animationsByTarget, element.id, ["enter"]);
-
-    const plugin = pluginByType.get(element.type);
-    if (!plugin) {
-      throw new Error(`No plugin found for element type: ${element.type}`);
-    }
+    const replaceAnimation = getReplaceAnimation(
+      animationsByTarget,
+      element.id,
+    );
+    const plugin = getPlugin(element.type);
 
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(element.id) ?? -1;
+
+    if (replaceAnimation) {
+      runReplaceAnimation({
+        app,
+        parent,
+        prevElement: null,
+        nextElement: element,
+        animation: replaceAnimation,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        plugin,
+        zIndex,
+        signal,
+      });
+      continue;
+    }
 
     plugin.add({
       app,
@@ -109,32 +154,20 @@ export const renderElements = ({
 
   // Update elements (synchronous)
   for (const { prev, next } of toUpdateElement) {
-    validateTargetOperations(animationsByTarget, next.id, [
-      "update",
-      "replace",
-    ]);
-
-    const plugin = pluginByType.get(next.type);
-    if (!plugin) {
-      throw new Error(`No plugin found for element type: ${next.type}`);
-    }
+    const plugin = getPlugin(next.type);
 
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(next.id) ?? -1;
 
-    const replaceAnimations = getAnimationsForOperation(
-      animationsByTarget,
-      next.id,
-      "replace",
-    );
+    const replaceAnimation = getReplaceAnimation(animationsByTarget, next.id);
 
-    if (replaceAnimations.length > 0) {
+    if (replaceAnimation) {
       runReplaceAnimation({
         app,
         parent,
         prevElement: prev,
         nextElement: next,
-        animation: replaceAnimations[0],
+        animation: replaceAnimation,
         animationBus,
         completionTracker,
         eventHandler,

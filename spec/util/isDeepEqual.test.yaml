@@ -1,6 +1,7 @@
-file: "../../src/util/isDeepEqual.js"
+file: ../../src/util/isDeepEqual.js
 group: util
-suites: [isDeepEqual]
+suites:
+  - isDeepEqual
 ---
 suite: isDeepEqual
 exportName: isDeepEqual
@@ -13,8 +14,8 @@ out: true
 ---
 case: Returns false for different primitives
 in:
-  - "a"
-  - "b"
+  - a
+  - b
 out: false
 ---
 case: Returns true for deep equal arrays and objects
@@ -23,12 +24,12 @@ in:
       - 1
       - nested:
           flag: true
-    b: "x"
+    b: x
   - a:
       - 1
       - nested:
           flag: true
-    b: "x"
+    b: x
 out: true
 ---
 case: Returns false when nested value differs

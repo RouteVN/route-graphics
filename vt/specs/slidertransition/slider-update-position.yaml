@@ -55,7 +55,8 @@ states:
       - id: slider-move
         targetId: slider1
         event: update
-        properties:
+        type: live
+        tween:
           x:
             keyframes:
               - duration: 1000
@@ -66,4 +67,3 @@ states:
               - duration: 1000
                 value: 200
                 easing: linear
-        operation: update

@@ -91,7 +91,6 @@ export const updateParticles = ({
     const dispatched = dispatchLiveAnimations({
       animations,
       targetId: prevElement.id,
-      operation: "update",
       animationBus,
       completionTracker,
       element: container,

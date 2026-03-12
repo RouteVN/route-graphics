@@ -35,10 +35,10 @@ states:
     animations:
       - id: sprite-rotate
         targetId: sprite1
-        properties:
+        type: live
+        tween:
           rotation:
             keyframes:
               - duration: 1500
                 value: 6.28318
                 easing: linear
-        operation: update

@@ -167,7 +167,6 @@ export const addText = ({
   dispatchLiveAnimations({
     animations,
     targetId: textComputedNode.id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: text,

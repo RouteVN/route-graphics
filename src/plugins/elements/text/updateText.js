@@ -184,7 +184,6 @@ export const updateText = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevTextComputedNode.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: textElement,

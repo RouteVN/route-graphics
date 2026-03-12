@@ -43,7 +43,8 @@ states:
       - id: container-fade-in
         targetId: container1
         test: true
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
@@ -53,4 +54,3 @@ states:
               - duration: 500
                 value: 1
                 easing: linear
-        operation: enter

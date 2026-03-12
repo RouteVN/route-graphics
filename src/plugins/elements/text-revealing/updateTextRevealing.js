@@ -168,7 +168,6 @@ export const updateTextRevealing = async ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: prevElement.id,
-    operation: "update",
     animationBus,
     completionTracker,
     element: textRevealingElement,

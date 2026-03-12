@@ -62,7 +62,6 @@ export const addAnimatedSprite = async ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: animatedSprite,

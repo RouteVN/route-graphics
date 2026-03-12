@@ -3,7 +3,7 @@ title: Update Sprite Position and Properties
 description: Uses colored sprite assets intentionally to differentiate multi-sprite update states (guideline exception for asset-based tests).
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - action: keypress
     key: b
@@ -11,40 +11,40 @@ steps:
 ---
 states:
   - elements:
-      - id: "sprite-1"
-        type: "sprite"
-        src: "circle-blue"
+      - id: sprite-1
+        type: sprite
+        src: circle-blue
         width: 100
         height: 100
         x: 50
-        y: 50
+        "y": 50
         alpha: 1
         zIndex: 1
-      - id: "sprite-2"
-        type: "sprite"
-        src: "circle-red"
+      - id: sprite-2
+        type: sprite
+        src: circle-red
         width: 80
         height: 80
         x: 200
-        y: 100
+        "y": 100
         alpha: 0.8
         zIndex: 2
   - elements:
-      - id: "sprite-1"
-        type: "sprite"
-        src: "circle-blue"
+      - id: sprite-1
+        type: sprite
+        src: circle-blue
         width: 100
         height: 100
         x: 150
-        y: 200
+        "y": 200
         alpha: 1
         zIndex: 1
-      - id: "sprite-2"
-        type: "sprite"
-        src: "circle-red"
+      - id: sprite-2
+        type: sprite
+        src: circle-red
         width: 80
         height: 80
         x: 200
-        y: 100
+        "y": 100
         alpha: 0.8
         zIndex: 2

@@ -434,10 +434,8 @@ export const WhiteListReplaceSubjectProps = {
   rotation: "rotation",
 };
 
-export const AnimationOperation = {
-  ENTER: "enter",
-  UPDATE: "update",
-  EXIT: "exit",
+export const AnimationType = {
+  LIVE: "live",
   REPLACE: "replace",
 };
 
@@ -487,7 +485,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @typedef {Object} BaseAnimation
  * @property {string} id - Unique animation id
  * @property {string} targetId - ID of the element
- * @property {AnimationOperation[keyof AnimationOperation]} operation - Animation operation
+ * @property {AnimationType[keyof AnimationType]} type - Animation structure
  */
 
 /**

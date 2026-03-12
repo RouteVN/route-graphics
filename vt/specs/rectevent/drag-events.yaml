@@ -2,30 +2,31 @@
 title: Rect Drag Events
 description: Test drag events on rect elements
 specs:
-  - "rect should send actionPayload on drag.down"
-  - "rect should send actionPayload on drag.move"
-  - "rect should send actionPayload on drag.up"
+  - rect should send actionPayload on drag.down
+  - rect should send actionPayload on drag.move
+  - rect should send actionPayload on drag.up
 steps:
   - action: customEvent
     name: clearEvents
   - action: move
     x: 220
-    y: 160
+    "y": 160
   - action: mouseDown
   - action: screenshot
   - action: move
     x: 300
-    y: 200
+    "y": 200
   - action: screenshot
   - action: move
     x: 400
-    y: 300
+    "y": 300
   - action: mouseUp
   - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [drag-start]
+    args:
+      - drag-start
     value:
       - _event:
           id: rect-draggable
@@ -33,22 +34,24 @@ steps:
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [drag-move]
+    args:
+      - drag-move
     value:
       - _event:
           id: rect-draggable
           x: 300
-          y: 200
+          "y": 200
         action: drag-move
       - _event:
           id: rect-draggable
           x: 400
-          y: 300
+          "y": 300
         action: drag-move
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [drag-end]
+    args:
+      - drag-end
     value:
       - _event:
           id: rect-draggable
@@ -56,21 +59,21 @@ steps:
 ---
 states:
   - elements:
-      - id: 'rect-draggable'
-        type: "rect"
+      - id: rect-draggable
+        type: rect
         x: 200
-        y: 150
+        "y": 150
         width: 200
         height: 100
         fill: "#A6A6A6"
-        cursor: "pointer"
+        cursor: pointer
         drag:
           start:
             actionPayload:
-              action: "drag-start"
+              action: drag-start
           move:
             actionPayload:
-              action: "drag-move"
+              action: drag-move
           end:
             actionPayload:
-              action: "drag-end"
+              action: drag-end

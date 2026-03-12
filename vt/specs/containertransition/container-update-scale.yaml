@@ -59,7 +59,8 @@ states:
     animations:
       - id: container-scale
         targetId: container1
-        properties:
+        type: live
+        tween:
           scaleX:
             keyframes:
               - duration: 1000
@@ -70,4 +71,3 @@ states:
               - duration: 1000
                 value: 1.5
                 easing: linear
-        operation: update

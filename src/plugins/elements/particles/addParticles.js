@@ -155,7 +155,6 @@ export const addParticle = ({
   dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: container,

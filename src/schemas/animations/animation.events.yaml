@@ -16,10 +16,6 @@ properties:
           targetId:
             type: string
             description: The ID of the element targeted by the animation
-          operation:
-            type: string
-            enum: [enter, update, exit, replace]
-            description: The operation that completed
         additionalProperties: true
     additionalProperties: true
 additionalProperties: false

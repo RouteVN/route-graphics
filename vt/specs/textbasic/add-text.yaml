@@ -3,27 +3,27 @@ title: Text
 ---
 states:
   - elements:
-      - id: 'a'
-        type: "text"
-        content: "Hello World"
+      - id: a
+        type: text
+        content: Hello World
         x: 20
-        y: 20
+        "y": 20
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
-      - id: 'b'
-        type: "text"
-        content: "Hi, how are you?"
+      - id: b
+        type: text
+        content: Hi, how are you?
         x: 20
-        y: 60
+        "y": 60
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
-      - id: 'c'
-        type: "text"
-        content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      - id: c
+        type: text
+        content: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
         x: 20
-        y: 100
+        "y": 100
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"

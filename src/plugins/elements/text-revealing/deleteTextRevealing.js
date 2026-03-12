@@ -26,7 +26,6 @@ export const deleteTextRevealing = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "exit",
     animationBus,
     completionTracker,
     element: textElement,

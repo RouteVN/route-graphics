@@ -39,7 +39,8 @@ states:
     animations:
       - id: rect-scale
         targetId: rect1
-        properties:
+        type: live
+        tween:
           scaleX:
             keyframes:
               - duration: 800
@@ -50,4 +51,3 @@ states:
               - duration: 800
                 value: 1.5
                 easing: linear
-        operation: update

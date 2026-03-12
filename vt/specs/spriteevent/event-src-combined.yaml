@@ -2,65 +2,65 @@
 title: Sprite Src Change on Hover AND Click
 description: Test src in both hover and click events working together; uses colored sprite assets intentionally to track source changes (guideline exception for asset-based tests).
 specs:
-  - "hover src should work"
-  - "click src should work"
-  - "both events can have different src values"
+  - hover src should work
+  - click src should work
+  - both events can have different src values
 steps:
   - action: move
     x: 220
-    y: 175
+    "y": 175
   - action: screenshot
   - action: mouseDown
   - action: screenshot
-  - action: mouseUp # We want to check when the pointer is realease inside the element and outside of it too
+  - action: mouseUp
   - action: screenshot
   - action: mouseDown
   - action: screenshot
   - action: move
     x: 0
-    y: 0
+    "y": 0
   - action: screenshot
   - action: mouseUp
   - action: screenshot
   - action: move
     x: 520
-    y: 175
+    "y": 175
   - action: screenshot
   - action: mouseDown
-  - action: mouseUp # We want to check when the pointer is realease inside the element and outside of it too
+  - action: mouseUp
   - action: screenshot
   - action: mouseDown
   - action: screenshot
   - action: move
     x: 0
-    y: 0
+    "y": 0
   - action: screenshot
   - action: mouseUp
   - action: screenshot
 ---
 states:
   - elements:
-      - id: 'sprite-both-1'
-        type: "sprite"
+      - id: sprite-both-1
+        type: sprite
         x: 200
-        y: 150
+        "y": 150
         width: 180
         height: 180
-        src: "circle-blue"
+        src: circle-blue
         hover:
-          cursor: "pointer"
-          src: "circle-red"
+          cursor: pointer
+          src: circle-red
         click:
-          src: "circle-green"
-      - id: 'sprite-both-2'
-        type: "sprite"
+          src: circle-green
+      - id: sprite-both-2
+        type: sprite
         x: 500
-        y: 150
+        "y": 150
         width: 180
         height: 180
-        src: "circle-green"
+        src: circle-green
         hover:
-          cursor: "pointer"
-          src: "circle-blue"
+          cursor: pointer
+          src: circle-blue
         click:
-          src: "circle-red"
+          src: circle-red

@@ -31,7 +31,8 @@ states:
     animations:
       - id: rect-render-abortion
         targetId: rect-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 50
             keyframes:
@@ -59,7 +60,6 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter
   - elements:
       - id: rect-render-test
         type: rect
@@ -72,7 +72,8 @@ states:
     animations:
       - id: rect-render-abortion-2
         targetId: rect-render-test
-        properties:
+        type: live
+        tween:
           x:
             initialValue: 250
             keyframes:
@@ -91,4 +92,3 @@ states:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: update

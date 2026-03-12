@@ -207,7 +207,6 @@ export const addRect = ({
   dispatchLiveAnimations({
     animations,
     targetId: id,
-    operation: "enter",
     animationBus,
     completionTracker,
     element: rect,

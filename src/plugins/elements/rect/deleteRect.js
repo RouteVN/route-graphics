@@ -18,7 +18,6 @@ export const deleteRect = ({
   const dispatched = dispatchLiveAnimations({
     animations,
     targetId: element.id,
-    operation: "exit",
     animationBus,
     completionTracker,
     element: rect,

@@ -37,11 +37,11 @@ states:
     animations:
       - id: slider-fade-in
         targetId: slider1
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:
               - duration: 1000
                 value: 1
                 easing: linear
-        operation: enter

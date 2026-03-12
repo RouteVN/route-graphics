@@ -10,19 +10,17 @@ Every animation requires:
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    operation: "update"
+    type: "live"
 ```
 
 - `targetId` always points to an element id.
-- `operation` is required and must be one of:
-  - `enter`
-  - `update`
-  - `exit`
+- `type` is required and must be one of:
+  - `live`
   - `replace`
 
-## Live Operations
+## Live Animations
 
-`enter`, `update`, and `exit` animate a single live display object with `properties`.
+`live` animates a single display object with `tween`.
 
 ```yaml
 states:
@@ -37,8 +35,8 @@ states:
     animations:
       - id: "makkuro-enter"
         targetId: "makkuro"
-        operation: "enter"
-        properties:
+        type: "live"
+        tween:
           alpha:
             initialValue: 0
             keyframes:
@@ -47,7 +45,7 @@ states:
                 easing: linear
 ```
 
-## Replace Operations
+## Replace Animations
 
 `replace` keeps the same `targetId` but animates the previous and next visuals separately.
 
@@ -66,10 +64,10 @@ states:
     animations:
       - id: "scene-push-left"
         targetId: "scene-root"
-        operation: "replace"
-        subjects:
+        type: "replace"
+        replace:
           prev:
-            properties:
+            tween:
               translateX:
                 initialValue: 0
                 keyframes:
@@ -77,7 +75,7 @@ states:
                     value: -1
                     easing: linear
           next:
-            properties:
+            tween:
               translateX:
                 initialValue: 1
                 keyframes:
@@ -101,25 +99,26 @@ states:
     animations:
       - id: "scene-rule-dissolve"
         targetId: "scene-root"
-        operation: "replace"
-        mask:
-          kind: "single"
-          texture: "masks/spiral-07.png"
-          channel: "red"
-          softness: 0.08
-          progress:
-            initialValue: 0
-            keyframes:
-              - duration: 900
-                value: 1
-                easing: linear
+        type: "replace"
+        replace:
+          mask:
+            kind: "single"
+            texture: "masks/spiral-07.png"
+            channel: "red"
+            softness: 0.08
+            progress:
+              initialValue: 0
+              keyframes:
+                - duration: 900
+                  value: 1
+                  easing: linear
 ```
 
 ## Current Replace Rules
 
 - `mask` is replace-only.
 - custom shader-backed replace is not supported right now.
-- subject property animation cannot currently be combined with `mask` in one replace animation.
+- `replace.prev.tween` and `replace.next.tween` can be combined with `replace.mask`.
 
 The design notes live in:
 
