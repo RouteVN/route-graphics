@@ -2,17 +2,17 @@
 title: Text Combined Hover and Right-Click Tests
 description: Test right-click functionality combined with hover events on text elements
 specs:
-  - "text should handle right-click and hover events independently"
-  - "text should show hover cursor and still support right-click"
-  - "text should change style on hover and right-click differently"
-  - "text should send correct actionPayload for each event type"
+  - text should handle right-click and hover events independently
+  - text should show hover cursor and still support right-click
+  - text should change style on hover and right-click differently
+  - text should send correct actionPayload for each event type
   - "text should support all three: hover, right-click, and click"
 steps:
   - action: customEvent
     name: clearEvents
   - action: move
     x: 155
-    y: 110
+    "y": 110
   - action: screenshot
   - action: rightMouseDown
   - action: screenshot
@@ -21,14 +21,15 @@ steps:
   - action: rightMouseDown
   - action: move
     x: 0
-    y: 0
+    "y": 0
   - action: screenshot
   - action: rightMouseUp
   - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [hover]
+    args:
+      - hover
     value:
       - _event:
           id: text-hover-rightclick
@@ -38,28 +39,27 @@ steps:
 ---
 states:
   - elements:
-      # Test text with hover and right-click
-      - id: 'text-hover-rightclick'
-        type: "text"
+      - id: text-hover-rightclick
+        type: text
         x: 150
-        y: 100
-        content: "Hover then Right-click"
+        "y": 100
+        content: Hover then Right-click
         textStyle:
           fontSize: 24
           fill: "#A6A6A6"
-          fontFamily: "Arial"
+          fontFamily: Arial
         hover:
-          cursor: "pointer"
+          cursor: pointer
           textStyle:
             fontSize: 24
             fill: "#737373"
-            fontFamily: "Arial"
+            fontFamily: Arial
           actionPayload:
-            action: "text-hovered"
-            eventType: "hover"
-            status: "over"
+            action: text-hovered
+            eventType: hover
+            status: over
         rightClick:
           textStyle:
             fontSize: 24
             fill: "#737373"
-            fontFamily: "Arial"
+            fontFamily: Arial

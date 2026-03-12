@@ -392,7 +392,7 @@
  * @readonly
  * @enum {string}
  */
-export const WhiteListTransitionProps = {
+export const WhiteListAnimationProps = {
   alpha: "alpha",
   x: "x",
   y: "y",
@@ -400,6 +400,8 @@ export const WhiteListTransitionProps = {
   scaleY: "scaleY",
   rotation: "rotation",
 };
+
+export const WhiteListTransitionProps = WhiteListAnimationProps;
 
 /**
  * @readonly
@@ -414,14 +416,27 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
   rotation: ["rotation"],
 };
 
-/**
- * @readonly
- * @enum {string}
- */
-export const TransitionEvent = {
-  Add: "add",
-  Remove: "remove",
-  Update: "update",
+export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
+  translateX: ["x"],
+  translateY: ["y"],
+  scaleX: ["scale", "x"],
+  scaleY: ["scale", "y"],
+  alpha: ["alpha"],
+  rotation: ["rotation"],
+};
+
+export const WhiteListReplaceSubjectProps = {
+  translateX: "translateX",
+  translateY: "translateY",
+  alpha: "alpha",
+  scaleX: "scaleX",
+  scaleY: "scaleY",
+  rotation: "rotation",
+};
+
+export const AnimationType = {
+  LIVE: "live",
+  REPLACE: "replace",
 };
 
 /**
@@ -467,10 +482,10 @@ export const DEFAULT_TEXT_STYLE = {
 };
 
 /**
- * @typedef {Object} BaseTransition
- * @property {string} type - Type of the transition
+ * @typedef {Object} BaseAnimation
+ * @property {string} id - Unique animation id
  * @property {string} targetId - ID of the element
- * @property {TransitionEvent} event - Event of the transition
+ * @property {AnimationType[keyof AnimationType]} type - Animation structure
  */
 
 /**
@@ -485,7 +500,7 @@ export const DEFAULT_TEXT_STYLE = {
 
 /**
  * @template {BaseElement} E
- * @template {BaseTransition} T
+ * @template {BaseAnimation} T
  * @typedef {Object} RouteGraphicsState
  * @property {string} id - ID
  * @property {E[]} elements - Array of elements
@@ -550,7 +565,7 @@ export class BaseRouteGraphics {
  * Renderer plugin for rendering elements
  * @abstract
  * @template {BaseElement} E
- * @template {BaseTransition} T
+ * @template {BaseAnimation} T
  */
 export class BaseRendererPlugin {
   /**
@@ -573,7 +588,7 @@ export class BaseRendererPlugin {
    * @param {Container} options.parent - The parent container to add the element to
    * @param {E} options.element - The sprite element to add
    * @param {T[]} [options.animations=[]] - Array of animations
-   * @param {Function} options.getTransitionByType - Function to get a transition by type
+   * @param {Function} options.getAnimationByType - Function to get an animation helper by type
    * @param {Function} options.getRendererByElement
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
@@ -590,7 +605,7 @@ export class BaseRendererPlugin {
    * @param {Object} options.element - The sprite element to remove
    * @param {E} options.element - The element to remove
    * @param {T[]} [options.animations=[]] - Array of animations
-   * @param {Function} options.getTransitionByType - Function to get a transition by type
+   * @param {Function} options.getAnimationByType - Function to get an animation helper by type
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
    */
@@ -607,7 +622,7 @@ export class BaseRendererPlugin {
    * @param {E} options.nextElement - The next state of the sprite element
    * @param {T[]} [options.animations=[]] - Array of animations
    * @param {Function} options.getRendererByElement
-   * @param {Function} options.getTransitionByType - Function to get a transition by type
+   * @param {Function} options.getAnimationByType - Function to get an animation helper by type
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
    */
@@ -619,16 +634,16 @@ export class BaseRendererPlugin {
 /**
  *
  */
-export class AbstractTransitionPlugin {
+export class AbstractAnimationPlugin {
   /**
    *
    * @param {Application} app
    * @param {Container} container
-   * @param {Object} transition
+   * @param {Object} animation
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
    */
-  add = async (app, container, transition, signal) => {
+  add = async (app, container, animation, signal) => {
     throw new Error("Method not implemented.");
   };
 
@@ -636,11 +651,11 @@ export class AbstractTransitionPlugin {
    *
    * @param {Application} app
    * @param {Container} container
-   * @param {Object} transition
+   * @param {Object} animation
    * @param {AbortSignal} [signal] - Optional AbortSignal for cancellation
    * @returns {Promise<void>}
    */
-  remove = async (app, container, transition, signal) => {
+  remove = async (app, container, animation, signal) => {
     throw new Error("Method not implemented.");
   };
 }

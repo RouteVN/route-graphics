@@ -1,6 +1,7 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
@@ -151,29 +152,16 @@ export const addParticle = ({
     container.alpha = element.alpha;
   }
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === element.id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: container,
-        properties: animation.properties,
-        targetState: {
-          x: element.x ?? 0,
-          y: element.y ?? 0,
-          alpha: element.alpha,
-        },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x: element.x ?? 0,
+      y: element.y ?? 0,
+      alpha: element.alpha,
+    },
+  });
 };

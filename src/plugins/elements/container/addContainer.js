@@ -1,5 +1,6 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add container element to the stage (synchronous)
@@ -144,24 +145,12 @@ export const addContainer = ({
     container.on("rightclick", rightClickListener);
   }
 
-  // Dispatch animations to the bus
-  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: container,
-        properties: animation.properties,
-        targetState: { x, y, alpha },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: { x, y, alpha },
+  });
 };

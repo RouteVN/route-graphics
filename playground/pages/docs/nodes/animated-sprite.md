@@ -93,7 +93,7 @@ elements:
       loop: true
 ```
 
-## Example: Animated Sprite With Tween
+## Example: Animated Sprite With Enter Motion
 
 ```yaml
 elements:
@@ -118,9 +118,9 @@ elements:
 
 animations:
   - id: enemy-enter
-    type: tween
     targetId: enemy
-    properties:
+    type: live
+    tween:
       x:
         initialValue: 1180
         keyframes:

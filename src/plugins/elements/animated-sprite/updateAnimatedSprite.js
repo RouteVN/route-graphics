@@ -1,6 +1,7 @@
 import { Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update animated sprite element
@@ -70,30 +71,19 @@ export const updateAnimatedSprite = async ({
 
   const { x, y, width, height, alpha } = nextElement;
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevElement.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevElement.id,
+    animationBus,
+    completionTracker,
+    element: animatedSpriteElement,
+    targetState: { x, y, width, height, alpha },
+    onComplete: () => {
+      void updateElement();
+    },
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: animatedSpriteElement,
-          properties: animation.properties,
-          targetState: { x, y, width, height, alpha },
-          onComplete: async () => {
-            completionTracker.complete(stateVersion);
-            await updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     await updateElement();
   }

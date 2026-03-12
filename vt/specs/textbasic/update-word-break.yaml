@@ -2,7 +2,7 @@
 title: Update Word Break Settings
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - action: keypress
     key: b
@@ -10,22 +10,22 @@ steps:
 ---
 states:
   - elements:
-      - id: 'text-1'
-        type: "text"
-        content: "This is a long text that shofasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfasdfasdfuld wrap whden word wrap is enabled"
+      - id: text-1
+        type: text
+        content: This is a long text that shofasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfasdfasdfuld wrap whden word wrap is enabled
         x: 20
-        y: 20
+        "y": 20
         textStyle:
           fontSize: 16
           fill: "#FFFFFF"
           breakWords: false
           wordWrapWidth: 200
   - elements:
-      - id: 'text-1'
-        type: "text"
-        content: "This is a long text that shofasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfasdfasdfuld wrap whden word wrap is enabled"
+      - id: text-1
+        type: text
+        content: This is a long text that shofasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfadsfasdfasdfasdfuld wrap whden word wrap is enabled
         x: 20
-        y: 20
+        "y": 20
         width: 200
         textStyle:
           fontSize: 16

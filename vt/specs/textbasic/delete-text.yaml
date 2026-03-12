@@ -2,7 +2,7 @@
 title: Delete Text Elements
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - action: keypress
     key: b
@@ -10,36 +10,36 @@ steps:
 ---
 states:
   - elements:
-      - id: 'text-1'
-        type: "text"
-        content: "This text will be deleted"
+      - id: text-1
+        type: text
+        content: This text will be deleted
         x: 20
-        y: 20
+        "y": 20
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
-      - id: 'text-2'
-        type: "text"
-        content: "This text will remain"
+      - id: text-2
+        type: text
+        content: This text will remain
         x: 20
-        y: 60
+        "y": 60
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
-      - id: 'text-3'
-        type: "text"
-        content: "This text will also be deleted"
+      - id: text-3
+        type: text
+        content: This text will also be deleted
         x: 20
-        y: 100
+        "y": 100
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
   - elements:
-      - id: 'text-2'
-        type: "text"
-        content: "This text will remain"
+      - id: text-2
+        type: text
+        content: This text will remain
         x: 20
-        y: 60
+        "y": 60
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"

@@ -1,3 +1,5 @@
+import { normalizeAnimations } from "./normalizeAnimations.js";
+
 /**
  * Normalize render state and enforce public state contract.
  * This is intentionally strict so unsupported keys fail fast.
@@ -34,6 +36,8 @@ export const normalizeRenderState = (state = {}) => {
   if (!Array.isArray(normalizedState.audio)) {
     throw new Error("Input error: `audio` must be an array.");
   }
+
+  normalizedState.animations = normalizeAnimations(normalizedState.animations);
 
   return normalizedState;
 };

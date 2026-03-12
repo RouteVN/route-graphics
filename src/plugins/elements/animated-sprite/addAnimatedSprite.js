@@ -1,5 +1,6 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add animated sprite element to the stage
@@ -58,24 +59,12 @@ export const addAnimatedSprite = async ({
 
   parent.addChild(animatedSprite);
 
-  // Dispatch animations to the bus
-  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: animatedSprite,
-        properties: animation.properties,
-        targetState: { x, y, width, height, alpha },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    animationBus,
+    completionTracker,
+    element: animatedSprite,
+    targetState: { x, y, width, height, alpha },
+  });
 };

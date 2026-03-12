@@ -2,45 +2,45 @@
 title: Rect Update Scale Transition
 description: A rect scaling up during update
 specs:
-  - "rect should scale from 1 to 1.5 on both axes"
-  - "animation should take 800ms"
-  - "uses scaleX and scaleY properties"
+  - rect should scale from 1 to 1.5 on both axes
+  - animation should take 800ms
+  - uses scaleX and scaleY properties
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=400
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=400
   - action: screenshot
 ---
 states:
-  - id: "initial"
+  - id: initial
     elements:
-      - id: 'rect1'
-        type: "rect"
+      - id: rect1
+        type: rect
         x: 300
-        y: 200
+        "y": 200
         width: 200
         height: 200
         fill: "#737373"
         scaleX: 1
         scaleY: 1
-  - id: "rect-scale-up-state"
+  - id: rect-scale-up-state
     elements:
-      - id: 'rect1'
-        type: "rect"
+      - id: rect1
+        type: rect
         x: 300
-        y: 200
+        "y": 200
         width: 200
         height: 200
         fill: "#737373"
         scaleX: 1.5
         scaleY: 1.5
     animations:
-      - id: 'rect-scale'
-        targetId: 'rect1'
-        type: tween
-        properties:
+      - id: rect-scale
+        targetId: rect1
+        type: live
+        tween:
           scaleX:
             keyframes:
               - duration: 800

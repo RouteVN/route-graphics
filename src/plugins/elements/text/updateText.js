@@ -1,5 +1,6 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update text element (synchronous)
@@ -180,30 +181,19 @@ export const updateText = ({
     }
   };
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevTextComputedNode.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevTextComputedNode.id,
+    animationBus,
+    completionTracker,
+    element: textElement,
+    targetState: { x, y, alpha },
+    onComplete: () => {
+      updateElement();
+    },
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: textElement,
-          properties: animation.properties,
-          targetState: { x, y, alpha },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

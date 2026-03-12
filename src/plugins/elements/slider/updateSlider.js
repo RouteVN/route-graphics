@@ -1,5 +1,6 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Update slider element
@@ -272,30 +273,17 @@ export const updateSlider = ({
 
   const { x, y, alpha } = nextSliderComputedNode;
 
-  // Dispatch animations to the bus
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === prevSliderComputedNode.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: prevSliderComputedNode.id,
+    animationBus,
+    completionTracker,
+    element: sliderElement,
+    targetState: { x, y, alpha },
+    onComplete: updateElement,
+  });
 
-  if (relevantAnimations.length > 0) {
-    for (const animation of relevantAnimations) {
-      const stateVersion = completionTracker.getVersion();
-      completionTracker.track(stateVersion);
-
-      animationBus.dispatch({
-        type: "START",
-        payload: {
-          id: animation.id,
-          element: sliderElement,
-          properties: animation.properties,
-          targetState: { x, y, alpha },
-          onComplete: () => {
-            completionTracker.complete(stateVersion);
-            updateElement();
-          },
-        },
-      });
-    }
-  } else {
+  if (!dispatched) {
     // No animations, update immediately
     updateElement();
   }

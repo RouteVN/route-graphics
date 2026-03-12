@@ -105,7 +105,7 @@ elements:
         target: start
 ```
 
-## Example: Text With Tween
+## Example: Text With Enter Fade
 
 ```yaml
 elements:
@@ -120,9 +120,9 @@ elements:
 
 animations:
   - id: status-fade
-    type: tween
     targetId: status
-    properties:
+    type: live
+    tween:
       alpha:
         initialValue: 0
         keyframes:

@@ -2,12 +2,12 @@
 title: Container Fade In Transition
 description: A container with children fading in together
 specs:
-  - "container should fade from 0 to 1 alpha"
-  - "all children should fade in with container"
-  - "animation should take 1 second"
+  - container should fade from 0 to 1 alpha
+  - all children should fade in with container
+  - animation should take 1 second
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=1000
@@ -16,35 +16,35 @@ steps:
 states:
   - elements: []
   - elements:
-      - id: 'container1'
-        type: "container"
+      - id: container1
+        type: container
         x: 150
-        y: 100
-        direction: "horizontal"
+        "y": 100
+        direction: horizontal
         gap: 10
         alpha: 1
         children:
-          - id: 'rect1'
-            type: "rect"
+          - id: rect1
+            type: rect
             width: 80
             height: 80
             fill: "#FFFFFF"
-          - id: 'rect2'
-            type: "rect"
+          - id: rect2
+            type: rect
             width: 80
             height: 80
             fill: "#A6A6A6"
-          - id: 'rect3'
-            type: "rect"
+          - id: rect3
+            type: rect
             width: 80
             height: 80
             fill: "#737373"
     animations:
-      - id: 'container-fade-in'
-        targetId: 'container1'
-        type: tween
+      - id: container-fade-in
+        targetId: container1
         test: true
-        properties:
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:

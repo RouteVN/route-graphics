@@ -1,3 +1,5 @@
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+
 /**
  * Delete sprite element (synchronous)
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
@@ -15,34 +17,22 @@ export const deleteSprite = ({
 
   if (!spriteElement) return;
 
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === element.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: spriteElement,
+    targetState: null,
+    onComplete: () => {
+      if (spriteElement && !spriteElement.destroyed) {
+        spriteElement.destroy();
+      }
+    },
+  });
 
-  if (relevantAnimations.length === 0) {
+  if (!dispatched) {
     // No animation, destroy immediately
     spriteElement.destroy();
-    return;
-  }
-
-  // Dispatch delete animations to the bus
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: spriteElement,
-        properties: animation.properties,
-        targetState: null, // null signals destroy on cancel
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          if (spriteElement && !spriteElement.destroyed) {
-            spriteElement.destroy();
-          }
-        },
-      },
-    });
   }
 };

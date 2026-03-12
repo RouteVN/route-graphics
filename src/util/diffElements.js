@@ -47,9 +47,12 @@ export const diffElements = (prevElements, nextElements, animations = []) => {
       toDeleteElement.push(prevEl);
     } else {
       const allIds = collectAllElementIds(nextEl);
-      const hasAnimation = animations.find((transition) =>
-        allIds.has(transition.targetId),
-      );
+      const hasAnimation =
+        animations instanceof Map
+          ? Array.from(animations.keys()).some((targetId) =>
+              allIds.has(targetId),
+            )
+          : animations.find((transition) => allIds.has(transition.targetId));
 
       if (!isDeepEqual(prevEl, nextEl) || hasAnimation) {
         // Update element - definition changed or has animations targeting it or children

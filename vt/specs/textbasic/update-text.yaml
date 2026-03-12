@@ -2,7 +2,7 @@
 title: Update Text Position and Content
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - action: keypress
     key: b
@@ -10,20 +10,20 @@ steps:
 ---
 states:
   - elements:
-      - id: 'text-1'
-        type: "text"
-        content: "Original text"
+      - id: text-1
+        type: text
+        content: Original text
         x: 20
-        y: 20
+        "y": 20
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
   - elements:
-      - id: 'text-1'
-        type: "text"
-        content: "Updated text content"
+      - id: text-1
+        type: text
+        content: Updated text content
         x: 100
-        y: 80
+        "y": 80
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"

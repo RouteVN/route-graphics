@@ -1,4 +1,5 @@
 import { Graphics } from "pixi.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -203,24 +204,12 @@ export const addRect = ({
 
   parent.addChild(rect);
 
-  // Dispatch animations to the bus
-  const relevantAnimations = animations?.filter((a) => a.targetId === id) || [];
-
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: rect,
-        properties: animation.properties,
-        targetState: { x, y, alpha },
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-        },
-      },
-    });
-  }
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    animationBus,
+    completionTracker,
+    element: rect,
+    targetState: { x, y, alpha },
+  });
 };

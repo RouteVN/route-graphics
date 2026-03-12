@@ -1,6 +1,7 @@
-file: "../../src/plugins/elements/particles/parseParticles.js"
+file: ../../src/plugins/elements/particles/parseParticles.js
 group: parser
-suites: [parseParticles]
+suites:
+  - parseParticles
 ---
 suite: parseParticles
 exportName: parseParticles
@@ -8,12 +9,12 @@ exportName: parseParticles
 case: Test parsing particles with full config and shape texture
 in:
   - state:
-      id: "sparkles"
-      type: "particles"
+      id: sparkles
+      type: particles
       width: 1280
       height: 720
       x: 100
-      y: 50
+      "y": 50
       alpha: 0.8
       count: 200
       texture:
@@ -21,7 +22,7 @@ in:
         radius: 5
         color: "#ffffff"
       behaviors:
-        - type: "alpha"
+        - type: alpha
           config:
             list:
               - value: 0
@@ -31,25 +32,25 @@ in:
       emitter:
         lifetime:
           min: 0.5
-          max: 1.0
+          max: 1
         frequency: 0.1
         particlesPerWave: 5
         maxParticles: 50
 out:
-  id: "sparkles"
-  type: "particles"
+  id: sparkles
+  type: particles
   count: 50
   width: 1280
   height: 720
   x: 100
-  y: 50
+  "y": 50
   alpha: 0.8
   texture:
     shape: circle
     radius: 5
     color: "#ffffff"
   behaviors:
-    - type: "alpha"
+    - type: alpha
       config:
         list:
           - value: 0
@@ -59,7 +60,7 @@ out:
   emitter:
     lifetime:
       min: 0.5
-      max: 1.0
+      max: 1
     frequency: 0.1
     particlesPerWave: 5
     maxParticles: 50
@@ -67,29 +68,29 @@ out:
 case: Test parsing particles with minimal required config and string texture
 in:
   - state:
-      id: "minimal"
-      type: "particles"
+      id: minimal
+      type: particles
       width: 800
       height: 600
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "speed"
+        - type: speed
       emitter:
         lifetime:
           min: 1
           max: 2
 out:
-  id: "minimal"
-  type: "particles"
+  id: minimal
+  type: particles
   count: 100
   width: 800
   height: 600
   x: 0
-  y: 0
+  "y": 0
   alpha: 1
-  texture: "circle"
+  texture: circle
   behaviors:
-    - type: "speed"
+    - type: speed
   emitter:
     lifetime:
       min: 1
@@ -98,12 +99,12 @@ out:
 case: Test parsing particles throws when id is missing
 in:
   - state:
-      type: "particles"
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -113,13 +114,13 @@ throws: "Input Error: Id is missing"
 case: Test parsing particles throws when type is invalid
 in:
   - state:
-      id: "test"
-      type: "invalid-type"
+      id: test
+      type: invalid-type
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -129,13 +130,13 @@ throws: "Input Error: Type must be one of"
 case: Test parsing particles throws when width is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: "100"
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -145,13 +146,13 @@ throws: "Input Error: Width and height must be numbers"
 case: Test parsing particles throws when width is not positive
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 0
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -161,12 +162,12 @@ throws: "Input Error: Width and height must be positive"
 case: Test parsing particles throws when texture is missing
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -176,13 +177,13 @@ throws: "Input Error: Particles require 'texture'"
 case: Test parsing particles throws when texture is invalid type
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
       texture: 123
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -192,14 +193,14 @@ throws: "Input Error: texture must be a string or shape object"
 case: Test parsing particles throws when texture shape object missing shape property
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
       texture:
         radius: 5
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -209,14 +210,14 @@ throws: "Input Error: texture object must have 'shape' property"
 case: Test parsing particles throws when texture shape is invalid
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
       texture:
-        shape: "triangle"
+        shape: triangle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -226,11 +227,11 @@ throws: "Input Error: texture.shape must be 'circle', 'ellipse', or 'rect', got 
 case: Test parsing particles throws when behaviors is missing
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       emitter:
         lifetime:
           min: 1
@@ -240,12 +241,12 @@ throws: "Input Error: Particles require 'behaviors'"
 case: Test parsing particles throws when behaviors is not an array
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
-      behaviors: "not-an-array"
+      texture: circle
+      behaviors: not-an-array
       emitter:
         lifetime:
           min: 1
@@ -255,11 +256,11 @@ throws: "Input Error: 'behaviors' must be an array"
 case: Test parsing particles throws when behaviors array is empty
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors: []
       emitter:
         lifetime:
@@ -270,13 +271,13 @@ throws: "Input Error: 'behaviors' array cannot be empty"
 case: Test parsing particles throws when behavior is not an object
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - "not-an-object"
+        - not-an-object
       emitter:
         lifetime:
           min: 1
@@ -286,11 +287,11 @@ throws: "Input Error: behaviors[0] must be an object"
 case: Test parsing particles throws when behavior missing type property
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
         - config: {}
       emitter:
@@ -302,38 +303,38 @@ throws: "Input Error: behaviors[0] must have a 'type' string property"
 case: Test parsing particles throws when emitter is missing
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
 throws: "Input Error: Particles require 'emitter'"
 ---
 case: Test parsing particles throws when emitter is not an object
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
-      emitter: "not-an-object"
+        - type: alpha
+      emitter: not-an-object
 throws: "Input Error: 'emitter' must be an object"
 ---
 case: Test parsing particles throws when emitter.lifetime is missing
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         frequency: 0.1
 throws: "Input Error: emitter.lifetime is required"
@@ -341,13 +342,13 @@ throws: "Input Error: emitter.lifetime is required"
 case: Test parsing particles throws when emitter.lifetime is not an object
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime: 5
 throws: "Input Error: emitter.lifetime must be an object"
@@ -355,13 +356,13 @@ throws: "Input Error: emitter.lifetime must be an object"
 case: Test parsing particles throws when emitter.lifetime.min is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: "1"
@@ -371,13 +372,13 @@ throws: "Input Error: emitter.lifetime.min and max must be numbers"
 case: Test parsing particles throws when emitter.lifetime is negative
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: -1
@@ -387,13 +388,13 @@ throws: "Input Error: emitter.lifetime.min and max must be non-negative"
 case: Test parsing particles throws when emitter.lifetime min greater than max
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 5
@@ -403,13 +404,13 @@ throws: "Input Error: emitter.lifetime.min cannot be greater than max"
 case: Test parsing particles throws when emitter.frequency is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -420,13 +421,13 @@ throws: "Input Error: emitter.frequency must be a number"
 case: Test parsing particles throws when emitter.frequency is negative
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -437,13 +438,13 @@ throws: "Input Error: emitter.frequency must be non-negative"
 case: Test parsing particles throws when emitter.particlesPerWave is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -454,13 +455,13 @@ throws: "Input Error: emitter.particlesPerWave must be a number"
 case: Test parsing particles throws when emitter.particlesPerWave is not positive
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -471,13 +472,13 @@ throws: "Input Error: emitter.particlesPerWave must be positive"
 case: Test parsing particles throws when emitter.particlesPerWave is not an integer
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -488,13 +489,13 @@ throws: "Input Error: emitter.particlesPerWave must be an integer"
 case: Test parsing particles throws when emitter.maxParticles is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -505,13 +506,13 @@ throws: "Input Error: emitter.maxParticles must be a number"
 case: Test parsing particles throws when emitter.maxParticles is not positive
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -522,13 +523,13 @@ throws: "Input Error: emitter.maxParticles must be positive"
 case: Test parsing particles throws when emitter.maxParticles is not an integer
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -539,13 +540,13 @@ throws: "Input Error: emitter.maxParticles must be an integer"
 case: Test parsing particles throws when count is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -556,13 +557,13 @@ throws: "Input Error: count must be a number"
 case: Test parsing particles throws when count is not positive
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -573,13 +574,13 @@ throws: "Input Error: count must be positive"
 case: Test parsing particles throws when count is not an integer
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -590,13 +591,13 @@ throws: "Input Error: count must be an integer"
 case: Test parsing particles throws when alpha is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -607,13 +608,13 @@ throws: "Input Error: alpha must be a number"
 case: Test parsing particles throws when alpha is out of range
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -624,13 +625,13 @@ throws: "Input Error: alpha must be between 0 and 1"
 case: Test parsing particles throws when x is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
@@ -641,16 +642,16 @@ throws: "Input Error: x must be a number"
 case: Test parsing particles throws when y is not a number
 in:
   - state:
-      id: "test"
-      type: "particles"
+      id: test
+      type: particles
       width: 100
       height: 100
-      texture: "circle"
+      texture: circle
       behaviors:
-        - type: "alpha"
+        - type: alpha
       emitter:
         lifetime:
           min: 1
           max: 2
-      y: "50"
+      "y": "50"
 throws: "Input Error: y must be a number"

@@ -2,12 +2,12 @@
 title: Sprite Fade In Transition
 description: A sprite element fading in with alpha animation; uses a colored sprite texture intentionally to validate visual alpha progression (guideline exception for asset-based tests).
 specs:
-  - "sprite should fade from 0 to 1 alpha"
-  - "sprite should appear gradually over 1 second"
-  - "sprite image should load and fade in"
+  - sprite should fade from 0 to 1 alpha
+  - sprite should appear gradually over 1 second
+  - sprite image should load and fade in
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
@@ -17,19 +17,19 @@ steps:
 states:
   - elements: []
   - elements:
-      - id: 'sprite1'
-        type: "sprite"
-        src: "circle-blue"
+      - id: sprite1
+        type: sprite
+        src: circle-blue
         x: 300
-        y: 200
+        "y": 200
         width: 150
         height: 150
         alpha: 1
     animations:
-      - id: 'sprite-fade-in'
-        targetId: 'sprite1'
-        type: tween
-        properties:
+      - id: sprite-fade-in
+        targetId: sprite1
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:

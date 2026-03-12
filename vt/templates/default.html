@@ -1,211 +1,255 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <script>
-      window.vtState = `
-{{ content }}
-        `;
-    </script>
+    <script id="vt-state" type="text/plain">{{ content }}</script>
     <script type="module">
-        import createRouteGraphics, {
-            Assets,
-            AudioAsset,
-            textPlugin,
-            rectPlugin,
-            spritePlugin,
-            videoPlugin,
-            sliderPlugin,
-            containerPlugin,
-            textRevealingPlugin,
-            animatedSpritePlugin,
-            tweenPlugin,
-            soundPlugin,
-            particlesPlugin,
-            createAssetBufferManager,
-        } from "/RouteGraphics.js"
+      import createRouteGraphics, {
+        Assets,
+        AudioAsset,
+        textPlugin,
+        rectPlugin,
+        spritePlugin,
+        videoPlugin,
+        sliderPlugin,
+        containerPlugin,
+        textRevealingPlugin,
+        animatedSpritePlugin,
+        tweenPlugin,
+        soundPlugin,
+        particlesPlugin,
+        createAssetBufferManager,
+      } from "/RouteGraphics.js";
+      import { parseAllDocuments } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
 
+      const assetsObject = {
+        "background-1": {
+          url: "/public/background-1-1.png",
+          type: "image/png",
+        },
+        "circle-blue": { url: "/public/circle-blue.png", type: "image/png" },
+        "circle-red": { url: "/public/circle-red.png", type: "image/png" },
+        "circle-green": { url: "/public/circle-green.png", type: "image/png" },
+        slider: { url: "/public/slider.png", type: "image/png" },
+        "horizontal-idle-bar": {
+          url: "/public/horizontal_idle_bar.png",
+          type: "image/png",
+        },
+        "horizontal-hover-bar": {
+          url: "/public/horizontal_hover_bar.png",
+          type: "image/png",
+        },
+        "horizontal-idle-thumb": {
+          url: "/public/horizontal_idle_thumb.png",
+          type: "image/png",
+        },
+        "horizontal-hover-thumb": {
+          url: "/public/horizontal_hover_thumb.png",
+          type: "image/png",
+        },
+        "vertical-idle-bar": {
+          url: "/public/vertical_idle_bar.png",
+          type: "image/png",
+        },
+        "vertical-hover-bar": {
+          url: "/public/vertical_hover_bar.png",
+          type: "image/png",
+        },
+        "vertical-idle-thumb": {
+          url: "/public/vertical_idle_thumb.png",
+          type: "image/png",
+        },
+        "vertical-hover-thumb": {
+          url: "/public/vertical_hover_thumb.png",
+          type: "image/png",
+        },
+        "fighter-spritesheet": {
+          url: "/public/fighter.png",
+          type: "image/png",
+        },
+        "mask-diagonal": {
+          url: "/public/mask_diagonal.png",
+          type: "image/png",
+        },
+        "mask-left-band": {
+          url: "/public/mask_left_band.png",
+          type: "image/png",
+        },
+        "mask-center-band": {
+          url: "/public/mask_center_band.png",
+          type: "image/png",
+        },
+        "mask-right-band": {
+          url: "/public/mask_right_band.png",
+          type: "image/png",
+        },
+        "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
+        "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+      };
 
-        import { parse } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+      // Keep video/audio opt-in for non-debug/manual browser runs.
+      if (!window?.RTGL_VT_DEBUG) {
+        Object.assign(assetsObject, {
+          "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
+          "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
+          "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
+          "video-sample": {
+            url: "/public/video_sample.mp4",
+            type: "video/mp4",
+          },
+          "video-sample-2": {
+            url: "/public/video_sample_2.mp4",
+            type: "video/mp4",
+          },
+        });
+      }
 
+      const assetBufferManager = createAssetBufferManager();
+      await assetBufferManager.load(assetsObject);
 
-        const assetsObject = {
-            'background-1': { url: '/public/background-1-1.png', type: 'image/png' },
-            'circle-blue': { url: '/public/circle-blue.png', type: 'image/png' },
-            'circle-red': { url: '/public/circle-red.png', type: 'image/png' },
-            'circle-green': { url: '/public/circle-green.png', type: 'image/png' },
-            'slider': { url: '/public/slider.png', type: 'image/png' },
-            'horizontal-idle-bar': { url: '/public/horizontal_idle_bar.png', type: 'image/png' },
-            'horizontal-hover-bar': { url: '/public/horizontal_hover_bar.png', type: 'image/png' },
-            'horizontal-idle-thumb': { url: '/public/horizontal_idle_thumb.png', type: 'image/png' },
-            'horizontal-hover-thumb': { url: '/public/horizontal_hover_thumb.png', type: 'image/png' },
-            'vertical-idle-bar': { url: '/public/vertical_idle_bar.png', type: 'image/png' },
-            'vertical-hover-bar': { url: '/public/vertical_hover_bar.png', type: 'image/png' },
-            'vertical-idle-thumb': { url: '/public/vertical_idle_thumb.png', type: 'image/png' },
-            'vertical-hover-thumb': { url: '/public/vertical_hover_thumb.png', type: 'image/png' },
-            'fighter-spritesheet': { url: '/public/fighter.png', type: 'image/png' },
-            'sfx-1': { url: '/public/sfx-1.mp3', type: 'audio/mpeg' },
-            'sfx-2': { url: '/public/sfx-2.wav', type: 'audio/wav' },
-        }
+      const app = createRouteGraphics();
+      window.takeVtScreenshotBase64 = async () => await app.extractBase64();
+      const plugins = {
+        elements: [
+          textPlugin,
+          rectPlugin,
+          spritePlugin,
+          videoPlugin,
+          sliderPlugin,
+          containerPlugin,
+          textRevealingPlugin,
+          animatedSpritePlugin,
+          particlesPlugin,
+        ],
+        animations: [tweenPlugin],
+        audio: [soundPlugin],
+      };
+      let index = 0;
+      const vtStateSource =
+        document.getElementById("vt-state")?.textContent ?? "";
+      const vtDocuments = parseAllDocuments(vtStateSource).map(
+        (doc) => doc.toJSON() ?? {},
+      );
+      const vtState = Object.assign({}, ...vtDocuments);
+      const states = vtState.states ?? [];
+      window.__VT_EVENTS__ = [];
+      window.__VT_ALL_EVENTS__ = [];
+      const shouldLogEvents = true;
 
-        // Keep video/audio opt-in for non-debug/manual browser runs.
-        if (!window?.RTGL_VT_DEBUG) {
-          Object.assign(assetsObject, {
-            'bgm-1': { url: '/public/bgm-1.mp3', type: 'audio/mpeg' },
-            'bgm-2': { url: '/public/bgm-2.mp3', type: 'audio/mpeg' },
-            'bgm-3': { url: '/public/bgm-3.mp3', type: 'audio/mpeg' },
-            'video-sample': { url: '/public/video_sample.mp4', type: 'video/mp4' },
-            'video-sample-2': { url: '/public/video_sample_2.mp4', type: 'video/mp4' },
-          })
-        }
+      const getEventStore = (scope) => {
+        if (scope === "all") return window.__VT_ALL_EVENTS__;
+        return window.__VT_EVENTS__;
+      };
 
-        const assetBufferManager = createAssetBufferManager();
-        await assetBufferManager.load(assetsObject);
-
-        const app = createRouteGraphics();
-        window.takeVtScreenshotBase64 = async (label) => await app.extractBase64(label);
-        const plugins = {
-            elements: [
-                textPlugin,
-                rectPlugin,
-                spritePlugin,
-                videoPlugin,
-                sliderPlugin,
-                containerPlugin,
-                textRevealingPlugin,
-                animatedSpritePlugin,
-                particlesPlugin,
-            ],
-            animations: [
-                tweenPlugin
-            ],
-            audio: [
-                soundPlugin
-            ],
-        }
-        let index = 0
-        const states = parse(window.vtState).states
+      const clearEvents = () => {
         window.__VT_EVENTS__ = [];
         window.__VT_ALL_EVENTS__ = [];
-        const shouldLogEvents = true;
+      };
 
-        const getEventStore = (scope) => {
-            if (scope === "all") return window.__VT_ALL_EVENTS__;
-            return window.__VT_EVENTS__;
-        };
+      window.getVtEvents = (scope = "default") => {
+        const store = getEventStore(scope);
+        return store.map((event) => ({
+          name: event.name,
+          payload: event.payload,
+        }));
+      };
 
-        const clearEvents = () => {
-            window.__VT_EVENTS__ = [];
-            window.__VT_ALL_EVENTS__ = [];
-        };
+      window.vtAssert = {
+        payloadDeepEquals: (eventName, scope = "default") =>
+          window
+            .getVtEvents(scope)
+            .filter((event) => event.name === eventName)
+            .map((event) => event.payload),
+      };
 
-        window.getVtEvents = (scope = "default") => {
-            const store = getEventStore(scope);
-            return store.map((event) => ({
-                name: event.name,
-                payload: event.payload,
-            }));
-        };
+      await app.init({
+        width: 1280,
+        height: 720,
+        plugins,
+        eventHandler: (eventName, payload) => {
+          const eventData = {
+            name: eventName,
+            payload,
+          };
+          if (shouldLogEvents) {
+            console.log("[VT event]", eventName, payload);
+          }
+          window.__VT_ALL_EVENTS__.push(eventData);
+          if (eventName === "renderComplete") {
+            return;
+          }
+          window.__VT_EVENTS__.push(eventData);
+        },
+        onFirstRender: () => {
+          window.dispatchEvent(new CustomEvent("vt:ready"));
+        },
+        debug: window?.RTGL_VT_DEBUG ?? false,
+      });
+      await app.loadAssets(assetBufferManager.getBufferMap());
+      document.body.appendChild(app.canvas);
 
-        window.vtAssert = {
-            payloadDeepEquals: (eventName, scope = "default") =>
-                window
-                    .getVtEvents(scope)
-                    .filter((event) => event.name === eventName)
-                    .map((event) => event.payload),
-        };
+      app.render({
+        id: states[index].id ?? `state-${index}`,
+        elements: states[index].elements ?? [],
+        animations: states[index].animations ?? [],
+        audio: states[index].audio ?? [],
+        global: states[index].global ?? {},
+      });
 
-        await app.init({
-            width: 1280,
-            height: 720,
-            plugins,
-            eventHandler: (eventName, payload) => {
-                const eventData = {
-                    name: eventName,
-                    payload,
-                };
-                if (shouldLogEvents) {
-                    console.log("[VT event]", eventName, payload);
-                }
-                window.__VT_ALL_EVENTS__.push(eventData);
-                if (eventName === 'renderComplete') {
-                    return;
-                }
-                window.__VT_EVENTS__.push(eventData);
-            },
-            onFirstRender: () => {
-                window.dispatchEvent(new CustomEvent('vt:ready'));
-            },
-            debug: window?.RTGL_VT_DEBUG ?? false,
+      const listenEvents = () => {
+        document.addEventListener("keydown", async (e) => {
+          if (e.shiftKey && e.key !== "Shift") {
+            if (states.length > index + 1) {
+              index++;
+              app.render({
+                id: states[index].id ?? `state-${index}`,
+                elements: states[index].elements ?? [],
+                animations: states[index].animations ?? [],
+                audio: states[index].audio ?? [],
+                global: states[index].global ?? {},
+              });
+              app.render({
+                id: states[index].id ?? `state-${index}`,
+                elements: states[index].elements ?? [],
+                animations: states[index].animations ?? [],
+                audio: states[index].audio ?? [],
+                global: states[index].global ?? {},
+              });
+            }
+          } else if (e.key === "n") {
+            if (states.length > index + 1) {
+              index++;
+              app.render({
+                id: states[index].id ?? `state-${index}`,
+                elements: states[index].elements ?? [],
+                animations: states[index].animations ?? [],
+                audio: states[index].audio ?? [],
+                global: states[index].global ?? {},
+              });
+            }
+          } else if (e.key === "b") {
+            if (index - 1 >= 0) {
+              index--;
+              app.render({
+                id: states[index].id ?? `state-${index}`,
+                elements: states[index].elements ?? [],
+                animations: states[index].animations ?? [],
+                audio: states[index].audio ?? [],
+                global: states[index].global ?? {},
+              });
+            }
+          }
         });
-        await app.loadAssets(assetBufferManager.getBufferMap());
-        document.body.appendChild(app.canvas);
 
-        app.render({
-            id: states[index].id ?? `state-${index}`,
-            elements: states[index].elements ?? [],
-            animations: states[index].animations ?? [],
-            audio: states[index].audio ?? [],
-            global: states[index].global ?? {}
-        })
-
-        const listenEvents = () => {
-            document.addEventListener("keydown",async (e) => {
-                if (e.shiftKey && e.key !== "Shift"){
-                    if(states.length > index+1){
-                        index++
-                        app.render({
-                            id: states[index].id ?? `state-${index}`,
-                            elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [],
-                            audio: states[index].audio ?? [],
-                            global: states[index].global ?? {}
-                        })
-                        app.render({
-                            id: states[index].id ?? `state-${index}`,
-                            elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [],
-                            audio: states[index].audio ?? [],
-                            global: states[index].global ?? {}
-                        })
-                    }
-                }
-                else if (e.key === "n") {
-                    if(states.length > index+1){
-                        index++
-                        app.render({
-                            id: states[index].id ?? `state-${index}`,
-                            elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [],
-                            audio: states[index].audio ?? [],
-                            global: states[index].global ?? {}
-                        })
-                    }
-                } else if (e.key === "b") {
-                    if(index - 1 >= 0 ){
-                        index--;
-                        app.render({
-                            id: states[index].id ?? `state-${index}`,
-                            elements: states[index].elements ?? [],
-                            animations: states[index].animations ?? [],
-                            audio: states[index].audio ?? [],
-                            global: states[index].global ?? {}
-                        })
-                    }
-                }
-            });
-
-            window.addEventListener('clearEvents', () => {
-                clearEvents();
-            });
-        };
-        listenEvents()
+        window.addEventListener("clearEvents", () => {
+          clearEvents();
+        });
+      };
+      listenEvents();
     </script>
     <link rel="stylesheet" href="/public/theme.css" />
-</head>
-<body>
-    
-</body>
+  </head>
+  <body></body>
 </html>

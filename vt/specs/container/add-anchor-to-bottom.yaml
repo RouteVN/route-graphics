@@ -1,17 +1,13 @@
 ---
 title: Anchor To Bottom Viewport Parity
 steps:
-  # Initial render: compare scroll=true top view vs anchorToBottom viewport parity
   - action: screenshot
-  # Move to next state where new messages are appended
   - action: keypress
-    key: n
-  # After update: anchored container should still show latest messages
+    key: "n"
   - action: screenshot
-  # Attempt wheel on non-scroll anchored container: viewport should not move
   - action: move
     x: 350
-    y: 150
+    "y": 150
   - action: scroll
     deltaX: 0
     deltaY: -100
@@ -19,140 +15,134 @@ steps:
 ---
 states:
   - elements:
-      # Without anchorToBottom — shows top (red, blue visible)
-      - id: 'container-1'
-        type: "container"
-        direction: "vertical"
+      - id: container-1
+        type: container
+        direction: vertical
         x: 50
-        y: 50
+        "y": 50
         height: 200
         gap: 5
         scroll: true
         zIndex: 0
         children:
-          - id: 'rect-1'
-            type: "rect"
+          - id: rect-1
+            type: rect
             width: 100
             height: 100
-            fill: "red"
-          - id: 'rect-2'
-            type: "rect"
+            fill: red
+          - id: rect-2
+            type: rect
             width: 100
             height: 100
-            fill: "blue"
-          - id: 'rect-3'
-            type: "rect"
+            fill: blue
+          - id: rect-3
+            type: rect
             width: 100
             height: 100
-            fill: "green"
-          - id: 'rect-4'
-            type: "rect"
+            fill: green
+          - id: rect-4
+            type: rect
             width: 100
             height: 100
-            fill: "yellow"
-
-      # With anchorToBottom and scroll=false — should visually match bottom viewport
-      - id: 'container-2'
-        type: "container"
-        direction: "vertical"
+            fill: yellow
+      - id: container-2
+        type: container
+        direction: vertical
         x: 300
-        y: 50
+        "y": 50
         height: 200
         gap: 5
         anchorToBottom: true
         zIndex: 0
         children:
-          - id: 'rect-5'
-            type: "rect"
+          - id: rect-5
+            type: rect
             width: 100
             height: 100
-            fill: "red"
-          - id: 'rect-6'
-            type: "rect"
+            fill: red
+          - id: rect-6
+            type: rect
             width: 100
             height: 100
-            fill: "blue"
-          - id: 'rect-7'
-            type: "rect"
+            fill: blue
+          - id: rect-7
+            type: rect
             width: 100
             height: 100
-            fill: "green"
-          - id: 'rect-8'
-            type: "rect"
+            fill: green
+          - id: rect-8
+            type: rect
             width: 100
             height: 100
-            fill: "yellow"
+            fill: yellow
   - elements:
-      # Without anchorToBottom — shows top (red, blue visible)
-      - id: 'container-1'
-        type: "container"
-        direction: "vertical"
+      - id: container-1
+        type: container
+        direction: vertical
         x: 50
-        y: 50
+        "y": 50
         height: 200
         gap: 5
         scroll: true
         zIndex: 0
         children:
-          - id: 'rect-1'
-            type: "rect"
+          - id: rect-1
+            type: rect
             width: 100
             height: 100
-            fill: "red"
-          - id: 'rect-2'
-            type: "rect"
+            fill: red
+          - id: rect-2
+            type: rect
             width: 100
             height: 100
-            fill: "blue"
-          - id: 'rect-3'
-            type: "rect"
+            fill: blue
+          - id: rect-3
+            type: rect
             width: 100
             height: 100
-            fill: "green"
-          - id: 'rect-4'
-            type: "rect"
+            fill: green
+          - id: rect-4
+            type: rect
             width: 100
             height: 100
-            fill: "yellow"
-          - id: 'rect-5'
-            type: "rect"
+            fill: yellow
+          - id: rect-5
+            type: rect
             width: 100
             height: 100
             fill: "888888"
-
-      # With anchorToBottom and scroll=false — should still show latest bottom items
-      - id: 'container-2'
-        type: "container"
-        direction: "vertical"
+      - id: container-2
+        type: container
+        direction: vertical
         x: 300
-        y: 50
+        "y": 50
         height: 200
         gap: 5
         anchorToBottom: true
         zIndex: 0
         children:
-          - id: 'rect-5'
-            type: "rect"
+          - id: rect-5
+            type: rect
             width: 100
             height: 100
-            fill: "red"
-          - id: 'rect-6'
-            type: "rect"
+            fill: red
+          - id: rect-6
+            type: rect
             width: 100
             height: 100
-            fill: "blue"
-          - id: 'rect-7'
-            type: "rect"
+            fill: blue
+          - id: rect-7
+            type: rect
             width: 100
             height: 100
-            fill: "green"
-          - id: 'rect-8'
-            type: "rect"
+            fill: green
+          - id: rect-8
+            type: rect
             width: 100
             height: 100
-            fill: "yellow"
-          - id: 'rect-9'
-            type: "rect"
+            fill: yellow
+          - id: rect-9
+            type: rect
             width: 100
             height: 100
             fill: "888888"

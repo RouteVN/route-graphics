@@ -2,12 +2,12 @@
 title: Update Slider Value
 description: Test updating slider initial value and position
 specs:
-  - "slider should update its thumb position when initialValue changes"
-  - "slider should maintain the same bar properties"
-  - "slider should recalculate normalized value correctly"
+  - slider should update its thumb position when initialValue changes
+  - slider should maintain the same bar properties
+  - slider should recalculate normalized value correctly
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - action: screenshot
   - action: keypress
     key: b
@@ -15,15 +15,15 @@ steps:
 ---
 states:
   - elements:
-      - id: "slider-update-test"
-        type: "slider"
-        direction: "horizontal"
-        thumbSrc: "horizontal-idle-thumb"
-        barSrc: "horizontal-idle-bar"
+      - id: slider-update-test
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
         width: 200
         height: 20
         x: 50
-        y: 50
+        "y": 50
         alpha: 1
         anchorX: 0
         anchorY: 0
@@ -32,17 +32,16 @@ states:
         max: 100
         step: 1
         initialValue: 25
-
   - elements:
-      - id: "slider-update-test"
-        type: "slider"
-        direction: "horizontal"
-        thumbSrc: "horizontal-idle-thumb"
-        barSrc: "horizontal-idle-bar"
+      - id: slider-update-test
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
         width: 200
         height: 20
         x: 50
-        y: 50
+        "y": 50
         alpha: 1
         anchorX: 0
         anchorY: 0

@@ -80,9 +80,9 @@ elements:
 
 animations:
   - id: cutscene-fade
-    type: tween
     targetId: cutscene
-    properties:
+    type: live
+    tween:
       alpha:
         initialValue: 0
         keyframes:

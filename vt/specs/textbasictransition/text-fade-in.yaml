@@ -2,12 +2,12 @@
 title: Text Fade In Transition
 description: A text element fading in with alpha animation
 specs:
-  - "text should fade from 0 to 1 alpha"
-  - "text should appear gradually over 1 second"
-  - "text content should be visible after animation"
+  - text should fade from 0 to 1 alpha
+  - text should appear gradually over 1 second
+  - text content should be visible after animation
 steps:
   - action: keypress
-    key: n
+    key: "n"
   - customEvent snapShotKeyFrame deltaMS=500
   - action: screenshot
   - customEvent snapShotKeyFrame deltaMS=500
@@ -16,20 +16,20 @@ steps:
 states:
   - elements: []
   - elements:
-      - id: 'text1'
-        type: "text"
-        content: "Hello World!"
+      - id: text1
+        type: text
+        content: Hello World!
         x: 250
-        y: 200
+        "y": 200
         textStyle:
           fontSize: 48
           fill: "#737373"
-          fontFamily: "Arial"
+          fontFamily: Arial
     animations:
-      - id: 'text-fade-in'
-        targetId: 'text1'
-        type: tween
-        properties:
+      - id: text-fade-in
+        targetId: text1
+        type: live
+        tween:
           alpha:
             initialValue: 0
             keyframes:

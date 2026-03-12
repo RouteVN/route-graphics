@@ -1,3 +1,5 @@
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+
 /**
  * Delete text element (synchronous)
  * @param {import("../elementPlugin").DeleteElementOptions} params
@@ -13,34 +15,22 @@ export const deleteText = ({
 
   if (!text) return;
 
-  const relevantAnimations =
-    animations?.filter((a) => a.targetId === element.id) || [];
+  const dispatched = dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: text,
+    targetState: null,
+    onComplete: () => {
+      if (text && !text.destroyed) {
+        text.destroy();
+      }
+    },
+  });
 
-  if (relevantAnimations.length === 0) {
+  if (!dispatched) {
     // No animation, destroy immediately
     text.destroy();
-    return;
-  }
-
-  // Dispatch delete animations to the bus
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element: text,
-        properties: animation.properties,
-        targetState: null, // null signals destroy on cancel
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          if (text && !text.destroyed) {
-            text.destroy();
-          }
-        },
-      },
-    });
   }
 };

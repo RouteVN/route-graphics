@@ -1,6 +1,7 @@
 import { Text, TextStyle, Container, Sprite, Texture } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * Add text-revealing element to the stage
@@ -9,6 +10,8 @@ import abortableSleep from "../../../util/abortableSleep";
 export const addTextRevealing = async ({
   parent,
   element,
+  animations,
+  animationBus,
   completionTracker,
   zIndex,
   signal,
@@ -49,6 +52,19 @@ export const addTextRevealing = async ({
   if (element.alpha !== undefined) container.alpha = element.alpha;
   // Add container to parent immediately so it's visible
   parent.addChild(container);
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x: element.x ?? 0,
+      y: element.y ?? 0,
+      alpha: element.alpha ?? 1,
+    },
+  });
 
   try {
     // Process each chunk sequentially

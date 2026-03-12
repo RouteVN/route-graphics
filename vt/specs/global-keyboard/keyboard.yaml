@@ -11,7 +11,7 @@ steps:
     key: b
   - action: screenshot
   - action: keypress
-    key: n
+    key: "n"
   - action: keypress
     key: Shift+c
   - action: screenshot
@@ -21,7 +21,8 @@ steps:
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
-    args: [keydown]
+    args:
+      - keydown
     value:
       - _event:
           key: a
@@ -36,12 +37,12 @@ steps:
           key: c
         action: keyC_Pressed
 ---
-states: 
+states:
   - elements:
-      - id: 'rect-keyboard-test'
-        type: "rect"
+      - id: rect-keyboard-test
+        type: rect
         x: 150
-        y: 100
+        "y": 100
         width: 500
         height: 400
         fill: "#A6A6A6"
@@ -50,15 +51,15 @@ states:
       keyboard:
         a:
           actionPayload:
-            action: "keyA_Pressed"
+            action: keyA_Pressed
         b:
           actionPayload:
-            action: "keyB_Pressed"
+            action: keyB_Pressed
   - elements:
-      - id: 'rect-keyboard-test'
-        type: "rect"
+      - id: rect-keyboard-test
+        type: rect
         x: 150
-        y: 100
+        "y": 100
         width: 500
         height: 400
         fill: "#A6A6A6"
@@ -67,7 +68,7 @@ states:
       keyboard:
         c:
           actionPayload:
-            action: "keyC_Pressed"
+            action: keyC_Pressed
         shift+c:
           actionPayload:
-            action: "shift_c_Pressed"
+            action: shift_c_Pressed
