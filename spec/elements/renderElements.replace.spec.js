@@ -90,6 +90,7 @@ describe("renderElements replace handling", () => {
           id: "rect-replace",
           type: "replace",
         }),
+        animations: expect.any(Map),
         completionTracker,
         plugin,
       }),

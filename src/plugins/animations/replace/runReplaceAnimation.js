@@ -17,11 +17,6 @@ const DEFAULT_SUBJECT_VALUES = {
   scaleY: 1,
   rotation: 0,
 };
-const NOOP_COMPLETION_TRACKER = {
-  getVersion: () => 0,
-  track: () => {},
-  complete: () => {},
-};
 
 const clamp01 = (value) => Math.min(1, Math.max(0, value));
 
@@ -32,18 +27,6 @@ const smoothstep = (edge0, edge1, value) => {
 
   const t = clamp01((value - edge0) / (edge1 - edge0));
   return t * t * (3 - 2 * t);
-};
-
-const destroyDisplayObject = (parent, displayObject) => {
-  if (!displayObject || displayObject.destroyed) return;
-
-  if (displayObject.parent === parent) {
-    parent.removeChild(displayObject);
-  } else {
-    displayObject.removeFromParent?.();
-  }
-
-  displayObject.destroy({ children: true });
 };
 
 const getLocalBoundsRectangle = (displayObject) =>
@@ -613,8 +596,10 @@ const instantiateNextLiveElement = ({
   parent,
   nextElement,
   plugin,
+  animations,
   eventHandler,
   animationBus,
+  completionTracker,
   elementPlugins,
   zIndex,
   signal,
@@ -627,10 +612,10 @@ const instantiateNextLiveElement = ({
     app,
     parent,
     element: nextElement,
-    animations: [],
+    animations,
     eventHandler,
     animationBus,
-    completionTracker: NOOP_COMPLETION_TRACKER,
+    completionTracker,
     elementPlugins,
     zIndex,
     signal,
@@ -653,6 +638,7 @@ export const runReplaceAnimation = ({
   prevElement,
   nextElement,
   animation,
+  animations,
   animationBus,
   completionTracker,
   eventHandler,
@@ -688,7 +674,17 @@ export const runReplaceAnimation = ({
     : null;
 
   if (prevDisplayObject) {
-    destroyDisplayObject(parent, prevDisplayObject);
+    plugin.delete({
+      app,
+      parent,
+      element: prevElement,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      signal,
+    });
   }
 
   const nextDisplayObject = nextElement
@@ -697,8 +693,10 @@ export const runReplaceAnimation = ({
         parent,
         nextElement,
         plugin,
+        animations,
         eventHandler,
         animationBus,
+        completionTracker,
         elementPlugins,
         zIndex,
         signal,
