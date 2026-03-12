@@ -97,8 +97,8 @@ elements:
 animations:
   - id: token-slide
     targetId: token
-    operation: enter
-    properties:
+    type: live
+    tween:
       x:
         initialValue: 80
         keyframes:

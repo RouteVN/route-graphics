@@ -5,7 +5,7 @@ tags: documentation
 sidebarId: node-tween
 ---
 
-`animations[]` is the built-in state animation surface. Every animation now declares a required `operation` so the renderer knows whether it is handling an enter, update, exit, or same-id replace.
+`animations[]` is the built-in state animation surface. Every animation now declares a required `type` so the renderer knows whether it is animating one live element or a same-id replace handoff.
 
 Try it in the [Playground](/playground/?template=animations-showcase).
 
@@ -15,27 +15,25 @@ Try it in the [Playground](/playground/?template=animations-showcase).
 
 ## Field Reference
 
-| Field        | Type   | Required | Default | Notes                                                                 |
-| ------------ | ------ | -------- | ------- | --------------------------------------------------------------------- |
-| `id`         | string | Yes      | -       | Animation id.                                                         |
-| `targetId`   | string | Yes      | -       | Must match an element id in the same render state.                    |
-| `operation`  | string | Yes      | -       | One of `enter`, `update`, `exit`, `replace`.                          |
-| `properties` | object | Live ops | -       | Required for `enter`, `update`, and `exit`.                           |
-| `subjects`   | object | Replace   | -       | Optional for `replace`; drives `prev` and `next` surfaces separately. |
-| `mask`       | object | Replace   | -       | Optional for `replace`; image-driven reveal field.                    |
-| `shader`     | object | Replace   | -       | Optional for `replace`; currently requires `mask`.                    |
-| `complete`   | object | No       | -       | Schema supports it, runtime completion is still tracked globally.     |
+| Field      | Type   | Required | Default | Notes                                                              |
+| ---------- | ------ | -------- | ------- | ------------------------------------------------------------------ |
+| `id`       | string | Yes      | -       | Animation id.                                                      |
+| `targetId` | string | Yes      | -       | Must match an element id in the same render state.                 |
+| `type`     | string | Yes      | -       | One of `live` or `replace`.                                        |
+| `tween`    | object | Live     | -       | Required for `type: live`.                                         |
+| `prev`     | object | Replace  | -       | Optional for `type: replace`; drives the previous captured visual. |
+| `next`     | object | Replace  | -       | Optional for `type: replace`; drives the next captured visual.     |
+| `mask`     | object | Replace  | -       | Optional for `type: replace`; image-driven reveal field.           |
+| `complete` | object | No       | -       | Schema supports it, runtime completion is still tracked globally.  |
 
-## Operations
+## Types
 
-- `enter`: target exists only in the next state.
-- `update`: target exists in both states and stays a single live object.
-- `exit`: target exists only in the previous state.
-- `replace`: target exists in both states, but old and new visuals are animated separately.
+- `live`: target stays a single live display object.
+- `replace`: target is animated as a handoff between captured `prev` and `next` visuals.
 
-## Live Properties
+## Live Tween
 
-These properties are valid on `enter`, `update`, and `exit`:
+These properties are valid on `type: live`:
 
 - `alpha`
 - `x`
@@ -53,18 +51,18 @@ Each property accepts:
 
 Each keyframe accepts:
 
-| Field      | Type    | Required | Default | Notes                                 |
-| ---------- | ------- | -------- | ------- | ------------------------------------- |
-| `value`    | number  | Yes      | -       | Target value.                         |
-| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.  |
+| Field      | Type    | Required | Default | Notes                                                               |
+| ---------- | ------- | -------- | ------- | ------------------------------------------------------------------- |
+| `value`    | number  | Yes      | -       | Target value.                                                       |
+| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                |
 | `easing`   | string  | Yes      | -       | Currently `linear`, `easeIn`, `easeOut`, `easeInOut` are supported. |
-| `relative` | boolean | No       | `false` | Applies `value` as delta when true.   |
+| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                 |
 
-## Replace Subjects
+## Replace Prev/Next
 
-`replace` animations can drive `prev` and `next` separately through `subjects`.
+`replace` animations can drive `prev` and `next` separately.
 
-Supported subject properties:
+Supported replace tween properties:
 
 - `translateX`
 - `translateY`
@@ -74,6 +72,19 @@ Supported subject properties:
 - `rotation`
 
 `translateX` and `translateY` use screen-relative units, so `1` means one full screen width or height.
+
+Each side uses the same payload shape as `live.tween`:
+
+```yaml
+prev:
+  tween:
+    translateX:
+      initialValue: 0
+      keyframes:
+        - value: -1
+          duration: 500
+          easing: linear
+```
 
 ## Replace Mask
 
@@ -94,6 +105,8 @@ Supported mask channels:
 
 - Live-object animations are driven by the central animation bus.
 - `replace` animations snapshot the previous and next visuals for the same `targetId`.
+- `replace` may define `prev` only, `next` only, or both.
+- Missing `prev` or `next` is treated as transparent.
 - On render interruption, pending animations are canceled and the current render is marked aborted through `renderComplete`.
 - Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations and reveals settle.
 
@@ -103,8 +116,8 @@ Supported mask channels:
 animations:
   - id: title-fade
     targetId: title
-    operation: enter
-    properties:
+    type: live
+    tween:
       alpha:
         initialValue: 0
         keyframes:
@@ -119,8 +132,8 @@ animations:
 animations:
   - id: card-shift
     targetId: card-1
-    operation: update
-    properties:
+    type: live
+    tween:
       x:
         keyframes:
           - value: 800
@@ -144,8 +157,8 @@ animations:
 animations:
   - id: pulse-x
     targetId: chip
-    operation: update
-    properties:
+    type: live
+    tween:
       x:
         keyframes:
           - value: 20
@@ -168,23 +181,22 @@ animations:
 animations:
   - id: scene-push-left
     targetId: scene-root
-    operation: replace
-    subjects:
-      prev:
-        properties:
-          translateX:
-            keyframes:
-              - value: -1
-                duration: 500
-                easing: linear
-      next:
-        properties:
-          translateX:
-            initialValue: 1
-            keyframes:
-              - value: 0
-                duration: 500
-                easing: linear
+    type: replace
+    prev:
+      tween:
+        translateX:
+          keyframes:
+            - value: -1
+              duration: 500
+              easing: linear
+    next:
+      tween:
+        translateX:
+          initialValue: 1
+          keyframes:
+            - value: 0
+              duration: 500
+              easing: linear
 ```
 
 ## Example: Replace Dissolve
@@ -193,7 +205,7 @@ animations:
 animations:
   - id: portrait-dissolve
     targetId: makkuro
-    operation: replace
+    type: replace
     mask:
       kind: single
       texture: masks/spiral-07.png

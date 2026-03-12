@@ -81,8 +81,8 @@ elements:
 animations:
   - id: cutscene-fade
     targetId: cutscene
-    operation: enter
-    properties:
+    type: live
+    tween:
       alpha:
         initialValue: 0
         keyframes:

@@ -119,8 +119,8 @@ elements:
 animations:
   - id: enemy-enter
     targetId: enemy
-    operation: enter
-    properties:
+    type: live
+    tween:
       x:
         initialValue: 1180
         keyframes:

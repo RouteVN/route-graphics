@@ -395,7 +395,7 @@
 
 - id: animations-showcase
   name: Animation Showcase
-  description: Operation-based animation checkpoints with grayscale visuals.
+  description: Live animation checkpoints with grayscale visuals.
   content:
     elements:
       - id: stage-bg
@@ -424,8 +424,8 @@
     animations:
       - id: glide-and-fade
         targetId: animated-rect
-        operation: enter
-        properties:
+        type: live
+        tween:
           x:
             initialValue: -160
             keyframes:

@@ -121,8 +121,8 @@ elements:
 animations:
   - id: status-fade
     targetId: status
-    operation: enter
-    properties:
+    type: live
+    tween:
       alpha:
         initialValue: 0
         keyframes:
