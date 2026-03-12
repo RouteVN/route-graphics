@@ -24,9 +24,6 @@ $defs:
         description: Easing function to use.
         enum:
           - linear
-          - easeIn
-          - easeOut
-          - easeInOut
           - easeInQuad
           - easeOutQuad
           - easeInOutQuad

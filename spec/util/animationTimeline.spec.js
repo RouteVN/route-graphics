@@ -11,17 +11,17 @@ describe("animationTimeline easings", () => {
     }
   });
 
-  it("keeps short easing names aligned with quad variants", () => {
+  it("supports the quad easing family", () => {
     const sample = 0.37;
 
-    expect(getEasingFunction("easeIn")(sample)).toBe(
-      getEasingFunction("easeInQuad")(sample),
+    expect(getEasingFunction("easeInQuad")(sample)).toBeCloseTo(sample * sample);
+    expect(getEasingFunction("easeOutQuad")(sample)).toBeCloseTo(
+      1 - (1 - sample) * (1 - sample),
     );
-    expect(getEasingFunction("easeOut")(sample)).toBe(
-      getEasingFunction("easeOutQuad")(sample),
-    );
-    expect(getEasingFunction("easeInOut")(sample)).toBe(
-      getEasingFunction("easeInOutQuad")(sample),
+    expect(getEasingFunction("easeInOutQuad")(sample)).toBeCloseTo(
+      sample < 0.5
+        ? 2 * sample * sample
+        : 1 - Math.pow(-2 * sample + 2, 2) / 2,
     );
   });
 

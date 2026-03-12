@@ -17,22 +17,17 @@ const bounceOut = (x) => {
   return n1 * (x -= 2.625 / d1) * x + 0.984375;
 };
 
+const linear = (x) => x;
 const easeInQuad = (x) => x * x;
 const easeOutQuad = (x) => 1 - (1 - x) * (1 - x);
 const easeInOutQuad = (x) =>
   x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 
 const easings = Object.freeze({
-  linear: (x) => x,
-
-  // Keep the historical short names stable.
-  easeIn: easeInQuad,
-  easeOut: easeOutQuad,
-  easeInOut: easeInOutQuad,
-
-  easeInQuad,
-  easeOutQuad,
-  easeInOutQuad,
+  linear,
+  easeInQuad: easeInQuad,
+  easeOutQuad: easeOutQuad,
+  easeInOutQuad: easeInOutQuad,
 
   easeInCubic: (x) => x * x * x,
   easeOutCubic: (x) => 1 - Math.pow(1 - x, 3),

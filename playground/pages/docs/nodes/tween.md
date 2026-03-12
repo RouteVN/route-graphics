@@ -55,7 +55,7 @@ Each keyframe accepts:
 | ---------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `value`    | number  | Yes      | -       | Target value.                                                                                                                                                           |
 | `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                                                                    |
-| `easing`   | string  | Yes      | -       | Supports `linear`, the short `easeIn` / `easeOut` / `easeInOut` names, and Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` variants. |
+| `easing`   | string  | Yes      | -       | Supports `linear` and the Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` variants. |
 | `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                                                                     |
 
 ## Replace Prev/Next
@@ -138,12 +138,12 @@ animations:
         keyframes:
           - value: 800
             duration: 450
-            easing: easeOut
+            easing: easeOutQuad
       y:
         keyframes:
           - value: 180
             duration: 450
-            easing: easeOut
+            easing: easeOutQuad
       alpha:
         keyframes:
           - value: 1
