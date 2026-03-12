@@ -155,6 +155,7 @@ This format is preferred because:
 - it matches the current tween engine
 - it is better for authoring multi-stage motion
 - total duration can be derived from the keyframes
+- easing supports the common Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` families, plus `linear` and the short legacy names `easeIn`, `easeOut`, `easeInOut`
 
 The same payload is reused in two places:
 
