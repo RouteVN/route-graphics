@@ -156,20 +156,6 @@ $defs:
         then:
           required:
             - items
-  replacePayload:
-    type: object
-    properties:
-      prev:
-        $ref: "#/$defs/replaceSide"
-      next:
-        $ref: "#/$defs/replaceSide"
-      mask:
-        $ref: "#/$defs/mask"
-    additionalProperties: false
-    anyOf:
-      - required: [prev]
-      - required: [next]
-      - required: [mask]
 properties:
   id:
     type: string
@@ -189,8 +175,12 @@ properties:
     additionalProperties: true
   tween:
     $ref: "#/$defs/liveTween"
-  replace:
-    $ref: "#/$defs/replacePayload"
+  prev:
+    $ref: "#/$defs/replaceSide"
+  next:
+    $ref: "#/$defs/replaceSide"
+  mask:
+    $ref: "#/$defs/mask"
 allOf:
   - if:
       properties:
@@ -200,13 +190,18 @@ allOf:
       required:
         - tween
       not:
-        required: [replace]
+        anyOf:
+          - required: [prev]
+          - required: [next]
+          - required: [mask]
   - if:
       properties:
         type:
           const: replace
     then:
-      required:
-        - replace
       not:
         required: [tween]
+      anyOf:
+        - required: [prev]
+        - required: [next]
+        - required: [mask]

@@ -38,15 +38,14 @@ states:
       - id: rect-mask-replace
         targetId: rect1
         type: replace
-        replace:
-          mask:
-            kind: single
-            texture: mask-diagonal
-            channel: red
-            softness: 0.06
-            progress:
-              initialValue: 0
-              keyframes:
-                - duration: 1000
-                  value: 1
-                  easing: linear
+        mask:
+          kind: single
+          texture: mask-diagonal
+          channel: red
+          softness: 0.06
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

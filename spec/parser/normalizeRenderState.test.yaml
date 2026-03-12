@@ -59,10 +59,9 @@ in:
       - id: anim-replace
         targetId: scene-root
         type: replace
-        replace:
-          mask:
-            kind: single
-            texture: masks/wipe.png
+        mask:
+          kind: single
+          texture: masks/wipe.png
 out:
   id: state-2-replace
   elements: []
@@ -70,16 +69,15 @@ out:
     - id: anim-replace
       targetId: scene-root
       type: replace
-      replace:
-        mask:
-          kind: single
-          texture: masks/wipe.png
-          progress:
-            initialValue: 0
-            keyframes:
-              - duration: 0
-                value: 1
-                easing: linear
+      mask:
+        kind: single
+        texture: masks/wipe.png
+        progress:
+          initialValue: 0
+          keyframes:
+            - duration: 0
+              value: 1
+              easing: linear
   audio: []
 ---
 case: Throw when transitions field is provided
@@ -108,10 +106,9 @@ in:
       - id: anim-1
         targetId: scene-root
         type: replace
-        replace:
-          shader:
-            name: burn-dissolve
-throws: animations[0].replace.shader is not supported.
+        shader:
+          name: burn-dissolve
+throws: animations[0].shader is not supported.
 ---
 case: Throw when animations is not an array
 in:

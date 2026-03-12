@@ -38,19 +38,18 @@ states:
       - id: rect-composite-replace
         targetId: rect1
         type: replace
-        replace:
-          mask:
-            kind: composite
-            combine: max
-            softness: 0.01
-            progress:
-              initialValue: 0
-              keyframes:
-                - duration: 1000
-                  value: 1
-                  easing: linear
-            items:
-              - texture: mask-left-band
-                channel: alpha
-              - texture: mask-right-band
-                channel: alpha
+        mask:
+          kind: composite
+          combine: max
+          softness: 0.01
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+          items:
+            - texture: mask-left-band
+              channel: alpha
+            - texture: mask-right-band
+              channel: alpha

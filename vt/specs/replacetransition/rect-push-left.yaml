@@ -39,20 +39,19 @@ states:
       - id: rect-push-left
         targetId: rect1
         type: replace
-        replace:
-          prev:
-            tween:
-              translateX:
-                initialValue: 0
-                keyframes:
-                  - duration: 1000
-                    value: -1
-                    easing: linear
-          next:
-            tween:
-              translateX:
-                initialValue: 1
-                keyframes:
-                  - duration: 1000
-                    value: 0
-                    easing: linear
+        prev:
+          tween:
+            translateX:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: -1
+                  easing: linear
+        next:
+          tween:
+            translateX:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear

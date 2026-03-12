@@ -235,25 +235,23 @@ const normalizeReplaceSide = (side, path) => {
   return normalized;
 };
 
-const normalizeReplace = (replace, path) => {
-  assertPlainObject(replace, path);
+const normalizeReplacePayload = (animation, path) => {
+  const normalized = {};
 
-  if (replace.shader !== undefined) {
+  if (animation.shader !== undefined) {
     throw new Error(`${path}.shader is not supported.`);
   }
 
-  const normalized = {};
-
-  if (replace.prev !== undefined) {
-    normalized.prev = normalizeReplaceSide(replace.prev, `${path}.prev`);
+  if (animation.prev !== undefined) {
+    normalized.prev = normalizeReplaceSide(animation.prev, `${path}.prev`);
   }
 
-  if (replace.next !== undefined) {
-    normalized.next = normalizeReplaceSide(replace.next, `${path}.next`);
+  if (animation.next !== undefined) {
+    normalized.next = normalizeReplaceSide(animation.next, `${path}.next`);
   }
 
-  if (replace.mask !== undefined) {
-    normalized.mask = normalizeMask(replace.mask, `${path}.mask`);
+  if (animation.mask !== undefined) {
+    normalized.mask = normalizeMask(animation.mask, `${path}.mask`);
   }
 
   if (
@@ -315,17 +313,7 @@ export const normalizeAnimations = (animations = []) => {
     assertLegacyFieldAbsent(
       animation.subjects,
       `${path}.subjects`,
-      "is no longer supported. Use `replace.prev` / `replace.next` instead.",
-    );
-    assertLegacyFieldAbsent(
-      animation.mask,
-      `${path}.mask`,
-      "is no longer supported. Use `replace.mask` instead.",
-    );
-    assertLegacyFieldAbsent(
-      animation.shader,
-      `${path}.shader`,
-      "is not supported.",
+      "is no longer supported. Use `prev` / `next` instead.",
     );
 
     if (animation.type === "live") {
@@ -337,8 +325,24 @@ export const normalizeAnimations = (animations = []) => {
 
       if (animation.replace !== undefined) {
         throw new Error(
-          `${path}.replace is only valid for replace animations.`,
+          `${path}.replace is no longer supported. Define \`prev\`, \`next\`, or \`mask\` directly on the animation.`,
         );
+      }
+
+      if (animation.prev !== undefined) {
+        throw new Error(`${path}.prev is only valid for replace animations.`);
+      }
+
+      if (animation.next !== undefined) {
+        throw new Error(`${path}.next is only valid for replace animations.`);
+      }
+
+      if (animation.mask !== undefined) {
+        throw new Error(`${path}.mask is only valid for replace animations.`);
+      }
+
+      if (animation.shader !== undefined) {
+        throw new Error(`${path}.shader is not supported.`);
       }
 
       return normalizedAnimation;
@@ -348,10 +352,22 @@ export const normalizeAnimations = (animations = []) => {
       throw new Error(`${path}.tween is not valid for replace animations.`);
     }
 
-    normalizedAnimation.replace = normalizeReplace(
-      animation.replace,
-      `${path}.replace`,
-    );
+    if (animation.replace !== undefined) {
+      throw new Error(
+        `${path}.replace is no longer supported. Define \`prev\`, \`next\`, or \`mask\` directly on the animation.`,
+      );
+    }
+
+    const normalizedReplace = normalizeReplacePayload(animation, path);
+    if (normalizedReplace.prev !== undefined) {
+      normalizedAnimation.prev = normalizedReplace.prev;
+    }
+    if (normalizedReplace.next !== undefined) {
+      normalizedAnimation.next = normalizedReplace.next;
+    }
+    if (normalizedReplace.mask !== undefined) {
+      normalizedAnimation.mask = normalizedReplace.mask;
+    }
 
     return normalizedAnimation;
   });

@@ -159,7 +159,7 @@ This format is preferred because:
 The same payload is reused in two places:
 
 - `live.tween`
-- `replace.prev.tween` / `replace.next.tween`
+- `prev.tween` / `next.tween`
 
 ## Live Example
 
@@ -188,15 +188,14 @@ animations:
   - id: "scene-open"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      next:
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 500
-                value: 1
-                easing: "linear"
+    next:
+      tween:
+        alpha:
+          initialValue: 0
+          keyframes:
+            - duration: 500
+              value: 1
+              easing: "linear"
 ```
 
 ### Close To Empty
@@ -206,15 +205,14 @@ animations:
   - id: "scene-close"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      prev:
-        tween:
-          alpha:
-            initialValue: 1
-            keyframes:
-              - duration: 500
-                value: 0
-                easing: "linear"
+    prev:
+      tween:
+        alpha:
+          initialValue: 1
+          keyframes:
+            - duration: 500
+              value: 0
+              easing: "linear"
 ```
 
 ### Push Left
@@ -224,23 +222,22 @@ animations:
   - id: "scene-push-left"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      prev:
-        tween:
-          translateX:
-            initialValue: 0
-            keyframes:
-              - duration: 500
-                value: -1
-                easing: "linear"
-      next:
-        tween:
-          translateX:
-            initialValue: 1
-            keyframes:
-              - duration: 500
-                value: 0
-                easing: "linear"
+    prev:
+      tween:
+        translateX:
+          initialValue: 0
+          keyframes:
+            - duration: 500
+              value: -1
+              easing: "linear"
+    next:
+      tween:
+        translateX:
+          initialValue: 1
+          keyframes:
+            - duration: 500
+              value: 0
+              easing: "linear"
 ```
 
 ### Rule Dissolve
@@ -250,19 +247,18 @@ animations:
   - id: "scene-rule-dissolve"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      mask:
-        kind: "single"
-        texture: "masks/spiral-07.png"
-        channel: "red"
-        softness: 0.08
-        invert: false
-        progress:
-          initialValue: 0
-          keyframes:
-            - duration: 900
-              value: 1
-              easing: "linear"
+    mask:
+      kind: "single"
+      texture: "masks/spiral-07.png"
+      channel: "red"
+      softness: 0.08
+      invert: false
+      progress:
+        initialValue: 0
+        keyframes:
+          - duration: 900
+            value: 1
+            easing: "linear"
 ```
 
 ### Push Plus Mask
@@ -274,34 +270,33 @@ animations:
   - id: "scene-push-mask"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      prev:
-        tween:
-          translateX:
-            initialValue: 0
-            keyframes:
-              - duration: 500
-                value: -1
-                easing: "linear"
-      next:
-        tween:
-          translateX:
-            initialValue: 1
-            keyframes:
-              - duration: 500
-                value: 0
-                easing: "linear"
-      mask:
-        kind: "single"
-        texture: "masks/spiral-07.png"
-        channel: "red"
-        softness: 0.08
-        progress:
+    prev:
+      tween:
+        translateX:
           initialValue: 0
           keyframes:
             - duration: 500
-              value: 1
+              value: -1
               easing: "linear"
+    next:
+      tween:
+        translateX:
+          initialValue: 1
+          keyframes:
+            - duration: 500
+              value: 0
+              easing: "linear"
+    mask:
+      kind: "single"
+      texture: "masks/spiral-07.png"
+      channel: "red"
+      softness: 0.08
+      progress:
+        initialValue: 0
+        keyframes:
+          - duration: 500
+            value: 1
+            easing: "linear"
 ```
 
 This composition is supported by the runtime.
@@ -348,18 +343,18 @@ Defines how sharp or feathered the reveal edge is.
 
 If shader support comes back later, it should be `replace`-only.
 
-It should live inside `replace` next to `mask`, not on `live`.
+It should live next to `mask`, not on `live`.
 
 ## Validation Rules
 
 - `live` requires `tween`
-- `live` cannot define `replace`
+- `live` cannot define `prev`, `next`, or `mask`
 - `replace` requires at least one of:
   - `prev`
   - `next`
   - `mask`
-- `replace.mask` is replace-only
-- future `replace.shader` would also be replace-only
+- `mask` is replace-only
+- future `shader` would also be replace-only
 
 ## Summary
 

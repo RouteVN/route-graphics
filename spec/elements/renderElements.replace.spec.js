@@ -65,14 +65,12 @@ describe("renderElements replace handling", () => {
           id: "rect-replace",
           targetId: "rect1",
           type: "replace",
-          replace: {
-            mask: {
-              kind: "single",
-              texture: "mask-diagonal",
-              progress: {
-                initialValue: 0,
-                keyframes: [{ duration: 500, value: 1, easing: "linear" }],
-              },
+          mask: {
+            kind: "single",
+            texture: "mask-diagonal",
+            progress: {
+              initialValue: 0,
+              keyframes: [{ duration: 500, value: 1, easing: "linear" }],
             },
           },
         },

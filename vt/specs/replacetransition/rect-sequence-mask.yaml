@@ -39,18 +39,17 @@ states:
       - id: rect-sequence-replace
         targetId: rect1
         type: replace
-        replace:
-          mask:
-            kind: sequence
-            textures:
-              - mask-left-band
-              - mask-center-band
-              - mask-right-band
-            channel: alpha
-            softness: 0.01
-            progress:
-              initialValue: 0
-              keyframes:
-                - duration: 1000
-                  value: 1
-                  easing: linear
+        mask:
+          kind: sequence
+          textures:
+            - mask-left-band
+            - mask-center-band
+            - mask-right-band
+          channel: alpha
+          softness: 0.01
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

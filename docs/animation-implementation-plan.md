@@ -9,8 +9,8 @@ Track the remaining implementation work after the public animation cutover to:
 - top-level `animations`
 - required `type: live | replace`
 - `tween` as the motion payload
-- `replace.prev` / `replace.next` for handoff surfaces
-- `replace.mask` for reveal-driven transitions
+- `prev` / `next` for handoff surfaces
+- `mask` for reveal-driven transitions
 
 The old public `operation`-based shape has been removed.
 
@@ -60,40 +60,39 @@ animations:
   - id: "scene-handoff"
     targetId: "scene-root"
     type: "replace"
-    replace:
-      prev:
-        tween:
-          translateX:
-            initialValue: 0
-            keyframes:
-              - duration: 500
-                value: -1
-                easing: "linear"
-      next:
-        tween:
-          translateX:
-            initialValue: 1
-            keyframes:
-              - duration: 500
-                value: 0
-                easing: "linear"
-      mask:
-        kind: "single"
-        texture: "masks/spiral-07.png"
-        channel: "red"
-        softness: 0.08
-        progress:
+    prev:
+      tween:
+        translateX:
           initialValue: 0
           keyframes:
             - duration: 500
-              value: 1
+              value: -1
               easing: "linear"
+    next:
+      tween:
+        translateX:
+          initialValue: 1
+          keyframes:
+            - duration: 500
+              value: 0
+              easing: "linear"
+    mask:
+      kind: "single"
+      texture: "masks/spiral-07.png"
+      channel: "red"
+      softness: 0.08
+      progress:
+        initialValue: 0
+        keyframes:
+          - duration: 500
+            value: 1
+            easing: "linear"
 ```
 
 Key rules:
 
 - `live` uses `tween`
-- `replace` uses `replace.prev`, `replace.next`, and optional `replace.mask`
+- `replace` uses `prev`, `next`, and optional `mask`
 - `replace` may define:
   - `prev` only
   - `next` only
@@ -108,7 +107,7 @@ The following are now implemented:
 
 - public `type: live | replace`
 - `tween` instead of `properties`
-- `replace.prev` / `replace.next` / `replace.mask`
+- `prev` / `next` / `mask`
 - diff-driven add/update/delete mapping for both live and replace
 - next-only and prev-only replace
 - tween plus mask composition in one replace animation
@@ -161,8 +160,8 @@ Work:
 
 - replace all runtime references to `properties` with `tween`
 - replace `subjects.prev.properties` / `subjects.next.properties` with:
-  - `replace.prev.tween`
-  - `replace.next.tween`
+  - `prev.tween`
+  - `next.tween`
 
 This is now part of normal maintenance rather than migration.
 
@@ -217,9 +216,9 @@ Goal:
 
 Work:
 
-- allow `replace.prev.tween`
-- allow `replace.next.tween`
-- allow `replace.mask`
+- allow `prev.tween`
+- allow `next.tween`
+- allow `mask`
 - make those composable inside one replace animation
 
 This is the shape needed for:

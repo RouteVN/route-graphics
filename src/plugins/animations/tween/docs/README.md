@@ -65,23 +65,22 @@ states:
       - id: "scene-push-left"
         targetId: "scene-root"
         type: "replace"
-        replace:
-          prev:
-            tween:
-              translateX:
-                initialValue: 0
-                keyframes:
-                  - duration: 500
-                    value: -1
-                    easing: linear
-          next:
-            tween:
-              translateX:
-                initialValue: 1
-                keyframes:
-                  - duration: 500
-                    value: 0
-                    easing: linear
+        prev:
+          tween:
+            translateX:
+              initialValue: 0
+              keyframes:
+                - duration: 500
+                  value: -1
+                  easing: linear
+        next:
+          tween:
+            translateX:
+              initialValue: 1
+              keyframes:
+                - duration: 500
+                  value: 0
+                  easing: linear
 ```
 
 Mask-driven replace:
@@ -100,25 +99,24 @@ states:
       - id: "scene-rule-dissolve"
         targetId: "scene-root"
         type: "replace"
-        replace:
-          mask:
-            kind: "single"
-            texture: "masks/spiral-07.png"
-            channel: "red"
-            softness: 0.08
-            progress:
-              initialValue: 0
-              keyframes:
-                - duration: 900
-                  value: 1
-                  easing: linear
+        mask:
+          kind: "single"
+          texture: "masks/spiral-07.png"
+          channel: "red"
+          softness: 0.08
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 900
+                value: 1
+                easing: linear
 ```
 
 ## Current Replace Rules
 
 - `mask` is replace-only.
 - custom shader-backed replace is not supported right now.
-- `replace.prev.tween` and `replace.next.tween` can be combined with `replace.mask`.
+- `prev.tween` and `next.tween` can be combined with `mask`.
 
 The design notes live in:
 

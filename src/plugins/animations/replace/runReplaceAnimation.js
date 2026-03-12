@@ -412,12 +412,12 @@ const createPlainOverlay = ({
 
   const prevController = createSubjectController(
     prevSubject?.wrapper ?? null,
-    animation.replace?.prev?.tween,
+    animation.prev?.tween,
     app,
   );
   const nextController = createSubjectController(
     nextSubject?.wrapper ?? null,
-    animation.replace?.next?.tween,
+    animation.next?.tween,
     app,
   );
 
@@ -485,18 +485,18 @@ const createMaskedOverlay = ({
 
   const maskSampler = createMaskSampler(
     app,
-    animation.replace?.mask,
+    animation.mask,
     unionBounds.width,
     unionBounds.height,
   );
   const prevController = createSubjectController(
     prevSubject?.wrapper ?? null,
-    animation.replace?.prev?.tween,
+    animation.prev?.tween,
     app,
   );
   const nextController = createSubjectController(
     nextSubject?.wrapper ?? null,
-    animation.replace?.next?.tween,
+    animation.next?.tween,
     app,
   );
   const transparentPixels = new Uint8ClampedArray(
@@ -589,7 +589,7 @@ const createReplaceOverlay = ({
   nextSubject,
   zIndex,
 }) => {
-  if (animation.replace?.mask) {
+  if (animation.mask) {
     return createMaskedOverlay({
       app,
       animation,
