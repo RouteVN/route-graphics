@@ -1,3 +1,5 @@
+import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
+
 const ANIMATION_TYPES = new Set(["live", "replace"]);
 const LIVE_TWEEN_PROPERTIES = new Set([
   "alpha",
@@ -18,6 +20,7 @@ const REPLACE_TWEEN_PROPERTIES = new Set([
 const MASK_KINDS = new Set(["single", "sequence", "composite"]);
 const MASK_CHANNELS = new Set(["red", "green", "blue", "alpha"]);
 const MASK_COMBINE_MODES = new Set(["max", "min", "multiply", "add"]);
+const SUPPORTED_EASINGS = new Set(SUPPORTED_EASING_NAMES);
 
 const assertPlainObject = (value, path) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -62,6 +65,15 @@ const normalizeKeyframes = (propertyConfig, path) => {
 
     if (keyframe.easing !== undefined && typeof keyframe.easing !== "string") {
       throw new Error(`${keyframePath}.easing must be a string.`);
+    }
+
+    if (
+      keyframe.easing !== undefined &&
+      !SUPPORTED_EASINGS.has(keyframe.easing)
+    ) {
+      throw new Error(
+        `${keyframePath}.easing must be one of: ${SUPPORTED_EASING_NAMES.join(", ")}.`,
+      );
     }
 
     if (

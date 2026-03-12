@@ -80,6 +80,34 @@ out:
               easing: linear
   audio: []
 ---
+case: Preserve advanced easing names
+in:
+  - id: state-2-easing
+    animations:
+      - id: anim-advanced-easing
+        targetId: text-1
+        type: live
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+                easing: easeInCubic
+out:
+  id: state-2-easing
+  elements: []
+  animations:
+    - id: anim-advanced-easing
+      targetId: text-1
+      type: live
+      tween:
+        x:
+          keyframes:
+            - duration: 100
+              value: 20
+              easing: easeInCubic
+  audio: []
+---
 case: Throw when transitions field is provided
 in:
   - id: state-3
@@ -109,6 +137,21 @@ in:
         shader:
           name: burn-dissolve
 throws: animations[0].shader is not supported.
+---
+case: Throw when easing is unsupported
+in:
+  - id: state-3c
+    animations:
+      - id: anim-1
+        targetId: text-1
+        type: live
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+                easing: easeInHexagon
+throws: "animations[0].tween.x.keyframes[0].easing must be one of:"
 ---
 case: Throw when animations is not an array
 in:

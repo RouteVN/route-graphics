@@ -22,7 +22,38 @@ $defs:
       easing:
         type: string
         description: Easing function to use.
-        enum: [linear, easeIn, easeOut, easeInOut]
+        enum:
+          - linear
+          - easeInQuad
+          - easeOutQuad
+          - easeInOutQuad
+          - easeInCubic
+          - easeOutCubic
+          - easeInOutCubic
+          - easeInQuart
+          - easeOutQuart
+          - easeInOutQuart
+          - easeInQuint
+          - easeOutQuint
+          - easeInOutQuint
+          - easeInSine
+          - easeOutSine
+          - easeInOutSine
+          - easeInExpo
+          - easeOutExpo
+          - easeInOutExpo
+          - easeInCirc
+          - easeOutCirc
+          - easeInOutCirc
+          - easeInBack
+          - easeOutBack
+          - easeInOutBack
+          - easeInBounce
+          - easeOutBounce
+          - easeInOutBounce
+          - easeInElastic
+          - easeOutElastic
+          - easeInOutElastic
       relative:
         type: boolean
         description: Whether the value is relative to the previous keyframe value.

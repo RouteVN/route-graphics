@@ -11,6 +11,8 @@ steps:
   - action: scroll
     deltaX: 0
     deltaY: -100
+  - action: wait
+    ms: 100
   - action: screenshot
 ---
 states:

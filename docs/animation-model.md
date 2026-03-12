@@ -144,10 +144,10 @@ x:
   keyframes:
     - duration: 450
       value: 180
-      easing: "easeOut"
+      easing: "easeOutQuad"
     - duration: 150
       value: 220
-      easing: "easeIn"
+      easing: "easeInQuad"
 ```
 
 This format is preferred because:
@@ -155,6 +155,7 @@ This format is preferred because:
 - it matches the current tween engine
 - it is better for authoring multi-stage motion
 - total duration can be derived from the keyframes
+- easing supports `linear` plus the common Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` families
 
 The same payload is reused in two places:
 

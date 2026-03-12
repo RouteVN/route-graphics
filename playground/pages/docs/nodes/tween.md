@@ -51,12 +51,12 @@ Each property accepts:
 
 Each keyframe accepts:
 
-| Field      | Type    | Required | Default | Notes                                                               |
-| ---------- | ------- | -------- | ------- | ------------------------------------------------------------------- |
-| `value`    | number  | Yes      | -       | Target value.                                                       |
-| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                |
-| `easing`   | string  | Yes      | -       | Currently `linear`, `easeIn`, `easeOut`, `easeInOut` are supported. |
-| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                 |
+| Field      | Type    | Required | Default | Notes                                                                                                                                                                   |
+| ---------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`    | number  | Yes      | -       | Target value.                                                                                                                                                           |
+| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                                                                    |
+| `easing`   | string  | Yes      | -       | Supports `linear` and the Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` variants. |
+| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                                                                     |
 
 ## Replace Prev/Next
 
@@ -138,12 +138,12 @@ animations:
         keyframes:
           - value: 800
             duration: 450
-            easing: easeOut
+            easing: easeOutQuad
       y:
         keyframes:
           - value: 180
             duration: 450
-            easing: easeOut
+            easing: easeOutQuad
       alpha:
         keyframes:
           - value: 1

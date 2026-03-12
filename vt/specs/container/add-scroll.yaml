@@ -7,10 +7,14 @@ steps:
   - action: scroll
     deltaX: 100
     deltaY: 0
+  - action: wait
+    ms: 100
   - action: screenshot
   - action: scroll
     deltaX: -100
     deltaY: 0
+  - action: wait
+    ms: 100
   - action: screenshot
   - action: move
     x: 510
@@ -18,10 +22,14 @@ steps:
   - action: scroll
     deltaX: 0
     deltaY: 100
+  - action: wait
+    ms: 100
   - action: screenshot
   - action: scroll
     deltaX: 0
     deltaY: -100
+  - action: wait
+    ms: 100
   - action: screenshot
 ---
 states:
