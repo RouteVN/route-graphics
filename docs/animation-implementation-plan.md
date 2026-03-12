@@ -45,7 +45,7 @@ Primary files involved today:
 - `src/plugins/elements/renderElements.js`
 - `src/plugins/animations/animationBus.js`
 - `src/types.js`
-- `src/schemas/animations/tween.yaml`
+- `src/schemas/animations/animation.yaml`
 - `src/plugins/elements/*/{add,update,delete}*.js`
 
 ## Target Runtime
@@ -113,7 +113,7 @@ Work:
 
 Files likely touched:
 
-- `src/schemas/animations/tween.yaml`
+- `src/schemas/animations/animation.yaml`
 - `src/types.js`
 - `src/util/normalizeRenderState.js`
 
