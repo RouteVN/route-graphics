@@ -1,0 +1,38 @@
+---
+title: Render Complete Event - Soft Wipe Text Revealing
+description: Asserts renderComplete waits for softWipe text revealing completion.
+specs:
+  - renderComplete should fire once with aborted=false after softWipe completion
+skipScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - customEvent snapShotKeyFrame deltaMS=1100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: text-revealing-soft-wipe-only
+        aborted: false
+---
+states:
+  - id: text-revealing-soft-wipe-only
+    elements:
+      - id: revealing-text
+        type: text-revealing
+        content:
+          - text: Soft wipe render
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Helvetica
+        x: 120
+        "y": 240
+        width: 700
+        alpha: 1
+        speed: 16
+        revealEffect: softWipe

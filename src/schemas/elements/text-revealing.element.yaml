@@ -129,7 +129,7 @@ properties:
     default: 50
   revealEffect:
     type: string
-    enum: [typewriter,none]
+    enum: [typewriter,softWipe,none]
     description: Text animation.
     default: typewriter
   textStyle:

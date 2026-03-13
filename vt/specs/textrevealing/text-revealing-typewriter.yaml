@@ -1,0 +1,67 @@
+---
+title: Text Revealing - Typewriter
+description: Tests the typewriter reveal mode with wrapped multi-line text and indicator swap.
+specs:
+  - text should reveal progressively character by character
+  - wrapped lines should stay stable while the current line types in
+  - completion indicator should swap after the reveal finishes
+steps:
+  - action: wait
+    ms: 900
+  - action: screenshot
+  - action: wait
+    ms: 2200
+  - action: screenshot
+---
+states:
+  - id: typewriter-text
+    elements:
+      - id: typewriter-line
+        type: text-revealing
+        x: 80
+        "y": 96
+        width: 620
+        speed: 50
+        revealEffect: typewriter
+        indicator:
+          revealing:
+            src: circle-red
+            width: 12
+            height: 12
+          complete:
+            src: circle-green
+            width: 12
+            height: 12
+          offset: 12
+        content:
+          - text: "The typewriter reveal advances one character at a time,"
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " keeping the rest of the wrapped dialogue stable while the current line catches up."
+            textStyle:
+              fontSize: 30
+              fill: "#D9D9D9"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " 間"
+            textStyle:
+              fontSize: 32
+              fill: "#FFD166"
+              fontFamily: Arial
+              lineHeight: 1.35
+            furigana:
+              text: "ま"
+              textStyle:
+                fontSize: 13
+                fill: "#FFF2BF"
+                fontFamily: Arial
+          - text: " can still be emphasized inline without switching to a different reveal mode."
+            textStyle:
+              fontSize: 28
+              fill: "#A6A6A6"
+              fontFamily: Georgia
+              fontStyle: italic
+              lineHeight: 1.35
