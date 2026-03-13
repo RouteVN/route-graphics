@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { clearTextRevealingContainer } from "./textRevealingRuntime.js";
 
 /**
  * Delete text-revealing element
@@ -19,6 +20,7 @@ export const deleteTextRevealing = ({
 
   const deleteElement = () => {
     if (textElement && !textElement.destroyed) {
+      clearTextRevealingContainer(textElement);
       textElement.destroy({ children: true });
     }
   };

@@ -308,7 +308,7 @@
  * @property {string} [indicator.complete.src] - Source of the indicator image when text revealing is finished
  * @property {number} [indicator.complete.width] - Width of the indicator image when complete
  * @property {number} [indicator.complete.height] - Height of the indicator image when complete
- * @property {'typewriter' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = normal animation, none = skip animation)
+ * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 

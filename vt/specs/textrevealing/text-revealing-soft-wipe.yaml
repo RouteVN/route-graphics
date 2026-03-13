@@ -1,0 +1,65 @@
+---
+title: Text Revealing - Soft Wipe
+description: Tests the softWipe reveal mode with wrapped multi-line text, line-by-line reveal, and indicator swap.
+specs:
+  - text should reveal gradually with a soft leading edge
+  - wrapped lines should reveal one line at a time instead of wiping as a single block
+  - completion indicator should swap after the wipe finishes
+steps:
+  - customEvent snapShotKeyFrame deltaMS=900
+  - action: screenshot
+  - customEvent snapShotKeyFrame deltaMS=1500
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-text
+    elements:
+      - id: soft-wipe-line
+        type: text-revealing
+        x: 80
+        "y": 96
+        width: 620
+        speed: 22
+        revealEffect: softWipe
+        indicator:
+          revealing:
+            src: circle-red
+            width: 12
+            height: 12
+          complete:
+            src: circle-green
+            width: 12
+            height: 12
+          offset: 12
+        content:
+          - text: "The soft wipe reveal lays out the whole dialogue first,"
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " then fades it in with a moving front edge so wrapped lines stay stable."
+            textStyle:
+              fontSize: 30
+              fill: "#D9D9D9"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " 速度"
+            textStyle:
+              fontSize: 32
+              fill: "#FFD166"
+              fontFamily: Arial
+              lineHeight: 1.35
+            furigana:
+              text: "そくど"
+              textStyle:
+                fontSize: 13
+                fill: "#FFF2BF"
+                fontFamily: Arial
+          - text: " and emphasis can still be mixed inside the same line without switching back to typewriter."
+            textStyle:
+              fontSize: 28
+              fill: "#A6A6A6"
+              fontFamily: Georgia
+              fontStyle: italic
+              lineHeight: 1.35

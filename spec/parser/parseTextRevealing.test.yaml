@@ -187,6 +187,58 @@ out:
     breakWords: false
     wordWrapWidth: 0
 ---
+case: Test parsing text-revealing with soft wipe reveal effect
+in:
+  - state:
+      id: tr-softwipe
+      type: text-revealing
+      content:
+        - text: Soft wipe reveal
+      x: 80
+      "y": 120
+      revealEffect: softWipe
+out:
+  id: tr-softwipe
+  type: text-revealing
+  content:
+    - lineParts:
+        - text: Soft wipe reveal
+          textStyle:
+            fontSize: 16
+            fill: black
+            fontFamily: Arial
+            align: left
+            lineHeight: 19
+            wordWrap: true
+            wordWrapWidth: 500
+            strokeWidth: 0
+            strokeColor: transparent
+            breakWords: false
+          x: 0
+          "y": 0
+      "y": 0
+      lineMaxHeight: 19
+  width: 500
+  height: 19
+  x: 80
+  "y": 120
+  originX: 0
+  originY: 0
+  alpha: 1
+  speed: 50
+  revealEffect: softWipe
+  textStyle:
+    strokeColor: transparent
+    strokeWidth: 0
+    fontSize: 16
+    fill: black
+    fontFamily: Arial
+    align: left
+    lineHeight: 1.2
+    wordWrap: true
+    breakWords: false
+    wordWrapWidth: 0
+---
 case: Test parsing text-revealing with multiple styled content segments
 in:
   - state:
