@@ -15,16 +15,6 @@ The playground is the fastest way to try Route Graphics states without building 
 - inspect emitted events in the event log
 - reset the current template back to its baseline
 - copy the current YAML
-- copy a shareable URL for the current template or custom YAML
-
-## Share URL Rules
-
-The playground supports two URL modes:
-
-- `?template=<id>` for built-in templates
-- `?yaml=<encoded-yaml>` for custom editor content
-
-If the current state list has multiple entries, the share URL also carries `state=<1-based-index>`.
 
 ## Why The Event Log Matters
 
@@ -41,6 +31,6 @@ The playground records those so example templates are debuggable without opening
 1. Start from the closest built-in template.
 2. Change one node or one animation at a time.
 3. Watch the event log after each interaction.
-4. Copy the share URL when you have a state worth reviewing.
+4. Copy the YAML when you have a state worth reusing elsewhere.
 
 Jump straight to the [Playground](/playground/).
