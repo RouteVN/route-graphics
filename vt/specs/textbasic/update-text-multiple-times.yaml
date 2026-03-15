@@ -1,0 +1,67 @@
+---
+title: Update Text Multiple Times
+specs:
+  - text content should update on each sequential state change
+  - the same text element id should be reused across all updated states
+  - navigating backward should restore the previous text content at each step
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: text-1
+        type: text
+        content: "State one: the system loads a longer opening line, adds punctuation, and keeps the wording calm but descriptive."
+        x: 20
+        "y": 20
+        width: 420
+        textStyle:
+          fontSize: 20
+          fill: "#FFFFFF"
+  - elements:
+      - id: text-1
+        type: text
+        content: "State two: the same text node now reports 3 separate facts, shifts tone slightly, and asks whether wrapping still behaves correctly."
+        x: 20
+        "y": 20
+        width: 420
+        textStyle:
+          fontSize: 20
+          fill: "#FFFFFF"
+  - elements:
+      - id: text-1
+        type: text
+        content: "State three: after another update, commas, semicolons, and repeated phrases appear; this should still render as one reused text element."
+        x: 20
+        "y": 20
+        width: 420
+        textStyle:
+          fontSize: 20
+          fill: "#FFFFFF"
+  - elements:
+      - id: text-1
+        type: text
+        content: "State four: the final revision becomes a bit more complicated by mixing longer wording, quoted terms like 'checkpoint', and a closing numeric marker 42."
+        x: 20
+        "y": 20
+        width: 420
+        textStyle:
+          fontSize: 20
+          fill: "#FFFFFF"
