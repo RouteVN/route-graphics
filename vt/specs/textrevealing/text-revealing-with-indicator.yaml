@@ -1,6 +1,9 @@
 ---
 title: Text Revealing Showcase with indicator
 description: Showcasing text-revealing element with indicator; uses colored indicator assets intentionally for visual state cues (guideline exception for asset-based tests).
+specs:
+  - text-revealing elements should render with the configured indicator asset
+  - indicator placement and text layout should remain stable in the snapshot
 steps:
   - action: screenshot
 ---

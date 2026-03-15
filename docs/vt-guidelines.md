@@ -42,11 +42,14 @@ Define one stable standard for VT authoring:
 - Use grayscale only for overlap/layer distinction.
 - Use the minimum number of shades needed to separate elements.
 - Keep shade semantics consistent within a spec family.
+- Avoid on-canvas descriptive labels when text itself is not the subject of the test.
+- Put explanation in the spec `title`, `description`, and checklist notes instead of rendering helper text into the snapshot.
 - Avoid gradients, glow, and decorative styling in VT.
 
 ### Allowed Exceptions
 
 - Tests explicitly validating color behavior.
+- Text/text-revealing/text-style behavior tests where rendered text is the feature under test.
 - Text plugin tests validating `textStyle.fill`.
 - Asset-based tests where source textures are inherently colored.
 
@@ -63,6 +66,7 @@ If using an exception, mention why in the spec `description`.
 ### Hard Rule
 
 - Do not use on-screen debug text as behavior oracle.
+- Do not add descriptive helper labels to explain what a non-text spec is doing.
 - Do not assert callback/event correctness by snapshotting rendered event logs.
 
 ### Preferred Assertion Order
@@ -110,6 +114,7 @@ New pattern:
 - Repeated rect/simple-shape elements use one fill unless contrast is necessary for the assertion.
 - No random colors.
 - No text-log-based behavior assertion.
+- No descriptive on-canvas labels unless the spec is explicitly testing text rendering/styling/revealing.
 - Every event spec includes at least one explicit interaction step.
 - Multi-state specs advance across intended states with explicit steps.
 - Screenshot sequence matches intended checkpoints only (no redundant frames).

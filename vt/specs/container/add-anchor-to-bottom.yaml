@@ -1,5 +1,9 @@
 ---
 title: Anchor To Bottom Viewport Parity
+specs:
+  - anchorToBottom containers should pin visible content to the viewport bottom
+  - anchored and non-anchored containers should remain visually distinct under scroll
+  - scrolling should preserve bottom alignment for the anchored container
 steps:
   - action: screenshot
   - action: keypress

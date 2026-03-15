@@ -1,5 +1,9 @@
 ---
 title: Update Particles Properties
+specs:
+  - particles should appear after transitioning from an empty initial state
+  - particle alpha and emitter capacity changes should alter the rendered field
+  - navigating backward should restore the previous particle configuration
 steps:
   - action: keypress
     key: "n"

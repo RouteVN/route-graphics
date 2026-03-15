@@ -1,5 +1,8 @@
 ---
 title: Text
+specs:
+  - text elements should render the configured content and styling
+  - text layout should respect the configured positions and widths
 ---
 states:
   - elements:

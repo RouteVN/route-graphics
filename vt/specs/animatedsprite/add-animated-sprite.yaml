@@ -1,5 +1,8 @@
 ---
 title: Animated sprite
+specs:
+  - animated sprite should render a deterministic frame from the configured sequence
+  - snapshot events should capture a stable frame for the target animated sprite
 steps:
   - action: customEvent
     name: "snapShotAnimatedSpriteFrame"

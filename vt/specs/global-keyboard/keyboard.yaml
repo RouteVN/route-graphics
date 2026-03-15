@@ -1,6 +1,10 @@
 ---
 title: Global Keyboard Events
 description: Test global keyboard event handling
+specs:
+  - global keyboard handlers should emit payloads for configured keys
+  - state changes should swap the active keyboard mapping
+  - modified key combinations should remain distinct from plain key presses
 steps:
   - action: customEvent
     name: clearEvents

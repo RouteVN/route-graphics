@@ -1,5 +1,9 @@
 ---
 title: Update Animated Sprite Position and Animation
+specs:
+  - animated sprites should update position between states
+  - snapshot events should capture deterministic frames for the updated sprites
+  - animation frame changes should remain stable during the transition
 steps:
   - action: customEvent
     name: "snapShotAnimatedSpriteFrame"

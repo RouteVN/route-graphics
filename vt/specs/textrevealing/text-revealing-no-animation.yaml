@@ -1,6 +1,10 @@
 ---
 title: Text Revealing - No Animation
 description: Testing text-revealing element with revealEffect set to none; uses colored indicator assets intentionally for revealing/complete state distinction (guideline exception for asset-based tests).
+specs:
+  - text should appear immediately when revealEffect is set to none
+  - indicator assets should still render for the configured reveal states
+  - width changes should preserve the no-animation behavior across states
 steps:
   - action: keypress
     key: "n"

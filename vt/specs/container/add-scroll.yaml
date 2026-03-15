@@ -1,5 +1,9 @@
 ---
 title: Scroll
+specs:
+  - horizontal and vertical containers should respond to wheel scrolling
+  - scrolling should change the visible child positions without reordering content
+  - scrollable containers should preserve their layout after reverse scrolling
 steps:
   - action: move
     x: 50

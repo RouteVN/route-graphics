@@ -30,12 +30,6 @@ states:
         scaleX: 1
         scaleY: 1
         children:
-          - id: text1
-            type: text
-            content: Scaling
-            textStyle:
-              fontSize: 20
-              fill: "#FFFFFF"
           - id: rect1
             type: rect
             width: 100
@@ -51,12 +45,6 @@ states:
         scaleX: 1.5
         scaleY: 1.5
         children:
-          - id: text1
-            type: text
-            content: Scaling
-            textStyle:
-              fontSize: 20
-              fill: "#FFFFFF"
           - id: rect1
             type: rect
             width: 100

@@ -1,5 +1,9 @@
 ---
 title: Update Container Position
+specs:
+  - container position should update between states
+  - child layout should move with the container without changing structure
+  - navigating back should restore the original position
 steps:
   - action: keypress
     key: "n"

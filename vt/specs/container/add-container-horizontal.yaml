@@ -1,5 +1,8 @@
 ---
 title: Direction Horizontal
+specs:
+  - horizontal containers should lay out children from left to right
+  - configured gaps and child sizing should remain stable inside the container
 ---
 states:
   - elements:
