@@ -450,7 +450,10 @@ const createRouteGraphics = () => {
         debugAnimationListener = undefined;
       }
       if (canvasContextMenuListener && app?.canvas) {
-        app.canvas.removeEventListener("contextmenu", canvasContextMenuListener);
+        app.canvas.removeEventListener(
+          "contextmenu",
+          canvasContextMenuListener,
+        );
         canvasContextMenuListener = undefined;
       }
       keyboardManager?.destroy();

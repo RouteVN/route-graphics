@@ -27,7 +27,8 @@
   ],
   "scripts": {
     "lint": "bunx prettier --check src",
-    "lint:fix": "bunx prettier --check --write src",
+    "lint:fix": "bunx prettier --write src",
+    "prepare": "husky",
     "build": "bunx esbuild ./src/index.js --bundle --minify --format=esm --outfile=./dist/RouteGraphics.js && bunx esbuild ./src/index.js --bundle --sourcemap --format=esm --outfile=./vt/static/RouteGraphics.js",
     "vt:docker:pull": "docker pull docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10",
     "vt:generate": "bun run build && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt generate --wait-event vt:ready",
@@ -60,8 +61,9 @@
     "vitest": "^4.0.8"
   },
   "lint-staged": {
-    "src/**/*.{js}": [
-      "oxlint && bunx prettier --write"
+    "src/**/*.js": [
+      "oxlint",
+      "bunx prettier --write"
     ]
   }
 }

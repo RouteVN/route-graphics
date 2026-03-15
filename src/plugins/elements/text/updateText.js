@@ -81,7 +81,10 @@ export const updateText = ({
             hoverEvents.textStyle,
           );
         } else {
-          applyInteractiveTextStyle(textElement, nextTextComputedNode.textStyle);
+          applyInteractiveTextStyle(
+            textElement,
+            nextTextComputedNode.textStyle,
+          );
         }
       };
 
