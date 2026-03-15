@@ -117,7 +117,7 @@ export const updateRect = ({
 
         const rightClickListener = () => {
           if (actionPayload && eventHandler)
-            eventHandler(`rightclick`, {
+            eventHandler(`rightClick`, {
               _event: {
                 id: rectElement.label,
               },
@@ -125,7 +125,7 @@ export const updateRect = ({
             });
           if (soundSrc)
             app.audioStage.add({
-              id: `rightclick-${Date.now()}`,
+              id: `rightClick-${Date.now()}`,
               url: soundSrc,
               loop: false,
             });
@@ -142,7 +142,7 @@ export const updateRect = ({
             const { actionPayload } = scrollEvents.up;
 
             if (actionPayload && eventHandler)
-              eventHandler(`scrollup`, {
+              eventHandler(`scrollUp`, {
                 _event: {
                   id: rectElement.label,
                 },
@@ -152,7 +152,7 @@ export const updateRect = ({
             const { actionPayload } = scrollEvents.down;
 
             if (actionPayload && eventHandler)
-              eventHandler(`scrolldown`, {
+              eventHandler(`scrollDown`, {
                 _event: {
                   id: rectElement.label,
                 },
@@ -171,7 +171,7 @@ export const updateRect = ({
         const downListener = () => {
           rectElement._isDragging = true;
           if (start && eventHandler) {
-            eventHandler("drag-start", {
+            eventHandler("dragStart", {
               _event: {
                 id: rectElement.label,
               },
@@ -185,7 +185,7 @@ export const updateRect = ({
         const upListener = () => {
           rectElement._isDragging = false;
           if (end && eventHandler) {
-            eventHandler("drag-end", {
+            eventHandler("dragEnd", {
               _event: {
                 id: rectElement.label,
               },
@@ -198,7 +198,7 @@ export const updateRect = ({
 
         const moveListener = (e) => {
           if (move && eventHandler && rectElement._isDragging) {
-            eventHandler("drag-move", {
+            eventHandler("dragMove", {
               _event: {
                 id: rectElement.label,
                 x: e.global.x,

@@ -11,15 +11,21 @@ Every interactive or lifecycle signal in Route Graphics flows through the single
 
 - `hover`
 - `click`
-- `rightclick`
-- `scrollup`
-- `scrolldown`
-- `drag-start`
-- `drag-move`
-- `drag-end`
+- `rightClick`
+- `scrollUp`
+- `scrollDown`
+- `dragStart`
+- `dragMove`
+- `dragEnd`
 - `change`
 - `keydown`
 - `renderComplete`
+
+## Naming Convention
+
+- Public Route Graphics event names use `camelCase`.
+- Public config keys also use `camelCase`.
+- Native Pixi events such as `pointerdown`, `rightdown`, and `rightup` stay internal implementation details.
 
 Element events include `_event` metadata plus any `actionPayload` you configured in the node.
 

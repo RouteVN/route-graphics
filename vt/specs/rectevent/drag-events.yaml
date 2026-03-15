@@ -26,36 +26,36 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-start
+      - dragStart
     value:
       - _event:
           id: rect-draggable
-        action: drag-start
+        action: dragStart
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-move
+      - dragMove
     value:
       - _event:
           id: rect-draggable
           x: 300
           "y": 200
-        action: drag-move
+        action: dragMove
       - _event:
           id: rect-draggable
           x: 400
           "y": 300
-        action: drag-move
+        action: dragMove
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-end
+      - dragEnd
     value:
       - _event:
           id: rect-draggable
-        action: drag-end
+        action: dragEnd
 ---
 states:
   - elements:
@@ -70,10 +70,10 @@ states:
         drag:
           start:
             actionPayload:
-              action: drag-start
+              action: dragStart
           move:
             actionPayload:
-              action: drag-move
+              action: dragMove
           end:
             actionPayload:
-              action: drag-end
+              action: dragEnd

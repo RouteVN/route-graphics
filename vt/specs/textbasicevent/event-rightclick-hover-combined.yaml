@@ -36,6 +36,17 @@ steps:
         action: text-hovered
         eventType: hover
         status: over
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - rightClick
+    value:
+      - _event:
+          id: text-hover-rightclick
+        action: text-right-clicked
+        eventType: rightClick
+        button: right
 ---
 states:
   - elements:
@@ -60,6 +71,10 @@ states:
             status: over
         rightClick:
           textStyle:
-            fontSize: 24
-            fill: "#737373"
-            fontFamily: Arial
+            fontSize: 28
+            fill: "#FF7777"
+            fontFamily: Georgia
+          actionPayload:
+            action: text-right-clicked
+            eventType: rightClick
+            button: right

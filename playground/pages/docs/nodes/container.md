@@ -47,7 +47,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | ------------ | ------------------------ | ------------------------------------------------- |
 | `hover`      | pointer enters container | `{ _event: { id }, ...hover.actionPayload }`      |
 | `click`      | pointer up               | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightclick` | right click              | `{ _event: { id }, ...rightClick.actionPayload }` |
+| `rightClick` | right click              | `{ _event: { id }, ...rightClick.actionPayload }` |
 
 ## Example: Minimal Group
 

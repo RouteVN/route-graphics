@@ -37,7 +37,7 @@ Try it in the [Playground](/playground/?template=sprite-demo).
 | ------------ | --------------------- | ------------------------------------------------- |
 | `hover`      | pointer enters sprite | `{ _event: { id }, ...hover.actionPayload }`      |
 | `click`      | pointer up            | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightclick` | right pointer up      | `{ _event: { id }, ...rightClick.actionPayload }` |
+| `rightClick` | right pointer up      | `{ _event: { id }, ...rightClick.actionPayload }` |
 
 ## Example: Minimal
 

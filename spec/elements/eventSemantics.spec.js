@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe("event semantics", () => {
-  it("rect emits hover/click/rightclick/scroll payload events", () => {
+  it("rect emits hover/click/rightClick/scroll payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -56,7 +56,7 @@ describe("event semantics", () => {
           actionPayload: { source: "click" },
         },
         rightClick: {
-          actionPayload: { source: "rightclick" },
+          actionPayload: { source: "rightClick" },
         },
         scroll: {
           up: { actionPayload: { direction: "up" } },
@@ -75,9 +75,9 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
-      "scrollup",
-      "scrolldown",
+      "rightClick",
+      "scrollUp",
+      "scrollDown",
     ]);
 
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
@@ -90,7 +90,7 @@ describe("event semantics", () => {
     });
     expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { id: "rect-1" },
-      source: "rightclick",
+      source: "rightClick",
     });
     expect(eventHandler.mock.calls[3][1]).toMatchObject({
       _event: { id: "rect-1" },
@@ -102,7 +102,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("rect drag emits drag-start/drag-move/drag-end with pointer payload", () => {
+  it("rect drag emits dragStart/dragMove/dragEnd with pointer payload", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -135,9 +135,9 @@ describe("event semantics", () => {
     rect.emit("pointerup");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
-      "drag-start",
-      "drag-move",
-      "drag-end",
+      "dragStart",
+      "dragMove",
+      "dragEnd",
     ]);
     expect(eventHandler.mock.calls[1][1]).toMatchObject({
       _event: { id: "rect-drag", x: 320, y: 240 },
@@ -145,7 +145,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("sprite emits hover/click/rightclick payload events", () => {
+  it("sprite emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -165,7 +165,7 @@ describe("event semantics", () => {
         alpha: 1,
         hover: { actionPayload: { source: "hover" } },
         click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        rightClick: { actionPayload: { source: "rightClick" } },
       },
     });
 
@@ -175,19 +175,20 @@ describe("event semantics", () => {
     sprite.emit("pointerup");
     sprite.emit("rightdown");
     sprite.emit("rightup");
+    sprite.emit("rightclick");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
     expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { id: "sprite-1" },
-      source: "rightclick",
+      source: "rightClick",
     });
   });
 
-  it("text emits hover/click/rightclick payload events", () => {
+  it("text emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -212,7 +213,7 @@ describe("event semantics", () => {
         },
         hover: { actionPayload: { source: "hover" } },
         click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        rightClick: { actionPayload: { source: "rightClick" } },
       },
     });
 
@@ -222,11 +223,12 @@ describe("event semantics", () => {
     text.emit("pointerup");
     text.emit("rightdown");
     text.emit("rightup");
+    text.emit("rightclick");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
       _event: { id: "text-1" },
@@ -234,7 +236,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("container emits hover/click/rightclick payload events", () => {
+  it("container emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -257,7 +259,7 @@ describe("event semantics", () => {
         children: [],
         hover: { actionPayload: { source: "hover" } },
         click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        rightClick: { actionPayload: { source: "rightClick" } },
       },
     });
 
@@ -269,7 +271,7 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
   });
 

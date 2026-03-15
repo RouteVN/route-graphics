@@ -988,7 +988,7 @@ in:
       rightClick:
         soundSrc: rightclick-sound
         actionPayload:
-          type: rightclick
+          type: rightClick
       children:
         - id: rect-1
           type: rect
@@ -1021,7 +1021,7 @@ out:
   rightClick:
     soundSrc: rightclick-sound
     actionPayload:
-      type: rightclick
+      type: rightClick
   children:
     - id: rect-1
       type: rect

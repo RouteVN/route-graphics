@@ -1,6 +1,10 @@
 import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  applyInteractiveTextStyle,
+  syncTextAnchorRatios,
+} from "./textLayout.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -24,6 +28,7 @@ export const addText = ({
   // Apply initial state
   text.text = textComputedNode.content;
   applyTextStyle(text, textComputedNode.textStyle);
+  syncTextAnchorRatios(text, textComputedNode);
   text.alpha = textComputedNode.alpha;
   text.x = textComputedNode.x;
   text.y = textComputedNode.y;
@@ -40,13 +45,25 @@ export const addText = ({
 
   const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
     if (isRightPressed && rightClickEvents?.textStyle) {
-      applyTextStyle(text, rightClickEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        rightClickEvents.textStyle,
+      );
     } else if (isPressed && clickEvents?.textStyle) {
-      applyTextStyle(text, clickEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        clickEvents.textStyle,
+      );
     } else if (isHovering && hoverEvents?.textStyle) {
-      applyTextStyle(text, hoverEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        hoverEvents.textStyle,
+      );
     } else {
-      applyTextStyle(text, textComputedNode.textStyle);
+      applyInteractiveTextStyle(text, textComputedNode.textStyle);
     }
   };
 
@@ -126,7 +143,7 @@ export const addText = ({
     const { soundSrc, actionPayload } = rightClickEvents;
     text.eventMode = "static";
 
-    const rightClickListener = () => {
+    const rightPressListener = () => {
       events.isRightPressed = true;
       updateTextStyle(events);
     };
@@ -134,9 +151,14 @@ export const addText = ({
     const rightReleaseListener = () => {
       events.isRightPressed = false;
       updateTextStyle(events);
+    };
+
+    const rightClickListener = () => {
+      events.isRightPressed = false;
+      updateTextStyle(events);
 
       if (actionPayload && eventHandler) {
-        eventHandler(`rightclick`, {
+        eventHandler(`rightClick`, {
           _event: {
             id: text.label,
           },
@@ -145,7 +167,7 @@ export const addText = ({
       }
       if (soundSrc) {
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });
@@ -157,8 +179,9 @@ export const addText = ({
       updateTextStyle(events);
     };
 
-    text.on("rightdown", rightClickListener);
+    text.on("rightdown", rightPressListener);
     text.on("rightup", rightReleaseListener);
+    text.on("rightclick", rightClickListener);
     text.on("rightupoutside", rightOutListener);
   }
 

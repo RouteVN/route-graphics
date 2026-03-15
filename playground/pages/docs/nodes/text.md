@@ -52,7 +52,7 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | ------------ | ------------------------ | ------------------------------------------------- |
 | `hover`      | pointer enters text      | `{ _event: { id }, ...hover.actionPayload }`      |
 | `click`      | pointer up on text       | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightclick` | right pointer up on text | `{ _event: { id }, ...rightClick.actionPayload }` |
+| `rightClick` | right pointer up on text | `{ _event: { id }, ...rightClick.actionPayload }` |
 
 ## Example: Minimal
 

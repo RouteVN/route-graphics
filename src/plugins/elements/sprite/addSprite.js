@@ -129,7 +129,7 @@ export const addSprite = ({
     const { soundSrc, actionPayload } = rightClickEvents;
     sprite.eventMode = "static";
 
-    const rightClickListener = () => {
+    const rightPressListener = () => {
       events.isRightPressed = true;
       updateTexture(events);
     };
@@ -137,9 +137,14 @@ export const addSprite = ({
     const rightReleaseListener = () => {
       events.isRightPressed = false;
       updateTexture(events);
+    };
+
+    const rightClickListener = () => {
+      events.isRightPressed = false;
+      updateTexture(events);
 
       if (actionPayload && eventHandler) {
-        eventHandler(`rightclick`, {
+        eventHandler(`rightClick`, {
           _event: {
             id: sprite.label,
           },
@@ -148,7 +153,7 @@ export const addSprite = ({
       }
       if (soundSrc) {
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });
@@ -160,8 +165,9 @@ export const addSprite = ({
       updateTexture(events);
     };
 
-    sprite.on("rightdown", rightClickListener);
+    sprite.on("rightdown", rightPressListener);
     sprite.on("rightup", rightReleaseListener);
+    sprite.on("rightclick", rightClickListener);
     sprite.on("rightupoutside", rightOutListener);
   }
 

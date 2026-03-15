@@ -128,7 +128,7 @@ export const addContainer = ({
 
     const rightClickListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`rightclick`, {
+        eventHandler(`rightClick`, {
           _event: {
             id: container.label,
           },
@@ -136,7 +136,7 @@ export const addContainer = ({
         });
       if (soundSrc)
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });

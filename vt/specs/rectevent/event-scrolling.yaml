@@ -22,7 +22,7 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - scrollup
+      - scrollUp
     value:
       - _event:
           id: rect-scroll
@@ -31,7 +31,7 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - scrolldown
+      - scrollDown
     value:
       - _event:
           id: rect-scroll

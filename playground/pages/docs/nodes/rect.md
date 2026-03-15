@@ -49,12 +49,12 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | ------------ | --------------------------- | ------------------------------------------------------ |
 | `hover`      | pointer enters rect         | `{ _event: { id }, ...hover.actionPayload }`           |
 | `click`      | pointer up                  | `{ _event: { id }, ...click.actionPayload }`           |
-| `rightclick` | right click                 | `{ _event: { id }, ...rightClick.actionPayload }`      |
-| `scrollup`   | wheel up over rect          | `{ _event: { id }, ...scroll.up.actionPayload }`       |
-| `scrolldown` | wheel down over rect        | `{ _event: { id }, ...scroll.down.actionPayload }`     |
-| `drag-start` | pointer down                | `{ _event: { id }, ...drag.start.actionPayload }`      |
-| `drag-move`  | pointer move while dragging | `{ _event: { id, x, y }, ...drag.move.actionPayload }` |
-| `drag-end`   | pointer up / outside        | `{ _event: { id }, ...drag.end.actionPayload }`        |
+| `rightClick` | right click                 | `{ _event: { id }, ...rightClick.actionPayload }`      |
+| `scrollUp`   | wheel up over rect          | `{ _event: { id }, ...scroll.up.actionPayload }`       |
+| `scrollDown` | wheel down over rect        | `{ _event: { id }, ...scroll.down.actionPayload }`     |
+| `dragStart`  | pointer down                | `{ _event: { id }, ...drag.start.actionPayload }`      |
+| `dragMove`   | pointer move while dragging | `{ _event: { id, x, y }, ...drag.move.actionPayload }` |
+| `dragEnd`    | pointer up / outside        | `{ _event: { id }, ...drag.end.actionPayload }`        |
 
 ## Example: Minimal
 

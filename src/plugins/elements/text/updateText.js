@@ -1,6 +1,10 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  applyInteractiveTextStyle,
+  syncTextAnchorRatios,
+} from "./textLayout.js";
 
 /**
  * Update text element (synchronous)
@@ -31,6 +35,7 @@ export const updateText = ({
     if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
       textElement.text = nextTextComputedNode.content;
       applyTextStyle(textElement, nextTextComputedNode.textStyle);
+      syncTextAnchorRatios(textElement, nextTextComputedNode);
 
       textElement.x = x;
       textElement.y = y;
@@ -42,6 +47,7 @@ export const updateText = ({
       textElement.removeAllListeners("pointerupoutside");
       textElement.removeAllListeners("pointerup");
       textElement.removeAllListeners("rightdown");
+      textElement.removeAllListeners("rightclick");
       textElement.removeAllListeners("rightup");
       textElement.removeAllListeners("rightupoutside");
 
@@ -57,13 +63,25 @@ export const updateText = ({
 
       const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
         if (isRightPressed && rightClickEvents?.textStyle) {
-          applyTextStyle(textElement, rightClickEvents.textStyle);
+          applyInteractiveTextStyle(
+            textElement,
+            nextTextComputedNode.textStyle,
+            rightClickEvents.textStyle,
+          );
         } else if (isPressed && clickEvents?.textStyle) {
-          applyTextStyle(textElement, clickEvents.textStyle);
+          applyInteractiveTextStyle(
+            textElement,
+            nextTextComputedNode.textStyle,
+            clickEvents.textStyle,
+          );
         } else if (isHovering && hoverEvents?.textStyle) {
-          applyTextStyle(textElement, hoverEvents.textStyle);
+          applyInteractiveTextStyle(
+            textElement,
+            nextTextComputedNode.textStyle,
+            hoverEvents.textStyle,
+          );
         } else {
-          applyTextStyle(textElement, nextTextComputedNode.textStyle);
+          applyInteractiveTextStyle(textElement, nextTextComputedNode.textStyle);
         }
       };
 
@@ -143,7 +161,7 @@ export const updateText = ({
         const { soundSrc, actionPayload } = rightClickEvents;
         textElement.eventMode = "static";
 
-        const rightClickListener = () => {
+        const rightPressListener = () => {
           events.isRightPressed = true;
           updateTextStyle(events);
         };
@@ -151,9 +169,14 @@ export const updateText = ({
         const rightReleaseListener = () => {
           events.isRightPressed = false;
           updateTextStyle(events);
+        };
+
+        const rightClickListener = () => {
+          events.isRightPressed = false;
+          updateTextStyle(events);
 
           if (actionPayload && eventHandler) {
-            eventHandler(`rightclick`, {
+            eventHandler(`rightClick`, {
               _event: {
                 id: textElement.label,
               },
@@ -162,7 +185,7 @@ export const updateText = ({
           }
           if (soundSrc) {
             app.audioStage.add({
-              id: `rightclick-${Date.now()}`,
+              id: `rightClick-${Date.now()}`,
               url: soundSrc,
               loop: false,
             });
@@ -174,8 +197,9 @@ export const updateText = ({
           updateTextStyle(events);
         };
 
-        textElement.on("rightdown", rightClickListener);
+        textElement.on("rightdown", rightPressListener);
         textElement.on("rightup", rightReleaseListener);
+        textElement.on("rightclick", rightClickListener);
         textElement.on("rightupoutside", rightOutListener);
       }
     }

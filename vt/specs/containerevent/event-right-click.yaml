@@ -19,7 +19,7 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - rightclick
+      - rightClick
     value:
       - _event:
           id: container-right-click-1

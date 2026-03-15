@@ -104,7 +104,7 @@ export const addRect = ({
 
     const rightClickListener = () => {
       if (actionPayload && eventHandler)
-        eventHandler(`rightclick`, {
+        eventHandler(`rightClick`, {
           _event: {
             id: rect.label,
           },
@@ -112,7 +112,7 @@ export const addRect = ({
         });
       if (soundSrc)
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });
@@ -129,7 +129,7 @@ export const addRect = ({
         const { actionPayload } = scrollEvents.up;
 
         if (actionPayload && eventHandler)
-          eventHandler(`scrollup`, {
+          eventHandler(`scrollUp`, {
             _event: {
               id: rect.label,
             },
@@ -139,7 +139,7 @@ export const addRect = ({
         const { actionPayload } = scrollEvents.down;
 
         if (actionPayload && eventHandler)
-          eventHandler(`scrolldown`, {
+          eventHandler(`scrollDown`, {
             _event: {
               id: rect.label,
             },
@@ -158,7 +158,7 @@ export const addRect = ({
     const downListener = () => {
       rect._isDragging = true;
       if (start && eventHandler) {
-        eventHandler("drag-start", {
+        eventHandler("dragStart", {
           _event: {
             id: rect.label,
           },
@@ -172,7 +172,7 @@ export const addRect = ({
     const upListener = () => {
       rect._isDragging = false;
       if (end && eventHandler) {
-        eventHandler("drag-end", {
+        eventHandler("dragEnd", {
           _event: {
             id: rect.label,
           },
@@ -183,7 +183,7 @@ export const addRect = ({
 
     const moveListener = (e) => {
       if (move && eventHandler && rect._isDragging) {
-        eventHandler("drag-move", {
+        eventHandler("dragMove", {
           _event: {
             id: rect.label,
             x: e.global.x,

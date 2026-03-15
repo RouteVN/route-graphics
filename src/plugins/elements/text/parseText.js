@@ -46,7 +46,7 @@ export const parseText = ({ state }) => {
     height: roundedHeight,
   });
 
-  return {
+  const computedText = {
     ...computedObj,
     content: contentString,
     textStyle: {
@@ -56,4 +56,17 @@ export const parseText = ({ state }) => {
     ...(state.click && { click: state.click }),
     ...(state.rightClick && { rightClick: state.rightClick }),
   };
+
+  Object.defineProperties(computedText, {
+    __anchorXRatio: {
+      value: state.anchorX ?? 0,
+      enumerable: false,
+    },
+    __anchorYRatio: {
+      value: state.anchorY ?? 0,
+      enumerable: false,
+    },
+  });
+
+  return computedText;
 };

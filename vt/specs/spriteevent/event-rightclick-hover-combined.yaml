@@ -36,6 +36,17 @@ steps:
         action: sprite-hovered
         eventType: hover
         status: over
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - rightClick
+    value:
+      - _event:
+          id: sprite-hover-rightclick
+        action: sprite-right-clicked
+        eventType: rightClick
+        button: right
 ---
 states:
   - elements:
@@ -55,3 +66,7 @@ states:
             status: over
         rightClick:
           src: circle-red
+          actionPayload:
+            action: sprite-right-clicked
+            eventType: rightClick
+            button: right
