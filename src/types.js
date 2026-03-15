@@ -517,6 +517,14 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {RouteGraphicsPlugins} [plugins] - Plugin groups to register
  * @property {boolean} [debug] - Whether debug mode is enabled
  * @property {Function} [onFirstRender] - Callback fired after the first render completes
+ * @property {RouteGraphicsRendererOptions} [rendererOptions] - Explicit renderer init overrides
+ */
+
+/**
+ * @typedef {Object} RouteGraphicsRendererOptions
+ * @property {number} [resolution] - Renderer resolution multiplier
+ * @property {boolean} [preserveDrawingBuffer] - Preserve the drawing buffer for extraction
+ * @property {boolean} [clearBeforeRender] - Clear the canvas before each render pass
  */
 
 /**

@@ -409,6 +409,13 @@
           window.dispatchEvent(new CustomEvent("vt:ready"));
         },
         debug: window?.RTGL_VT_DEBUG ?? false,
+        rendererOptions: window?.RTGL_VT_DEBUG
+          ? {
+              resolution: 0.5,
+              preserveDrawingBuffer: true,
+              clearBeforeRender: true,
+            }
+          : undefined,
       });
       await app.loadAssets(assetBufferManager.getBufferMap());
       document.body.appendChild(app.canvas);

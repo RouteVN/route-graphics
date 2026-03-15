@@ -375,6 +375,7 @@ const createRouteGraphics = () => {
         backgroundColor,
         debug = false,
         onFirstRender,
+        rendererOptions = {},
       } = options;
 
       onFirstRenderCallback = onFirstRender;
@@ -404,11 +405,18 @@ const createRouteGraphics = () => {
        */
       app = new Application();
       app.audioStage = audioStage;
+      const { resolution, preserveDrawingBuffer, clearBeforeRender } =
+        rendererOptions;
       await app.init({
         width,
         height,
         backgroundColor,
         preference: "webgl",
+        ...(resolution !== undefined ? { resolution } : {}),
+        ...(preserveDrawingBuffer !== undefined
+          ? { preserveDrawingBuffer }
+          : {}),
+        ...(clearBeforeRender !== undefined ? { clearBeforeRender } : {}),
       });
       app.debug = debug;
       canvasContextMenuListener = (event) => {
