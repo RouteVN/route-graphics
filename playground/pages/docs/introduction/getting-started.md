@@ -110,4 +110,4 @@ From here:
 
 - [Assets & Loading](/docs/guides/assets-loading/) explains aliases and runtime asset classes.
 - [Events & Render Complete](/docs/guides/events-render-complete/) covers lifecycle timing.
-- [Using the Playground](/docs/guides/playground/) shows how to turn examples into shareable repros.
+- [Using the Playground](/docs/guides/playground/) shows how to iterate on examples and inspect emitted events.

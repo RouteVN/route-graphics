@@ -1,5 +1,9 @@
 ---
 title: Update Text Position and Content
+specs:
+  - text content should update between states
+  - text position should move with the updated state
+  - navigating back should restore the original content and placement
 steps:
   - action: keypress
     key: "n"

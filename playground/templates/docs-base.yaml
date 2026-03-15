@@ -3,11 +3,11 @@
         - meta charset="utf-8":
         - meta name="viewport" content="width=device-width,initial-scale=1":
         - title: "${title}"
-        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/base.css":
-        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/themes/theme-rtgl-mono.css":
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.10/dist/themes/base.css":
+        - link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.10/dist/themes/theme-rtgl-mono.css":
         - link rel="stylesheet" href="https://rettangoli.dev/public/base.css":
         - script src="https://cdn.jsdelivr.net/npm/construct-style-sheets-polyfill@3.1.0/dist/adoptedStyleSheets.min.js":
-        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.0-rc6/dist/rettangoli-iife-ui.min.js":
+        - script src="https://cdn.jsdelivr.net/npm/@rettangoli/ui@1.0.10/dist/rettangoli-ui.iife.min.js":
     - body.dark:
         - rtgl-view:
             - rtgl-view bwb=xs w=f ah=c pos=fix bgc=bg:

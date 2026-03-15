@@ -6,9 +6,15 @@ specs:
   - wrapped lines should reveal one line at a time instead of wiping as a single block
   - completion indicator should swap after the wipe finishes
 steps:
-  - customEvent snapShotKeyFrame deltaMS=900
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 900
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1500
   - action: screenshot
 ---
 states:

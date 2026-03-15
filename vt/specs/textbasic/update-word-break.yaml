@@ -1,5 +1,8 @@
 ---
 title: Update Word Break Settings
+specs:
+  - word break changes should alter text wrapping between states
+  - navigating back should restore the original wrapping behavior
 steps:
   - action: keypress
     key: "n"

@@ -1,5 +1,8 @@
 ---
 title: Delete Rectangle Elements
+specs:
+  - rectangle elements should be removed in the updated state
+  - navigating back should restore the deleted rectangles
 steps:
   - action: keypress
     key: "n"
@@ -24,7 +27,7 @@ states:
         "y": 50
         width: 120
         height: 90
-        fill: "#A6A6A6"
+        fill: "#FFFFFF"
         zIndex: 1
       - id: rect-3
         type: rect
@@ -32,7 +35,7 @@ states:
         "y": 50
         width: 80
         height: 100
-        fill: "#737373"
+        fill: "#FFFFFF"
         zIndex: 1
   - elements:
       - id: rect-2
@@ -41,5 +44,5 @@ states:
         "y": 50
         width: 120
         height: 90
-        fill: "#A6A6A6"
+        fill: "#FFFFFF"
         zIndex: 1

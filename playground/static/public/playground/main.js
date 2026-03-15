@@ -78,7 +78,6 @@ const errorOverlay = document.getElementById("error-overlay");
 const errorMessage = document.getElementById("error-message");
 const resetTemplateButton = document.getElementById("reset-template-button");
 const copyYamlButton = document.getElementById("copy-yaml-button");
-const shareLinkButton = document.getElementById("share-link-button");
 const runtimeSourceLabel = document.getElementById("runtime-source");
 const clearEventsButton = document.getElementById("clear-events-button");
 const eventLogEmpty = document.getElementById("event-log-empty");
@@ -668,26 +667,6 @@ const handleNextScene = async () => {
   }
 };
 
-const getShareUrl = () => {
-  const url = new URL(window.location.href);
-  url.search = "";
-
-  const editorValue = templateInput.value;
-  const isBaseline = editorValue.trimEnd() === editorBaselineValue.trimEnd();
-
-  if (selectedTemplateId && isBaseline) {
-    url.searchParams.set("template", selectedTemplateId);
-  } else {
-    url.searchParams.set("yaml", editorValue);
-  }
-
-  if (currentStates.length > 1) {
-    url.searchParams.set("state", String(currentStateIndex + 1));
-  }
-
-  return url.toString();
-};
-
 const writeClipboardText = async (text) => {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
@@ -722,21 +701,6 @@ const handleCopyYaml = async () => {
     console.error("Failed to copy YAML:", error);
     pushEventLog(
       "clipboard.copy-yaml",
-      { status: "failed", message: error.message },
-      "system",
-    );
-  }
-};
-
-const handleShareLink = async () => {
-  try {
-    const url = getShareUrl();
-    await writeClipboardText(url);
-    pushEventLog("clipboard.copy-share-link", { url }, "system");
-  } catch (error) {
-    console.error("Failed to copy share link:", error);
-    pushEventLog(
-      "clipboard.copy-share-link",
       { status: "failed", message: error.message },
       "system",
     );
@@ -830,10 +794,6 @@ const injectEventListeners = () => {
 
   copyYamlButton?.addEventListener("click", () => {
     handleCopyYaml();
-  });
-
-  shareLinkButton?.addEventListener("click", () => {
-    handleShareLink();
   });
 
   clearEventsButton?.addEventListener("click", () => {

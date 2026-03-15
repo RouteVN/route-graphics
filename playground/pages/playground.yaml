@@ -20,7 +20,6 @@ title: Route-Graphics Playground
                     - rtgl-view w=1fg:
                     - rtgl-button#reset-template-button s=sm v=se: "Reset"
                     - rtgl-button#copy-yaml-button s=sm v=se: "Copy YAML"
-                    - rtgl-button#share-link-button s=sm v=se: "Share Link"
                 - div class="highlighted-textarea":
                     - textarea#input-template spellcheck="false" placeholder="Enter your YAML here with {elements, animations, audio}..." rows="10" cols="50":
                     - pre#highlighted-input-template aria-hidden="true":

@@ -4,6 +4,160 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: #f2f4f8;
+        font-family:
+          "IBM Plex Sans",
+          "Avenir Next",
+          "Segoe UI",
+          sans-serif;
+        background: #999 !important;
+      }
+
+      body {
+        height: auto !important;
+        padding-bottom: 20px;
+      }
+
+      .vt-state-pager {
+        position: relative;
+        z-index: 10;
+        width: fit-content;
+        align-self: flex-start;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        max-width: calc(100vw - 40px);
+        margin: 20px 0 0 20px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(24, 28, 33, 0.92), rgba(11, 14, 18, 0.92)),
+          rgba(8, 10, 12, 0.92);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+      }
+
+      .vt-state-pager[hidden] {
+        display: none;
+      }
+
+      .vt-state-nav {
+        appearance: none;
+        border: 0;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(242, 244, 248, 0.96);
+        min-width: 42px;
+        height: 36px;
+        padding: 0 12px;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition:
+          background 120ms ease,
+          color 120ms ease,
+          transform 120ms ease,
+          opacity 120ms ease;
+      }
+
+      .vt-state-nav:hover:not(:disabled),
+      .vt-state-index:hover {
+        background: rgba(255, 255, 255, 0.14);
+        transform: translateY(-1px);
+      }
+
+      .vt-state-nav:not(:disabled) {
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+
+      .vt-state-nav:disabled {
+        color: rgba(242, 244, 248, 0.62);
+        background: rgba(255, 255, 255, 0.08);
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .vt-state-center {
+        min-width: 0;
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+      }
+
+      .vt-state-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 8px;
+        max-width: min(100%, 70vw);
+      }
+
+      .vt-state-index {
+        appearance: none;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(242, 244, 248, 0.88);
+        font: inherit;
+        font-size: 14px;
+        cursor: pointer;
+        transition:
+          background 120ms ease,
+          border-color 120ms ease,
+          color 120ms ease,
+          transform 120ms ease;
+      }
+
+      .vt-state-index.is-active {
+        background: #f2f4f8;
+        border-color: #f2f4f8;
+        color: #111418;
+        font-weight: 700;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding-bottom: 12px;
+        }
+
+        .vt-state-pager {
+          max-width: calc(100vw - 24px);
+          margin: 12px 0 0 12px;
+          padding: 10px 12px;
+        }
+
+        .vt-state-nav {
+          min-width: 36px;
+          height: 36px;
+        }
+
+        .vt-state-index {
+          min-width: 32px;
+          height: 32px;
+          padding: 0 10px;
+        }
+      }
+    </style>
     <script id="vt-state" type="text/plain">{{ content }}</script>
     <script type="module">
       import createRouteGraphics, {
@@ -134,6 +288,27 @@
       );
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
+      const pager = document.createElement("nav");
+      pager.className = "vt-state-pager";
+      pager.setAttribute("aria-label", "State navigation");
+      const prevButton = document.createElement("button");
+      prevButton.className = "vt-state-nav";
+      prevButton.type = "button";
+      prevButton.setAttribute("aria-label", "Previous state");
+      prevButton.textContent = "←";
+      const stateCenter = document.createElement("div");
+      stateCenter.className = "vt-state-center";
+      const stateList = document.createElement("div");
+      stateList.className = "vt-state-list";
+      const nextButton = document.createElement("button");
+      nextButton.className = "vt-state-nav";
+      nextButton.type = "button";
+      nextButton.setAttribute("aria-label", "Next state");
+      nextButton.textContent = "→";
+
+      stateCenter.append(stateList);
+      pager.append(prevButton, stateCenter, nextButton);
+
       window.__VT_EVENTS__ = [];
       window.__VT_ALL_EVENTS__ = [];
       const shouldLogEvents = true;
@@ -164,6 +339,58 @@
             .map((event) => event.payload),
       };
 
+      const updatePager = () => {
+        const hasMultipleStates = states.length > 1;
+        pager.hidden = !hasMultipleStates;
+        if (!hasMultipleStates) {
+          return;
+        }
+
+        prevButton.disabled = index <= 0;
+        nextButton.disabled = index >= states.length - 1;
+        stateList.replaceChildren();
+
+        states.forEach((state, stateIndex) => {
+          const stateButton = document.createElement("button");
+          stateButton.type = "button";
+          stateButton.className = "vt-state-index";
+          if (stateIndex === index) {
+            stateButton.classList.add("is-active");
+            stateButton.setAttribute("aria-current", "true");
+          }
+          stateButton.textContent = String(stateIndex + 1);
+          stateButton.title = state?.id
+            ? `State ${stateIndex + 1}: ${state.id}`
+            : `State ${stateIndex + 1}`;
+          stateButton.addEventListener("click", () => {
+            renderState(stateIndex);
+          });
+          stateList.appendChild(stateButton);
+        });
+      };
+
+      const renderState = (nextIndex, { doubleRender = false } = {}) => {
+        if (nextIndex < 0 || nextIndex >= states.length) {
+          return;
+        }
+
+        index = nextIndex;
+        const state = states[index] ?? {};
+        const nextRenderState = {
+          id: state.id ?? `state-${index}`,
+          elements: state.elements ?? [],
+          animations: state.animations ?? [],
+          audio: state.audio ?? [],
+          global: state.global ?? {},
+        };
+
+        app.render(nextRenderState);
+        if (doubleRender) {
+          app.render(nextRenderState);
+        }
+        updatePager();
+      };
+
       await app.init({
         width: 1280,
         height: 720,
@@ -189,56 +416,34 @@
       });
       await app.loadAssets(assetBufferManager.getBufferMap());
       document.body.appendChild(app.canvas);
+      document.body.appendChild(pager);
+      if (states.length > 0) {
+        renderState(index);
+      } else {
+        updatePager();
+      }
 
-      app.render({
-        id: states[index].id ?? `state-${index}`,
-        elements: states[index].elements ?? [],
-        animations: states[index].animations ?? [],
-        audio: states[index].audio ?? [],
-        global: states[index].global ?? {},
+      prevButton.addEventListener("click", () => {
+        renderState(index - 1);
+      });
+
+      nextButton.addEventListener("click", () => {
+        renderState(index + 1);
       });
 
       const listenEvents = () => {
         document.addEventListener("keydown", async (e) => {
           if (e.shiftKey && e.key !== "Shift") {
             if (states.length > index + 1) {
-              index++;
-              app.render({
-                id: states[index].id ?? `state-${index}`,
-                elements: states[index].elements ?? [],
-                animations: states[index].animations ?? [],
-                audio: states[index].audio ?? [],
-                global: states[index].global ?? {},
-              });
-              app.render({
-                id: states[index].id ?? `state-${index}`,
-                elements: states[index].elements ?? [],
-                animations: states[index].animations ?? [],
-                audio: states[index].audio ?? [],
-                global: states[index].global ?? {},
-              });
+              renderState(index + 1, { doubleRender: true });
             }
-          } else if (e.key === "n") {
+          } else if (e.key === "n" || e.key === "ArrowRight") {
             if (states.length > index + 1) {
-              index++;
-              app.render({
-                id: states[index].id ?? `state-${index}`,
-                elements: states[index].elements ?? [],
-                animations: states[index].animations ?? [],
-                audio: states[index].audio ?? [],
-                global: states[index].global ?? {},
-              });
+              renderState(index + 1);
             }
-          } else if (e.key === "b") {
+          } else if (e.key === "b" || e.key === "ArrowLeft") {
             if (index - 1 >= 0) {
-              index--;
-              app.render({
-                id: states[index].id ?? `state-${index}`,
-                elements: states[index].elements ?? [],
-                animations: states[index].animations ?? [],
-                audio: states[index].audio ?? [],
-                global: states[index].global ?? {},
-              });
+              renderState(index - 1);
             }
           }
         });

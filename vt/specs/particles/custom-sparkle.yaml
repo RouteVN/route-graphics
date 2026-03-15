@@ -1,9 +1,18 @@
 ---
 title: Custom sparkle/twinkle effect (Level 3 - Full Custom)
+specs:
+  - custom particle behaviors should render deterministic sparkle frames
+  - snapshot keyframe events should capture stable intermediate particle states
 steps:
-  - customEvent snapShotKeyFrame deltaMS=200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
   - action: screenshot
 ---
 states:

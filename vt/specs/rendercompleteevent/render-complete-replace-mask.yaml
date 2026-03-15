@@ -9,7 +9,10 @@ steps:
     name: clearEvents
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
   - action: screenshot
   - action: assert
     type: js
@@ -18,7 +21,10 @@ steps:
       - renderComplete
       - all
     value: []
-  - customEvent snapShotKeyFrame deltaMS=500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
   - action: screenshot
   - action: assert
     type: js

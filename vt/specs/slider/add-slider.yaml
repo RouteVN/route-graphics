@@ -1,5 +1,8 @@
 ---
 title: Slider Elements
+specs:
+  - horizontal and vertical sliders should render with the configured assets
+  - initial slider values should place the thumbs at deterministic positions
 ---
 states:
   - elements:

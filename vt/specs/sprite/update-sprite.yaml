@@ -1,6 +1,10 @@
 ---
 title: Update Sprite Position and Properties
 description: Uses colored sprite assets intentionally to differentiate multi-sprite update states (guideline exception for asset-based tests).
+specs:
+  - sprites should update position and visual properties between states
+  - size, alpha, and rotation changes should remain deterministic in the snapshot
+  - navigating back should restore the original sprite properties
 steps:
   - action: keypress
     key: "n"

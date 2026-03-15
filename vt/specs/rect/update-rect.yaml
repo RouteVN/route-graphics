@@ -1,5 +1,8 @@
 ---
 title: Update Rectangle Position and Dimensions
+specs:
+  - rectangles should update position and dimensions between states
+  - navigating back should restore the original rectangle geometry
 steps:
   - action: keypress
     key: "n"

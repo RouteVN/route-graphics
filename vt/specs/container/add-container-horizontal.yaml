@@ -1,5 +1,8 @@
 ---
 title: Direction Horizontal
+specs:
+  - horizontal containers should lay out children from left to right
+  - configured gaps and child sizing should remain stable inside the container
 ---
 states:
   - elements:
@@ -22,7 +25,7 @@ states:
             height: 120
             scaleX: 1.2
             scaleY: 0.8
-            fill: "#A6A6A6"
+            fill: "#FFFFFF"
           - id: rect-3
             type: rect
             width: 80

@@ -9,11 +9,20 @@ steps:
   - action: screenshot
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
   - action: screenshot
 ---
 states:

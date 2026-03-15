@@ -8,14 +8,23 @@ specs:
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=1200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1200
   - action: screenshot
   - action: keypress
     key: "n"
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=800
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 800
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1500
 ---
 states:
   - elements: []
@@ -26,7 +35,7 @@ states:
         "y": 100
         width: 200
         height: 200
-        fill: "#A6A6A6"
+        fill: "#FFFFFF"
         alpha: 1
     animations:
       - id: rect-render-abortion
