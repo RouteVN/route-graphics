@@ -27,6 +27,15 @@ export const updateRect = ({
 
   const { x, y, width, height, fill, border, alpha, scaleX, scaleY } =
     nextElement;
+  const targetState = { x, y, alpha };
+
+  if (scaleX !== undefined) {
+    targetState.scaleX = scaleX;
+  }
+
+  if (scaleY !== undefined) {
+    targetState.scaleY = scaleY;
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -207,7 +216,7 @@ export const updateRect = ({
     animationBus,
     completionTracker,
     element: rectElement,
-    targetState: { x, y, alpha, scaleX, scaleY },
+    targetState,
     onComplete: () => {
       updateElement();
     },

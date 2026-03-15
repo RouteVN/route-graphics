@@ -22,6 +22,15 @@ export const addRect = ({
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
+  const targetState = { x, y, alpha };
+
+  if (scaleX !== undefined) {
+    targetState.scaleX = scaleX;
+  }
+
+  if (scaleY !== undefined) {
+    targetState.scaleY = scaleY;
+  }
 
   const drawRect = () => {
     rect.clear();
@@ -193,6 +202,6 @@ export const addRect = ({
     animationBus,
     completionTracker,
     element: rect,
-    targetState: { x, y, alpha, scaleX, scaleY },
+    targetState,
   });
 };
