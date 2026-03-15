@@ -71,24 +71,11 @@ await app.init({
   eventHandler: (eventName, payload) => {
     console.log(eventName, payload);
   },
-  rendererOptions: {
-    resolution: 1,
-    preserveDrawingBuffer: false,
-    clearBeforeRender: true,
-  },
 });
 
 await app.loadAssets(assetBufferManager.getBufferMap());
 document.body.appendChild(app.canvas);
 ```
-
-`rendererOptions` is intentionally narrow. Route Graphics currently allows only:
-
-- `resolution`
-- `preserveDrawingBuffer`
-- `clearBeforeRender`
-
-This keeps the public init contract explicit instead of passing arbitrary Pixi application options through the library.
 
 ## 4. Render state
 
