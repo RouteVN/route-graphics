@@ -1,9 +1,15 @@
 ---
 title: Custom sparkle/twinkle effect (Level 3 - Full Custom)
 steps:
-  - customEvent snapShotKeyFrame deltaMS=200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=200
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
   - action: screenshot
 ---
 states:

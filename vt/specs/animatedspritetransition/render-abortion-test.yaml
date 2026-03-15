@@ -8,8 +8,15 @@ specs:
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotAnimatedSpriteFrame frameIndex=0 elementId=animated-sprite-render-test
-  - customEvent snapShotKeyFrame deltaMS=1500
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite-render-test"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1500
   - action: screenshot
   - action: keypress
     key: "n"

@@ -5,11 +5,17 @@ specs:
   - first animation is interrupted before completion
   - second state renders to a stable frame
 steps:
-  - customEvent snapShotKeyFrame deltaMS=250
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
   - action: keypress
     key: "n"
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1000
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
   - action: screenshot
 ---
 states:

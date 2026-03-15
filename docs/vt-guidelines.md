@@ -37,6 +37,8 @@ Define one stable standard for VT authoring:
 ### Visual Rules
 
 - Keep each snapshot black + white whenever possible.
+- Default repeated rect/simple-shape elements to the same fill.
+- Only introduce extra grayscale shades when they are required to read overlap, layering, or identity during the assertion.
 - Use grayscale only for overlap/layer distinction.
 - Use the minimum number of shades needed to separate elements.
 - Keep shade semantics consistent within a spec family.
@@ -105,6 +107,7 @@ New pattern:
 ## Authoring Checklist
 
 - Spec uses default black/white/grayscale palette unless exception is documented.
+- Repeated rect/simple-shape elements use one fill unless contrast is necessary for the assertion.
 - No random colors.
 - No text-log-based behavior assertion.
 - Every event spec includes at least one explicit interaction step.

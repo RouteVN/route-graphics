@@ -8,14 +8,23 @@ specs:
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=1000
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
   - action: screenshot
   - action: keypress
     key: "n"
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1000
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=1000
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
   - action: screenshot
 ---
 states:
@@ -34,7 +43,7 @@ states:
             type: rect
             width: 250
             height: 60
-            fill: "#A6A6A6"
+            fill: "#FFFFFF"
     animations:
       - id: container-render-abortion
         targetId: container-render-test
@@ -86,7 +95,7 @@ states:
             type: rect
             width: 100
             height: 200
-            fill: "#D9D9D9"
+            fill: "#FFFFFF"
     animations:
       - id: container-render-abortion-2
         targetId: container-render-test

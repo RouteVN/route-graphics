@@ -8,9 +8,15 @@ specs:
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
 ---
 states:

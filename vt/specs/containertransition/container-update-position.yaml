@@ -8,9 +8,15 @@ specs:
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=500
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
   - action: screenshot
 ---
 states:
@@ -31,7 +37,7 @@ states:
             type: rect
             width: 60
             height: 60
-            fill: "#A6A6A6"
+            fill: "#FFFFFF"
   - elements:
       - id: container1
         type: container
@@ -49,7 +55,7 @@ states:
             type: rect
             width: 60
             height: 60
-            fill: "#A6A6A6"
+            fill: "#FFFFFF"
     animations:
       - id: container-move
         targetId: container1

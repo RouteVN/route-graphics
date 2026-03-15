@@ -4,7 +4,10 @@ description: Visual smoke test for mixed animation and text-revealing completion
 specs:
   - animation and text-revealing both reach a final visual state
 steps:
-  - customEvent snapShotKeyFrame deltaMS=800
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 800
   - action: screenshot
 ---
 states:

@@ -3,21 +3,39 @@ title: Update Particles Properties
 steps:
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
   - action: keypress
     key: "n"
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
   - action: keypress
     key: b
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
-  - customEvent snapShotKeyFrame deltaMS=300
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
   - action: screenshot
 ---
 states:

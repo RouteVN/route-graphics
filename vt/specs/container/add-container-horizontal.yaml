@@ -22,7 +22,7 @@ states:
             height: 120
             scaleX: 1.2
             scaleY: 0.8
-            fill: "#A6A6A6"
+            fill: "#FFFFFF"
           - id: rect-3
             type: rect
             width: 80
