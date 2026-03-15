@@ -16,7 +16,8 @@ export const addRect = ({
   zIndex,
   completionTracker,
 }) => {
-  const { id, x, y, width, height, fill, border, alpha } = element;
+  const { id, x, y, width, height, fill, border, alpha, scaleX, scaleY } =
+    element;
 
   const rect = new Graphics();
   rect.label = id;
@@ -28,6 +29,8 @@ export const addRect = ({
     rect.x = Math.round(x);
     rect.y = Math.round(y);
     rect.alpha = alpha;
+    rect.scale.x = scaleX ?? 1;
+    rect.scale.y = scaleY ?? 1;
 
     if (border) {
       rect.stroke({
@@ -190,6 +193,6 @@ export const addRect = ({
     animationBus,
     completionTracker,
     element: rect,
-    targetState: { x, y, alpha },
+    targetState: { x, y, alpha, scaleX, scaleY },
   });
 };

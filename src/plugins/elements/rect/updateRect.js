@@ -25,7 +25,8 @@ export const updateRect = ({
 
   rectElement.zIndex = zIndex;
 
-  const { x, y, width, height, fill, border, alpha } = nextElement;
+  const { x, y, width, height, fill, border, alpha, scaleX, scaleY } =
+    nextElement;
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -36,6 +37,8 @@ export const updateRect = ({
       rectElement.x = Math.round(x);
       rectElement.y = Math.round(y);
       rectElement.alpha = alpha;
+      rectElement.scale.x = scaleX ?? 1;
+      rectElement.scale.y = scaleY ?? 1;
 
       if (border) {
         rectElement.stroke({
@@ -204,7 +207,7 @@ export const updateRect = ({
     animationBus,
     completionTracker,
     element: rectElement,
-    targetState: { x, y, alpha },
+    targetState: { x, y, alpha, scaleX, scaleY },
     onComplete: () => {
       updateElement();
     },
