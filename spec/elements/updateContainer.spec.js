@@ -386,4 +386,51 @@ describe("updateContainer", () => {
     expect(renderElements).toHaveBeenCalledTimes(1);
     expect(renderElements.mock.calls[0][0].parent).toBe(containerElement);
   });
+
+  it("resets transient container scale when returning to an unscaled state", () => {
+    const parent = new Container();
+    const containerElement = new Container();
+    containerElement.label = "container-1";
+    containerElement.scale.set(1.5, 1.5);
+    parent.addChild(containerElement);
+
+    updateContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      prevElement: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        scaleX: 1.5,
+        scaleY: 1.5,
+        children: [],
+      },
+      nextElement: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        scaleX: 1,
+        scaleY: 1,
+        children: [],
+      },
+      eventHandler: vi.fn(),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(containerElement.scale.x).toBe(1);
+    expect(containerElement.scale.y).toBe(1);
+  });
 });

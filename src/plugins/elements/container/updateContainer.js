@@ -40,6 +40,8 @@ export const updateContainer = ({
       containerElement.y = Math.round(y);
       containerElement.label = nextElement.id;
       containerElement.alpha = alpha;
+      containerElement.scale.x = 1;
+      containerElement.scale.y = 1;
 
       containerElement.removeAllListeners("pointerover");
       containerElement.removeAllListeners("pointerout");
