@@ -1,6 +1,10 @@
 import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  applyInteractiveTextStyle,
+  syncTextAnchorRatios,
+} from "./textLayout.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -24,6 +28,7 @@ export const addText = ({
   // Apply initial state
   text.text = textComputedNode.content;
   applyTextStyle(text, textComputedNode.textStyle);
+  syncTextAnchorRatios(text, textComputedNode);
   text.alpha = textComputedNode.alpha;
   text.x = textComputedNode.x;
   text.y = textComputedNode.y;
@@ -40,28 +45,40 @@ export const addText = ({
 
   const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
     if (isRightPressed && rightClickEvents?.textStyle) {
-      applyTextStyle(text, rightClickEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        rightClickEvents.textStyle,
+      );
     } else if (isPressed && clickEvents?.textStyle) {
-      applyTextStyle(text, clickEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        clickEvents.textStyle,
+      );
     } else if (isHovering && hoverEvents?.textStyle) {
-      applyTextStyle(text, hoverEvents.textStyle);
+      applyInteractiveTextStyle(
+        text,
+        textComputedNode.textStyle,
+        hoverEvents.textStyle,
+      );
     } else {
-      applyTextStyle(text, textComputedNode.textStyle);
+      applyInteractiveTextStyle(text, textComputedNode.textStyle);
     }
   };
 
   if (hoverEvents) {
-    const { cursor, soundSrc, actionPayload } = hoverEvents;
+    const { cursor, soundSrc, payload } = hoverEvents;
     text.eventMode = "static";
 
     const overListener = () => {
       events.isHovering = true;
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (cursor) text.cursor = cursor;
       if (soundSrc)
@@ -84,7 +101,7 @@ export const addText = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, soundVolume, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, payload } = clickEvents;
     text.eventMode = "static";
 
     const clickListener = () => {
@@ -96,12 +113,12 @@ export const addText = ({
       events.isPressed = false;
       updateTextStyle(events);
 
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
@@ -123,10 +140,10 @@ export const addText = ({
   }
 
   if (rightClickEvents) {
-    const { soundSrc, actionPayload } = rightClickEvents;
+    const { soundSrc, payload } = rightClickEvents;
     text.eventMode = "static";
 
-    const rightClickListener = () => {
+    const rightPressListener = () => {
       events.isRightPressed = true;
       updateTextStyle(events);
     };
@@ -134,18 +151,23 @@ export const addText = ({
     const rightReleaseListener = () => {
       events.isRightPressed = false;
       updateTextStyle(events);
+    };
 
-      if (actionPayload && eventHandler) {
-        eventHandler(`rightclick`, {
+    const rightClickListener = () => {
+      events.isRightPressed = false;
+      updateTextStyle(events);
+
+      if (payload && eventHandler) {
+        eventHandler(`rightClick`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       }
       if (soundSrc) {
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });
@@ -157,8 +179,9 @@ export const addText = ({
       updateTextStyle(events);
     };
 
-    text.on("rightdown", rightClickListener);
+    text.on("rightdown", rightPressListener);
     text.on("rightup", rightReleaseListener);
+    text.on("rightclick", rightClickListener);
     text.on("rightupoutside", rightOutListener);
   }
 

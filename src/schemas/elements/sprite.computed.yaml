@@ -58,7 +58,7 @@ properties:
       cursor:
         type: string
         description: CSS cursor style when hovering over the sprite
-      actionPayload:
+      payload:
         type: object
         description: Payload for hover action event
   click:
@@ -76,7 +76,7 @@ properties:
         minimum: 0
         maximum: 1000
         default: 1000
-      actionPayload:
+      payload:
         type: object
         description: Payload for click action event
 events:

@@ -5,6 +5,7 @@ specs:
   - rect should scale from 1 to 1.5 on both axes
   - animation should take 800ms
   - uses scaleX and scaleY properties
+  - returning to the first state should reset scale so the transition runs again
 steps:
   - action: keypress
     key: "n"
@@ -13,6 +14,16 @@ steps:
     detail:
       deltaMS: 400
   - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: keypress
+    key: "b"
+  - action: screenshot
+  - action: keypress
+    key: "n"
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:

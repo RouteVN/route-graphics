@@ -25,7 +25,7 @@ properties:
             description: The ID of the element that was hovered
   dragStart:
     type: object
-    description: This event type is called "drag-start" and will be invoked when the pointer is press-downed on an element.
+    description: This event type is called "dragStart" and will be invoked when the pointer is press-downed on an element.
     properties:
       _event: 
         type: object
@@ -35,7 +35,7 @@ properties:
             description: The ID of the element that was hovered
   dragMove:
     type: object
-    description: This event type is called "drag-move" and will be invoked when the pointer is press-downed and the pointer is moving in an element.
+    description: This event type is called "dragMove" and will be invoked when the pointer is press-downed and the pointer is moving in an element.
     properties:
       _event: 
         type: object
@@ -51,7 +51,7 @@ properties:
             description: The y coordinate of the pointer
   dragEnd:
     type: object
-    description: This event type is called "drag-end" and will be invoked when the pointer is released after it is press-downed on an element.
+    description: This event type is called "dragEnd" and will be invoked when the pointer is released after it is press-downed on an element.
     properties:
       _event:
         type: object
@@ -61,7 +61,7 @@ properties:
             description: The ID of the element that was hovered
   rightClick:
     type: object
-    description: This event type is called "rightclick" and will be invoked when the right mouse button is clicked on an element.
+    description: This event type is called "rightClick" and will be invoked when the right mouse button is clicked on an element.
     properties:
       _event:
         type: object
@@ -71,7 +71,7 @@ properties:
             description: The ID of the element that was right-clicked
   scrollUp:
     type: object
-    description: This event type is called "scrollup" and will be invoked when scrolling up on an element.
+    description: This event type is called "scrollUp" and will be invoked when scrolling up on an element.
     properties:
       _event:
         type: object
@@ -81,7 +81,7 @@ properties:
             description: The ID of the element that was scrolled up on
   scrollDown:
     type: object
-    description: This event type is called "scrolldown" and will be invoked when scrolling down on an element.
+    description: This event type is called "scrollDown" and will be invoked when scrolling down on an element.
     properties:
       _event:
         type: object

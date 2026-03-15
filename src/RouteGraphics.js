@@ -162,6 +162,11 @@ const createRouteGraphics = () => {
   let debugAnimationListener;
 
   /**
+   * @type {(event: MouseEvent) => void | undefined}
+   */
+  let canvasContextMenuListener;
+
+  /**
    * Video blob URLs created in loadAssets; revoked on destroy.
    * @type {Set<string>}
    */
@@ -406,6 +411,10 @@ const createRouteGraphics = () => {
         preference: "webgl",
       });
       app.debug = debug;
+      canvasContextMenuListener = (event) => {
+        event.preventDefault();
+      };
+      app.canvas.addEventListener("contextmenu", canvasContextMenuListener);
 
       backgroundGraphic = new Graphics();
       backgroundGraphic.label = "__route_graphics_background__";
@@ -439,6 +448,13 @@ const createRouteGraphics = () => {
       if (debugAnimationListener) {
         window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
         debugAnimationListener = undefined;
+      }
+      if (canvasContextMenuListener && app?.canvas) {
+        app.canvas.removeEventListener(
+          "contextmenu",
+          canvasContextMenuListener,
+        );
+        canvasContextMenuListener = undefined;
       }
       keyboardManager?.destroy();
       clearPendingSounds();

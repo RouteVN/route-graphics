@@ -11,7 +11,7 @@ the below code as the following issues
 ```js
         eventHandler(`${id}-drag`, {
           _event: { id, value: currentValue },
-          ...drag.actionPayload,
+          ...drag.payload,
           currentValue,
         });
 ```
@@ -21,6 +21,5 @@ the below code as the following issues
 - follow event name of our domain, such as `click`, `hover`, etc...
 - inspired, but not same has the HTML events https://www.w3schools.com/tags/ref_eventattributes.asp, and pixijs events: https://pixijs.com/8.x/guides/components/events#event-types
 - event name and payload should be well documented, and structurarlly documented, similar to how we use json schema to docuument the yaml schema.
-
 
 

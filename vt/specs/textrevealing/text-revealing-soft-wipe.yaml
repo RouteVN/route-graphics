@@ -2,10 +2,14 @@
 title: Text Revealing - Soft Wipe
 description: Tests the softWipe reveal mode with wrapped multi-line text, line-by-line reveal, and indicator swap.
 specs:
+  - first state should be blank before the reveal starts
   - text should reveal gradually with a soft leading edge
   - wrapped lines should reveal one line at a time instead of wiping as a single block
   - completion indicator should swap after the wipe finishes
 steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
@@ -18,6 +22,8 @@ steps:
   - action: screenshot
 ---
 states:
+  - id: soft-wipe-blank
+    elements: []
   - id: soft-wipe-text
     elements:
       - id: soft-wipe-line

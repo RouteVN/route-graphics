@@ -19,12 +19,12 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - rightclick
+      - rightClick
     value:
       - _event:
           id: text-rightclick-style
         action: text-right-clicked
-        eventType: rightclick
+        eventType: rightClick
         button: right
         contextMenu: true
 ---
@@ -44,8 +44,8 @@ states:
             fontSize: 24
             fill: "#737373"
             fontFamily: Arial
-          actionPayload:
+          payload:
             action: text-right-clicked
-            eventType: rightclick
+            eventType: rightClick
             button: right
             contextMenu: true

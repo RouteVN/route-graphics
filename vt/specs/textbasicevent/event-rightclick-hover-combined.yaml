@@ -5,7 +5,7 @@ specs:
   - text should handle right-click and hover events independently
   - text should show hover cursor and still support right-click
   - text should change style on hover and right-click differently
-  - text should send correct actionPayload for each event type
+  - text should send correct payload for each event type
   - "text should support all three: hover, right-click, and click"
 steps:
   - action: customEvent
@@ -36,6 +36,17 @@ steps:
         action: text-hovered
         eventType: hover
         status: over
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - rightClick
+    value:
+      - _event:
+          id: text-hover-rightclick
+        action: text-right-clicked
+        eventType: rightClick
+        button: right
 ---
 states:
   - elements:
@@ -54,12 +65,16 @@ states:
             fontSize: 24
             fill: "#737373"
             fontFamily: Arial
-          actionPayload:
+          payload:
             action: text-hovered
             eventType: hover
             status: over
         rightClick:
           textStyle:
-            fontSize: 24
-            fill: "#737373"
-            fontFamily: Arial
+            fontSize: 28
+            fill: "#FF7777"
+            fontFamily: Georgia
+          payload:
+            action: text-right-clicked
+            eventType: rightClick
+            button: right

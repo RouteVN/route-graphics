@@ -33,10 +33,10 @@ If you remove `global.cursorStyles` in a later render, the runtime resets the de
 global:
   keyboard:
     r:
-      actionPayload:
+      payload:
         action: reset-demo
     shift+s:
-      actionPayload:
+      payload:
         action: save-demo
 ```
 

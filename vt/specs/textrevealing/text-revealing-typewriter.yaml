@@ -2,18 +2,28 @@
 title: Text Revealing - Typewriter
 description: Tests the typewriter reveal mode with wrapped multi-line text and indicator swap.
 specs:
+  - first state should be blank before the reveal starts
   - text should reveal progressively character by character
   - wrapped lines should stay stable while the current line types in
   - completion indicator should swap after the reveal finishes
 steps:
-  - action: wait
-    ms: 900
   - action: screenshot
-  - action: wait
-    ms: 2200
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 900
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 2200
   - action: screenshot
 ---
 states:
+  - id: typewriter-blank
+    elements: []
   - id: typewriter-text
     elements:
       - id: typewriter-line

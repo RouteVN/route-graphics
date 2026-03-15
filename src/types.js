@@ -32,13 +32,13 @@
  * @typedef {Object} HoverProps
  * @property {string} soundSrc
  * @property {string} cursor
- * @property {Object} actionPayload
+ * @property {Object} payload
  */
 
 /**
  * @typedef {Object} ClickProps
  * @property {string} soundSrc
- * @property {Object} actionPayload
+ * @property {Object} payload
  */
 
 /**
@@ -105,17 +105,17 @@
 
 /**
  * @typedef {Object} SliderDrag
- * @property {Object} actionPayload
+ * @property {Object} payload
  */
 
 /**
  * @typedef {Object} SliderDragStart
- * @property {Object} actionPayload
+ * @property {Object} payload
  */
 
 /**
  * @typedef {Object} SliderDragEnd
- * @property {Object} actionPayload
+ * @property {Object} payload
  */
 
 /**
@@ -495,7 +495,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} [cursorStyles.hover] - Hover cursor style
  * @property {string} [cursorStyles.disabled] - Disabled cursor style
  * @property {string} [cursorStyles.loading] - Loading cursor style
- * @property {Object<string, {actionPayload?: Object}>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
+ * @property {Object<string, {payload?: Object}>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
  */
 
 /**

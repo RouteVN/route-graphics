@@ -24,6 +24,7 @@ export const deleteRect = ({
     targetState: null,
     onComplete: () => {
       if (rect && !rect.destroyed) {
+        rect._cleanupScrollInteraction?.();
         rect.destroy();
       }
     },
@@ -31,6 +32,7 @@ export const deleteRect = ({
 
   if (!dispatched) {
     // No animation, destroy immediately
+    rect._cleanupScrollInteraction?.();
     rect.destroy();
   }
 };

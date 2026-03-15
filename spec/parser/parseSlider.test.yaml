@@ -32,11 +32,11 @@ in:
         barSrc: file:bar-hover
         soundSrc: sound-1
         cursor: cursor-1
-        actionPayload:
+        payload:
           prop1: "44"
           prop2: "55"
       change:
-        actionPayload:
+        payload:
           volume: 33
 out:
   id: volume-slider
@@ -60,11 +60,11 @@ out:
     barSrc: file:bar-hover
     soundSrc: sound-1
     cursor: cursor-1
-    actionPayload:
+    payload:
       prop1: "44"
       prop2: "55"
   change:
-    actionPayload:
+    payload:
       volume: 33
 ---
 case: Test parsing slider throws when min is larger than max

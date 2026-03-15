@@ -5,6 +5,7 @@ specs:
   - container should scale from 1 to 1.5 on both axes
   - children should scale with container
   - animation should take 1 second
+  - returning to the previous state should restore the unscaled container
 steps:
   - action: keypress
     key: "n"
@@ -17,6 +18,9 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "b"
   - action: screenshot
 ---
 states:

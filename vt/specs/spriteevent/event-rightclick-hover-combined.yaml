@@ -5,7 +5,7 @@ specs:
   - sprite should handle right-click and hover events independently
   - sprite should show hover cursor and still support right-click
   - sprite should change src on hover and right-click differently
-  - sprite should send correct actionPayload for each event type
+  - sprite should send correct payload for each event type
   - "sprite should support all three: hover, right-click, and click"
 steps:
   - action: customEvent
@@ -36,6 +36,17 @@ steps:
         action: sprite-hovered
         eventType: hover
         status: over
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - rightClick
+    value:
+      - _event:
+          id: sprite-hover-rightclick
+        action: sprite-right-clicked
+        eventType: rightClick
+        button: right
 ---
 states:
   - elements:
@@ -49,9 +60,13 @@ states:
         hover:
           cursor: pointer
           src: circle-green
-          actionPayload:
+          payload:
             action: sprite-hovered
             eventType: hover
             status: over
         rightClick:
           src: circle-red
+          payload:
+            action: sprite-right-clicked
+            eventType: rightClick
+            button: right

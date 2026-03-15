@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -27,11 +27,12 @@
   ],
   "scripts": {
     "lint": "bunx prettier --check src",
-    "lint:fix": "bunx prettier --check --write src",
+    "lint:fix": "bunx prettier --write src",
+    "prepare": "husky",
     "build": "bunx esbuild ./src/index.js --bundle --minify --format=esm --outfile=./dist/RouteGraphics.js && bunx esbuild ./src/index.js --bundle --sourcemap --format=esm --outfile=./vt/static/RouteGraphics.js",
     "vt:docker:pull": "docker pull docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10",
     "vt:generate": "bun run build && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt generate --wait-event vt:ready",
-    "vt:screenshot": "bun run build && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt screenshot --wait-event vt:ready --concurrency 8",
+    "vt:screenshot": "bun run build && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -e RTGL_VT_CONCURRENCY=${RTGL_VT_CONCURRENCY:-8} -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt screenshot --wait-event vt:ready --concurrency ${RTGL_VT_CONCURRENCY:-8}",
     "vt:docker": "bun run vt:screenshot",
     "vt:report": "bun run vt:screenshot && docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt report",
     "vt:accept": "docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.0.10 rtgl vt accept",
@@ -60,8 +61,9 @@
     "vitest": "^4.0.8"
   },
   "lint-staged": {
-    "src/**/*.{js}": [
-      "oxlint && bunx prettier --write"
+    "src/**/*.js": [
+      "oxlint",
+      "bunx prettier --write"
     ]
   }
 }

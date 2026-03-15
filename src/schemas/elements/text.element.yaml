@@ -93,7 +93,7 @@ properties:
       soundSrc:
         type: string
         description: URL to sound file to play on hover
-      actionPayload:
+      payload:
         type: object
         description: Payload for hover action event
   click:
@@ -110,7 +110,7 @@ properties:
         minimum: 0
         maximum: 1000
         default: 1000
-      actionPayload:
+      payload:
         type: object
         description: Payload for click action event
   rightClick:
@@ -121,6 +121,6 @@ properties:
       soundSrc:
         type: string
         description: URL to sound file to play on right-click
-      actionPayload:
+      payload:
         type: object
         description: Payload for right-click action event

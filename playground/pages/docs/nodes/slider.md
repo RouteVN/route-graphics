@@ -44,9 +44,9 @@ Try it in the [Playground](/playground/?template=slider-demo).
 
 ## Emitted Events
 
-| Event Name | Fired When                            | Payload Shape                                        |
-| ---------- | ------------------------------------- | ---------------------------------------------------- |
-| `change`   | value changes while dragging/clicking | `{ _event: { id, value }, ...change.actionPayload }` |
+| Event Name | Fired When                            | Payload Shape                                  |
+| ---------- | ------------------------------------- | ---------------------------------------------- |
+| `change`   | value changes while dragging/clicking | `{ _event: { id, value }, ...change.payload }` |
 
 ## Example: Minimal
 
@@ -87,7 +87,7 @@ elements:
       cursor: pointer
       soundSrc: hover-sfx
     change:
-      actionPayload:
+      payload:
         action: setSfxVolume
 ```
 

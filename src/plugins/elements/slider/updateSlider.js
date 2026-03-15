@@ -196,10 +196,10 @@ export const updateSlider = ({
             currentValue = newValue;
             updateThumbPosition(currentValue);
 
-            if (change?.actionPayload && eventHandler) {
+            if (change?.payload && eventHandler) {
               eventHandler("change", {
                 _event: { id: nextSliderComputedNode.id, value: currentValue },
-                ...change.actionPayload,
+                ...change.payload,
               });
             }
           }

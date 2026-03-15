@@ -2,9 +2,9 @@
 title: Rect Drag Events
 description: Test drag events on rect elements
 specs:
-  - rect should send actionPayload on drag.down
-  - rect should send actionPayload on drag.move
-  - rect should send actionPayload on drag.up
+  - rect should send payload on drag.down
+  - rect should send payload on drag.move
+  - rect should send payload on drag.up
 steps:
   - action: customEvent
     name: clearEvents
@@ -26,36 +26,36 @@ steps:
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-start
+      - dragStart
     value:
       - _event:
           id: rect-draggable
-        action: drag-start
+        action: dragStart
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-move
+      - dragMove
     value:
       - _event:
           id: rect-draggable
           x: 300
           "y": 200
-        action: drag-move
+        action: dragMove
       - _event:
           id: rect-draggable
           x: 400
           "y": 300
-        action: drag-move
+        action: dragMove
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
     args:
-      - drag-end
+      - dragEnd
     value:
       - _event:
           id: rect-draggable
-        action: drag-end
+        action: dragEnd
 ---
 states:
   - elements:
@@ -69,11 +69,11 @@ states:
         cursor: pointer
         drag:
           start:
-            actionPayload:
-              action: drag-start
+            payload:
+              action: dragStart
           move:
-            actionPayload:
-              action: drag-move
+            payload:
+              action: dragMove
           end:
-            actionPayload:
-              action: drag-end
+            payload:
+              action: dragEnd

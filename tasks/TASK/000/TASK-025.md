@@ -26,7 +26,7 @@ elements:
             width: 1920
             height: 1080
             click:
-              actionPayload:
+              payload:
                 actions:
                   nextLine: {}
       - id: bg-cg-alkejf3la
@@ -62,4 +62,3 @@ Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'f
 error in t.find around the below code:
 {let h=t.find(l=>l.type===a.type);if(!h)throw new Error(`No animation plugin found for type: ${a.type}`);n
 ```
-

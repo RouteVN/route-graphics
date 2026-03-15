@@ -27,12 +27,12 @@ states:
           thumbSrc: horizontal-hover-thumb
           barSrc: horizontal-hover-bar
           cursor: pointer
-          actionPayload:
+          payload:
             event: slider-hover
             sliderId: slider-horizontal
             direction: horizontal
         change:
-          actionPayload:
+          payload:
             action: slider-change
             sliderId: slider-horizontal
             direction: horizontal
@@ -58,12 +58,12 @@ states:
           thumbSrc: vertical-hover-thumb
           barSrc: vertical-hover-bar
           cursor: ew-resize
-          actionPayload:
+          payload:
             event: slider-hover
             sliderId: slider-vertical
             direction: vertical
         change:
-          actionPayload:
+          payload:
             action: slider-change
             sliderId: slider-vertical
             direction: vertical
@@ -89,13 +89,13 @@ states:
           thumbSrc: horizontal-hover-thumb
           barSrc: horizontal-hover-bar
           cursor: grab
-          actionPayload:
+          payload:
             event: slider-hover
             sliderId: slider-with-steps
             stepSize: 2
             message: Step slider with 2-unit increments
         change:
-          actionPayload:
+          payload:
             action: slider-change
             sliderId: slider-with-steps
             stepSize: 2

@@ -44,6 +44,7 @@ export const updateSprite = ({
       spriteElement.removeAllListeners("pointerupoutside");
       spriteElement.removeAllListeners("pointerup");
       spriteElement.removeAllListeners("rightdown");
+      spriteElement.removeAllListeners("rightclick");
       spriteElement.removeAllListeners("rightup");
       spriteElement.removeAllListeners("rightupoutside");
 
@@ -73,17 +74,17 @@ export const updateSprite = ({
       };
 
       if (hoverEvents) {
-        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        const { cursor, soundSrc, payload } = hoverEvents;
         spriteElement.eventMode = "static";
 
         const overListener = () => {
           events.isHovering = true;
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (cursor) spriteElement.cursor = cursor;
           if (soundSrc)
@@ -106,7 +107,7 @@ export const updateSprite = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, soundVolume, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, payload } = clickEvents;
         spriteElement.eventMode = "static";
 
         const clickListener = () => {
@@ -118,12 +119,12 @@ export const updateSprite = ({
           events.isPressed = false;
           updateTexture(events);
 
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -145,10 +146,10 @@ export const updateSprite = ({
       }
 
       if (rightClickEvents) {
-        const { soundSrc, actionPayload } = rightClickEvents;
+        const { soundSrc, payload } = rightClickEvents;
         spriteElement.eventMode = "static";
 
-        const rightClickListener = () => {
+        const rightPressListener = () => {
           events.isRightPressed = true;
           updateTexture(events);
         };
@@ -156,18 +157,23 @@ export const updateSprite = ({
         const rightReleaseListener = () => {
           events.isRightPressed = false;
           updateTexture(events);
+        };
 
-          if (actionPayload && eventHandler) {
-            eventHandler(`rightclick`, {
+        const rightClickListener = () => {
+          events.isRightPressed = false;
+          updateTexture(events);
+
+          if (payload && eventHandler) {
+            eventHandler(`rightClick`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           }
           if (soundSrc) {
             app.audioStage.add({
-              id: `rightclick-${Date.now()}`,
+              id: `rightClick-${Date.now()}`,
               url: soundSrc,
               loop: false,
             });
@@ -179,8 +185,9 @@ export const updateSprite = ({
           updateTexture(events);
         };
 
-        spriteElement.on("rightdown", rightClickListener);
+        spriteElement.on("rightdown", rightPressListener);
         spriteElement.on("rightup", rightReleaseListener);
+        spriteElement.on("rightclick", rightClickListener);
         spriteElement.on("rightupoutside", rightOutListener);
       }
     }

@@ -33,7 +33,8 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | `click`      | object | No       | -       | Click event config.                 |
 | `rightClick` | object | No       | -       | Right click event config.           |
 | `drag`       | object | No       | -       | `start`/`move`/`end` payload hooks. |
-| `scroll`     | object | No       | -       | `up` and `down` payload hooks.      |
+| `scrollUp`   | object | No       | -       | Wheel-up payload hook.              |
+| `scrollDown` | object | No       | -       | Wheel-down payload hook.            |
 
 ### `border`
 
@@ -45,16 +46,16 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 
 ## Emitted Events
 
-| Event Name   | Fired When                  | Payload Shape                                          |
-| ------------ | --------------------------- | ------------------------------------------------------ |
-| `hover`      | pointer enters rect         | `{ _event: { id }, ...hover.actionPayload }`           |
-| `click`      | pointer up                  | `{ _event: { id }, ...click.actionPayload }`           |
-| `rightclick` | right click                 | `{ _event: { id }, ...rightClick.actionPayload }`      |
-| `scrollup`   | wheel up over rect          | `{ _event: { id }, ...scroll.up.actionPayload }`       |
-| `scrolldown` | wheel down over rect        | `{ _event: { id }, ...scroll.down.actionPayload }`     |
-| `drag-start` | pointer down                | `{ _event: { id }, ...drag.start.actionPayload }`      |
-| `drag-move`  | pointer move while dragging | `{ _event: { id, x, y }, ...drag.move.actionPayload }` |
-| `drag-end`   | pointer up / outside        | `{ _event: { id }, ...drag.end.actionPayload }`        |
+| Event Name   | Fired When                  | Payload Shape                                    |
+| ------------ | --------------------------- | ------------------------------------------------ |
+| `hover`      | pointer enters rect         | `{ _event: { id }, ...hover.payload }`           |
+| `click`      | pointer up                  | `{ _event: { id }, ...click.payload }`           |
+| `rightClick` | right click                 | `{ _event: { id }, ...rightClick.payload }`      |
+| `scrollUp`   | wheel up over rect          | `{ _event: { id }, ...scrollUp.payload }`        |
+| `scrollDown` | wheel down over rect        | `{ _event: { id }, ...scrollDown.payload }`      |
+| `dragStart`  | pointer down                | `{ _event: { id }, ...drag.start.payload }`      |
+| `dragMove`   | pointer move while dragging | `{ _event: { id, x, y }, ...drag.move.payload }` |
+| `dragEnd`    | pointer up / outside        | `{ _event: { id }, ...drag.end.payload }`        |
 
 ## Example: Minimal
 
@@ -84,16 +85,16 @@ elements:
     hover:
       cursor: pointer
       soundSrc: hover-sfx
-      actionPayload:
+      payload:
         action: panelHover
     click:
       soundSrc: click-sfx
       soundVolume: 900
-      actionPayload:
+      payload:
         action: panelClick
     rightClick:
       soundSrc: rightclick-sfx
-      actionPayload:
+      payload:
         action: panelContext
 ```
 
@@ -110,14 +111,13 @@ elements:
     fill: "0x101010"
     drag:
       start:
-        actionPayload: { action: dragStart }
+        payload: { action: dragStart }
       move:
-        actionPayload: { action: dragMove }
+        payload: { action: dragMove }
       end:
-        actionPayload: { action: dragEnd }
-    scroll:
-      up:
-        actionPayload: { action: scrollUp }
-      down:
-        actionPayload: { action: scrollDown }
+        payload: { action: dragEnd }
+    scrollUp:
+      payload: { action: scrollUp }
+    scrollDown:
+      payload: { action: scrollDown }
 ```

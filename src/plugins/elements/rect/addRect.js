@@ -1,5 +1,6 @@
 import { Graphics } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { setupScrollInteraction } from "./setupScrollInteraction.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -15,11 +16,21 @@ export const addRect = ({
   zIndex,
   completionTracker,
 }) => {
-  const { id, x, y, width, height, fill, border, alpha } = element;
+  const { id, x, y, width, height, fill, border, alpha, scaleX, scaleY } =
+    element;
 
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
+  const targetState = { x, y, alpha };
+
+  if (scaleX !== undefined) {
+    targetState.scaleX = scaleX;
+  }
+
+  if (scaleY !== undefined) {
+    targetState.scaleY = scaleY;
+  }
 
   const drawRect = () => {
     rect.clear();
@@ -27,6 +38,8 @@ export const addRect = ({
     rect.x = Math.round(x);
     rect.y = Math.round(y);
     rect.alpha = alpha;
+    rect.scale.x = scaleX ?? 1;
+    rect.scale.y = scaleY ?? 1;
 
     if (border) {
       rect.stroke({
@@ -42,20 +55,21 @@ export const addRect = ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
-  const scrollEvents = element?.scroll;
+  const scrollUpEvent = element?.scrollUp;
+  const scrollDownEvent = element?.scrollDown;
   const dragEvent = element?.drag;
 
   if (hoverEvents) {
-    const { cursor, soundSrc, actionPayload } = hoverEvents;
+    const { cursor, soundSrc, payload } = hoverEvents;
     rect.eventMode = "static";
 
     const overListener = () => {
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (cursor) rect.cursor = cursor;
       if (soundSrc)
@@ -75,16 +89,16 @@ export const addRect = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, soundVolume, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, payload } = clickEvents;
     rect.eventMode = "static";
 
     const releaseListener = () => {
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
@@ -99,20 +113,20 @@ export const addRect = ({
   }
 
   if (rightClickEvents) {
-    const { soundSrc, actionPayload } = rightClickEvents;
+    const { soundSrc, payload } = rightClickEvents;
     rect.eventMode = "static";
 
     const rightClickListener = () => {
-      if (actionPayload && eventHandler)
-        eventHandler(`rightclick`, {
+      if (payload && eventHandler)
+        eventHandler(`rightClick`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
-          id: `rightclick-${Date.now()}`,
+          id: `rightClick-${Date.now()}`,
           url: soundSrc,
           loop: false,
         });
@@ -121,34 +135,16 @@ export const addRect = ({
     rect.on("rightclick", rightClickListener);
   }
 
-  if (scrollEvents) {
-    rect.eventMode = "static";
-
-    const wheelListener = (e) => {
-      if (e.deltaY < 0 && scrollEvents.up) {
-        const { actionPayload } = scrollEvents.up;
-
-        if (actionPayload && eventHandler)
-          eventHandler(`scrollup`, {
-            _event: {
-              id: rect.label,
-            },
-            ...actionPayload,
-          });
-      } else if (e.deltaY > 0 && scrollEvents.down) {
-        const { actionPayload } = scrollEvents.down;
-
-        if (actionPayload && eventHandler)
-          eventHandler(`scrolldown`, {
-            _event: {
-              id: rect.label,
-            },
-            ...actionPayload,
-          });
-      }
-    };
-
-    rect.on("wheel", wheelListener);
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      rect,
+      width,
+      height,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   if (dragEvent) {
@@ -158,13 +154,11 @@ export const addRect = ({
     const downListener = () => {
       rect._isDragging = true;
       if (start && eventHandler) {
-        eventHandler("drag-start", {
+        eventHandler("dragStart", {
           _event: {
             id: rect.label,
           },
-          ...(typeof start?.actionPayload === "object"
-            ? start.actionPayload
-            : {}),
+          ...(typeof start?.payload === "object" ? start.payload : {}),
         });
       }
     };
@@ -172,26 +166,24 @@ export const addRect = ({
     const upListener = () => {
       rect._isDragging = false;
       if (end && eventHandler) {
-        eventHandler("drag-end", {
+        eventHandler("dragEnd", {
           _event: {
             id: rect.label,
           },
-          ...(typeof end?.actionPayload === "object" ? end.actionPayload : {}),
+          ...(typeof end?.payload === "object" ? end.payload : {}),
         });
       }
     };
 
     const moveListener = (e) => {
       if (move && eventHandler && rect._isDragging) {
-        eventHandler("drag-move", {
+        eventHandler("dragMove", {
           _event: {
             id: rect.label,
             x: e.global.x,
             y: e.global.y,
           },
-          ...(typeof move?.actionPayload === "object"
-            ? move.actionPayload
-            : {}),
+          ...(typeof move?.payload === "object" ? move.payload : {}),
         });
       }
     };
@@ -210,6 +202,6 @@ export const addRect = ({
     animationBus,
     completionTracker,
     element: rect,
-    targetState: { x, y, alpha },
+    targetState,
   });
 };

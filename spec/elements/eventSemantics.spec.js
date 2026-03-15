@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe("event semantics", () => {
-  it("rect emits hover/click/rightclick/scroll payload events", () => {
+  it("rect emits hover/click/rightClick/scroll payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -50,18 +50,16 @@ describe("event semantics", () => {
         alpha: 1,
         fill: "#FFFFFF",
         hover: {
-          actionPayload: { source: "hover" },
+          payload: { source: "hover" },
         },
         click: {
-          actionPayload: { source: "click" },
+          payload: { source: "click" },
         },
         rightClick: {
-          actionPayload: { source: "rightclick" },
+          payload: { source: "rightClick" },
         },
-        scroll: {
-          up: { actionPayload: { direction: "up" } },
-          down: { actionPayload: { direction: "down" } },
-        },
+        scrollUp: { payload: { direction: "up" } },
+        scrollDown: { payload: { direction: "down" } },
       },
     });
 
@@ -75,9 +73,9 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
-      "scrollup",
-      "scrolldown",
+      "rightClick",
+      "scrollUp",
+      "scrollDown",
     ]);
 
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
@@ -90,7 +88,7 @@ describe("event semantics", () => {
     });
     expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { id: "rect-1" },
-      source: "rightclick",
+      source: "rightClick",
     });
     expect(eventHandler.mock.calls[3][1]).toMatchObject({
       _event: { id: "rect-1" },
@@ -102,7 +100,65 @@ describe("event semantics", () => {
     });
   });
 
-  it("rect drag emits drag-start/drag-move/drag-end with pointer payload", () => {
+  it("rect emits scroll events from native canvas wheel while hovered", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const nativeListeners = new Map();
+    const shared = {
+      ...createSharedParams(),
+      app: {
+        ...createSharedParams().app,
+        canvas: {
+          addEventListener: vi.fn((name, listener) => {
+            nativeListeners.set(name, listener);
+          }),
+          removeEventListener: vi.fn((name) => {
+            nativeListeners.delete(name);
+          }),
+        },
+      },
+    };
+
+    addRect({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "rect-scroll-native",
+        type: "rect",
+        x: 100,
+        y: 100,
+        width: 200,
+        height: 100,
+        alpha: 1,
+        fill: "#FFFFFF",
+        scrollUp: { payload: { direction: "up" } },
+      },
+    });
+
+    const rect = parent.getChildByLabel("rect-scroll-native");
+    rect.emit("pointerover");
+    nativeListeners.get("wheel")?.({
+      deltaY: -10,
+      preventDefault: vi.fn(),
+    });
+    rect.emit("pointerout");
+    nativeListeners.get("wheel")?.({
+      deltaY: -10,
+      preventDefault: vi.fn(),
+    });
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
+      "scrollUp",
+    ]);
+    expect(eventHandler.mock.calls[0][1]).toMatchObject({
+      _event: { id: "rect-scroll-native" },
+      direction: "up",
+    });
+  });
+
+  it("rect drag emits dragStart/dragMove/dragEnd with pointer payload", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -122,9 +178,9 @@ describe("event semantics", () => {
         alpha: 1,
         fill: "#FFFFFF",
         drag: {
-          start: { actionPayload: { step: "start" } },
-          move: { actionPayload: { step: "move" } },
-          end: { actionPayload: { step: "end" } },
+          start: { payload: { step: "start" } },
+          move: { payload: { step: "move" } },
+          end: { payload: { step: "end" } },
         },
       },
     });
@@ -135,9 +191,9 @@ describe("event semantics", () => {
     rect.emit("pointerup");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
-      "drag-start",
-      "drag-move",
-      "drag-end",
+      "dragStart",
+      "dragMove",
+      "dragEnd",
     ]);
     expect(eventHandler.mock.calls[1][1]).toMatchObject({
       _event: { id: "rect-drag", x: 320, y: 240 },
@@ -145,7 +201,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("sprite emits hover/click/rightclick payload events", () => {
+  it("sprite emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -163,9 +219,9 @@ describe("event semantics", () => {
         width: 120,
         height: 120,
         alpha: 1,
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -175,19 +231,20 @@ describe("event semantics", () => {
     sprite.emit("pointerup");
     sprite.emit("rightdown");
     sprite.emit("rightup");
+    sprite.emit("rightclick");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
     expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { id: "sprite-1" },
-      source: "rightclick",
+      source: "rightClick",
     });
   });
 
-  it("text emits hover/click/rightclick payload events", () => {
+  it("text emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -210,9 +267,9 @@ describe("event semantics", () => {
           fill: "#FFFFFF",
           fontFamily: "Arial",
         },
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -222,11 +279,12 @@ describe("event semantics", () => {
     text.emit("pointerup");
     text.emit("rightdown");
     text.emit("rightup");
+    text.emit("rightclick");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
       _event: { id: "text-1" },
@@ -234,7 +292,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("container emits hover/click/rightclick payload events", () => {
+  it("container emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -255,9 +313,9 @@ describe("event semantics", () => {
         height: 200,
         alpha: 1,
         children: [],
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightclick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -269,7 +327,7 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
-      "rightclick",
+      "rightClick",
     ]);
   });
 
@@ -297,7 +355,7 @@ describe("event semantics", () => {
         step: 1,
         initialValue: 0,
         change: {
-          actionPayload: { source: "drag" },
+          payload: { source: "drag" },
         },
       },
     });
@@ -323,8 +381,8 @@ describe("event semantics", () => {
     const keyboardManager = createKeyboardManager(eventHandler);
 
     keyboardManager.registerHotkeys({
-      a: { actionPayload: { source: "A" } },
-      "shift+c": { actionPayload: { source: "ShiftC" } },
+      a: { payload: { source: "A" } },
+      "shift+c": { payload: { source: "ShiftC" } },
     });
 
     hotkeys.trigger("a");

@@ -54,10 +54,10 @@ states:
     global:
       keyboard:
         a:
-          actionPayload:
+          payload:
             action: keyA_Pressed
         b:
-          actionPayload:
+          payload:
             action: keyB_Pressed
   - elements:
       - id: rect-keyboard-test
@@ -71,8 +71,8 @@ states:
     global:
       keyboard:
         c:
-          actionPayload:
+          payload:
             action: keyC_Pressed
         shift+c:
-          actionPayload:
+          payload:
             action: shift_c_Pressed

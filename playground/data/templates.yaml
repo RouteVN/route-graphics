@@ -197,7 +197,7 @@
             strokeColor: "transparent"
             strokeWidth: 0
           cursor: pointer
-          actionPayload:
+          payload:
             interaction: hover
         click:
           textStyle:
@@ -211,7 +211,7 @@
             wordWrapWidth: 540
             strokeColor: "transparent"
             strokeWidth: 0
-          actionPayload:
+          payload:
             interaction: click
       - id: note
         type: text
@@ -535,7 +535,7 @@
           thumbSrc: horizontal-hover-thumb
           barSrc: horizontal-hover-bar
           cursor: pointer
-          actionPayload:
+          payload:
             sliderId: slider-horizontal
       - id: slider-vertical
         type: slider
@@ -554,7 +554,7 @@
           thumbSrc: vertical-hover-thumb
           barSrc: vertical-hover-bar
           cursor: pointer
-          actionPayload:
+          payload:
             sliderId: slider-vertical
       - id: caption
         type: text
@@ -895,7 +895,7 @@
         hover: pointer
       keyboard:
         r:
-          actionPayload:
+          payload:
             shortcut: reset-demo
             source: global-keyboard
     elements:
@@ -936,7 +936,7 @@
             strokeColor: "transparent"
             strokeWidth: 0
           cursor: pointer
-          actionPayload:
+          payload:
             source: hoverable-text
             event: hover
         click:
@@ -951,7 +951,7 @@
             wordWrapWidth: 900
             strokeColor: "transparent"
             strokeWidth: 0
-          actionPayload:
+          payload:
             source: hoverable-text
             event: click
       - id: console-note
