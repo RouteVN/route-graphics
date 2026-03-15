@@ -7,6 +7,8 @@ sidebarId: guide-events-render-complete
 
 Every interactive or lifecycle signal in Route Graphics flows through the single `eventHandler(eventName, payload)` callback passed to `init(...)`.
 
+The authoritative contract for event naming and payload shape is in [`docs/api-naming.md`](https://github.com/RouteVN/route-graphics/blob/main/docs/api-naming.md). This page is a usage guide; the guideline doc is the source of truth.
+
 ## Common Event Names
 
 - `hover`
@@ -27,7 +29,7 @@ Every interactive or lifecycle signal in Route Graphics flows through the single
 - Public config keys also use `camelCase`.
 - Native Pixi events such as `pointerdown`, `rightdown`, and `rightup` stay internal implementation details.
 
-Element events include `_event` metadata plus any `actionPayload` you configured in the node.
+Element events include `_event` metadata plus any `payload` you configured in the node.
 
 ```js
 await app.init({
@@ -72,6 +74,6 @@ If a new render interrupts a previous one before its tracked work finishes, the 
 
 - Give states stable `id` values if you plan to react to `renderComplete`.
 - Treat `aborted: true` as cancellation, not success.
-- Keep element-level `actionPayload` small and serializable so event handling stays predictable.
+- Keep element-level `payload` small and serializable so event handling stays predictable.
 
 You can inspect these events directly in the [Interactive Elements](/playground/?template=interactive-elements), [Animation Showcase](/playground/?template=animations-showcase), [Global Config Demo](/playground/?template=global-config-demo), and [Video Demo](/playground/?template=video-demo) templates.

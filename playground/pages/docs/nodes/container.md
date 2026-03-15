@@ -43,11 +43,11 @@ Try it in the [Playground](/playground/?template=container-layout).
 
 ## Emitted Events
 
-| Event Name   | Fired When               | Payload Shape                                     |
-| ------------ | ------------------------ | ------------------------------------------------- |
-| `hover`      | pointer enters container | `{ _event: { id }, ...hover.actionPayload }`      |
-| `click`      | pointer up               | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightClick` | right click              | `{ _event: { id }, ...rightClick.actionPayload }` |
+| Event Name   | Fired When               | Payload Shape                               |
+| ------------ | ------------------------ | ------------------------------------------- |
+| `hover`      | pointer enters container | `{ _event: { id }, ...hover.payload }`      |
+| `click`      | pointer up               | `{ _event: { id }, ...click.payload }`      |
+| `rightClick` | right click              | `{ _event: { id }, ...rightClick.payload }` |
 
 ## Example: Minimal Group
 

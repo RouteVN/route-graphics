@@ -35,5 +35,5 @@ states:
         height: 100
         fill: "#A6A6A6"
         rightClick:
-          actionPayload:
+          payload:
             message: Rect 1 right-clicked

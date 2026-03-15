@@ -24,13 +24,13 @@ in:
       hover:
         soundSrc: sound-1
         cursor: cursor-1
-        actionPayload:
+        payload:
           prop1: "44"
           prop2: "55"
         src: hover-src
       click:
         soundSrc: sound-2
-        actionPayload:
+        payload:
           prop3: "00"
           prop4: "22"
         src: click-src
@@ -48,13 +48,13 @@ out:
   hover:
     soundSrc: sound-1
     cursor: cursor-1
-    actionPayload:
+    payload:
       prop1: "44"
       prop2: "55"
     src: hover-src
   click:
     soundSrc: sound-2
-    actionPayload:
+    payload:
       prop3: "00"
       prop4: "22"
     src: click-src

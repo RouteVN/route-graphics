@@ -34,7 +34,7 @@ states:
         width: 300
         height: 100
         rightClick:
-          actionPayload:
+          payload:
             message: Container 1 right-clicked
         children:
           - id: rect-1

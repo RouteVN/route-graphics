@@ -99,7 +99,7 @@ describe("updateContainer", () => {
         scroll: false,
         children: [],
         hover: {
-          actionPayload: { source: "hover" },
+          payload: { source: "hover" },
         },
       },
       eventHandler: vi.fn(),

@@ -68,17 +68,17 @@ export const addText = ({
   };
 
   if (hoverEvents) {
-    const { cursor, soundSrc, actionPayload } = hoverEvents;
+    const { cursor, soundSrc, payload } = hoverEvents;
     text.eventMode = "static";
 
     const overListener = () => {
       events.isHovering = true;
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (cursor) text.cursor = cursor;
       if (soundSrc)
@@ -101,7 +101,7 @@ export const addText = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, soundVolume, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, payload } = clickEvents;
     text.eventMode = "static";
 
     const clickListener = () => {
@@ -113,12 +113,12 @@ export const addText = ({
       events.isPressed = false;
       updateTextStyle(events);
 
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
@@ -140,7 +140,7 @@ export const addText = ({
   }
 
   if (rightClickEvents) {
-    const { soundSrc, actionPayload } = rightClickEvents;
+    const { soundSrc, payload } = rightClickEvents;
     text.eventMode = "static";
 
     const rightPressListener = () => {
@@ -157,12 +157,12 @@ export const addText = ({
       events.isRightPressed = false;
       updateTextStyle(events);
 
-      if (actionPayload && eventHandler) {
+      if (payload && eventHandler) {
         eventHandler(`rightClick`, {
           _event: {
             id: text.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       }
       if (soundSrc) {

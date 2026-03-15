@@ -33,11 +33,11 @@ Try it in the [Playground](/playground/?template=sprite-demo).
 
 ## Emitted Events
 
-| Event Name   | Fired When            | Payload Shape                                     |
-| ------------ | --------------------- | ------------------------------------------------- |
-| `hover`      | pointer enters sprite | `{ _event: { id }, ...hover.actionPayload }`      |
-| `click`      | pointer up            | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightClick` | right pointer up      | `{ _event: { id }, ...rightClick.actionPayload }` |
+| Event Name   | Fired When            | Payload Shape                               |
+| ------------ | --------------------- | ------------------------------------------- |
+| `hover`      | pointer enters sprite | `{ _event: { id }, ...hover.payload }`      |
+| `click`      | pointer up            | `{ _event: { id }, ...click.payload }`      |
+| `rightClick` | right pointer up      | `{ _event: { id }, ...rightClick.payload }` |
 
 ## Example: Minimal
 
@@ -67,18 +67,18 @@ elements:
       src: fighter-hover
       cursor: pointer
       soundSrc: hover-sfx
-      actionPayload:
+      payload:
         action: hoverHero
     click:
       src: fighter-pressed
       soundSrc: click-sfx
       soundVolume: 900
-      actionPayload:
+      payload:
         action: selectHero
     rightClick:
       src: fighter-alt
       soundSrc: rightclick-sfx
-      actionPayload:
+      payload:
         action: openHeroMenu
 ```
 

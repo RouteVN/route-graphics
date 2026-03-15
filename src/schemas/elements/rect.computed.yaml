@@ -67,7 +67,7 @@ properties:
       cursor:
         type: string
         description: CSS cursor style when hovering over the sprite
-      actionPayload:
+      payload:
         type: object
         description: Payload for hover action event
   click:
@@ -82,22 +82,22 @@ properties:
         minimum: 0
         maximum: 1000
         default: 1000
-      actionPayload:
+      payload:
         type: object
         description: Payload for click action event
   drag:
     type: object
     properties:
       start:
-        actionPayload:
+        payload:
           type: object
           description: Payload for click action event
       end:
-        actionPayload:
+        payload:
           type: object
           description: Payload for click action event
       move:
-        actionPayload:
+        payload:
           type: object
           description: Payload for click action event
   rightClick:
@@ -106,21 +106,18 @@ properties:
       soundSrc:
         type: string
         description: source of sound to be played when the rect is right-clicked
-      actionPayload:
+      payload:
         type: object
         description: Payload for right-click action event
-  scroll:
+  scrollUp:
     type: object
     properties:
-      up:
+      payload:
         type: object
-        properties:
-          actionPayload:
-            type: object
-            description: Payload for scroll up action event
-      down:
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
         type: object
-        properties:
-          actionPayload:
-            type: object
-            description: Payload for scroll down action event
+        description: Payload for scroll down action event

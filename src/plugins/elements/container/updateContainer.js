@@ -56,16 +56,16 @@ export const updateContainer = ({
       );
 
       if (hoverEvents) {
-        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        const { cursor, soundSrc, payload } = hoverEvents;
         containerElement.eventMode = "static";
 
         const overListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
                 id: containerElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (cursor) containerElement.cursor = cursor;
           if (soundSrc)
@@ -85,16 +85,16 @@ export const updateContainer = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, soundVolume, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, payload } = clickEvents;
         containerElement.eventMode = "static";
 
         const releaseListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
                 id: containerElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -109,16 +109,16 @@ export const updateContainer = ({
       }
 
       if (rightClickEvents) {
-        const { soundSrc, actionPayload } = rightClickEvents;
+        const { soundSrc, payload } = rightClickEvents;
         containerElement.eventMode = "static";
 
         const rightClickListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`rightClick`, {
               _event: {
                 id: containerElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({

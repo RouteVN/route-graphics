@@ -89,17 +89,17 @@ export const updateText = ({
       };
 
       if (hoverEvents) {
-        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        const { cursor, soundSrc, payload } = hoverEvents;
         textElement.eventMode = "static";
 
         const overListener = () => {
           events.isHovering = true;
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
                 id: textElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (cursor) textElement.cursor = cursor;
           if (soundSrc)
@@ -122,7 +122,7 @@ export const updateText = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, soundVolume, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, payload } = clickEvents;
         textElement.eventMode = "static";
 
         const clickListener = () => {
@@ -134,12 +134,12 @@ export const updateText = ({
           events.isPressed = false;
           updateTextStyle(events);
 
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
                 id: textElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -161,7 +161,7 @@ export const updateText = ({
       }
 
       if (rightClickEvents) {
-        const { soundSrc, actionPayload } = rightClickEvents;
+        const { soundSrc, payload } = rightClickEvents;
         textElement.eventMode = "static";
 
         const rightPressListener = () => {
@@ -178,12 +178,12 @@ export const updateText = ({
           events.isRightPressed = false;
           updateTextStyle(events);
 
-          if (actionPayload && eventHandler) {
+          if (payload && eventHandler) {
             eventHandler(`rightClick`, {
               _event: {
                 id: textElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           }
           if (soundSrc) {

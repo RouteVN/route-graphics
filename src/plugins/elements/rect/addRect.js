@@ -1,5 +1,6 @@
 import { Graphics } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { setupScrollInteraction } from "./setupScrollInteraction.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -42,20 +43,21 @@ export const addRect = ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
-  const scrollEvents = element?.scroll;
+  const scrollUpEvent = element?.scrollUp;
+  const scrollDownEvent = element?.scrollDown;
   const dragEvent = element?.drag;
 
   if (hoverEvents) {
-    const { cursor, soundSrc, actionPayload } = hoverEvents;
+    const { cursor, soundSrc, payload } = hoverEvents;
     rect.eventMode = "static";
 
     const overListener = () => {
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (cursor) rect.cursor = cursor;
       if (soundSrc)
@@ -75,16 +77,16 @@ export const addRect = ({
   }
 
   if (clickEvents) {
-    const { soundSrc, soundVolume, actionPayload } = clickEvents;
+    const { soundSrc, soundVolume, payload } = clickEvents;
     rect.eventMode = "static";
 
     const releaseListener = () => {
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
@@ -99,16 +101,16 @@ export const addRect = ({
   }
 
   if (rightClickEvents) {
-    const { soundSrc, actionPayload } = rightClickEvents;
+    const { soundSrc, payload } = rightClickEvents;
     rect.eventMode = "static";
 
     const rightClickListener = () => {
-      if (actionPayload && eventHandler)
+      if (payload && eventHandler)
         eventHandler(`rightClick`, {
           _event: {
             id: rect.label,
           },
-          ...actionPayload,
+          ...payload,
         });
       if (soundSrc)
         app.audioStage.add({
@@ -121,34 +123,16 @@ export const addRect = ({
     rect.on("rightclick", rightClickListener);
   }
 
-  if (scrollEvents) {
-    rect.eventMode = "static";
-
-    const wheelListener = (e) => {
-      if (e.deltaY < 0 && scrollEvents.up) {
-        const { actionPayload } = scrollEvents.up;
-
-        if (actionPayload && eventHandler)
-          eventHandler(`scrollUp`, {
-            _event: {
-              id: rect.label,
-            },
-            ...actionPayload,
-          });
-      } else if (e.deltaY > 0 && scrollEvents.down) {
-        const { actionPayload } = scrollEvents.down;
-
-        if (actionPayload && eventHandler)
-          eventHandler(`scrollDown`, {
-            _event: {
-              id: rect.label,
-            },
-            ...actionPayload,
-          });
-      }
-    };
-
-    rect.on("wheel", wheelListener);
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      rect,
+      width,
+      height,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   if (dragEvent) {
@@ -162,9 +146,7 @@ export const addRect = ({
           _event: {
             id: rect.label,
           },
-          ...(typeof start?.actionPayload === "object"
-            ? start.actionPayload
-            : {}),
+          ...(typeof start?.payload === "object" ? start.payload : {}),
         });
       }
     };
@@ -176,7 +158,7 @@ export const addRect = ({
           _event: {
             id: rect.label,
           },
-          ...(typeof end?.actionPayload === "object" ? end.actionPayload : {}),
+          ...(typeof end?.payload === "object" ? end.payload : {}),
         });
       }
     };
@@ -189,9 +171,7 @@ export const addRect = ({
             x: e.global.x,
             y: e.global.y,
           },
-          ...(typeof move?.actionPayload === "object"
-            ? move.actionPayload
-            : {}),
+          ...(typeof move?.payload === "object" ? move.payload : {}),
         });
       }
     };

@@ -48,11 +48,11 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 
 ## Emitted Events
 
-| Event Name   | Fired When               | Payload Shape                                     |
-| ------------ | ------------------------ | ------------------------------------------------- |
-| `hover`      | pointer enters text      | `{ _event: { id }, ...hover.actionPayload }`      |
-| `click`      | pointer up on text       | `{ _event: { id }, ...click.actionPayload }`      |
-| `rightClick` | right pointer up on text | `{ _event: { id }, ...rightClick.actionPayload }` |
+| Event Name   | Fired When               | Payload Shape                               |
+| ------------ | ------------------------ | ------------------------------------------- |
+| `hover`      | pointer enters text      | `{ _event: { id }, ...hover.payload }`      |
+| `click`      | pointer up on text       | `{ _event: { id }, ...click.payload }`      |
+| `rightClick` | right pointer up on text | `{ _event: { id }, ...rightClick.payload }` |
 
 ## Example: Minimal
 
@@ -85,7 +85,7 @@ elements:
       soundSrc: hover-sfx
       textStyle:
         fill: "#ffdd55"
-      actionPayload:
+      payload:
         action: menuHover
         target: start
     click:
@@ -93,14 +93,14 @@ elements:
       soundVolume: 850
       textStyle:
         fill: "#66ff99"
-      actionPayload:
+      payload:
         action: menuClick
         target: start
     rightClick:
       soundSrc: rightclick-sfx
       textStyle:
         fill: "#ff7777"
-      actionPayload:
+      payload:
         action: menuAlt
         target: start
 ```

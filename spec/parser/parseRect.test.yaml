@@ -135,3 +135,37 @@ out:
   fill: white
   rotation: 0
   alpha: 1
+---
+case: Test parsing rect with flat scroll handlers
+in:
+  - state:
+      id: rect-scroll
+      type: rect
+      width: 80
+      height: 100
+      x: 240
+      "y": 240
+      scrollUp:
+        payload:
+          action: list-up
+      scrollDown:
+        payload:
+          action: list-down
+out:
+  id: rect-scroll
+  type: rect
+  width: 80
+  height: 100
+  x: 240
+  "y": 240
+  originX: 0
+  originY: 0
+  fill: white
+  rotation: 0
+  alpha: 1
+  scrollUp:
+    payload:
+      action: list-up
+  scrollDown:
+    payload:
+      action: list-down

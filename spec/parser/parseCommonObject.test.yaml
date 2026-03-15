@@ -21,12 +21,12 @@ in:
     hover:
       soundSrc: sound-1
       cursor: cursor-1
-      actionPayload:
+      payload:
         prop1: "44"
         prop2: "55"
     click:
       soundSrc: sound-2
-      actionPayload:
+      payload:
         prop3: "00"
         prop4: "22"
 out:
@@ -42,12 +42,12 @@ out:
   hover:
     soundSrc: sound-1
     cursor: cursor-1
-    actionPayload:
+    payload:
       prop1: "44"
       prop2: "55"
   click:
     soundSrc: sound-2
-    actionPayload:
+    payload:
       prop3: "00"
       prop4: "22"
 ---
@@ -98,7 +98,7 @@ in:
     hover:
       soundSrc: hover-sound
       cursor: pointer
-      actionPayload:
+      payload:
         hoverAction: true
 out:
   id: obj-with-hover
@@ -113,7 +113,7 @@ out:
   hover:
     soundSrc: hover-sound
     cursor: pointer
-    actionPayload:
+    payload:
       hoverAction: true
 ---
 case: Parsing object with click property only
@@ -126,7 +126,7 @@ in:
     height: 120
     click:
       soundSrc: click-sound
-      actionPayload:
+      payload:
         clickAction: test-click
         value: 42
 out:
@@ -141,7 +141,7 @@ out:
   alpha: 1
   click:
     soundSrc: click-sound
-    actionPayload:
+    payload:
       clickAction: test-click
       value: 42
 ---
@@ -158,7 +158,7 @@ in:
       cursor: move
     click:
       soundSrc: click-bg
-      actionPayload:
+      payload:
         containerClicked: true
 out:
   id: obj-with-both
@@ -175,7 +175,7 @@ out:
     cursor: move
   click:
     soundSrc: click-bg
-    actionPayload:
+    payload:
       containerClicked: true
 ---
 case: Parsing object with custom alpha value

@@ -1,5 +1,6 @@
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { setupScrollInteraction } from "./setupScrollInteraction.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -28,6 +29,7 @@ export const updateRect = ({
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
+      rectElement._cleanupScrollInteraction?.();
       rectElement.clear();
 
       rectElement.rect(0, 0, Math.round(width), Math.round(height)).fill(fill);
@@ -55,20 +57,21 @@ export const updateRect = ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
-      const scrollEvents = nextElement?.scroll;
+      const scrollUpEvent = nextElement?.scrollUp;
+      const scrollDownEvent = nextElement?.scrollDown;
       const dragEvents = nextElement?.drag;
 
       if (hoverEvents) {
-        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        const { cursor, soundSrc, payload } = hoverEvents;
         rectElement.eventMode = "static";
 
         const overListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
                 id: rectElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (cursor) rectElement.cursor = cursor;
           if (soundSrc)
@@ -88,16 +91,16 @@ export const updateRect = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, soundVolume, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, payload } = clickEvents;
         rectElement.eventMode = "static";
 
         const clickListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
                 id: rectElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -112,16 +115,16 @@ export const updateRect = ({
       }
 
       if (rightClickEvents) {
-        const { soundSrc, actionPayload } = rightClickEvents;
+        const { soundSrc, payload } = rightClickEvents;
         rectElement.eventMode = "static";
 
         const rightClickListener = () => {
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`rightClick`, {
               _event: {
                 id: rectElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -134,34 +137,16 @@ export const updateRect = ({
         rectElement.on("rightclick", rightClickListener);
       }
 
-      if (scrollEvents) {
-        rectElement.eventMode = "static";
-
-        const wheelListener = (e) => {
-          if (e.deltaY < 0 && scrollEvents.up) {
-            const { actionPayload } = scrollEvents.up;
-
-            if (actionPayload && eventHandler)
-              eventHandler(`scrollUp`, {
-                _event: {
-                  id: rectElement.label,
-                },
-                ...actionPayload,
-              });
-          } else if (e.deltaY > 0 && scrollEvents.down) {
-            const { actionPayload } = scrollEvents.down;
-
-            if (actionPayload && eventHandler)
-              eventHandler(`scrollDown`, {
-                _event: {
-                  id: rectElement.label,
-                },
-                ...actionPayload,
-              });
-          }
-        };
-
-        rectElement.on("wheel", wheelListener);
+      if (scrollUpEvent || scrollDownEvent) {
+        setupScrollInteraction({
+          canvas: app.canvas,
+          rect: rectElement,
+          width,
+          height,
+          scrollUpEvent,
+          scrollDownEvent,
+          eventHandler,
+        });
       }
 
       if (dragEvents) {
@@ -175,9 +160,7 @@ export const updateRect = ({
               _event: {
                 id: rectElement.label,
               },
-              ...(typeof start?.actionPayload === "object"
-                ? start.actionPayload
-                : {}),
+              ...(typeof start?.payload === "object" ? start.payload : {}),
             });
           }
         };
@@ -189,9 +172,7 @@ export const updateRect = ({
               _event: {
                 id: rectElement.label,
               },
-              ...(typeof end?.actionPayload === "object"
-                ? end.actionPayload
-                : {}),
+              ...(typeof end?.payload === "object" ? end.payload : {}),
             });
           }
         };
@@ -204,9 +185,7 @@ export const updateRect = ({
                 x: e.global.x,
                 y: e.global.y,
               },
-              ...(typeof move?.actionPayload === "object"
-                ? move.actionPayload
-                : {}),
+              ...(typeof move?.payload === "object" ? move.payload : {}),
             });
           }
         };

@@ -64,11 +64,11 @@ states:
         direction: horizontal
         gap: 20
         hover:
-          actionPayload:
+          payload:
             type: container-hover
             containerId: main-container
         click:
-          actionPayload:
+          payload:
             type: container-click
             containerId: main-container
         children:
@@ -78,11 +78,11 @@ states:
             height: 50
             fill: "#A6A6A6"
             hover:
-              actionPayload:
+              payload:
                 type: child-hover
                 childId: rect-1
             click:
-              actionPayload:
+              payload:
                 type: child-click
                 childId: rect-1
           - id: child-rect-2

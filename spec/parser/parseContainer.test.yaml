@@ -979,15 +979,15 @@ in:
       hover:
         cursor: pointer
         soundSrc: hover-sound
-        actionPayload:
+        payload:
           type: hover
       click:
         soundSrc: click-sound
-        actionPayload:
+        payload:
           type: click
       rightClick:
         soundSrc: rightclick-sound
-        actionPayload:
+        payload:
           type: rightClick
       children:
         - id: rect-1
@@ -1012,15 +1012,15 @@ out:
   hover:
     cursor: pointer
     soundSrc: hover-sound
-    actionPayload:
+    payload:
       type: hover
   click:
     soundSrc: click-sound
-    actionPayload:
+    payload:
       type: click
   rightClick:
     soundSrc: rightclick-sound
-    actionPayload:
+    payload:
       type: rightClick
   children:
     - id: rect-1

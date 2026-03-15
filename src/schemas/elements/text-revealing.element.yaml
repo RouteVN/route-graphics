@@ -136,6 +136,6 @@ properties:
   complete:
     type: object
     properties:
-      actionPayload:
+      payload:
         type: object
         description: Payload for complete action event

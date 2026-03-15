@@ -59,7 +59,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 - `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask.
 - `revealEffect: none` skips animation and paints text immediately.
 - Completion contributes to global `renderComplete` tracking.
-- `complete.actionPayload` is currently parsed but no dedicated per-node event is emitted from this plugin.
+- `complete.payload` is currently parsed but no dedicated per-node event is emitted from this plugin.
 
 ## Example: Minimal
 

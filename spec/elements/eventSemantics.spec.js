@@ -50,18 +50,16 @@ describe("event semantics", () => {
         alpha: 1,
         fill: "#FFFFFF",
         hover: {
-          actionPayload: { source: "hover" },
+          payload: { source: "hover" },
         },
         click: {
-          actionPayload: { source: "click" },
+          payload: { source: "click" },
         },
         rightClick: {
-          actionPayload: { source: "rightClick" },
+          payload: { source: "rightClick" },
         },
-        scroll: {
-          up: { actionPayload: { direction: "up" } },
-          down: { actionPayload: { direction: "down" } },
-        },
+        scrollUp: { payload: { direction: "up" } },
+        scrollDown: { payload: { direction: "down" } },
       },
     });
 
@@ -102,6 +100,64 @@ describe("event semantics", () => {
     });
   });
 
+  it("rect emits scroll events from native canvas wheel while hovered", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const nativeListeners = new Map();
+    const shared = {
+      ...createSharedParams(),
+      app: {
+        ...createSharedParams().app,
+        canvas: {
+          addEventListener: vi.fn((name, listener) => {
+            nativeListeners.set(name, listener);
+          }),
+          removeEventListener: vi.fn((name) => {
+            nativeListeners.delete(name);
+          }),
+        },
+      },
+    };
+
+    addRect({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "rect-scroll-native",
+        type: "rect",
+        x: 100,
+        y: 100,
+        width: 200,
+        height: 100,
+        alpha: 1,
+        fill: "#FFFFFF",
+        scrollUp: { payload: { direction: "up" } },
+      },
+    });
+
+    const rect = parent.getChildByLabel("rect-scroll-native");
+    rect.emit("pointerover");
+    nativeListeners.get("wheel")?.({
+      deltaY: -10,
+      preventDefault: vi.fn(),
+    });
+    rect.emit("pointerout");
+    nativeListeners.get("wheel")?.({
+      deltaY: -10,
+      preventDefault: vi.fn(),
+    });
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
+      "scrollUp",
+    ]);
+    expect(eventHandler.mock.calls[0][1]).toMatchObject({
+      _event: { id: "rect-scroll-native" },
+      direction: "up",
+    });
+  });
+
   it("rect drag emits dragStart/dragMove/dragEnd with pointer payload", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
@@ -122,9 +178,9 @@ describe("event semantics", () => {
         alpha: 1,
         fill: "#FFFFFF",
         drag: {
-          start: { actionPayload: { step: "start" } },
-          move: { actionPayload: { step: "move" } },
-          end: { actionPayload: { step: "end" } },
+          start: { payload: { step: "start" } },
+          move: { payload: { step: "move" } },
+          end: { payload: { step: "end" } },
         },
       },
     });
@@ -163,9 +219,9 @@ describe("event semantics", () => {
         width: 120,
         height: 120,
         alpha: 1,
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightClick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -211,9 +267,9 @@ describe("event semantics", () => {
           fill: "#FFFFFF",
           fontFamily: "Arial",
         },
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightClick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -257,9 +313,9 @@ describe("event semantics", () => {
         height: 200,
         alpha: 1,
         children: [],
-        hover: { actionPayload: { source: "hover" } },
-        click: { actionPayload: { source: "click" } },
-        rightClick: { actionPayload: { source: "rightClick" } },
+        hover: { payload: { source: "hover" } },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
       },
     });
 
@@ -299,7 +355,7 @@ describe("event semantics", () => {
         step: 1,
         initialValue: 0,
         change: {
-          actionPayload: { source: "drag" },
+          payload: { source: "drag" },
         },
       },
     });
@@ -325,8 +381,8 @@ describe("event semantics", () => {
     const keyboardManager = createKeyboardManager(eventHandler);
 
     keyboardManager.registerHotkeys({
-      a: { actionPayload: { source: "A" } },
-      "shift+c": { actionPayload: { source: "ShiftC" } },
+      a: { payload: { source: "A" } },
+      "shift+c": { payload: { source: "ShiftC" } },
     });
 
     hotkeys.trigger("a");

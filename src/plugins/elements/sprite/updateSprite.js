@@ -74,17 +74,17 @@ export const updateSprite = ({
       };
 
       if (hoverEvents) {
-        const { cursor, soundSrc, actionPayload } = hoverEvents;
+        const { cursor, soundSrc, payload } = hoverEvents;
         spriteElement.eventMode = "static";
 
         const overListener = () => {
           events.isHovering = true;
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (cursor) spriteElement.cursor = cursor;
           if (soundSrc)
@@ -107,7 +107,7 @@ export const updateSprite = ({
       }
 
       if (clickEvents) {
-        const { soundSrc, soundVolume, actionPayload } = clickEvents;
+        const { soundSrc, soundVolume, payload } = clickEvents;
         spriteElement.eventMode = "static";
 
         const clickListener = () => {
@@ -119,12 +119,12 @@ export const updateSprite = ({
           events.isPressed = false;
           updateTexture(events);
 
-          if (actionPayload && eventHandler)
+          if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           if (soundSrc)
             app.audioStage.add({
@@ -146,7 +146,7 @@ export const updateSprite = ({
       }
 
       if (rightClickEvents) {
-        const { soundSrc, actionPayload } = rightClickEvents;
+        const { soundSrc, payload } = rightClickEvents;
         spriteElement.eventMode = "static";
 
         const rightPressListener = () => {
@@ -163,12 +163,12 @@ export const updateSprite = ({
           events.isRightPressed = false;
           updateTexture(events);
 
-          if (actionPayload && eventHandler) {
+          if (payload && eventHandler) {
             eventHandler(`rightClick`, {
               _event: {
                 id: spriteElement.label,
               },
-              ...actionPayload,
+              ...payload,
             });
           }
           if (soundSrc) {

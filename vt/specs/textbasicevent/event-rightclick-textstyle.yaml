@@ -44,7 +44,7 @@ states:
             fontSize: 24
             fill: "#737373"
             fontFamily: Arial
-          actionPayload:
+          payload:
             action: text-right-clicked
             eventType: rightClick
             button: right

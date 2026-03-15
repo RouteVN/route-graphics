@@ -201,7 +201,7 @@ properties:
   complete:
     type: object
     properties:
-      actionPayload:
+      payload:
         type: object
     additionalProperties: true
   tween:

@@ -13,7 +13,7 @@ export const createKeyboardManager = (eventHandler) => {
 
   /**
    * @param {Object} hotkeyConfigs - Object with key mappings
-   * @param {Object} hotkeyConfigs[key].actionPayload - Action payload for the key
+   * @param {Object} hotkeyConfigs[key].payload - Event payload for the key
    */
   const registerHotkeys = (hotkeyConfigs = {}) => {
     if (typeof hotkeyConfigs !== "object" || hotkeyConfigs === null) return;
@@ -26,9 +26,7 @@ export const createKeyboardManager = (eventHandler) => {
       const active = activeHotkeys.get(key);
       if (!active) {
         keysToAdd.push(key);
-      } else if (
-        !isDeepEqual(active.payload, hotkeyConfigs[key].actionPayload)
-      ) {
+      } else if (!isDeepEqual(active.payload, hotkeyConfigs[key].payload)) {
         keysToUpdate.push(key);
         hotkeys.unbind(key);
       }
@@ -47,7 +45,7 @@ export const createKeyboardManager = (eventHandler) => {
 
     [...keysToAdd, ...keysToUpdate].forEach((key) => {
       const config = hotkeyConfigs[key];
-      const payload = config.actionPayload ?? {};
+      const payload = config.payload ?? {};
 
       const handler = () => {
         if (eventHandler) {

@@ -1,11 +1,11 @@
 ---
 title: Slider Change Events
-description: Test change events with actionPayload
+description: Test change events with payload
 specs:
   - slider should send change event when thumb is pressed
   - slider should send change event during thumb movement
   - change events should include current slider value
-  - actionPayload should include custom data
+  - payload should include custom data
 steps:
   - action: customEvent
     name: clearEvents
@@ -55,6 +55,6 @@ states:
         step: 1
         initialValue: 25
         change:
-          actionPayload:
+          payload:
             action: slider-change
             component: volume-slider

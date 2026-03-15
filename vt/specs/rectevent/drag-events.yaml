@@ -2,9 +2,9 @@
 title: Rect Drag Events
 description: Test drag events on rect elements
 specs:
-  - rect should send actionPayload on drag.down
-  - rect should send actionPayload on drag.move
-  - rect should send actionPayload on drag.up
+  - rect should send payload on drag.down
+  - rect should send payload on drag.move
+  - rect should send payload on drag.up
 steps:
   - action: customEvent
     name: clearEvents
@@ -69,11 +69,11 @@ states:
         cursor: pointer
         drag:
           start:
-            actionPayload:
+            payload:
               action: dragStart
           move:
-            actionPayload:
+            payload:
               action: dragMove
           end:
-            actionPayload:
+            payload:
               action: dragEnd

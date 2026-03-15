@@ -90,7 +90,7 @@ properties:
     type: object
     description: Configuration for dragging behavior
     properties:
-      actionPayload:
+      payload:
         type: object
         description: Payload for drag action event. Typically contains actions like variable updates with "{{ value }}" template for current slider value.
 events:
