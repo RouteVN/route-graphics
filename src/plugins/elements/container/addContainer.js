@@ -1,6 +1,7 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Add container element to the stage (synchronous)
@@ -102,7 +103,11 @@ export const addContainer = ({
     const { soundSrc, soundVolume, payload } = clickEvents;
     container.eventMode = "static";
 
-    const releaseListener = () => {
+    const releaseListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {

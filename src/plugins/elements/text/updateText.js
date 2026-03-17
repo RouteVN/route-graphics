@@ -5,6 +5,7 @@ import {
   applyInteractiveTextStyle,
   syncTextAnchorRatios,
 } from "./textLayout.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Update text element (synchronous)
@@ -125,12 +126,20 @@ export const updateText = ({
         const { soundSrc, soundVolume, payload } = clickEvents;
         textElement.eventMode = "static";
 
-        const clickListener = () => {
+        const clickListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           events.isPressed = true;
           updateTextStyle(events);
         };
 
-        const releaseListener = () => {
+        const releaseListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           events.isPressed = false;
           updateTextStyle(events);
 

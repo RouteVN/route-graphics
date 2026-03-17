@@ -25,6 +25,8 @@ const createSharedParams = () => ({
   },
 });
 
+const createPointerEvent = (button) => ({ button });
+
 afterEach(() => {
   hotkeys.unbind();
 });
@@ -98,6 +100,39 @@ describe("event semantics", () => {
       _event: { id: "rect-1" },
       direction: "down",
     });
+  });
+
+  it("rect click does not fire for right mouse release", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    addRect({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "rect-right-only",
+        type: "rect",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        alpha: 1,
+        fill: "#FFFFFF",
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
+      },
+    });
+
+    const rect = parent.getChildByLabel("rect-right-only");
+    rect.emit("pointerup", createPointerEvent(2));
+    rect.emit("rightclick");
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
+      "rightClick",
+    ]);
   });
 
   it("rect emits scroll events from native canvas wheel while hovered", () => {
@@ -244,6 +279,41 @@ describe("event semantics", () => {
     });
   });
 
+  it("sprite click does not fire for right mouse press/release", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    addSprite({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "sprite-right-only",
+        type: "sprite",
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 50,
+        alpha: 1,
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
+      },
+    });
+
+    const sprite = parent.getChildByLabel("sprite-right-only");
+    sprite.emit("pointerdown", createPointerEvent(2));
+    sprite.emit("pointerup", createPointerEvent(2));
+    sprite.emit("rightdown");
+    sprite.emit("rightup");
+    sprite.emit("rightclick");
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
+      "rightClick",
+    ]);
+  });
+
   it("text emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
@@ -292,6 +362,46 @@ describe("event semantics", () => {
     });
   });
 
+  it("text click does not fire for right mouse press/release", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    addText({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "text-right-only",
+        type: "text",
+        x: 0,
+        y: 0,
+        width: 100,
+        alpha: 1,
+        content: "sample",
+        textStyle: {
+          fontSize: 20,
+          fill: "#FFFFFF",
+          fontFamily: "Arial",
+        },
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
+      },
+    });
+
+    const text = parent.getChildByLabel("text-right-only");
+    text.emit("pointerdown", createPointerEvent(2));
+    text.emit("pointerup", createPointerEvent(2));
+    text.emit("rightdown");
+    text.emit("rightup");
+    text.emit("rightclick");
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
+      "rightClick",
+    ]);
+  });
+
   it("container emits hover/click/rightClick payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
@@ -327,6 +437,41 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
+      "rightClick",
+    ]);
+  });
+
+  it("container click does not fire for right mouse release", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    addContainer({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      elementPlugins: [],
+      signal: new AbortController().signal,
+      element: {
+        id: "container-right-only",
+        type: "container",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        alpha: 1,
+        children: [],
+        click: { payload: { source: "click" } },
+        rightClick: { payload: { source: "rightClick" } },
+      },
+    });
+
+    const container = parent.getChildByLabel("container-right-only");
+    container.emit("pointerup", createPointerEvent(2));
+    container.emit("rightclick");
+
+    expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "rightClick",
     ]);
   });
