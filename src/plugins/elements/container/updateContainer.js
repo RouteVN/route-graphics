@@ -4,6 +4,7 @@ import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { getTargetAnimations } from "../../animations/planAnimations.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Update container element (synchronous)
@@ -90,7 +91,11 @@ export const updateContainer = ({
         const { soundSrc, soundVolume, payload } = clickEvents;
         containerElement.eventMode = "static";
 
-        const releaseListener = () => {
+        const releaseListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {

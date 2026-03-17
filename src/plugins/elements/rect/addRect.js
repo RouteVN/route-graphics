@@ -1,6 +1,7 @@
 import { Graphics } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -92,7 +93,11 @@ export const addRect = ({
     const { soundSrc, soundVolume, payload } = clickEvents;
     rect.eventMode = "static";
 
-    const releaseListener = () => {
+    const releaseListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       if (payload && eventHandler)
         eventHandler(`click`, {
           _event: {

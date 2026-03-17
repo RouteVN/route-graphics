@@ -1,6 +1,7 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Update sprite element (synchronous)
@@ -110,12 +111,20 @@ export const updateSprite = ({
         const { soundSrc, soundVolume, payload } = clickEvents;
         spriteElement.eventMode = "static";
 
-        const clickListener = () => {
+        const clickListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           events.isPressed = true;
           updateTexture(events);
         };
 
-        const releaseListener = () => {
+        const releaseListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           events.isPressed = false;
           updateTexture(events);
 

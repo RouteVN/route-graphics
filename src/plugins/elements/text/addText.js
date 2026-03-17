@@ -5,6 +5,7 @@ import {
   applyInteractiveTextStyle,
   syncTextAnchorRatios,
 } from "./textLayout.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -104,12 +105,20 @@ export const addText = ({
     const { soundSrc, soundVolume, payload } = clickEvents;
     text.eventMode = "static";
 
-    const clickListener = () => {
+    const clickListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       events.isPressed = true;
       updateTextStyle(events);
     };
 
-    const releaseListener = () => {
+    const releaseListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       events.isPressed = false;
       updateTextStyle(events);
 

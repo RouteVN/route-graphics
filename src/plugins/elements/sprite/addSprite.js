@@ -1,5 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -90,12 +91,20 @@ export const addSprite = ({
     const { soundSrc, soundVolume, payload } = clickEvents;
     sprite.eventMode = "static";
 
-    const clickListener = () => {
+    const clickListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       events.isPressed = true;
       updateTexture(events);
     };
 
-    const releaseListener = () => {
+    const releaseListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
       events.isPressed = false;
       updateTexture(events);
 

@@ -1,6 +1,7 @@
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
+import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -106,7 +107,11 @@ export const updateRect = ({
         const { soundSrc, soundVolume, payload } = clickEvents;
         rectElement.eventMode = "static";
 
-        const clickListener = () => {
+        const clickListener = (event) => {
+          if (!isPrimaryPointerEvent(event)) {
+            return;
+          }
+
           if (payload && eventHandler)
             eventHandler(`click`, {
               _event: {
