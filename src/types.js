@@ -241,7 +241,7 @@
 /**
  * @typedef {Object} RectComputedProps
  * @property {'rect'} type
- * @property {string} fill - Fill color (e.g., "red")
+ * @property {string} [fill] - Optional fill color. When omitted, the rect renders transparent.
  * @property {Object} border
  * @property {number} border.width
  * @property {string} border.color

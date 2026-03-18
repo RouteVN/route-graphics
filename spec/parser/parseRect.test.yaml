@@ -96,10 +96,6 @@ out:
   "y": 200
   originX: 48
   originY: 40
-  border:
-    alpha: 0.8
-    width: 0
-    color: black
   fill: red
   rotation: 90
   alpha: 1
@@ -128,11 +124,6 @@ out:
   "y": 200
   originX: 48
   originY: 40
-  border:
-    alpha: 0.8
-    width: 0
-    color: black
-  fill: white
   rotation: 0
   alpha: 1
 ---
@@ -160,7 +151,6 @@ out:
   "y": 240
   originX: 0
   originY: 0
-  fill: white
   rotation: 0
   alpha: 1
   scrollUp:

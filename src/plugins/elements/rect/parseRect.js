@@ -12,23 +12,24 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
  */
 export const parseRect = ({ state }) => {
   const computedObj = parseCommonObject(state);
+  const borderWidth = state.border?.width;
 
   let finalObj = computedObj;
 
-  if (state.border) {
+  if (typeof borderWidth === "number" && borderWidth > 0) {
     finalObj = {
       ...computedObj,
       border: {
         alpha: state.border?.alpha ?? 1,
         color: state.border?.color ?? "black",
-        width: state.border?.width ?? 0,
+        width: borderWidth,
       },
     };
   }
 
   return {
     ...finalObj,
-    fill: state.fill ?? "white",
+    ...(state.fill !== undefined ? { fill: state.fill } : {}),
     rotation: state.rotation ?? 0,
     ...(state.drag && { drag: state.drag }),
     ...(state.rightClick && { rightClick: state.rightClick }),

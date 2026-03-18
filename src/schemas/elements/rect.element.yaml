@@ -42,8 +42,7 @@ properties:
     default: 1
   fill:
     type: string
-    description: Fill color of the rectangle
-    default: white
+    description: Optional fill color of the rectangle. When omitted, the rect renders transparent.
   border:
     type: object
     description: Border properties
