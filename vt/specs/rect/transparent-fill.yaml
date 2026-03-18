@@ -1,0 +1,159 @@
+---
+title: Transparent Fill
+description: Rects with omitted or transparent fill should preserve content behind them on add and update.
+specs:
+  - "rects should render transparent interiors when `fill` is omitted"
+  - "rects should render transparent interiors when `fill: transparent` is used"
+  - navigating between states should preserve transparent fill behavior
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: add-backdrop-omitted
+        type: rect
+        x: 120
+        y: 120
+        width: 160
+        height: 100
+        fill: "#FF5555"
+      - id: add-overlay-omitted
+        type: rect
+        x: 80
+        y: 80
+        width: 240
+        height: 180
+        border:
+          width: 12
+          color: "#FFFFFF"
+          alpha: 1
+      - id: add-backdrop-transparent
+        type: rect
+        x: 800
+        y: 120
+        width: 160
+        height: 100
+        fill: "#55AAFF"
+      - id: add-overlay-transparent
+        type: rect
+        x: 760
+        y: 80
+        width: 240
+        height: 180
+        fill: "transparent"
+        border:
+          width: 12
+          color: "#FFFFFF"
+          alpha: 1
+      - id: update-backdrop-omitted
+        type: rect
+        x: 120
+        y: 460
+        width: 160
+        height: 100
+        fill: "#FFC857"
+      - id: update-overlay-omitted
+        type: rect
+        x: 80
+        y: 420
+        width: 240
+        height: 180
+        fill: "#FFFFFF"
+        border:
+          width: 12
+          color: "#1A1A1A"
+          alpha: 1
+      - id: update-backdrop-transparent
+        type: rect
+        x: 800
+        y: 460
+        width: 160
+        height: 100
+        fill: "#5FD38D"
+      - id: update-overlay-transparent
+        type: rect
+        x: 760
+        y: 420
+        width: 240
+        height: 180
+        fill: "#FFFFFF"
+        border:
+          width: 12
+          color: "#1A1A1A"
+          alpha: 1
+  - elements:
+      - id: add-backdrop-omitted
+        type: rect
+        x: 120
+        y: 120
+        width: 160
+        height: 100
+        fill: "#FF5555"
+      - id: add-overlay-omitted
+        type: rect
+        x: 80
+        y: 80
+        width: 240
+        height: 180
+        border:
+          width: 12
+          color: "#FFFFFF"
+          alpha: 1
+      - id: add-backdrop-transparent
+        type: rect
+        x: 800
+        y: 120
+        width: 160
+        height: 100
+        fill: "#55AAFF"
+      - id: add-overlay-transparent
+        type: rect
+        x: 760
+        y: 80
+        width: 240
+        height: 180
+        fill: "transparent"
+        border:
+          width: 12
+          color: "#FFFFFF"
+          alpha: 1
+      - id: update-backdrop-omitted
+        type: rect
+        x: 120
+        y: 460
+        width: 160
+        height: 100
+        fill: "#FFC857"
+      - id: update-overlay-omitted
+        type: rect
+        x: 80
+        y: 420
+        width: 240
+        height: 180
+        border:
+          width: 12
+          color: "#1A1A1A"
+          alpha: 1
+      - id: update-backdrop-transparent
+        type: rect
+        x: 800
+        y: 460
+        width: 160
+        height: 100
+        fill: "#5FD38D"
+      - id: update-overlay-transparent
+        type: rect
+        x: 760
+        y: 420
+        width: 240
+        height: 180
+        fill: "transparent"
+        border:
+          width: 12
+          color: "#1A1A1A"
+          alpha: 1
