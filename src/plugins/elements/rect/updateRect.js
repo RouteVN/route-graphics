@@ -3,6 +3,11 @@ import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
+const normalizeRectFill = (fill) =>
+  fill === undefined || fill === null || fill === "" || fill === "transparent"
+    ? { color: 0x000000, alpha: 0 }
+    : fill;
+
 /**
  * Update rectangle element (synchronous)
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
@@ -43,7 +48,9 @@ export const updateRect = ({
       rectElement._cleanupScrollInteraction?.();
       rectElement.clear();
 
-      rectElement.rect(0, 0, Math.round(width), Math.round(height)).fill(fill);
+      rectElement
+        .rect(0, 0, Math.round(width), Math.round(height))
+        .fill(normalizeRectFill(fill));
       rectElement.x = Math.round(x);
       rectElement.y = Math.round(y);
       rectElement.alpha = alpha;

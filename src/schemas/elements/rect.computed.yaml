@@ -38,7 +38,7 @@ properties:
     description: Calculated origin Y coordinate based on anchor
   fill:
     type: string
-    description: Fill color of the rectangle
+    description: Optional fill color of the rectangle. When omitted, the rect renders transparent.
   border:
     type: object
     description: Border properties
