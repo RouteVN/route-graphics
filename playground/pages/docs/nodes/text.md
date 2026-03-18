@@ -22,7 +22,7 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `x`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.           |
 | `y`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.           |
 | `content`    | string | No                  | `""`            | Converted to string at parse time.          |
-| `width`      | number | No                  | auto            | Enables wrapping (`wordWrapWidth = width`). |
+| `width`      | number | No                  | auto            | Fixed layout box width. Also enables wrapping (`wordWrapWidth = width`). |
 | `anchorX`    | number | No                  | `0`             | Can be outside `0..1`.                      |
 | `anchorY`    | number | No                  | `0`             | Can be outside `0..1`.                      |
 | `alpha`      | number | No                  | `1`             | Opacity `0..1`.                             |
@@ -45,6 +45,12 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `wordWrapWidth` | number                        | `0`           |
 | `strokeColor`   | string                        | `transparent` |
 | `strokeWidth`   | number                        | `0`           |
+
+## Layout Notes
+
+- When `width` is omitted, the text box width matches the rendered text width.
+- When `width` is provided, the text box width stays fixed to that value.
+- `align: center` and `align: right` place the rendered text inside that fixed-width box.
 
 ## Emitted Events
 

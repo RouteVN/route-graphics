@@ -20,6 +20,20 @@ const createSharedParams = () => ({
   },
 });
 
+const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
+  const remainingWidth = Math.max(0, layoutWidth - measuredWidth);
+
+  if (align === "center") {
+    return remainingWidth / 2;
+  }
+
+  if (align === "right") {
+    return remainingWidth;
+  }
+
+  return 0;
+};
+
 describe("text hover layout", () => {
   it("keeps the text anchor stable when hover styles change text metrics", () => {
     const parent = new Container();
@@ -130,5 +144,129 @@ describe("text hover layout", () => {
     text.emit("pointerout");
     expect(text.style.fill).toBe("#A6A6A6");
     expect(text.style.fontSize).toBe(24);
+  });
+
+  it("positions centered fixed-width text inside the layout box", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseText({
+      state: {
+        id: "text-fixed-center",
+        type: "text",
+        x: 40,
+        y: 60,
+        width: 200,
+        content: "Centered",
+        textStyle: {
+          fontSize: 24,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+          align: "center",
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element,
+    });
+
+    const text = parent.getChildByLabel("text-fixed-center");
+    expect(text.x).toBeCloseTo(element.x + (element.width - text.width) / 2, 4);
+    expect(text.y).toBe(element.y);
+  });
+
+  it("positions right-aligned fixed-width text inside the layout box", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseText({
+      state: {
+        id: "text-fixed-right",
+        type: "text",
+        x: 40,
+        y: 60,
+        width: 200,
+        content: "Right",
+        textStyle: {
+          fontSize: 24,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+          align: "right",
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element,
+    });
+
+    const text = parent.getChildByLabel("text-fixed-right");
+    expect(text.x).toBeCloseTo(element.x + element.width - text.width, 4);
+    expect(text.y).toBe(element.y);
+  });
+
+  it("keeps a fixed-width box anchor stable when hover styles change text metrics", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseText({
+      state: {
+        id: "text-fixed-width-hover-layout",
+        type: "text",
+        x: 240,
+        y: 120,
+        width: 200,
+        anchorX: 0.5,
+        anchorY: 0.5,
+        alpha: 1,
+        content: "Hover layout",
+        textStyle: {
+          fontSize: 24,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+          align: "center",
+        },
+        hover: {
+          textStyle: {
+            fontSize: 36,
+            fontFamily: "Arial",
+            fill: "#FFFFFF",
+            align: "center",
+          },
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element,
+    });
+
+    const text = parent.getChildByLabel("text-fixed-width-hover-layout");
+    const getBoxCenter = () => {
+      const offset = getHorizontalOffset(element.width, text.width, text.style.align);
+      return {
+        x: text.x - offset + element.width * 0.5,
+        y: text.y + text.height * 0.5,
+      };
+    };
+
+    const beforeHoverAnchor = getBoxCenter();
+
+    text.emit("pointerover");
+
+    expect(getBoxCenter().x).toBeCloseTo(beforeHoverAnchor.x, 4);
+    expect(getBoxCenter().y).toBeCloseTo(beforeHoverAnchor.y, 4);
+
+    text.emit("pointerout");
+
+    expect(getBoxCenter().x).toBeCloseTo(beforeHoverAnchor.x, 4);
+    expect(getBoxCenter().y).toBeCloseTo(beforeHoverAnchor.y, 4);
   });
 });

@@ -44,6 +44,7 @@ out:
   type: text
   content: This text is aligned to the top left corner
   width: 419
+  measuredWidth: 419
   height: 29
   x: 451
   "y": 226
@@ -101,11 +102,12 @@ out:
   id: tl
   type: text
   content: This text is wrap
-  width: 173
+  width: 200
+  measuredWidth: 173
   height: 29
-  x: 574
+  x: 560
   "y": 226
-  originX: 87
+  originX: 100
   originY: 15
   alpha: 1
   textStyle:
@@ -135,6 +137,7 @@ out:
   type: text
   content: This text is aligned to the top left corner
   width: 280
+  measuredWidth: 280
   height: 19
   x: 520
   "y": 231
@@ -167,6 +170,7 @@ out:
   type: text
   content: ""
   width: 0
+  measuredWidth: 0
   height: 19
   x: 660
   "y": 231
@@ -202,6 +206,7 @@ out:
   type: text
   content: Semi-transparent text
   width: 192
+  measuredWidth: 192
   height: 24
   x: 100
   "y": 50
@@ -243,6 +248,7 @@ out:
   type: text
   content: Fully styled text
   width: 117
+  measuredWidth: 117
   height: 27
   x: 50
   "y": 100
@@ -276,6 +282,7 @@ out:
   type: text
   content: "true"
   width: 28
+  measuredWidth: 28
   height: 19
   x: 100
   "y": 100
@@ -309,6 +316,7 @@ out:
   type: text
   content: "false"
   width: 34
+  measuredWidth: 34
   height: 19
   x: 100
   "y": 100
@@ -342,6 +350,7 @@ out:
   type: text
   content: "42"
   width: 18
+  measuredWidth: 18
   height: 19
   x: 100
   "y": 100

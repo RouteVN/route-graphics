@@ -2,7 +2,9 @@ import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
+  getTextLayoutPosition,
   applyInteractiveTextStyle,
+  positionTextInLayoutBox,
   syncTextAnchorRatios,
 } from "./textLayout.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
@@ -31,8 +33,7 @@ export const addText = ({
   applyTextStyle(text, textComputedNode.textStyle);
   syncTextAnchorRatios(text, textComputedNode);
   text.alpha = textComputedNode.alpha;
-  text.x = textComputedNode.x;
-  text.y = textComputedNode.y;
+  positionTextInLayoutBox(text, textComputedNode);
 
   const hoverEvents = textComputedNode?.hover;
   const clickEvents = textComputedNode?.click;
@@ -203,8 +204,7 @@ export const addText = ({
     completionTracker,
     element: text,
     targetState: {
-      x: textComputedNode.x,
-      y: textComputedNode.y,
+      ...getTextLayoutPosition(textComputedNode),
       alpha: textComputedNode.alpha,
     },
   });
