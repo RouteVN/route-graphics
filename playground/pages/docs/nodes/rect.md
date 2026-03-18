@@ -26,7 +26,7 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | `anchorX`    | number | No       | `0`     | Anchor offset ratio.                |
 | `anchorY`    | number | No       | `0`     | Anchor offset ratio.                |
 | `alpha`      | number | No       | `1`     | Opacity `0..1`.                     |
-| `fill`       | string | No       | `white` | Fill color.                         |
+| `fill`       | string \| object | No | transparent | Fill color or structured gradient fill. |
 | `border`     | object | No       | -       | Border config.                      |
 | `rotation`   | number | No       | `0`     | Degrees.                            |
 | `hover`      | object | No       | -       | Hover event config.                 |
@@ -43,6 +43,57 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | `width` | number | `0`     |
 | `color` | string | `black` |
 | `alpha` | number | `1`     |
+
+### `fill`
+
+`fill` can stay as a plain color string:
+
+```yaml
+fill: "#222222"
+```
+
+Or it can use a structured object:
+
+```yaml
+fill:
+  type: solid
+  color: "#222222"
+```
+
+```yaml
+fill:
+  type: linear-gradient
+  start: { x: 0, y: 0 }
+  end: { x: 1, y: 0 }
+  stops:
+    - offset: 0
+      color: "#ff7a18"
+    - offset: 1
+      color: "#af002d"
+  coordinateSpace: local
+```
+
+```yaml
+fill:
+  type: radial-gradient
+  innerCenter: { x: 0.5, y: 0.5 }
+  innerRadius: 0
+  outerCenter: { x: 0.5, y: 0.5 }
+  outerRadius: 0.5
+  stops:
+    - offset: 0
+      color: "#ffffff"
+    - offset: 1
+      color: "#111111"
+  coordinateSpace: local
+```
+
+Gradient notes:
+
+- `stops` must include at least 2 items.
+- Each stop `offset` must be between `0` and `1`.
+- `coordinateSpace` can be `local` or `global`.
+- `textureSize` and `wrapMode` are optional advanced Pixi gradient controls.
 
 ## Emitted Events
 
@@ -120,4 +171,29 @@ elements:
       payload: { action: scrollUp }
     scrollDown:
       payload: { action: scrollDown }
+```
+
+## Example: Gradient Panel
+
+```yaml
+elements:
+  - id: gradient-panel
+    type: rect
+    x: 80
+    y: 80
+    width: 420
+    height: 180
+    fill:
+      type: linear-gradient
+      start: { x: 0, y: 0 }
+      end: { x: 1, y: 1 }
+      stops:
+        - offset: 0
+          color: "#1f4037"
+        - offset: 1
+          color: "#99f2c8"
+    border:
+      width: 2
+      color: "#ffffff"
+      alpha: 0.35
 ```

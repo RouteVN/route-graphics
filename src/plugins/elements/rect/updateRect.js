@@ -2,11 +2,7 @@ import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
-
-const normalizeRectFill = (fill) =>
-  fill === undefined || fill === null || fill === "" || fill === "transparent"
-    ? { color: 0x000000, alpha: 0 }
-    : fill;
+import { resolveRectFill } from "./rectFill.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -50,7 +46,7 @@ export const updateRect = ({
 
       rectElement
         .rect(0, 0, Math.round(width), Math.round(height))
-        .fill(normalizeRectFill(fill));
+        .fill(resolveRectFill(rectElement, fill));
       rectElement.x = Math.round(x);
       rectElement.y = Math.round(y);
       rectElement.alpha = alpha;

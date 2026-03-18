@@ -159,3 +159,52 @@ out:
   scrollDown:
     payload:
       action: list-down
+---
+case: Test parsing rect with linear gradient fill
+in:
+  - state:
+      id: rect-gradient
+      type: rect
+      width: 240
+      height: 120
+      x: 20
+      "y": 30
+      fill:
+        type: linear-gradient
+        start:
+          x: 0
+          y: 0
+        end:
+          x: 1
+          y: 0
+        stops:
+          - offset: 0
+            color: "#ff0000"
+          - offset: 1
+            color: "#0000ff"
+        coordinateSpace: local
+out:
+  id: rect-gradient
+  type: rect
+  width: 240
+  height: 120
+  x: 20
+  "y": 30
+  originX: 0
+  originY: 0
+  fill:
+    type: linear-gradient
+    start:
+      x: 0
+      y: 0
+    end:
+      x: 1
+      y: 0
+    stops:
+      - offset: 0
+        color: "#ff0000"
+      - offset: 1
+        color: "#0000ff"
+    coordinateSpace: local
+  rotation: 0
+  alpha: 1

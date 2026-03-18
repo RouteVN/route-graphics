@@ -239,9 +239,57 @@
  */
 
 /**
+ * @typedef {Object} RectFillPoint
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef {Object} RectFillStop
+ * @property {number} offset
+ * @property {string} color
+ */
+
+/**
+ * @typedef {Object} RectSolidFill
+ * @property {'solid'} type
+ * @property {string} color
+ */
+
+/**
+ * @typedef {Object} RectLinearGradientFill
+ * @property {'linear-gradient'} type
+ * @property {RectFillPoint} [start]
+ * @property {RectFillPoint} [end]
+ * @property {RectFillStop[]} stops
+ * @property {'local' | 'global'} [coordinateSpace]
+ * @property {number} [textureSize]
+ * @property {'clamp-to-edge' | 'repeat'} [wrapMode]
+ */
+
+/**
+ * @typedef {Object} RectRadialGradientFill
+ * @property {'radial-gradient'} type
+ * @property {RectFillPoint} [innerCenter]
+ * @property {number} [innerRadius]
+ * @property {RectFillPoint} [outerCenter]
+ * @property {number} [outerRadius]
+ * @property {RectFillStop[]} stops
+ * @property {'local' | 'global'} [coordinateSpace]
+ * @property {number} [textureSize]
+ * @property {'clamp-to-edge' | 'repeat'} [wrapMode]
+ * @property {number} [scale]
+ * @property {number} [rotation]
+ */
+
+/**
+ * @typedef {string | RectSolidFill | RectLinearGradientFill | RectRadialGradientFill} RectFill
+ */
+
+/**
  * @typedef {Object} RectComputedProps
  * @property {'rect'} type
- * @property {string} [fill] - Optional fill color. When omitted, the rect renders transparent.
+ * @property {RectFill} [fill] - Optional fill. When omitted, the rect renders transparent.
  * @property {Object} border
  * @property {number} border.width
  * @property {string} border.color

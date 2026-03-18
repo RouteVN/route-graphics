@@ -2,11 +2,7 @@ import { Graphics } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
-
-const normalizeRectFill = (fill) =>
-  fill === undefined || fill === null || fill === "" || fill === "transparent"
-    ? { color: 0x000000, alpha: 0 }
-    : fill;
+import { destroyRectFillResource, resolveRectFill } from "./rectFill.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -28,6 +24,9 @@ export const addRect = ({
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
+  rect.on("destroyed", () => {
+    destroyRectFillResource(rect);
+  });
   const targetState = { x, y, alpha };
 
   if (scaleX !== undefined) {
@@ -42,7 +41,7 @@ export const addRect = ({
     rect.clear();
     rect
       .rect(0, 0, Math.round(width), Math.round(height))
-      .fill(normalizeRectFill(fill));
+      .fill(resolveRectFill(rect, fill));
     rect.x = Math.round(x);
     rect.y = Math.round(y);
     rect.alpha = alpha;

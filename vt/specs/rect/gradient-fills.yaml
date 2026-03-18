@@ -1,0 +1,72 @@
+---
+title: Rect Gradient Fills
+specs:
+  - rect should render solid, linear gradient, and radial gradient fills
+---
+states:
+  - elements:
+      - id: solid-label
+        type: text
+        x: 60
+        "y": 36
+        content: Solid
+        textStyle:
+          fontSize: 22
+          fill: "#ffffff"
+      - id: solid-rect
+        type: rect
+        x: 60
+        "y": 70
+        width: 220
+        height: 120
+        fill:
+          type: solid
+          color: "#2f6fed"
+      - id: linear-label
+        type: text
+        x: 320
+        "y": 36
+        content: Linear
+        textStyle:
+          fontSize: 22
+          fill: "#ffffff"
+      - id: linear-rect
+        type: rect
+        x: 320
+        "y": 70
+        width: 220
+        height: 120
+        fill:
+          type: linear-gradient
+          start: { x: 0, y: 0 }
+          end: { x: 1, y: 1 }
+          stops:
+            - offset: 0
+              color: "#ff7a18"
+            - offset: 1
+              color: "#af002d"
+      - id: radial-label
+        type: text
+        x: 580
+        "y": 36
+        content: Radial
+        textStyle:
+          fontSize: 22
+          fill: "#ffffff"
+      - id: radial-rect
+        type: rect
+        x: 580
+        "y": 70
+        width: 220
+        height: 120
+        fill:
+          type: radial-gradient
+          innerCenter: { x: 0.35, y: 0.35 }
+          innerRadius: 0
+          outerCenter: { x: 0.5, y: 0.5 }
+          outerRadius: 0.6
+          stops:
+            - offset: 0
+              color: "#fff1a8"
+            - offset: 1
+              color: "#1e3a8a"
