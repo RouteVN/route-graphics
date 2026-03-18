@@ -36,7 +36,8 @@ const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
 };
 
 export const getTextLayoutPosition = (textComputedNode) => {
-  const measuredWidth = textComputedNode.measuredWidth ?? textComputedNode.width;
+  const measuredWidth =
+    textComputedNode.measuredWidth ?? textComputedNode.width;
   const offsetX = getHorizontalOffset(
     textComputedNode.width,
     measuredWidth,
@@ -150,7 +151,8 @@ export const positionTextInLayoutBox = (textElement, textComputedNode) => {
     ...textComputedNode,
     measuredWidth: textElement.width,
     width:
-      textComputedNode.__fixedWidth && typeof textComputedNode.width === "number"
+      textComputedNode.__fixedWidth &&
+      typeof textComputedNode.width === "number"
         ? textComputedNode.width
         : textElement.width,
   });

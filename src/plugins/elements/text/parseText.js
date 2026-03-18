@@ -40,7 +40,9 @@ export const parseText = ({ state }) => {
   const roundedMeasuredWidth = Math.round(width);
   const roundedHeight = Math.round(height);
   const layoutWidth =
-    typeof state.width === "number" ? Math.round(state.width) : roundedMeasuredWidth;
+    typeof state.width === "number"
+      ? Math.round(state.width)
+      : roundedMeasuredWidth;
 
   let computedObj = parseCommonObject({
     ...state,
