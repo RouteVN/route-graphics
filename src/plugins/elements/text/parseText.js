@@ -23,7 +23,7 @@ export const parseText = ({ state }) => {
   textStyle.lineHeight = Math.round(textStyle.fontSize * textStyle.lineHeight);
 
   // Handle word wrap width based on element width
-  if (state.width) {
+  if (typeof state.width === "number") {
     textStyle.wordWrapWidth = state.width;
     textStyle.wordWrap = true;
   }
@@ -37,18 +37,23 @@ export const parseText = ({ state }) => {
   );
 
   // Round pixel calculations
-  const roundedWidth = Math.round(width);
+  const roundedMeasuredWidth = Math.round(width);
   const roundedHeight = Math.round(height);
+  const layoutWidth =
+    typeof state.width === "number"
+      ? Math.round(state.width)
+      : roundedMeasuredWidth;
 
   let computedObj = parseCommonObject({
     ...state,
-    width: roundedWidth,
+    width: layoutWidth,
     height: roundedHeight,
   });
 
   const computedText = {
     ...computedObj,
     content: contentString,
+    measuredWidth: roundedMeasuredWidth,
     textStyle: {
       ...textStyle,
     },
@@ -64,6 +69,10 @@ export const parseText = ({ state }) => {
     },
     __anchorYRatio: {
       value: state.anchorY ?? 0,
+      enumerable: false,
+    },
+    __fixedWidth: {
+      value: typeof state.width === "number",
       enumerable: false,
     },
   });

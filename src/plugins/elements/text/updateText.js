@@ -2,7 +2,9 @@ import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
+  getTextLayoutPosition,
   applyInteractiveTextStyle,
+  positionTextInLayoutBox,
   syncTextAnchorRatios,
 } from "./textLayout.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
@@ -30,7 +32,7 @@ export const updateText = ({
 
   textElement.zIndex = zIndex;
 
-  const { x, y, alpha } = nextTextComputedNode;
+  const { alpha } = nextTextComputedNode;
 
   const updateElement = () => {
     if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
@@ -38,8 +40,7 @@ export const updateText = ({
       applyTextStyle(textElement, nextTextComputedNode.textStyle);
       syncTextAnchorRatios(textElement, nextTextComputedNode);
 
-      textElement.x = x;
-      textElement.y = y;
+      positionTextInLayoutBox(textElement, nextTextComputedNode);
       textElement.alpha = alpha;
 
       textElement.removeAllListeners("pointerover");
@@ -223,7 +224,10 @@ export const updateText = ({
     animationBus,
     completionTracker,
     element: textElement,
-    targetState: { x, y, alpha },
+    targetState: {
+      ...getTextLayoutPosition(nextTextComputedNode),
+      alpha,
+    },
     onComplete: () => {
       updateElement();
     },

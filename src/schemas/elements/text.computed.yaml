@@ -49,6 +49,7 @@ required:
   - type
   - content
   - width
+  - measuredWidth
   - height
   - x
   - y
@@ -67,7 +68,10 @@ properties:
     description: The text content to display
   width:
     type: number
-    description: Calculated width of the text based on content and style
+    description: Layout width of the text box. When input width is provided, this matches that fixed width.
+  measuredWidth:
+    type: number
+    description: Rendered text width based on content and style before fixed-width layout is applied
   height:
     type: number
     description: Calculated height of the text based on content and style

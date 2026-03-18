@@ -1,0 +1,59 @@
+---
+title: Fixed Width Text Alignment
+specs:
+  - left, center, and right aligned text should render inside the same fixed-width box
+  - text anchors should use the fixed element width rather than the measured glyph width
+---
+states:
+  - elements:
+      - id: box-left
+        type: rect
+        x: 40
+        "y": 40
+        width: 220
+        height: 40
+        fill: "#4D4D4D"
+      - id: text-left
+        type: text
+        content: LEFT
+        x: 40
+        "y": 48
+        width: 220
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          align: left
+      - id: box-center
+        type: rect
+        x: 40
+        "y": 110
+        width: 220
+        height: 40
+        fill: "#4D4D4D"
+      - id: text-center
+        type: text
+        content: CENTER
+        x: 40
+        "y": 118
+        width: 220
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          align: center
+      - id: box-right
+        type: rect
+        x: 40
+        "y": 180
+        width: 220
+        height: 40
+        fill: "#4D4D4D"
+      - id: text-right
+        type: text
+        content: RIGHT
+        x: 40
+        "y": 188
+        width: 220
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          align: right

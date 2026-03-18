@@ -285,6 +285,7 @@
 /**
  * @typedef {Object} TextComputedProps
  * @property {string} content - The text content to display
+ * @property {number} measuredWidth - The rendered text width before fixed-width layout is applied
  * @property {Object} textStyle - Text style object
  * @property {TextHover} [hover]
  * @property {TextClick} [click]

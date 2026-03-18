@@ -1,0 +1,64 @@
+---
+title: Fixed Width Center Anchor
+specs:
+  - centered fixed-width text should stay anchored to the same box center when the content changes
+  - internal center alignment should continue to use the fixed box width after updates
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: marker
+        type: rect
+        x: 319
+        "y": 60
+        width: 2
+        height: 120
+        fill: "#D9D9D9"
+      - id: box
+        type: rect
+        x: 220
+        "y": 90
+        width: 200
+        height: 40
+        fill: "#4D4D4D"
+      - id: text-center-anchor
+        type: text
+        content: Wide Label
+        x: 320
+        "y": 98
+        width: 200
+        anchorX: 0.5
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          align: center
+  - elements:
+      - id: marker
+        type: rect
+        x: 319
+        "y": 60
+        width: 2
+        height: 120
+        fill: "#D9D9D9"
+      - id: box
+        type: rect
+        x: 220
+        "y": 90
+        width: 200
+        height: 40
+        fill: "#4D4D4D"
+      - id: text-center-anchor
+        type: text
+        content: Tiny
+        x: 320
+        "y": 98
+        width: 200
+        anchorX: 0.5
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          align: center
