@@ -2,6 +2,125 @@ $schema: http://json-schema.org/draft-07/schema#
 title: Rect Element
 description: Schema for rectangle element raw input
 type: object
+$def:
+  point:
+    type: object
+    additionalProperties: false
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        description: X coordinate
+      y:
+        type: number
+        description: Y coordinate
+  stop:
+    type: object
+    additionalProperties: false
+    required:
+      - offset
+      - color
+    properties:
+      offset:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Gradient stop offset from 0 to 1
+      color:
+        type: string
+        description: Gradient stop color
+  fill:
+    oneOf:
+      - type: string
+        description: Solid fill color. Use "transparent" for a transparent fill.
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - color
+        properties:
+          type:
+            const: solid
+            description: Solid fill type
+          color:
+            type: string
+            description: Solid fill color
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - stops
+        properties:
+          type:
+            const: linear-gradient
+            description: Linear gradient fill type
+          start:
+            "$ref": "#/$def/point"
+            description: Gradient start point. Defaults to { x: 0, y: 0 } in local normalized coordinates.
+          end:
+            "$ref": "#/$def/point"
+            description: Gradient end point. Defaults to { x: 0, y: 1 } in local normalized coordinates.
+          stops:
+            type: array
+            minItems: 2
+            items:
+              "$ref": "#/$def/stop"
+          coordinateSpace:
+            type: string
+            enum: [local, global]
+            description: Whether gradient coordinates are relative to the rect or the world
+          textureSize:
+            type: number
+            description: Gradient texture resolution hint
+          wrapMode:
+            type: string
+            enum: [clamp-to-edge, repeat]
+            description: Gradient wrap mode
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - stops
+        properties:
+          type:
+            const: radial-gradient
+            description: Radial gradient fill type
+          innerCenter:
+            "$ref": "#/$def/point"
+            description: Inner circle center. Defaults to { x: 0.5, y: 0.5 } in local normalized coordinates.
+          innerRadius:
+            type: number
+            description: Inner circle radius. Defaults to 0.
+          outerCenter:
+            "$ref": "#/$def/point"
+            description: Outer circle center. Defaults to the inner center in local normalized coordinates.
+          outerRadius:
+            type: number
+            description: Outer circle radius. Defaults to 0.5.
+          stops:
+            type: array
+            minItems: 2
+            items:
+              "$ref": "#/$def/stop"
+          coordinateSpace:
+            type: string
+            enum: [local, global]
+            description: Whether gradient coordinates are relative to the rect or the world
+          textureSize:
+            type: number
+            description: Gradient texture resolution hint
+          wrapMode:
+            type: string
+            enum: [clamp-to-edge, repeat]
+            description: Gradient wrap mode
+          scale:
+            type: number
+            description: Radial gradient ellipse scale
+          rotation:
+            type: number
+            description: Radial gradient rotation in radians
 required:
   - id
   - type
@@ -41,8 +160,8 @@ properties:
     maximum: 1
     default: 1
   fill:
-    type: string
-    description: Optional fill color of the rectangle. When omitted, the rect renders transparent.
+    "$ref": "#/$def/fill"
+    description: Optional fill of the rectangle. Supports solid colors and structured gradient fills. When omitted, the rect renders transparent.
   border:
     type: object
     description: Border properties

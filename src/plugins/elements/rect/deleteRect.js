@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { destroyRectFillResource } from "./rectFill.js";
 
 /**
  * Delete rectangle element (synchronous)
@@ -25,6 +26,7 @@ export const deleteRect = ({
     onComplete: () => {
       if (rect && !rect.destroyed) {
         rect._cleanupScrollInteraction?.();
+        destroyRectFillResource(rect);
         rect.destroy();
       }
     },
@@ -33,6 +35,7 @@ export const deleteRect = ({
   if (!dispatched) {
     // No animation, destroy immediately
     rect._cleanupScrollInteraction?.();
+    destroyRectFillResource(rect);
     rect.destroy();
   }
 };
