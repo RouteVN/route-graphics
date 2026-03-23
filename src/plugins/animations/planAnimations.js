@@ -1,3 +1,9 @@
+import {
+  TRANSITION_PROPERTY_PATH_MAP,
+  WhiteListAnimationProps,
+} from "../../types.js";
+import { queueDeferredMountEffect } from "../elements/renderContext.js";
+
 export const groupAnimationsByTarget = (animations = []) => {
   if (animations instanceof Map) {
     return animations;
@@ -34,21 +40,66 @@ export const getTransitionAnimation = (animationsOrMap, targetId) =>
     (animation) => animation.type === "transition",
   ) ?? null;
 
-export const dispatchUpdateAnimations = ({
-  animations,
-  targetId,
+const getMappedPath = (propertyPathMap, path) => {
+  if (typeof path !== "string") {
+    return path;
+  }
+
+  return propertyPathMap[path] ?? path;
+};
+
+const setAnimationProperty = (object, path, propertyPathMap, value) => {
+  const mappedPath = getMappedPath(propertyPathMap, path);
+
+  if (typeof mappedPath === "string") {
+    object[mappedPath] = value;
+    return object;
+  }
+
+  let current = object;
+  for (let index = 0; index < mappedPath.length - 1; index++) {
+    const key = mappedPath[index];
+    if (!(key in current)) {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+
+  current[mappedPath[mappedPath.length - 1]] = value;
+  return object;
+};
+
+const applyInitialAnimationState = (
+  element,
+  properties,
+  propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
+) => {
+  for (const [property, config] of Object.entries(properties)) {
+    if (!WhiteListAnimationProps[property]) {
+      throw new Error(`${property} is not a supported property for animation.`);
+    }
+
+    if (config.initialValue === undefined) {
+      continue;
+    }
+
+    setAnimationProperty(
+      element,
+      property,
+      propertyPathMap,
+      config.initialValue,
+    );
+  }
+};
+
+const startUpdateAnimations = ({
+  relevantAnimations,
   animationBus,
   completionTracker,
   element,
   targetState,
   onComplete,
 }) => {
-  const relevantAnimations = getUpdateAnimations(animations, targetId);
-
-  if (relevantAnimations.length === 0) {
-    return false;
-  }
-
   for (const animation of relevantAnimations) {
     const stateVersion = completionTracker.getVersion();
     completionTracker.track(stateVersion);
@@ -67,6 +118,55 @@ export const dispatchUpdateAnimations = ({
       },
     });
   }
+};
+
+export const dispatchUpdateAnimations = ({
+  animations,
+  targetId,
+  animationBus,
+  completionTracker,
+  element,
+  targetState,
+  onComplete,
+  renderContext,
+}) => {
+  const relevantAnimations = getUpdateAnimations(animations, targetId);
+
+  if (relevantAnimations.length === 0) {
+    return false;
+  }
+
+  if (renderContext?.suppressAnimations) {
+    for (const animation of relevantAnimations) {
+      applyInitialAnimationState(element, animation.tween);
+    }
+
+    queueDeferredMountEffect(renderContext, () => {
+      if (!element || element.destroyed) {
+        return;
+      }
+
+      startUpdateAnimations({
+        relevantAnimations,
+        animationBus,
+        completionTracker,
+        element,
+        targetState,
+        onComplete,
+      });
+    });
+
+    return true;
+  }
+
+  startUpdateAnimations({
+    relevantAnimations,
+    animationBus,
+    completionTracker,
+    element,
+    targetState,
+    onComplete,
+  });
 
   return true;
 };

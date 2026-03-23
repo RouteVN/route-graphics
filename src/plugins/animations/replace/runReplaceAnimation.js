@@ -698,20 +698,68 @@ export const runReplaceAnimation = ({
   const hiddenMountContext = createRenderContext({
     suppressAnimations: true,
   });
+  const stateVersion = completionTracker.getVersion();
+  let completionTracked = false;
+
+  const trackTransition = () => {
+    if (completionTracked) {
+      return;
+    }
+
+    completionTracker.track(stateVersion);
+    completionTracked = true;
+  };
+
+  const completeTransition = () => {
+    if (!completionTracked) {
+      return;
+    }
+
+    completionTracker.complete(stateVersion);
+    completionTracked = false;
+  };
+
+  const finalize = ({ flushDeferredEffects }) => {
+    if (finalized) return;
+    finalized = true;
+
+    if (nextDisplayObjectRef.value && !nextDisplayObjectRef.value.destroyed) {
+      nextDisplayObjectRef.value.visible = true;
+    }
+
+    replaceOverlayRef.value?.destroy();
+
+    if (flushDeferredEffects) {
+      flushDeferredMountEffects(hiddenMountContext);
+      return;
+    }
+
+    hiddenMountContext.deferredMountEffects.length = 0;
+  };
+  const nextDisplayObjectRef = { value: null };
+  const replaceOverlayRef = { value: null };
+  let finalized = false;
+
+  trackTransition();
 
   const continueWithNextDisplayObject = (nextDisplayObject) => {
     if (signal?.aborted || parent.destroyed) {
+      hiddenMountContext.deferredMountEffects.length = 0;
       transitionMountParent.destroy({ children: true });
       destroySubjectSnapshot(prevSubject);
+      completeTransition();
       return;
     }
 
     if (nextElement && !nextDisplayObject) {
+      hiddenMountContext.deferredMountEffects.length = 0;
+      completeTransition();
       throw new Error(
         `Transition animation "${animation.id}" could not create the next element "${nextElement.id}".`,
       );
     }
 
+    nextDisplayObjectRef.value = nextDisplayObject;
     const nextSubject = nextDisplayObject
       ? createSnapshotSubject(app, nextDisplayObject)
       : null;
@@ -746,24 +794,9 @@ export const runReplaceAnimation = ({
       nextSubject,
       zIndex,
     });
+    replaceOverlayRef.value = replaceOverlay;
 
     parent.addChild(replaceOverlay.overlay);
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-    let finalized = false;
-
-    const finalize = () => {
-      if (finalized) return;
-      finalized = true;
-
-      if (nextDisplayObject && !nextDisplayObject.destroyed) {
-        nextDisplayObject.visible = true;
-      }
-
-      replaceOverlay.destroy();
-      flushDeferredMountEffects(hiddenMountContext);
-    };
-
     animationBus.dispatch({
       type: "START",
       payload: {
@@ -771,14 +804,15 @@ export const runReplaceAnimation = ({
         driver: "custom",
         duration: replaceOverlay.duration,
         applyFrame: replaceOverlay.apply,
-        applyTargetState: finalize,
+        applyTargetState: () => {
+          finalize({ flushDeferredEffects: false });
+        },
         onComplete: () => {
-          completionTracker.complete(stateVersion);
-          finalize();
+          finalize({ flushDeferredEffects: true });
+          completeTransition();
         },
         onCancel: () => {
-          completionTracker.complete(stateVersion);
-          finalize();
+          completeTransition();
         },
         isValid: () =>
           Boolean(replaceOverlay.overlay) &&

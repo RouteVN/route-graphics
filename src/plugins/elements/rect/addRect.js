@@ -21,6 +21,7 @@ export const addRect = ({
   eventHandler,
   zIndex,
   completionTracker,
+  renderContext,
 }) => {
   const { id, x, y, width, height, fill, border, alpha, scaleX, scaleY } =
     element;
@@ -215,5 +216,6 @@ export const addRect = ({
     completionTracker,
     element: rect,
     targetState,
+    renderContext,
   });
 };

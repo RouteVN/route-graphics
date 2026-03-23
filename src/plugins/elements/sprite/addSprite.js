@@ -14,6 +14,7 @@ export const addSprite = ({
   eventHandler,
   animationBus,
   completionTracker,
+  renderContext,
   zIndex,
 }) => {
   const { id, x, y, width, height, src, alpha } = element;
@@ -189,5 +190,6 @@ export const addSprite = ({
     completionTracker,
     element: sprite,
     targetState: { x, y, width, height, alpha },
+    renderContext,
   });
 };

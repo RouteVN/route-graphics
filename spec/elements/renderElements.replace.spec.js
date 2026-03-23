@@ -154,6 +154,11 @@ describe("renderElements transition handling", () => {
     });
 
     expect(plugin.add).toHaveBeenCalledTimes(1);
+    expect(plugin.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        animations: expect.any(Map),
+      }),
+    );
     expect(mocks.runReplaceAnimation).not.toHaveBeenCalled();
   });
 });

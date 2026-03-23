@@ -21,6 +21,7 @@ export const addText = ({
   eventHandler,
   animationBus,
   completionTracker,
+  renderContext,
   zIndex,
 }) => {
   const text = new Text({
@@ -207,5 +208,6 @@ export const addText = ({
       ...getTextLayoutPosition(textComputedNode),
       alpha: textComputedNode.alpha,
     },
+    renderContext,
   });
 };
