@@ -4,11 +4,10 @@ import {
   calculateMaxDuration,
   getValueAtTime,
 } from "../../../util/animationTimeline.js";
-
-const UNSUPPORTED_NEXT_REPLACE_TYPES = new Set([
-  "animated-sprite",
-  "text-revealing",
-]);
+import {
+  createRenderContext,
+  flushDeferredMountEffects,
+} from "../../elements/renderContext.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -601,6 +600,7 @@ const instantiateNextLiveElement = ({
   animationBus,
   completionTracker,
   elementPlugins,
+  renderContext,
   zIndex,
   signal,
 }) => {
@@ -617,19 +617,41 @@ const instantiateNextLiveElement = ({
     animationBus,
     completionTracker,
     elementPlugins,
+    renderContext,
     zIndex,
     signal,
   });
 
   if (result && typeof result.then === "function") {
-    throw new Error(
-      `Replace animations do not support async add pipelines for "${nextElement.type}" yet.`,
-    );
+    return result.then(() => {
+      if (signal?.aborted || parent.destroyed) {
+        return null;
+      }
+
+      return (
+        parent.children.find((child) => child.label === nextElement.id) ?? null
+      );
+    });
+  }
+
+  if (signal?.aborted || parent.destroyed) {
+    return null;
   }
 
   return (
     parent.children.find((child) => child.label === nextElement.id) ?? null
   );
+};
+
+const resolveNextDisplayObject = async (nextDisplayObjectOrPromise) => {
+  if (
+    nextDisplayObjectOrPromise &&
+    typeof nextDisplayObjectOrPromise.then === "function"
+  ) {
+    return nextDisplayObjectOrPromise;
+  }
+
+  return nextDisplayObjectOrPromise ?? null;
 };
 
 export const runReplaceAnimation = ({
@@ -643,6 +665,7 @@ export const runReplaceAnimation = ({
   completionTracker,
   eventHandler,
   elementPlugins,
+  renderContext,
   plugin,
   zIndex,
   signal,
@@ -653,10 +676,8 @@ export const runReplaceAnimation = ({
     );
   }
 
-  if (nextElement && UNSUPPORTED_NEXT_REPLACE_TYPES.has(nextElement.type)) {
-    throw new Error(
-      `Replace animations are not supported for element type "${nextElement.type}" yet.`,
-    );
+  if (signal?.aborted || parent.destroyed) {
+    return;
   }
 
   const prevDisplayObject = prevElement
@@ -665,7 +686,7 @@ export const runReplaceAnimation = ({
 
   if (prevElement && !prevDisplayObject) {
     throw new Error(
-      `Replace animation "${animation.id}" could not find the previous live element "${prevElement.id}".`,
+      `Transition animation "${animation.id}" could not find the previous element "${prevElement.id}".`,
     );
   }
 
@@ -673,24 +694,104 @@ export const runReplaceAnimation = ({
     ? createSnapshotSubject(app, prevDisplayObject)
     : null;
 
-  if (prevDisplayObject) {
-    plugin.delete({
-      app,
-      parent,
-      element: prevElement,
-      animations: [],
-      animationBus,
-      completionTracker,
-      eventHandler,
-      elementPlugins,
-      signal,
-    });
-  }
+  const transitionMountParent = new Container();
+  const hiddenMountContext = createRenderContext({
+    suppressAnimations: true,
+  });
 
-  const nextDisplayObject = nextElement
-    ? instantiateNextLiveElement({
+  const continueWithNextDisplayObject = (nextDisplayObject) => {
+    if (signal?.aborted || parent.destroyed) {
+      transitionMountParent.destroy({ children: true });
+      destroySubjectSnapshot(prevSubject);
+      return;
+    }
+
+    if (nextElement && !nextDisplayObject) {
+      throw new Error(
+        `Transition animation "${animation.id}" could not create the next element "${nextElement.id}".`,
+      );
+    }
+
+    const nextSubject = nextDisplayObject
+      ? createSnapshotSubject(app, nextDisplayObject)
+      : null;
+
+    transitionMountParent.destroy({ children: false });
+
+    if (prevDisplayObject) {
+      plugin.delete({
         app,
         parent,
+        element: prevElement,
+        animations: [],
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        renderContext,
+        signal,
+      });
+    }
+
+    if (nextDisplayObject) {
+      nextDisplayObject.zIndex = zIndex;
+      parent.addChild(nextDisplayObject);
+      nextDisplayObject.visible = false;
+    }
+
+    const replaceOverlay = createReplaceOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+
+    parent.addChild(replaceOverlay.overlay);
+    const stateVersion = completionTracker.getVersion();
+    completionTracker.track(stateVersion);
+    let finalized = false;
+
+    const finalize = () => {
+      if (finalized) return;
+      finalized = true;
+
+      if (nextDisplayObject && !nextDisplayObject.destroyed) {
+        nextDisplayObject.visible = true;
+      }
+
+      replaceOverlay.destroy();
+      flushDeferredMountEffects(hiddenMountContext);
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: animation.id,
+        driver: "custom",
+        duration: replaceOverlay.duration,
+        applyFrame: replaceOverlay.apply,
+        applyTargetState: finalize,
+        onComplete: () => {
+          completionTracker.complete(stateVersion);
+          finalize();
+        },
+        onCancel: () => {
+          completionTracker.complete(stateVersion);
+          finalize();
+        },
+        isValid: () =>
+          Boolean(replaceOverlay.overlay) &&
+          !replaceOverlay.overlay.destroyed &&
+          (!nextDisplayObject || !nextDisplayObject.destroyed),
+      },
+    });
+  };
+
+  const nextDisplayObjectOrPromise = nextElement
+    ? instantiateNextLiveElement({
+        app,
+        parent: transitionMountParent,
         nextElement,
         plugin,
         animations,
@@ -698,71 +799,23 @@ export const runReplaceAnimation = ({
         animationBus,
         completionTracker,
         elementPlugins,
+        renderContext: hiddenMountContext,
         zIndex,
         signal,
       })
     : null;
 
-  if (nextElement && !nextDisplayObject) {
-    throw new Error(
-      `Replace animation "${animation.id}" could not create the next live element "${nextElement.id}".`,
+  if (
+    nextDisplayObjectOrPromise &&
+    typeof nextDisplayObjectOrPromise.then === "function"
+  ) {
+    void resolveNextDisplayObject(nextDisplayObjectOrPromise).then(
+      continueWithNextDisplayObject,
     );
+    return;
   }
 
-  const nextSubject = nextDisplayObject
-    ? createSnapshotSubject(app, nextDisplayObject)
-    : null;
-
-  if (nextDisplayObject) {
-    nextDisplayObject.visible = false;
-  }
-
-  const replaceOverlay = createReplaceOverlay({
-    app,
-    animation,
-    prevSubject,
-    nextSubject,
-    zIndex,
-  });
-
-  parent.addChild(replaceOverlay.overlay);
-  const stateVersion = completionTracker.getVersion();
-  completionTracker.track(stateVersion);
-  let finalized = false;
-
-  const finalize = () => {
-    if (finalized) return;
-    finalized = true;
-
-    if (nextDisplayObject && !nextDisplayObject.destroyed) {
-      nextDisplayObject.visible = true;
-    }
-
-    replaceOverlay.destroy();
-  };
-
-  animationBus.dispatch({
-    type: "START",
-    payload: {
-      id: animation.id,
-      driver: "custom",
-      duration: replaceOverlay.duration,
-      applyFrame: replaceOverlay.apply,
-      applyTargetState: finalize,
-      onComplete: () => {
-        completionTracker.complete(stateVersion);
-        finalize();
-      },
-      onCancel: () => {
-        completionTracker.complete(stateVersion);
-        finalize();
-      },
-      isValid: () =>
-        Boolean(replaceOverlay.overlay) &&
-        !replaceOverlay.overlay.destroyed &&
-        (!nextDisplayObject || !nextDisplayObject.destroyed),
-    },
-  });
+  continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
 };
 
 export default runReplaceAnimation;

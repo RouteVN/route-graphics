@@ -1,6 +1,6 @@
 import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { queueDeferredMountEffect } from "../renderContext.js";
 
 /**
  * Add video element to the stage
@@ -10,9 +10,7 @@ export const addVideo = ({
   app,
   parent,
   element,
-  animations,
-  eventHandler,
-  animationBus,
+  renderContext,
   completionTracker,
   zIndex,
 }) => {
@@ -46,16 +44,9 @@ export const addVideo = ({
     completionTracker,
   });
 
-  video.play();
+  queueDeferredMountEffect(renderContext, () => {
+    video.play();
+  });
 
   parent.addChild(sprite);
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: id,
-    animationBus,
-    completionTracker,
-    element: sprite,
-    targetState: { x, y, width, height, alpha: alpha ?? 1 },
-  });
 };

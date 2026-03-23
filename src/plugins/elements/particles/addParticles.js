@@ -1,7 +1,7 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { queueDeferredMountEffect } from "../renderContext.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
@@ -56,9 +56,7 @@ export const addParticle = ({
   app,
   parent,
   element,
-  animations,
-  animationBus,
-  completionTracker,
+  renderContext,
   zIndex,
 }) => {
   const container = new Container();
@@ -131,37 +129,27 @@ export const addParticle = ({
   };
   container.tickerCallback = tickerCallback;
 
-  if (app?.debug) {
-    // VT mode: use snapShotKeyFrame events for deterministic testing
-    const customTickerHandler = (event) => {
-      if (emitter.destroyed) {
-        window.removeEventListener("snapShotKeyFrame", customTickerHandler);
-        return;
-      }
-      if (event?.detail?.deltaMS) {
-        emitter.update(Number(event.detail.deltaMS) / 1000);
-      }
-    };
-    window.addEventListener("snapShotKeyFrame", customTickerHandler);
-    container.customTickerHandler = customTickerHandler;
-  } else {
+  queueDeferredMountEffect(renderContext, () => {
+    if (app?.debug) {
+      // VT mode: use snapShotKeyFrame events for deterministic testing
+      const customTickerHandler = (event) => {
+        if (emitter.destroyed) {
+          window.removeEventListener("snapShotKeyFrame", customTickerHandler);
+          return;
+        }
+        if (event?.detail?.deltaMS) {
+          emitter.update(Number(event.detail.deltaMS) / 1000);
+        }
+      };
+      window.addEventListener("snapShotKeyFrame", customTickerHandler);
+      container.customTickerHandler = customTickerHandler;
+      return;
+    }
+
     app.ticker.add(tickerCallback);
-  }
+  });
 
   if (element.alpha !== undefined) {
     container.alpha = element.alpha;
   }
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: element.id,
-    animationBus,
-    completionTracker,
-    element: container,
-    targetState: {
-      x: element.x ?? 0,
-      y: element.y ?? 0,
-      alpha: element.alpha,
-    },
-  });
 };

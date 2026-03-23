@@ -21,6 +21,7 @@ export const updateContainer = ({
   animations,
   animationBus,
   elementPlugins,
+  renderContext,
   zIndex,
   completionTracker,
   signal,
@@ -200,6 +201,7 @@ export const updateContainer = ({
         animations,
         animationBus,
         completionTracker,
+        renderContext,
         signal,
       });
     }

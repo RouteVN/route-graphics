@@ -1,6 +1,6 @@
 # Animation Model
 
-Route Graphics now uses one `animations` list for both live element motion and same-id replacement effects.
+Route Graphics uses one `animations` list for both persistent-element motion and prev/next transition effects.
 
 ## Required Fields
 
@@ -10,17 +10,17 @@ Every animation requires:
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    type: "live"
+    type: "update"
 ```
 
 - `targetId` always points to an element id.
 - `type` is required and must be one of:
-  - `live`
-  - `replace`
+  - `update`
+  - `transition`
 
-## Live Animations
+## Update Animations
 
-`live` animates a single display object with `tween`.
+`update` animates a single display object with `tween`.
 
 ```yaml
 states:
@@ -35,7 +35,7 @@ states:
     animations:
       - id: "makkuro-enter"
         targetId: "makkuro"
-        type: "live"
+        type: "update"
         tween:
           alpha:
             initialValue: 0
@@ -45,11 +45,11 @@ states:
                 easing: linear
 ```
 
-## Replace Animations
+## Transition Animations
 
-`replace` keeps the same `targetId` but animates the previous and next visuals separately.
+`transition` keeps the same `targetId` but animates the previous and next visuals separately.
 
-Geometry-only replace:
+Geometry-only transition:
 
 ```yaml
 states:
@@ -64,7 +64,7 @@ states:
     animations:
       - id: "scene-push-left"
         targetId: "scene-root"
-        type: "replace"
+        type: "transition"
         prev:
           tween:
             translateX:
@@ -83,7 +83,7 @@ states:
                   easing: linear
 ```
 
-Mask-driven replace:
+Mask-driven transition:
 
 ```yaml
 states:
@@ -98,7 +98,7 @@ states:
     animations:
       - id: "scene-rule-dissolve"
         targetId: "scene-root"
-        type: "replace"
+        type: "transition"
         mask:
           kind: "single"
           texture: "masks/spiral-07.png"
@@ -112,13 +112,15 @@ states:
                 easing: linear
 ```
 
-## Current Replace Rules
+## Current Transition Rules
 
-- `mask` is replace-only.
-- custom shader-backed replace is not supported right now.
+- `mask` is transition-only.
+- custom shader-backed transition is not supported right now.
 - `prev.tween` and `next.tween` can be combined with `mask`.
+- if an ancestor `transition` is active for the same change, nested child transitions are suppressed until finalize
 
 The design notes live in:
 
 - `docs/animation-model.md`
+- `docs/animation-type-semantics.md`
 - `docs/animation-implementation-plan.md`

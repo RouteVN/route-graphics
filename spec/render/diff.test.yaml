@@ -98,7 +98,7 @@ in:
         - id: sprite1
           type: sprite
   - - targetId: sprite1
-      type: live
+      type: update
       tween:
         x:
           keyframes:
@@ -140,7 +140,7 @@ in:
             - id: sprite1
               type: sprite
   - - targetId: sprite1
-      type: live
+      type: update
       tween:
         x:
           keyframes:
@@ -182,7 +182,7 @@ in:
         - id: sprite1
           type: sprite
   - - targetId: nonexistent
-      type: live
+      type: update
       tween:
         x:
           keyframes:

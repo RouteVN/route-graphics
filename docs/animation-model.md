@@ -1,17 +1,18 @@
 # Animation Model
 
-Last updated: 2026-03-12
+Last updated: 2026-03-24
 
 See also:
 
+- `docs/animation-type-semantics.md`
 - `docs/animation-implementation-plan.md`
 
 ## Goal
 
 Define one public animation model that can express both:
 
-- normal element animation during play
-- visual replacement effects such as push, slide, wipe, and rule dissolve
+- motion on an element that persists across a state change
+- visual transitions between previous and next rendered state
 
 ## Status
 
@@ -20,11 +21,11 @@ This document describes the current public model.
 The runtime now exposes:
 
 - top-level `animations`
-- required `type: live | replace`
+- required `type: update | transition`
 - `tween` as the motion payload
-- `mask` only inside `replace`
+- `mask` only inside `transition`
 
-Current known runtime limitations are still tracked in
+Current known runtime limitations are tracked in
 `docs/animation-implementation-plan.md`.
 
 ## Naming
@@ -33,9 +34,9 @@ Use `animations` as the top-level public field.
 
 Reason:
 
-- `animations` covers both moving a live element and replacing one render with another
-- `transitions` is too narrow because many valid uses are not scene changes
-- `effects` is too vague and easy to confuse with post-processing or programming side effects
+- `animations` covers both persistent-element motion and scene/element transitions
+- `transitions` is too narrow because not every animation is a prev/next handoff
+- `effects` is too vague and easy to confuse with post-processing or side effects
 
 ## Core Shape
 
@@ -43,7 +44,7 @@ Reason:
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    type: "live"
+    type: "update"
     tween:
       x:
         initialValue: 640
@@ -76,34 +77,34 @@ Whole-scene transitions should target a stable root container id.
 
 `type` must be one of:
 
-- `live`
-- `replace`
+- `update`
+- `transition`
 
-### `live`
+### `update`
 
-`live` means one continuing object.
+`update` means one continuing object.
 
 Use it for:
 
-- moving a character
-- fading a character
-- scaling a portrait
-- changing properties on a persistent element
+- moving a character that remains on screen
+- fading a persistent element
+- scaling a portrait in place
+- changing properties on an already-mounted element
 
-`live` supports:
+`update` supports:
 
 - `tween`
 
-`live` does not support:
+`update` does not support:
 
 - `mask`
 - `shader`
 - `prev`
 - `next`
 
-### `replace`
+### `transition`
 
-`replace` means a visual handoff between up to two surfaces:
+`transition` means a visual handoff between up to two surfaces:
 
 - `prev`
 - `next`
@@ -118,14 +119,14 @@ Use it for:
 - opening from empty into a scene
 - closing from a scene to empty
 
-`replace` supports:
+`transition` supports:
 
 - `prev.tween`
 - `next.tween`
 - `mask`
 - future `shader`
 
-`replace` may define:
+`transition` may define:
 
 - `prev` only
 - `next` only
@@ -159,16 +160,16 @@ This format is preferred because:
 
 The same payload is reused in two places:
 
-- `live.tween`
+- `update.tween`
 - `prev.tween` / `next.tween`
 
-## Live Example
+## Update Example
 
 ```yaml
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    type: "live"
+    type: "update"
     tween:
       x:
         initialValue: 640
@@ -178,7 +179,7 @@ animations:
             easing: "linear"
 ```
 
-## Replace Examples
+## Transition Examples
 
 ### Open From Empty
 
@@ -188,7 +189,7 @@ Useful when first opening the scene.
 animations:
   - id: "scene-open"
     targetId: "scene-root"
-    type: "replace"
+    type: "transition"
     next:
       tween:
         alpha:
@@ -205,7 +206,7 @@ animations:
 animations:
   - id: "scene-close"
     targetId: "scene-root"
-    type: "replace"
+    type: "transition"
     prev:
       tween:
         alpha:
@@ -222,7 +223,7 @@ animations:
 animations:
   - id: "scene-push-left"
     targetId: "scene-root"
-    type: "replace"
+    type: "transition"
     prev:
       tween:
         translateX:
@@ -247,7 +248,7 @@ animations:
 animations:
   - id: "scene-rule-dissolve"
     targetId: "scene-root"
-    type: "replace"
+    type: "transition"
     mask:
       kind: "single"
       texture: "masks/spiral-07.png"
@@ -262,49 +263,19 @@ animations:
             easing: "linear"
 ```
 
-### Push Plus Mask
+## Parent Transition Rule
 
-This is the target composed shape for richer VN transitions.
+When an ancestor `transition` is active for a state change:
 
-```yaml
-animations:
-  - id: "scene-push-mask"
-    targetId: "scene-root"
-    type: "replace"
-    prev:
-      tween:
-        translateX:
-          initialValue: 0
-          keyframes:
-            - duration: 500
-              value: -1
-              easing: "linear"
-    next:
-      tween:
-        translateX:
-          initialValue: 1
-          keyframes:
-            - duration: 500
-              value: 0
-              easing: "linear"
-    mask:
-      kind: "single"
-      texture: "masks/spiral-07.png"
-      channel: "red"
-      softness: 0.08
-      progress:
-        initialValue: 0
-        keyframes:
-          - duration: 500
-            value: 1
-            easing: "linear"
-```
+- that ancestor owns the subtree surface for the visible transition
+- nested child `transition`s for the same change are suppressed
+- descendant autoplay-like behaviors start after finalize
 
-This composition is supported by the runtime.
+This keeps transition composition aligned with the current snapshot-based runtime.
 
 ## Mask
 
-Mask is always a replace primitive.
+Mask is always a transition primitive.
 
 A mask defines a reveal field that controls how previous and next visuals hand
 off over time.
@@ -342,26 +313,26 @@ Defines how sharp or feathered the reveal edge is.
 
 ## Future Shader
 
-If shader support comes back later, it should be `replace`-only.
+If shader support comes back later, it should be `transition`-only.
 
-It should live next to `mask`, not on `live`.
+It should live next to `mask`, not on `update`.
 
 ## Validation Rules
 
-- `live` requires `tween`
-- `live` cannot define `prev`, `next`, or `mask`
-- `replace` requires at least one of:
+- `update` requires `tween`
+- `update` cannot define `prev`, `next`, or `mask`
+- `transition` requires at least one of:
   - `prev`
   - `next`
   - `mask`
-- `mask` is replace-only
-- future `shader` would also be replace-only
+- `mask` is transition-only
+- future `shader` would also be transition-only
 
 ## Summary
 
 - keep `animations` as the top-level field
-- use required `type: live | replace`
+- use required `type: update | transition`
 - use `tween` instead of generic `properties`
-- let `replace` define `prev` and/or `next`
-- keep `mask` as a replace-only primitive
-- keep future `shader` replace-only as well
+- let `transition` define `prev` and/or `next`
+- keep `mask` as a transition-only primitive
+- keep future `shader` transition-only as well

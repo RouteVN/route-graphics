@@ -24,17 +24,17 @@ export const getTargetAnimations = (animationsOrMap, targetId) => {
   return animationsOrMap.filter((animation) => animation.targetId === targetId);
 };
 
-export const getLiveAnimations = (animationsOrMap, targetId) =>
+export const getUpdateAnimations = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).filter(
-    (animation) => animation.type === "live",
+    (animation) => animation.type === "update",
   );
 
-export const getReplaceAnimation = (animationsOrMap, targetId) =>
+export const getTransitionAnimation = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).find(
-    (animation) => animation.type === "replace",
+    (animation) => animation.type === "transition",
   ) ?? null;
 
-export const dispatchLiveAnimations = ({
+export const dispatchUpdateAnimations = ({
   animations,
   targetId,
   animationBus,
@@ -43,7 +43,7 @@ export const dispatchLiveAnimations = ({
   targetState,
   onComplete,
 }) => {
-  const relevantAnimations = getLiveAnimations(animations, targetId);
+  const relevantAnimations = getUpdateAnimations(animations, targetId);
 
   if (relevantAnimations.length === 0) {
     return false;
@@ -70,3 +70,7 @@ export const dispatchLiveAnimations = ({
 
   return true;
 };
+
+export const getLiveAnimations = getUpdateAnimations;
+export const getReplaceAnimation = getTransitionAnimation;
+export const dispatchLiveAnimations = dispatchUpdateAnimations;

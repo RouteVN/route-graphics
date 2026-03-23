@@ -1,7 +1,7 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { renderElements } from "../renderElements.js";
 
 /**
  * Add container element to the stage (synchronous)
@@ -15,6 +15,7 @@ export const addContainer = ({
   eventHandler,
   animationBus,
   elementPlugins,
+  renderContext,
   zIndex,
   completionTracker,
   signal,
@@ -32,28 +33,21 @@ export const addContainer = ({
 
   parent.addChild(container);
 
-  // Add children recursively
+  // Render children through the planner so first mounts can use transitions.
   if (children && children.length > 0) {
-    for (const child of children) {
-      const childPlugin = elementPlugins.find((p) => p.type === child.type);
-      if (!childPlugin) {
-        throw new Error(
-          `No plugin found for child element type: ${child.type}`,
-        );
-      }
-
-      childPlugin.add({
-        app,
-        parent: container,
-        element: child,
-        animations,
-        eventHandler,
-        animationBus,
-        elementPlugins,
-        completionTracker,
-        signal,
-      });
-    }
+    renderElements({
+      app,
+      parent: container,
+      prevComputedTree: [],
+      nextComputedTree: children,
+      animations,
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      signal,
+    });
   }
 
   const shouldUseViewport = scroll || element.anchorToBottom;
@@ -149,13 +143,4 @@ export const addContainer = ({
 
     container.on("rightclick", rightClickListener);
   }
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: id,
-    animationBus,
-    completionTracker,
-    element: container,
-    targetState: { x, y, alpha },
-  });
 };

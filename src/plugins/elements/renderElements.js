@@ -1,9 +1,10 @@
 import { diffElements } from "../../util/diffElements.js";
 import {
-  getReplaceAnimation,
+  getTransitionAnimation,
   groupAnimationsByTarget,
 } from "../animations/planAnimations.js";
 import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.js";
+import { createRenderContext } from "./renderContext.js";
 
 /**
  * Render elements using plugin system (synchronous)
@@ -17,6 +18,7 @@ import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.j
  * @param {Object} params.completionTracker - Completion tracker for state events
  * @param {Object[]} params.animations - Animation configurations
  * @param {Function} params.eventHandler - Event handler function
+ * @param {Object} [params.renderContext] - Render context flags for nested mounts
  * @param {AbortSignal} [params.signal] - Render cancellation signal
  */
 export const renderElements = ({
@@ -29,6 +31,7 @@ export const renderElements = ({
   completionTracker,
   eventHandler,
   elementPlugins,
+  renderContext = createRenderContext(),
   signal,
 }) => {
   // Enable PixiJS built-in sorting by zIndex
@@ -72,10 +75,9 @@ export const renderElements = ({
 
   // Delete elements (synchronous)
   for (const element of toDeleteElement) {
-    const replaceAnimation = getReplaceAnimation(
-      animationsByTarget,
-      element.id,
-    );
+    const replaceAnimation = renderContext.suppressAnimations
+      ? null
+      : getTransitionAnimation(animationsByTarget, element.id);
     const plugin = getPlugin(element.type);
 
     if (replaceAnimation) {
@@ -90,6 +92,7 @@ export const renderElements = ({
         completionTracker,
         eventHandler,
         elementPlugins,
+        renderContext,
         plugin,
         zIndex: getExistingChildZIndex(element.id),
         signal,
@@ -101,21 +104,21 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations: animationsByTarget,
+      animations: [],
       animationBus,
       completionTracker,
       eventHandler,
       elementPlugins,
+      renderContext,
       signal,
     });
   }
 
   // Add elements (synchronous)
   for (const element of toAddElement) {
-    const replaceAnimation = getReplaceAnimation(
-      animationsByTarget,
-      element.id,
-    );
+    const replaceAnimation = renderContext.suppressAnimations
+      ? null
+      : getTransitionAnimation(animationsByTarget, element.id);
     const plugin = getPlugin(element.type);
 
     // Calculate zIndex based on position in nextComputedTree
@@ -133,6 +136,7 @@ export const renderElements = ({
         completionTracker,
         eventHandler,
         elementPlugins,
+        renderContext,
         plugin,
         zIndex,
         signal,
@@ -144,11 +148,12 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations: animationsByTarget,
+      animations: element.type === "container" ? animationsByTarget : [],
       eventHandler,
       animationBus,
       completionTracker,
       elementPlugins,
+      renderContext,
       zIndex,
       signal,
     });
@@ -161,7 +166,9 @@ export const renderElements = ({
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(next.id) ?? -1;
 
-    const replaceAnimation = getReplaceAnimation(animationsByTarget, next.id);
+    const replaceAnimation = renderContext.suppressAnimations
+      ? null
+      : getTransitionAnimation(animationsByTarget, next.id);
 
     if (replaceAnimation) {
       runReplaceAnimation({
@@ -175,6 +182,7 @@ export const renderElements = ({
         completionTracker,
         eventHandler,
         elementPlugins,
+        renderContext,
         plugin,
         zIndex,
         signal,
@@ -192,6 +200,7 @@ export const renderElements = ({
       completionTracker,
       eventHandler,
       elementPlugins,
+      renderContext,
       zIndex,
       signal,
     });

@@ -24,7 +24,7 @@ in:
     animations:
       - id: anim-1
         targetId: text-1
-        type: live
+        type: update
         tween:
           x:
             keyframes:
@@ -41,7 +41,7 @@ out:
   animations:
     - id: anim-1
       targetId: text-1
-      type: live
+      type: update
       tween:
         x:
           keyframes:
@@ -52,13 +52,13 @@ out:
     - id: sound-1
       type: sound
 ---
-case: Normalize replace animation with mask defaults
+case: Normalize transition animation with mask defaults
 in:
   - id: state-2-replace
     animations:
-      - id: anim-replace
+      - id: anim-transition
         targetId: scene-root
-        type: replace
+        type: transition
         mask:
           kind: single
           texture: masks/wipe.png
@@ -66,9 +66,9 @@ out:
   id: state-2-replace
   elements: []
   animations:
-    - id: anim-replace
+    - id: anim-transition
       targetId: scene-root
-      type: replace
+      type: transition
       mask:
         kind: single
         texture: masks/wipe.png
@@ -86,7 +86,7 @@ in:
     animations:
       - id: anim-advanced-easing
         targetId: text-1
-        type: live
+        type: update
         tween:
           x:
             keyframes:
@@ -99,7 +99,7 @@ out:
   animations:
     - id: anim-advanced-easing
       targetId: text-1
-      type: live
+      type: update
       tween:
         x:
           keyframes:
@@ -127,13 +127,13 @@ in:
                 value: 20
 throws: animations[0].type must be a non-empty string.
 ---
-case: Throw when replace shader is provided
+case: Throw when transition shader is provided
 in:
   - id: state-3b
     animations:
       - id: anim-1
         targetId: scene-root
-        type: replace
+        type: transition
         shader:
           name: burn-dissolve
 throws: animations[0].shader is not supported.
@@ -144,7 +144,7 @@ in:
     animations:
       - id: anim-1
         targetId: text-1
-        type: live
+        type: update
         tween:
           x:
             keyframes:

@@ -208,6 +208,13 @@ const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
   applyCompleteIndicator(indicatorSprite, element);
 };
 
+const runPausedInitialReveal = ({ indicatorSprite, element }) => {
+  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const firstChunk = element.content[0] ?? null;
+
+  positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+};
+
 const runTypewriterReveal = async ({
   contentContainer,
   indicatorSprite,
@@ -577,6 +584,7 @@ export const runTextReveal = async ({
   animationBus,
   zIndex,
   signal,
+  playback = "autoplay",
 }) => {
   if (signal?.aborted || container.destroyed) {
     return;
@@ -592,6 +600,15 @@ export const runTextReveal = async ({
   container.addChild(indicatorSprite);
 
   try {
+    if (playback === "paused-initial") {
+      if (element.revealEffect === "none") {
+        runNoneReveal({ contentContainer, indicatorSprite, element });
+      } else {
+        runPausedInitialReveal({ indicatorSprite, element });
+      }
+      return;
+    }
+
     if (element.revealEffect === "softWipe") {
       const dispatched = runSoftWipeReveal({
         container,
