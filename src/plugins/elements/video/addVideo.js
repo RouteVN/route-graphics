@@ -1,6 +1,6 @@
 import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
-import { queueDeferredMountEffect } from "../renderContext.js";
+import { queueDeferredVideoPlay } from "../renderContext.js";
 
 /**
  * Add video element to the stage
@@ -44,9 +44,7 @@ export const addVideo = ({
     completionTracker,
   });
 
-  queueDeferredMountEffect(renderContext, () => {
-    video.play();
-  });
+  queueDeferredVideoPlay(renderContext, video);
 
   parent.addChild(sprite);
 };

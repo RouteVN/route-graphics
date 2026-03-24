@@ -1,6 +1,6 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
-import { queueDeferredMountEffect } from "../renderContext.js";
+import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
 
 /**
  * Add animated sprite element to the stage
@@ -49,9 +49,7 @@ export const addAnimatedSprite = async ({
   if (app.debug) {
     setupDebugMode(animatedSprite, id, app.debug);
   } else {
-    queueDeferredMountEffect(renderContext, () => {
-      animatedSprite.play();
-    });
+    queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
   }
 
   animatedSprite.x = Math.round(x);

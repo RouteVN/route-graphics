@@ -5,8 +5,9 @@ import {
   getValueAtTime,
 } from "../../../util/animationTimeline.js";
 import {
+  clearDeferredMountOperations,
   createRenderContext,
-  flushDeferredMountEffects,
+  flushDeferredMountOperations,
 } from "../../elements/renderContext.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
@@ -730,11 +731,11 @@ export const runReplaceAnimation = ({
     replaceOverlayRef.value?.destroy();
 
     if (flushDeferredEffects) {
-      flushDeferredMountEffects(hiddenMountContext);
+      flushDeferredMountOperations(hiddenMountContext);
       return;
     }
 
-    hiddenMountContext.deferredMountEffects.length = 0;
+    clearDeferredMountOperations(hiddenMountContext);
   };
   const nextDisplayObjectRef = { value: null };
   const replaceOverlayRef = { value: null };
@@ -744,7 +745,7 @@ export const runReplaceAnimation = ({
 
   const continueWithNextDisplayObject = (nextDisplayObject) => {
     if (signal?.aborted || parent.destroyed) {
-      hiddenMountContext.deferredMountEffects.length = 0;
+      clearDeferredMountOperations(hiddenMountContext);
       transitionMountParent.destroy({ children: true });
       destroySubjectSnapshot(prevSubject);
       completeTransition();
@@ -752,7 +753,7 @@ export const runReplaceAnimation = ({
     }
 
     if (nextElement && !nextDisplayObject) {
-      hiddenMountContext.deferredMountEffects.length = 0;
+      clearDeferredMountOperations(hiddenMountContext);
       completeTransition();
       throw new Error(
         `Transition animation "${animation.id}" could not create the next element "${nextElement.id}".`,

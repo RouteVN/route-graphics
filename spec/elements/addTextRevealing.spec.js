@@ -14,7 +14,7 @@ vi.mock(
 
 import {
   createRenderContext,
-  flushDeferredMountEffects,
+  flushDeferredMountOperations,
 } from "../../src/plugins/elements/renderContext.js";
 import { addTextRevealing } from "../../src/plugins/elements/text-revealing/addTextRevealing.js";
 
@@ -56,7 +56,7 @@ describe("addTextRevealing", () => {
       }),
     );
 
-    flushDeferredMountEffects(renderContext);
+    flushDeferredMountOperations(renderContext);
 
     expect(mocks.runTextReveal).toHaveBeenCalledTimes(2);
     expect(mocks.runTextReveal).toHaveBeenLastCalledWith(

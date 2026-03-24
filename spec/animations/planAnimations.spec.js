@@ -5,7 +5,7 @@ import {
 } from "../../src/plugins/animations/planAnimations.js";
 import {
   createRenderContext,
-  flushDeferredMountEffects,
+  flushDeferredMountOperations,
 } from "../../src/plugins/elements/renderContext.js";
 
 describe("dispatchUpdateAnimations", () => {
@@ -56,7 +56,7 @@ describe("dispatchUpdateAnimations", () => {
     expect(animationBus.dispatch).not.toHaveBeenCalled();
     expect(completionTracker.track).not.toHaveBeenCalled();
 
-    flushDeferredMountEffects(renderContext);
+    flushDeferredMountOperations(renderContext);
 
     expect(completionTracker.track).toHaveBeenCalledWith(7);
     expect(animationBus.dispatch).toHaveBeenCalledWith(

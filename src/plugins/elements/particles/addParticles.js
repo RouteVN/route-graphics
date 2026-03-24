@@ -1,7 +1,7 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
-import { queueDeferredMountEffect } from "../renderContext.js";
+import { queueDeferredParticlesStart } from "../renderContext.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
@@ -129,24 +129,11 @@ export const addParticle = ({
   };
   container.tickerCallback = tickerCallback;
 
-  queueDeferredMountEffect(renderContext, () => {
-    if (app?.debug) {
-      // VT mode: use snapShotKeyFrame events for deterministic testing
-      const customTickerHandler = (event) => {
-        if (emitter.destroyed) {
-          window.removeEventListener("snapShotKeyFrame", customTickerHandler);
-          return;
-        }
-        if (event?.detail?.deltaMS) {
-          emitter.update(Number(event.detail.deltaMS) / 1000);
-        }
-      };
-      window.addEventListener("snapShotKeyFrame", customTickerHandler);
-      container.customTickerHandler = customTickerHandler;
-      return;
-    }
-
-    app.ticker.add(tickerCallback);
+  queueDeferredParticlesStart(renderContext, {
+    app,
+    emitter,
+    container,
+    tickerCallback,
   });
 
   if (element.alpha !== undefined) {

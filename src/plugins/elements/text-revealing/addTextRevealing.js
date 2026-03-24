@@ -1,5 +1,5 @@
 import { Container } from "pixi.js";
-import { queueDeferredMountEffect } from "../renderContext.js";
+import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
 import { runTextReveal } from "./textRevealingRuntime.js";
 
 /**
@@ -37,16 +37,13 @@ export const addTextRevealing = async ({
       playback: "paused-initial",
     });
 
-    queueDeferredMountEffect(renderContext, () => {
-      void runTextReveal({
-        container,
-        element,
-        completionTracker,
-        animationBus,
-        zIndex,
-        signal,
-        playback: "autoplay",
-      });
+    queueDeferredTextRevealAutoplay(renderContext, {
+      container,
+      element,
+      completionTracker,
+      animationBus,
+      zIndex,
+      signal,
     });
     return;
   }

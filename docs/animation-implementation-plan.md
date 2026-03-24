@@ -254,3 +254,28 @@ Future rule:
 
 - if shader support returns, it should live under `transition`
 - it should not change the `update | transition` split
+
+## Future Cleanup: Completion Leases
+
+The current completion tracker still uses paired:
+
+- `track(version)`
+- `complete(version)`
+
+That is workable, but it spreads version capture and release logic through many code paths.
+
+A later cleanup should move this to an acquired lease/token model such as:
+
+```js
+const completion = completionTracker.acquire();
+completion.complete();
+```
+
+Benefits:
+
+- idempotent completion semantics
+- fewer version-plumbing bugs in async and deferred flows
+- clearer ownership for cancellation and finalize paths
+- less callback coupling around `getVersion()` / `track()` / `complete()`
+
+This should be done as a dedicated follow-up, not mixed into the current animation semantic migration.

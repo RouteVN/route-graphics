@@ -1,8 +1,8 @@
 import {
-  TRANSITION_PROPERTY_PATH_MAP,
-  WhiteListAnimationProps,
-} from "../../types.js";
-import { queueDeferredMountEffect } from "../elements/renderContext.js";
+  applyInitialUpdateAnimationState,
+  dispatchUpdateAnimationsNow,
+} from "./updateAnimationDispatch.js";
+import { queueDeferredUpdateAnimationStart } from "../elements/renderContext.js";
 
 export const groupAnimationsByTarget = (animations = []) => {
   if (animations instanceof Map) {
@@ -40,86 +40,6 @@ export const getTransitionAnimation = (animationsOrMap, targetId) =>
     (animation) => animation.type === "transition",
   ) ?? null;
 
-const getMappedPath = (propertyPathMap, path) => {
-  if (typeof path !== "string") {
-    return path;
-  }
-
-  return propertyPathMap[path] ?? path;
-};
-
-const setAnimationProperty = (object, path, propertyPathMap, value) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
-    return object;
-  }
-
-  let current = object;
-  for (let index = 0; index < mappedPath.length - 1; index++) {
-    const key = mappedPath[index];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-
-  current[mappedPath[mappedPath.length - 1]] = value;
-  return object;
-};
-
-const applyInitialAnimationState = (
-  element,
-  properties,
-  propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
-) => {
-  for (const [property, config] of Object.entries(properties)) {
-    if (!WhiteListAnimationProps[property]) {
-      throw new Error(`${property} is not a supported property for animation.`);
-    }
-
-    if (config.initialValue === undefined) {
-      continue;
-    }
-
-    setAnimationProperty(
-      element,
-      property,
-      propertyPathMap,
-      config.initialValue,
-    );
-  }
-};
-
-const startUpdateAnimations = ({
-  relevantAnimations,
-  animationBus,
-  completionTracker,
-  element,
-  targetState,
-  onComplete,
-}) => {
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
-
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element,
-        properties: animation.tween,
-        targetState,
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          onComplete?.(animation);
-        },
-      },
-    });
-  }
-};
-
 export const dispatchUpdateAnimations = ({
   animations,
   targetId,
@@ -137,30 +57,27 @@ export const dispatchUpdateAnimations = ({
   }
 
   if (renderContext?.suppressAnimations) {
-    for (const animation of relevantAnimations) {
-      applyInitialAnimationState(element, animation.tween);
+    if (onComplete) {
+      throw new Error(
+        "Deferred update animations do not support onComplete hooks.",
+      );
     }
 
-    queueDeferredMountEffect(renderContext, () => {
-      if (!element || element.destroyed) {
-        return;
-      }
+    applyInitialUpdateAnimationState(element, relevantAnimations);
 
-      startUpdateAnimations({
-        relevantAnimations,
-        animationBus,
-        completionTracker,
-        element,
-        targetState,
-        onComplete,
-      });
+    queueDeferredUpdateAnimationStart(renderContext, {
+      animations: relevantAnimations,
+      animationBus,
+      completionTracker,
+      element,
+      targetState,
     });
 
     return true;
   }
 
-  startUpdateAnimations({
-    relevantAnimations,
+  dispatchUpdateAnimationsNow({
+    animations: relevantAnimations,
     animationBus,
     completionTracker,
     element,

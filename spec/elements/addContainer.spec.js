@@ -7,6 +7,7 @@ vi.mock("../../src/plugins/elements/renderElements.js", () => ({
 
 import { renderElements } from "../../src/plugins/elements/renderElements.js";
 import { addContainer } from "../../src/plugins/elements/container/addContainer.js";
+import { createRenderContext } from "../../src/plugins/elements/renderContext.js";
 
 describe("addContainer", () => {
   beforeEach(() => {
@@ -15,10 +16,7 @@ describe("addContainer", () => {
 
   it("routes fresh child mounts through renderElements", () => {
     const parent = new Container();
-    const renderContext = {
-      suppressAnimations: false,
-      deferredMountEffects: [],
-    };
+    const renderContext = createRenderContext();
 
     addContainer({
       app: { audioStage: { add: vi.fn() } },

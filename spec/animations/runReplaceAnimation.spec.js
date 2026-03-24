@@ -1,6 +1,7 @@
 import { Container, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import { runReplaceAnimation } from "../../src/plugins/animations/replace/runReplaceAnimation.js";
+import { queueDeferredAnimatedSpritePlay } from "../../src/plugins/elements/renderContext.js";
 
 const createFrame = (x = 0, y = 0, width = 100, height = 100) => ({
   x,
@@ -155,7 +156,10 @@ describe("runReplaceAnimation", () => {
           expect(completionTracker).toBe(tracker);
           expect(targetParent).not.toBe(parent);
           expect(renderContext.suppressAnimations).toBe(true);
-          renderContext.deferredMountEffects.push(deferredEffect);
+          queueDeferredAnimatedSpritePlay(renderContext, {
+            destroyed: false,
+            play: deferredEffect,
+          });
           nextDisplayObject.label = element.id;
           targetParent.addChild(nextDisplayObject);
         },
@@ -248,7 +252,10 @@ describe("runReplaceAnimation", () => {
 
     const plugin = {
       add: vi.fn(({ parent: targetParent, element, renderContext }) => {
-        renderContext.deferredMountEffects.push(deferredEffect);
+        queueDeferredAnimatedSpritePlay(renderContext, {
+          destroyed: false,
+          play: deferredEffect,
+        });
         nextDisplayObject.label = element.id;
         targetParent.addChild(nextDisplayObject);
       }),
