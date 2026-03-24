@@ -13,7 +13,7 @@ in:
       type: text
       content: This text is aligned to the top left corner
       x: 660
-      "y": 240
+      'y': 240
       anchorX: 0.5
       anchorY: 0.5
       textStyle:
@@ -24,8 +24,8 @@ in:
         soundSrc: sound-1
         cursor: cursor-1
         payload:
-          prop1: "44"
-          prop2: "55"
+          prop1: '44'
+          prop2: '55'
         textStyle:
           fontSize: 16
           fontFamily: Arial
@@ -33,8 +33,8 @@ in:
       click:
         soundSrc: sound-2
         payload:
-          prop3: "00"
-          prop4: "22"
+          prop3: '00'
+          prop4: '22'
         textStyle:
           fontSize: 16
           fontFamily: Arial
@@ -42,32 +42,19 @@ in:
 out:
   id: tl
   type: text
-  content: This text is aligned to the top left corner
-  width: 419
-  measuredWidth: 419
+  width: 449
   height: 29
-  x: 451
-  "y": 226
-  originX: 210
+  x: 436
+  'y': 226
+  originX: 225
   originY: 15
   alpha: 1
-  textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 24
-    fontFamily: Arial
-    fill: white
-    align: left
-    lineHeight: 29
-    wordWrap: false
-    breakWords: false
-    wordWrapWidth: 0
   hover:
     soundSrc: sound-1
     cursor: cursor-1
     payload:
-      prop1: "44"
-      prop2: "55"
+      prop1: '44'
+      prop2: '55'
     textStyle:
       fontSize: 16
       fontFamily: Arial
@@ -75,12 +62,25 @@ out:
   click:
     soundSrc: sound-2
     payload:
-      prop3: "00"
-      prop4: "22"
+      prop3: '00'
+      prop4: '22'
     textStyle:
       fontSize: 16
       fontFamily: Arial
       fill: black
+  content: This text is aligned to the top left corner
+  measuredWidth: 449
+  textStyle:
+    fill: white
+    fontFamily: Arial
+    fontSize: 24
+    align: left
+    lineHeight: 29
+    wordWrap: false
+    breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 0
 ---
 case: Test parsing with word wrap
 in:
@@ -89,7 +89,7 @@ in:
       type: text
       content: This text is wrap
       x: 660
-      "y": 240
+      'y': 240
       anchorX: 0.5
       anchorY: 0.5
       width: 200
@@ -101,25 +101,25 @@ in:
 out:
   id: tl
   type: text
-  content: This text is wrap
   width: 200
-  measuredWidth: 173
   height: 29
   x: 560
-  "y": 226
+  'y': 226
   originX: 100
   originY: 15
   alpha: 1
+  content: This text is wrap
+  measuredWidth: 182
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 24
-    fontFamily: Arial
     fill: white
+    fontFamily: Arial
+    fontSize: 24
     align: left
     lineHeight: 29
     wordWrap: true
     breakWords: true
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 200
 ---
 case: Test parsing simple text object with no textStyle
@@ -129,24 +129,22 @@ in:
       type: text
       content: This text is aligned to the top left corner
       x: 660
-      "y": 240
+      'y': 240
       anchorX: 0.5
       anchorY: 0.5
 out:
   id: tl
   type: text
-  content: This text is aligned to the top left corner
-  width: 280
-  measuredWidth: 280
-  height: 19
-  x: 520
-  "y": 231
-  originX: 140
+  width: 300
+  height: 20
+  x: 510
+  'y': 230
+  originX: 150
   originY: 10
   alpha: 1
+  content: This text is aligned to the top left corner
+  measuredWidth: 300
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
     fill: black
     fontFamily: Arial
     fontSize: 16
@@ -154,6 +152,8 @@ out:
     lineHeight: 19
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
 ---
 case: Test parsing simple text object with no content
@@ -162,24 +162,22 @@ in:
       id: tl
       type: text
       x: 660
-      "y": 240
+      'y': 240
       anchorX: 0.5
       anchorY: 0.5
 out:
   id: tl
   type: text
-  content: ""
   width: 0
-  measuredWidth: 0
-  height: 19
+  height: 20
   x: 660
-  "y": 231
+  'y': 230
   originX: 0
   originY: 10
   alpha: 1
+  content: ''
+  measuredWidth: 0
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
     fill: black
     fontFamily: Arial
     fontSize: 16
@@ -187,6 +185,8 @@ out:
     lineHeight: 19
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
 ---
 case: Test parsing text with alpha property
@@ -196,7 +196,7 @@ in:
       type: text
       content: Semi-transparent text
       x: 100
-      "y": 50
+      'y': 50
       alpha: 0.5
       textStyle:
         fontSize: 20
@@ -204,25 +204,25 @@ in:
 out:
   id: transparent-text
   type: text
-  content: Semi-transparent text
-  width: 192
-  measuredWidth: 192
+  width: 205
   height: 24
   x: 100
-  "y": 50
+  'y': 50
   originX: 0
   originY: 0
   alpha: 0.5
+  content: Semi-transparent text
+  measuredWidth: 205
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 20
     fill: blue
     fontFamily: Arial
+    fontSize: 20
     align: left
     lineHeight: 24
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
 ---
 case: Test parsing text with all textStyle properties
@@ -232,38 +232,38 @@ in:
       type: text
       content: Fully styled text
       x: 50
-      "y": 100
+      'y': 100
       textStyle:
         fontSize: 18
         fontFamily: Times New Roman
-        fill: "#FF5733"
+        fill: '#FF5733'
         align: center
         lineHeight: 1.5
         wordWrap: false
         breakWords: false
-        strokeColor: "#000000"
+        strokeColor: '#000000'
         strokeWidth: 1
 out:
   id: full-style-text
   type: text
-  content: Fully styled text
-  width: 117
-  measuredWidth: 117
+  width: 132
   height: 27
   x: 50
-  "y": 100
+  'y': 100
   originX: 0
   originY: 0
   alpha: 1
+  content: Fully styled text
+  measuredWidth: 132
   textStyle:
-    fontSize: 18
+    fill: '#FF5733'
     fontFamily: Times New Roman
-    fill: "#FF5733"
+    fontSize: 18
     align: center
     lineHeight: 27
     wordWrap: false
     breakWords: false
-    strokeColor: "#000000"
+    strokeColor: '#000000'
     strokeWidth: 1
     wordWrapWidth: 0
 ---
@@ -274,31 +274,31 @@ in:
       type: text
       content: true
       x: 100
-      "y": 100
+      'y': 100
       textStyle:
         fontSize: 16
 out:
   id: bool-text-true
   type: text
-  content: "true"
-  width: 28
-  measuredWidth: 28
-  height: 19
+  width: 31
+  height: 20
   x: 100
-  "y": 100
+  'y': 100
   originX: 0
   originY: 0
   alpha: 1
+  content: 'true'
+  measuredWidth: 31
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 16
-    fontFamily: Arial
     fill: black
+    fontFamily: Arial
+    fontSize: 16
     align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
 ---
 case: Test parsing text with boolean content (false)
@@ -308,31 +308,31 @@ in:
       type: text
       content: false
       x: 100
-      "y": 100
+      'y': 100
       textStyle:
         fontSize: 16
 out:
   id: bool-text-false
   type: text
-  content: "false"
-  width: 34
-  measuredWidth: 34
-  height: 19
+  width: 35
+  height: 20
   x: 100
-  "y": 100
+  'y': 100
   originX: 0
   originY: 0
   alpha: 1
+  content: 'false'
+  measuredWidth: 35
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 16
-    fontFamily: Arial
     fill: black
+    fontFamily: Arial
+    fontSize: 16
     align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
 ---
 case: Test parsing text with number content
@@ -342,29 +342,29 @@ in:
       type: text
       content: 42
       x: 100
-      "y": 100
+      'y': 100
       textStyle:
         fontSize: 16
 out:
   id: number-text
   type: text
-  content: "42"
   width: 18
-  measuredWidth: 18
-  height: 19
+  height: 20
   x: 100
-  "y": 100
+  'y': 100
   originX: 0
   originY: 0
   alpha: 1
+  content: '42'
+  measuredWidth: 18
   textStyle:
-    strokeColor: transparent
-    strokeWidth: 0
-    fontSize: 16
-    fontFamily: Arial
     fill: black
+    fontFamily: Arial
+    fontSize: 16
     align: left
     lineHeight: 19
     wordWrap: false
     breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
     wordWrapWidth: 0
