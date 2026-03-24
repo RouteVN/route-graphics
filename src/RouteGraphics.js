@@ -1,13 +1,4 @@
-import {
-  Application,
-  Assets,
-  Graphics,
-  LoaderParserPriority,
-  extensions,
-  ExtensionType,
-  Texture,
-  Rectangle,
-} from "pixi.js";
+import { Application, Assets, Graphics, Texture, Rectangle } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
 import parseElements from "./plugins/elements/parseElements.js";
@@ -28,57 +19,6 @@ import { isDeepEqual } from "./util/isDeepEqual.js";
  * @typedef {import('./types.js').RouteGraphicsPlugins} RouteGraphicsPlugins
  * @typedef {import('./types.js').BaseElement} BaseElement
  */
-
-const getPathName = (url) => {
-  return url.split("/").pop();
-};
-
-const createAdvancedBufferLoader = (bufferMap) => ({
-  name: "advancedBufferLoader",
-  priority: 2,
-  bufferMap,
-
-  load: async (_url) => {
-    // For file: URLs, use the full URL as key, otherwise use just the filename
-    let url = _url.startsWith("file:") ? _url : getPathName(_url);
-    const blob = bufferMap[url];
-
-    if (!blob) {
-      throw new Error(`Buffer not found for key: ${url}`);
-    }
-
-    const output = {
-      data: blob.buffer,
-      type: blob.type,
-      metadata: null,
-      alias: url,
-    };
-
-    return output;
-  },
-
-  test: async (url) => !url.startsWith("blob:"),
-
-  testParse: async (_) => true,
-
-  parse: async (asset) => {
-    // If asset is already a Texture, return it directly
-    if (asset instanceof Texture) {
-      return asset;
-    }
-
-    // Convert ArrayBuffer to Blob
-    const blob = new Blob([asset.data], { type: asset.type });
-
-    // Convert Blob to ImageBitmap for images
-    const imageBitmap = await createImageBitmap(blob);
-
-    // Create and return Texture
-    return Texture.from(imageBitmap);
-  },
-
-  unload: async (texture) => texture.destroy(true),
-});
 
 /**
  * @typedef {Object} ApplicationWithAudioStageOptions
@@ -145,11 +85,6 @@ const createRouteGraphics = () => {
    * @type {boolean}
    */
   let hasRenderedOnce = false;
-
-  /**
-   * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
-   */
-  let advancedLoader;
 
   /**
    * @type {AbortController|undefined}
@@ -480,10 +415,6 @@ const createRouteGraphics = () => {
 
       if (app) app.destroy();
       backgroundGraphic = undefined;
-      if (advancedLoader) {
-        extensions.remove(advancedLoader);
-        advancedLoader = undefined;
-      }
       revokeVideoBlobUrls();
     },
 
@@ -535,23 +466,23 @@ const createRouteGraphics = () => {
         }),
       );
 
-      if (!advancedLoader) {
-        advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
+      const texturePromises = Object.entries(assetsByType.texture).map(
+        async ([key, asset]) => {
+          if (Assets.cache.has(key)) {
+            return Assets.cache.get(key);
+          }
 
-        extensions.add({
-          name: "advanced-buffer-loader",
-          extension: ExtensionType.Asset,
-          priority: LoaderParserPriority.High,
-          loader: advancedLoader,
-        });
+          const blob = new Blob([asset.buffer], { type: asset.type });
+          const imageBitmap = await createImageBitmap(blob);
+          const texture = Texture.from(imageBitmap);
 
-        if (typeof Assets.registerPlugin === "function") {
-          Assets.registerPlugin(advancedLoader);
-        }
-      } else {
-        // Merge new texture assets into existing buffer map
-        Object.assign(advancedLoader.bufferMap, assetsByType.texture);
-      }
+          // Alias the logical asset key so Texture.from("key") resolves
+          // directly from the cache instead of attempting a relative URL fetch.
+          Assets.cache.set(key, texture);
+
+          return texture;
+        },
+      );
 
       // Load video assets - create blob URLs and load via PixiJS default video loader
       const videoPromises = Object.entries(assetsByType.video).map(
@@ -570,9 +501,6 @@ const createRouteGraphics = () => {
           });
         },
       );
-
-      const textureUrls = Object.keys(assetsByType.texture);
-      const texturePromises = textureUrls.map((url) => Assets.load(url));
 
       return Promise.all([...texturePromises, ...videoPromises]);
     },

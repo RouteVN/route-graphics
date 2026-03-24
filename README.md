@@ -88,6 +88,10 @@ For complete usage details, go to:
 # Run tests
 bun run test
 
+# Ensure VT assets are real binaries, not Git LFS pointer files
+git lfs pull
+git lfs checkout
+
 # Build the local docs/playground site
 cd playground
 bun install
@@ -95,6 +99,8 @@ bun run build
 ```
 
 The docs site and playground source live under `playground/`.
+
+Visual regression assets under `vt/static/public` and `vt/reference` are stored in Git LFS. If those files are not checked out, VT pages will render blank and browser logs will show image/audio decode errors.
 
 ## Community
 
