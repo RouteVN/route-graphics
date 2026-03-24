@@ -232,7 +232,7 @@ out:
   id: tr4
   type: text-revealing
   width: 200
-  height: 38
+  height: 39
   x: 200
   'y': 200
   originX: 0
@@ -253,7 +253,7 @@ out:
             strokeWidth: 0
             wordWrapWidth: 200
           x: 0
-          'y': 9
+          'y': 10
         - text: "\_"
           textStyle:
             fill: black
@@ -267,7 +267,7 @@ out:
             strokeWidth: 0
             wordWrapWidth: 140
           x: 60
-          'y': 18
+          'y': 19
         - text: World
           textStyle:
             fill: '#3498db'
@@ -294,11 +294,11 @@ out:
             breakWords: false
             strokeColor: transparent
             strokeWidth: 0
-            wordWrapWidth: 42
-          x: 158
-          'y': 4
+            wordWrapWidth: 46
+          x: 154
+          'y': 5
       'y': 0
-      lineMaxHeight: 38
+      lineMaxHeight: 39
   textStyle:
     fill: black
     fontFamily: Arial
