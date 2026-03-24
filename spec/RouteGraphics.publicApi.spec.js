@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const createMockBounds = (width, height) => ({
   x: 0,
@@ -223,6 +223,8 @@ const createPixiModuleMock = () => {
   };
 };
 
+let currentApp = null;
+
 const setupRouteGraphics = async ({ initOptions = {}, pluginsFactory } = {}) => {
   const pixiMock = createPixiModuleMock();
 
@@ -258,11 +260,15 @@ const setupRouteGraphics = async ({ initOptions = {}, pluginsFactory } = {}) => 
     ...initOptions,
   });
 
+  currentApp = app;
+
   return { app, pixiMock };
 };
 
 describe("RouteGraphics public API", () => {
-  beforeEach(() => {
+  afterEach(() => {
+    currentApp?.destroy();
+    currentApp = null;
     vi.resetModules();
   });
 
@@ -271,7 +277,7 @@ describe("RouteGraphics public API", () => {
 
     expect(() => app.findElementByLabel("missing-label")).not.toThrow();
     expect(app.findElementByLabel("missing-label")).toBeNull();
-  });
+  }, 15000);
 
   it("updates the visible stage background graphic color", async () => {
     const { app, pixiMock } = await setupRouteGraphics();

@@ -45,6 +45,166 @@ const createParent = (...children) => ({
 });
 
 describe("runReplaceAnimation", () => {
+  it("mounts next-only transitions through hidden add flow and reveals the result on complete", () => {
+    const parent = createParent();
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const deferredEffect = vi.fn();
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element, renderContext }) => {
+        expect(renderContext.suppressAnimations).toBe(true);
+        expect(targetParent).not.toBe(parent);
+        nextDisplayObject.label = element.id;
+        queueDeferredAnimatedSpritePlay(renderContext, {
+          destroyed: false,
+          play: deferredEffect,
+        });
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        children: [],
+      },
+      animation: {
+        id: "scene-enter",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(plugin.add).toHaveBeenCalledTimes(1);
+    expect(plugin.delete).not.toHaveBeenCalled();
+    expect(parent.children).toHaveLength(2);
+    expect(nextDisplayObject.visible).toBe(false);
+    expect(tracker.track).toHaveBeenCalledWith(11);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.onComplete();
+
+    expect(parent.children).toEqual([nextDisplayObject]);
+    expect(nextDisplayObject.visible).toBe(true);
+    expect(deferredEffect).toHaveBeenCalledTimes(1);
+    expect(tracker.complete).toHaveBeenCalledWith(11);
+  });
+
+  it("runs delete-only transitions without mounting a next element", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const plugin = {
+      add: vi.fn(),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: null,
+      animation: {
+        id: "scene-exit",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(plugin.add).not.toHaveBeenCalled();
+    expect(plugin.delete).toHaveBeenCalledTimes(1);
+    expect(parent.children).toHaveLength(1);
+    expect(parent.children[0]).not.toBe(prevDisplayObject);
+    expect(tracker.track).toHaveBeenCalledWith(11);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.onComplete();
+
+    expect(parent.children).toHaveLength(0);
+    expect(tracker.complete).toHaveBeenCalledWith(11);
+  });
+
   it("tracks async transition mounts before the next element promise resolves", async () => {
     const parent = createParent();
     const nextDisplayObject = createDisplayObject("scene-root");

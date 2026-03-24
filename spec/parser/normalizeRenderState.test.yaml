@@ -80,6 +80,69 @@ out:
               easing: linear
   audio: []
 ---
+case: Normalize transition animation with prev tween
+in:
+  - id: state-2-prev-transition
+    animations:
+      - id: anim-prev-transition
+        targetId: scene-root
+        type: transition
+        prev:
+          tween:
+            alpha:
+              initialValue: 1
+              keyframes:
+                - duration: 120
+                  value: 0
+out:
+  id: state-2-prev-transition
+  elements: []
+  animations:
+    - id: anim-prev-transition
+      targetId: scene-root
+      type: transition
+      prev:
+        tween:
+          alpha:
+            initialValue: 1
+            keyframes:
+              - duration: 120
+                value: 0
+                easing: linear
+  audio: []
+---
+case: Normalize transition animation with next tween
+in:
+  - id: state-2-next-transition
+    animations:
+      - id: anim-next-transition
+        targetId: scene-root
+        type: transition
+        next:
+          tween:
+            translateX:
+              initialValue: -1
+              keyframes:
+                - duration: 200
+                  value: 0
+                  easing: easeInCubic
+out:
+  id: state-2-next-transition
+  elements: []
+  animations:
+    - id: anim-next-transition
+      targetId: scene-root
+      type: transition
+      next:
+        tween:
+          translateX:
+            initialValue: -1
+            keyframes:
+              - duration: 200
+                value: 0
+                easing: easeInCubic
+  audio: []
+---
 case: Preserve advanced easing names
 in:
   - id: state-2-easing
@@ -138,6 +201,77 @@ in:
           name: burn-dissolve
 throws: animations[0].shader is not supported.
 ---
+case: Throw when update animation defines prev
+in:
+  - id: state-3b-prev
+    animations:
+      - id: anim-1
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+        prev:
+          tween:
+            alpha:
+              keyframes:
+                - duration: 100
+                  value: 0
+throws: animations[0].prev is only valid for transition animations.
+---
+case: Throw when update animation defines next
+in:
+  - id: state-3b-next
+    animations:
+      - id: anim-1
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+        next:
+          tween:
+            alpha:
+              keyframes:
+                - duration: 100
+                  value: 1
+throws: animations[0].next is only valid for transition animations.
+---
+case: Throw when update animation defines mask
+in:
+  - id: state-3b-mask
+    animations:
+      - id: anim-1
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+        mask:
+          kind: single
+          texture: masks/wipe.png
+throws: animations[0].mask is only valid for transition animations.
+---
+case: Throw when transition animation defines tween
+in:
+  - id: state-3b-tween
+    animations:
+      - id: anim-1
+        targetId: scene-root
+        type: transition
+        tween:
+          alpha:
+            keyframes:
+              - duration: 100
+                value: 1
+throws: animations[0].tween is not valid for transition animations.
+---
 case: Throw when easing is unsupported
 in:
   - id: state-3c
@@ -152,6 +286,29 @@ in:
                 value: 20
                 easing: easeInHexagon
 throws: "animations[0].tween.x.keyframes[0].easing must be one of:"
+---
+case: Throw when target mixes update and transition types
+in:
+  - id: state-3d
+    animations:
+      - id: anim-update
+        targetId: scene-root
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+      - id: anim-transition
+        targetId: scene-root
+        type: transition
+        next:
+          tween:
+            alpha:
+              keyframes:
+                - duration: 100
+                  value: 1
+throws: 'Animations targeting "scene-root" cannot mix update and transition types in the same state.'
 ---
 case: Throw when animations is not an array
 in:

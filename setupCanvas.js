@@ -1,5 +1,15 @@
-import { createCanvas } from 'canvas'
+import { createCanvas, registerFont } from 'canvas'
 import { JSDOM } from 'jsdom'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { beforeEach, vi } from 'vitest'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const notoSansPath = join(__dirname, 'spec/assets/fonts/NotoSans-Regular.ttf')
+
+// Pin text metrics in tests to a vendored font instead of host-specific Arial.
+registerFont(notoSansPath, { family: 'Arial' })
+registerFont(notoSansPath, { family: 'RouteGraphicsTestSans' })
 
 // Create a DOM environment
 const dom = new JSDOM('<!doctype html><html><body></body></html>')
@@ -8,6 +18,7 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>')
 global.window = dom.window
 global.document = dom.window.document
 global.HTMLElement = dom.window.HTMLElement
+global.HTMLCanvasElement = dom.window.HTMLCanvasElement
 
 // Patch <canvas> to use node-canvas
 global.HTMLCanvasElement.prototype.getContext = function (type) {
@@ -19,3 +30,8 @@ global.HTMLCanvasElement.prototype.getContext = function (type) {
   }
   return null
 }
+
+beforeEach(async () => {
+  const pixi = await vi.importActual('pixi.js')
+  pixi.CanvasTextMetrics.clearMetrics()
+})
