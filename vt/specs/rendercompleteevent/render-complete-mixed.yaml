@@ -5,7 +5,7 @@ specs:
   - animation and text-revealing both reach a final visual state
 steps:
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 800
   - action: screenshot
@@ -16,10 +16,10 @@ states:
       - id: rect1
         type: rect
         x: 100
-        "y": 100
+        'y': 100
         width: 200
         height: 100
-        fill: "#A6A6A6"
+        fill: '#A6A6A6'
         alpha: 1
       - id: revealing-text
         type: text-revealing
@@ -27,10 +27,10 @@ states:
           - text: Loading...
             textStyle:
               fontSize: 28
-              fill: "#FFFFFF"
+              fill: '#FFFFFF'
               fontFamily: Helvetica
         x: 100
-        "y": 250
+        'y': 250
         width: 400
         alpha: 1
         speed: 50
@@ -38,11 +38,12 @@ states:
     animations:
       - id: fade-rect
         targetId: rect1
-        type: live
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 400
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 400
+                  value: 1
+                  easing: linear

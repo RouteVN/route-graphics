@@ -43,7 +43,7 @@ states:
     animations:
       - id: rect-composite-replace
         targetId: rect1
-        type: replace
+        type: transition
         mask:
           kind: composite
           combine: max

@@ -41,7 +41,7 @@ states:
     animations:
       - id: sprite-rotate
         targetId: sprite1
-        type: live
+        type: update
         tween:
           rotation:
             keyframes:

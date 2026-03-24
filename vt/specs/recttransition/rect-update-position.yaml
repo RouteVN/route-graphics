@@ -46,7 +46,7 @@ states:
     animations:
       - id: rect-move
         targetId: rect1
-        type: live
+        type: update
         tween:
           x:
             keyframes:
@@ -75,7 +75,7 @@ states:
     animations:
       - id: rect-move
         targetId: rect1
-        type: live
+        type: update
         tween:
           x:
             keyframes:

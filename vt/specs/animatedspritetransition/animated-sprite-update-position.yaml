@@ -178,7 +178,7 @@ states:
     animations:
       - id: animated-sprite-move
         targetId: animated-sprite1
-        type: live
+        type: update
         tween:
           x:
             keyframes:

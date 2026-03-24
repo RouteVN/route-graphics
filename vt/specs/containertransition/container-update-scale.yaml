@@ -57,7 +57,7 @@ states:
     animations:
       - id: container-scale
         targetId: container1
-        type: live
+        type: update
         tween:
           scaleX:
             keyframes:

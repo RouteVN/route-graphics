@@ -44,7 +44,7 @@ states:
     animations:
       - id: rect-sequence-replace
         targetId: rect1
-        type: replace
+        type: transition
         mask:
           kind: sequence
           textures:

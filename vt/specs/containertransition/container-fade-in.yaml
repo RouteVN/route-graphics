@@ -7,14 +7,14 @@ specs:
   - animation should take 1 second
 steps:
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 500
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 1000
   - action: screenshot
@@ -25,7 +25,7 @@ states:
       - id: container1
         type: container
         x: 150
-        "y": 100
+        'y': 100
         direction: horizontal
         gap: 10
         alpha: 1
@@ -34,29 +34,30 @@ states:
             type: rect
             width: 80
             height: 80
-            fill: "#FFFFFF"
+            fill: '#FFFFFF'
           - id: rect2
             type: rect
             width: 80
             height: 80
-            fill: "#FFFFFF"
+            fill: '#FFFFFF'
           - id: rect3
             type: rect
             width: 80
             height: 80
-            fill: "#FFFFFF"
+            fill: '#FFFFFF'
     animations:
       - id: container-fade-in
         targetId: container1
         test: true
-        type: live
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 0.5
-                easing: linear
-              - duration: 500
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 0.5
+                  easing: linear
+                - duration: 500
+                  value: 1
+                  easing: linear

@@ -61,7 +61,7 @@ states:
       - id: slider-move
         targetId: slider1
         event: update
-        type: live
+        type: update
         tween:
           x:
             keyframes:

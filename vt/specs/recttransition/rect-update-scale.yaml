@@ -56,7 +56,7 @@ states:
     animations:
       - id: rect-scale
         targetId: rect1
-        type: live
+        type: update
         tween:
           scaleX:
             keyframes:
