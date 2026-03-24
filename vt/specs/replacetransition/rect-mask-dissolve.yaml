@@ -43,7 +43,7 @@ states:
     animations:
       - id: rect-mask-replace
         targetId: rect1
-        type: replace
+        type: transition
         mask:
           kind: single
           texture: mask-diagonal

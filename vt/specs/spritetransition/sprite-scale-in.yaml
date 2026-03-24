@@ -7,14 +7,14 @@ specs:
   - animation should take 1.2 seconds
 steps:
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 600
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 600
   - action: screenshot
@@ -26,7 +26,7 @@ states:
         type: sprite
         src: circle-red
         x: 350
-        "y": 250
+        'y': 250
         width: 200
         height: 200
         scaleX: 1
@@ -34,17 +34,18 @@ states:
     animations:
       - id: sprite-scale-in
         targetId: sprite1
-        type: live
-        tween:
-          scaleX:
-            initialValue: 0
-            keyframes:
-              - duration: 1200
-                value: 1
-                easing: linear
-          scaleY:
-            initialValue: 0
-            keyframes:
-              - duration: 1200
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            scaleX:
+              initialValue: 0
+              keyframes:
+                - duration: 1200
+                  value: 1
+                  easing: linear
+            scaleY:
+              initialValue: 0
+              keyframes:
+                - duration: 1200
+                  value: 1
+                  easing: linear

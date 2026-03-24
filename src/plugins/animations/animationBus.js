@@ -79,7 +79,7 @@ const buildPropertyTimelines = (element, properties, propertyPathMap) =>
 
 /**
  * Creates an animation bus that manages all active animations centrally.
- * It supports both live property animations and custom replace runners.
+ * It supports both update property animations and custom transition runners.
  * @returns {AnimationBus}
  */
 export const createAnimationBus = () => {

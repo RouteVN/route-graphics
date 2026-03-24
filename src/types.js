@@ -436,8 +436,8 @@ export const WhiteListReplaceSubjectProps = {
 };
 
 export const AnimationType = {
-  LIVE: "live",
-  REPLACE: "replace",
+  UPDATE: "update",
+  TRANSITION: "transition",
 };
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -57,7 +57,7 @@
     "pixelmatch": "^5.3.0",
     "playwright": "^1.44.0",
     "pngjs": "^7.0.0",
-    "puty": "^0.0.5-rc1",
+    "puty": "^0.1.2",
     "vitest": "^4.0.8"
   },
   "lint-staged": {

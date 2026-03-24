@@ -19,7 +19,7 @@
         "pixelmatch": "^5.3.0",
         "playwright": "^1.44.0",
         "pngjs": "^7.0.0",
-        "puty": "^0.0.5-rc1",
+        "puty": "^0.1.2",
         "vitest": "^4.0.8",
       },
     },
@@ -465,7 +465,7 @@
 
     "punycode": ["punycode@2.3.1", "", {}, "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="],
 
-    "puty": ["puty@0.0.5-rc1", "", { "dependencies": { "js-yaml": "~4.1.0" } }, "sha512-yceuhJtIdPcuUtx6WPijPkbDr2C3MWaPRUY/X+v511Bqd+apfmkOCr8//zPiYh/5VXuKsFGoqSbJ4SJB0+GnZg=="],
+    "puty": ["puty@0.1.2", "", { "dependencies": { "js-yaml": "~4.1.0" }, "peerDependencies": { "vitest": ">=1.0.0" } }, "sha512-VNEwqORf0u/LiVdjyHPsIOKWC5z4uNuHhMgYu9WGea6u3YCP4OimQHQfWkw0DB/tE3KuWgPO0dhkM8uH4Yweig=="],
 
     "qs": ["qs@6.14.0", "", { "dependencies": { "side-channel": "^1.1.0" } }, "sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w=="],
 

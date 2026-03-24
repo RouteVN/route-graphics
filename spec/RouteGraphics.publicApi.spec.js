@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const createMockBounds = (width, height) => ({
+  x: 0,
+  y: 0,
+  width,
+  height,
+  clone() {
+    return createMockBounds(this.width, this.height);
+  },
+});
+
 const createPixiModuleMock = () => {
   let lastApplication = null;
 
@@ -41,6 +51,13 @@ const createPixiModuleMock = () => {
   }
 
   class MockGraphics extends MockDisplayObject {
+    constructor() {
+      super();
+      this.scale = { x: 1, y: 1, set: vi.fn() };
+      this.rotation = 0;
+      this.sortableChildren = false;
+    }
+
     clear() {
       this.lastFill = undefined;
       this.drawnRect = undefined;
@@ -56,6 +73,19 @@ const createPixiModuleMock = () => {
       this.lastFill = value;
       return this;
     }
+
+    stroke(value) {
+      this.lastStroke = value;
+      return this;
+    }
+
+    getLocalBounds() {
+      const rectangle = createMockBounds(this.width || 1, this.height || 1);
+
+      return {
+        rectangle,
+      };
+    }
   }
 
   class MockContainer extends MockDisplayObject {
@@ -67,14 +97,10 @@ const createPixiModuleMock = () => {
     }
 
     getLocalBounds() {
+      const rectangle = createMockBounds(this.width || 1, this.height || 1);
+
       return {
-        x: 0,
-        y: 0,
-        width: this.width || 1,
-        height: this.height || 1,
-        clone() {
-          return { ...this, clone: this.clone };
-        },
+        rectangle,
       };
     }
   }
@@ -197,7 +223,7 @@ const createPixiModuleMock = () => {
   };
 };
 
-const setupRouteGraphics = async () => {
+const setupRouteGraphics = async ({ initOptions = {}, pluginsFactory } = {}) => {
   const pixiMock = createPixiModuleMock();
 
   vi.doMock("pixi.js", () => pixiMock);
@@ -214,6 +240,13 @@ const setupRouteGraphics = async () => {
     },
   }));
 
+  const resolvedPlugins = pluginsFactory
+    ? await pluginsFactory()
+    : {
+        elements: [],
+        animations: [],
+        audio: [],
+      };
   const { default: createRouteGraphics } = await import("../src/RouteGraphics.js");
 
   const app = createRouteGraphics();
@@ -221,11 +254,8 @@ const setupRouteGraphics = async () => {
     width: 320,
     height: 240,
     backgroundColor: 0x000000,
-    plugins: {
-      elements: [],
-      animations: [],
-      audio: [],
-    },
+    plugins: resolvedPlugins,
+    ...initOptions,
   });
 
   return { app, pixiMock };
@@ -254,5 +284,92 @@ describe("RouteGraphics public API", () => {
 
     expect(backgroundGraphic.lastFill).toBe(0xff0000);
     expect(appInstance.renderer.background.color).toBe(0xff0000);
+  });
+
+  it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {
+    const eventHandler = vi.fn();
+
+    const { app } = await setupRouteGraphics({
+      initOptions: {
+        debug: true,
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "baseline-rect",
+          type: "rect",
+          x: 80,
+          y: 80,
+          width: 120,
+          height: 80,
+          fill: "#4D4D4D",
+        },
+      ],
+    });
+
+    eventHandler.mockClear();
+
+    app.render({
+      id: "animation-only",
+      elements: [
+        {
+          id: "fade-rect",
+          type: "rect",
+          x: 160,
+          y: 100,
+          width: 120,
+          height: 80,
+          fill: "#FFFFFF",
+          alpha: 1,
+        },
+      ],
+      animations: [
+        {
+          id: "fade-in",
+          targetId: "fade-rect",
+          type: "transition",
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 600, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "animation-only",
+      aborted: false,
+    });
+
+    window.dispatchEvent(
+      new CustomEvent("snapShotKeyFrame", {
+        detail: { deltaMS: 700 },
+      }),
+    );
+
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "animation-only",
+      aborted: false,
+    });
   });
 });

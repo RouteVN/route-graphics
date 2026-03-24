@@ -1,7 +1,59 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { renderElements } from "../renderElements.js";
+
+const hasDuplicateChildIds = (children = []) => {
+  const seen = new Set();
+
+  for (const child of children) {
+    if (!child?.id) {
+      continue;
+    }
+
+    if (seen.has(child.id)) {
+      return true;
+    }
+
+    seen.add(child.id);
+  }
+
+  return false;
+};
+
+const addChildrenDirectly = ({
+  app,
+  container,
+  children,
+  eventHandler,
+  animationBus,
+  elementPlugins,
+  renderContext,
+  completionTracker,
+  signal,
+}) => {
+  for (const child of children) {
+    const childPlugin = elementPlugins.find(
+      (plugin) => plugin.type === child.type,
+    );
+    if (!childPlugin) {
+      throw new Error(`No plugin found for child element type: ${child.type}`);
+    }
+
+    childPlugin.add({
+      app,
+      parent: container,
+      element: child,
+      animations: [],
+      eventHandler,
+      animationBus,
+      elementPlugins,
+      renderContext,
+      completionTracker,
+      signal,
+    });
+  }
+};
 
 /**
  * Add container element to the stage (synchronous)
@@ -15,6 +67,7 @@ export const addContainer = ({
   eventHandler,
   animationBus,
   elementPlugins,
+  renderContext,
   zIndex,
   completionTracker,
   signal,
@@ -32,25 +85,32 @@ export const addContainer = ({
 
   parent.addChild(container);
 
-  // Add children recursively
   if (children && children.length > 0) {
-    for (const child of children) {
-      const childPlugin = elementPlugins.find((p) => p.type === child.type);
-      if (!childPlugin) {
-        throw new Error(
-          `No plugin found for child element type: ${child.type}`,
-        );
-      }
-
-      childPlugin.add({
+    if (hasDuplicateChildIds(children)) {
+      addChildrenDirectly({
         app,
-        parent: container,
-        element: child,
-        animations,
+        container,
+        children,
         eventHandler,
         animationBus,
         elementPlugins,
+        renderContext,
         completionTracker,
+        signal,
+      });
+    } else {
+      // Route unique fresh mounts through the planner so child transitions can run.
+      renderElements({
+        app,
+        parent: container,
+        prevComputedTree: [],
+        nextComputedTree: children,
+        animations,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        renderContext,
         signal,
       });
     }
@@ -149,13 +209,4 @@ export const addContainer = ({
 
     container.on("rightclick", rightClickListener);
   }
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: id,
-    animationBus,
-    completionTracker,
-    element: container,
-    targetState: { x, y, alpha },
-  });
 };

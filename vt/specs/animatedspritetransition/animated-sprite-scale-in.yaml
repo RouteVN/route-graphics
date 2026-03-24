@@ -175,7 +175,7 @@ states:
     animations:
       - id: animated-sprite-scale-in
         targetId: animated-sprite1
-        type: live
+        type: update
         tween:
           scaleX:
             initialValue: 0

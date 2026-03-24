@@ -13,6 +13,7 @@ export const addSlider = ({
   animationBus,
   completionTracker,
   eventHandler,
+  renderContext,
   zIndex,
 }) => {
   const {
@@ -236,5 +237,6 @@ export const addSlider = ({
     completionTracker,
     element: sliderContainer,
     targetState: { x, y, alpha },
+    renderContext,
   });
 };

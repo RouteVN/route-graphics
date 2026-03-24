@@ -1,3 +1,9 @@
+import {
+  applyInitialUpdateAnimationState,
+  dispatchUpdateAnimationsNow,
+} from "./updateAnimationDispatch.js";
+import { queueDeferredUpdateAnimationStart } from "../elements/renderContext.js";
+
 export const groupAnimationsByTarget = (animations = []) => {
   if (animations instanceof Map) {
     return animations;
@@ -24,17 +30,17 @@ export const getTargetAnimations = (animationsOrMap, targetId) => {
   return animationsOrMap.filter((animation) => animation.targetId === targetId);
 };
 
-export const getLiveAnimations = (animationsOrMap, targetId) =>
+export const getUpdateAnimations = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).filter(
-    (animation) => animation.type === "live",
+    (animation) => animation.type === "update",
   );
 
-export const getReplaceAnimation = (animationsOrMap, targetId) =>
+export const getTransitionAnimation = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).find(
-    (animation) => animation.type === "replace",
+    (animation) => animation.type === "transition",
   ) ?? null;
 
-export const dispatchLiveAnimations = ({
+export const dispatchUpdateAnimations = ({
   animations,
   targetId,
   animationBus,
@@ -42,31 +48,46 @@ export const dispatchLiveAnimations = ({
   element,
   targetState,
   onComplete,
+  renderContext,
 }) => {
-  const relevantAnimations = getLiveAnimations(animations, targetId);
+  const relevantAnimations = getUpdateAnimations(animations, targetId);
 
   if (relevantAnimations.length === 0) {
     return false;
   }
 
-  for (const animation of relevantAnimations) {
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
+  if (renderContext?.suppressAnimations) {
+    if (onComplete) {
+      throw new Error(
+        "Deferred update animations do not support onComplete hooks.",
+      );
+    }
 
-    animationBus.dispatch({
-      type: "START",
-      payload: {
-        id: animation.id,
-        element,
-        properties: animation.tween,
-        targetState,
-        onComplete: () => {
-          completionTracker.complete(stateVersion);
-          onComplete?.(animation);
-        },
-      },
+    applyInitialUpdateAnimationState(element, relevantAnimations);
+
+    queueDeferredUpdateAnimationStart(renderContext, {
+      animations: relevantAnimations,
+      animationBus,
+      completionTracker,
+      element,
+      targetState,
     });
+
+    return true;
   }
+
+  dispatchUpdateAnimationsNow({
+    animations: relevantAnimations,
+    animationBus,
+    completionTracker,
+    element,
+    targetState,
+    onComplete,
+  });
 
   return true;
 };
+
+export const getLiveAnimations = getUpdateAnimations;
+export const getReplaceAnimation = getTransitionAnimation;
+export const dispatchLiveAnimations = dispatchUpdateAnimations;

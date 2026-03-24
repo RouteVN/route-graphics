@@ -8,14 +8,14 @@ specs:
   - both bar and thumb should fade together
 steps:
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 500
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 500
   - action: screenshot
@@ -31,7 +31,7 @@ states:
         width: 200
         height: 20
         x: 200
-        "y": 150
+        'y': 150
         alpha: 1
         anchorX: 0
         anchorY: 0
@@ -43,11 +43,12 @@ states:
     animations:
       - id: slider-fade-in
         targetId: slider1
-        type: live
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

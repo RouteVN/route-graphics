@@ -43,7 +43,7 @@ states:
     animations:
       - id: text-move
         targetId: text1
-        type: live
+        type: update
         tween:
           x:
             keyframes:

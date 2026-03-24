@@ -1,7 +1,7 @@
 import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
 
-const ANIMATION_TYPES = new Set(["live", "replace"]);
-const LIVE_TWEEN_PROPERTIES = new Set([
+const ANIMATION_TYPES = new Set(["update", "transition"]);
+const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
   "y",
@@ -9,7 +9,7 @@ const LIVE_TWEEN_PROPERTIES = new Set([
   "scaleY",
   "rotation",
 ]);
-const REPLACE_TWEEN_PROPERTIES = new Set([
+const TRANSITION_TWEEN_PROPERTIES = new Set([
   "translateX",
   "translateY",
   "alpha",
@@ -236,7 +236,7 @@ const normalizeReplaceSide = (side, path) => {
     normalized.tween = normalizeTweenMap(
       side.tween,
       `${path}.tween`,
-      REPLACE_TWEEN_PROPERTIES,
+      TRANSITION_TWEEN_PROPERTIES,
     );
   }
 
@@ -315,7 +315,7 @@ export const normalizeAnimations = (animations = []) => {
     assertLegacyFieldAbsent(
       animation.operation,
       `${path}.operation`,
-      "is no longer supported. Use `type: live | replace` instead.",
+      "is no longer supported. Use `type: update | transition` instead.",
     );
     assertLegacyFieldAbsent(
       animation.properties,
@@ -328,11 +328,11 @@ export const normalizeAnimations = (animations = []) => {
       "is no longer supported. Use `prev` / `next` instead.",
     );
 
-    if (animation.type === "live") {
+    if (animation.type === "update") {
       normalizedAnimation.tween = normalizeTweenMap(
         animation.tween,
         `${path}.tween`,
-        LIVE_TWEEN_PROPERTIES,
+        UPDATE_TWEEN_PROPERTIES,
       );
 
       if (animation.replace !== undefined) {
@@ -342,15 +342,21 @@ export const normalizeAnimations = (animations = []) => {
       }
 
       if (animation.prev !== undefined) {
-        throw new Error(`${path}.prev is only valid for replace animations.`);
+        throw new Error(
+          `${path}.prev is only valid for transition animations.`,
+        );
       }
 
       if (animation.next !== undefined) {
-        throw new Error(`${path}.next is only valid for replace animations.`);
+        throw new Error(
+          `${path}.next is only valid for transition animations.`,
+        );
       }
 
       if (animation.mask !== undefined) {
-        throw new Error(`${path}.mask is only valid for replace animations.`);
+        throw new Error(
+          `${path}.mask is only valid for transition animations.`,
+        );
       }
 
       if (animation.shader !== undefined) {
@@ -361,7 +367,7 @@ export const normalizeAnimations = (animations = []) => {
     }
 
     if (animation.tween !== undefined) {
-      throw new Error(`${path}.tween is not valid for replace animations.`);
+      throw new Error(`${path}.tween is not valid for transition animations.`);
     }
 
     if (animation.replace !== undefined) {
@@ -393,9 +399,9 @@ export const normalizeAnimations = (animations = []) => {
   }
 
   for (const [targetId, kinds] of targetKinds) {
-    if (kinds.has("replace") && kinds.size > 1) {
+    if (kinds.has("transition") && kinds.size > 1) {
       throw new Error(
-        `Animations targeting "${targetId}" cannot mix live and replace types in the same state.`,
+        `Animations targeting "${targetId}" cannot mix update and transition types in the same state.`,
       );
     }
   }

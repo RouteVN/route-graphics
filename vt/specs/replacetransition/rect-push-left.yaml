@@ -44,7 +44,7 @@ states:
     animations:
       - id: rect-push-left
         targetId: rect1
-        type: replace
+        type: transition
         prev:
           tween:
             translateX:

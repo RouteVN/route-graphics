@@ -1,6 +1,6 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
 
 /**
  * Add animated sprite element to the stage
@@ -10,9 +10,7 @@ export const addAnimatedSprite = async ({
   app,
   parent,
   element,
-  animations,
-  animationBus,
-  completionTracker,
+  renderContext,
   zIndex,
   signal,
 }) => {
@@ -48,8 +46,11 @@ export const addAnimatedSprite = async ({
   animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
   animatedSprite.loop = animation.loop ?? true;
 
-  if (!app.debug) animatedSprite.play();
-  else setupDebugMode(animatedSprite, id, app.debug);
+  if (app.debug) {
+    setupDebugMode(animatedSprite, id, app.debug);
+  } else {
+    queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+  }
 
   animatedSprite.x = Math.round(x);
   animatedSprite.y = Math.round(y);
@@ -58,13 +59,4 @@ export const addAnimatedSprite = async ({
   animatedSprite.alpha = alpha;
 
   parent.addChild(animatedSprite);
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: id,
-    animationBus,
-    completionTracker,
-    element: animatedSprite,
-    targetState: { x, y, width, height, alpha },
-  });
 };

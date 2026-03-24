@@ -7,22 +7,22 @@ specs:
   - element props differ from animation final state
 steps:
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 1200
   - action: screenshot
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 1200
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 800
 ---
@@ -32,51 +32,52 @@ states:
       - id: text-render-test
         type: text
         x: 100
-        "y": 100
+        'y': 100
         content: Render Test
         textStyle:
           fontFamily: Arial
           fontSize: 32
-          fill: "#FFFFFF"
+          fill: '#FFFFFF'
         alpha: 1
     animations:
       - id: text-render-abortion
         targetId: text-render-test
-        type: live
-        tween:
-          x:
-            initialValue: 50
-            keyframes:
-              - duration: 1000
-                value: 150
-                easing: linear
-              - duration: 1000
-                value: 250
-                easing: linear
-          "y":
-            initialValue: 50
-            keyframes:
-              - duration: 1000
-                value: 120
-                easing: linear
-              - duration: 1000
-                value: 200
-                easing: linear
+        type: transition
+        next:
+          tween:
+            translateX:
+              initialValue: -0.0390625
+              keyframes:
+                - duration: 1000
+                  value: 0.0390625
+                  easing: linear
+                - duration: 1000
+                  value: 0.1171875
+                  easing: linear
+            translateY:
+              initialValue: -0.06944444444444445
+              keyframes:
+                - duration: 1000
+                  value: 0.027777777777777776
+                  easing: linear
+                - duration: 1000
+                  value: 0.1388888888888889
+                  easing: linear
   - elements:
       - id: text-render-test
         type: text
         x: 400
-        "y": 300
+        'y': 300
         content: Continued Render
         textStyle:
           fontFamily: Arial
           fontSize: 48
-          fill: "#FFFFFF"
+          fill: '#FFFFFF'
         alpha: 1
     animations:
       - id: text-render-abortion-2
         targetId: text-render-test
-        type: live
+        type: update
         tween:
           x:
             initialValue: 250
