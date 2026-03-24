@@ -2,12 +2,12 @@
 
 ## Purpose
 
-This note captures a proposed cleanup of animation type semantics in `route-graphics`, based on the current engine behavior and the needs of Ren'Py-style ports.
+This note captures a proposed cleanup of animation type semantics in `route-graphics`, based on the current engine behavior and the needs of script-driven scene transitions.
 
 The immediate motivation is correct support for transitions like:
 
-- `show cg with dissolve`
-- `hide cg with dissolve`
+- showing an image with dissolve
+- hiding an image with dissolve
 - replacing one shown visual with another using the same transition
 
 ## Current Behavior
@@ -53,18 +53,18 @@ This makes the semantics blurry:
 - `replace` sounds like "swap old for new"
 - but it is also used for pure enter and pure exit
 
-That ambiguity becomes more obvious when mapping from Ren'Py:
+That ambiguity becomes more obvious when mapping from scene-transition semantics:
 
-- Ren'Py `with dissolve` is conceptually a transition from previous composed state to next composed state
+- a dissolve is conceptually a transition from previous composed state to next composed state
 - it applies when something appears
 - it applies when something disappears
 - it applies when one thing changes into another
 
 That is not a great fit for a type name like `replace`.
 
-## Ren'Py Mapping
+## Transition Mapping
 
-For Ren'Py-style `with` transitions, the correct conceptual model is:
+For composed-state transitions, the correct conceptual model is:
 
 - `show`: `prev = null`, `next = element`
 - `hide`: `prev = element`, `next = null`
@@ -253,7 +253,7 @@ Operational rule:
 
 Why this rule is preferred:
 
-- it matches the Ren'Py-style mental model better
+- it matches the composed-state transition mental model better
 - it keeps transition rendering much simpler and cheaper
 - it avoids requiring live per-frame rendering of both prev and next subtrees into offscreen textures
 
@@ -276,12 +276,12 @@ This avoids turning the transition runner into a live subtree compositor.
 
 ## Porting Recommendation
 
-For Ren'Py conversion work:
+For script-to-scene conversion work:
 
 - use `transition` semantics for all `with dissolve`, `with fade`, and similar scene/show/hide transitions
 - do not model those with `update`
 
-This matches Ren'Py's own mental model: transition from previous composed screen state to next composed screen state.
+This matches the composed-state model directly: transition from previous composed screen state to next composed screen state.
 
 ## Migration Notes
 
@@ -320,7 +320,7 @@ Recommended rename:
 - `live` -> `update`
 - `replace` -> `transition`
 
-Recommended Ren'Py mapping:
+Recommended transition mapping:
 
 - `show ... with dissolve` -> `transition`
 - `hide ... with dissolve` -> `transition`
