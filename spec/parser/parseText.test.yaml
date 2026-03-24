@@ -246,7 +246,7 @@ in:
 out:
   id: full-style-text
   type: text
-  width: 136
+  width: 132
   height: 27
   x: 50
   'y': 100
@@ -254,7 +254,7 @@ out:
   originY: 0
   alpha: 1
   content: Fully styled text
-  measuredWidth: 136
+  measuredWidth: 132
   textStyle:
     fill: '#FF5733'
     fontFamily: Times New Roman

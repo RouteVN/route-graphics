@@ -35,16 +35,7 @@ global.HTMLCanvasElement.prototype.getContext = function (type) {
 const originalMeasureText = CanvasTextMetrics.measureText.bind(CanvasTextMetrics)
 
 const normalizeFontFamily = (fontFamily) => {
-  if (typeof fontFamily !== 'string' || fontFamily.length === 0) {
-    return TEST_FONT_FAMILY
-  }
-
-  return fontFamily
-    .split(',')
-    .map((family) => family.trim())
-    .map((family) => family.replace(/^['"]|['"]$/g, ''))
-    .map((family) => family === 'Arial' ? TEST_FONT_FAMILY : family)
-    .join(', ')
+  return TEST_FONT_FAMILY
 }
 
 CanvasTextMetrics.measureText = function (text, style, ...rest) {
