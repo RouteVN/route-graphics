@@ -65,4 +65,60 @@ describe("addContainer", () => {
       }),
     );
   });
+
+  it("falls back to direct child add when sibling ids are duplicated", () => {
+    const parent = new Container();
+    const renderContext = createRenderContext();
+    const childPlugin = {
+      type: "rect",
+      add: vi.fn(),
+    };
+
+    addContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      element: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        children: [
+          {
+            id: "child-1",
+            type: "rect",
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 20,
+          },
+          {
+            id: "child-1",
+            type: "rect",
+            x: 25,
+            y: 0,
+            width: 20,
+            height: 20,
+          },
+        ],
+      },
+      animations: [{ id: "child-enter", targetId: "child-1", type: "transition" }],
+      eventHandler: vi.fn(),
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [childPlugin],
+      renderContext,
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(renderElements).not.toHaveBeenCalled();
+    expect(childPlugin.add).toHaveBeenCalledTimes(2);
+    expect(childPlugin.add.mock.calls[0][0].animations).toEqual([]);
+    expect(childPlugin.add.mock.calls[1][0].animations).toEqual([]);
+  });
 });

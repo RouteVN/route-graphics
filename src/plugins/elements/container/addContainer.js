@@ -3,6 +3,58 @@ import { setupScrolling } from "./util/scrollingUtils.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import { renderElements } from "../renderElements.js";
 
+const hasDuplicateChildIds = (children = []) => {
+  const seen = new Set();
+
+  for (const child of children) {
+    if (!child?.id) {
+      continue;
+    }
+
+    if (seen.has(child.id)) {
+      return true;
+    }
+
+    seen.add(child.id);
+  }
+
+  return false;
+};
+
+const addChildrenDirectly = ({
+  app,
+  container,
+  children,
+  eventHandler,
+  animationBus,
+  elementPlugins,
+  renderContext,
+  completionTracker,
+  signal,
+}) => {
+  for (const child of children) {
+    const childPlugin = elementPlugins.find(
+      (plugin) => plugin.type === child.type,
+    );
+    if (!childPlugin) {
+      throw new Error(`No plugin found for child element type: ${child.type}`);
+    }
+
+    childPlugin.add({
+      app,
+      parent: container,
+      element: child,
+      animations: [],
+      eventHandler,
+      animationBus,
+      elementPlugins,
+      renderContext,
+      completionTracker,
+      signal,
+    });
+  }
+};
+
 /**
  * Add container element to the stage (synchronous)
  * @param {import("../elementPlugin").AddElementOptions} params
@@ -33,21 +85,35 @@ export const addContainer = ({
 
   parent.addChild(container);
 
-  // Render children through the planner so first mounts can use transitions.
   if (children && children.length > 0) {
-    renderElements({
-      app,
-      parent: container,
-      prevComputedTree: [],
-      nextComputedTree: children,
-      animations,
-      animationBus,
-      completionTracker,
-      eventHandler,
-      elementPlugins,
-      renderContext,
-      signal,
-    });
+    if (hasDuplicateChildIds(children)) {
+      addChildrenDirectly({
+        app,
+        container,
+        children,
+        eventHandler,
+        animationBus,
+        elementPlugins,
+        renderContext,
+        completionTracker,
+        signal,
+      });
+    } else {
+      // Route unique fresh mounts through the planner so child transitions can run.
+      renderElements({
+        app,
+        parent: container,
+        prevComputedTree: [],
+        nextComputedTree: children,
+        animations,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        renderContext,
+        signal,
+      });
+    }
   }
 
   const shouldUseViewport = scroll || element.anchorToBottom;
