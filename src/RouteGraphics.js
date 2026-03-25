@@ -482,7 +482,7 @@ const createRouteGraphics = () => {
             return Assets.load({
               alias: key,
               src: asset.url,
-              parser: "texture",
+              parser: "loadTextures",
             });
           }
 
@@ -517,7 +517,7 @@ const createRouteGraphics = () => {
           const videoAssetDescriptor = {
             alias: key,
             src: sourceUrl,
-            parser: "video",
+            parser: "loadVideo",
             data: {},
           };
 
