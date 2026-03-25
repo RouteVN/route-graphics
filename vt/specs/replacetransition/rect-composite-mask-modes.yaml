@@ -1,0 +1,140 @@
+---
+title: Rect Composite Mask Modes
+description: A multi-state showcase for composite mask combine modes using overlapping red and green channel fields
+specs:
+  - add should reveal a wider combined field than the overlap-only modes
+  - min should limit the reveal to the overlapping portion of the source channels
+  - multiply should keep a softer overlap than add while still completing on the next fill
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+---
+states:
+  - id: composite-base
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: composite-add
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-composite-add
+        targetId: rect1
+        type: transition
+        mask:
+          kind: composite
+          combine: add
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+          items:
+            - texture: mask-rg-overlap
+              channel: red
+            - texture: mask-rg-overlap
+              channel: green
+  - id: composite-min
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+    animations:
+      - id: rect-composite-min
+        targetId: rect1
+        type: transition
+        mask:
+          kind: composite
+          combine: min
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+          items:
+            - texture: mask-rg-overlap
+              channel: red
+            - texture: mask-rg-overlap
+              channel: green
+  - id: composite-multiply
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-composite-multiply
+        targetId: rect1
+        type: transition
+        mask:
+          kind: composite
+          combine: multiply
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+          items:
+            - texture: mask-rg-overlap
+              channel: red
+            - texture: mask-rg-overlap
+              channel: green

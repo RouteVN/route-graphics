@@ -1,0 +1,60 @@
+---
+title: Rect Sequence Mask Linear
+description: A same-id rect transition using linear sampling between sequence mask frames
+specs:
+  - linear sequence sampling should blend adjacent frames instead of snapping to one mask texture
+  - both left and right reveal regions should be visible at 500ms
+  - the transition should settle on the next rect fill by 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: sequence-linear-start
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: sequence-linear-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-sequence-linear
+        targetId: rect1
+        type: transition
+        mask:
+          kind: sequence
+          textures:
+            - mask-left-band
+            - mask-right-band
+          channel: alpha
+          sample: linear
+          softness: 0.001
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
