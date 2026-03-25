@@ -1,0 +1,62 @@
+---
+title: Rect Mask Clock Wipe
+description: A single-mask rect transition using a layered grayscale clock wipe
+specs:
+  - the clock wipe should begin from 12 o'clock and sweep clockwise
+  - the wipe should reveal noticeably more of the next rect at 500ms than at 250ms
+  - the transition should settle on the next rect fill by 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: clockwipe-start
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: clockwipe-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-mask-clockwipe
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-clockwipe
+          channel: red
+          softness: 0.03
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
