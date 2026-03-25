@@ -90,6 +90,16 @@ Use it for:
 - fading a persistent element
 - scaling a portrait in place
 - changing properties on an already-mounted element
+- only when the same target persists across the state change
+
+Do not use `update` for:
+
+- first show / enter
+- final hide / exit
+- prev/next replacement handoffs
+
+Higher-level adapters should reject those cases and require `transition`
+instead.
 
 `update` supports:
 
@@ -118,6 +128,7 @@ Use it for:
 - replacing one portrait with another while keeping the same `targetId`
 - opening from empty into a scene
 - closing from a scene to empty
+- any enter, exit, or replace lifecycle
 
 `transition` supports:
 
