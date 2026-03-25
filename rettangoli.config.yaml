@@ -45,6 +45,12 @@ vt:
         - title: "Rect Events"
           files: "rectevent"
           description: "Rect event interaction tests"
+    - title: "Replace Transition Group"
+      type: "groupLabel"
+      items:
+        - title: "Replace Transitions"
+          files: "replacetransition"
+          description: "Replace transition tests"
     - title: "Sprite Group"
       type: "groupLabel"
       items:

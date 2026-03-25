@@ -1,0 +1,73 @@
+---
+title: Rect Push Mask Dissolve
+description: A same-id rect transition combining a diagonal mask reveal with counter-moving prev and next subjects
+specs:
+  - transition composition should allow mask and subject tweens in one transition
+  - the outgoing and incoming rects should remain offset at 500ms while the mask partially reveals the next state
+  - replace should finish on the next rect state after 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: push-mask-start
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: push-mask-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-push-mask-dissolve
+        targetId: rect1
+        type: transition
+        prev:
+          tween:
+            translateX:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: -0.5
+                  easing: linear
+        next:
+          tween:
+            translateX:
+              initialValue: 0.5
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear
+        mask:
+          kind: single
+          texture: mask-diagonal
+          channel: red
+          softness: 0.06
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

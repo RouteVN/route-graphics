@@ -1,0 +1,49 @@
+---
+title: Rect Mask Enter
+description: A next-only rect transition using a mask-driven reveal from transparency
+specs:
+  - next-only transitions should treat the missing previous side as transparent
+  - the rect should be partially revealed through the mask at 500ms
+  - the rect should fully appear by 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: enter-start
+    elements: []
+  - id: enter-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#D9D9D9"
+        alpha: 1
+    animations:
+      - id: rect-mask-enter
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-diagonal
+          channel: red
+          softness: 0.06
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
