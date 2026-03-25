@@ -7,7 +7,6 @@ import { queueDeferredVideoPlay } from "../renderContext.js";
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addVideo = ({
-  app,
   parent,
   element,
   renderContext,

@@ -11,7 +11,6 @@ import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
 export const updateVideo = ({
-  app,
   parent,
   prevElement,
   nextElement,

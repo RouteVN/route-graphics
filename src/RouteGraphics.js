@@ -102,10 +102,11 @@ const createRouteGraphics = () => {
   let canvasContextMenuListener;
 
   /**
-   * Video blob URLs created in loadAssets; revoked on destroy.
-   * @type {Set<string>}
+   * Video source URLs created or attached in loadAssets; revokable blob URLs
+   * are cleaned up on destroy.
+   * @type {Map<string, { url: string, revokable: boolean }>}
    */
-  const videoBlobUrls = new Set();
+  const videoSourceUrls = new Map();
 
   /**
    * Visible stage background graphic.
@@ -146,15 +147,20 @@ const createRouteGraphics = () => {
     return "texture";
   };
 
-  const trackVideoBlobUrl = (url) => {
-    videoBlobUrls.add(url);
+  const trackVideoSourceUrl = (key, url, { revokable = false } = {}) => {
+    videoSourceUrls.set(key, {
+      url,
+      revokable,
+    });
   };
 
   const revokeVideoBlobUrls = () => {
-    for (const url of videoBlobUrls) {
-      URL.revokeObjectURL(url);
+    for (const value of videoSourceUrls.values()) {
+      if (value?.revokable === true && typeof value?.url === "string") {
+        URL.revokeObjectURL(value.url);
+      }
     }
-    videoBlobUrls.clear();
+    videoSourceUrls.clear();
   };
 
   /**
@@ -419,8 +425,8 @@ const createRouteGraphics = () => {
     },
 
     /**
-     * Load assets using buffer data stored in memory
-     * @param {Object<string, {buffer: ArrayBuffer, type: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
+     * Load assets from either raw buffers or direct source URLs.
+     * @param {Object<string, {buffer?: ArrayBuffer, url?: string, type: string, source?: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
      * @returns {Promise<Array>} Promise that resolves to an array of loaded assets
      */
     loadAssets: async (assetBufferMap) => {
@@ -472,6 +478,14 @@ const createRouteGraphics = () => {
             return Assets.cache.get(key);
           }
 
+          if (asset?.source === "url" && typeof asset?.url === "string") {
+            return Assets.load({
+              alias: key,
+              src: asset.url,
+              parser: "texture",
+            });
+          }
+
           const blob = new Blob([asset.buffer], { type: asset.type });
           const imageBitmap = await createImageBitmap(blob);
           const texture = Texture.from(imageBitmap);
@@ -484,21 +498,42 @@ const createRouteGraphics = () => {
         },
       );
 
-      // Load video assets - create blob URLs and load via PixiJS default video loader
+      // Load video assets via direct URL when possible, otherwise fall back
+      // to a revokable blob URL for buffer-backed inputs.
       const videoPromises = Object.entries(assetsByType.video).map(
-        ([key, asset]) => {
-          const blob = new Blob([asset.buffer], { type: asset.type });
-          const blobUrl = URL.createObjectURL(blob);
-          trackVideoBlobUrl(blobUrl);
-          return Assets.load({
-            alias: key,
-            src: blobUrl,
-            loadParser: "loadVideo",
-          }).catch((error) => {
-            videoBlobUrls.delete(blobUrl);
-            URL.revokeObjectURL(blobUrl);
-            throw error;
+        async ([key, asset]) => {
+          const sourceUrl =
+            asset?.source === "url" && typeof asset?.url === "string"
+              ? asset.url
+              : URL.createObjectURL(
+                  new Blob([asset.buffer], { type: asset.type }),
+                );
+          const isRevokableBlobUrl = asset?.source !== "url";
+
+          trackVideoSourceUrl(key, sourceUrl, {
+            revokable: isRevokableBlobUrl,
           });
+
+          const videoAssetDescriptor = {
+            alias: key,
+            src: sourceUrl,
+            parser: "video",
+            data: {},
+          };
+
+          if (typeof asset?.type === "string" && asset.type.length > 0) {
+            videoAssetDescriptor.data.mime = asset.type;
+          }
+
+          return Assets.load(videoAssetDescriptor)
+            .then((texture) => texture)
+            .catch((error) => {
+              videoSourceUrls.delete(key);
+              if (isRevokableBlobUrl) {
+                URL.revokeObjectURL(sourceUrl);
+              }
+              throw error;
+            });
         },
       );
 
