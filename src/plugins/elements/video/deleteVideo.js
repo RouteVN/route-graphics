@@ -5,7 +5,6 @@ import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
  */
 export const deleteVideo = ({
-  app,
   parent,
   element,
   animations,
