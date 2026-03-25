@@ -1,9 +1,9 @@
 ---
 title: Rect Composite Mask Modes
-description: A multi-state showcase for composite mask combine modes using overlapping red and green channel fields
+description: A multi-state showcase for composite mask combine modes using overlapping grayscale diagonal masks
 specs:
   - add should reveal a wider combined field than the overlap-only modes
-  - min should limit the reveal to the overlapping portion of the source channels
+  - min should limit the reveal to the overlapping portion of the source masks
   - multiply should keep a softer overlap than add while still completing on the next fill
 steps:
   - action: keypress
@@ -76,10 +76,10 @@ states:
                 value: 1
                 easing: linear
           items:
-            - texture: mask-rg-overlap
+            - texture: mask-composite-diagonal-down
               channel: red
-            - texture: mask-rg-overlap
-              channel: green
+            - texture: mask-composite-diagonal-up
+              channel: red
   - id: composite-min
     elements:
       - id: rect1
@@ -105,10 +105,10 @@ states:
                 value: 1
                 easing: linear
           items:
-            - texture: mask-rg-overlap
+            - texture: mask-composite-diagonal-down
               channel: red
-            - texture: mask-rg-overlap
-              channel: green
+            - texture: mask-composite-diagonal-up
+              channel: red
   - id: composite-multiply
     elements:
       - id: rect1
@@ -134,7 +134,7 @@ states:
                 value: 1
                 easing: linear
           items:
-            - texture: mask-rg-overlap
+            - texture: mask-composite-diagonal-down
               channel: red
-            - texture: mask-rg-overlap
-              channel: green
+            - texture: mask-composite-diagonal-up
+              channel: red
