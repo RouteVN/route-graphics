@@ -75,6 +75,9 @@ app.render({
 });
 ```
 
+`createAssetBufferManager()` may keep image and video assets as direct source
+URLs when possible, while audio and font assets remain buffer-backed.
+
 For complete usage details, go to:
 
 - [Getting Started](http://route-graphics.routevn.com/docs/introduction/getting-started/)
