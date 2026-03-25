@@ -1,9 +1,9 @@
 ---
 title: Rect Mask Clock Wipe
-description: A single-mask rect transition using a layered grayscale clock wipe
+description: A single-mask rect transition using a continuous grayscale clock wipe
 specs:
   - the clock wipe should begin from 12 o'clock and sweep clockwise
-  - the wipe should reveal noticeably more of the next rect at 500ms than at 250ms
+  - the wipe should reveal a continuous blend band with intermediate tones at mid-progress
   - the transition should settle on the next rect fill by 1000ms
 steps:
   - action: keypress
@@ -53,7 +53,7 @@ states:
           kind: single
           texture: mask-clockwipe
           channel: red
-          softness: 0.03
+          softness: 0.12
           progress:
             initialValue: 0
             keyframes:
