@@ -1,0 +1,120 @@
+---
+title: Update Text Revealing Restarts On Content Change
+description: |
+  Same text-revealing element id should restart reveal progress when content changes.
+specs:
+  - First state should be mid-reveal
+  - After updating to new content on the same id, reveal should restart from the beginning
+  - Repeated content changes should keep restarting from the beginning
+  - A same-content position update should also restart from the beginning
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: text-revealing-1
+        type: text-revealing
+        content:
+          - text: "First state should be visibly revealing from the beginning."
+            textStyle:
+              fontSize: 20
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 1100
+        alpha: 1
+        speed: 14
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-1
+        type: text-revealing
+        content:
+          - text: "Second state uses new content and must restart reveal at the start."
+            textStyle:
+              fontSize: 20
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 1100
+        alpha: 1
+        speed: 14
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-1
+        type: text-revealing
+        content:
+          - text: "Third state changes content again and should restart reveal again."
+            textStyle:
+              fontSize: 20
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 1100
+        alpha: 1
+        speed: 14
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-1
+        type: text-revealing
+        content:
+          - text: "Third state changes content again and should restart reveal again."
+            textStyle:
+              fontSize: 20
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 100
+        y: 90
+        width: 1100
+        alpha: 1
+        speed: 14
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-1
+        type: text-revealing
+        content:
+          - text: "Fifth state updates content once more and should restart again."
+            textStyle:
+              fontSize: 20
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 100
+        y: 90
+        width: 1100
+        alpha: 1
+        speed: 14
+        revealEffect: typewriter

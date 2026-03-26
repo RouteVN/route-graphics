@@ -20,11 +20,24 @@ const createTextChunks = (segments, wordWrapWidth) => {
   let y = 0;
   let lineMaxHeight = 0;
   let maxTotalWidth = 0;
+  let iterationCount = 0;
 
   const segmentCopy = [...segments];
   const segmentFuriganaAdded = new WeakSet();
+  const maxIterations = Math.max(
+    10,
+    segments.reduce((sum, segment) => sum + (segment?.text?.length ?? 0), 0) *
+      4,
+  );
 
   while (segmentCopy.length > 0) {
+    iterationCount += 1;
+    if (iterationCount > maxIterations) {
+      throw new Error(
+        "[parseTextRevealing] Failed to make progress while wrapping text.",
+      );
+    }
+
     const segment = segmentCopy[0];
 
     // Skip empty segments
@@ -33,7 +46,8 @@ const createTextChunks = (segments, wordWrapWidth) => {
       continue;
     }
 
-    const remainingWidth = Math.round(wordWrapWidth - x);
+    const originalText = segment.text;
+    const remainingWidth = Math.max(1, Math.round(wordWrapWidth - x));
     const styleWithWordWrap = {
       ...segment.textStyle,
       wordWrapWidth: remainingWidth,
@@ -62,7 +76,8 @@ const createTextChunks = (segments, wordWrapWidth) => {
     }
 
     // Extract text that fits on this line
-    let textPart = measurements.lines[0];
+    let textPart = measurements.lines[0] ?? "";
+    let remainingText = measurements.lines.slice(1).join(" ");
 
     // Preserve trailing spaces that might get trimmed by measureText
     if (
@@ -73,6 +88,28 @@ const createTextChunks = (segments, wordWrapWidth) => {
       textPart += " ";
     }
 
+    if (textPart.length === 0 && originalText.length > 0) {
+      const leadingWhitespace = originalText.match(/^\s+/)?.[0] ?? "";
+
+      textPart =
+        leadingWhitespace.length > 0 ? leadingWhitespace : originalText[0];
+      remainingText = originalText.slice(textPart.length);
+    }
+
+    if (remainingText === originalText) {
+      const fallbackPart =
+        originalText.match(/^\s+/)?.[0] ?? originalText[0] ?? "";
+
+      if (fallbackPart.length === 0) {
+        throw new Error(
+          "[parseTextRevealing] Failed to consume text while wrapping.",
+        );
+      }
+
+      textPart = fallbackPart;
+      remainingText = originalText.slice(fallbackPart.length);
+    }
+
     //Get the height with now wrapping
     const measurementsWithNoWrapping = CanvasTextMetrics.measureText(
       textPart,
@@ -81,6 +118,12 @@ const createTextChunks = (segments, wordWrapWidth) => {
         wordWrap: false,
         breakWords: false,
       }),
+    );
+    const partWidth = Math.max(
+      0,
+      Math.round(
+        measurementsWithNoWrapping.width ?? measurements.lineWidths[0] ?? 0,
+      ),
     );
 
     // Create text part object
@@ -107,9 +150,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
       const furiganaPart = {
         text: segment.furigana.text,
         textStyle: segment.furigana.textStyle,
-        x: Math.round(
-          x + (measurements.lineWidths[0] - furiganaMeasurements.width) / 2,
-        ),
+        x: Math.round(x + (partWidth - furiganaMeasurements.width) / 2),
         y: furiganaYOffset,
       };
 
@@ -120,11 +161,10 @@ const createTextChunks = (segments, wordWrapWidth) => {
     lineMaxHeight = Math.max(lineMaxHeight, measurementsWithNoWrapping.height);
 
     // Update horizontal position and track max width
-    x += Math.round(measurements.lineWidths[0]);
+    x += partWidth;
     maxTotalWidth = Math.max(maxTotalWidth, x);
 
     // Handle remaining text
-    const remainingText = measurements.lines.slice(1).join(" ");
     if (remainingText && remainingText.length > 0) {
       segment.text = remainingText;
     } else {

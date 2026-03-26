@@ -1,0 +1,120 @@
+---
+title: Update Text Revealing Restarts On Wrapped Content Change
+description: |
+  Same text-revealing element id should restart reveal progress when long wrapped content changes.
+specs:
+  - First wrapped state should be mid-reveal
+  - Updating to new wrapped content on the same id should restart reveal from the beginning
+  - Repeated wrapped-content changes should keep restarting from the beginning
+  - A same-content move should also restart from the beginning
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 420
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 420
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 420
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 420
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 420
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: text-revealing-wrap-1
+        type: text-revealing
+        content:
+          - text: "ALPHA alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha."
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 430
+        alpha: 1
+        speed: 32
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-wrap-1
+        type: text-revealing
+        content:
+          - text: "BRAVO bravo bravo bravo bravo bravo bravo bravo bravo bravo bravo bravo."
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 430
+        alpha: 1
+        speed: 32
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-wrap-1
+        type: text-revealing
+        content:
+          - text: "CHARLIE charlie charlie charlie charlie charlie charlie charlie charlie."
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 50
+        y: 50
+        width: 430
+        alpha: 1
+        speed: 32
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-wrap-1
+        type: text-revealing
+        content:
+          - text: "CHARLIE charlie charlie charlie charlie charlie charlie charlie charlie."
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 110
+        y: 90
+        width: 430
+        alpha: 1
+        speed: 32
+        revealEffect: typewriter
+  - elements:
+      - id: text-revealing-wrap-1
+        type: text-revealing
+        content:
+          - text: "DELTA delta delta delta delta delta delta delta delta delta delta delta."
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 110
+        y: 90
+        width: 430
+        alpha: 1
+        speed: 32
+        revealEffect: typewriter

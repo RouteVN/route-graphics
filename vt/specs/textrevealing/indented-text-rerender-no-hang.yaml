@@ -1,0 +1,98 @@
+---
+title: Indented Text Revealing Rerender Does Not Hang
+description: |
+  Heavily indented text-revealing content should render and rerender without freezing or runaway allocation.
+specs:
+  - Initial indented text should start revealing normally
+  - Rerendering the same indented content on the same id should not hang
+  - A moved rerender of the same indented content should still reveal normally
+  - A second indented content variant should also render without hanging
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 280
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 280
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 280
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 280
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: indented-reveal
+        type: text-revealing
+        content:
+          - text: "        mu  rtd \"I'd argue against it, but that's how I did things when I went to town.\""
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 60
+        y: 60
+        width: 430
+        alpha: 1
+        speed: 28
+        revealEffect: typewriter
+  - elements:
+      - id: indented-reveal
+        type: text-revealing
+        content:
+          - text: "        mu  rtd \"I'd argue against it, but that's how I did things when I went to town.\""
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 60
+        y: 60
+        width: 430
+        alpha: 1
+        speed: 28
+        revealEffect: typewriter
+  - elements:
+      - id: indented-reveal
+        type: text-revealing
+        content:
+          - text: "        mu  rtd \"I'd argue against it, but that's how I did things when I went to town.\""
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 120
+        y: 110
+        width: 430
+        alpha: 1
+        speed: 28
+        revealEffect: typewriter
+  - elements:
+      - id: indented-reveal
+        type: text-revealing
+        content:
+          - text: "v        murt \"Taking things as they come, eh?\""
+            textStyle:
+              fontSize: 22
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 120
+        y: 110
+        width: 430
+        alpha: 1
+        speed: 28
+        revealEffect: typewriter
