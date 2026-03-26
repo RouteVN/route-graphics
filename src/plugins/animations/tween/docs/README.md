@@ -22,9 +22,19 @@ animations:
 
 `update` animates a single display object with `tween`.
 
+Use `update` only when the same target stays mounted before and after the
+change. Do not use it for first-enter or final-exit. Those are `transition`
+cases.
+
 ```yaml
 states:
-  - elements: []
+  - elements:
+      - id: "makkuro"
+        type: "sprite"
+        x: 640
+        y: 120
+        src: "characters/makkuro-idle.png"
+        alpha: 0.4
   - elements:
       - id: "makkuro"
         type: "sprite"
@@ -33,12 +43,11 @@ states:
         src: "characters/makkuro-idle.png"
         alpha: 1
     animations:
-      - id: "makkuro-enter"
+      - id: "makkuro-fade-up"
         targetId: "makkuro"
         type: "update"
         tween:
           alpha:
-            initialValue: 0
             keyframes:
               - duration: 300
                 value: 1
@@ -48,6 +57,12 @@ states:
 ## Transition Animations
 
 `transition` keeps the same `targetId` but animates the previous and next visuals separately.
+
+Use `transition` for:
+
+- enter with `next` only
+- exit with `prev` only
+- replace with `prev` and `next`
 
 Geometry-only transition:
 
@@ -114,6 +129,7 @@ states:
 
 ## Current Transition Rules
 
+- `update` is update-only. Integrations should reject `type: update` for enter, exit, and replace paths.
 - `mask` is transition-only.
 - custom shader-backed transition is not supported right now.
 - `prev.tween` and `next.tween` can be combined with `mask`.
