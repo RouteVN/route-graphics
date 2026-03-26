@@ -1,5 +1,21 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
 import { runTextReveal } from "./textRevealingRuntime.js";
+
+const getRevealIdentity = (element = {}) =>
+  JSON.stringify({
+    content: element.content ?? null,
+    revealEffect: element.revealEffect ?? "typewriter",
+    speed: element.speed ?? 50,
+    width: element.width ?? null,
+    indicator: element.indicator ?? null,
+    x: element.x ?? null,
+    y: element.y ?? null,
+    alpha: element.alpha ?? 1,
+  });
+
+const shouldRestartReveal = (prevElement, nextElement) =>
+  getRevealIdentity(prevElement) !== getRevealIdentity(nextElement);
 
 /**
  * Simple render function for text-revealing elements
@@ -11,6 +27,7 @@ export const updateTextRevealing = async ({
   nextElement: element,
   animations,
   animationBus,
+  renderContext,
   completionTracker,
   zIndex,
   signal,
@@ -29,6 +46,35 @@ export const updateTextRevealing = async ({
       textRevealingElement.alpha = element.alpha;
     }
 
+    if (!shouldRestartReveal(prevElement, element)) {
+      return;
+    }
+
+    if (
+      renderContext?.suppressAnimations === true &&
+      element.revealEffect !== "none"
+    ) {
+      await runTextReveal({
+        container: textRevealingElement,
+        element,
+        completionTracker,
+        animationBus,
+        zIndex,
+        signal,
+        playback: "paused-initial",
+      });
+
+      queueDeferredTextRevealAutoplay(renderContext, {
+        container: textRevealingElement,
+        element,
+        completionTracker,
+        animationBus,
+        zIndex,
+        signal,
+      });
+      return;
+    }
+
     await runTextReveal({
       container: textRevealingElement,
       element,
@@ -36,6 +82,7 @@ export const updateTextRevealing = async ({
       animationBus,
       zIndex,
       signal,
+      playback: "autoplay",
     });
   };
 
