@@ -1,117 +1,152 @@
-# Input Implementation Plan
+# Input Feature
 
-Last updated: 2026-03-26
+Last updated: 2026-03-27
 
-## Goal
+## Overview
 
-Add text input to Route Graphics with:
+Route Graphics includes a built-in `input` element for editable text fields.
 
-- native browser text handling for IME, clipboard, mobile keyboards, and platform editing behavior
-- Pixi-rendered visuals so the field can match Route Graphics styling
-- a clear rollout path that starts small and avoids overbuilding v1
+The feature is designed around two goals:
 
-This plan assumes a hybrid architecture:
+- Route Graphics owns the visible UI so input fields can match the rest of the canvas-rendered interface
+- the browser still provides the hard text-editing behavior that is expensive to reproduce correctly, including IME, clipboard, and mobile keyboard support
 
-- DOM owns text editing state
-- Pixi owns the visuals
+The result is a hybrid input system:
 
-## Review Summary
+- Pixi renders the field text layer, placeholder, caret, selection highlight, and clipping
+- a hidden native `input` or `textarea` is used only as the text engine
 
-This is the best plan under the current constraints.
+This is not a DOM-styled form control embedded in the app UI. The visible product surface is rendered by Route Graphics.
 
-Why:
+## Product Model
 
-- keyboard-only editing is much harder and much riskier than it first appears
-- a transparent native `input` or `textarea` gives us IME, copy/paste, selection semantics, and mobile keyboard behavior essentially for free
-- Route Graphics already has the right extension seam through element plugins and the shared `eventHandler`
+The `input` element behaves like a Route Graphics-native field with browser-backed editing.
 
-What should not be done:
+Visible behavior:
 
-- do not build a keyboard-only editor first
-- do not copy `pixi/ui`'s approach of using a hidden DOM input while still treating Pixi as the text-editing source of truth
-- do not use Pixi `DOMContainer` as the core strategy for this feature
+- custom placeholder styling
+- custom text styling
+- custom caret rendering
+- custom selection highlight rendering
+- clipping inside the input content area
 
-Important adjustment to the earlier draft:
+Field chrome should be composed with surrounding Route Graphics elements such as `rect`, `sprite`, or `container`. The input element itself is primarily the editable text layer.
 
-- v1 should be single-line only
-- v1 should not try to solve multiline, nested clipping, and full custom composition rendering at the same time
-- v1 should include a debug or fallback mode that can make the DOM element visible during development if needed
+Native editing behavior:
 
-## Recommended Architecture
-
-Use a new `input` element plugin with two layers:
-
-1. A Pixi container for:
-   - background
-   - placeholder
-   - displayed text
-   - caret
-   - selection highlight
-   - focus ring
-   - clipping mask
-2. A real native `input` or `textarea` used only as the editing surface
-
-Source of truth rules:
-
-- DOM owns:
-  - `value`
-  - `selectionStart`
-  - `selectionEnd`
-  - focus and blur state
-  - clipboard behavior
-  - composition state
-- Pixi owns:
-  - all visible rendering
-  - interaction chrome
-  - caret and selection drawing
-  - placeholder styling
-  - focus visuals
-
-The DOM element should be:
-
-- attached near `app.canvas`
-- positioned over the field bounds
-- transparent or near-transparent
-- not offscreen
-- not zero-sized
-
-That keeps IME and mobile behavior viable while still allowing full custom Pixi visuals.
-
-## Why This Is Better Than Keyboard-Only
-
-Keyboard-only would require Route Graphics to implement:
-
-- IME and composition handling
-- dead keys and accent composition
-- mobile soft keyboard behavior
+- IME and composition
+- keyboard text input
 - copy, cut, and paste
-- text insertion semantics
-- selection movement semantics
-- platform-specific editing behavior
+- mobile soft keyboard support
+- native `selectionStart` and `selectionEnd`
 
-That is a browser text editor project, not a normal feature.
+Pointer behavior:
 
-A transparent native input avoids almost all of that complexity.
+- Route Graphics handles pointer focus, caret placement, and drag selection
+- the hidden native control is invisible and non-clickable
+- browser selection is not exposed as the visible selection surface
 
-## Why Not Use Pixi DOMContainer
+## Architecture
 
-`DOMContainer` is not the best fit here.
+The feature is built as a normal Route Graphics element plugin.
 
-Reasons:
+Main parts:
 
-- it is still marked experimental in Pixi docs
-- Route Graphics container masking and scrolling are implemented in Pixi, not DOM
-- DOM clipping and masked subtree behavior will still need custom handling
+- `inputPlugin` adds parsing, mounting, updating, and teardown for `type: "input"`
+- a shared DOM bridge manages hidden native controls for active fields
+- the Pixi runtime keeps field visuals and selection rendering in sync with the native text state
 
-So the recommended approach is:
+State ownership is intentionally split:
 
-- manage one DOM root ourselves
-- place and sync native inputs directly
-- keep Route Graphics clipping logic explicit instead of assuming Pixi will do it for DOM nodes
+- native control owns:
+  - text value
+  - composition state
+  - focused editing state
+  - clipboard behavior
+  - mobile keyboard behavior
+- Route Graphics owns:
+  - field visuals
+  - caret placement visuals
+  - selection visuals
+  - pointer hit testing
+  - drag selection behavior
 
-## Public API Shape
+This avoids a keyboard-only editor while also avoiding a visible DOM overlay.
 
-Recommended initial node shape:
+## Hidden Native Control
+
+Each mounted field uses a real browser text control:
+
+- single-line fields use `input`
+- multiline fields use `textarea`
+
+The control is intentionally hidden from normal user interaction:
+
+- `opacity: 0`
+- transparent text
+- transparent caret
+- `pointer-events: none`
+- no visible border or outline
+- no visible browser styling
+
+The control remains mounted in the DOM and is focused programmatically when the Route Graphics field becomes active.
+
+Important detail:
+
+- the native control is hidden, but it is not removed from the DOM
+- this is required so IME, clipboard, and mobile keyboard behavior continue to work reliably
+
+## Rendering
+
+All visible input UI is drawn in Pixi.
+
+Rendered layers:
+
+- selection highlight
+- value text
+- placeholder text
+- caret
+- content clip mask
+
+The input runtime also maintains internal horizontal and vertical scroll offsets so the caret and selection remain visible when content extends beyond the visible content area.
+
+## Selection Model
+
+Selection is visually owned by Route Graphics.
+
+How it works:
+
+- pointer down inside the field resolves a text index from local Pixi coordinates
+- Route Graphics sets the caret or starts a range selection
+- drag updates extend the selection range using Pixi hit testing
+- the hidden native control is updated with `setSelectionRange(...)`
+- Pixi redraws the caret and selection highlight from the current selection state
+
+This gives the feature a canvas-native interaction model while still keeping the native control synchronized for typing, clipboard, and IME.
+
+Selection rendering rules:
+
+- no highlight is drawn when `selectionStart === selectionEnd`
+- single-line selections draw one selection rectangle
+- multiline selections draw one rectangle per covered line
+- selection and caret are clipped to the content box
+
+## Focus Model
+
+The active field is controlled by the Route Graphics runtime.
+
+Behavior:
+
+- clicking or tapping a field focuses its hidden native control
+- clicking outside the active field blurs it
+- focus updates the caret blink state and active editing visuals
+- blur hides the caret and ends active editing visuals
+
+The field remains visually custom even while the browser owns the actual focused text control.
+
+## Supported API
+
+Current element shape:
 
 ```js
 {
@@ -123,26 +158,20 @@ Recommended initial node shape:
   height: 44,
   value: "",
   placeholder: "Your name",
-  secure: false,
+  multiline: false,
   readOnly: false,
   disabled: false,
   maxLength: 80,
-  inputMode: "text",
-  enterKeyHint: "done",
   autofocus: false,
   textStyle: {},
   placeholderStyle: {},
   selectionStyle: {},
   caretStyle: {},
-  background: {},
   padding: {
     top: 10,
     right: 12,
     bottom: 10,
     left: 12
-  },
-  focus: {
-    cursor: "text"
   },
   change: {
     payload: {}
@@ -159,24 +188,28 @@ Recommended initial node shape:
 }
 ```
 
-V1 should only support single-line input.
+Intentionally omitted from the public product surface:
 
-Multiline should be added later with `multiline: true` and a real `textarea`.
+- password-style masking
+- browser hint props such as `inputMode` and `enterKeyHint`
+- debug-only visibility controls
+- built-in field background and border configuration
+- built-in focus ring configuration
+- browser-centric tab-order configuration
+- low-level composition event customization
 
-## Event Contract
+## Events
 
-Recommended public events:
+The input element integrates with the existing Route Graphics event pipeline.
+
+Supported events:
 
 - `focus`
 - `blur`
 - `change`
 - `submit`
-- `selectionChange`
-- `compositionStart`
-- `compositionUpdate`
-- `compositionEnd`
 
-Recommended baseline payload:
+Event payload shape:
 
 ```js
 {
@@ -190,413 +223,97 @@ Recommended baseline payload:
 }
 ```
 
-V1 minimum:
+Event semantics:
 
-- `focus`
-- `blur`
-- `change`
-- `submit`
+- `change` fires when the native value changes
+- `submit` fires on Enter for single-line fields
+- `submit` fires on `Ctrl+Enter` or `Cmd+Enter` for multiline fields
 
-The other events can be added in phase 2.
+## Multiline Behavior
 
-## Rollout Strategy
+Multiline input is supported through `multiline: true`.
 
-## Phase 0: Design Lock
+Behavior:
 
-Goal:
+- the hidden native control switches to `textarea`
+- explicit newlines are preserved
+- Enter inserts a newline
+- submit is moved to `Ctrl+Enter` or `Cmd+Enter`
+- selection rendering spans multiple lines
 
-- lock the minimal shape before writing runtime code
+The visual layer still uses Route Graphics rendering and clipping rather than browser text area chrome.
 
-Decisions to finalize:
+## Clipping And Containers
 
-- single-line only for v1
-- `input`, not `textarea`, for v1
-- DOM is source of truth
-- Pixi draws visuals
-- shared DOM bridge service
-- no `DOMContainer`
+Input fields participate in Route Graphics layout and masking rules.
 
-Checklist:
+The runtime computes visible bounds from the Pixi scene graph and applies matching clipping to the hidden native control.
 
-- [ ] finalize `input` node schema
-- [ ] finalize event names and payload shape
-- [ ] finalize `secure`, `readOnly`, and `disabled` semantics
-- [ ] finalize whether Enter always submits in v1
-- [ ] finalize external controlled value behavior
+This allows the feature to behave correctly in cases such as:
 
-## Phase 1: Foundation
+- transformed fields
+- fields inside containers
+- fields inside masked or clipped parents
+- partially visible fields near viewport edges
 
-Goal:
+## Why This Approach Exists
 
-- create the plugin and bridge infrastructure without advanced editing visuals
+This feature intentionally does not use a keyboard-only canvas editor.
 
-Files to add:
+That alternative would require Route Graphics to implement too much browser text behavior itself:
 
-- `src/plugins/elements/input/index.js`
-- `src/plugins/elements/input/parseInput.js`
-- `src/plugins/elements/input/addInput.js`
-- `src/plugins/elements/input/updateInput.js`
-- `src/plugins/elements/input/deleteInput.js`
-- `src/util/inputDomBridge.js`
-- schema files under `src/schemas/elements`
+- IME and composition
+- dead keys
+- clipboard integration
+- mobile keyboard behavior
+- platform-specific editing semantics
 
-Files to update:
+It also intentionally does not use a visible DOM form field as the product UI, because that would make the field styling and interaction surface too DOM-dependent for Route Graphics.
 
-- `src/index.js`
-- `src/types.js`
-- `src/RouteGraphics.js`
+The current architecture is the middle ground:
 
-Checklist:
+- browser text engine
+- Route Graphics presentation and pointer interaction
 
-- [ ] add `InputComputedNode` types
-- [ ] add raw/computed/event schemas
-- [ ] add `inputPlugin` export
-- [ ] add app-level DOM bridge creation
-- [ ] add DOM bridge cleanup on destroy
-- [ ] add parser for normalized input config
+## Testing
 
-## Phase 2: V1 Usable Single-Line Input
+The feature is covered at three levels:
 
-Goal:
+- parser and unit tests
+- DOM bridge tests
+- focused VT coverage for input rendering and interaction states
 
-- ship a usable single-line field with native editing behavior
+Primary VT cases:
 
-V1 scope:
+- `vt/specs/input/add-input.yaml`
+- `vt/specs/input/multiline-input.yaml`
 
-- click to focus
-- native typing
-- IME support
-- clipboard support
-- password mode
-- placeholder
-- basic caret rendering
-- `focus`, `blur`, `change`, `submit`
+Primary unit coverage includes:
 
-V1 explicitly excludes:
+- plugin lifecycle
+- DOM bridge behavior
+- Pixi hit testing for caret and selection
+- parser normalization
 
-- multiline
-- custom selection painting
-- nested masked-container correctness
-- advanced composition visuals
+## Known Limits
 
-Checklist:
+This feature is intentionally practical rather than a full browser text engine replacement.
 
-- [ ] render Pixi background and text
-- [ ] render placeholder
-- [ ] render caret
-- [ ] create a native `input` per field mount
-- [ ] sync DOM geometry to field bounds
-- [ ] focus DOM input on pointer activation
-- [ ] blur active field on outside click
-- [ ] wire native `input` event to Pixi text updates
-- [ ] wire native `focus` and `blur`
-- [ ] wire Enter to `submit`
-- [ ] support `secure`
-- [ ] support `readOnly`
-- [ ] support `disabled`
-- [ ] support `maxLength`
-- [ ] support `inputMode`
-- [ ] support `enterKeyHint`
-- [ ] keep DOM element transparent but positioned in place
-- [ ] add debug mode to temporarily show the DOM input during development
+Known limits:
 
-## Phase 3: Proper Selection Sync
+- selection hit testing is width-based and not a complete grapheme-cluster engine
+- browser accessibility behavior is only partially exposed through the hidden native control
+- composition text does not currently use a distinct visual style beyond the normal synchronized field rendering
+- the hidden native control is still present in the DOM because removing it would break important browser behavior
 
-Goal:
-
-- make invisible-input editing feel coherent by reflecting browser selection in Pixi
-
-Checklist:
-
-- [ ] sync `selectionStart` and `selectionEnd` from DOM
-- [ ] render selection highlight
-- [ ] update caret position from DOM selection
-- [ ] hide caret when there is a range selection
-- [ ] emit `selectionChange`
-- [ ] handle pointer-based cursor placement
-- [ ] handle pointer drag selection
-- [ ] handle double-click word selection only if the behavior can match browser expectations
-
-Notes:
-
-- this phase is the real threshold where invisible input starts to feel complete
-- do not claim full custom UI support before this phase lands
-
-## Phase 4: Horizontal Input Scrolling
-
-Goal:
-
-- keep the caret and active selection visible for long text
-
-Checklist:
-
-- [ ] track an internal visual scroll offset
-- [ ] keep caret visible after typing
-- [ ] keep caret visible after arrow navigation
-- [ ] keep selection edge visible when selecting
-- [ ] support left, center, and right text alignment rules
-- [ ] ensure password mode scrolls correctly
-
-## Phase 5: Composition And IME Polish
-
-Goal:
-
-- improve composition feedback without replacing browser behavior
-
-Checklist:
-
-- [ ] listen to `compositionstart`
-- [ ] listen to `compositionupdate`
-- [ ] listen to `compositionend`
-- [ ] track `composing` state
-- [ ] decide whether composition text should be drawn differently in Pixi
-- [ ] emit composition events if needed
-- [ ] verify candidate window placement is acceptable with transparent input
-
-Important:
-
-- the browser still owns composition behavior
-- Pixi should only mirror state, not attempt to reimplement composition logic
-
-## Phase 6: Controlled Updates And Render Stability
-
-Goal:
-
-- make Route Graphics rerenders safe while a field is active
-
-Checklist:
-
-- [ ] preserve focus through normal `render(...)` updates
-- [ ] preserve selection when external value has not changed
-- [ ] sync external `value` changes into the DOM input
-- [ ] avoid resetting the input element unless mode or identity changes
-- [ ] define behavior when state changes conflict with ongoing composition
-- [ ] verify stable behavior during animation and rerender churn
-
-Recommended rule:
-
-- do not overwrite DOM state during active composition unless the external render explicitly changes the field value
-
-## Phase 7: Container, Scroll, And Clipping Correctness
-
-Goal:
-
-- make input fields behave correctly inside real Route Graphics layouts
-
-This is hard enough that it should not be part of v1.
-
-Checklist:
-
-- [ ] compute field world bounds correctly under transforms
-- [ ] recompute DOM geometry after parent movement
-- [ ] support fields inside containers
-- [ ] support fields inside scrolling containers
-- [ ] compute visible intersection against viewport-like masks
-- [ ] hide or blur the DOM input when fully clipped
-- [ ] decide whether partially clipped fields should use CSS clipping, smaller bounds, or be hidden
-
-Risk:
-
-- Route Graphics clipping is Pixi-driven, so DOM visibility needs explicit bridge logic
-
-## Phase 8: Multiline
-
-Goal:
-
-- add `textarea` support after single-line is solid
-
-Checklist:
-
-- [ ] add `multiline: true`
-- [ ] switch to native `textarea`
-- [ ] render wrapped text in Pixi
-- [ ] render multiline selection rectangles
-- [ ] support vertical scroll
-- [ ] define Enter behavior for multiline vs submit
-- [ ] support placeholder in multiline mode
-
-Recommendation:
-
-- do not start here
-
-## Phase 9: Accessibility And Tab Navigation
-
-Goal:
-
-- make the feature usable in broader environments
-
-Checklist:
-
-- [ ] support `tabIndex`
-- [ ] support tab navigation order
-- [ ] support labels or aria metadata
-- [ ] verify screen reader implications
-- [ ] verify disabled and read-only semantics are native
-
-## DOM Bridge Design
-
-Use one app-level bridge service.
-
-Responsibilities:
-
-- create one DOM root near the canvas
-- mount and unmount native elements
-- track the active input id
-- sync geometry
-- sync attributes
-- expose `focus`, `blur`, `destroy`
-
-Recommended methods:
-
-- `mount(fieldState)`
-- `unmount(id)`
-- `focus(id)`
-- `blur(id)`
-- `syncGeometry(id, rect)`
-- `syncAttributes(id, attrs)`
-- `syncValue(id, value)`
-- `getSelection(id)`
-- `destroy()`
-
-Recommended DOM root style:
-
-- `position: absolute`
-- `top: 0`
-- `left: 0`
-- `pointer-events: none`
-
-Recommended field element style:
-
-- `position: absolute`
-- `pointer-events: auto`
-- `opacity: 0.001`
-- `background: transparent`
-- `color: transparent`
-- `caret-color: transparent`
-- `border: none`
-- `outline: none`
-
-Notes:
-
-- keep a tiny non-zero opacity if browser behavior proves more stable than full zero
-- avoid `display: none`, `visibility: hidden`, or offscreen positioning while focused
-
-## State Ownership Rules
-
-These rules should stay strict:
-
-- DOM value is authoritative while editing
-- Pixi mirrors DOM state
-- Route Graphics public state is updated through events
-- external renders may update the field, but must not constantly fight native editing
-
-Recommended behavioral model:
-
-- treat the field as semi-controlled while focused
-- accept external value updates, but apply them carefully
-- preserve native editing continuity whenever possible
-
-## Testing Strategy
-
-## Unit And Parser Tests
-
-Checklist:
-
-- [ ] parser normalization tests
-- [ ] add/update/delete lifecycle tests
-- [ ] attribute sync tests
-- [ ] value sync tests
-- [ ] secure mode tests
-- [ ] disabled/read-only tests
-
-## Browser Interaction Tests
-
-Checklist:
-
-- [ ] focus on click
-- [ ] blur on outside click
-- [ ] change event emission
-- [ ] submit event emission
-- [ ] paste behavior
-- [ ] copy and cut smoke tests
-- [ ] selection sync tests
-- [ ] IME smoke tests
-
-## Layout And Container Tests
-
-Checklist:
-
-- [ ] transformed parent positioning
-- [ ] scrolled container positioning
-- [ ] clipped container visibility
-- [ ] rerender stability during focus
-
-## Visual Regression Tests
-
-Checklist:
-
-- [ ] placeholder rendering
-- [ ] caret rendering
-- [ ] selection highlight rendering
-- [ ] focused vs blurred state
-- [ ] password mode rendering
-
-## Risks
-
-## Highest Risk
-
-- clipped and scrolled containers
-- preserving selection during rerenders
-- matching DOM selection with Pixi text metrics
-- composition visuals in fully invisible mode
-
-## Medium Risk
-
-- pointer-based selection
-- long-text horizontal scrolling
-- mobile browser quirks
-
-## Lower Risk
-
-- basic typing
-- clipboard
-- password mode
-- focus and blur
-
-## Acceptance Gates
-
-Do not call the feature complete until all of the following are true:
-
-- typing works with a native input
-- IME works in at least one real browser smoke test
-- copy and paste work
-- caret position matches DOM selection
-- rerenders do not drop focus unexpectedly
-- password mode works
-- disabled and read-only work
-
-Do not call the feature fully customizable until these are also true:
-
-- selection highlight is Pixi-rendered
-- caret is Pixi-rendered
-- placeholder is Pixi-rendered
-- long text scrolling is handled
-- focused editing still works with the DOM element visually hidden
+These are acceptable tradeoffs for the current product shape.
 
 ## Recommendation
 
-This is the best implementation path:
+Treat `input` as the standard editable text element for Route Graphics whenever custom-rendered fields are needed.
 
-- build a hybrid transparent-input plugin
-- keep v1 single-line only
-- keep DOM as the editing source of truth
-- keep Pixi as the visual source of truth
-- postpone multiline and clipped-container correctness until after the single-line field is stable
+If future work expands this area, it should continue to preserve the current contract:
 
-If the team wants the fastest route to shipping, the next concrete milestone should be:
-
-- Phase 1
-- Phase 2
-- a narrow slice of Phase 6 needed for rerender stability
-
-Everything else can come after a working single-line field exists.
+- Pixi remains the visible interaction surface
+- the browser remains the underlying text engine
+- field chrome remains composable through other Route Graphics elements instead of bloating the input API
