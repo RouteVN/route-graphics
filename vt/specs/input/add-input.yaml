@@ -1,0 +1,119 @@
+---
+title: Input Elements
+description: Test single-line input rendering and native editing
+specs:
+  - single-line inputs should render placeholder text before focus
+  - focused inputs should emit focus, change, submit, and blur events
+  - typed text should remain rendered after the field loses focus
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: screenshot
+  - action: click
+    x: 180
+    "y": 88
+  - action: wait
+    ms: 100
+  - action: keypress
+    key: H
+  - action: keypress
+    key: i
+  - action: keypress
+    key: Enter
+  - action: click
+    x: 20
+    "y": 20
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - focus
+    value:
+      - _event:
+          id: input-name
+          value: ""
+          selectionStart: 0
+          selectionEnd: 0
+          composing: false
+        action: inputFocus
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - change
+    value:
+      - _event:
+          id: input-name
+          value: H
+          selectionStart: 1
+          selectionEnd: 1
+          composing: false
+        action: inputChange
+      - _event:
+          id: input-name
+          value: Hi
+          selectionStart: 2
+          selectionEnd: 2
+          composing: false
+        action: inputChange
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - submit
+    value:
+      - _event:
+          id: input-name
+          value: Hi
+          selectionStart: 2
+          selectionEnd: 2
+          composing: false
+        action: inputSubmit
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - blur
+    value:
+      - _event:
+          id: input-name
+          value: Hi
+          selectionStart: 2
+          selectionEnd: 2
+          composing: false
+        action: inputBlur
+---
+states:
+  - elements:
+      - id: input-name
+        type: input
+        x: 60
+        "y": 60
+        width: 240
+        height: 56
+        placeholder: Your name
+        background:
+          fill: "#FFFFFF"
+          strokeColor: "#1C1C1C"
+          strokeWidth: 2
+        textStyle:
+          fill: "#1C1C1C"
+          fontSize: 22
+        placeholderStyle:
+          fill: "#8A8A8A"
+          fontSize: 22
+        focusEvent:
+          payload:
+            action: inputFocus
+        change:
+          payload:
+            action: inputChange
+        submit:
+          payload:
+            action: inputSubmit
+        blurEvent:
+          payload:
+            action: inputBlur

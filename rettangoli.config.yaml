@@ -87,6 +87,12 @@ vt:
         - title: "Slider Events"
           files: "sliderevent"
           description: "Slider event test"
+    - title: "Input Group"
+      type: "groupLabel"
+      items:
+        - title: "Input"
+          files: "input"
+          description: "Input rendering and interaction tests"
     - title: "Particles Group"
       type: "groupLabel"
       items:

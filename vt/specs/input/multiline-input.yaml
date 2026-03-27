@@ -1,0 +1,113 @@
+---
+title: Multiline Input
+description: Test multiline textarea-style inputs
+specs:
+  - multiline inputs should render explicit line breaks
+  - multiline inputs should emit focus, change, and blur events
+  - pressing Enter in multiline mode should insert a newline instead of submitting
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: screenshot
+  - action: click
+    x: 240
+    "y": 200
+  - action: wait
+    ms: 100
+  - action: keypress
+    key: A
+  - action: keypress
+    key: Enter
+  - action: keypress
+    key: B
+  - action: click
+    x: 20
+    "y": 20
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - focus
+    value:
+      - _event:
+          id: input-bio
+          value: ""
+          selectionStart: 0
+          selectionEnd: 0
+          composing: false
+        action: bioFocus
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - change
+    value:
+      - _event:
+          id: input-bio
+          value: A
+          selectionStart: 1
+          selectionEnd: 1
+          composing: false
+        action: bioChange
+      - _event:
+          id: input-bio
+          value: "A\n"
+          selectionStart: 2
+          selectionEnd: 2
+          composing: false
+        action: bioChange
+      - _event:
+          id: input-bio
+          value: "A\nB"
+          selectionStart: 3
+          selectionEnd: 3
+          composing: false
+        action: bioChange
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - blur
+    value:
+      - _event:
+          id: input-bio
+          value: "A\nB"
+          selectionStart: 3
+          selectionEnd: 3
+          composing: false
+        action: bioBlur
+---
+states:
+  - elements:
+      - id: input-bio
+        type: input
+        multiline: true
+        x: 80
+        "y": 140
+        width: 320
+        height: 120
+        placeholder: Add notes
+        textStyle:
+          fill: "#1C1C1C"
+          fontSize: 20
+          lineHeight: 28
+        placeholderStyle:
+          fill: "#8A8A8A"
+          fontSize: 20
+          lineHeight: 28
+        background:
+          fill: "#FFFFFF"
+          strokeColor: "#1C1C1C"
+          strokeWidth: 2
+        focusEvent:
+          payload:
+            action: bioFocus
+        change:
+          payload:
+            action: bioChange
+        blurEvent:
+          payload:
+            action: bioBlur

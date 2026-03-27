@@ -85,7 +85,7 @@ in:
     scaleY: 1.5
     width: 483.94921875
     height: 29
-throws: "Input Error: Type must be one of rect, text, container, sprite, text-revealing, slider"
+throws: "Input Error: Type must be one of rect, text, input, container, sprite, text-revealing, slider, particles, animated-sprite, video"
 ---
 case: Parsing object with hover property only
 in:

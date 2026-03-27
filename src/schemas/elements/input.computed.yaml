@@ -1,0 +1,86 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Input Computed Node
+description: Schema for input computed node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - originX
+  - originY
+  - value
+  - placeholder
+  - multiline
+  - secure
+  - readOnly
+  - disabled
+  - autofocus
+  - debugVisible
+  - inputMode
+  - textStyle
+  - placeholderStyle
+  - padding
+  - background
+  - selectionStyle
+  - caretStyle
+  - focusRing
+properties:
+  id:
+    type: string
+  type:
+    const: input
+  width:
+    type: number
+  height:
+    type: number
+  x:
+    type: number
+  y:
+    type: number
+  alpha:
+    type: number
+  originX:
+    type: number
+  originY:
+    type: number
+  value:
+    type: string
+  placeholder:
+    type: string
+  multiline:
+    type: boolean
+  secure:
+    type: boolean
+  readOnly:
+    type: boolean
+  disabled:
+    type: boolean
+  autofocus:
+    type: boolean
+  debugVisible:
+    type: boolean
+  maxLength:
+    type: number
+  inputMode:
+    type: string
+  enterKeyHint:
+    type: string
+  tabIndex:
+    type: number
+  textStyle:
+    type: object
+  placeholderStyle:
+    type: object
+  padding:
+    type: object
+  background:
+    type: object
+  selectionStyle:
+    type: object
+  caretStyle:
+    type: object
+  focusRing:
+    type: object

@@ -1,0 +1,194 @@
+file: ../../src/plugins/elements/input/parseInput.js
+group: parser
+suites:
+  - parseInput
+---
+suite: parseInput
+exportName: parseInput
+---
+case: Test parsing input with defaults
+in:
+  - state:
+      id: player-name
+      type: input
+      x: 120
+      "y": 80
+      width: 240
+      height: 44
+out:
+  id: player-name
+  type: input
+  x: 120
+  "y": 80
+  width: 240
+  height: 44
+  originX: 0
+  originY: 0
+  alpha: 1
+  value: ""
+  placeholder: ""
+  multiline: false
+  secure: false
+  readOnly: false
+  disabled: false
+  autofocus: false
+  debugVisible: false
+  inputMode: text
+  textStyle:
+    fill: black
+    fontFamily: Arial
+    fontSize: 16
+    align: left
+    lineHeight: 19
+    wordWrap: false
+    breakWords: false
+    whiteSpace: pre
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 0
+  placeholderStyle:
+    fill: "#7A7A7A"
+    fontFamily: Arial
+    fontSize: 16
+    align: left
+    lineHeight: 19
+    wordWrap: false
+    breakWords: false
+    whiteSpace: pre
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 0
+  padding:
+    top: 10
+    right: 12
+    bottom: 10
+    left: 12
+  background:
+    fill: "#FFFFFF"
+    fillAlpha: 1
+    strokeColor: "#2E2E2E"
+    strokeWidth: 1
+    strokeAlpha: 1
+  selectionStyle:
+    fill: "#4A89FF"
+    alpha: 0.3
+  caretStyle:
+    fill: "#111111"
+    width: 2
+  focusRing:
+    strokeColor: "#4A89FF"
+    strokeWidth: 2
+    strokeAlpha: 1
+---
+case: Test parsing input with custom props
+in:
+  - state:
+      id: secret
+      type: input
+      x: 200
+      "y": 100
+      width: 180
+      height: 40
+      value: hunter2
+      placeholder: Password
+      multiline: true
+      secure: true
+      readOnly: true
+      disabled: true
+      autofocus: true
+      debugVisible: true
+      maxLength: 32
+      inputMode: text
+      enterKeyHint: done
+      tabIndex: 4
+      textStyle:
+        fontSize: 20
+        fill: white
+      placeholderStyle:
+        fill: "#999999"
+      padding:
+        top: 8
+        right: 9
+        bottom: 10
+        left: 11
+      background:
+        fill: "#101010"
+      selectionStyle:
+        alpha: 0.5
+      caretStyle:
+        width: 3
+      focusRing:
+        strokeColor: "#FF0000"
+      change:
+        payload:
+          source: change
+out:
+  id: secret
+  type: input
+  x: 200
+  "y": 100
+  width: 180
+  height: 40
+  originX: 0
+  originY: 0
+  alpha: 1
+  value: hunter2
+  placeholder: Password
+  multiline: true
+  secure: true
+  readOnly: true
+  disabled: true
+  autofocus: true
+  debugVisible: true
+  maxLength: 32
+  inputMode: text
+  enterKeyHint: done
+  tabIndex: 4
+  textStyle:
+    fill: white
+    fontFamily: Arial
+    fontSize: 20
+    align: left
+    lineHeight: 24
+    wordWrap: false
+    breakWords: false
+    whiteSpace: pre
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 0
+  placeholderStyle:
+    fill: "#999999"
+    fontFamily: Arial
+    fontSize: 20
+    align: left
+    lineHeight: 24
+    wordWrap: false
+    breakWords: false
+    whiteSpace: pre
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 0
+  padding:
+    top: 8
+    right: 9
+    bottom: 10
+    left: 11
+  background:
+    fill: "#101010"
+    fillAlpha: 1
+    strokeColor: "#2E2E2E"
+    strokeWidth: 1
+    strokeAlpha: 1
+  selectionStyle:
+    fill: "#4A89FF"
+    alpha: 0.5
+  caretStyle:
+    fill: "#111111"
+    width: 3
+  focusRing:
+    strokeColor: "#FF0000"
+    strokeWidth: 2
+    strokeAlpha: 1
+  change:
+    payload:
+      source: change

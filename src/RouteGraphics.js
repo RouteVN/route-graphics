@@ -12,6 +12,7 @@ import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
+import { createInputDomBridge } from "./util/inputDomBridge.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -23,6 +24,7 @@ import { isDeepEqual } from "./util/isDeepEqual.js";
 /**
  * @typedef {Object} ApplicationWithAudioStageOptions
  * @property {AudioStage} audioStage
+ * @property {ReturnType<typeof createInputDomBridge>} [inputDomBridge]
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
 
@@ -352,6 +354,7 @@ const createRouteGraphics = () => {
         preference: "webgl",
       });
       app.debug = debug;
+      app.inputDomBridge = createInputDomBridge({ app });
       canvasContextMenuListener = (event) => {
         event.preventDefault();
       };
@@ -397,6 +400,7 @@ const createRouteGraphics = () => {
         );
         canvasContextMenuListener = undefined;
       }
+      app?.inputDomBridge?.destroy?.();
       keyboardManager?.destroy();
       clearPendingSounds();
       if (animationBus) animationBus.destroy();

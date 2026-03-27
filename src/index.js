@@ -9,6 +9,7 @@ import { rectPlugin } from "./plugins/elements/rect";
 import { spritePlugin } from "./plugins/elements/sprite";
 import { videoPlugin } from "./plugins/elements/video";
 import { sliderPlugin } from "./plugins/elements/slider";
+import { inputPlugin } from "./plugins/elements/input";
 import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
 import { animatedSpritePlugin } from "./plugins/elements/animated-sprite";
@@ -34,6 +35,7 @@ export {
   spritePlugin,
   videoPlugin,
   sliderPlugin,
+  inputPlugin,
   containerPlugin,
   textRevealingPlugin,
   animatedSpritePlugin,

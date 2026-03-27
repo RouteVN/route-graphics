@@ -42,7 +42,11 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(24, 28, 33, 0.92), rgba(11, 14, 18, 0.92)),
+          linear-gradient(
+            180deg,
+            rgba(24, 28, 33, 0.92),
+            rgba(11, 14, 18, 0.92)
+          ),
           rgba(8, 10, 12, 0.92);
         backdrop-filter: blur(10px);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
@@ -154,7 +158,9 @@
         }
       }
     </style>
-    <script id="vt-state" type="text/plain">{{ content }}</script>
+    <script id="vt-state" type="text/plain">
+      {{ content }}
+    </script>
     <script type="module">
       import createRouteGraphics, {
         Assets,
@@ -164,6 +170,7 @@
         spritePlugin,
         videoPlugin,
         sliderPlugin,
+        inputPlugin,
         containerPlugin,
         textRevealingPlugin,
         animatedSpritePlugin,
@@ -284,6 +291,7 @@
           spritePlugin,
           videoPlugin,
           sliderPlugin,
+          inputPlugin,
           containerPlugin,
           textRevealingPlugin,
           animatedSpritePlugin,
@@ -294,12 +302,14 @@
       };
       let index = 0;
       const vtStateSource =
-        document.getElementById("vt-state")?.textContent ?? "";
+        document.getElementById("vt-state")?.textContent?.trim() ?? "";
       const vtDocuments = parseAllDocuments(vtStateSource).map(
         (doc) => doc.toJSON() ?? {},
       );
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
+      window.__VT_STATE_DATA__ = vtState;
+      window.__VT_STATES__ = states;
       const pager = document.createElement("nav");
       pager.className = "vt-state-pager";
       pager.setAttribute("aria-label", "State navigation");
@@ -349,6 +359,19 @@
             .getVtEvents(scope)
             .filter((event) => event.name === eventName)
             .map((event) => event.payload),
+      };
+      let vtReadySignaled = false;
+      const signalVtReady = () => {
+        if (vtReadySignaled) {
+          return;
+        }
+
+        vtReadySignaled = true;
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("vt:ready"));
+          }, 0);
+        });
       };
 
       const updatePager = () => {
@@ -401,6 +424,7 @@
           app.render(nextRenderState);
         }
         updatePager();
+        signalVtReady();
       };
 
       await app.init({
@@ -421,11 +445,10 @@
           }
           window.__VT_EVENTS__.push(eventData);
         },
-        onFirstRender: () => {
-          window.dispatchEvent(new CustomEvent("vt:ready"));
-        },
+        onFirstRender: () => {},
         debug: window?.RTGL_VT_DEBUG ?? false,
       });
+      window.__VT_ROUTE_GRAPHICS__ = app;
       await app.loadAssets(assetBufferManager.getBufferMap());
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
@@ -433,6 +456,7 @@
         renderState(index);
       } else {
         updatePager();
+        signalVtReady();
       }
 
       prevButton.addEventListener("click", () => {
