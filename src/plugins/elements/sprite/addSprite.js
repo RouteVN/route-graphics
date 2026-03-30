@@ -1,6 +1,7 @@
 import { Sprite, Texture } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { createHoverStateController } from "../util/hoverInheritance.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -35,12 +36,16 @@ export const addSprite = ({
   const rightClickEvents = element?.rightClick;
 
   let events = {
-    isHovering: false,
     isPressed: false,
     isRightPressed: false,
   };
 
-  const updateTexture = ({ isHovering, isPressed, isRightPressed }) => {
+  let hoverController = null;
+
+  const updateTexture = () => {
+    const isHovering = hoverController?.isHovering() ?? false;
+    const { isPressed, isRightPressed } = events;
+
     if (isRightPressed && rightClickEvents?.src) {
       const rightClickTexture = Texture.from(rightClickEvents.src);
       sprite.texture = rightClickTexture;
@@ -58,9 +63,13 @@ export const addSprite = ({
   if (hoverEvents) {
     const { cursor, soundSrc, payload } = hoverEvents;
     sprite.eventMode = "static";
+    hoverController = createHoverStateController({
+      displayObject: sprite,
+      onHoverChange: updateTexture,
+    });
 
     const overListener = () => {
-      events.isHovering = true;
+      hoverController.setDirectHover(true);
       if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
@@ -75,13 +84,11 @@ export const addSprite = ({
           url: soundSrc,
           loop: false,
         });
-      updateTexture(events);
     };
 
     const outListener = () => {
-      events.isHovering = false;
+      hoverController.setDirectHover(false);
       sprite.cursor = "auto";
-      updateTexture(events);
     };
 
     sprite.on("pointerover", overListener);
@@ -98,7 +105,7 @@ export const addSprite = ({
       }
 
       events.isPressed = true;
-      updateTexture(events);
+      updateTexture();
     };
 
     const releaseListener = (event) => {
@@ -107,7 +114,7 @@ export const addSprite = ({
       }
 
       events.isPressed = false;
-      updateTexture(events);
+      updateTexture();
 
       if (payload && eventHandler)
         eventHandler(`click`, {
@@ -127,7 +134,7 @@ export const addSprite = ({
 
     const outListener = () => {
       events.isPressed = false;
-      updateTexture(events);
+      updateTexture();
     };
 
     sprite.on("pointerdown", clickListener);
@@ -141,17 +148,17 @@ export const addSprite = ({
 
     const rightPressListener = () => {
       events.isRightPressed = true;
-      updateTexture(events);
+      updateTexture();
     };
 
     const rightReleaseListener = () => {
       events.isRightPressed = false;
-      updateTexture(events);
+      updateTexture();
     };
 
     const rightClickListener = () => {
       events.isRightPressed = false;
-      updateTexture(events);
+      updateTexture();
 
       if (payload && eventHandler) {
         eventHandler(`rightClick`, {
@@ -172,7 +179,7 @@ export const addSprite = ({
 
     const rightOutListener = () => {
       events.isRightPressed = false;
-      updateTexture(events);
+      updateTexture();
     };
 
     sprite.on("rightdown", rightPressListener);

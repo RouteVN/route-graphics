@@ -2,6 +2,10 @@ import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  clearInheritedHoverTarget,
+  createHoverStateController,
+} from "../util/hoverInheritance.js";
 
 /**
  * Update sprite element (synchronous)
@@ -48,18 +52,23 @@ export const updateSprite = ({
       spriteElement.removeAllListeners("rightclick");
       spriteElement.removeAllListeners("rightup");
       spriteElement.removeAllListeners("rightupoutside");
+      clearInheritedHoverTarget(spriteElement);
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
 
       let events = {
-        isHovering: false,
         isPressed: false,
         isRightPressed: false,
       };
 
-      const updateTexture = ({ isHovering, isPressed, isRightPressed }) => {
+      let hoverController = null;
+
+      const updateTexture = () => {
+        const isHovering = hoverController?.isHovering() ?? false;
+        const { isPressed, isRightPressed } = events;
+
         if (isRightPressed && rightClickEvents?.src) {
           const rightClickTexture = Texture.from(rightClickEvents.src);
           spriteElement.texture = rightClickTexture;
@@ -77,9 +86,13 @@ export const updateSprite = ({
       if (hoverEvents) {
         const { cursor, soundSrc, payload } = hoverEvents;
         spriteElement.eventMode = "static";
+        hoverController = createHoverStateController({
+          displayObject: spriteElement,
+          onHoverChange: updateTexture,
+        });
 
         const overListener = () => {
-          events.isHovering = true;
+          hoverController.setDirectHover(true);
           if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
@@ -94,13 +107,11 @@ export const updateSprite = ({
               url: soundSrc,
               loop: false,
             });
-          updateTexture(events);
         };
 
         const outListener = () => {
-          events.isHovering = false;
+          hoverController.setDirectHover(false);
           spriteElement.cursor = "auto";
-          updateTexture(events);
         };
 
         spriteElement.on("pointerover", overListener);
@@ -117,7 +128,7 @@ export const updateSprite = ({
           }
 
           events.isPressed = true;
-          updateTexture(events);
+          updateTexture();
         };
 
         const releaseListener = (event) => {
@@ -126,7 +137,7 @@ export const updateSprite = ({
           }
 
           events.isPressed = false;
-          updateTexture(events);
+          updateTexture();
 
           if (payload && eventHandler)
             eventHandler(`click`, {
@@ -146,7 +157,7 @@ export const updateSprite = ({
 
         const outListener = () => {
           events.isPressed = false;
-          updateTexture(events);
+          updateTexture();
         };
 
         spriteElement.on("pointerdown", clickListener);
@@ -160,17 +171,17 @@ export const updateSprite = ({
 
         const rightPressListener = () => {
           events.isRightPressed = true;
-          updateTexture(events);
+          updateTexture();
         };
 
         const rightReleaseListener = () => {
           events.isRightPressed = false;
-          updateTexture(events);
+          updateTexture();
         };
 
         const rightClickListener = () => {
           events.isRightPressed = false;
-          updateTexture(events);
+          updateTexture();
 
           if (payload && eventHandler) {
             eventHandler(`rightClick`, {
@@ -191,7 +202,7 @@ export const updateSprite = ({
 
         const rightOutListener = () => {
           events.isRightPressed = false;
-          updateTexture(events);
+          updateTexture();
         };
 
         spriteElement.on("rightdown", rightPressListener);

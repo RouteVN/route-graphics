@@ -1,0 +1,424 @@
+import { Cache, Container, Rectangle, Texture } from "pixi.js";
+import { describe, expect, it, vi } from "vitest";
+import { addContainer } from "../../src/plugins/elements/container/addContainer.js";
+import { updateContainer } from "../../src/plugins/elements/container/updateContainer.js";
+import { containerPlugin } from "../../src/plugins/elements/container/index.js";
+import { parseContainerForTesting } from "../../src/plugins/elements/container/parseContainerForTestingPurposes.js";
+import { sliderPlugin } from "../../src/plugins/elements/slider/index.js";
+import { getSliderParts } from "../../src/plugins/elements/slider/sliderRuntime.js";
+import { spritePlugin } from "../../src/plugins/elements/sprite/index.js";
+import { textPlugin } from "../../src/plugins/elements/text/index.js";
+
+const createSharedParams = () => ({
+  app: {
+    audioStage: {
+      add: vi.fn(),
+    },
+  },
+  animations: [],
+  animationBus: {
+    dispatch: vi.fn(),
+  },
+  completionTracker: {
+    getVersion: () => 0,
+    track: () => {},
+    complete: () => {},
+  },
+  signal: new AbortController().signal,
+});
+
+const elementPlugins = [containerPlugin, textPlugin, spritePlugin, sliderPlugin];
+
+const parseContainerState = (state) => parseContainerForTesting({ state });
+
+let textureIndex = 0;
+
+const createTextureId = (prefix) => {
+  textureIndex += 1;
+  const id = `${prefix}-${textureIndex}`;
+  const texture = new Texture({
+    source: Texture.WHITE.source,
+    label: id,
+  });
+
+  Cache.set(id, texture);
+
+  return id;
+};
+
+describe("container hover inheritance", () => {
+  it("applies hover visuals to descendants without firing child hover payloads", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+    const spriteIdleSrc = createTextureId("icon-idle");
+    const spriteHoverSrc = createTextureId("icon-hover");
+    const element = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 360,
+      height: 120,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "icon",
+          type: "sprite",
+          x: 0,
+          y: 0,
+          width: 32,
+          height: 32,
+          src: spriteIdleSrc,
+          hover: {
+            src: spriteHoverSrc,
+            payload: { source: "child-hover" },
+          },
+        },
+        {
+          id: "nested",
+          type: "container",
+          x: 60,
+          y: 0,
+          children: [
+            {
+              id: "label",
+              type: "text",
+              x: 0,
+              y: 0,
+              content: "Nested",
+              textStyle: {
+                fontSize: 24,
+                fontFamily: "Arial",
+                fill: "#A6A6A6",
+              },
+              hover: {
+                textStyle: {
+                  fill: "#FFFFFF",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler,
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const sprite = container.getChildByLabel("icon");
+    const nested = container.getChildByLabel("nested");
+    const text = nested.getChildByLabel("label");
+
+    expect(container.hitArea).toBeInstanceOf(Rectangle);
+    expect(container.hitArea.width).toBe(360);
+    expect(text.style.fill).toBe("#A6A6A6");
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+
+    container.emit("pointerenter");
+
+    expect(text.style.fill).toBe("#FFFFFF");
+    expect(sprite.texture).toBe(Texture.from(spriteHoverSrc));
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    sprite.emit("pointerover");
+
+    expect(eventHandler).toHaveBeenCalledTimes(1);
+    expect(eventHandler).toHaveBeenCalledWith(
+      "hover",
+      expect.objectContaining({
+        _event: { id: "icon" },
+        source: "child-hover",
+      }),
+    );
+
+    sprite.emit("pointerout");
+    expect(sprite.texture).toBe(Texture.from(spriteHoverSrc));
+
+    container.emit("pointerleave");
+
+    expect(text.style.fill).toBe("#A6A6A6");
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+  });
+
+  it("applies inherited hover visuals to slider descendants", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const idleBarSrc = createTextureId("bar-idle");
+    const hoverBarSrc = createTextureId("bar-hover");
+    const idleThumbSrc = createTextureId("thumb-idle");
+    const hoverThumbSrc = createTextureId("thumb-hover");
+    const element = parseContainerState({
+      id: "controls",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 260,
+      height: 80,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "volume",
+          type: "slider",
+          x: 0,
+          y: 0,
+          width: 180,
+          height: 20,
+          direction: "horizontal",
+          min: 0,
+          max: 100,
+          step: 1,
+          initialValue: 50,
+          barSrc: idleBarSrc,
+          thumbSrc: idleThumbSrc,
+          hover: {
+            barSrc: hoverBarSrc,
+            thumbSrc: hoverThumbSrc,
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("controls");
+    const slider = container.getChildByLabel("volume");
+    const { bar, thumb } = getSliderParts({
+      sliderContainer: slider,
+      id: "volume",
+    });
+
+    expect(bar.texture).toBe(Texture.from(idleBarSrc));
+    expect(thumb.texture).toBe(Texture.from(idleThumbSrc));
+
+    container.emit("pointerenter");
+
+    expect(bar.texture).toBe(Texture.from(hoverBarSrc));
+    expect(thumb.texture).toBe(Texture.from(hoverThumbSrc));
+
+    container.emit("pointerleave");
+
+    expect(bar.texture).toBe(Texture.from(idleBarSrc));
+    expect(thumb.texture).toBe(Texture.from(idleThumbSrc));
+  });
+
+  it("reapplies inherited hover to children added while the container is already hovered", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler,
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("chat");
+    container.emit("pointerenter");
+
+    const nextElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+        {
+          id: "message-2",
+          type: "text",
+          x: 0,
+          y: 30,
+          content: "World",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler,
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const nextMessage = container.getChildByLabel("message-2");
+
+    expect(nextMessage.style.fill).toBe("#FFFFFF");
+  });
+
+  it("clears inherited hover state when the feature is removed during update", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const text = container.getChildByLabel("label");
+    container.emit("pointerenter");
+
+    expect(text.style.fill).toBe("#FFFFFF");
+
+    const nextElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    expect(text.style.fill).toBe("#A6A6A6");
+    expect(container.hitArea).toBeNull();
+    expect(container.eventMode).toBe("auto");
+  });
+});

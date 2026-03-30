@@ -92,6 +92,54 @@ out:
       rotation: 90
       alpha: 1
 ---
+case: Test parsing container hover inheritance config
+in:
+  - state:
+      id: hover-container
+      type: container
+      x: 10
+      "y": 20
+      width: 120
+      height: 60
+      hover:
+        inheritToChildren: true
+      children:
+        - id: rect-1
+          type: rect
+          x: 0
+          "y": 0
+          width: 40
+          height: 20
+          fill: red
+out:
+  id: hover-container
+  type: container
+  direction: ""
+  gap: 0
+  width: 120
+  height: 60
+  x: 10
+  "y": 20
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  hover:
+    inheritToChildren: true
+  children:
+    - id: rect-1
+      type: rect
+      width: 40
+      height: 20
+      x: 0
+      "y": 0
+      originX: 0
+      originY: 0
+      fill: red
+      rotation: 0
+      alpha: 1
+---
 case: Test parsing container with no width or height vertically
 in:
   - state:

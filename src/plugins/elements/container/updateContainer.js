@@ -1,10 +1,13 @@
 import { renderElements } from "../renderElements.js";
 import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
+import {
+  bindContainerInteractions,
+  reapplyContainerInheritedHover,
+} from "./util/bindContainerInteractions.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { getTargetAnimations } from "../../animations/planAnimations.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 /**
  * Update container element (synchronous)
@@ -45,100 +48,6 @@ export const updateContainer = ({
       containerElement.scale.x = 1;
       containerElement.scale.y = 1;
 
-      containerElement.removeAllListeners("pointerover");
-      containerElement.removeAllListeners("pointerout");
-      containerElement.removeAllListeners("pointerup");
-      containerElement.removeAllListeners("rightclick");
-      containerElement.eventMode = "auto";
-      containerElement.cursor = "auto";
-
-      const hoverEvents = nextElement?.hover;
-      const clickEvents = nextElement?.click;
-      const rightClickEvents = nextElement?.rightClick;
-      const hasPointerInteraction = Boolean(
-        hoverEvents || clickEvents || rightClickEvents,
-      );
-
-      if (hoverEvents) {
-        const { cursor, soundSrc, payload } = hoverEvents;
-        containerElement.eventMode = "static";
-
-        const overListener = () => {
-          if (payload && eventHandler)
-            eventHandler(`hover`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (cursor) containerElement.cursor = cursor;
-          if (soundSrc)
-            app.audioStage.add({
-              id: `hover-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-        };
-
-        const outListener = () => {
-          containerElement.cursor = "auto";
-        };
-
-        containerElement.on("pointerover", overListener);
-        containerElement.on("pointerout", outListener);
-      }
-
-      if (clickEvents) {
-        const { soundSrc, soundVolume, payload } = clickEvents;
-        containerElement.eventMode = "static";
-
-        const releaseListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          if (payload && eventHandler)
-            eventHandler(`click`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `click-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-              volume: (soundVolume ?? 1000) / 1000,
-            });
-        };
-
-        containerElement.on("pointerup", releaseListener);
-      }
-
-      if (rightClickEvents) {
-        const { soundSrc, payload } = rightClickEvents;
-        containerElement.eventMode = "static";
-
-        const rightClickListener = () => {
-          if (payload && eventHandler)
-            eventHandler(`rightClick`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `rightClick-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-        };
-
-        containerElement.on("rightclick", rightClickListener);
-      }
-
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
       const nextUsesViewport = nextElement.scroll || nextElement.anchorToBottom;
 
@@ -167,9 +76,12 @@ export const updateContainer = ({
         });
       }
 
-      if (!nextElement.scroll && hasPointerInteraction) {
-        containerElement.eventMode = "static";
-      }
+      bindContainerInteractions({
+        app,
+        container: containerElement,
+        element: nextElement,
+        eventHandler,
+      });
     }
 
     // Check if children definition changed
@@ -203,6 +115,10 @@ export const updateContainer = ({
         completionTracker,
         renderContext,
         signal,
+      });
+
+      reapplyContainerInheritedHover({
+        container: containerElement,
       });
     }
   };

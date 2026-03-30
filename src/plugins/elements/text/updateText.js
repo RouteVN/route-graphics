@@ -8,6 +8,10 @@ import {
   syncTextAnchorRatios,
 } from "./textLayout.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  clearInheritedHoverTarget,
+  createHoverStateController,
+} from "../util/hoverInheritance.js";
 
 /**
  * Update text element (synchronous)
@@ -52,18 +56,23 @@ export const updateText = ({
       textElement.removeAllListeners("rightclick");
       textElement.removeAllListeners("rightup");
       textElement.removeAllListeners("rightupoutside");
+      clearInheritedHoverTarget(textElement);
 
       const hoverEvents = nextTextComputedNode?.hover;
       const clickEvents = nextTextComputedNode?.click;
       const rightClickEvents = nextTextComputedNode?.rightClick;
 
       let events = {
-        isHovering: false,
         isPressed: false,
         isRightPressed: false,
       };
 
-      const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
+      let hoverController = null;
+
+      const updateTextStyle = () => {
+        const isHovering = hoverController?.isHovering() ?? false;
+        const { isPressed, isRightPressed } = events;
+
         if (isRightPressed && rightClickEvents?.textStyle) {
           applyInteractiveTextStyle(
             textElement,
@@ -93,9 +102,13 @@ export const updateText = ({
       if (hoverEvents) {
         const { cursor, soundSrc, payload } = hoverEvents;
         textElement.eventMode = "static";
+        hoverController = createHoverStateController({
+          displayObject: textElement,
+          onHoverChange: updateTextStyle,
+        });
 
         const overListener = () => {
-          events.isHovering = true;
+          hoverController.setDirectHover(true);
           if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
@@ -110,13 +123,11 @@ export const updateText = ({
               url: soundSrc,
               loop: false,
             });
-          updateTextStyle(events);
         };
 
         const outListener = () => {
-          events.isHovering = false;
+          hoverController.setDirectHover(false);
           textElement.cursor = "auto";
-          updateTextStyle(events);
         };
 
         textElement.on("pointerover", overListener);
@@ -133,7 +144,7 @@ export const updateText = ({
           }
 
           events.isPressed = true;
-          updateTextStyle(events);
+          updateTextStyle();
         };
 
         const releaseListener = (event) => {
@@ -142,7 +153,7 @@ export const updateText = ({
           }
 
           events.isPressed = false;
-          updateTextStyle(events);
+          updateTextStyle();
 
           if (payload && eventHandler)
             eventHandler(`click`, {
@@ -162,7 +173,7 @@ export const updateText = ({
 
         const outListener = () => {
           events.isPressed = false;
-          updateTextStyle(events);
+          updateTextStyle();
         };
 
         textElement.on("pointerdown", clickListener);
@@ -176,17 +187,17 @@ export const updateText = ({
 
         const rightPressListener = () => {
           events.isRightPressed = true;
-          updateTextStyle(events);
+          updateTextStyle();
         };
 
         const rightReleaseListener = () => {
           events.isRightPressed = false;
-          updateTextStyle(events);
+          updateTextStyle();
         };
 
         const rightClickListener = () => {
           events.isRightPressed = false;
-          updateTextStyle(events);
+          updateTextStyle();
 
           if (payload && eventHandler) {
             eventHandler(`rightClick`, {
@@ -207,7 +218,7 @@ export const updateText = ({
 
         const rightOutListener = () => {
           events.isRightPressed = false;
-          updateTextStyle(events);
+          updateTextStyle();
         };
 
         textElement.on("rightdown", rightPressListener);

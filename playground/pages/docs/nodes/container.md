@@ -31,7 +31,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `gap`        | number                                   | No                  | `0`                      | Space between children in layout mode.               |
 | `rotation`   | number                                   | No                  | `0`                      | Degrees.                                             |
 | `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.   |
-| `hover`      | object                                   | No                  | -                        | Hover event config.                                  |
+| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.    |
 | `click`      | object                                   | No                  | -                        | Click event config.                                  |
 | `rightClick` | object                                   | No                  | -                        | Right click event config.                            |
 
@@ -48,6 +48,13 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `hover`      | pointer enters container | `{ _event: { id }, ...hover.payload }`      |
 | `click`      | pointer up               | `{ _event: { id }, ...click.payload }`      |
 | `rightClick` | right click              | `{ _event: { id }, ...rightClick.payload }` |
+
+## Hover Inheritance
+
+Set `hover.inheritToChildren: true` to apply hover visuals from the container to descendants that support hover state, such as `text`, `sprite`, and `slider`.
+
+- This affects hover visuals, not child hover payloads or hover sounds.
+- Child direct hover still works normally while the container hover is active.
 
 ## Example: Minimal Group
 

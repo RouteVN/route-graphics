@@ -76,6 +76,10 @@ properties:
   hover:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with hover visuals inherit the container hover state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when hovering over the container
