@@ -1,13 +1,17 @@
 ---
 title: Slider Hover Events
 description: Test hover events with cursor and texture changes; texture assets are used intentionally as a visual-state exception (asset-based).
+diffThreshold: 0.6
 specs:
   - slider thumb should change cursor on hover
   - slider thumb should change texture on hover
-  - slider bar should change texture on thumb hover
+  - slider active track should change texture on hover
+  - slider inactive track should change texture on hover
   - hover event should send payload
   - textures should revert when hover ends
 steps:
+  - action: keypress
+    key: "n"
   - action: move
     x: 170
     "y": 110
@@ -24,7 +28,27 @@ states:
         type: slider
         direction: horizontal
         thumbSrc: horizontal-idle-thumb
-        barSrc: horizontal-idle-bar
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
+        width: 250
+        height: 20
+        x: 150
+        "y": 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
+  - elements:
+      - id: slider-hover-test
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
         width: 250
         height: 20
         x: 150
@@ -39,7 +63,8 @@ states:
         initialValue: 50
         hover:
           thumbSrc: circle-red
-          barSrc: slider
+          barSrc: slider-split-active-hover-bar
+          inactiveBarSrc: slider-split-inactive-hover-bar
           cursor: pointer
           payload:
             action: slider-hover

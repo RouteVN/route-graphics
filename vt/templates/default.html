@@ -42,7 +42,11 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(24, 28, 33, 0.92), rgba(11, 14, 18, 0.92)),
+          linear-gradient(
+            180deg,
+            rgba(24, 28, 33, 0.92),
+            rgba(11, 14, 18, 0.92)
+          ),
           rgba(8, 10, 12, 0.92);
         backdrop-filter: blur(10px);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
@@ -191,6 +195,22 @@
           url: "/public/horizontal_hover_bar.png",
           type: "image/png",
         },
+        "slider-split-active-bar": {
+          url: "/public/slider_split_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-bar": {
+          url: "/public/slider_split_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-active-hover-bar": {
+          url: "/public/slider_split_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-hover-bar": {
+          url: "/public/slider_split_inactive_hover_bar.png",
+          type: "image/png",
+        },
         "horizontal-idle-thumb": {
           url: "/public/horizontal_idle_thumb.png",
           type: "image/png",
@@ -205,6 +225,22 @@
         },
         "vertical-hover-bar": {
           url: "/public/vertical_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-bar": {
+          url: "/public/slider_split_vertical_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-bar": {
+          url: "/public/slider_split_vertical_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-hover-bar": {
+          url: "/public/slider_split_vertical_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-hover-bar": {
+          url: "/public/slider_split_vertical_inactive_hover_bar.png",
           type: "image/png",
         },
         "vertical-idle-thumb": {
@@ -255,8 +291,14 @@
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
       };
 
-      // Keep video/audio opt-in for non-debug/manual browser runs.
-      if (!window?.RTGL_VT_DEBUG) {
+      const shouldLoadOptionalMedia =
+        !window?.RTGL_VT_DEBUG &&
+        (window?.RTGL_VT_INCLUDE_MEDIA === true ||
+          new URLSearchParams(window.location.search).get("media") === "1");
+
+      // Keep video/audio opt-in for manual browser runs so pages that do not
+      // use media do not block on video preload.
+      if (shouldLoadOptionalMedia) {
         Object.assign(assetsObject, {
           "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
           "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
@@ -294,7 +336,7 @@
       };
       let index = 0;
       const vtStateSource =
-        document.getElementById("vt-state")?.textContent ?? "";
+        document.getElementById("vt-state")?.textContent?.trim() ?? "";
       const vtDocuments = parseAllDocuments(vtStateSource).map(
         (doc) => doc.toJSON() ?? {},
       );

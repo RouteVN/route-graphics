@@ -345,7 +345,13 @@ const recursivelyLoadAssets = (objects) => {
       );
     }
 
-    for (const key of ["src", "thumbSrc", "barSrc", "spritesheetSrc"]) {
+    for (const key of [
+      "src",
+      "thumbSrc",
+      "barSrc",
+      "inactiveBarSrc",
+      "spritesheetSrc",
+    ]) {
       if (key === "src" && obj.type === "sound") continue;
       if (obj[key] && typeof obj[key] === "string") {
         const defaultType = obj.type === "video" ? "video/mp4" : "image/png";
