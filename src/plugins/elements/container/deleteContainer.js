@@ -22,8 +22,6 @@ export const deleteContainer = ({
       parent.removeChild(containerElement);
       containerElement.destroy({
         children: true,
-        texture: true,
-        baseTexture: true,
       });
     }
   };

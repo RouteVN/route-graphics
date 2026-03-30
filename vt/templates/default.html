@@ -198,6 +198,22 @@
           url: "/public/horizontal_hover_bar.png",
           type: "image/png",
         },
+        "slider-split-active-bar": {
+          url: "/public/slider_split_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-bar": {
+          url: "/public/slider_split_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-active-hover-bar": {
+          url: "/public/slider_split_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-hover-bar": {
+          url: "/public/slider_split_inactive_hover_bar.png",
+          type: "image/png",
+        },
         "horizontal-idle-thumb": {
           url: "/public/horizontal_idle_thumb.png",
           type: "image/png",
@@ -212,6 +228,22 @@
         },
         "vertical-hover-bar": {
           url: "/public/vertical_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-bar": {
+          url: "/public/slider_split_vertical_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-bar": {
+          url: "/public/slider_split_vertical_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-hover-bar": {
+          url: "/public/slider_split_vertical_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-hover-bar": {
+          url: "/public/slider_split_vertical_inactive_hover_bar.png",
           type: "image/png",
         },
         "vertical-idle-thumb": {
@@ -262,8 +294,14 @@
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
       };
 
-      // Keep video/audio opt-in for non-debug/manual browser runs.
-      if (!window?.RTGL_VT_DEBUG) {
+      const shouldLoadOptionalMedia =
+        !window?.RTGL_VT_DEBUG &&
+        (window?.RTGL_VT_INCLUDE_MEDIA === true ||
+          new URLSearchParams(window.location.search).get("media") === "1");
+
+      // Keep video/audio opt-in for manual browser runs so pages that do not
+      // use media do not block on video preload.
+      if (shouldLoadOptionalMedia) {
         Object.assign(assetsObject, {
           "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
           "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },

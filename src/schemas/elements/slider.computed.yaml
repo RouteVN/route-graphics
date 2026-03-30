@@ -46,6 +46,9 @@ properties:
   barSrc:
     type: string
     description: URL of the bar sprite
+  inactiveBarSrc:
+    type: string
+    description: Optional URL of the inactive track sprite rendered beneath `barSrc`
   alpha:
     type: number
     description: Opacity/transparency of the slider (0-1)
@@ -80,6 +83,9 @@ properties:
       barSrc:
         type: string
         description: URL of the bar sprite when hovered
+      inactiveBarSrc:
+        type: string
+        description: URL of the inactive track sprite when hovered
       cursor:
         type: string
         description: CSS cursor style when hovering over the slider

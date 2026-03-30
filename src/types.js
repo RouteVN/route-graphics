@@ -84,6 +84,7 @@
  * @property {string} direction
  * @property {string} thumbSrc
  * @property {string} barSrc
+ * @property {string} [inactiveBarSrc]
  * @property {number} min
  * @property {number} max
  * @property {number} step
@@ -99,6 +100,7 @@
  * @typedef {Object} SliderHover
  * @property {string} thumbSrc
  * @property {string} barSrc
+ * @property {string} [inactiveBarSrc]
  * @property {string} cursor
  * @property {string} soundSrc
  */

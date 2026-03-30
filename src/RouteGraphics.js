@@ -99,6 +99,12 @@ const createRouteGraphics = () => {
   let debugAnimationListener;
 
   /**
+   * Drives animation updates and presents the current frame.
+   * @type {Function|undefined}
+   */
+  let frameTickerListener;
+
+  /**
    * @type {(event: MouseEvent) => void | undefined}
    */
   let canvasContextMenuListener;
@@ -260,6 +266,12 @@ const createRouteGraphics = () => {
 
     state = nextState;
 
+    // Present the updated stage immediately instead of relying on Pixi's
+    // implicit auto-render loop, which can fail in VT/manual browser runs.
+    if (typeof appInstance.render === "function") {
+      appInstance.render();
+    }
+
     // Fire stateComplete immediately if no animations/reveals to track
     completionTracker.completeIfEmpty();
 
@@ -353,6 +365,9 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: "webgl",
       });
+      if (typeof app.ticker?.remove === "function") {
+        app.ticker.remove(app.render, app);
+      }
       app.debug = debug;
       app.inputDomBridge = createInputDomBridge({ app });
       canvasContextMenuListener = (event) => {
@@ -371,11 +386,20 @@ const createRouteGraphics = () => {
       // Create animation bus and attach to ticker
       animationBus = createAnimationBus();
       if (!debug) {
-        app.ticker.add((time) => animationBus.tick(time.deltaMS));
+        frameTickerListener = (time) => {
+          animationBus.tick(time.deltaMS);
+          if (typeof app.render === "function") {
+            app.render();
+          }
+        };
+        app.ticker.add(frameTickerListener);
       } else {
         debugAnimationListener = (event) => {
           if (event?.detail?.deltaMS) {
             animationBus.tick(Number(event.detail.deltaMS));
+            if (typeof app.render === "function") {
+              app.render();
+            }
           }
         };
         window.addEventListener("snapShotKeyFrame", debugAnimationListener);
@@ -392,6 +416,10 @@ const createRouteGraphics = () => {
       if (debugAnimationListener) {
         window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
         debugAnimationListener = undefined;
+      }
+      if (frameTickerListener && typeof app?.ticker?.remove === "function") {
+        app.ticker.remove(frameTickerListener);
+        frameTickerListener = undefined;
       }
       if (canvasContextMenuListener && app?.canvas) {
         app.canvas.removeEventListener(
@@ -567,6 +595,9 @@ const createRouteGraphics = () => {
           app.renderer.height,
           color,
         );
+      }
+      if (typeof app.render === "function") {
+        app.render();
       }
     },
 

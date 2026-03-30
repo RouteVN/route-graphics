@@ -1,6 +1,12 @@
-import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  applySliderVisualState,
+  bindSliderInteractions,
+  getSliderParts,
+  renameSliderParts,
+  resizeSliderThumb,
+} from "./sliderRuntime.js";
 
 /**
  * Update slider element
@@ -37,13 +43,16 @@ export const updateSlider = ({
         nextSliderComputedNode.originY,
       );
 
-      // Get bar and thumb sprites
-      const bar = sliderElement.getChildByLabel(
-        `${nextSliderComputedNode.id}-bar`,
-      );
-      const thumb = sliderElement.getChildByLabel(
-        `${nextSliderComputedNode.id}-thumb`,
-      );
+      renameSliderParts({
+        sliderContainer: sliderElement,
+        fromId: prevSliderComputedNode.id,
+        toId: nextSliderComputedNode.id,
+      });
+
+      const { bar, thumb } = getSliderParts({
+        sliderContainer: sliderElement,
+        id: nextSliderComputedNode.id,
+      });
 
       // Check if handler configuration changed
       const handlerConfigChanged =
@@ -58,67 +67,36 @@ export const updateSlider = ({
         prevSliderComputedNode.min !== nextSliderComputedNode.min ||
         prevSliderComputedNode.max !== nextSliderComputedNode.max ||
         prevSliderComputedNode.step !== nextSliderComputedNode.step ||
-        prevSliderComputedNode.direction !== nextSliderComputedNode.direction;
+        prevSliderComputedNode.direction !== nextSliderComputedNode.direction ||
+        prevSliderComputedNode.initialValue !==
+          nextSliderComputedNode.initialValue ||
+        prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc ||
+        prevSliderComputedNode.barSrc !== nextSliderComputedNode.barSrc ||
+        prevSliderComputedNode.inactiveBarSrc !==
+          nextSliderComputedNode.inactiveBarSrc ||
+        prevSliderComputedNode.width !== nextSliderComputedNode.width ||
+        prevSliderComputedNode.height !== nextSliderComputedNode.height ||
+        prevSliderComputedNode.id !== nextSliderComputedNode.id;
 
       if (bar && thumb) {
-        // Update bar properties
-        bar.width = nextSliderComputedNode.width;
-        bar.height = nextSliderComputedNode.height;
+        resizeSliderThumb({
+          thumb,
+          thumbSrc: nextSliderComputedNode.thumbSrc,
+          direction: nextSliderComputedNode.direction,
+          trackWidth: nextSliderComputedNode.width,
+          trackHeight: nextSliderComputedNode.height,
+        });
 
-        // Update thumb dimensions maintaining aspect ratio with margin (like renderSlider)
-        const barPadding = 0;
-        const maxThumbSize =
-          nextSliderComputedNode.direction === "horizontal"
-            ? nextSliderComputedNode.height - barPadding * 2
-            : nextSliderComputedNode.width - barPadding * 2;
+        applySliderVisualState({
+          sliderContainer: sliderElement,
+          sliderComputedNode: nextSliderComputedNode,
+          thumb,
+          currentValue: nextSliderComputedNode.initialValue,
+        });
+      }
 
-        // Get original texture dimensions
-        const thumbTexture = nextSliderComputedNode.thumbSrc
-          ? Texture.from(nextSliderComputedNode.thumbSrc)
-          : Texture.EMPTY;
-        const originalWidth = thumbTexture.width || 16;
-        const originalHeight = thumbTexture.height || 16;
-
-        // Calculate scale to fit within maxThumbSize while maintaining aspect ratio
-        const scaleX = maxThumbSize / originalWidth;
-        const scaleY = maxThumbSize / originalHeight;
-        const scale = Math.min(scaleX, scaleY);
-
-        // Apply scaled dimensions
-        thumb.width = originalWidth * scale;
-        thumb.height = originalHeight * scale;
-
-        // Update textures if they changed
-        if (prevSliderComputedNode.barSrc !== nextSliderComputedNode.barSrc) {
-          const barTexture = nextSliderComputedNode.barSrc
-            ? Texture.from(nextSliderComputedNode.barSrc)
-            : Texture.EMPTY;
-          bar.texture = barTexture;
-        }
-
-        if (
-          prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc
-        ) {
-          const thumbTexture = nextSliderComputedNode.thumbSrc
-            ? Texture.from(nextSliderComputedNode.thumbSrc)
-            : Texture.EMPTY;
-          thumb.texture = thumbTexture;
-        }
-
-        // Update thumb position based on new value
-        const valueRange =
-          nextSliderComputedNode.max - nextSliderComputedNode.min;
-        const normalizedValue =
-          (nextSliderComputedNode.initialValue - nextSliderComputedNode.min) /
-          valueRange;
-
-        if (nextSliderComputedNode.direction === "horizontal") {
-          thumb.x = normalizedValue * (bar.width - thumb.width);
-          thumb.y = (bar.height - thumb.height) / 2;
-        } else {
-          thumb.x = (bar.width - thumb.width) / 2;
-          thumb.y = normalizedValue * (bar.height - thumb.height);
-        }
+      if (!bar || !thumb) {
+        return;
       }
 
       // Only recreate event handlers if the handler configuration actually changed
@@ -136,137 +114,13 @@ export const updateSlider = ({
 
       // Re-attach event handlers if configuration changed
       if (handlerConfigChanged) {
-        const { hover, change, min, max, step, direction, initialValue } =
-          nextSliderComputedNode;
-
-        let currentValue = initialValue ?? min;
-        const valueRange = max - min;
-        sliderElement.eventMode = "static";
-
-        const updateThumbPosition = (value) => {
-          const normalizedValue = (value - min) / valueRange;
-          if (direction === "horizontal") {
-            thumb.x = normalizedValue * (bar.width - thumb.width);
-            thumb.y = (bar.height - thumb.height) / 2;
-          } else {
-            thumb.x = (bar.width - thumb.width) / 2;
-            thumb.y = normalizedValue * (bar.height - thumb.height);
-          }
-        };
-
-        const getValueFromPosition = (position) => {
-          let normalizedValue;
-
-          if (direction === "horizontal") {
-            const relativeX = position.x - thumb.width / 2;
-            normalizedValue = Math.max(
-              0,
-              Math.min(1, relativeX / (bar.width - thumb.width)),
-            );
-          } else {
-            const relativeY = position.y - thumb.height / 2;
-            normalizedValue = Math.max(
-              0,
-              Math.min(1, relativeY / (bar.height - thumb.height)),
-            );
-          }
-
-          let newValue = min + normalizedValue * valueRange;
-
-          if (step > 0) {
-            newValue = Math.round((newValue - min) / step) * step + min;
-            newValue = Math.max(min, Math.min(max, newValue));
-          }
-
-          return newValue;
-        };
-
-        // Store original textures for hover
-        const originalThumbTexture = thumb.texture;
-        const originalBarTexture = bar.texture;
-
-        // Handle drag events
-        let isDragging = false;
-
-        const onChange = (event) => {
-          const newPosition = sliderElement.toLocal(event.global);
-          const newValue = getValueFromPosition(newPosition);
-
-          if (newValue !== currentValue) {
-            currentValue = newValue;
-            updateThumbPosition(currentValue);
-
-            if (change?.payload && eventHandler) {
-              eventHandler("change", {
-                _event: { id: nextSliderComputedNode.id, value: currentValue },
-                ...change.payload,
-              });
-            }
-          }
-        };
-
-        const dragStartListener = (event) => {
-          isDragging = true;
-          onChange(event);
-        };
-
-        const dragMoveListener = (event) => {
-          if (isDragging) onChange(event);
-        };
-
-        const dragEndListener = () => {
-          if (isDragging) isDragging = false;
-        };
-
-        sliderElement.on("pointerdown", dragStartListener);
-        sliderElement.on("globalpointermove", dragMoveListener);
-        sliderElement.on("pointerup", dragEndListener);
-        sliderElement.on("pointerupoutside", dragEndListener);
-
-        if (hover) {
-          const {
-            cursor,
-            soundSrc,
-            thumbSrc: hoverThumbSrc,
-            barSrc: hoverBarSrc,
-          } = hover;
-
-          const overListener = () => {
-            if (cursor) {
-              sliderElement.cursor = cursor;
-              thumb.cursor = cursor;
-            }
-            if (soundSrc)
-              app.audioStage.add({
-                id: `hover-${Date.now()}`,
-                url: soundSrc,
-                loop: false,
-              });
-
-            // Apply hover textures
-            if (hoverThumbSrc) {
-              thumb.texture = Texture.from(hoverThumbSrc);
-            }
-            if (hoverBarSrc) {
-              bar.texture = Texture.from(hoverBarSrc);
-            }
-          };
-
-          const outListener = () => {
-            if (!isDragging) {
-              sliderElement.cursor = "auto";
-              thumb.cursor = "auto";
-
-              // Restore original textures
-              thumb.texture = originalThumbTexture;
-              bar.texture = originalBarTexture;
-            }
-          };
-
-          sliderElement.on("pointerover", overListener);
-          sliderElement.on("pointerout", outListener);
-          sliderElement.on("pointerupoutside", outListener);
-        }
+        bindSliderInteractions({
+          app,
+          sliderContainer: sliderElement,
+          sliderComputedNode: nextSliderComputedNode,
+          thumb,
+          eventHandler,
+        });
       }
     }
   };

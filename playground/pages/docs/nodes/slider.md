@@ -15,32 +15,34 @@ Try it in the [Playground](/playground/?template=slider-demo).
 
 ## Field Reference
 
-| Field          | Type                       | Required      | Default      | Notes                             |
-| -------------- | -------------------------- | ------------- | ------------ | --------------------------------- |
-| `id`           | string                     | Yes           | -            | Element id.                       |
-| `type`         | string                     | Yes           | -            | Must be `slider`.                 |
-| `x`            | number                     | Yes           | -            | Position before anchor transform. |
-| `y`            | number                     | Yes           | -            | Position before anchor transform. |
-| `width`        | number                     | Yes (runtime) | -            | Required by parser.               |
-| `height`       | number                     | Yes (runtime) | -            | Required by parser.               |
-| `direction`    | `horizontal` \| `vertical` | Yes           | `horizontal` | Track direction.                  |
-| `thumbSrc`     | string                     | Yes           | `""`         | Thumb texture alias.              |
-| `barSrc`       | string                     | Yes           | `""`         | Bar texture alias.                |
-| `initialValue` | number                     | Yes (runtime) | -            | Must be between `min` and `max`.  |
-| `min`          | number                     | No            | `0`          | Range min.                        |
-| `max`          | number                     | No            | `100`        | Must be `>` `min`.                |
-| `step`         | number                     | No            | `1`          | If `> 0`, value snaps by step.    |
-| `anchorX`      | number                     | No            | `0`          | Anchor offset ratio.              |
-| `anchorY`      | number                     | No            | `0`          | Anchor offset ratio.              |
-| `alpha`        | number                     | No            | `1`          | Opacity `0..1`.                   |
-| `hover`        | object                     | No            | -            | Hover textures/sound/cursor.      |
-| `change`       | object                     | No            | -            | Event payload on value changes.   |
+| Field            | Type                       | Required      | Default      | Notes                                                                            |
+| ---------------- | -------------------------- | ------------- | ------------ | -------------------------------------------------------------------------------- |
+| `id`             | string                     | Yes           | -            | Element id.                                                                      |
+| `type`           | string                     | Yes           | -            | Must be `slider`.                                                                |
+| `x`              | number                     | Yes           | -            | Position before anchor transform.                                                |
+| `y`              | number                     | Yes           | -            | Position before anchor transform.                                                |
+| `width`          | number                     | Yes (runtime) | -            | Required by parser.                                                              |
+| `height`         | number                     | Yes (runtime) | -            | Required by parser.                                                              |
+| `direction`      | `horizontal` \| `vertical` | Yes           | `horizontal` | Track direction.                                                                 |
+| `thumbSrc`       | string                     | Yes           | `""`         | Thumb texture alias.                                                             |
+| `barSrc`         | string                     | Yes           | `""`         | Bar texture alias. If `inactiveBarSrc` is set, this is the active track texture. |
+| `inactiveBarSrc` | string                     | No            | -            | Optional inactive track texture rendered underneath `barSrc`.                    |
+| `initialValue`   | number                     | Yes (runtime) | -            | Must be between `min` and `max`.                                                 |
+| `min`            | number                     | No            | `0`          | Range min.                                                                       |
+| `max`            | number                     | No            | `100`        | Must be `>` `min`.                                                               |
+| `step`           | number                     | No            | `1`          | If `> 0`, value snaps by step.                                                   |
+| `anchorX`        | number                     | No            | `0`          | Anchor offset ratio.                                                             |
+| `anchorY`        | number                     | No            | `0`          | Anchor offset ratio.                                                             |
+| `alpha`          | number                     | No            | `1`          | Opacity `0..1`.                                                                  |
+| `hover`          | object                     | No            | -            | Hover textures/sound/cursor.                                                     |
+| `change`         | object                     | No            | -            | Event payload on value changes.                                                  |
 
 ## Runtime Validation
 
 - `max` must be strictly larger than `min`.
 - `initialValue` is required by parser and must be a valid number.
 - `initialValue` must be within `[min, max]`.
+- When `inactiveBarSrc` is set, the active track reveal follows the current slider value.
 
 ## Emitted Events
 
@@ -89,6 +91,31 @@ elements:
     change:
       payload:
         action: setSfxVolume
+```
+
+## Example: Split Track
+
+```yaml
+elements:
+  - id: music-volume
+    type: slider
+    x: 90
+    y: 680
+    width: 420
+    height: 44
+    direction: horizontal
+    thumbSrc: horizontal-idle-thumb
+    barSrc: horizontal-hover-bar
+    inactiveBarSrc: horizontal-idle-bar
+    min: 0
+    max: 100
+    step: 5
+    initialValue: 35
+    hover:
+      thumbSrc: horizontal-hover-thumb
+      barSrc: horizontal-idle-bar
+      inactiveBarSrc: horizontal-hover-bar
+      cursor: pointer
 ```
 
 ## Example: Vertical Slider

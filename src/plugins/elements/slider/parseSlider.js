@@ -42,6 +42,9 @@ export const parseSlider = ({ state }) => {
     direction: state.direction ?? "horizontal",
     thumbSrc: state.thumbSrc ?? "",
     barSrc: state.barSrc ?? "",
+    ...(state.inactiveBarSrc !== undefined && {
+      inactiveBarSrc: state.inactiveBarSrc ?? "",
+    }),
     alpha: state.alpha ?? 1,
     min: defaultMin,
     max: defaultMax,

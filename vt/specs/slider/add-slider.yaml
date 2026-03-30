@@ -1,20 +1,93 @@
 ---
 title: Slider Elements
 specs:
-  - horizontal and vertical sliders should render with the configured assets
-  - initial slider values should place the thumbs at deterministic positions
+  - single-track sliders should render with and without hover configuration in horizontal and vertical layouts
+  - split-track sliders should render with and without hover configuration in horizontal and vertical layouts
+  - split-track hover styles should keep active and inactive regions visually distinct when hover assets are configured
 ---
 states:
   - elements:
-      - id: slider-horizontal
+      - id: heading-hover
+        type: text
+        content: Hover Configured
+        x: 50
+        "y": 16
+        textStyle:
+          fontSize: 24
+          fill: "#f1f1f1"
+          fontFamily: Arial
+      - id: heading-no-hover
+        type: text
+        content: No Hover Block
+        x: 650
+        "y": 16
+        textStyle:
+          fontSize: 24
+          fill: "#f1f1f1"
+          fontFamily: Arial
+      - id: horizontal-hover-label
+        type: text
+        content: Horizontal
+        x: 50
+        "y": 48
+        textStyle:
+          fontSize: 20
+          fill: "#d0d0d0"
+          fontFamily: Arial
+      - id: horizontal-no-hover-label
+        type: text
+        content: Horizontal
+        x: 650
+        "y": 48
+        textStyle:
+          fontSize: 20
+          fill: "#d0d0d0"
+          fontFamily: Arial
+      - id: vertical-hover-label
+        type: text
+        content: Vertical
+        x: 50
+        "y": 298
+        textStyle:
+          fontSize: 20
+          fill: "#d0d0d0"
+          fontFamily: Arial
+      - id: vertical-no-hover-label
+        type: text
+        content: Vertical
+        x: 650
+        "y": 298
+        textStyle:
+          fontSize: 20
+          fill: "#d0d0d0"
+          fontFamily: Arial
+      - id: slider-horizontal-single-track-hover-label
+        type: text
+        content: Single Track
+        x: 50
+        "y": 88
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-horizontal-split-hover-label
+        type: text
+        content: Split
+        x: 50
+        "y": 168
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-horizontal-single-track-hover
         type: slider
         direction: horizontal
         thumbSrc: horizontal-idle-thumb
         barSrc: horizontal-idle-bar
         width: 200
         height: 20
-        x: 50
-        "y": 50
+        x: 200
+        "y": 86
         alpha: 1
         anchorX: 0
         anchorY: 0
@@ -29,23 +102,78 @@ states:
           cursor: pointer
           payload:
             event: slider-hover
-            sliderId: slider-horizontal
+            sliderId: slider-horizontal-single-track-hover
             direction: horizontal
+            variant: single-track
         change:
           payload:
             action: slider-change
-            sliderId: slider-horizontal
+            sliderId: slider-horizontal-single-track-hover
             direction: horizontal
             component: volume-control
-      - id: slider-vertical
+            variant: single-track
+      - id: slider-horizontal-split-hover
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
+        width: 200
+        height: 20
+        x: 200
+        "y": 166
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 65
+        hover:
+          thumbSrc: horizontal-hover-thumb
+          barSrc: slider-split-active-hover-bar
+          inactiveBarSrc: slider-split-inactive-hover-bar
+          cursor: pointer
+          payload:
+            event: slider-hover
+            sliderId: slider-horizontal-split-hover
+            direction: horizontal
+            variant: split
+        change:
+          payload:
+            action: slider-change
+            sliderId: slider-horizontal-split-hover
+            direction: horizontal
+            component: balance-control
+            variant: split
+      - id: slider-vertical-single-track-hover-label
+        type: text
+        content: Single Track
+        x: 140
+        "y": 332
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-vertical-split-hover-label
+        type: text
+        content: Split
+        x: 260
+        "y": 332
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-vertical-single-track-hover
         type: slider
         direction: vertical
         thumbSrc: vertical-idle-thumb
         barSrc: vertical-idle-bar
         width: 20
         height: 150
-        x: 300
-        "y": 50
+        x: 160
+        "y": 366
         alpha: 1
         anchorX: 0
         anchorY: 0
@@ -53,51 +181,193 @@ states:
         min: 0
         max: 50
         step: 5
-        initialValue: 25
+        initialValue: 15
         hover:
           thumbSrc: vertical-hover-thumb
           barSrc: vertical-hover-bar
-          cursor: ew-resize
+          cursor: ns-resize
           payload:
             event: slider-hover
-            sliderId: slider-vertical
+            sliderId: slider-vertical-single-track-hover
             direction: vertical
+            variant: single-track
         change:
           payload:
             action: slider-change
-            sliderId: slider-vertical
+            sliderId: slider-vertical-single-track-hover
             direction: vertical
             component: brightness-control
-      - id: slider-with-steps
+            variant: single-track
+      - id: slider-vertical-split-hover
         type: slider
-        direction: horizontal
-        thumbSrc: horizontal-idle-thumb
-        barSrc: horizontal-idle-bar
-        width: 180
-        height: 25
-        x: 50
-        "y": 150
-        alpha: 0.9
+        direction: vertical
+        thumbSrc: vertical-idle-thumb
+        barSrc: slider-split-vertical-active-bar
+        inactiveBarSrc: slider-split-vertical-inactive-bar
+        width: 20
+        height: 150
+        x: 280
+        "y": 366
+        alpha: 1
         anchorX: 0
         anchorY: 0
         zIndex: 1
         min: 0
-        max: 10
-        step: 2
-        initialValue: 4
+        max: 50
+        step: 5
+        initialValue: 35
         hover:
-          thumbSrc: horizontal-hover-thumb
-          barSrc: horizontal-hover-bar
-          cursor: grab
+          thumbSrc: vertical-hover-thumb
+          barSrc: slider-split-vertical-active-hover-bar
+          inactiveBarSrc: slider-split-vertical-inactive-hover-bar
+          cursor: ns-resize
           payload:
             event: slider-hover
-            sliderId: slider-with-steps
-            stepSize: 2
-            message: Step slider with 2-unit increments
+            sliderId: slider-vertical-split-hover
+            direction: vertical
+            variant: split
         change:
           payload:
             action: slider-change
-            sliderId: slider-with-steps
-            stepSize: 2
-            component: progress-control
-            snapToGrid: true
+            sliderId: slider-vertical-split-hover
+            direction: vertical
+            component: contrast-control
+            variant: split
+      - id: slider-horizontal-single-track-no-hover-label
+        type: text
+        content: Single Track
+        x: 650
+        "y": 88
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-horizontal-split-no-hover-label
+        type: text
+        content: Split
+        x: 650
+        "y": 168
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-horizontal-single-track-no-hover
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
+        width: 200
+        height: 20
+        x: 800
+        "y": 86
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 80
+        change:
+          payload:
+            action: slider-change
+            sliderId: slider-horizontal-single-track-no-hover
+            direction: horizontal
+            component: volume-control
+            variant: single-track
+            hoverConfigured: false
+      - id: slider-horizontal-split-no-hover
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
+        width: 200
+        height: 20
+        x: 800
+        "y": 166
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 40
+        change:
+          payload:
+            action: slider-change
+            sliderId: slider-horizontal-split-no-hover
+            direction: horizontal
+            component: balance-control
+            variant: split
+            hoverConfigured: false
+      - id: slider-vertical-single-track-no-hover-label
+        type: text
+        content: Single Track
+        x: 740
+        "y": 332
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-vertical-split-no-hover-label
+        type: text
+        content: Split
+        x: 860
+        "y": 332
+        textStyle:
+          fontSize: 18
+          fill: "#9aa1ad"
+          fontFamily: Arial
+      - id: slider-vertical-single-track-no-hover
+        type: slider
+        direction: vertical
+        thumbSrc: vertical-idle-thumb
+        barSrc: vertical-idle-bar
+        width: 20
+        height: 150
+        x: 760
+        "y": 366
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 45
+        change:
+          payload:
+            action: slider-change
+            sliderId: slider-vertical-single-track-no-hover
+            direction: vertical
+            component: brightness-control
+            variant: single-track
+            hoverConfigured: false
+      - id: slider-vertical-split-no-hover
+        type: slider
+        direction: vertical
+        thumbSrc: vertical-idle-thumb
+        barSrc: slider-split-vertical-active-bar
+        inactiveBarSrc: slider-split-vertical-inactive-bar
+        width: 20
+        height: 150
+        x: 880
+        "y": 366
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 10
+        change:
+          payload:
+            action: slider-change
+            sliderId: slider-vertical-split-no-hover
+            direction: vertical
+            component: contrast-control
+            variant: split
+            hoverConfigured: false
