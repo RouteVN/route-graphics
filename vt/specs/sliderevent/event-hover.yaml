@@ -4,7 +4,8 @@ description: Test hover events with cursor and texture changes; texture assets a
 specs:
   - slider thumb should change cursor on hover
   - slider thumb should change texture on hover
-  - slider bar should change texture on thumb hover
+  - slider active track should change texture on hover
+  - slider inactive track should change texture on hover
   - hover event should send payload
   - textures should revert when hover ends
 steps:
@@ -24,7 +25,8 @@ states:
         type: slider
         direction: horizontal
         thumbSrc: horizontal-idle-thumb
-        barSrc: horizontal-idle-bar
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
         width: 250
         height: 20
         x: 150
@@ -39,7 +41,8 @@ states:
         initialValue: 50
         hover:
           thumbSrc: circle-red
-          barSrc: slider
+          barSrc: slider-split-active-hover-bar
+          inactiveBarSrc: slider-split-inactive-hover-bar
           cursor: pointer
           payload:
             action: slider-hover

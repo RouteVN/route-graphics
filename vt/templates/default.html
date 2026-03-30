@@ -42,7 +42,11 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(24, 28, 33, 0.92), rgba(11, 14, 18, 0.92)),
+          linear-gradient(
+            180deg,
+            rgba(24, 28, 33, 0.92),
+            rgba(11, 14, 18, 0.92)
+          ),
           rgba(8, 10, 12, 0.92);
         backdrop-filter: blur(10px);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
@@ -154,7 +158,9 @@
         }
       }
     </style>
-    <script id="vt-state" type="text/plain">{{ content }}</script>
+    <script id="vt-state" type="text/plain">
+      {{ content }}
+    </script>
     <script type="module">
       import createRouteGraphics, {
         Assets,
@@ -191,6 +197,22 @@
           url: "/public/horizontal_hover_bar.png",
           type: "image/png",
         },
+        "slider-split-active-bar": {
+          url: "/public/slider_split_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-bar": {
+          url: "/public/slider_split_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-active-hover-bar": {
+          url: "/public/slider_split_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-hover-bar": {
+          url: "/public/slider_split_inactive_hover_bar.png",
+          type: "image/png",
+        },
         "horizontal-idle-thumb": {
           url: "/public/horizontal_idle_thumb.png",
           type: "image/png",
@@ -205,6 +227,14 @@
         },
         "vertical-hover-bar": {
           url: "/public/vertical_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-bar": {
+          url: "/public/slider_split_vertical_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-bar": {
+          url: "/public/slider_split_vertical_inactive_bar.png",
           type: "image/png",
         },
         "vertical-idle-thumb": {

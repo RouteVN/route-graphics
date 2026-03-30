@@ -12,6 +12,7 @@ in:
       id: volume-slider
       type: slider
       barSrc: file:slider-bar
+      inactiveBarSrc: file:slider-track
       thumbSrc: file:slider-thumb
       direction: horizontal
       alpha: 0.8
@@ -30,6 +31,7 @@ in:
       hover:
         thumbSrc: file:thumb-hover
         barSrc: file:bar-hover
+        inactiveBarSrc: file:track-hover
         soundSrc: sound-1
         cursor: cursor-1
         payload:
@@ -49,6 +51,7 @@ out:
   originY: 40
   alpha: 0.8
   barSrc: file:slider-bar
+  inactiveBarSrc: file:slider-track
   thumbSrc: file:slider-thumb
   direction: horizontal
   min: 10
@@ -58,6 +61,7 @@ out:
   hover:
     thumbSrc: file:thumb-hover
     barSrc: file:bar-hover
+    inactiveBarSrc: file:track-hover
     soundSrc: sound-1
     cursor: cursor-1
     payload:
@@ -129,6 +133,43 @@ out:
   "y": 75
   originX: 0
   originY: 0
+---
+case: Test parsing slider with optional inactive bar source
+in:
+  - state:
+      id: split-slider
+      type: slider
+      barSrc: file:bar-active
+      inactiveBarSrc: file:bar-inactive
+      thumbSrc: file:thumb-minimal
+      direction: horizontal
+      width: 120
+      height: 16
+      x: 10
+      "y": 20
+      initialValue: 50
+      hover:
+        inactiveBarSrc: file:bar-inactive-hover
+out:
+  id: split-slider
+  type: slider
+  barSrc: file:bar-active
+  inactiveBarSrc: file:bar-inactive
+  thumbSrc: file:thumb-minimal
+  direction: horizontal
+  alpha: 1
+  min: 0
+  max: 100
+  width: 120
+  height: 16
+  step: 1
+  initialValue: 50
+  x: 10
+  "y": 20
+  originX: 0
+  originY: 0
+  hover:
+    inactiveBarSrc: file:bar-inactive-hover
 ---
 case: Test parsing slider throws when initialValue is missing
 in:

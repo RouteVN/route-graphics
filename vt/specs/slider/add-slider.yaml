@@ -41,7 +41,8 @@ states:
         type: slider
         direction: vertical
         thumbSrc: vertical-idle-thumb
-        barSrc: vertical-idle-bar
+        barSrc: slider-split-vertical-active-bar
+        inactiveBarSrc: slider-split-vertical-inactive-bar
         width: 20
         height: 150
         x: 300
