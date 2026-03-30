@@ -9,6 +9,8 @@ specs:
   - hover event should send payload
   - textures should revert when hover ends
 steps:
+  - action: keypress
+    key: "n"
   - action: move
     x: 170
     "y": 110
@@ -20,6 +22,25 @@ steps:
   - action: screenshot
 ---
 states:
+  - elements:
+      - id: slider-hover-test
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
+        width: 250
+        height: 20
+        x: 150
+        "y": 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 100
+        step: 1
+        initialValue: 50
   - elements:
       - id: slider-hover-test
         type: slider
