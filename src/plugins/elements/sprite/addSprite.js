@@ -4,6 +4,7 @@ import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
   createHoverStateController,
   createPressStateController,
+  createRightPressStateController,
 } from "../util/hoverInheritance.js";
 
 /**
@@ -38,17 +39,14 @@ export const addSprite = ({
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
 
-  let events = {
-    isRightPressed: false,
-  };
-
   let hoverController = null;
   let pressController = null;
+  let rightPressController = null;
 
   const updateTexture = () => {
     const isHovering = hoverController?.isHovering() ?? false;
     const isPressed = pressController?.isPressed() ?? false;
-    const { isRightPressed } = events;
+    const isRightPressed = rightPressController?.isPressed() ?? false;
 
     if (isRightPressed && rightClickEvents?.src) {
       const rightClickTexture = Texture.from(rightClickEvents.src);
@@ -150,20 +148,21 @@ export const addSprite = ({
   if (rightClickEvents) {
     const { soundSrc, payload } = rightClickEvents;
     sprite.eventMode = "static";
+    rightPressController = createRightPressStateController({
+      displayObject: sprite,
+      onPressChange: updateTexture,
+    });
 
     const rightPressListener = () => {
-      events.isRightPressed = true;
-      updateTexture();
+      rightPressController.setDirectPress(true);
     };
 
     const rightReleaseListener = () => {
-      events.isRightPressed = false;
-      updateTexture();
+      rightPressController.setDirectPress(false);
     };
 
     const rightClickListener = () => {
-      events.isRightPressed = false;
-      updateTexture();
+      rightPressController.setDirectPress(false);
 
       if (payload && eventHandler) {
         eventHandler(`rightClick`, {
@@ -183,8 +182,7 @@ export const addSprite = ({
     };
 
     const rightOutListener = () => {
-      events.isRightPressed = false;
-      updateTexture();
+      rightPressController.setDirectPress(false);
     };
 
     sprite.on("rightdown", rightPressListener);

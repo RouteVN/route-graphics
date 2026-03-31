@@ -11,6 +11,7 @@ import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
   createHoverStateController,
   createPressStateController,
+  createRightPressStateController,
 } from "../util/hoverInheritance.js";
 
 /**
@@ -44,17 +45,14 @@ export const addText = ({
   const clickEvents = textComputedNode?.click;
   const rightClickEvents = textComputedNode?.rightClick;
 
-  let events = {
-    isRightPressed: false,
-  };
-
   let hoverController = null;
   let pressController = null;
+  let rightPressController = null;
 
   const updateTextStyle = () => {
     const isHovering = hoverController?.isHovering() ?? false;
     const isPressed = pressController?.isPressed() ?? false;
-    const { isRightPressed } = events;
+    const isRightPressed = rightPressController?.isPressed() ?? false;
 
     if (isRightPressed && rightClickEvents?.textStyle) {
       applyInteractiveTextStyle(
@@ -165,20 +163,21 @@ export const addText = ({
   if (rightClickEvents) {
     const { soundSrc, payload } = rightClickEvents;
     text.eventMode = "static";
+    rightPressController = createRightPressStateController({
+      displayObject: text,
+      onPressChange: updateTextStyle,
+    });
 
     const rightPressListener = () => {
-      events.isRightPressed = true;
-      updateTextStyle();
+      rightPressController.setDirectPress(true);
     };
 
     const rightReleaseListener = () => {
-      events.isRightPressed = false;
-      updateTextStyle();
+      rightPressController.setDirectPress(false);
     };
 
     const rightClickListener = () => {
-      events.isRightPressed = false;
-      updateTextStyle();
+      rightPressController.setDirectPress(false);
 
       if (payload && eventHandler) {
         eventHandler(`rightClick`, {
@@ -198,8 +197,7 @@ export const addText = ({
     };
 
     const rightOutListener = () => {
-      events.isRightPressed = false;
-      updateTextStyle();
+      rightPressController.setDirectPress(false);
     };
 
     text.on("rightdown", rightPressListener);

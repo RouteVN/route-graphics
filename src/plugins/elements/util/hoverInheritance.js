@@ -6,6 +6,12 @@ const SET_INHERITED_PRESS = Symbol.for("routeGraphics.setInheritedPress");
 const TREE_INHERITED_PRESS_ACTIVE = Symbol.for(
   "routeGraphics.treeInheritedPressActive",
 );
+const SET_INHERITED_RIGHT_PRESS = Symbol.for(
+  "routeGraphics.setInheritedRightPress",
+);
+const TREE_INHERITED_RIGHT_PRESS_ACTIVE = Symbol.for(
+  "routeGraphics.treeInheritedRightPressActive",
+);
 
 const getChildren = (displayObject) =>
   Array.isArray(displayObject?.children) ? displayObject.children : [];
@@ -66,6 +72,9 @@ export const clearInheritedHoverTarget = (displayObject) =>
 export const clearInheritedPressTarget = (displayObject) =>
   clearInheritedTarget({ displayObject, symbol: SET_INHERITED_PRESS });
 
+export const clearInheritedRightPressTarget = (displayObject) =>
+  clearInheritedTarget({ displayObject, symbol: SET_INHERITED_RIGHT_PRESS });
+
 export const createHoverStateController = ({
   displayObject,
   onHoverChange,
@@ -100,11 +109,31 @@ export const createPressStateController = ({
   };
 };
 
+export const createRightPressStateController = ({
+  displayObject,
+  onPressChange,
+}) => {
+  const controller = createInheritedStateController({
+    displayObject,
+    symbol: SET_INHERITED_RIGHT_PRESS,
+    onStateChange: onPressChange,
+  });
+
+  return {
+    setDirectPress: controller.setDirectState,
+    isPressed: controller.isActive,
+    destroy: controller.destroy,
+  };
+};
+
 export const getTreeInheritedHoverState = (displayObject) =>
   displayObject?.[TREE_INHERITED_HOVER_ACTIVE] === true;
 
 export const getTreeInheritedPressState = (displayObject) =>
   displayObject?.[TREE_INHERITED_PRESS_ACTIVE] === true;
+
+export const getTreeInheritedRightPressState = (displayObject) =>
+  displayObject?.[TREE_INHERITED_RIGHT_PRESS_ACTIVE] === true;
 
 export const setTreeInheritedHover = ({ root, isHovered }) => {
   if (!root) {
@@ -142,6 +171,27 @@ export const setTreeInheritedPress = ({ root, isPressed }) => {
     setTargetInheritedState({
       displayObject,
       symbol: SET_INHERITED_PRESS,
+      isActive: isPressed,
+    });
+    stack.push(...getChildren(displayObject));
+  }
+};
+
+export const setTreeInheritedRightPress = ({ root, isPressed }) => {
+  if (!root) {
+    return;
+  }
+
+  root[TREE_INHERITED_RIGHT_PRESS_ACTIVE] = isPressed;
+
+  const stack = [...getChildren(root)];
+
+  while (stack.length > 0) {
+    const displayObject = stack.pop();
+
+    setTargetInheritedState({
+      displayObject,
+      symbol: SET_INHERITED_RIGHT_PRESS,
       isActive: isPressed,
     });
     stack.push(...getChildren(displayObject));

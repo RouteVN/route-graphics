@@ -729,4 +729,298 @@ describe("container hover inheritance", () => {
 
     expect(text.style.fill).toBe("#A6A6A6");
   });
+
+  it("applies right-click visuals to descendants without firing child rightClick payloads", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+    const spriteIdleSrc = createTextureId("right-click-icon-idle");
+    const spritePressedSrc = createTextureId("right-click-icon-pressed");
+    const element = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 360,
+      height: 140,
+      rightClick: {
+        inheritToChildren: true,
+        payload: { source: "container-right-click" },
+      },
+      children: [
+        {
+          id: "icon",
+          type: "sprite",
+          x: 0,
+          y: 0,
+          width: 32,
+          height: 32,
+          src: spriteIdleSrc,
+          rightClick: {
+            src: spritePressedSrc,
+            payload: { source: "child-right-click" },
+          },
+        },
+        {
+          id: "label",
+          type: "text",
+          x: 60,
+          y: 0,
+          content: "Press me",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+            payload: { source: "child-right-click-text" },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler,
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const sprite = container.getChildByLabel("icon");
+    const text = container.getChildByLabel("label");
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+
+    container.emit("rightdown");
+
+    expect(sprite.texture).toBe(Texture.from(spritePressedSrc));
+    expect(text.style.fill).toBe("#FFFFFF");
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    container.emit("rightupoutside");
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+
+    container.emit("rightdown");
+    container.emit("rightup");
+    container.emit("rightclick");
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+    expect(eventHandler).toHaveBeenCalledTimes(1);
+    expect(eventHandler).toHaveBeenCalledWith(
+      "rightClick",
+      expect.objectContaining({
+        _event: { id: "menu" },
+        source: "container-right-click",
+      }),
+    );
+  });
+
+  it("reapplies inherited right-click to children added while the container is already right-pressed", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      rightClick: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("chat");
+    container.emit("rightdown");
+
+    const nextElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      rightClick: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+        {
+          id: "message-2",
+          type: "text",
+          x: 0,
+          y: 30,
+          content: "World",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const nextMessage = container.getChildByLabel("message-2");
+
+    expect(nextMessage.style.fill).toBe("#FFFFFF");
+  });
+
+  it("clears inherited right-click state when the feature is removed during update", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      rightClick: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const text = container.getChildByLabel("label");
+    container.emit("rightdown");
+
+    expect(text.style.fill).toBe("#FFFFFF");
+
+    const nextElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          rightClick: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    expect(text.style.fill).toBe("#A6A6A6");
+  });
 });

@@ -15,25 +15,25 @@ Try it in the [Playground](/playground/?template=container-layout).
 
 ## Field Reference
 
-| Field        | Type                                     | Required            | Default                  | Notes                                                |
-| ------------ | ---------------------------------------- | ------------------- | ------------------------ | ---------------------------------------------------- |
-| `id`         | string                                   | Yes                 | -                        | Element id.                                          |
-| `type`       | string                                   | Yes                 | -                        | Must be `container`.                                 |
-| `x`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                    |
-| `y`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                    |
-| `width`      | number                                   | No                  | auto                     | Derived from children if omitted.                    |
-| `height`     | number                                   | No                  | auto                     | Derived from children if omitted.                    |
-| `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.              |
-| `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.              |
-| `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                      |
-| `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.    |
-| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `""` (absolute behavior) | Auto-positioning for children in non-absolute modes. |
-| `gap`        | number                                   | No                  | `0`                      | Space between children in layout mode.               |
-| `rotation`   | number                                   | No                  | `0`                      | Degrees.                                             |
-| `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.   |
-| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.    |
-| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.    |
-| `rightClick` | object                                   | No                  | -                        | Right click event config.                            |
+| Field        | Type                                     | Required            | Default                  | Notes                                                   |
+| ------------ | ---------------------------------------- | ------------------- | ------------------------ | ------------------------------------------------------- |
+| `id`         | string                                   | Yes                 | -                        | Element id.                                             |
+| `type`       | string                                   | Yes                 | -                        | Must be `container`.                                    |
+| `x`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                       |
+| `y`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                       |
+| `width`      | number                                   | No                  | auto                     | Derived from children if omitted.                       |
+| `height`     | number                                   | No                  | auto                     | Derived from children if omitted.                       |
+| `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                 |
+| `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                 |
+| `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                         |
+| `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.       |
+| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `""` (absolute behavior) | Auto-positioning for children in non-absolute modes.    |
+| `gap`        | number                                   | No                  | `0`                      | Space between children in layout mode.                  |
+| `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                |
+| `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.      |
+| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.       |
+| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.       |
+| `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`. |
 
 ## Layout Behavior Notes
 
@@ -60,6 +60,11 @@ Set `click.inheritToChildren: true` to apply pressed/click visuals from the cont
 
 - This affects pressed visuals, not child click payloads or click sounds.
 - Child direct click still works normally while the container pressed state is active.
+
+Set `rightClick.inheritToChildren: true` to apply right-pressed visuals from the container to descendants that support right-click state, such as `text` and `sprite`.
+
+- This affects right-click visuals, not child rightClick payloads or right-click sounds.
+- Child direct right-click still works normally while the container right-pressed state is active.
 
 ## Example: Minimal Group
 

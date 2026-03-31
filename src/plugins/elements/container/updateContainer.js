@@ -4,6 +4,7 @@ import {
   bindContainerInteractions,
   reapplyContainerInheritedHover,
   reapplyContainerInheritedPress,
+  reapplyContainerInheritedRightPress,
 } from "./util/bindContainerInteractions.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
@@ -122,6 +123,9 @@ export const updateContainer = ({
         container: containerElement,
       });
       reapplyContainerInheritedPress({
+        container: containerElement,
+      });
+      reapplyContainerInheritedRightPress({
         container: containerElement,
       });
     }

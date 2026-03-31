@@ -1036,6 +1036,7 @@ in:
         payload:
           type: click
       rightClick:
+        inheritToChildren: true
         soundSrc: rightclick-sound
         payload:
           type: rightClick
@@ -1071,6 +1072,7 @@ out:
     payload:
       type: click
   rightClick:
+    inheritToChildren: true
     soundSrc: rightclick-sound
     payload:
       type: rightClick

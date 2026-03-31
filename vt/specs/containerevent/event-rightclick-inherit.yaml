@@ -1,0 +1,117 @@
+---
+title: Container Right-Click Inherits to Descendants
+description: Test container right-click inheritance applying descendant right-pressed visuals even when pressing an empty area inside the container; sprite texture swap and text fill changes are intentional visual-state exceptions.
+specs:
+  - right-clicking an empty area inside the container should not affect children before right-click inheritance is enabled
+  - enabling right-click inheritance should apply right-pressed visuals to direct and nested descendants
+  - releasing the right mouse button should restore the idle descendant visuals
+steps:
+  - action: move
+    x: 30
+    "y": 30
+  - action: wait
+    ms: 50
+  - action: move
+    x: 250
+    "y": 150
+  - action: wait
+    ms: 50
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 50
+  - action: move
+    x: 30
+    "y": 30
+  - action: wait
+    ms: 50
+  - action: move
+    x: 250
+    "y": 150
+  - action: wait
+    ms: 50
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: right-click-container
+        type: container
+        x: 100
+        "y": 80
+        width: 360
+        height: 140
+        children:
+          - id: right-click-sprite
+            type: sprite
+            x: 20
+            "y": 30
+            width: 60
+            height: 60
+            src: circle-blue
+            rightClick:
+              src: circle-red
+          - id: nested-right-click-container
+            type: container
+            x: 220
+            "y": 30
+            children:
+              - id: right-click-label
+                type: text
+                x: 0
+                "y": 0
+                content: Nested right press
+                textStyle:
+                  fontFamily: Arial
+                  fontSize: 34
+                  fill: "#737373"
+                rightClick:
+                  textStyle:
+                    fontFamily: Arial
+                    fontSize: 34
+                    fill: "#FFFFFF"
+  - elements:
+      - id: right-click-container
+        type: container
+        x: 100
+        "y": 80
+        width: 360
+        height: 140
+        rightClick:
+          inheritToChildren: true
+        children:
+          - id: right-click-sprite
+            type: sprite
+            x: 20
+            "y": 30
+            width: 60
+            height: 60
+            src: circle-blue
+            rightClick:
+              src: circle-red
+          - id: nested-right-click-container
+            type: container
+            x: 220
+            "y": 30
+            children:
+              - id: right-click-label
+                type: text
+                x: 0
+                "y": 0
+                content: Nested right press
+                textStyle:
+                  fontFamily: Arial
+                  fontSize: 34
+                  fill: "#737373"
+                rightClick:
+                  textStyle:
+                    fontFamily: Arial
+                    fontSize: 34
+                    fill: "#FFFFFF"

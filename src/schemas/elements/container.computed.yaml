@@ -111,6 +111,10 @@ properties:
   rightClick:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with right-click visuals inherit the container right-pressed state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when the container is right-clicked

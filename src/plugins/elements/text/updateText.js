@@ -11,8 +11,10 @@ import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
   clearInheritedHoverTarget,
   clearInheritedPressTarget,
+  clearInheritedRightPressTarget,
   createHoverStateController,
   createPressStateController,
+  createRightPressStateController,
 } from "../util/hoverInheritance.js";
 
 /**
@@ -60,22 +62,20 @@ export const updateText = ({
       textElement.removeAllListeners("rightupoutside");
       clearInheritedHoverTarget(textElement);
       clearInheritedPressTarget(textElement);
+      clearInheritedRightPressTarget(textElement);
 
       const hoverEvents = nextTextComputedNode?.hover;
       const clickEvents = nextTextComputedNode?.click;
       const rightClickEvents = nextTextComputedNode?.rightClick;
 
-      let events = {
-        isRightPressed: false,
-      };
-
       let hoverController = null;
       let pressController = null;
+      let rightPressController = null;
 
       const updateTextStyle = () => {
         const isHovering = hoverController?.isHovering() ?? false;
         const isPressed = pressController?.isPressed() ?? false;
-        const { isRightPressed } = events;
+        const isRightPressed = rightPressController?.isPressed() ?? false;
 
         if (isRightPressed && rightClickEvents?.textStyle) {
           applyInteractiveTextStyle(
@@ -189,20 +189,21 @@ export const updateText = ({
       if (rightClickEvents) {
         const { soundSrc, payload } = rightClickEvents;
         textElement.eventMode = "static";
+        rightPressController = createRightPressStateController({
+          displayObject: textElement,
+          onPressChange: updateTextStyle,
+        });
 
         const rightPressListener = () => {
-          events.isRightPressed = true;
-          updateTextStyle();
+          rightPressController.setDirectPress(true);
         };
 
         const rightReleaseListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle();
+          rightPressController.setDirectPress(false);
         };
 
         const rightClickListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle();
+          rightPressController.setDirectPress(false);
 
           if (payload && eventHandler) {
             eventHandler(`rightClick`, {
@@ -222,8 +223,7 @@ export const updateText = ({
         };
 
         const rightOutListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle();
+          rightPressController.setDirectPress(false);
         };
 
         textElement.on("rightdown", rightPressListener);
