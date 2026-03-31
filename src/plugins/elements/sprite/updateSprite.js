@@ -2,6 +2,14 @@ import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  clearInheritedHoverTarget,
+  clearInheritedPressTarget,
+  clearInheritedRightPressTarget,
+  createHoverStateController,
+  createPressStateController,
+  createRightPressStateController,
+} from "../util/hoverInheritance.js";
 
 /**
  * Update sprite element (synchronous)
@@ -48,18 +56,23 @@ export const updateSprite = ({
       spriteElement.removeAllListeners("rightclick");
       spriteElement.removeAllListeners("rightup");
       spriteElement.removeAllListeners("rightupoutside");
+      clearInheritedHoverTarget(spriteElement);
+      clearInheritedPressTarget(spriteElement);
+      clearInheritedRightPressTarget(spriteElement);
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
 
-      let events = {
-        isHovering: false,
-        isPressed: false,
-        isRightPressed: false,
-      };
+      let hoverController = null;
+      let pressController = null;
+      let rightPressController = null;
 
-      const updateTexture = ({ isHovering, isPressed, isRightPressed }) => {
+      const updateTexture = () => {
+        const isHovering = hoverController?.isHovering() ?? false;
+        const isPressed = pressController?.isPressed() ?? false;
+        const isRightPressed = rightPressController?.isPressed() ?? false;
+
         if (isRightPressed && rightClickEvents?.src) {
           const rightClickTexture = Texture.from(rightClickEvents.src);
           spriteElement.texture = rightClickTexture;
@@ -77,9 +90,13 @@ export const updateSprite = ({
       if (hoverEvents) {
         const { cursor, soundSrc, payload } = hoverEvents;
         spriteElement.eventMode = "static";
+        hoverController = createHoverStateController({
+          displayObject: spriteElement,
+          onHoverChange: updateTexture,
+        });
 
         const overListener = () => {
-          events.isHovering = true;
+          hoverController.setDirectHover(true);
           if (payload && eventHandler)
             eventHandler(`hover`, {
               _event: {
@@ -94,13 +111,11 @@ export const updateSprite = ({
               url: soundSrc,
               loop: false,
             });
-          updateTexture(events);
         };
 
         const outListener = () => {
-          events.isHovering = false;
+          hoverController.setDirectHover(false);
           spriteElement.cursor = "auto";
-          updateTexture(events);
         };
 
         spriteElement.on("pointerover", overListener);
@@ -110,14 +125,17 @@ export const updateSprite = ({
       if (clickEvents) {
         const { soundSrc, soundVolume, payload } = clickEvents;
         spriteElement.eventMode = "static";
+        pressController = createPressStateController({
+          displayObject: spriteElement,
+          onPressChange: updateTexture,
+        });
 
         const clickListener = (event) => {
           if (!isPrimaryPointerEvent(event)) {
             return;
           }
 
-          events.isPressed = true;
-          updateTexture(events);
+          pressController.setDirectPress(true);
         };
 
         const releaseListener = (event) => {
@@ -125,8 +143,7 @@ export const updateSprite = ({
             return;
           }
 
-          events.isPressed = false;
-          updateTexture(events);
+          pressController.setDirectPress(false);
 
           if (payload && eventHandler)
             eventHandler(`click`, {
@@ -145,8 +162,7 @@ export const updateSprite = ({
         };
 
         const outListener = () => {
-          events.isPressed = false;
-          updateTexture(events);
+          pressController.setDirectPress(false);
         };
 
         spriteElement.on("pointerdown", clickListener);
@@ -157,20 +173,21 @@ export const updateSprite = ({
       if (rightClickEvents) {
         const { soundSrc, payload } = rightClickEvents;
         spriteElement.eventMode = "static";
+        rightPressController = createRightPressStateController({
+          displayObject: spriteElement,
+          onPressChange: updateTexture,
+        });
 
         const rightPressListener = () => {
-          events.isRightPressed = true;
-          updateTexture(events);
+          rightPressController.setDirectPress(true);
         };
 
         const rightReleaseListener = () => {
-          events.isRightPressed = false;
-          updateTexture(events);
+          rightPressController.setDirectPress(false);
         };
 
         const rightClickListener = () => {
-          events.isRightPressed = false;
-          updateTexture(events);
+          rightPressController.setDirectPress(false);
 
           if (payload && eventHandler) {
             eventHandler(`rightClick`, {
@@ -190,8 +207,7 @@ export const updateSprite = ({
         };
 
         const rightOutListener = () => {
-          events.isRightPressed = false;
-          updateTexture(events);
+          rightPressController.setDirectPress(false);
         };
 
         spriteElement.on("rightdown", rightPressListener);

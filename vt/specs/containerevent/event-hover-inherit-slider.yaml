@@ -1,0 +1,97 @@
+---
+title: Container Hover Inherits to Slider
+description: Test container hover inheritance applying child slider hover textures; asset-based slider textures are used intentionally as a visual-state exception.
+diffThreshold: 0.6
+specs:
+  - hovering an empty area inside the container should leave the slider idle before inheritance is enabled
+  - enabling hover inheritance should apply the slider hover textures even when the pointer is not on the slider
+  - moving back out of the container should restore the slider idle textures
+steps:
+  - action: move
+    x: 30
+    "y": 30
+  - action: wait
+    ms: 50
+  - action: move
+    x: 280
+    "y": 200
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 50
+  - action: move
+    x: 30
+    "y": 30
+  - action: wait
+    ms: 50
+  - action: move
+    x: 280
+    "y": 200
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: move
+    x: 30
+    "y": 30
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: slider-hover-container
+        type: container
+        x: 100
+        "y": 80
+        width: 360
+        height: 160
+        children:
+          - id: inherited-slider
+            type: slider
+            direction: horizontal
+            x: 40
+            "y": 50
+            width: 250
+            height: 20
+            thumbSrc: horizontal-idle-thumb
+            barSrc: slider-split-active-bar
+            inactiveBarSrc: slider-split-inactive-bar
+            min: 0
+            max: 100
+            step: 1
+            initialValue: 50
+            hover:
+              thumbSrc: circle-red
+              barSrc: slider-split-active-hover-bar
+              inactiveBarSrc: slider-split-inactive-hover-bar
+  - elements:
+      - id: slider-hover-container
+        type: container
+        x: 100
+        "y": 80
+        width: 360
+        height: 160
+        hover:
+          inheritToChildren: true
+        children:
+          - id: inherited-slider
+            type: slider
+            direction: horizontal
+            x: 40
+            "y": 50
+            width: 250
+            height: 20
+            thumbSrc: horizontal-idle-thumb
+            barSrc: slider-split-active-bar
+            inactiveBarSrc: slider-split-inactive-bar
+            min: 0
+            max: 100
+            step: 1
+            initialValue: 50
+            hover:
+              thumbSrc: circle-red
+              barSrc: slider-split-active-hover-bar
+              inactiveBarSrc: slider-split-inactive-hover-bar

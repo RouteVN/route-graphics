@@ -74,6 +74,10 @@ properties:
   hover:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with hover visuals inherit the container hover state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when hovering over the container
@@ -86,6 +90,10 @@ properties:
   click:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with click visuals inherit the container pressed state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when the container is clicked
@@ -101,6 +109,10 @@ properties:
   rightClick:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with right-click visuals inherit the container right-pressed state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when the container is right-clicked

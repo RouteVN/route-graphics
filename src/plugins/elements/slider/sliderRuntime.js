@@ -1,4 +1,8 @@
 import { Graphics, Sprite, Texture } from "pixi.js";
+import {
+  clearInheritedHoverTarget,
+  createHoverStateController,
+} from "../util/hoverInheritance.js";
 
 const BAR_PADDING = 0;
 const DEFAULT_TEXTURE_SIZE = 16;
@@ -326,6 +330,8 @@ export const bindSliderInteractions = ({
   thumb,
   eventHandler,
 }) => {
+  clearInheritedHoverTarget(sliderContainer);
+
   const {
     id,
     hover,
@@ -340,7 +346,7 @@ export const bindSliderInteractions = ({
   } = sliderComputedNode;
   let currentValue = initialValue ?? min;
   let isDragging = false;
-  let isHovered = false;
+  let hoverController = null;
 
   const applyCurrentVisualState = () => {
     applySliderVisualState({
@@ -348,7 +354,7 @@ export const bindSliderInteractions = ({
       sliderComputedNode,
       thumb,
       currentValue,
-      hoverOverride: isHovered ? hover : null,
+      hoverOverride: hoverController?.isHovering() ? hover : null,
     });
   };
 
@@ -404,8 +410,13 @@ export const bindSliderInteractions = ({
     return;
   }
 
+  hoverController = createHoverStateController({
+    displayObject: sliderContainer,
+    onHoverChange: applyCurrentVisualState,
+  });
+
   const overListener = () => {
-    isHovered = true;
+    hoverController.setDirectHover(true);
     applyCurrentVisualState();
     setSliderCursor({
       sliderContainer,
@@ -427,7 +438,7 @@ export const bindSliderInteractions = ({
       return;
     }
 
-    isHovered = false;
+    hoverController.setDirectHover(false);
     applyCurrentVisualState();
     setSliderCursor({ sliderContainer, sliderComputedNode, cursor: null });
   };
