@@ -2,62 +2,109 @@ const SET_INHERITED_HOVER = Symbol.for("routeGraphics.setInheritedHover");
 const TREE_INHERITED_HOVER_ACTIVE = Symbol.for(
   "routeGraphics.treeInheritedHoverActive",
 );
+const SET_INHERITED_PRESS = Symbol.for("routeGraphics.setInheritedPress");
+const TREE_INHERITED_PRESS_ACTIVE = Symbol.for(
+  "routeGraphics.treeInheritedPressActive",
+);
 
 const getChildren = (displayObject) =>
   Array.isArray(displayObject?.children) ? displayObject.children : [];
 
-const setTargetInheritedHover = (displayObject, isHovered) => {
-  const setInheritedHover = displayObject?.[SET_INHERITED_HOVER];
+const setTargetInheritedState = ({ displayObject, symbol, isActive }) => {
+  const setInheritedState = displayObject?.[symbol];
 
-  if (typeof setInheritedHover === "function") {
-    setInheritedHover(isHovered);
+  if (typeof setInheritedState === "function") {
+    setInheritedState(isActive);
   }
 };
 
-export const clearInheritedHoverTarget = (displayObject) => {
-  if (displayObject && SET_INHERITED_HOVER in displayObject) {
-    delete displayObject[SET_INHERITED_HOVER];
+const clearInheritedTarget = ({ displayObject, symbol }) => {
+  if (displayObject && symbol in displayObject) {
+    delete displayObject[symbol];
   }
 };
+
+const createInheritedStateController = ({
+  displayObject,
+  symbol,
+  onStateChange,
+}) => {
+  let isDirectActive = false;
+  let isInheritedActive = false;
+
+  const applyState = ({
+    nextDirectActive = isDirectActive,
+    nextInheritedActive = isInheritedActive,
+  }) => {
+    const wasActive = isDirectActive || isInheritedActive;
+    isDirectActive = nextDirectActive;
+    isInheritedActive = nextInheritedActive;
+    const isActive = isDirectActive || isInheritedActive;
+
+    if (wasActive !== isActive) {
+      onStateChange(isActive);
+    }
+
+    return isActive;
+  };
+
+  displayObject[symbol] = (isActive) =>
+    applyState({ nextInheritedActive: isActive });
+
+  return {
+    setDirectState: (isActive) => applyState({ nextDirectActive: isActive }),
+    isActive: () => isDirectActive || isInheritedActive,
+    destroy: () => {
+      clearInheritedTarget({ displayObject, symbol });
+    },
+  };
+};
+
+export const clearInheritedHoverTarget = (displayObject) =>
+  clearInheritedTarget({ displayObject, symbol: SET_INHERITED_HOVER });
+
+export const clearInheritedPressTarget = (displayObject) =>
+  clearInheritedTarget({ displayObject, symbol: SET_INHERITED_PRESS });
 
 export const createHoverStateController = ({
   displayObject,
   onHoverChange,
 }) => {
-  let isDirectHovering = false;
-  let isInheritedHovering = false;
-
-  const applyHoverState = ({
-    nextDirectHovering = isDirectHovering,
-    nextInheritedHovering = isInheritedHovering,
-  }) => {
-    const wasHovering = isDirectHovering || isInheritedHovering;
-    isDirectHovering = nextDirectHovering;
-    isInheritedHovering = nextInheritedHovering;
-    const isHovering = isDirectHovering || isInheritedHovering;
-
-    if (wasHovering !== isHovering) {
-      onHoverChange(isHovering);
-    }
-
-    return isHovering;
-  };
-
-  displayObject[SET_INHERITED_HOVER] = (isHovered) =>
-    applyHoverState({ nextInheritedHovering: isHovered });
+  const controller = createInheritedStateController({
+    displayObject,
+    symbol: SET_INHERITED_HOVER,
+    onStateChange: onHoverChange,
+  });
 
   return {
-    setDirectHover: (isHovered) =>
-      applyHoverState({ nextDirectHovering: isHovered }),
-    isHovering: () => isDirectHovering || isInheritedHovering,
-    destroy: () => {
-      clearInheritedHoverTarget(displayObject);
-    },
+    setDirectHover: controller.setDirectState,
+    isHovering: controller.isActive,
+    destroy: controller.destroy,
+  };
+};
+
+export const createPressStateController = ({
+  displayObject,
+  onPressChange,
+}) => {
+  const controller = createInheritedStateController({
+    displayObject,
+    symbol: SET_INHERITED_PRESS,
+    onStateChange: onPressChange,
+  });
+
+  return {
+    setDirectPress: controller.setDirectState,
+    isPressed: controller.isActive,
+    destroy: controller.destroy,
   };
 };
 
 export const getTreeInheritedHoverState = (displayObject) =>
   displayObject?.[TREE_INHERITED_HOVER_ACTIVE] === true;
+
+export const getTreeInheritedPressState = (displayObject) =>
+  displayObject?.[TREE_INHERITED_PRESS_ACTIVE] === true;
 
 export const setTreeInheritedHover = ({ root, isHovered }) => {
   if (!root) {
@@ -71,7 +118,32 @@ export const setTreeInheritedHover = ({ root, isHovered }) => {
   while (stack.length > 0) {
     const displayObject = stack.pop();
 
-    setTargetInheritedHover(displayObject, isHovered);
+    setTargetInheritedState({
+      displayObject,
+      symbol: SET_INHERITED_HOVER,
+      isActive: isHovered,
+    });
+    stack.push(...getChildren(displayObject));
+  }
+};
+
+export const setTreeInheritedPress = ({ root, isPressed }) => {
+  if (!root) {
+    return;
+  }
+
+  root[TREE_INHERITED_PRESS_ACTIVE] = isPressed;
+
+  const stack = [...getChildren(root)];
+
+  while (stack.length > 0) {
+    const displayObject = stack.pop();
+
+    setTargetInheritedState({
+      displayObject,
+      symbol: SET_INHERITED_PRESS,
+      isActive: isPressed,
+    });
     stack.push(...getChildren(displayObject));
   }
 };

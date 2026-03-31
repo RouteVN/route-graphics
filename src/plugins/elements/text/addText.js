@@ -8,7 +8,10 @@ import {
   syncTextAnchorRatios,
 } from "./textLayout.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
-import { createHoverStateController } from "../util/hoverInheritance.js";
+import {
+  createHoverStateController,
+  createPressStateController,
+} from "../util/hoverInheritance.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -42,15 +45,16 @@ export const addText = ({
   const rightClickEvents = textComputedNode?.rightClick;
 
   let events = {
-    isPressed: false,
     isRightPressed: false,
   };
 
   let hoverController = null;
+  let pressController = null;
 
   const updateTextStyle = () => {
     const isHovering = hoverController?.isHovering() ?? false;
-    const { isPressed, isRightPressed } = events;
+    const isPressed = pressController?.isPressed() ?? false;
+    const { isRightPressed } = events;
 
     if (isRightPressed && rightClickEvents?.textStyle) {
       applyInteractiveTextStyle(
@@ -113,14 +117,17 @@ export const addText = ({
   if (clickEvents) {
     const { soundSrc, soundVolume, payload } = clickEvents;
     text.eventMode = "static";
+    pressController = createPressStateController({
+      displayObject: text,
+      onPressChange: updateTextStyle,
+    });
 
     const clickListener = (event) => {
       if (!isPrimaryPointerEvent(event)) {
         return;
       }
 
-      events.isPressed = true;
-      updateTextStyle();
+      pressController.setDirectPress(true);
     };
 
     const releaseListener = (event) => {
@@ -128,8 +135,7 @@ export const addText = ({
         return;
       }
 
-      events.isPressed = false;
-      updateTextStyle();
+      pressController.setDirectPress(false);
 
       if (payload && eventHandler)
         eventHandler(`click`, {
@@ -148,8 +154,7 @@ export const addText = ({
     };
 
     const outListener = () => {
-      events.isPressed = false;
-      updateTextStyle();
+      pressController.setDirectPress(false);
     };
 
     text.on("pointerdown", clickListener);

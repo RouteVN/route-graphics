@@ -3,6 +3,7 @@ import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
 import {
   bindContainerInteractions,
   reapplyContainerInheritedHover,
+  reapplyContainerInheritedPress,
 } from "./util/bindContainerInteractions.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
@@ -118,6 +119,9 @@ export const updateContainer = ({
       });
 
       reapplyContainerInheritedHover({
+        container: containerElement,
+      });
+      reapplyContainerInheritedPress({
         container: containerElement,
       });
     }

@@ -32,7 +32,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `rotation`   | number                                   | No                  | `0`                      | Degrees.                                             |
 | `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.   |
 | `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.    |
-| `click`      | object                                   | No                  | -                        | Click event config.                                  |
+| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.    |
 | `rightClick` | object                                   | No                  | -                        | Right click event config.                            |
 
 ## Layout Behavior Notes
@@ -55,6 +55,11 @@ Set `hover.inheritToChildren: true` to apply hover visuals from the container to
 
 - This affects hover visuals, not child hover payloads or hover sounds.
 - Child direct hover still works normally while the container hover is active.
+
+Set `click.inheritToChildren: true` to apply pressed/click visuals from the container to descendants that support click state, such as `text` and `sprite`.
+
+- This affects pressed visuals, not child click payloads or click sounds.
+- Child direct click still works normally while the container pressed state is active.
 
 ## Example: Minimal Group
 

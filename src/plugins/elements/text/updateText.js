@@ -10,7 +10,9 @@ import {
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
   clearInheritedHoverTarget,
+  clearInheritedPressTarget,
   createHoverStateController,
+  createPressStateController,
 } from "../util/hoverInheritance.js";
 
 /**
@@ -57,21 +59,23 @@ export const updateText = ({
       textElement.removeAllListeners("rightup");
       textElement.removeAllListeners("rightupoutside");
       clearInheritedHoverTarget(textElement);
+      clearInheritedPressTarget(textElement);
 
       const hoverEvents = nextTextComputedNode?.hover;
       const clickEvents = nextTextComputedNode?.click;
       const rightClickEvents = nextTextComputedNode?.rightClick;
 
       let events = {
-        isPressed: false,
         isRightPressed: false,
       };
 
       let hoverController = null;
+      let pressController = null;
 
       const updateTextStyle = () => {
         const isHovering = hoverController?.isHovering() ?? false;
-        const { isPressed, isRightPressed } = events;
+        const isPressed = pressController?.isPressed() ?? false;
+        const { isRightPressed } = events;
 
         if (isRightPressed && rightClickEvents?.textStyle) {
           applyInteractiveTextStyle(
@@ -137,14 +141,17 @@ export const updateText = ({
       if (clickEvents) {
         const { soundSrc, soundVolume, payload } = clickEvents;
         textElement.eventMode = "static";
+        pressController = createPressStateController({
+          displayObject: textElement,
+          onPressChange: updateTextStyle,
+        });
 
         const clickListener = (event) => {
           if (!isPrimaryPointerEvent(event)) {
             return;
           }
 
-          events.isPressed = true;
-          updateTextStyle();
+          pressController.setDirectPress(true);
         };
 
         const releaseListener = (event) => {
@@ -152,8 +159,7 @@ export const updateText = ({
             return;
           }
 
-          events.isPressed = false;
-          updateTextStyle();
+          pressController.setDirectPress(false);
 
           if (payload && eventHandler)
             eventHandler(`click`, {
@@ -172,8 +178,7 @@ export const updateText = ({
         };
 
         const outListener = () => {
-          events.isPressed = false;
-          updateTextStyle();
+          pressController.setDirectPress(false);
         };
 
         textElement.on("pointerdown", clickListener);

@@ -27,9 +27,18 @@ const createSharedParams = () => ({
   signal: new AbortController().signal,
 });
 
-const elementPlugins = [containerPlugin, textPlugin, spritePlugin, sliderPlugin];
+const elementPlugins = [
+  containerPlugin,
+  textPlugin,
+  spritePlugin,
+  sliderPlugin,
+];
 
 const parseContainerState = (state) => parseContainerForTesting({ state });
+const createPrimaryPointerEvent = (overrides = {}) => ({
+  button: 0,
+  ...overrides,
+});
 
 let textureIndex = 0;
 
@@ -47,10 +56,11 @@ const createTextureId = (prefix) => {
 };
 
 describe("container hover inheritance", () => {
-  it("applies hover visuals to descendants without firing child hover payloads", () => {
+  it("applies hover visuals from real container entry and ignores internal target changes", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
+    const outside = new Container();
     const spriteIdleSrc = createTextureId("icon-idle");
     const spriteHoverSrc = createTextureId("icon-hover");
     const element = parseContainerState({
@@ -124,11 +134,16 @@ describe("container hover inheritance", () => {
     expect(text.style.fill).toBe("#A6A6A6");
     expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
 
-    container.emit("pointerenter");
+    container.emit("pointerover", { relatedTarget: null });
 
     expect(text.style.fill).toBe("#FFFFFF");
     expect(sprite.texture).toBe(Texture.from(spriteHoverSrc));
     expect(eventHandler).not.toHaveBeenCalled();
+
+    container.emit("pointerout", { relatedTarget: sprite });
+
+    expect(text.style.fill).toBe("#FFFFFF");
+    expect(sprite.texture).toBe(Texture.from(spriteHoverSrc));
 
     sprite.emit("pointerover");
 
@@ -144,7 +159,7 @@ describe("container hover inheritance", () => {
     sprite.emit("pointerout");
     expect(sprite.texture).toBe(Texture.from(spriteHoverSrc));
 
-    container.emit("pointerleave");
+    container.emit("pointerout", { relatedTarget: outside });
 
     expect(text.style.fill).toBe("#A6A6A6");
     expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
@@ -209,12 +224,12 @@ describe("container hover inheritance", () => {
     expect(bar.texture).toBe(Texture.from(idleBarSrc));
     expect(thumb.texture).toBe(Texture.from(idleThumbSrc));
 
-    container.emit("pointerenter");
+    container.emit("pointerover", { relatedTarget: null });
 
     expect(bar.texture).toBe(Texture.from(hoverBarSrc));
     expect(thumb.texture).toBe(Texture.from(hoverThumbSrc));
 
-    container.emit("pointerleave");
+    container.emit("pointerout", { relatedTarget: null });
 
     expect(bar.texture).toBe(Texture.from(idleBarSrc));
     expect(thumb.texture).toBe(Texture.from(idleThumbSrc));
@@ -265,7 +280,7 @@ describe("container hover inheritance", () => {
     });
 
     const container = parent.getChildByLabel("chat");
-    container.emit("pointerenter");
+    container.emit("pointerover", { relatedTarget: null });
 
     const nextElement = parseContainerState({
       id: "chat",
@@ -375,7 +390,7 @@ describe("container hover inheritance", () => {
 
     const container = parent.getChildByLabel("menu");
     const text = container.getChildByLabel("label");
-    container.emit("pointerenter");
+    container.emit("pointerover", { relatedTarget: null });
 
     expect(text.style.fill).toBe("#FFFFFF");
 
@@ -420,5 +435,298 @@ describe("container hover inheritance", () => {
     expect(text.style.fill).toBe("#A6A6A6");
     expect(container.hitArea).toBeNull();
     expect(container.eventMode).toBe("auto");
+  });
+
+  it("applies click visuals to descendants without firing child click payloads", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+    const spriteIdleSrc = createTextureId("click-icon-idle");
+    const spritePressedSrc = createTextureId("click-icon-pressed");
+    const element = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 360,
+      height: 140,
+      click: {
+        inheritToChildren: true,
+        payload: { source: "container-click" },
+      },
+      children: [
+        {
+          id: "icon",
+          type: "sprite",
+          x: 0,
+          y: 0,
+          width: 32,
+          height: 32,
+          src: spriteIdleSrc,
+          click: {
+            src: spritePressedSrc,
+            payload: { source: "child-click" },
+          },
+        },
+        {
+          id: "label",
+          type: "text",
+          x: 60,
+          y: 0,
+          content: "Press me",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+            payload: { source: "child-click-text" },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler,
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const sprite = container.getChildByLabel("icon");
+    const text = container.getChildByLabel("label");
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+
+    container.emit("pointerdown", createPrimaryPointerEvent());
+
+    expect(sprite.texture).toBe(Texture.from(spritePressedSrc));
+    expect(text.style.fill).toBe("#FFFFFF");
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    container.emit("pointerupoutside", createPrimaryPointerEvent());
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+
+    container.emit("pointerdown", createPrimaryPointerEvent());
+    container.emit("pointerup", createPrimaryPointerEvent());
+
+    expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
+    expect(text.style.fill).toBe("#A6A6A6");
+    expect(eventHandler).toHaveBeenCalledTimes(1);
+    expect(eventHandler).toHaveBeenCalledWith(
+      "click",
+      expect.objectContaining({
+        _event: { id: "menu" },
+        source: "container-click",
+      }),
+    );
+  });
+
+  it("reapplies inherited click to children added while the container is already pressed", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      click: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("chat");
+    container.emit("pointerdown", createPrimaryPointerEvent());
+
+    const nextElement = parseContainerState({
+      id: "chat",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 120,
+      click: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "message-1",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Hello",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+        {
+          id: "message-2",
+          type: "text",
+          x: 0,
+          y: 30,
+          content: "World",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const nextMessage = container.getChildByLabel("message-2");
+
+    expect(nextMessage.style.fill).toBe("#FFFFFF");
+  });
+
+  it("clears inherited click state when the feature is removed during update", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      click: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("menu");
+    const text = container.getChildByLabel("label");
+    container.emit("pointerdown", createPrimaryPointerEvent());
+
+    expect(text.style.fill).toBe("#FFFFFF");
+
+    const nextElement = parseContainerState({
+      id: "menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 240,
+      height: 100,
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Settings",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          click: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    expect(text.style.fill).toBe("#A6A6A6");
   });
 });

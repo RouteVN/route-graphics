@@ -1,7 +1,10 @@
 import { Sprite, Texture } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
-import { createHoverStateController } from "../util/hoverInheritance.js";
+import {
+  createHoverStateController,
+  createPressStateController,
+} from "../util/hoverInheritance.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -36,15 +39,16 @@ export const addSprite = ({
   const rightClickEvents = element?.rightClick;
 
   let events = {
-    isPressed: false,
     isRightPressed: false,
   };
 
   let hoverController = null;
+  let pressController = null;
 
   const updateTexture = () => {
     const isHovering = hoverController?.isHovering() ?? false;
-    const { isPressed, isRightPressed } = events;
+    const isPressed = pressController?.isPressed() ?? false;
+    const { isRightPressed } = events;
 
     if (isRightPressed && rightClickEvents?.src) {
       const rightClickTexture = Texture.from(rightClickEvents.src);
@@ -98,14 +102,17 @@ export const addSprite = ({
   if (clickEvents) {
     const { soundSrc, soundVolume, payload } = clickEvents;
     sprite.eventMode = "static";
+    pressController = createPressStateController({
+      displayObject: sprite,
+      onPressChange: updateTexture,
+    });
 
     const clickListener = (event) => {
       if (!isPrimaryPointerEvent(event)) {
         return;
       }
 
-      events.isPressed = true;
-      updateTexture();
+      pressController.setDirectPress(true);
     };
 
     const releaseListener = (event) => {
@@ -113,8 +120,7 @@ export const addSprite = ({
         return;
       }
 
-      events.isPressed = false;
-      updateTexture();
+      pressController.setDirectPress(false);
 
       if (payload && eventHandler)
         eventHandler(`click`, {
@@ -133,8 +139,7 @@ export const addSprite = ({
     };
 
     const outListener = () => {
-      events.isPressed = false;
-      updateTexture();
+      pressController.setDirectPress(false);
     };
 
     sprite.on("pointerdown", clickListener);

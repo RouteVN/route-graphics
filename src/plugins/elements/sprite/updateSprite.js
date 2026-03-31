@@ -4,7 +4,9 @@ import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
   clearInheritedHoverTarget,
+  clearInheritedPressTarget,
   createHoverStateController,
+  createPressStateController,
 } from "../util/hoverInheritance.js";
 
 /**
@@ -53,21 +55,23 @@ export const updateSprite = ({
       spriteElement.removeAllListeners("rightup");
       spriteElement.removeAllListeners("rightupoutside");
       clearInheritedHoverTarget(spriteElement);
+      clearInheritedPressTarget(spriteElement);
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
 
       let events = {
-        isPressed: false,
         isRightPressed: false,
       };
 
       let hoverController = null;
+      let pressController = null;
 
       const updateTexture = () => {
         const isHovering = hoverController?.isHovering() ?? false;
-        const { isPressed, isRightPressed } = events;
+        const isPressed = pressController?.isPressed() ?? false;
+        const { isRightPressed } = events;
 
         if (isRightPressed && rightClickEvents?.src) {
           const rightClickTexture = Texture.from(rightClickEvents.src);
@@ -121,14 +125,17 @@ export const updateSprite = ({
       if (clickEvents) {
         const { soundSrc, soundVolume, payload } = clickEvents;
         spriteElement.eventMode = "static";
+        pressController = createPressStateController({
+          displayObject: spriteElement,
+          onPressChange: updateTexture,
+        });
 
         const clickListener = (event) => {
           if (!isPrimaryPointerEvent(event)) {
             return;
           }
 
-          events.isPressed = true;
-          updateTexture();
+          pressController.setDirectPress(true);
         };
 
         const releaseListener = (event) => {
@@ -136,8 +143,7 @@ export const updateSprite = ({
             return;
           }
 
-          events.isPressed = false;
-          updateTexture();
+          pressController.setDirectPress(false);
 
           if (payload && eventHandler)
             eventHandler(`click`, {
@@ -156,8 +162,7 @@ export const updateSprite = ({
         };
 
         const outListener = () => {
-          events.isPressed = false;
-          updateTexture();
+          pressController.setDirectPress(false);
         };
 
         spriteElement.on("pointerdown", clickListener);

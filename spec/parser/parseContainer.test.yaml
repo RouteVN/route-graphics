@@ -1025,11 +1025,13 @@ in:
       x: 100
       "y": 100
       hover:
+        inheritToChildren: true
         cursor: pointer
         soundSrc: hover-sound
         payload:
           type: hover
       click:
+        inheritToChildren: true
         soundSrc: click-sound
         payload:
           type: click
@@ -1058,11 +1060,13 @@ out:
   rotation: 0
   alpha: 1
   hover:
+    inheritToChildren: true
     cursor: pointer
     soundSrc: hover-sound
     payload:
       type: hover
   click:
+    inheritToChildren: true
     soundSrc: click-sound
     payload:
       type: click
