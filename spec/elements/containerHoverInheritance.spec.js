@@ -345,6 +345,78 @@ describe("container hover inheritance", () => {
     expect(nextMessage.style.fill).toBe("#FFFFFF");
   });
 
+  it("keeps outer inherited hover active when a nested inherited container is exited", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const outside = new Container();
+    const element = parseContainerState({
+      id: "outer",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 320,
+      height: 160,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "inner",
+          type: "container",
+          x: 40,
+          y: 20,
+          width: 200,
+          height: 100,
+          hover: {
+            inheritToChildren: true,
+          },
+          children: [
+            {
+              id: "label",
+              type: "text",
+              x: 0,
+              y: 0,
+              content: "Nested",
+              textStyle: {
+                fontSize: 24,
+                fontFamily: "Arial",
+                fill: "#A6A6A6",
+              },
+              hover: {
+                textStyle: {
+                  fill: "#FFFFFF",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const outer = parent.getChildByLabel("outer");
+    const inner = outer.getChildByLabel("inner");
+    const text = inner.getChildByLabel("label");
+
+    outer.emit("pointerover", { relatedTarget: null });
+    inner.emit("pointerover", { relatedTarget: null });
+    inner.emit("pointerout", { relatedTarget: outer });
+
+    expect(text.style.fill).toBe("#FFFFFF");
+
+    outer.emit("pointerout", { relatedTarget: outside });
+
+    expect(text.style.fill).toBe("#A6A6A6");
+  });
+
   it("clears inherited hover state when the feature is removed during update", () => {
     const parent = new Container();
     const shared = createSharedParams();
@@ -435,6 +507,160 @@ describe("container hover inheritance", () => {
     expect(text.style.fill).toBe("#A6A6A6");
     expect(container.hitArea).toBeNull();
     expect(container.eventMode).toBe("auto");
+  });
+
+  it("uses a fallback hit area for non-overflowing scroll containers on initial render", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseContainerState({
+      id: "scrolling-menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 280,
+      height: 120,
+      scroll: true,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 20,
+          y: 20,
+          content: "Fits",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("scrolling-menu");
+    const text = container.getChildByLabel("label");
+
+    expect(container.hitArea).toBeInstanceOf(Rectangle);
+    expect(container.hitArea.width).toBe(280);
+    expect(container.hitArea.height).toBe(120);
+
+    container.emit("pointerover", { relatedTarget: null });
+
+    expect(text.style.fill).toBe("#FFFFFF");
+  });
+
+  it("keeps scroll containers interactive after content shrinks below overflow on update", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const prevElement = parseContainerState({
+      id: "scrolling-menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 180,
+      height: 80,
+      scroll: true,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "This is intentionally long enough to overflow",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    addContainer({
+      ...shared,
+      parent,
+      element: prevElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const nextElement = parseContainerState({
+      id: "scrolling-menu",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 180,
+      height: 80,
+      scroll: true,
+      hover: {
+        inheritToChildren: true,
+      },
+      children: [
+        {
+          id: "label",
+          type: "text",
+          x: 0,
+          y: 0,
+          content: "Fits",
+          textStyle: {
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "#A6A6A6",
+          },
+          hover: {
+            textStyle: {
+              fill: "#FFFFFF",
+            },
+          },
+        },
+      ],
+    });
+
+    updateContainer({
+      ...shared,
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      elementPlugins,
+      zIndex: 0,
+    });
+
+    const container = parent.getChildByLabel("scrolling-menu");
+    const text = container.getChildByLabel("label");
+
+    expect(container.hitArea).toBeInstanceOf(Rectangle);
+    expect(container.hitArea.width).toBe(180);
+    expect(container.hitArea.height).toBe(80);
+
+    container.emit("pointerover", { relatedTarget: null });
+
+    expect(text.style.fill).toBe("#FFFFFF");
   });
 
   it("applies click visuals to descendants without firing child click payloads", () => {
@@ -804,7 +1030,7 @@ describe("container hover inheritance", () => {
     expect(text.style.fill).toBe("#FFFFFF");
     expect(eventHandler).not.toHaveBeenCalled();
 
-    container.emit("rightupoutside");
+    container.emit("pointerup", { button: 2 });
 
     expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
     expect(text.style.fill).toBe("#A6A6A6");

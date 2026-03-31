@@ -1,5 +1,8 @@
 import { Rectangle } from "pixi.js";
-import { isPrimaryPointerEvent } from "../../util/isPrimaryPointerEvent.js";
+import {
+  isPrimaryPointerEvent,
+  isSecondaryPointerEvent,
+} from "../../util/isPrimaryPointerEvent.js";
 import {
   getTreeInheritedPressState,
   getTreeInheritedHoverState,
@@ -71,10 +74,7 @@ export const bindContainerInteractions = ({
 
   if (hasPointerInteraction) {
     container.eventMode = "static";
-
-    if (!element.scroll) {
-      setContainerHitArea({ container, element, enabled: true });
-    }
+    setContainerHitArea({ container, element, enabled: true });
   }
 
   if (hoverEvents) {
@@ -187,6 +187,16 @@ export const bindContainerInteractions = ({
       }
     };
 
+    const rightPointerReleaseListener = (event) => {
+      if (!isSecondaryPointerEvent(event)) {
+        return;
+      }
+
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: false });
+      }
+    };
+
     const rightClickListener = () => {
       if (inheritToChildren) {
         setTreeInheritedRightPress({ root: container, isPressed: false });
@@ -215,7 +225,9 @@ export const bindContainerInteractions = ({
 
     container.on("rightdown", rightPressListener);
     container.on("rightup", rightReleaseListener);
+    container.on("pointerup", rightPointerReleaseListener);
     container.on("rightclick", rightClickListener);
+    container.on("pointerupoutside", rightPointerReleaseListener);
     container.on("rightupoutside", rightOutListener);
   }
 

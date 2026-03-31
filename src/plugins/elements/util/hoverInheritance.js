@@ -16,11 +16,16 @@ const TREE_INHERITED_RIGHT_PRESS_ACTIVE = Symbol.for(
 const getChildren = (displayObject) =>
   Array.isArray(displayObject?.children) ? displayObject.children : [];
 
-const setTargetInheritedState = ({ displayObject, symbol, isActive }) => {
+const setTargetInheritedState = ({
+  displayObject,
+  symbol,
+  source,
+  isActive,
+}) => {
   const setInheritedState = displayObject?.[symbol];
 
   if (typeof setInheritedState === "function") {
-    setInheritedState(isActive);
+    setInheritedState(source, isActive);
   }
 };
 
@@ -36,16 +41,16 @@ const createInheritedStateController = ({
   onStateChange,
 }) => {
   let isDirectActive = false;
-  let isInheritedActive = false;
+  const inheritedSources = new Set();
 
   const applyState = ({
     nextDirectActive = isDirectActive,
-    nextInheritedActive = isInheritedActive,
+    onInheritedChange,
   }) => {
-    const wasActive = isDirectActive || isInheritedActive;
+    const wasActive = isDirectActive || inheritedSources.size > 0;
     isDirectActive = nextDirectActive;
-    isInheritedActive = nextInheritedActive;
-    const isActive = isDirectActive || isInheritedActive;
+    onInheritedChange?.(inheritedSources);
+    const isActive = isDirectActive || inheritedSources.size > 0;
 
     if (wasActive !== isActive) {
       onStateChange(isActive);
@@ -54,12 +59,25 @@ const createInheritedStateController = ({
     return isActive;
   };
 
-  displayObject[symbol] = (isActive) =>
-    applyState({ nextInheritedActive: isActive });
+  displayObject[symbol] = (source, isActive) =>
+    applyState({
+      onInheritedChange: (sources) => {
+        if (!source) {
+          return;
+        }
+
+        if (isActive) {
+          sources.add(source);
+          return;
+        }
+
+        sources.delete(source);
+      },
+    });
 
   return {
     setDirectState: (isActive) => applyState({ nextDirectActive: isActive }),
-    isActive: () => isDirectActive || isInheritedActive,
+    isActive: () => isDirectActive || inheritedSources.size > 0,
     destroy: () => {
       clearInheritedTarget({ displayObject, symbol });
     },
@@ -150,6 +168,7 @@ export const setTreeInheritedHover = ({ root, isHovered }) => {
     setTargetInheritedState({
       displayObject,
       symbol: SET_INHERITED_HOVER,
+      source: root,
       isActive: isHovered,
     });
     stack.push(...getChildren(displayObject));
@@ -171,6 +190,7 @@ export const setTreeInheritedPress = ({ root, isPressed }) => {
     setTargetInheritedState({
       displayObject,
       symbol: SET_INHERITED_PRESS,
+      source: root,
       isActive: isPressed,
     });
     stack.push(...getChildren(displayObject));
@@ -192,6 +212,7 @@ export const setTreeInheritedRightPress = ({ root, isPressed }) => {
     setTargetInheritedState({
       displayObject,
       symbol: SET_INHERITED_RIGHT_PRESS,
+      source: root,
       isActive: isPressed,
     });
     stack.push(...getChildren(displayObject));
