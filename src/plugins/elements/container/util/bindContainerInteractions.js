@@ -1,0 +1,263 @@
+import { Rectangle } from "pixi.js";
+import {
+  isPrimaryPointerEvent,
+  isSecondaryPointerEvent,
+} from "../../util/isPrimaryPointerEvent.js";
+import {
+  getTreeInheritedPressState,
+  getTreeInheritedHoverState,
+  getTreeInheritedRightPressState,
+  setTreeInheritedPress,
+  setTreeInheritedHover,
+  setTreeInheritedRightPress,
+} from "../../util/hoverInheritance.js";
+
+const setContainerHitArea = ({ container, element, enabled }) => {
+  if (enabled) {
+    container.hitArea = new Rectangle(0, 0, element.width, element.height);
+    return;
+  }
+
+  container.hitArea = null;
+};
+
+const isWithinContainer = (container, displayObject) => {
+  let current = displayObject ?? null;
+
+  while (current) {
+    if (current === container) {
+      return true;
+    }
+
+    current = current.parent ?? null;
+  }
+
+  return false;
+};
+
+export const bindContainerInteractions = ({
+  app,
+  container,
+  element,
+  eventHandler,
+}) => {
+  const wasInheritedHoverActive = getTreeInheritedHoverState(container);
+  const wasInheritedPressActive = getTreeInheritedPressState(container);
+  const wasInheritedRightPressActive =
+    getTreeInheritedRightPressState(container);
+
+  setTreeInheritedHover({ root: container, isHovered: false });
+  setTreeInheritedPress({ root: container, isPressed: false });
+  setTreeInheritedRightPress({ root: container, isPressed: false });
+  container.removeAllListeners("pointerover");
+  container.removeAllListeners("pointerout");
+  container.removeAllListeners("pointerdown");
+  container.removeAllListeners("pointerup");
+  container.removeAllListeners("pointerupoutside");
+  container.removeAllListeners("rightdown");
+  container.removeAllListeners("rightup");
+  container.removeAllListeners("rightupoutside");
+  container.removeAllListeners("rightclick");
+  container.cursor = "auto";
+
+  if (!element.scroll) {
+    container.eventMode = "auto";
+    setContainerHitArea({ container, element, enabled: false });
+  }
+
+  const hoverEvents = element?.hover;
+  const clickEvents = element?.click;
+  const rightClickEvents = element?.rightClick;
+  const hasPointerInteraction = Boolean(
+    hoverEvents || clickEvents || rightClickEvents,
+  );
+
+  if (hasPointerInteraction) {
+    container.eventMode = "static";
+    setContainerHitArea({ container, element, enabled: true });
+  }
+
+  if (hoverEvents) {
+    const { cursor, soundSrc, payload, inheritToChildren } = hoverEvents;
+
+    const overListener = (event) => {
+      if (isWithinContainer(container, event?.relatedTarget)) {
+        return;
+      }
+
+      if (payload && eventHandler)
+        eventHandler(`hover`, {
+          _event: {
+            id: container.label,
+          },
+          ...payload,
+        });
+      if (cursor) container.cursor = cursor;
+      if (soundSrc)
+        app.audioStage.add({
+          id: `hover-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+      if (inheritToChildren) {
+        setTreeInheritedHover({ root: container, isHovered: true });
+      }
+    };
+
+    const outListener = (event) => {
+      if (isWithinContainer(container, event?.relatedTarget)) {
+        return;
+      }
+
+      container.cursor = "auto";
+      if (inheritToChildren) {
+        setTreeInheritedHover({ root: container, isHovered: false });
+      }
+    };
+
+    container.on("pointerover", overListener);
+    container.on("pointerout", outListener);
+  }
+
+  if (clickEvents) {
+    const { soundSrc, soundVolume, payload, inheritToChildren } = clickEvents;
+
+    const pressListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
+      if (inheritToChildren) {
+        setTreeInheritedPress({ root: container, isPressed: true });
+      }
+    };
+
+    const releaseListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
+      if (inheritToChildren) {
+        setTreeInheritedPress({ root: container, isPressed: false });
+      }
+
+      if (payload && eventHandler)
+        eventHandler(`click`, {
+          _event: {
+            id: container.label,
+          },
+          ...payload,
+        });
+      if (soundSrc)
+        app.audioStage.add({
+          id: `click-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+          volume: (soundVolume ?? 1000) / 1000,
+        });
+    };
+
+    const releaseOutsideListener = (event) => {
+      if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
+      if (inheritToChildren) {
+        setTreeInheritedPress({ root: container, isPressed: false });
+      }
+    };
+
+    container.on("pointerdown", pressListener);
+    container.on("pointerup", releaseListener);
+    container.on("pointerupoutside", releaseOutsideListener);
+  }
+
+  if (rightClickEvents) {
+    const { soundSrc, payload, inheritToChildren } = rightClickEvents;
+
+    const rightPressListener = () => {
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: true });
+      }
+    };
+
+    const rightReleaseListener = () => {
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: false });
+      }
+    };
+
+    const rightPointerReleaseListener = (event) => {
+      if (!isSecondaryPointerEvent(event)) {
+        return;
+      }
+
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: false });
+      }
+    };
+
+    const rightClickListener = () => {
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: false });
+      }
+
+      if (payload && eventHandler)
+        eventHandler(`rightClick`, {
+          _event: {
+            id: container.label,
+          },
+          ...payload,
+        });
+      if (soundSrc)
+        app.audioStage.add({
+          id: `rightClick-${Date.now()}`,
+          url: soundSrc,
+          loop: false,
+        });
+    };
+
+    const rightOutListener = () => {
+      if (inheritToChildren) {
+        setTreeInheritedRightPress({ root: container, isPressed: false });
+      }
+    };
+
+    container.on("rightdown", rightPressListener);
+    container.on("rightup", rightReleaseListener);
+    container.on("pointerup", rightPointerReleaseListener);
+    container.on("rightclick", rightClickListener);
+    container.on("pointerupoutside", rightPointerReleaseListener);
+    container.on("rightupoutside", rightOutListener);
+  }
+
+  if (hoverEvents?.inheritToChildren && wasInheritedHoverActive) {
+    setTreeInheritedHover({ root: container, isHovered: true });
+  }
+
+  if (clickEvents?.inheritToChildren && wasInheritedPressActive) {
+    setTreeInheritedPress({ root: container, isPressed: true });
+  }
+
+  if (rightClickEvents?.inheritToChildren && wasInheritedRightPressActive) {
+    setTreeInheritedRightPress({ root: container, isPressed: true });
+  }
+};
+
+export const reapplyContainerInheritedHover = ({ container }) => {
+  if (getTreeInheritedHoverState(container)) {
+    setTreeInheritedHover({ root: container, isHovered: true });
+  }
+};
+
+export const reapplyContainerInheritedPress = ({ container }) => {
+  if (getTreeInheritedPressState(container)) {
+    setTreeInheritedPress({ root: container, isPressed: true });
+  }
+};
+
+export const reapplyContainerInheritedRightPress = ({ container }) => {
+  if (getTreeInheritedRightPressState(container)) {
+    setTreeInheritedRightPress({ root: container, isPressed: true });
+  }
+};
