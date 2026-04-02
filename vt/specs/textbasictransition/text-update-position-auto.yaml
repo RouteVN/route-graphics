@@ -1,0 +1,55 @@
+---
+title: Text Update Position Auto Transition
+description: A text element animating position during update using tween auto shorthand.
+specs:
+  - text should move from (120, 100) to (520, 280)
+  - text content should remain the same
+  - x and y should be derived from the next state
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: text1
+        type: text
+        content: Moving Text Auto
+        x: 120
+        "y": 100
+        textStyle:
+          fontSize: 28
+          fill: "#A6A6A6"
+          fontFamily: Arial
+  - elements:
+      - id: text1
+        type: text
+        content: Moving Text Auto
+        x: 520
+        "y": 280
+        textStyle:
+          fontSize: 28
+          fill: "#A6A6A6"
+          fontFamily: Arial
+    animations:
+      - id: text-move-auto
+        targetId: text1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear

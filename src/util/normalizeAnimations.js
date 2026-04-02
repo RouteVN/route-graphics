@@ -40,6 +40,32 @@ const assertNumber = (value, path) => {
   }
 };
 
+const normalizeAutoTween = (autoConfig, path) => {
+  assertPlainObject(autoConfig, path);
+  assertNumber(autoConfig.duration, `${path}.duration`);
+
+  if (
+    autoConfig.easing !== undefined &&
+    typeof autoConfig.easing !== "string"
+  ) {
+    throw new Error(`${path}.easing must be a string.`);
+  }
+
+  if (
+    autoConfig.easing !== undefined &&
+    !SUPPORTED_EASINGS.has(autoConfig.easing)
+  ) {
+    throw new Error(
+      `${path}.easing must be one of: ${SUPPORTED_EASING_NAMES.join(", ")}.`,
+    );
+  }
+
+  return {
+    duration: autoConfig.duration,
+    easing: autoConfig.easing ?? "linear",
+  };
+};
+
 const normalizeKeyframes = (propertyConfig, path) => {
   assertPlainObject(propertyConfig, path);
 
@@ -96,7 +122,41 @@ const normalizeKeyframes = (propertyConfig, path) => {
   return normalized;
 };
 
-const normalizeTweenMap = (tween, path, allowedProperties) => {
+const normalizeUpdatePropertyConfig = (propertyConfig, path) => {
+  assertPlainObject(propertyConfig, path);
+
+  const hasKeyframes = propertyConfig.keyframes !== undefined;
+  const hasAuto = propertyConfig.auto !== undefined;
+
+  if (hasKeyframes && hasAuto) {
+    throw new Error(`${path} cannot define both keyframes and auto.`);
+  }
+
+  if (!hasKeyframes && !hasAuto) {
+    throw new Error(`${path} must define keyframes or auto.`);
+  }
+
+  if (hasAuto) {
+    if (propertyConfig.initialValue !== undefined) {
+      throw new Error(
+        `${path}.initialValue is not valid when auto is defined.`,
+      );
+    }
+
+    return {
+      auto: normalizeAutoTween(propertyConfig.auto, `${path}.auto`),
+    };
+  }
+
+  return normalizeKeyframes(propertyConfig, path);
+};
+
+const normalizeTweenMap = (
+  tween,
+  path,
+  allowedProperties,
+  propertyNormalizer = normalizeKeyframes,
+) => {
   assertPlainObject(tween, path);
 
   const normalizedEntries = Object.entries(tween).map(([property, config]) => {
@@ -106,7 +166,7 @@ const normalizeTweenMap = (tween, path, allowedProperties) => {
       );
     }
 
-    return [property, normalizeKeyframes(config, `${path}.${property}`)];
+    return [property, propertyNormalizer(config, `${path}.${property}`)];
   });
 
   if (normalizedEntries.length === 0) {
@@ -333,6 +393,7 @@ export const normalizeAnimations = (animations = []) => {
         animation.tween,
         `${path}.tween`,
         UPDATE_TWEEN_PROPERTIES,
+        normalizeUpdatePropertyConfig,
       );
 
       if (animation.replace !== undefined) {

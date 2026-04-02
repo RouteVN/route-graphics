@@ -56,26 +56,73 @@ const setAnimationProperty = (object, path, propertyPathMap, value) => {
   return object;
 };
 
-const buildPropertyTimelines = (element, properties, propertyPathMap) =>
-  Object.entries(properties).map(([property, config]) => {
-    if (!WhiteListAnimationProps[property]) {
-      throw new Error(`${property} is not a supported property for animation.`);
-    }
-
-    const currentValue = getAnimationProperty(
-      element,
-      property,
-      propertyPathMap,
-      0,
+const resolveAutoTargetValue = (targetState, property, animationId) => {
+  if (
+    !targetState ||
+    !Object.prototype.hasOwnProperty.call(targetState, property)
+  ) {
+    throw new Error(
+      `Animation "${animationId}" cannot auto-resolve property "${property}" from targetState.`,
     );
-    const initialValue = config.initialValue ?? currentValue;
-    const timeline = buildTimeline([
-      { value: initialValue },
-      ...config.keyframes,
-    ]);
+  }
 
-    return { property, timeline };
-  });
+  return targetState[property];
+};
+
+const buildPropertyTimelines = (
+  element,
+  properties,
+  propertyPathMap,
+  targetState,
+  animationId,
+) =>
+  Object.entries(properties)
+    .map(([property, config]) => {
+      if (!WhiteListAnimationProps[property]) {
+        throw new Error(
+          `${property} is not a supported property for animation.`,
+        );
+      }
+
+      const currentValue = getAnimationProperty(
+        element,
+        property,
+        propertyPathMap,
+        0,
+      );
+
+      if (config.auto) {
+        const targetValue = resolveAutoTargetValue(
+          targetState,
+          property,
+          animationId,
+        );
+
+        if (currentValue === targetValue) {
+          return null;
+        }
+
+        const timeline = buildTimeline([
+          { value: currentValue },
+          {
+            duration: config.auto.duration,
+            value: targetValue,
+            easing: config.auto.easing,
+          },
+        ]);
+
+        return { property, timeline };
+      }
+
+      const initialValue = config.initialValue ?? currentValue;
+      const timeline = buildTimeline([
+        { value: initialValue },
+        ...config.keyframes,
+      ]);
+
+      return { property, timeline };
+    })
+    .filter(Boolean);
 
 /**
  * Creates an animation bus that manages all active animations centrally.
@@ -125,7 +172,14 @@ export const createAnimationBus = () => {
       element,
       properties,
       propertyPathMap,
+      targetState,
+      id,
     );
+
+    if (timelines.length === 0) {
+      fireCompleteEvent({ id, onComplete });
+      return;
+    }
 
     const context = {
       id,

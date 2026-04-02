@@ -54,13 +54,18 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
 
     const plugin = parserPlugins.find((p) => p.type === child.type);
     if (plugin) {
+      const hasScaleX =
+        child.scaleX !== undefined || state.scaleX !== undefined;
+      const hasScaleY =
+        child.scaleY !== undefined || state.scaleY !== undefined;
       const childScaleX = (child.scaleX ?? 1) * (state.scaleX ?? 1);
       const childScaleY = (child.scaleY ?? 1) * (state.scaleY ?? 1);
+
       child = plugin.parse({
         state: {
           ...child,
-          scaleX: childScaleX,
-          scaleY: childScaleY,
+          ...(hasScaleX ? { scaleX: childScaleX } : {}),
+          ...(hasScaleY ? { scaleY: childScaleY } : {}),
         },
         parserPlugins,
       });

@@ -1,0 +1,71 @@
+---
+title: Container Update Position Auto Transition
+description: A container animating position during update using tween auto shorthand.
+specs:
+  - container should move from (100, 100) to (420, 260)
+  - all children should move with the container
+  - x and y should be derived from the next state
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: container1
+        type: container
+        x: 100
+        "y": 100
+        direction: horizontal
+        gap: 20
+        children:
+          - id: rect1
+            type: rect
+            width: 60
+            height: 60
+            fill: "#FFFFFF"
+          - id: rect2
+            type: rect
+            width: 60
+            height: 60
+            fill: "#FFFFFF"
+  - elements:
+      - id: container1
+        type: container
+        x: 420
+        "y": 260
+        direction: horizontal
+        gap: 20
+        children:
+          - id: rect1
+            type: rect
+            width: 60
+            height: 60
+            fill: "#FFFFFF"
+          - id: rect2
+            type: rect
+            width: 60
+            height: 60
+            fill: "#FFFFFF"
+    animations:
+      - id: container-move-auto
+        targetId: container1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear

@@ -54,8 +54,10 @@ export const updateRect = ({
       rectElement.x = Math.round(x);
       rectElement.y = Math.round(y);
       rectElement.alpha = alpha;
-      rectElement.scale.x = scaleX ?? 1;
-      rectElement.scale.y = scaleY ?? 1;
+      // Rect computed nodes already bake scale into width/height for layout.
+      // Reset the live transform so update tweens do not double-apply scale.
+      rectElement.scale.x = 1;
+      rectElement.scale.y = 1;
 
       if (border) {
         rectElement.stroke({
