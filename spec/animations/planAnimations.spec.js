@@ -279,4 +279,64 @@ describe("dispatchUpdateAnimations", () => {
     expect(completionTracker.track).not.toHaveBeenCalled();
     expect(animationBus.dispatch).not.toHaveBeenCalled();
   });
+
+  it("defers auto update animations without mutating the initial live value", () => {
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const renderContext = createRenderContext({ suppressAnimations: true });
+    const element = {
+      x: 100,
+      alpha: 1,
+      scale: { x: 1, y: 1 },
+    };
+
+    const animations = groupAnimationsByTarget([
+      {
+        id: "child-auto-update",
+        targetId: "child-1",
+        type: "update",
+        tween: {
+          x: {
+            auto: {
+              duration: 300,
+              easing: "linear",
+            },
+          },
+        },
+      },
+    ]);
+
+    const dispatched = dispatchUpdateAnimations({
+      animations,
+      targetId: "child-1",
+      animationBus,
+      completionTracker,
+      element,
+      targetState: { x: 240 },
+      renderContext,
+    });
+
+    expect(dispatched).toBe(true);
+    expect(element.x).toBe(100);
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+    expect(completionTracker.track).not.toHaveBeenCalled();
+
+    flushDeferredMountOperations(renderContext);
+
+    expect(completionTracker.track).toHaveBeenCalledWith(11);
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "child-auto-update",
+          element,
+          targetState: { x: 240 },
+        }),
+      }),
+    );
+  });
 });

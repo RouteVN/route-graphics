@@ -350,6 +350,33 @@ in:
                 value: 20
 throws: animations[0].tween.x cannot define both keyframes and auto.
 ---
+case: Throw when auto tween duration is missing
+in:
+  - id: state-3c-auto-duration
+    animations:
+      - id: anim-auto-duration
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            auto:
+              easing: linear
+throws: animations[0].tween.x.auto.duration must be a number.
+---
+case: Throw when auto tween easing is unsupported
+in:
+  - id: state-3c-auto-easing
+    animations:
+      - id: anim-auto-easing
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 100
+              easing: easeInHexagon
+throws: "animations[0].tween.x.auto.easing must be one of:"
+---
 case: Throw when target mixes update and transition types
 in:
   - id: state-3d

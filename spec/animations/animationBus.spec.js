@@ -98,4 +98,85 @@ describe("animationBus auto tween shorthand", () => {
       'Animation "auto-missing-target" cannot auto-resolve property "x" from targetState.',
     );
   });
+
+  it("supports mixed auto and manual tween properties in one animation", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      x: 20,
+      alpha: 1,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "auto-and-manual",
+        element,
+        properties: {
+          x: {
+            auto: {
+              duration: 400,
+              easing: "linear",
+            },
+          },
+          alpha: {
+            keyframes: [{ duration: 400, value: 0.25, easing: "linear" }],
+          },
+        },
+        targetState: { x: 120, alpha: 0.25 },
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(200);
+
+    expect(element.x).toBeCloseTo(70);
+    expect(element.alpha).toBeCloseTo(0.625);
+  });
+
+  it("applies property path mapping for auto scale tweens", () => {
+    const animationBus = createAnimationBus();
+    const onComplete = vi.fn();
+    const element = {
+      x: 20,
+      alpha: 1,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "auto-scale",
+        element,
+        properties: {
+          scaleX: {
+            auto: {
+              duration: 200,
+              easing: "linear",
+            },
+          },
+          scaleY: {
+            auto: {
+              duration: 200,
+              easing: "linear",
+            },
+          },
+        },
+        targetState: { scaleX: 1.5, scaleY: 0.5 },
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(100);
+
+    expect(element.scale.x).toBeCloseTo(1.25);
+    expect(element.scale.y).toBeCloseTo(0.75);
+
+    animationBus.tick(100);
+
+    expect(element.scale.x).toBeCloseTo(1.5);
+    expect(element.scale.y).toBeCloseTo(0.5);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
 });

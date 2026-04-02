@@ -1,0 +1,53 @@
+---
+title: Sprite Update Position Auto Transition
+description: A sprite animating position during update using tween auto shorthand.
+specs:
+  - sprite should move from (120, 100) to (520, 340)
+  - x and y should both be derived from the next state
+  - animation should take 1 second
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: sprite1
+        type: sprite
+        src: circle-blue
+        x: 120
+        "y": 100
+        width: 120
+        height: 120
+        alpha: 1
+  - elements:
+      - id: sprite1
+        type: sprite
+        src: circle-blue
+        x: 520
+        "y": 340
+        width: 120
+        height: 120
+        alpha: 1
+    animations:
+      - id: sprite-move-auto
+        targetId: sprite1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear
