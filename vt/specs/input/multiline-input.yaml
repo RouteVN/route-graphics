@@ -92,10 +92,12 @@ states:
         placeholder: Add notes
         textStyle:
           fill: "#1C1C1C"
+          align: center
           fontSize: 20
           lineHeight: 28
         placeholderStyle:
           fill: "#8A8A8A"
+          align: center
           fontSize: 20
           lineHeight: 28
         background:
@@ -111,3 +113,20 @@ states:
         blurEvent:
           payload:
             action: bioBlur
+      - id: input-bio-right
+        type: input
+        multiline: true
+        value: "Right\naligned"
+        x: 430
+        "y": 140
+        width: 320
+        height: 120
+        textStyle:
+          fill: "#1C1C1C"
+          align: right
+          fontSize: 20
+          lineHeight: 28
+        background:
+          fill: "#FFFFFF"
+          strokeColor: "#1C1C1C"
+          strokeWidth: 2

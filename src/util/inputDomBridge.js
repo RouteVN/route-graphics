@@ -45,12 +45,11 @@ const setSelection = (element, start, end) => {
   }
 };
 
-const isPointerWithinEntryGeometry = ({ app, entry, event }) => {
-  const geometry = entry.options.getGeometry?.();
+const getClientGeometryRect = ({ app, geometry }) => {
   const canvas = app.canvas;
 
-  if (!geometry || !canvas) {
-    return false;
+  if (!geometry || !canvas || geometry.visible === false) {
+    return null;
   }
 
   const canvasRect = canvas.getBoundingClientRect();
@@ -58,20 +57,46 @@ const isPointerWithinEntryGeometry = ({ app, entry, event }) => {
   const rendererHeight = app.renderer?.height || canvasRect.height || 1;
   const scaleX = canvasRect.width / rendererWidth;
   const scaleY = canvasRect.height / rendererHeight;
-  const left = canvasRect.left + geometry.x * scaleX;
-  const top = canvasRect.top + geometry.y * scaleY;
-  const right = left + geometry.width * scaleX;
-  const bottom = top + geometry.height * scaleY;
+  const clipInsets = geometry.clipInsets ?? {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  };
+  const left = canvasRect.left + (geometry.x + clipInsets.left) * scaleX;
+  const top = canvasRect.top + (geometry.y + clipInsets.top) * scaleY;
+  const right =
+    canvasRect.left + (geometry.x + geometry.width - clipInsets.right) * scaleX;
+  const bottom =
+    canvasRect.top +
+    (geometry.y + geometry.height - clipInsets.bottom) * scaleY;
+
+  if (right <= left || bottom <= top) {
+    return null;
+  }
+
+  return {
+    left,
+    top,
+    right,
+    bottom,
+  };
+};
+
+const isPointerWithinEntryGeometry = ({ app, entry, event }) => {
+  const geometry = entry.options.getGeometry?.();
+  const visibleRect = getClientGeometryRect({ app, geometry });
   const clientX = event.clientX;
   const clientY = event.clientY;
 
   return (
+    Boolean(visibleRect) &&
     Number.isFinite(clientX) &&
     Number.isFinite(clientY) &&
-    clientX >= left &&
-    clientX <= right &&
-    clientY >= top &&
-    clientY <= bottom
+    clientX >= visibleRect.left &&
+    clientX <= visibleRect.right &&
+    clientY >= visibleRect.top &&
+    clientY <= visibleRect.bottom
   );
 };
 
@@ -323,6 +348,10 @@ export const createInputDomBridge = ({ app }) => {
     };
 
     element.addEventListener("focus", () => {
+      if (entry.pendingBlurTimer) {
+        clearTimeout(entry.pendingBlurTimer);
+        entry.pendingBlurTimer = null;
+      }
       activeId = id;
       applyPointerInteractivity(entry, activeId);
       const snapshot = getSnapshot(entry);
@@ -332,14 +361,23 @@ export const createInputDomBridge = ({ app }) => {
     });
 
     element.addEventListener("blur", () => {
-      const snapshot = getSnapshot(entry);
       if (activeId === id) {
         activeId = null;
       }
       applyPointerInteractivity(entry, activeId);
-      entry.lastSnapshot = snapshot;
-      entry.callbacks.onBlur?.(snapshot);
-      entry.callbacks.onSelectionChange?.(snapshot);
+      entry.pendingBlurTimer = setTimeout(() => {
+        entry.pendingBlurTimer = null;
+        const snapshot = getSnapshot(entry);
+
+        if (snapshot.focused) {
+          entry.lastSnapshot = snapshot;
+          return;
+        }
+
+        entry.lastSnapshot = snapshot;
+        entry.callbacks.onBlur?.(snapshot);
+        entry.callbacks.onSelectionChange?.(snapshot);
+      }, 0);
     });
 
     element.addEventListener("input", syncFromDom);
@@ -347,19 +385,17 @@ export const createInputDomBridge = ({ app }) => {
     element.addEventListener("click", () => queueMicrotask(syncFromDom));
     element.addEventListener("keyup", () => queueMicrotask(syncFromDom));
     element.addEventListener("keydown", (event) => {
-      if (
+      const shouldSubmitSingleLine =
         event.key === "Enter" &&
         entry.options.multiline !== true &&
-        !event.shiftKey
-      ) {
-        entry.callbacks.onSubmit?.(getSnapshot(entry), event);
-      }
-
-      if (
+        !event.shiftKey;
+      const shouldSubmitMultiline =
         event.key === "Enter" &&
         entry.options.multiline === true &&
-        (event.ctrlKey || event.metaKey)
-      ) {
+        (event.ctrlKey || event.metaKey);
+
+      if (shouldSubmitSingleLine || shouldSubmitMultiline) {
+        event.preventDefault();
         entry.callbacks.onSubmit?.(getSnapshot(entry), event);
       }
 
@@ -418,6 +454,7 @@ export const createInputDomBridge = ({ app }) => {
       options,
       callbacks: options.callbacks ?? {},
       composing: false,
+      pendingBlurTimer: null,
       lastSnapshot: null,
     };
 
@@ -517,34 +554,39 @@ export const createInputDomBridge = ({ app }) => {
 
     if (!entry || entry.element.disabled) return;
 
-    setTimeout(() => {
-      activeId = id;
-      applyPointerInteractivity(entry, activeId);
+    const isAlreadyFocused = document.activeElement === entry.element;
+
+    activeId = id;
+    applyPointerInteractivity(entry, activeId);
+    if (!isAlreadyFocused) {
       entry.element.focus();
-      if (selectAll) {
-        entry.element.select?.();
-        return;
-      }
+    }
 
-      if (
-        typeof selectionStart === "number" ||
+    if (selectAll) {
+      entry.element.select?.();
+      notifySnapshot(entry, entry.lastSnapshot);
+      return;
+    }
+
+    if (
+      typeof selectionStart === "number" ||
+      typeof selectionEnd === "number"
+    ) {
+      const start =
+        typeof selectionStart === "number"
+          ? selectionStart
+          : getSelectionValue(entry.element, "selectionStart");
+      const end =
         typeof selectionEnd === "number"
-      ) {
-        const start =
-          typeof selectionStart === "number"
+          ? selectionEnd
+          : typeof selectionStart === "number"
             ? selectionStart
-            : getSelectionValue(entry.element, "selectionStart");
-        const end =
-          typeof selectionEnd === "number"
-            ? selectionEnd
-            : typeof selectionStart === "number"
-              ? selectionStart
-              : getSelectionValue(entry.element, "selectionEnd");
+            : getSelectionValue(entry.element, "selectionEnd");
 
-        setSelection(entry.element, start, end);
-        notifySnapshot(entry, entry.lastSnapshot);
-      }
-    }, 0);
+      setSelection(entry.element, start, end);
+    }
+
+    notifySnapshot(entry, entry.lastSnapshot);
   };
 
   const updateSelection = (id, start, end = start, { focus = false } = {}) => {
@@ -559,7 +601,7 @@ export const createInputDomBridge = ({ app }) => {
 
     if (focus && document.activeElement !== entry.element) {
       entry.element.focus();
-      queueMicrotask(applySelection);
+      applySelection();
       return;
     }
 
@@ -581,6 +623,11 @@ export const createInputDomBridge = ({ app }) => {
       activeId = null;
     }
 
+    if (entry.pendingBlurTimer) {
+      clearTimeout(entry.pendingBlurTimer);
+      entry.pendingBlurTimer = null;
+    }
+
     entry.element.remove();
     entries.delete(id);
 
@@ -594,6 +641,10 @@ export const createInputDomBridge = ({ app }) => {
     app.ticker?.remove?.(tick);
 
     for (const entry of entries.values()) {
+      if (entry.pendingBlurTimer) {
+        clearTimeout(entry.pendingBlurTimer);
+        entry.pendingBlurTimer = null;
+      }
       entry.element.remove();
     }
 

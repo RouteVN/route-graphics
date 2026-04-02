@@ -42,6 +42,9 @@ const createCallbacks = ({ element, runtime, eventHandler }) => ({
     });
   },
   onFocus: (snapshot) => {
+    const wasFocused = runtime.nativeFocused === true;
+
+    runtime.nativeFocused = true;
     runtime.focused = true;
     runtime.selectionStart = snapshot.selectionStart;
     runtime.selectionEnd = snapshot.selectionEnd;
@@ -52,6 +55,9 @@ const createCallbacks = ({ element, runtime, eventHandler }) => ({
     runtime.blinkVisible = true;
     runtime.blinkTick = 0;
     syncInputView(runtime, element);
+    if (wasFocused) {
+      return;
+    }
     emitInputEvent({
       eventHandler,
       eventName: "focus",
@@ -61,6 +67,7 @@ const createCallbacks = ({ element, runtime, eventHandler }) => ({
     });
   },
   onBlur: (snapshot) => {
+    runtime.nativeFocused = false;
     runtime.focused = false;
     runtime.selectionStart = snapshot.selectionStart;
     runtime.selectionEnd = snapshot.selectionEnd;
@@ -76,6 +83,7 @@ const createCallbacks = ({ element, runtime, eventHandler }) => ({
     });
   },
   onSelectionChange: (snapshot) => {
+    runtime.nativeFocused = snapshot.focused;
     runtime.focused = snapshot.focused;
     runtime.selectionStart = snapshot.selectionStart;
     runtime.selectionEnd = snapshot.selectionEnd;

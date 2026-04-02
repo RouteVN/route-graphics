@@ -74,4 +74,30 @@ describe("inputShared hit testing", () => {
 
     expect(secondLineIndex).toBeGreaterThanOrEqual(6);
   });
+
+  it("honors multiline text alignment for rendering and hit testing", () => {
+    const { runtime } = createRuntime({
+      multiline: true,
+      value: "Hi\nWorld",
+      textStyle: {
+        align: "center",
+        fontSize: 20,
+        lineHeight: 28,
+      },
+    });
+
+    const [firstLineNode, secondLineNode] = runtime.text.children;
+    const secondLineStartIndex = runtime.layoutState.layout.lines[1].startIndex;
+    const actualSecondLineStartX = runtime.text.x + secondLineNode.x;
+    const actualSecondLineY = runtime.text.y + secondLineNode.y;
+
+    expect(firstLineNode.x).toBeGreaterThan(0);
+    expect(secondLineNode.x).toBeGreaterThan(0);
+    expect(
+      getInputIndexFromLocalPoint(runtime, {
+        x: actualSecondLineStartX + 1,
+        y: actualSecondLineY + runtime.layoutState.layout.lineHeight / 2,
+      }),
+    ).toBe(secondLineStartIndex);
+  });
 });

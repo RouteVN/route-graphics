@@ -118,6 +118,56 @@ describe("input plugin", () => {
     expect(bridgeState.updateArgs[1].value).toBe("native text");
   });
 
+  it("emits focus only once while the field stays focused across repeated native focus callbacks", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const { app, bridgeState } = createApp();
+    const element = parseInput({
+      state: {
+        id: "name",
+        type: "input",
+        x: 20,
+        y: 40,
+        width: 200,
+        height: 44,
+        focusEvent: {
+          payload: {
+            source: "input",
+          },
+        },
+      },
+    });
+
+    addInput({
+      app,
+      parent,
+      element,
+      eventHandler,
+      zIndex: 0,
+    });
+
+    const { callbacks } = bridgeState.mountArgs[1];
+
+    callbacks.onFocus({
+      value: "",
+      selectionStart: 0,
+      selectionEnd: 0,
+      focused: true,
+      composing: false,
+    });
+    callbacks.onFocus({
+      value: "",
+      selectionStart: 0,
+      selectionEnd: 0,
+      focused: true,
+      composing: false,
+    });
+
+    expect(
+      eventHandler.mock.calls.filter(([eventName]) => eventName === "focus"),
+    ).toHaveLength(1);
+  });
+
   it("passes multiline fields through to the DOM bridge and updates their transform", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
@@ -212,6 +262,7 @@ describe("input plugin", () => {
         selectionEnd: expect.any(Number),
       }),
     );
+    expect(app.inputDomBridge.focus).toHaveBeenCalledTimes(1);
 
     inputContainer.emit("globalpointermove", {
       global: { x: 120, y: 52 },
@@ -222,5 +273,9 @@ describe("input plugin", () => {
       expect.any(Number),
       expect.any(Number),
     );
+
+    inputContainer.emit("pointerup", {
+      global: { x: 120, y: 52 },
+    });
   });
 });

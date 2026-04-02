@@ -1,4 +1,10 @@
-import { CanvasTextMetrics, Graphics, Text, TextStyle } from "pixi.js";
+import {
+  CanvasTextMetrics,
+  Container,
+  Graphics,
+  Text,
+  TextStyle,
+} from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 
@@ -349,6 +355,66 @@ const getCaretLocationFromValue = ({ value, index }) => {
 const getTextLineX = ({ contentWidth, lineWidth, align }) =>
   getHorizontalOffset(contentWidth, lineWidth, align);
 
+const createTextNode = (label) =>
+  new Text({
+    label,
+    text: "",
+  });
+
+const ensureTextLineNodes = (runtime, count) => {
+  while (runtime.textNodes.length < count) {
+    const node = createTextNode(
+      `${runtime.element.id}-text-line-${runtime.textNodes.length}`,
+    );
+
+    runtime.text.addChild(node);
+    runtime.textNodes.push(node);
+  }
+
+  while (runtime.textNodes.length > count) {
+    const node = runtime.textNodes.pop();
+
+    node?.removeFromParent();
+    node?.destroy();
+  }
+};
+
+const getSingleLineTextOffsetX = ({
+  contentWidth,
+  lineWidth,
+  align,
+  scrollOffsetX,
+}) =>
+  lineWidth > contentWidth
+    ? -scrollOffsetX
+    : getTextLineX({
+        contentWidth,
+        lineWidth,
+        align,
+      });
+
+const getMultilineLineOffsetX = ({ contentWidth, lineWidth, align }) =>
+  getTextLineX({
+    contentWidth,
+    lineWidth,
+    align,
+  });
+
+const getMultilineLineOriginX = ({
+  padding,
+  contentWidth,
+  lineWidth,
+  align,
+  scrollOffsetX,
+}) =>
+  padding.left +
+  getMultilineLineOffsetX({
+    contentWidth,
+    lineWidth,
+    align,
+  }) -
+  scrollOffsetX;
+
 export const createInputDisplay = (element) => {
   const background = new Graphics();
   background.label = `${element.id}-background`;
@@ -356,10 +422,8 @@ export const createInputDisplay = (element) => {
   const selection = new Graphics();
   selection.label = `${element.id}-selection`;
 
-  const text = new Text({
-    label: `${element.id}-text`,
-    text: "",
-  });
+  const text = new Container();
+  text.label = `${element.id}-text`;
 
   const placeholder = new Text({
     label: `${element.id}-placeholder`,
@@ -395,6 +459,7 @@ export const buildInputRuntime = ({ app, container, display, element }) => ({
   selectionStart: normalizeInputValue(element.value ?? "").length,
   selectionEnd: normalizeInputValue(element.value ?? "").length,
   focused: false,
+  nativeFocused: false,
   composing: false,
   blinkVisible: true,
   blinkTick: 0,
@@ -402,6 +467,7 @@ export const buildInputRuntime = ({ app, container, display, element }) => ({
   scrollOffsetY: 0,
   selectionAnchor: null,
   draggingSelection: false,
+  textNodes: [],
   layoutState: null,
   lastExternalValue: normalizeInputValue(element.value ?? ""),
   tickerListener: null,
@@ -492,8 +558,17 @@ export const syncInputView = (runtime, element) => {
     align,
   };
 
-  applyTextStyle(runtime.text, textStyle);
-  runtime.text.text = layout.textValue;
+  ensureTextLineNodes(runtime, layout.lines.length);
+
+  runtime.textNodes.forEach((textNode, lineIndex) => {
+    const line = layout.lines[lineIndex] ?? {
+      text: "",
+      width: 0,
+    };
+
+    applyTextStyle(textNode, textStyle);
+    textNode.text = line.text;
+  });
 
   applyTextStyle(runtime.placeholder, placeholderStyle);
   runtime.placeholder.text = element.placeholder ?? "";
@@ -578,27 +653,37 @@ export const syncInputView = (runtime, element) => {
     }
   }
 
-  const baseTextX = padding.left - runtime.scrollOffsetX;
-  const baseTextY = padding.top - runtime.scrollOffsetY;
-
   if (element.multiline) {
-    runtime.text.x = baseTextX;
-    runtime.text.y = baseTextY;
+    runtime.text.x = padding.left - runtime.scrollOffsetX;
+    runtime.text.y = padding.top - runtime.scrollOffsetY;
+
+    runtime.textNodes.forEach((textNode, lineIndex) => {
+      const line = layout.lines[lineIndex] ?? {
+        width: 0,
+      };
+
+      textNode.x = getMultilineLineOffsetX({
+        contentWidth,
+        lineWidth: line.width,
+        align,
+      });
+      textNode.y = lineIndex * layout.lineHeight;
+    });
   } else {
     const line = layout.lines[0];
-    const textOffsetX =
-      line.width > contentWidth
-        ? -runtime.scrollOffsetX
-        : getTextLineX({
-            contentWidth,
-            lineWidth: line.width,
-            align,
-          });
-    const textY =
-      padding.top + Math.max(0, (contentHeight - runtime.text.height) / 2);
+    const textNode = runtime.textNodes[0];
+    const textOffsetX = getSingleLineTextOffsetX({
+      contentWidth,
+      lineWidth: line.width,
+      align,
+      scrollOffsetX: runtime.scrollOffsetX,
+    });
 
+    textNode.x = 0;
+    textNode.y = 0;
     runtime.text.x = padding.left + textOffsetX;
-    runtime.text.y = textY;
+    runtime.text.y =
+      padding.top + Math.max(0, (contentHeight - textNode.height) / 2);
   }
 
   const placeholderMetrics = CanvasTextMetrics.measureText(
@@ -612,7 +697,7 @@ export const syncInputView = (runtime, element) => {
     : padding.top +
       Math.max(0, (contentHeight - runtime.placeholder.height) / 2);
 
-  if (!element.multiline && placeholderMetrics.width <= contentWidth) {
+  if (placeholderMetrics.width <= contentWidth) {
     runtime.placeholder.x += getTextLineX({
       contentWidth,
       lineWidth: placeholderMetrics.width,
@@ -668,14 +753,12 @@ export const syncInputView = (runtime, element) => {
   ) {
     if (!element.multiline) {
       const line = layout.lines[0];
-      const lineOffsetX =
-        line.width > contentWidth
-          ? -runtime.scrollOffsetX
-          : getTextLineX({
-              contentWidth,
-              lineWidth: line.width,
-              align,
-            });
+      const lineOffsetX = getSingleLineTextOffsetX({
+        contentWidth,
+        lineWidth: line.width,
+        align,
+        scrollOffsetX: runtime.scrollOffsetX,
+      });
       const startX =
         padding.left +
         lineOffsetX +
@@ -719,13 +802,21 @@ export const syncInputView = (runtime, element) => {
             ? endLocation.column
             : line.text.length;
         const startX =
-          padding.left +
-          measureWidth(line.text.slice(0, lineStartColumn), textStyle) -
-          runtime.scrollOffsetX;
+          getMultilineLineOriginX({
+            padding,
+            contentWidth,
+            lineWidth: line.width,
+            align,
+            scrollOffsetX: runtime.scrollOffsetX,
+          }) + measureWidth(line.text.slice(0, lineStartColumn), textStyle);
         const endX =
-          padding.left +
-          measureWidth(line.text.slice(0, lineEndColumn), textStyle) -
-          runtime.scrollOffsetX;
+          getMultilineLineOriginX({
+            padding,
+            contentWidth,
+            lineWidth: line.width,
+            align,
+            scrollOffsetX: runtime.scrollOffsetX,
+          }) + measureWidth(line.text.slice(0, lineEndColumn), textStyle);
         const lineY =
           padding.top + lineIndex * layout.lineHeight - runtime.scrollOffsetY;
 
@@ -754,14 +845,12 @@ export const syncInputView = (runtime, element) => {
   ) {
     if (!element.multiline) {
       const line = layout.lines[0];
-      const lineOffsetX =
-        line.width > contentWidth
-          ? -runtime.scrollOffsetX
-          : getTextLineX({
-              contentWidth,
-              lineWidth: line.width,
-              align,
-            });
+      const lineOffsetX = getSingleLineTextOffsetX({
+        contentWidth,
+        lineWidth: line.width,
+        align,
+        scrollOffsetX: runtime.scrollOffsetX,
+      });
       const caretX =
         padding.left +
         lineOffsetX +
@@ -782,12 +871,17 @@ export const syncInputView = (runtime, element) => {
       });
       const caretLine = layout.lines[caretLocation.line] ?? layout.lines.at(-1);
       const caretX =
-        padding.left +
+        getMultilineLineOriginX({
+          padding,
+          contentWidth,
+          lineWidth: caretLine?.width ?? 0,
+          align,
+          scrollOffsetX: runtime.scrollOffsetX,
+        }) +
         measureWidth(
           (caretLine?.text ?? "").slice(0, caretLocation.column),
           textStyle,
-        ) -
-        runtime.scrollOffsetX;
+        );
       const caretY =
         padding.top +
         caretLocation.line * layout.lineHeight -
@@ -825,14 +919,12 @@ export const getInputIndexFromLocalPoint = (runtime, point) => {
       text: displayedValue,
       width: measureWidth(displayedValue, textStyle),
     };
-    const lineOffsetX =
-      line.width > contentWidth
-        ? -runtime.scrollOffsetX
-        : getTextLineX({
-            contentWidth,
-            lineWidth: line.width,
-            align,
-          });
+    const lineOffsetX = getSingleLineTextOffsetX({
+      contentWidth,
+      lineWidth: line.width,
+      align,
+      scrollOffsetX: runtime.scrollOffsetX,
+    });
     const textOriginX = padding.left + lineOffsetX;
 
     return getNearestTextIndex({
@@ -855,7 +947,15 @@ export const getInputIndexFromLocalPoint = (runtime, point) => {
   const column = getNearestTextIndex({
     text: line.text,
     style: textStyle,
-    targetX: localX - padding.left + runtime.scrollOffsetX,
+    targetX:
+      localX -
+      getMultilineLineOriginX({
+        padding,
+        contentWidth,
+        lineWidth: line.width ?? 0,
+        align,
+        scrollOffsetX: runtime.scrollOffsetX,
+      }),
   });
 
   return line.startIndex + column;

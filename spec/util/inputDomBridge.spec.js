@@ -143,4 +143,194 @@ describe("inputDomBridge", () => {
 
     bridge.destroy();
   });
+
+  it("focuses synchronously when asked to focus from pointer-driven selection", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+
+    const input = bridge.mount("name", {
+      value: "hello",
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks: {},
+    });
+
+    bridge.focus("name", {
+      selectionStart: 1,
+      selectionEnd: 4,
+    });
+
+    expect(document.activeElement).toBe(input);
+    expect(input.selectionStart).toBe(1);
+    expect(input.selectionEnd).toBe(4);
+
+    bridge.destroy();
+  });
+
+  it("does not emit duplicate focus callbacks when focus is requested twice on the active input", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+    const callbacks = {
+      onFocus: vi.fn(),
+    };
+
+    bridge.mount("name", {
+      value: "hello",
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks,
+    });
+
+    bridge.focus("name", {
+      selectionStart: 1,
+      selectionEnd: 1,
+    });
+    bridge.focus("name", {
+      selectionStart: 1,
+      selectionEnd: 1,
+    });
+
+    expect(callbacks.onFocus).toHaveBeenCalledTimes(1);
+
+    bridge.destroy();
+  });
+
+  it("prevents native default submission when Enter submits a single-line input", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+    const callbacks = {
+      onSubmit: vi.fn(),
+    };
+
+    const input = bridge.mount("name", {
+      value: "abc",
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks,
+    });
+
+    input.focus();
+
+    const event = new KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    });
+
+    input.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(callbacks.onSubmit).toHaveBeenCalledTimes(1);
+
+    bridge.destroy();
+  });
+
+  it("blurs when the pointer lands inside the unclipped box but outside the visible clipped region", () => {
+    vi.useFakeTimers();
+
+    try {
+      const { app } = createApp();
+      const bridge = createInputDomBridge({ app });
+      const callbacks = {
+        onBlur: vi.fn(),
+      };
+
+      const input = bridge.mount("name", {
+        value: "abc",
+        padding: { top: 1, right: 1, bottom: 1, left: 1 },
+        textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+        getGeometry: () => ({
+          x: 10,
+          y: 20,
+          width: 80,
+          height: 40,
+          visible: true,
+          clipInsets: {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 30,
+          },
+        }),
+        callbacks,
+      });
+
+      input.focus();
+      document.body.dispatchEvent(
+        new MouseEvent("pointerdown", {
+          bubbles: true,
+          clientX: 60,
+          clientY: 100,
+        }),
+      );
+      vi.runAllTimers();
+
+      expect(callbacks.onBlur).toHaveBeenCalledTimes(1);
+
+      bridge.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("suppresses transient blur callbacks when the input is immediately refocused", () => {
+    vi.useFakeTimers();
+
+    try {
+      const { app } = createApp();
+      const bridge = createInputDomBridge({ app });
+      const callbacks = {
+        onBlur: vi.fn(),
+      };
+
+      const input = bridge.mount("name", {
+        value: "abc",
+        padding: { top: 1, right: 1, bottom: 1, left: 1 },
+        textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+        getGeometry: () => ({
+          x: 0,
+          y: 0,
+          width: 50,
+          height: 25,
+          visible: true,
+        }),
+        callbacks,
+      });
+
+      input.focus();
+      input.blur();
+      bridge.focus("name", {
+        selectionStart: 3,
+        selectionEnd: 3,
+      });
+      vi.runAllTimers();
+
+      expect(callbacks.onBlur).not.toHaveBeenCalled();
+
+      bridge.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
