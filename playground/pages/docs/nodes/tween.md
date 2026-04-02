@@ -15,16 +15,16 @@ Try it in the [Playground](/playground/?template=animations-showcase).
 
 ## Field Reference
 
-| Field      | Type   | Required | Default | Notes                                                              |
-| ---------- | ------ | -------- | ------- | ------------------------------------------------------------------ |
-| `id`       | string | Yes      | -       | Animation id.                                                      |
-| `targetId` | string | Yes      | -       | Must match an element id in the same render state.                 |
-| `type`     | string | Yes      | -       | One of `update` or `transition`.                                   |
-| `tween`    | object | Update   | -       | Required for `type: update`.                                       |
-| `prev`     | object | Transition | -     | Optional for `type: transition`; drives the previous captured visual. |
-| `next`     | object | Transition | -     | Optional for `type: transition`; drives the next captured visual.     |
-| `mask`     | object | Transition | -     | Optional for `type: transition`; image-driven reveal field.           |
-| `complete` | object | No       | -       | Schema supports it, runtime completion is still tracked globally.  |
+| Field      | Type   | Required   | Default | Notes                                                                 |
+| ---------- | ------ | ---------- | ------- | --------------------------------------------------------------------- |
+| `id`       | string | Yes        | -       | Animation id.                                                         |
+| `targetId` | string | Yes        | -       | Must match an element id in the same render state.                    |
+| `type`     | string | Yes        | -       | One of `update` or `transition`.                                      |
+| `tween`    | object | Update     | -       | Required for `type: update`.                                          |
+| `prev`     | object | Transition | -       | Optional for `type: transition`; drives the previous captured visual. |
+| `next`     | object | Transition | -       | Optional for `type: transition`; drives the next captured visual.     |
+| `mask`     | object | Transition | -       | Optional for `type: transition`; image-driven reveal field.           |
+| `complete` | object | No         | -       | Schema supports it, runtime completion is still tracked globally.     |
 
 ## Types
 
@@ -44,6 +44,8 @@ These properties are valid on `type: update`:
 
 Each property accepts:
 
+1. Manual keyframes:
+
 | Field          | Type   | Required | Default               | Notes                                 |
 | -------------- | ------ | -------- | --------------------- | ------------------------------------- |
 | `initialValue` | number | No       | current element value | Starting value before first keyframe. |
@@ -51,12 +53,27 @@ Each property accepts:
 
 Each keyframe accepts:
 
-| Field      | Type    | Required | Default | Notes                                                                                                                                                                   |
-| ---------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`    | number  | Yes      | -       | Target value.                                                                                                                                                           |
-| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                                                                    |
+| Field      | Type    | Required | Default | Notes                                                                                                                  |
+| ---------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `value`    | number  | Yes      | -       | Target value.                                                                                                          |
+| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                   |
 | `easing`   | string  | Yes      | -       | Supports `linear` and the Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` variants. |
-| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                                                                     |
+| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                    |
+
+2. Automatic end-value shorthand:
+
+| Field  | Type   | Required | Default | Notes                                                             |
+| ------ | ------ | -------- | ------- | ----------------------------------------------------------------- |
+| `auto` | object | Yes      | -       | Generates one tween segment from the current value to next state. |
+
+`auto` accepts:
+
+| Field      | Type   | Required | Default  | Notes                                 |
+| ---------- | ------ | -------- | -------- | ------------------------------------- |
+| `duration` | number | Yes      | -        | Milliseconds for the generated tween. |
+| `easing`   | string | No       | `linear` | Same easing list as manual keyframes. |
+
+`keyframes` and `auto` are mutually exclusive for the same property.
 
 `update` is update-only. Do not use it for enter, exit, or replace lifecycles.
 Higher-level adapters should reject that and require `transition` instead.
@@ -153,6 +170,24 @@ animations:
           - value: 1
             duration: 300
             easing: linear
+```
+
+## Example: Update Motion With `auto`
+
+```yaml
+animations:
+  - id: card-shift
+    targetId: card-1
+    type: update
+    tween:
+      x:
+        auto:
+          duration: 450
+          easing: easeOutQuad
+      y:
+        auto:
+          duration: 450
+          easing: easeOutQuad
 ```
 
 ## Example: Relative Keyframes

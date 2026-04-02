@@ -60,6 +60,10 @@ $defs:
         default: false
     additionalProperties: false
   tweenProperty:
+    oneOf:
+      - $ref: "#/$defs/manualTweenProperty"
+      - $ref: "#/$defs/autoTweenProperty"
+  manualTweenProperty:
     type: object
     properties:
       initialValue:
@@ -72,6 +76,58 @@ $defs:
           $ref: "#/$defs/keyframe"
     required:
       - keyframes
+    additionalProperties: false
+  autoTweenConfig:
+    type: object
+    properties:
+      duration:
+        type: number
+        description: Duration in milliseconds for the generated tween.
+      easing:
+        type: string
+        description: Easing function to use.
+        enum:
+          - linear
+          - easeInQuad
+          - easeOutQuad
+          - easeInOutQuad
+          - easeInCubic
+          - easeOutCubic
+          - easeInOutCubic
+          - easeInQuart
+          - easeOutQuart
+          - easeInOutQuart
+          - easeInQuint
+          - easeOutQuint
+          - easeInOutQuint
+          - easeInSine
+          - easeOutSine
+          - easeInOutSine
+          - easeInExpo
+          - easeOutExpo
+          - easeInOutExpo
+          - easeInCirc
+          - easeOutCirc
+          - easeInOutCirc
+          - easeInBack
+          - easeOutBack
+          - easeInOutBack
+          - easeInBounce
+          - easeOutBounce
+          - easeInOutBounce
+          - easeInElastic
+          - easeOutElastic
+          - easeInOutElastic
+    required:
+      - duration
+    additionalProperties: false
+  autoTweenProperty:
+    type: object
+    properties:
+      auto:
+        $ref: "#/$defs/autoTweenConfig"
+    required:
+      - auto
     additionalProperties: false
   updateTween:
     type: object

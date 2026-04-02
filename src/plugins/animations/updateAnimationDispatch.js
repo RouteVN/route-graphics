@@ -68,6 +68,18 @@ export const dispatchUpdateAnimationsNow = ({
   onComplete,
 }) => {
   for (const animation of animations) {
+    for (const [property, config] of Object.entries(animation.tween)) {
+      if (
+        config.auto &&
+        (!targetState ||
+          !Object.prototype.hasOwnProperty.call(targetState, property))
+      ) {
+        throw new Error(
+          `Animation "${animation.id}" cannot auto-resolve property "${property}" from targetState.`,
+        );
+      }
+    }
+
     const stateVersion = completionTracker.getVersion();
     completionTracker.track(stateVersion);
 

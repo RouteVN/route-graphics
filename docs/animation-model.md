@@ -1,6 +1,6 @@
 # Animation Model
 
-Last updated: 2026-03-24
+Last updated: 2026-04-02
 
 See also:
 
@@ -171,8 +171,20 @@ This format is preferred because:
 
 The same payload is reused in two places:
 
-- `update.tween`
+- manual `update.tween`
 - `prev.tween` / `next.tween`
+
+`update` also supports a shorthand for the common "animate this property from
+its current live value to the next state's value" case:
+
+```yaml
+x:
+  auto:
+    duration: 450
+    easing: "easeOutQuad"
+```
+
+`keyframes` and `auto` are mutually exclusive on the same property.
 
 ## Update Example
 
@@ -188,6 +200,24 @@ animations:
           - duration: 600
             value: 220
             easing: "linear"
+```
+
+## Update Auto Example
+
+```yaml
+animations:
+  - id: "move-makkuro"
+    targetId: "makkuro"
+    type: "update"
+    tween:
+      x:
+        auto:
+          duration: 600
+          easing: "easeOutQuad"
+      y:
+        auto:
+          duration: 600
+          easing: "easeOutQuad"
 ```
 
 ## Transition Examples

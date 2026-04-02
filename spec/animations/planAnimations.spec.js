@@ -238,4 +238,45 @@ describe("dispatchUpdateAnimations", () => {
       }),
     ).toThrow("Deferred update animations do not support onComplete hooks.");
   });
+
+  it("throws before tracking when auto tween targetState is missing a property", () => {
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: vi.fn(),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    const animations = groupAnimationsByTarget([
+      {
+        id: "child-auto-update",
+        targetId: "child-1",
+        type: "update",
+        tween: {
+          x: {
+            auto: {
+              duration: 300,
+              easing: "linear",
+            },
+          },
+        },
+      },
+    ]);
+
+    expect(() =>
+      dispatchUpdateAnimations({
+        animations,
+        targetId: "child-1",
+        animationBus,
+        completionTracker,
+        element: { x: 20 },
+        targetState: { alpha: 1 },
+      }),
+    ).toThrow(
+      'Animation "child-auto-update" cannot auto-resolve property "x" from targetState.',
+    );
+
+    expect(completionTracker.track).not.toHaveBeenCalled();
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+  });
 });

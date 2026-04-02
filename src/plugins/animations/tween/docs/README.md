@@ -22,6 +22,13 @@ animations:
 
 `update` animates a single display object with `tween`.
 
+Each `tween` property can use either:
+
+- manual `keyframes`
+- shorthand `auto`
+
+`keyframes` and `auto` are mutually exclusive on the same property.
+
 Use `update` only when the same target stays mounted before and after the
 change. Do not use it for first-enter or final-exit. Those are `transition`
 cases.
@@ -52,6 +59,39 @@ states:
               - duration: 300
                 value: 1
                 easing: linear
+```
+
+Shorthand update tween:
+
+```yaml
+states:
+  - elements:
+      - id: "makkuro"
+        type: "sprite"
+        x: 640
+        y: 120
+        src: "characters/makkuro-idle.png"
+        alpha: 1
+  - elements:
+      - id: "makkuro"
+        type: "sprite"
+        x: 220
+        y: 180
+        src: "characters/makkuro-idle.png"
+        alpha: 1
+    animations:
+      - id: "makkuro-move"
+        targetId: "makkuro"
+        type: "update"
+        tween:
+          x:
+            auto:
+              duration: 300
+              easing: easeOutQuad
+          y:
+            auto:
+              duration: 300
+              easing: easeOutQuad
 ```
 
 ## Transition Animations

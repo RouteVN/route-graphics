@@ -171,6 +171,39 @@ out:
               easing: easeInCubic
   audio: []
 ---
+case: Normalize update auto tween shorthand
+in:
+  - id: state-2-auto
+    animations:
+      - id: anim-auto
+        targetId: portrait
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 180
+          y:
+            auto:
+              duration: 220
+              easing: easeOutQuad
+out:
+  id: state-2-auto
+  elements: []
+  animations:
+    - id: anim-auto
+      targetId: portrait
+      type: update
+      tween:
+        x:
+          auto:
+            duration: 180
+            easing: linear
+        y:
+          auto:
+            duration: 220
+            easing: easeOutQuad
+  audio: []
+---
 case: Throw when transitions field is provided
 in:
   - id: state-3
@@ -286,6 +319,36 @@ in:
                 value: 20
                 easing: easeInHexagon
 throws: "animations[0].tween.x.keyframes[0].easing must be one of:"
+---
+case: Throw when auto tween defines initialValue
+in:
+  - id: state-3c-auto-initial
+    animations:
+      - id: anim-auto-initial
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            initialValue: 10
+            auto:
+              duration: 100
+throws: animations[0].tween.x.initialValue is not valid when auto is defined.
+---
+case: Throw when auto tween and keyframes are both defined
+in:
+  - id: state-3c-auto-keyframes
+    animations:
+      - id: anim-auto-keyframes
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 100
+            keyframes:
+              - duration: 100
+                value: 20
+throws: animations[0].tween.x cannot define both keyframes and auto.
 ---
 case: Throw when target mixes update and transition types
 in:
