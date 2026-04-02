@@ -30,6 +30,8 @@ export const parseRect = ({ state }) => {
   return {
     ...finalObj,
     ...(state.fill !== undefined ? { fill: state.fill } : {}),
+    ...(state.scaleX !== undefined ? { scaleX: state.scaleX } : {}),
+    ...(state.scaleY !== undefined ? { scaleY: state.scaleY } : {}),
     rotation: state.rotation ?? 0,
     ...(state.drag && { drag: state.drag }),
     ...(state.rightClick && { rightClick: state.rightClick }),
