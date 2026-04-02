@@ -40,39 +40,13 @@ properties:
     type: boolean
     description: Use a native textarea and render explicit line breaks
     default: false
-  secure:
-    type: boolean
-    description: Use password-style masking
-    default: false
-  readOnly:
-    type: boolean
-    description: Prevent text editing while still allowing selection and focus
-    default: false
   disabled:
     type: boolean
     description: Disable focus and editing
     default: false
-  autofocus:
-    type: boolean
-    description: Focus the field after it mounts
-    default: false
-  debugVisible:
-    type: boolean
-    description: Render the native input visibly for debugging
-    default: false
   maxLength:
     type: number
     description: Maximum number of characters
-  inputMode:
-    type: string
-    description: Native inputmode hint
-    default: text
-  enterKeyHint:
-    type: string
-    description: Native enterKeyHint value
-  tabIndex:
-    type: number
-    description: Native tab index override
   alpha:
     type: number
     description: Opacity/transparency of the input container (0-1)
@@ -82,23 +56,8 @@ properties:
   textStyle:
     type: object
     description: Text style for rendered value
-  placeholderStyle:
-    type: object
-    description: Text style for rendered placeholder
   padding:
     description: Inner padding for the input content area
-  background:
-    type: object
-    description: Background fill and border settings
-  selectionStyle:
-    type: object
-    description: Selection highlight styling
-  caretStyle:
-    type: object
-    description: Caret styling
-  focusRing:
-    type: object
-    description: Focus ring styling
   change:
     type: object
     properties:

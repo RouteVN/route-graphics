@@ -95,15 +95,8 @@ states:
         width: 240
         height: 56
         placeholder: Your name
-        background:
-          fill: "#FFFFFF"
-          strokeColor: "#1C1C1C"
-          strokeWidth: 2
         textStyle:
           fill: "#1C1C1C"
-          fontSize: 22
-        placeholderStyle:
-          fill: "#8A8A8A"
           fontSize: 22
         focusEvent:
           payload:

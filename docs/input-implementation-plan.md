@@ -24,7 +24,7 @@ The `input` element behaves like a Route Graphics-native field with browser-back
 
 Visible behavior:
 
-- custom placeholder styling
+- Route Graphics-rendered placeholder text
 - custom text styling
 - custom caret rendering
 - custom selection highlight rendering
@@ -159,14 +159,9 @@ Current element shape:
   value: "",
   placeholder: "Your name",
   multiline: false,
-  readOnly: false,
   disabled: false,
   maxLength: 80,
-  autofocus: false,
   textStyle: {},
-  placeholderStyle: {},
-  selectionStyle: {},
-  caretStyle: {},
   padding: {
     top: 10,
     right: 12,
@@ -193,6 +188,7 @@ Intentionally omitted from the public product surface:
 - password-style masking
 - browser hint props such as `inputMode` and `enterKeyHint`
 - debug-only visibility controls
+- read-only and autofocus controls
 - built-in field background and border configuration
 - built-in focus ring configuration
 - browser-centric tab-order configuration

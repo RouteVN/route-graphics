@@ -308,22 +308,10 @@
  * @property {string} value
  * @property {string} placeholder
  * @property {boolean} multiline
- * @property {boolean} secure
- * @property {boolean} readOnly
  * @property {boolean} disabled
- * @property {boolean} autofocus
- * @property {boolean} debugVisible
  * @property {number} [maxLength]
- * @property {string} inputMode
- * @property {string} [enterKeyHint]
- * @property {number} [tabIndex]
  * @property {Object} textStyle
- * @property {Object} placeholderStyle
  * @property {InputPadding} padding
- * @property {Object} background
- * @property {Object} selectionStyle
- * @property {Object} caretStyle
- * @property {Object} focusRing
  * @property {Object} [change]
  * @property {Object} [submit]
  * @property {Object} [focusEvent]

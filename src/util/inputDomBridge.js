@@ -154,15 +154,9 @@ export const createInputDomBridge = ({ app }) => {
 
   const updateElementAttributes = (entry) => {
     const {
-      debugVisible = false,
       disabled = false,
-      readOnly = false,
-      secure = false,
       multiline = false,
       maxLength,
-      inputMode,
-      enterKeyHint,
-      tabIndex,
       textStyle,
       padding,
       placeholder = "",
@@ -173,25 +167,18 @@ export const createInputDomBridge = ({ app }) => {
     const { element } = entry;
 
     if (element instanceof HTMLInputElement) {
-      element.type = secure ? "password" : "text";
+      element.type = "text";
     }
 
     element.disabled = disabled;
-    element.readOnly = readOnly;
     element.placeholder = placeholder;
     element.autocomplete = autocomplete;
     element.autocapitalize = autocapitalize;
     element.spellcheck = Boolean(spellcheck);
-    element.style.opacity = debugVisible ? "1" : DEFAULT_HIDDEN_OPACITY;
-    element.style.color = debugVisible
-      ? String(textStyle?.fill ?? "#000000")
-      : "transparent";
-    element.style.caretColor = debugVisible
-      ? String(textStyle?.fill ?? "#000000")
-      : "transparent";
-    element.style.background = debugVisible
-      ? "rgba(255,255,255,0.85)"
-      : "transparent";
+    element.style.opacity = DEFAULT_HIDDEN_OPACITY;
+    element.style.color = "transparent";
+    element.style.caretColor = "transparent";
+    element.style.background = "transparent";
     element.style.paddingTop = `${padding.top}px`;
     element.style.paddingRight = `${padding.right}px`;
     element.style.paddingBottom = `${padding.bottom}px`;
@@ -215,23 +202,7 @@ export const createInputDomBridge = ({ app }) => {
       element.removeAttribute("maxLength");
     }
 
-    if (typeof inputMode === "string" && inputMode.length > 0) {
-      element.inputMode = inputMode;
-    } else {
-      element.removeAttribute("inputmode");
-    }
-
-    if (typeof enterKeyHint === "string" && enterKeyHint.length > 0) {
-      element.enterKeyHint = enterKeyHint;
-    } else {
-      element.removeAttribute("enterkeyhint");
-    }
-
-    if (typeof tabIndex === "number") {
-      element.tabIndex = tabIndex;
-    } else {
-      element.tabIndex = disabled ? -1 : 0;
-    }
+    element.tabIndex = -1;
 
     if (multiline && element instanceof HTMLTextAreaElement) {
       element.wrap = "off";
@@ -469,13 +440,6 @@ export const createInputDomBridge = ({ app }) => {
     entries.set(id, entry);
     syncGeometry(entry);
     entry.lastSnapshot = getSnapshot(entry);
-
-    if (options.autofocus === true && !options.disabled) {
-      queueMicrotask(() => {
-        entry.element.focus();
-        entry.element.select?.();
-      });
-    }
 
     return entry.element;
   };

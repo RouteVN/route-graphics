@@ -94,9 +94,6 @@ export const resolvePadding = (padding) => {
   };
 };
 
-export const maskInputValue = (value, secure) =>
-  secure ? "*".repeat(String(value ?? "").length) : String(value ?? "");
-
 const normalizeInputValue = (value) =>
   String(value ?? "")
     .replace(/\r\n/g, "\n")
@@ -518,13 +515,12 @@ export const syncInputView = (runtime, element) => {
     {
       ...element.textStyle,
       fill: "#7A7A7A",
-      ...element.placeholderStyle,
     },
     {
       wordWrapWidth: contentWidth,
     },
   );
-  const displayedValue = maskInputValue(runtime.value, element.secure);
+  const displayedValue = String(runtime.value ?? "");
   const layout = getLayout({
     element,
     displayedValue,
@@ -711,27 +707,27 @@ export const syncInputView = (runtime, element) => {
   runtime.background.clear();
   runtime.background.rect(0, 0, element.width, element.height);
   runtime.background.fill({
-    color: element.background.fill,
-    alpha: element.background.fillAlpha,
+    color: DEFAULT_INPUT_BACKGROUND.fill,
+    alpha: DEFAULT_INPUT_BACKGROUND.fillAlpha,
   });
 
-  if (element.background.strokeWidth > 0) {
+  if (DEFAULT_INPUT_BACKGROUND.strokeWidth > 0) {
     runtime.background.stroke({
-      color: element.background.strokeColor,
-      alpha: element.background.strokeAlpha,
-      width: element.background.strokeWidth,
+      color: DEFAULT_INPUT_BACKGROUND.strokeColor,
+      alpha: DEFAULT_INPUT_BACKGROUND.strokeAlpha,
+      width: DEFAULT_INPUT_BACKGROUND.strokeWidth,
     });
   }
 
   if (
     runtime.focused &&
-    element.focusRing.strokeWidth > 0 &&
+    DEFAULT_INPUT_FOCUS_RING.strokeWidth > 0 &&
     element.disabled !== true
   ) {
     runtime.background.stroke({
-      color: element.focusRing.strokeColor,
-      alpha: element.focusRing.strokeAlpha,
-      width: element.focusRing.strokeWidth,
+      color: DEFAULT_INPUT_FOCUS_RING.strokeColor,
+      alpha: DEFAULT_INPUT_FOCUS_RING.strokeAlpha,
+      width: DEFAULT_INPUT_FOCUS_RING.strokeWidth,
     });
   }
 
@@ -830,8 +826,8 @@ export const syncInputView = (runtime, element) => {
     }
 
     runtime.selection.fill({
-      color: element.selectionStyle.fill,
-      alpha: element.selectionStyle.alpha,
+      color: DEFAULT_INPUT_SELECTION_STYLE.fill,
+      alpha: DEFAULT_INPUT_SELECTION_STYLE.alpha,
     });
   }
 
@@ -861,7 +857,7 @@ export const syncInputView = (runtime, element) => {
       runtime.caret.rect(
         caretX,
         caretY,
-        element.caretStyle.width,
+        DEFAULT_INPUT_CARET_STYLE.width,
         Math.max(runtime.text.height, textStyle.lineHeight),
       );
     } else {
@@ -890,13 +886,13 @@ export const syncInputView = (runtime, element) => {
       runtime.caret.rect(
         caretX,
         caretY,
-        element.caretStyle.width,
+        DEFAULT_INPUT_CARET_STYLE.width,
         layout.lineHeight,
       );
     }
 
     runtime.caret.fill({
-      color: element.caretStyle.fill,
+      color: DEFAULT_INPUT_CARET_STYLE.fill,
       alpha: 1,
     });
   }

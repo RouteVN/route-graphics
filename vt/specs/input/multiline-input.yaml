@@ -95,15 +95,6 @@ states:
           align: center
           fontSize: 20
           lineHeight: 28
-        placeholderStyle:
-          fill: "#8A8A8A"
-          align: center
-          fontSize: 20
-          lineHeight: 28
-        background:
-          fill: "#FFFFFF"
-          strokeColor: "#1C1C1C"
-          strokeWidth: 2
         focusEvent:
           payload:
             action: bioFocus
@@ -126,7 +117,3 @@ states:
           align: right
           fontSize: 20
           lineHeight: 28
-        background:
-          fill: "#FFFFFF"
-          strokeColor: "#1C1C1C"
-          strokeWidth: 2
