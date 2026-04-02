@@ -1,0 +1,108 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Input Element
+description: Schema for input element raw input
+type: object
+required:
+  - id
+  - type
+  - x
+  - y
+  - width
+  - height
+properties:
+  id:
+    type: string
+    description: Unique identifier for the input element
+  type:
+    const: input
+    description: Element type, must be 'input'
+  x:
+    type: number
+    description: X position of the input
+  y:
+    type: number
+    description: Y position of the input
+  width:
+    type: number
+    description: Width of the input field
+  height:
+    type: number
+    description: Height of the input field
+  value:
+    type: string
+    description: Input value
+    default: ""
+  placeholder:
+    type: string
+    description: Placeholder text
+    default: ""
+  multiline:
+    type: boolean
+    description: Use a native textarea and render explicit line breaks
+    default: false
+  disabled:
+    type: boolean
+    description: Disable focus and editing
+    default: false
+  maxLength:
+    type: number
+    description: Maximum number of characters
+  alpha:
+    type: number
+    description: Opacity/transparency of the input container (0-1)
+    minimum: 0
+    maximum: 1
+    default: 1
+  textStyle:
+    type: object
+    description: Text style for rendered value
+  padding:
+    description: Inner padding for the input content area
+  change:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for change event
+  submit:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for submit event
+  focusEvent:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for focus event
+  blurEvent:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for blur event
+  selectionChange:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for selectionChange event
+  compositionStart:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for compositionStart event
+  compositionUpdate:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for compositionUpdate event
+  compositionEnd:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for compositionEnd event

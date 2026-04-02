@@ -158,7 +158,9 @@
         }
       }
     </style>
-    <script id="vt-state" type="text/plain">{{ content }}</script>
+    <script id="vt-state" type="text/plain">
+      {{ content }}
+    </script>
     <script type="module">
       import createRouteGraphics, {
         Assets,
@@ -168,6 +170,7 @@
         spritePlugin,
         videoPlugin,
         sliderPlugin,
+        inputPlugin,
         containerPlugin,
         textRevealingPlugin,
         animatedSpritePlugin,
@@ -326,6 +329,7 @@
           spritePlugin,
           videoPlugin,
           sliderPlugin,
+          inputPlugin,
           containerPlugin,
           textRevealingPlugin,
           animatedSpritePlugin,
@@ -342,6 +346,8 @@
       );
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
+      window.__VT_STATE_DATA__ = vtState;
+      window.__VT_STATES__ = states;
       const pager = document.createElement("nav");
       pager.className = "vt-state-pager";
       pager.setAttribute("aria-label", "State navigation");
@@ -391,6 +397,19 @@
             .getVtEvents(scope)
             .filter((event) => event.name === eventName)
             .map((event) => event.payload),
+      };
+      let vtReadySignaled = false;
+      const signalVtReady = () => {
+        if (vtReadySignaled) {
+          return;
+        }
+
+        vtReadySignaled = true;
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("vt:ready"));
+          }, 0);
+        });
       };
 
       const updatePager = () => {
@@ -443,6 +462,7 @@
           app.render(nextRenderState);
         }
         updatePager();
+        signalVtReady();
       };
 
       await app.init({
@@ -463,11 +483,10 @@
           }
           window.__VT_EVENTS__.push(eventData);
         },
-        onFirstRender: () => {
-          window.dispatchEvent(new CustomEvent("vt:ready"));
-        },
+        onFirstRender: () => {},
         debug: window?.RTGL_VT_DEBUG ?? false,
       });
+      window.__VT_ROUTE_GRAPHICS__ = app;
       await app.loadAssets(assetBufferManager.getBufferMap());
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
@@ -475,6 +494,7 @@
         renderState(index);
       } else {
         updatePager();
+        signalVtReady();
       }
 
       prevButton.addEventListener("click", () => {

@@ -295,6 +295,35 @@
  */
 
 /**
+ * @typedef {Object} InputPadding
+ * @property {number} top
+ * @property {number} right
+ * @property {number} bottom
+ * @property {number} left
+ */
+
+/**
+ * @typedef {Object} InputComputedProps
+ * @property {'input'} type
+ * @property {string} value
+ * @property {string} placeholder
+ * @property {boolean} multiline
+ * @property {boolean} disabled
+ * @property {number} [maxLength]
+ * @property {Object} textStyle
+ * @property {InputPadding} padding
+ * @property {Object} [change]
+ * @property {Object} [submit]
+ * @property {Object} [focusEvent]
+ * @property {Object} [blurEvent]
+ * @property {Object} [selectionChange]
+ * @property {Object} [compositionStart]
+ * @property {Object} [compositionUpdate]
+ * @property {Object} [compositionEnd]
+ * @typedef {ComputedNode & InputComputedProps} InputComputedNode
+ */
+
+/**
  * @typedef {Object} TextRevealingComputedProps
  * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
@@ -449,6 +478,7 @@ export const AnimationType = {
 export const ComputedNodeType = {
   RECT: "rect",
   TEXT: "text",
+  INPUT: "input",
   CONTAINER: "container",
   SPRITE: "sprite",
   TEXT_REVEALING: "text-revealing",

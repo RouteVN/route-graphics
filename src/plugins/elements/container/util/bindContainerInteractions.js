@@ -35,6 +35,21 @@ const isWithinContainer = (container, displayObject) => {
   return false;
 };
 
+const isPointWithinContainer = (container, point) => {
+  if (!point || typeof point.x !== "number" || typeof point.y !== "number") {
+    return false;
+  }
+
+  const localPoint = container.toLocal(point);
+  const hitArea = container.hitArea;
+
+  if (hitArea?.contains) {
+    return hitArea.contains(localPoint.x, localPoint.y);
+  }
+
+  return false;
+};
+
 export const bindContainerInteractions = ({
   app,
   container,
@@ -45,6 +60,7 @@ export const bindContainerInteractions = ({
   const wasInheritedPressActive = getTreeInheritedPressState(container);
   const wasInheritedRightPressActive =
     getTreeInheritedRightPressState(container);
+  let isHovered = wasInheritedHoverActive;
 
   setTreeInheritedHover({ root: container, isHovered: false });
   setTreeInheritedPress({ root: container, isPressed: false });
@@ -74,7 +90,15 @@ export const bindContainerInteractions = ({
 
   if (hasPointerInteraction) {
     container.eventMode = "static";
-    setContainerHitArea({ container, element, enabled: true });
+    if (element.scroll) {
+      if (!container.hitArea) {
+        setContainerHitArea({ container, element, enabled: true });
+      }
+    } else {
+      // Non-scroll containers should only respond through their visible
+      // children. Scroll/viewports manage their own hitArea in setupScrolling.
+      setContainerHitArea({ container, element, enabled: false });
+    }
   }
 
   if (hoverEvents) {
@@ -84,6 +108,12 @@ export const bindContainerInteractions = ({
       if (isWithinContainer(container, event?.relatedTarget)) {
         return;
       }
+
+      if (isHovered) {
+        return;
+      }
+
+      isHovered = true;
 
       if (payload && eventHandler)
         eventHandler(`hover`, {
@@ -109,6 +139,15 @@ export const bindContainerInteractions = ({
         return;
       }
 
+      if (isPointWithinContainer(container, event?.global)) {
+        return;
+      }
+
+      if (!isHovered) {
+        return;
+      }
+
+      isHovered = false;
       container.cursor = "auto";
       if (inheritToChildren) {
         setTreeInheritedHover({ root: container, isHovered: false });
