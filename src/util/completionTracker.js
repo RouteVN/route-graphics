@@ -10,6 +10,17 @@ export const createCompletionTracker = (eventHandler) => {
   let pendingCount = 0;
   let stateVersion = 0;
   let currentStateId = null;
+  let renderInProgress = false;
+  let emittedForCurrentState = false;
+
+  const emitRenderComplete = (payload) => {
+    if (emittedForCurrentState) {
+      return;
+    }
+
+    emittedForCurrentState = true;
+    eventHandler?.("renderComplete", payload);
+  };
 
   /**
    * Reset the tracker for a new render.
@@ -18,13 +29,19 @@ export const createCompletionTracker = (eventHandler) => {
    */
   const reset = (id) => {
     // If there were pending completions, the previous render was aborted
-    if (pendingCount > 0 && currentStateId !== null) {
+    if (
+      pendingCount > 0 &&
+      currentStateId !== null &&
+      !emittedForCurrentState
+    ) {
       eventHandler?.("renderComplete", { id: currentStateId, aborted: true });
     }
 
     stateVersion++;
     pendingCount = 0;
     currentStateId = id;
+    renderInProgress = true;
+    emittedForCurrentState = false;
   };
 
   /**
@@ -42,10 +59,10 @@ export const createCompletionTracker = (eventHandler) => {
    * @param {number} version - The state version when this was started
    */
   const complete = (version) => {
-    if (version !== stateVersion) return; // Stale
+    if (version !== stateVersion || pendingCount === 0) return; // Stale
     pendingCount--;
-    if (pendingCount === 0) {
-      eventHandler?.("renderComplete", { id: currentStateId, aborted: false });
+    if (pendingCount === 0 && !renderInProgress) {
+      emitRenderComplete({ id: currentStateId, aborted: false });
     }
   };
 
@@ -60,8 +77,10 @@ export const createCompletionTracker = (eventHandler) => {
    * Called after render to handle states with no animations.
    */
   const completeIfEmpty = () => {
+    renderInProgress = false;
+
     if (pendingCount === 0) {
-      eventHandler?.("renderComplete", { id: currentStateId, aborted: false });
+      emitRenderComplete({ id: currentStateId, aborted: false });
     }
   };
 

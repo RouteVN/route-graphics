@@ -225,7 +225,10 @@ const createPixiModuleMock = () => {
 
 let currentApp = null;
 
-const setupRouteGraphics = async ({ initOptions = {}, pluginsFactory } = {}) => {
+const setupRouteGraphics = async ({
+  initOptions = {},
+  pluginsFactory,
+} = {}) => {
   const pixiMock = createPixiModuleMock();
 
   vi.doMock("pixi.js", () => pixiMock);
@@ -243,13 +246,14 @@ const setupRouteGraphics = async ({ initOptions = {}, pluginsFactory } = {}) => 
   }));
 
   const resolvedPlugins = pluginsFactory
-    ? await pluginsFactory()
+    ? await pluginsFactory({ pixiMock })
     : {
         elements: [],
         animations: [],
         audio: [],
       };
-  const { default: createRouteGraphics } = await import("../src/RouteGraphics.js");
+  const { default: createRouteGraphics } =
+    await import("../src/RouteGraphics.js");
 
   const app = createRouteGraphics();
   await app.init({
@@ -377,5 +381,76 @@ describe("RouteGraphics public API", () => {
       id: "animation-only",
       aborted: false,
     });
+  });
+
+  it("emits renderComplete once per render when an element completes synchronously", async () => {
+    let routeGraphicsApp;
+    const eventHandler = vi.fn((eventName, payload) => {
+      if (
+        eventName === "renderComplete" &&
+        payload?.aborted !== true &&
+        payload?.id === "sync-complete-1"
+      ) {
+        routeGraphicsApp.render({
+          id: "sync-complete-2",
+          elements: [
+            {
+              id: "sync-complete-line-2",
+              type: "sync-complete",
+            },
+          ],
+        });
+      }
+    });
+
+    const { app } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async ({ pixiMock }) => {
+        const syncCompletePlugin = {
+          type: "sync-complete",
+          parse: ({ state }) => state,
+          add: ({ parent, element, completionTracker }) => {
+            const container = new pixiMock.Container();
+            container.label = element.id;
+            parent.addChild(container);
+            const version = completionTracker.getVersion();
+            completionTracker.track(version);
+            completionTracker.complete(version);
+          },
+          update: () => {},
+          delete: () => {},
+        };
+
+        return {
+          elements: [syncCompletePlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    routeGraphicsApp = app;
+
+    app.render({
+      id: "sync-complete-1",
+      elements: [
+        {
+          id: "sync-complete-line-1",
+          type: "sync-complete",
+        },
+      ],
+    });
+
+    const renderCompleteEvents = eventHandler.mock.calls.filter(
+      ([eventName, payload]) =>
+        eventName === "renderComplete" && payload?.aborted !== true,
+    );
+
+    expect(renderCompleteEvents).toEqual([
+      ["renderComplete", { id: "sync-complete-1", aborted: false }],
+      ["renderComplete", { id: "sync-complete-2", aborted: false }],
+    ]);
   });
 });
