@@ -47,6 +47,21 @@ export const updateTextRevealing = async ({
     }
 
     if (!shouldRestartReveal(prevElement, element)) {
+      if (
+        renderContext?.suppressAnimations !== true &&
+        element.revealEffect !== "none"
+      ) {
+        await runTextReveal({
+          container: textRevealingElement,
+          element,
+          completionTracker,
+          animationBus,
+          zIndex,
+          signal,
+          playback: "resume",
+        });
+      }
+
       return;
     }
 

@@ -158,4 +158,30 @@ describe("updateTextRevealing", () => {
       }),
     );
   });
+
+  it("resumes an unchanged in-flight reveal instead of leaving it frozen", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+
+    await updateTextRevealing({
+      parent,
+      prevElement: createElement(),
+      nextElement: createElement(),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext: createRenderContext(),
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "resume",
+      }),
+    );
+  });
 });
