@@ -10,20 +10,14 @@ steps:
   - action: screenshot
   - action: keypress
     key: "n"
-  - action: customEvent
-    name: "snapShotKeyFrame"
-    detail:
-      deltaMS: 480
+  - action: wait
+    ms: 500
   - action: screenshot
-  - action: customEvent
-    name: "snapShotKeyFrame"
-    detail:
-      deltaMS: 1200
+  - action: wait
+    ms: 1700
   - action: screenshot
-  - action: customEvent
-    name: "snapShotKeyFrame"
-    detail:
-      deltaMS: 2200
+  - action: wait
+    ms: 1700
   - action: screenshot
 ---
 states:
