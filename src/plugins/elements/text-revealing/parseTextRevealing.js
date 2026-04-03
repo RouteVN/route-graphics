@@ -8,6 +8,94 @@ import { DEFAULT_TEXT_STYLE } from "../../../types.js";
  */
 
 /**
+ * @param {string} character
+ * @returns {boolean}
+ */
+const isNewlineCharacter = (character) =>
+  character === "\n" || character === "\r";
+
+/**
+ * @param {string} character
+ * @returns {boolean}
+ */
+const isBreakingSpaceCharacter = (character) =>
+  typeof character === "string" && CanvasTextMetrics.isBreakingSpace(character);
+
+/**
+ * Consume the original source text that produced the first measured line.
+ * Wrapped whitespace is discarded, while explicit newline boundaries are kept.
+ *
+ * @param {string} originalText
+ * @param {string} visibleText
+ * @param {boolean} wrappedToAdditionalLines
+ * @returns {{ remainingText: string, consumedExplicitNewline: boolean }}
+ */
+const consumeMeasuredLineFromSource = (
+  originalText,
+  visibleText,
+  wrappedToAdditionalLines,
+) => {
+  let sourceIndex = 0;
+  let visibleIndex = 0;
+
+  while (
+    sourceIndex < originalText.length &&
+    visibleIndex < visibleText.length &&
+    originalText[sourceIndex] === visibleText[visibleIndex]
+  ) {
+    sourceIndex += 1;
+    visibleIndex += 1;
+  }
+
+  if (visibleIndex < visibleText.length) {
+    const fallbackIndex = Math.min(originalText.length, visibleText.length);
+
+    return {
+      remainingText: originalText.slice(fallbackIndex),
+      consumedExplicitNewline: false,
+    };
+  }
+
+  const matchedIndex = sourceIndex;
+  let nextIndex = matchedIndex;
+
+  while (
+    nextIndex < originalText.length &&
+    isBreakingSpaceCharacter(originalText[nextIndex])
+  ) {
+    nextIndex += 1;
+  }
+
+  if (isNewlineCharacter(originalText[nextIndex])) {
+    let consumedIndex = nextIndex + 1;
+
+    if (
+      originalText[nextIndex] === "\r" &&
+      originalText[nextIndex + 1] === "\n"
+    ) {
+      consumedIndex += 1;
+    }
+
+    return {
+      remainingText: originalText.slice(consumedIndex),
+      consumedExplicitNewline: true,
+    };
+  }
+
+  if (wrappedToAdditionalLines) {
+    return {
+      remainingText: originalText.slice(nextIndex),
+      consumedExplicitNewline: false,
+    };
+  }
+
+  return {
+    remainingText: originalText.slice(matchedIndex),
+    consumedExplicitNewline: false,
+  };
+};
+
+/**
  * Creates text chunks (lines) from content segments
  * @param {Array} segments - Text segments with styles
  * @param {number} wordWrapWidth - Maximum width for wrapping
@@ -29,6 +117,18 @@ const createTextChunks = (segments, wordWrapWidth) => {
     segments.reduce((sum, segment) => sum + (segment?.text?.length ?? 0), 0) *
       4,
   );
+  const pushCurrentLine = () => {
+    chunks.push({
+      lineParts: [...lineParts],
+      y,
+      lineMaxHeight,
+    });
+
+    x = 0;
+    y += lineMaxHeight;
+    lineMaxHeight = 0;
+    lineParts = [];
+  };
 
   while (segmentCopy.length > 0) {
     iterationCount += 1;
@@ -61,23 +161,15 @@ const createTextChunks = (segments, wordWrapWidth) => {
     // Check if text fits on current line
     if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {
       // Wrap to next line
-      chunks.push({
-        lineParts: [...lineParts],
-        y,
-        lineMaxHeight,
-      });
-
-      // Reset for new line
-      x = 0;
-      y += lineMaxHeight;
-      lineMaxHeight = 0;
-      lineParts = [];
+      pushCurrentLine();
       continue; // Try again with full width
     }
 
     // Extract text that fits on this line
     let textPart = measurements.lines[0] ?? "";
-    let remainingText = measurements.lines.slice(1).join(" ");
+    const wrappedToAdditionalLines = measurements.lines.length > 1;
+    let remainingText = "";
+    let consumedExplicitNewline = false;
 
     // Preserve trailing spaces that might get trimmed by measureText
     if (
@@ -86,6 +178,17 @@ const createTextChunks = (segments, wordWrapWidth) => {
       !textPart.endsWith(" ")
     ) {
       textPart += " ";
+    }
+
+    if (textPart.length > 0) {
+      const consumed = consumeMeasuredLineFromSource(
+        originalText,
+        textPart,
+        wrappedToAdditionalLines,
+      );
+
+      remainingText = consumed.remainingText;
+      consumedExplicitNewline = consumed.consumedExplicitNewline;
     }
 
     if (textPart.length === 0 && originalText.length > 0) {
@@ -169,6 +272,10 @@ const createTextChunks = (segments, wordWrapWidth) => {
       segment.text = remainingText;
     } else {
       segmentCopy.shift();
+    }
+
+    if ((wrappedToAdditionalLines || consumedExplicitNewline) && x > 0) {
+      pushCurrentLine();
     }
   }
 

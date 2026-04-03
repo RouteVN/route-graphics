@@ -1,0 +1,58 @@
+---
+title: Text Revealing - Sample Dialogue Payload
+description: |
+  Visual coverage for the provided text-revealing payload exactly as supplied.
+specs:
+  - the provided payload should render in VT without normalization
+  - the dialogue text should reveal progressively across snapshots
+  - the final snapshot should show the complete dialogue content
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 480
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1200
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 2200
+  - action: screenshot
+---
+states:
+  - id: blank
+    elements: []
+  - id: sample-dialogue-payload
+    elements:
+      - id: _w75Q0xQpzx5My2hKEnLM
+        type: text-revealing
+        x: 104
+        y: 178
+        width: 700
+        anchorX: 0
+        anchorY: 0
+        scaleX: 1
+        scaleY: 1
+        rotation: 0
+        text: text
+        content:
+          - text: "This is a sample dialogue content. This is a sample dialogue content.This is a sample dialogue content.This is a sample dialogue content.This is a sample dialogue content."
+        speed: 50
+        textStyle:
+          fontFamily: Y4Krp7oZ436XRiz4VH3rD
+          fontSize: 24
+          fontWeight: "400"
+          fontStyle: normal
+          lineHeight: 1.2
+          fill: "#FFFFFF"
+          align: left
+          wordWrap: true
+          breakWords: true
+          wordWrapWidth: 300

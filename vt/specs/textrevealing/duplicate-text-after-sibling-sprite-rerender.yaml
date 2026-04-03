@@ -1,0 +1,237 @@
+---
+title: Text Revealing Duplicate After Sibling Sprite Rerender
+description: |
+  Repro for a suspected stale-render or duplicate-text issue in text-revealing.
+  The first state renders one text-revealing node with revealEffect set to none.
+  The second state keeps that node identical and appends one extra sibling sprite
+  after the text has already rendered. This mirrors the logged app payload shape
+  where the dialogue container child count changed from 4 to 5 and no second
+  text node existed in the render payload. The original app coordinates were
+  translated to fit the VT runner's 1280x720 canvas without changing the
+  relevant tree structure or state delta.
+specs:
+  - state 1 should render exactly one visible text string
+  - state 2 should still render exactly one visible text string
+  - the only state change should be one extra sibling sprite appended after the text node
+  - navigating back should restore the original state without leaving duplicate text behind
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - id: prev
+    elements:
+      - id: story
+        type: container
+        x: 0
+        y: 0
+        children:
+          - id: dialogue-shell
+            type: container
+            x: 42
+            y: 320
+            width: 1220
+            height: 350
+            children:
+              - id: dialogue-bg
+                type: rect
+                x: 0
+                y: 0
+                width: 1220
+                height: 350
+                fill: "#202020"
+              - id: speaker-name
+                type: text
+                x: 40
+                y: 30
+                width: 400
+                height: 40
+                content: ""
+                textStyle:
+                  fontFamily: Arial
+                  fontSize: 48
+                  fill: "#FFFFFF"
+              - id: dialogue-text
+                type: text-revealing
+                x: 40
+                y: 110
+                width: 920
+                height: 140
+                revealEffect: none
+                speed: 50
+                content:
+                  - text: "ef wef ewfe"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fill: "#FFFFFF"
+                      lineHeight: 1.5
+              - id: menu-row
+                type: container
+                x: 360
+                y: 315
+                direction: horizontal
+                gap: 32
+                children:
+                  - id: back-item
+                    type: text
+                    content: "Back"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: history-item
+                    type: text
+                    content: "History"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: skip-item
+                    type: text
+                    content: "Skip"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: auto-item
+                    type: text
+                    content: "Auto"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: save-item
+                    type: text
+                    content: "Save"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: options-item
+                    type: text
+                    content: "Options"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+
+  - id: next
+    elements:
+      - id: story
+        type: container
+        x: 0
+        y: 0
+        children:
+          - id: dialogue-shell
+            type: container
+            x: 42
+            y: 320
+            width: 1220
+            height: 350
+            children:
+              - id: dialogue-bg
+                type: rect
+                x: 0
+                y: 0
+                width: 1220
+                height: 350
+                fill: "#202020"
+              - id: speaker-name
+                type: text
+                x: 40
+                y: 30
+                width: 400
+                height: 40
+                content: ""
+                textStyle:
+                  fontFamily: Arial
+                  fontSize: 48
+                  fill: "#FFFFFF"
+              - id: dialogue-text
+                type: text-revealing
+                x: 40
+                y: 110
+                width: 920
+                height: 140
+                revealEffect: none
+                speed: 50
+                content:
+                  - text: "ef wef ewfe"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fill: "#FFFFFF"
+                      lineHeight: 1.5
+              - id: menu-row
+                type: container
+                x: 360
+                y: 315
+                direction: horizontal
+                gap: 32
+                children:
+                  - id: back-item
+                    type: text
+                    content: "Back"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: history-item
+                    type: text
+                    content: "History"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: skip-item
+                    type: text
+                    content: "Skip"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: auto-item
+                    type: text
+                    content: "Auto"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: save-item
+                    type: text
+                    content: "Save"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+                  - id: options-item
+                    type: text
+                    content: "Options"
+                    textStyle:
+                      fontFamily: Arial
+                      fontSize: 36
+                      fontWeight: "700"
+                      fill: "#FFFFFF"
+              - id: completion-indicator
+                type: sprite
+                x: 1135
+                y: 267
+                width: 40
+                height: 40
+                src: circle-green
