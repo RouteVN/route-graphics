@@ -10,6 +10,7 @@ import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXP
 import abortableSleep from "../../../util/abortableSleep";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
+const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const MIN_SOFT_WIPE_EDGE = 18;
 const MAX_SOFT_WIPE_EDGE = 64;
 const SOFT_WIPE_EDGE_MULTIPLIER = 1.25;
@@ -82,6 +83,41 @@ const registerTextRevealRuntime = (container, cleanup) => {
   container[TEXT_REVEAL_RUNTIME] = cleanup;
 };
 
+const getTextRevealSnapshot = (container) =>
+  container?.[TEXT_REVEAL_SNAPSHOT] ?? null;
+
+const setTextRevealSnapshot = (container, snapshot) => {
+  if (!container) {
+    return null;
+  }
+
+  if (!snapshot) {
+    delete container[TEXT_REVEAL_SNAPSHOT];
+    return null;
+  }
+
+  container[TEXT_REVEAL_SNAPSHOT] = snapshot;
+
+  return snapshot;
+};
+
+const getResumableTypewriterSnapshot = (container) => {
+  const snapshot = getTextRevealSnapshot(container);
+
+  if (
+    !snapshot ||
+    snapshot.mode !== "typewriter" ||
+    snapshot.completed === true
+  ) {
+    return null;
+  }
+
+  return snapshot;
+};
+
+export const canResumeTextReveal = (container) =>
+  Boolean(getResumableTypewriterSnapshot(container));
+
 export const clearTextRevealingContainer = (container) => {
   if (container[TEXT_REVEAL_RUNTIME]) {
     const cleanup = container[TEXT_REVEAL_RUNTIME];
@@ -90,6 +126,7 @@ export const clearTextRevealingContainer = (container) => {
     cleanup();
   }
 
+  delete container[TEXT_REVEAL_SNAPSHOT];
   container.onRender = undefined;
 
   const children = container.removeChildren();
@@ -220,16 +257,25 @@ const runTypewriterReveal = async ({
   indicatorSprite,
   element,
   signal,
+  startAtCharacter = 0,
+  snapshot = null,
 }) => {
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
   const indicatorOffset = element?.indicator?.offset ?? 12;
   const charDelay = Math.max(1, Math.floor(1000 / effectiveSpeed));
   const chunkDelay = Math.max(1, Math.floor(4000 / effectiveSpeed));
+  let remainingStartCharacters = Math.max(0, Math.floor(startAtCharacter));
+
+  if (snapshot) {
+    snapshot.revealedCharacters = remainingStartCharacters;
+    snapshot.completed = false;
+  }
 
   for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
     if (signal?.aborted || contentContainer.destroyed) return false;
 
     const chunk = element.content[chunkIndex];
+    let revealedNewCharactersInChunk = false;
 
     positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffset);
 
@@ -248,13 +294,43 @@ const runTypewriterReveal = async ({
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
       const furiganaLength = fullFurigana.length;
+      const prefilledCharacters = Math.min(
+        fullText.length,
+        remainingStartCharacters,
+      );
+      const prefilledFuriganaLength =
+        fullText.length > 0
+          ? Math.round((prefilledCharacters / fullText.length) * furiganaLength)
+          : 0;
 
-      for (let charIndex = 0; charIndex < fullText.length; charIndex++) {
+      text.text = fullText.substring(0, prefilledCharacters);
+      if (furiganaText) {
+        furiganaText.text = fullFurigana.substring(0, prefilledFuriganaLength);
+      }
+
+      remainingStartCharacters -= prefilledCharacters;
+
+      if (prefilledCharacters > 0) {
+        indicatorSprite.x =
+          getCharacterXPositionInATextObject(text, prefilledCharacters - 1) +
+          indicatorOffset;
+      }
+
+      for (
+        let charIndex = prefilledCharacters;
+        charIndex < fullText.length;
+        charIndex++
+      ) {
         if (signal?.aborted || contentContainer.destroyed) return false;
 
         text.text = fullText.substring(0, charIndex + 1);
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, charIndex) + indicatorOffset;
+        revealedNewCharactersInChunk = true;
+
+        if (snapshot) {
+          snapshot.revealedCharacters += 1;
+        }
 
         if (furiganaText) {
           const furiganaProgress = Math.round(
@@ -270,12 +346,19 @@ const runTypewriterReveal = async ({
       }
     }
 
-    if (chunkIndex < element.content.length - 1) {
+    if (
+      chunkIndex < element.content.length - 1 &&
+      revealedNewCharactersInChunk
+    ) {
       await abortableSleep(chunkDelay, signal);
     }
   }
 
   applyCompleteIndicator(indicatorSprite, element);
+
+  if (snapshot) {
+    snapshot.completed = true;
+  }
 
   return true;
 };
@@ -590,6 +673,13 @@ export const runTextReveal = async ({
     return;
   }
 
+  const resumableSnapshot =
+    playback === "resume" ? getResumableTypewriterSnapshot(container) : null;
+
+  if (playback === "resume" && !resumableSnapshot) {
+    return;
+  }
+
   clearTextRevealingContainer(container);
   container.zIndex = zIndex;
 
@@ -601,6 +691,14 @@ export const runTextReveal = async ({
 
   try {
     if (playback === "paused-initial") {
+      if (element.revealEffect !== "none") {
+        setTextRevealSnapshot(container, {
+          mode: "typewriter",
+          revealedCharacters: 0,
+          completed: false,
+        });
+      }
+
       if (element.revealEffect === "none") {
         runNoneReveal({ contentContainer, indicatorSprite, element });
       } else {
@@ -610,6 +708,11 @@ export const runTextReveal = async ({
     }
 
     if (element.revealEffect === "softWipe") {
+      setTextRevealSnapshot(container, {
+        mode: "softWipe",
+        completed: false,
+      });
+
       const dispatched = runSoftWipeReveal({
         container,
         contentContainer,
@@ -635,14 +738,26 @@ export const runTextReveal = async ({
     completionTracker.track(stateVersion);
 
     if (element.revealEffect === "none") {
+      setTextRevealSnapshot(container, {
+        mode: "none",
+        completed: true,
+      });
       runNoneReveal({ contentContainer, indicatorSprite, element });
       completed = true;
     } else {
+      const nextSnapshot = setTextRevealSnapshot(container, {
+        mode: "typewriter",
+        revealedCharacters: resumableSnapshot?.revealedCharacters ?? 0,
+        completed: false,
+      });
+
       completed = await runTypewriterReveal({
         contentContainer,
         indicatorSprite,
         element,
         signal,
+        startAtCharacter: resumableSnapshot?.revealedCharacters ?? 0,
+        snapshot: nextSnapshot,
       });
     }
 

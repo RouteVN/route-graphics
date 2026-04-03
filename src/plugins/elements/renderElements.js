@@ -1,4 +1,5 @@
 import { diffElements } from "../../util/diffElements.js";
+import { isDeepEqual } from "../../util/isDeepEqual.js";
 import {
   getTransitionAnimation,
   groupAnimationsByTarget,
@@ -41,7 +42,11 @@ export const renderElements = ({
     elementPlugins.map((plugin) => [plugin.type, plugin]),
   );
   const animationsByTarget = groupAnimationsByTarget(animations);
+  const prevElementById = new Map();
   const nextIndexById = new Map();
+  for (const element of prevComputedTree) {
+    prevElementById.set(element.id, element);
+  }
   for (let index = 0; index < nextComputedTree.length; index++) {
     nextIndexById.set(nextComputedTree[index].id, index);
   }
@@ -50,6 +55,9 @@ export const renderElements = ({
     prevComputedTree,
     nextComputedTree,
     animations,
+  );
+  const scheduledUpdateIds = new Set(
+    toUpdateElement.map(({ next }) => next.id),
   );
 
   const getPlugin = (type) => {
@@ -63,6 +71,44 @@ export const renderElements = ({
 
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
+
+  for (const element of nextComputedTree) {
+    const prevElement = prevElementById.get(element.id);
+    if (!prevElement || scheduledUpdateIds.has(element.id)) {
+      continue;
+    }
+
+    if (!isDeepEqual(prevElement, element)) {
+      continue;
+    }
+
+    const plugin = getPlugin(element.type);
+
+    if (
+      plugin.shouldUpdateUnchanged?.({
+        app,
+        parent,
+        prevElement,
+        nextElement: element,
+        animations: animationsByTarget,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        renderContext,
+        zIndex: nextIndexById.get(element.id) ?? -1,
+        signal,
+      }) !== true
+    ) {
+      continue;
+    }
+
+    toUpdateElement.push({
+      prev: prevElement,
+      next: element,
+    });
+    scheduledUpdateIds.add(element.id);
+  }
 
   // Update zIndex for ALL existing children BEFORE any add/update/delete operations
   // This ensures correct z-ordering during animations
