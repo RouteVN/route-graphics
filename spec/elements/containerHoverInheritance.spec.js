@@ -129,7 +129,9 @@ describe("container hover inheritance", () => {
     const nested = container.getChildByLabel("nested");
     const text = nested.getChildByLabel("label");
 
-    expect(container.hitArea).toBeNull();
+    expect(container.hitArea).toBeInstanceOf(Rectangle);
+    expect(container.hitArea.width).toBe(360);
+    expect(container.hitArea.height).toBe(120);
     expect(text.style.fill).toBe("#A6A6A6");
     expect(sprite.texture).toBe(Texture.from(spriteIdleSrc));
 
