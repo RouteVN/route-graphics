@@ -1,0 +1,246 @@
+---
+title: Custom Vertical Scrollbar Long Content
+specs:
+  - very long containers should keep the custom scrollbar visible and usable
+  - the thumb should stay synchronized during deep wheel scrolling
+  - dragging the thumb on long content should jump the viewport through a large range
+steps:
+  - action: screenshot
+  - action: move
+    x: 180
+    "y": 190
+  - action: scroll
+    deltaX: 0
+    deltaY: 360
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 720
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: move
+    x: 292
+    "y": 150
+  - action: mouseDown
+  - action: move
+    x: 292
+    "y": 270
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: mouseUp
+---
+states:
+  - elements:
+      - id: frame
+        type: rect
+        x: 72
+        "y": 72
+        width: 236
+        height: 236
+        fill: "#23262B"
+      - id: instructions
+        type: text
+        content: Long content stress case
+        x: 80
+        "y": 32
+        textStyle:
+          fontSize: 24
+          fill: "#F3F5F7"
+          fontFamily: Arial
+      - id: long-container
+        type: container
+        x: 80
+        "y": 80
+        width: 220
+        height: 220
+        direction: vertical
+        gap: 6
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+            startButton:
+              src: circle-red
+              hoverSrc: circle-blue
+              pressSrc: circle-green
+              size: 16
+              step: 48
+            endButton:
+              src: circle-green
+              hoverSrc: circle-blue
+              pressSrc: circle-red
+              size: 16
+              step: 48
+        children:
+          - id: long-item-01
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: long-item-02
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: long-item-03
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: long-item-04
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: long-item-05
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: long-item-06
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: long-item-07
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: long-item-08
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"
+          - id: long-item-09
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: long-item-10
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: long-item-11
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: long-item-12
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: long-item-13
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: long-item-14
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: long-item-15
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: long-item-16
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"
+          - id: long-item-17
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: long-item-18
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: long-item-19
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: long-item-20
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: long-item-21
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: long-item-22
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: long-item-23
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: long-item-24
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"
+          - id: long-item-25
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: long-item-26
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: long-item-27
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: long-item-28
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: long-item-29
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: long-item-30
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: long-item-31
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: long-item-32
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"

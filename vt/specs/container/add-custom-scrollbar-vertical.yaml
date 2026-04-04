@@ -1,0 +1,171 @@
+---
+title: Custom Vertical Scrollbar
+specs:
+  - overflowing containers should render custom vertical scrollbar chrome
+  - configured scrollbars should hide when the container does not overflow
+  - scrollbar hover styles should apply to the thumb and arrow buttons
+steps:
+  - action: screenshot
+  - action: move
+    x: 292
+    "y": 122
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: move
+    x: 292
+    "y": 88
+  - action: wait
+    ms: 100
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: overflow-label
+        type: text
+        content: Overflow With Scrollbar
+        x: 80
+        "y": 32
+        textStyle:
+          fontSize: 24
+          fill: "#F3F5F7"
+          fontFamily: Arial
+      - id: fit-label
+        type: text
+        content: Fits Without Scrollbar
+        x: 430
+        "y": 32
+        textStyle:
+          fontSize: 24
+          fill: "#F3F5F7"
+          fontFamily: Arial
+      - id: overflow-frame
+        type: rect
+        x: 72
+        "y": 72
+        width: 236
+        height: 236
+        fill: "#23262B"
+      - id: fit-frame
+        type: rect
+        x: 422
+        "y": 72
+        width: 236
+        height: 236
+        fill: "#23262B"
+      - id: overflow-container
+        type: container
+        x: 80
+        "y": 80
+        width: 220
+        height: 220
+        direction: vertical
+        gap: 8
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+            startButton:
+              src: circle-red
+              hoverSrc: circle-blue
+              pressSrc: circle-green
+              size: 16
+              step: 24
+            endButton:
+              src: circle-green
+              hoverSrc: circle-blue
+              pressSrc: circle-red
+              size: 16
+              step: 24
+        children:
+          - id: overflow-item-1
+            type: rect
+            width: 184
+            height: 56
+            fill: "#5E81AC"
+          - id: overflow-item-2
+            type: rect
+            width: 184
+            height: 56
+            fill: "#81A1C1"
+          - id: overflow-item-3
+            type: rect
+            width: 184
+            height: 56
+            fill: "#88C0D0"
+          - id: overflow-item-4
+            type: rect
+            width: 184
+            height: 56
+            fill: "#A3BE8C"
+          - id: overflow-item-5
+            type: rect
+            width: 184
+            height: 56
+            fill: "#EBCB8B"
+          - id: overflow-item-6
+            type: rect
+            width: 184
+            height: 56
+            fill: "#D08770"
+          - id: overflow-item-7
+            type: rect
+            width: 184
+            height: 56
+            fill: "#BF616A"
+      - id: fit-container
+        type: container
+        x: 430
+        "y": 80
+        width: 220
+        height: 220
+        direction: vertical
+        gap: 8
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+            startButton:
+              src: circle-red
+              hoverSrc: circle-blue
+              pressSrc: circle-green
+              size: 16
+              step: 24
+            endButton:
+              src: circle-green
+              hoverSrc: circle-blue
+              pressSrc: circle-red
+              size: 16
+              step: 24
+        children:
+          - id: fit-item-1
+            type: rect
+            width: 184
+            height: 56
+            fill: "#434C5E"
+          - id: fit-item-2
+            type: rect
+            width: 184
+            height: 56
+            fill: "#4C566A"
+          - id: fit-item-3
+            type: rect
+            width: 184
+            height: 56
+            fill: "#3B4252"

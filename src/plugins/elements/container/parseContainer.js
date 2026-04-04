@@ -136,6 +136,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     gap,
     scroll,
     ...(state.anchorToBottom && { anchorToBottom: true }),
+    ...(state.scrollbar && { scrollbar: structuredClone(state.scrollbar) }),
     rotation: state.rotation ?? 0,
   };
 

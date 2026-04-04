@@ -70,6 +70,62 @@ properties:
   anchorToBottom:
     type: boolean
     description: When true, automatically scrolls to show bottom/right content instead of top/left. Only applies when scroll is enabled.
+  scrollbar:
+    type: object
+    description: Optional custom scrollbar chrome. Currently supports a vertical scrollbar for scroll-enabled containers with vertical overflow.
+    properties:
+      vertical:
+        type: object
+        properties:
+          thickness:
+            type: number
+            description: Width of the vertical scrollbar lane in pixels.
+          track:
+            type: object
+            properties:
+              src:
+                type: string
+              hoverSrc:
+                type: string
+              pressSrc:
+                type: string
+          thumb:
+            type: object
+            properties:
+              src:
+                type: string
+              hoverSrc:
+                type: string
+              pressSrc:
+                type: string
+              length:
+                type: number
+          startButton:
+            type: object
+            properties:
+              src:
+                type: string
+              hoverSrc:
+                type: string
+              pressSrc:
+                type: string
+              size:
+                type: number
+              step:
+                type: number
+          endButton:
+            type: object
+            properties:
+              src:
+                type: string
+              hoverSrc:
+                type: string
+              pressSrc:
+                type: string
+              size:
+                type: number
+              step:
+                type: number
   rotation:
     type: number
     description: Rotation in degrees

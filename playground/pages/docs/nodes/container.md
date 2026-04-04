@@ -31,6 +31,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `gap`        | number                                   | No                  | `0`                      | Space between children in layout mode.                  |
 | `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                |
 | `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.      |
+| `scrollbar`  | object                                   | No                  | -                        | Optional custom vertical scrollbar chrome for overflow. |
 | `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.       |
 | `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.       |
 | `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`. |
@@ -40,6 +41,50 @@ Try it in the [Playground](/playground/?template=container-layout).
 - `absolute`: child `x`/`y` are used as-is.
 - `horizontal` / `vertical`: parser repositions children and can wrap by container `width`/`height` when provided and `scroll` is false.
 - Child nodes are parsed with the active parser plugin set.
+- `scrollbar.vertical` renders on top of the viewport edge. It syncs with wheel scrolling, thumb dragging, track clicks, and optional start/end buttons.
+
+## Scrollbar Notes
+
+- Custom scrollbar chrome is currently available for the vertical axis only.
+- `scrollbar` is only used when `scroll: true` and the container actually overflows.
+- `thickness` is the scrollbar width for the vertical axis.
+- The scrollbar overlays the container's right edge; it does not reserve extra layout width.
+- Clicking the track scrolls by one viewport page toward the click position.
+- `startButton.step` and `endButton.step` control how many pixels each arrow/button press moves the content.
+- `thumb.length` fixes the thumb height. If omitted, the thumb height is computed from the viewport/content ratio.
+
+## Scrollbar Interface
+
+`scrollbar.vertical` supports these fields:
+
+| Field         | Type   | Required | Notes                                           |
+| ------------- | ------ | -------- | ----------------------------------------------- |
+| `thickness`   | number | Yes      | Width of the vertical scrollbar lane in pixels. |
+| `track`       | object | Yes      | Track visuals. Must include `src`.              |
+| `thumb`       | object | Yes      | Thumb visuals. Must include `src`.              |
+| `startButton` | object | No       | Optional top button/arrow visuals.              |
+| `endButton`   | object | No       | Optional bottom button/arrow visuals.           |
+
+Each visual object supports:
+
+| Field      | Type   | Required | Notes                      |
+| ---------- | ------ | -------- | -------------------------- |
+| `src`      | string | Yes      | Base image asset id.       |
+| `hoverSrc` | string | No       | Image shown while hovered. |
+| `pressSrc` | string | No       | Image shown while pressed. |
+
+`thumb` also supports:
+
+| Field    | Type   | Required | Notes                                                                                  |
+| -------- | ------ | -------- | -------------------------------------------------------------------------------------- |
+| `length` | number | No       | Fixed thumb height in pixels. When omitted, the runtime sizes the thumb automatically. |
+
+`startButton` and `endButton` also support:
+
+| Field  | Type   | Required | Notes                                                                    |
+| ------ | ------ | -------- | ------------------------------------------------------------------------ |
+| `size` | number | No       | Button height in pixels. Defaults to scrollbar `thickness` when omitted. |
+| `step` | number | No       | Pixel distance scrolled when the button is clicked.                      |
 
 ## Emitted Events
 
@@ -139,4 +184,69 @@ elements:
         x: 0
         y: 0
         content: "Elixir"
+```
+
+## Example: Custom Vertical Scrollbar
+
+```yaml
+elements:
+  - id: inventory
+    type: container
+    x: 760
+    y: 80
+    width: 420
+    height: 560
+    direction: vertical
+    gap: 8
+    scroll: true
+    scrollbar:
+      vertical:
+        thickness: 16
+        track:
+          src: scroll-track
+          hoverSrc: scroll-track-hover
+          pressSrc: scroll-track-press
+        thumb:
+          src: scroll-thumb
+          hoverSrc: scroll-thumb-hover
+          pressSrc: scroll-thumb-press
+          length: 32
+        startButton:
+          src: scroll-arrow-up
+          hoverSrc: scroll-arrow-up-hover
+          pressSrc: scroll-arrow-up-press
+          size: 16
+          step: 24
+        endButton:
+          src: scroll-arrow-down
+          hoverSrc: scroll-arrow-down-hover
+          pressSrc: scroll-arrow-down-press
+          size: 16
+          step: 24
+    children:
+      - id: item-1
+        type: text
+        x: 0
+        y: 0
+        content: "Potion"
+      - id: item-2
+        type: text
+        x: 0
+        y: 0
+        content: "Ether"
+      - id: item-3
+        type: text
+        x: 0
+        y: 0
+        content: "Elixir"
+      - id: item-4
+        type: text
+        x: 0
+        y: 0
+        content: "Phoenix Down"
+      - id: item-5
+        type: text
+        x: 0
+        y: 0
+        content: "Antidote"
 ```

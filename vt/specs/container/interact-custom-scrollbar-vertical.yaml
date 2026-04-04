@@ -1,0 +1,127 @@
+---
+title: Custom Vertical Scrollbar Interaction
+specs:
+  - wheel scrolling should move content and thumb together
+  - dragging the thumb should update the visible content
+  - clicking scrollbar buttons should move the viewport by the configured step
+steps:
+  - action: screenshot
+  - action: move
+    x: 180
+    "y": 180
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: move
+    x: 292
+    "y": 164
+  - action: mouseDown
+  - action: move
+    x: 292
+    "y": 226
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: mouseUp
+  - action: click
+    x: 292
+    "y": 292
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: click
+    x: 292
+    "y": 88
+  - action: wait
+    ms: 120
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: frame
+        type: rect
+        x: 72
+        "y": 72
+        width: 236
+        height: 236
+        fill: "#23262B"
+      - id: instructions
+        type: text
+        content: Wheel, drag thumb, click buttons
+        x: 80
+        "y": 32
+        textStyle:
+          fontSize: 24
+          fill: "#F3F5F7"
+          fontFamily: Arial
+      - id: interactive-container
+        type: container
+        x: 80
+        "y": 80
+        width: 220
+        height: 220
+        direction: vertical
+        gap: 8
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+            startButton:
+              src: circle-red
+              hoverSrc: circle-blue
+              pressSrc: circle-green
+              size: 16
+              step: 32
+            endButton:
+              src: circle-green
+              hoverSrc: circle-blue
+              pressSrc: circle-red
+              size: 16
+              step: 32
+        children:
+          - id: item-1
+            type: rect
+            width: 184
+            height: 56
+            fill: "#5E81AC"
+          - id: item-2
+            type: rect
+            width: 184
+            height: 56
+            fill: "#81A1C1"
+          - id: item-3
+            type: rect
+            width: 184
+            height: 56
+            fill: "#88C0D0"
+          - id: item-4
+            type: rect
+            width: 184
+            height: 56
+            fill: "#A3BE8C"
+          - id: item-5
+            type: rect
+            width: 184
+            height: 56
+            fill: "#EBCB8B"
+          - id: item-6
+            type: rect
+            width: 184
+            height: 56
+            fill: "#D08770"
+          - id: item-7
+            type: rect
+            width: 184
+            height: 56
+            fill: "#BF616A"
