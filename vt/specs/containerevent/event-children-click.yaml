@@ -5,6 +5,7 @@ specs:
   - container events should fire even when children have events
   - child events should fire independently
   - container and child events can coexist
+  - clicking empty space inside the container bounds should still fire the container click event
 steps:
   - action: customEvent
     name: clearEvents
@@ -48,6 +49,10 @@ steps:
           id: child-rect-1
         type: child-click
         childId: rect-1
+      - _event:
+          id: container-with-events
+        type: container-click
+        containerId: main-container
       - _event:
           id: container-with-events
         type: container-click

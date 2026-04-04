@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Container, Rectangle } from "pixi.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setupScrolling } from "../../src/plugins/elements/container/util/scrollingUtils.js";
 
@@ -116,6 +116,9 @@ describe("updateContainer", () => {
     });
 
     expect(containerElement.eventMode).toBe("static");
+    expect(containerElement.hitArea).toBeInstanceOf(Rectangle);
+    expect(containerElement.hitArea.width).toBe(200);
+    expect(containerElement.hitArea.height).toBe(200);
   });
 
   it("rebuilds scrolling and anchors to bottom when messages are appended", () => {

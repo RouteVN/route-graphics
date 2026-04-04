@@ -13,8 +13,11 @@ import {
 } from "../../util/hoverInheritance.js";
 
 const setContainerHitArea = ({ container, element, enabled }) => {
-  if (enabled) {
-    container.hitArea = new Rectangle(0, 0, element.width, element.height);
+  const width = Number.isFinite(element?.width) ? element.width : 0;
+  const height = Number.isFinite(element?.height) ? element.height : 0;
+
+  if (enabled && width > 0 && height > 0) {
+    container.hitArea = new Rectangle(0, 0, width, height);
     return;
   }
 
@@ -116,9 +119,10 @@ export const bindContainerInteractions = ({
         setContainerHitArea({ container, element, enabled: true });
       }
     } else {
-      // Non-scroll containers should only respond through their visible
-      // children. Scroll/viewports manage their own hitArea in setupScrolling.
-      setContainerHitArea({ container, element, enabled: false });
+      // Non-scroll containers with container-level pointer handlers should
+      // respond across their declared bounds. Scroll/viewports still manage
+      // their own hitArea in setupScrolling.
+      setContainerHitArea({ container, element, enabled: true });
     }
   }
 
