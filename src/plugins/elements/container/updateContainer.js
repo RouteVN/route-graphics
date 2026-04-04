@@ -1,5 +1,9 @@
 import { renderElements } from "../renderElements.js";
-import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
+import {
+  getScrollingState,
+  setupScrolling,
+  removeScrolling,
+} from "./util/scrollingUtils.js";
 import {
   bindContainerInteractions,
   reapplyContainerInheritedHover,
@@ -52,6 +56,11 @@ export const updateContainer = ({
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
       const nextUsesViewport = nextElement.scroll || nextElement.anchorToBottom;
+      const previousScrollState = nextUsesViewport
+        ? getScrollingState({
+            container: containerElement,
+          })
+        : null;
 
       if (prevUsesViewport !== nextUsesViewport) {
         if (nextUsesViewport) {
@@ -60,6 +69,7 @@ export const updateContainer = ({
             element: nextElement,
             interactive: !!nextElement.scroll,
             allowViewportWithoutScroll: !!nextElement.anchorToBottom,
+            previousState: previousScrollState,
           });
         } else {
           removeScrolling({
@@ -75,6 +85,7 @@ export const updateContainer = ({
           element: nextElement,
           interactive: !!nextElement.scroll,
           allowViewportWithoutScroll: !!nextElement.anchorToBottom,
+          previousState: previousScrollState,
         });
       }
 

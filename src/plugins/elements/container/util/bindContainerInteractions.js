@@ -35,6 +35,27 @@ const isWithinContainer = (container, displayObject) => {
   return false;
 };
 
+const isWithinScrollbarChrome = (container, displayObject) => {
+  let current = displayObject ?? null;
+
+  while (current) {
+    if (current === container) {
+      return false;
+    }
+
+    if (
+      typeof current.label === "string" &&
+      current.label.startsWith(`${container.label}-scrollbar-`)
+    ) {
+      return true;
+    }
+
+    current = current.parent ?? null;
+  }
+
+  return false;
+};
+
 const isPointWithinContainer = (container, point) => {
   if (!point || typeof point.x !== "number" || typeof point.y !== "number") {
     return false;
@@ -166,6 +187,10 @@ export const bindContainerInteractions = ({
         return;
       }
 
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedPress({ root: container, isPressed: true });
       }
@@ -173,6 +198,10 @@ export const bindContainerInteractions = ({
 
     const releaseListener = (event) => {
       if (!isPrimaryPointerEvent(event)) {
+        return;
+      }
+
+      if (isWithinScrollbarChrome(container, event?.target)) {
         return;
       }
 
@@ -201,6 +230,10 @@ export const bindContainerInteractions = ({
         return;
       }
 
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedPress({ root: container, isPressed: false });
       }
@@ -214,13 +247,21 @@ export const bindContainerInteractions = ({
   if (rightClickEvents) {
     const { soundSrc, payload, inheritToChildren } = rightClickEvents;
 
-    const rightPressListener = () => {
+    const rightPressListener = (event) => {
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedRightPress({ root: container, isPressed: true });
       }
     };
 
-    const rightReleaseListener = () => {
+    const rightReleaseListener = (event) => {
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedRightPress({ root: container, isPressed: false });
       }
@@ -231,12 +272,20 @@ export const bindContainerInteractions = ({
         return;
       }
 
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedRightPress({ root: container, isPressed: false });
       }
     };
 
-    const rightClickListener = () => {
+    const rightClickListener = (event) => {
+      if (isWithinScrollbarChrome(container, event?.target)) {
+        return;
+      }
+
       if (inheritToChildren) {
         setTreeInheritedRightPress({ root: container, isPressed: false });
       }

@@ -1,0 +1,172 @@
+---
+title: Custom Vertical Scrollbar Fixed Thumb
+specs:
+  - fixed thumb length should stay visually stable on long content
+  - clicking the track should page the viewport while keeping the thumb fixed-sized
+steps:
+  - action: screenshot
+  - action: click
+    x: 292
+    "y": 232
+  - action: wait
+    ms: 120
+  - action: screenshot
+  - action: click
+    x: 292
+    "y": 120
+  - action: wait
+    ms: 120
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: frame
+        type: rect
+        x: 72
+        "y": 72
+        width: 236
+        height: 236
+        fill: "#23262B"
+      - id: instructions
+        type: text
+        content: Fixed thumb and track click
+        x: 80
+        "y": 32
+        textStyle:
+          fontSize: 24
+          fill: "#F3F5F7"
+          fontFamily: Arial
+      - id: fixed-thumb-container
+        type: container
+        x: 80
+        "y": 80
+        width: 220
+        height: 220
+        direction: vertical
+        gap: 6
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+              length: 48
+            startButton:
+              src: circle-red
+              hoverSrc: circle-blue
+              pressSrc: circle-green
+              size: 16
+              step: 40
+            endButton:
+              src: circle-green
+              hoverSrc: circle-blue
+              pressSrc: circle-red
+              size: 16
+              step: 40
+        children:
+          - id: item-01
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: item-02
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: item-03
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: item-04
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: item-05
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: item-06
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: item-07
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: item-08
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"
+          - id: item-09
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: item-10
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: item-11
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: item-12
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"
+          - id: item-13
+            type: rect
+            width: 184
+            height: 40
+            fill: "#EBCB8B"
+          - id: item-14
+            type: rect
+            width: 184
+            height: 40
+            fill: "#D08770"
+          - id: item-15
+            type: rect
+            width: 184
+            height: 40
+            fill: "#BF616A"
+          - id: item-16
+            type: rect
+            width: 184
+            height: 40
+            fill: "#B48EAD"
+          - id: item-17
+            type: rect
+            width: 184
+            height: 40
+            fill: "#5E81AC"
+          - id: item-18
+            type: rect
+            width: 184
+            height: 40
+            fill: "#81A1C1"
+          - id: item-19
+            type: rect
+            width: 184
+            height: 40
+            fill: "#88C0D0"
+          - id: item-20
+            type: rect
+            width: 184
+            height: 40
+            fill: "#A3BE8C"

@@ -190,6 +190,30 @@
  */
 
 /**
+ * @typedef {Object} ScrollbarVisualState
+ * @property {string} src
+ * @property {string} [hoverSrc]
+ * @property {string} [pressSrc]
+ */
+
+/**
+ * @typedef {ScrollbarVisualState & { length?: number }} ScrollbarThumbConfig
+ */
+
+/**
+ * @typedef {ScrollbarVisualState & { size?: number, step?: number }} ScrollbarButtonConfig
+ */
+
+/**
+ * @typedef {Object} VerticalScrollbarConfig
+ * @property {number} thickness
+ * @property {ScrollbarVisualState} track
+ * @property {ScrollbarThumbConfig} thumb
+ * @property {ScrollbarButtonConfig} [startButton]
+ * @property {ScrollbarButtonConfig} [endButton]
+ */
+
+/**
  * @typedef {Object} ContainerComputedProps
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
@@ -198,6 +222,7 @@
  * @property {number} rotation
  * @property {boolean} scroll
  * @property {boolean} [anchorToBottom]
+ * @property {{ vertical?: VerticalScrollbarConfig }} [scrollbar]
  * @property {HoverProps} hover
  * @property {ClickProps} click
  * @property {ClickProps} rightClick
@@ -210,6 +235,7 @@
  * @property {ContainerContainerElement} element - The container element
  * @property {boolean} [interactive] - Enable wheel interaction when viewport is active
  * @property {boolean} [allowViewportWithoutScroll] - Allow masked viewport without scroll=true
+ * @property {{ scrollXOffset?: number, scrollYOffset?: number, wasAtHorizontalEnd?: boolean, wasAtVerticalEnd?: boolean } | null} [previousState]
  */
 
 /**
@@ -417,6 +443,7 @@
  * @property {number} [ya] - Y Anchor
  * @property {number} [width] - Width
  * @property {number} [height] - Height
+ * @property {{ vertical?: VerticalScrollbarConfig }} [scrollbar] - Optional custom scrollbar chrome
  *
  * @typedef {BaseElement & ContainerElementOptions} ContainerElement
  */

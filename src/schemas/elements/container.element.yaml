@@ -71,6 +71,97 @@ properties:
     type: boolean
     description: When true, automatically scrolls to show bottom/right content instead of top/left. Only applies when scroll is enabled.
     default: false
+  scrollbar:
+    type: object
+    description: Optional custom scrollbar chrome. Currently supports a vertical scrollbar for scroll-enabled containers with vertical overflow.
+    properties:
+      vertical:
+        type: object
+        required:
+          - thickness
+          - track
+          - thumb
+        properties:
+          thickness:
+            type: number
+            description: Width of the vertical scrollbar lane in pixels.
+            minimum: 0
+          track:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the base track image.
+              hoverSrc:
+                type: string
+                description: Source of the track image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the track image while pressed.
+          thumb:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the base thumb image.
+              hoverSrc:
+                type: string
+                description: Source of the thumb image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the thumb image while pressed or dragged.
+              length:
+                type: number
+                description: Fixed thumb height in pixels. When omitted, the thumb height is computed from viewport/content ratio.
+                minimum: 0
+          startButton:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the top arrow/button image.
+              hoverSrc:
+                type: string
+                description: Source of the top arrow/button image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the top arrow/button image while pressed.
+              size:
+                type: number
+                description: Height of the top arrow/button in pixels.
+                minimum: 0
+              step:
+                type: number
+                description: Scroll step applied when the top arrow/button is pressed.
+                minimum: 0
+          endButton:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the bottom arrow/button image.
+              hoverSrc:
+                type: string
+                description: Source of the bottom arrow/button image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the bottom arrow/button image while pressed.
+              size:
+                type: number
+                description: Height of the bottom arrow/button in pixels.
+                minimum: 0
+              step:
+                type: number
+                description: Scroll step applied when the bottom arrow/button is pressed.
+                minimum: 0
   hover:
     type: object
     properties:
