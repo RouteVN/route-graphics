@@ -368,6 +368,9 @@ describe("RouteGraphics public API", () => {
     });
 
     const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        animationPlaybackMode: "manual",
+      },
       pluginsFactory: async ({ pixiMock: activePixiMock }) => {
         const asyncTransitionPlugin = {
           type: "async-node",
@@ -395,7 +398,6 @@ describe("RouteGraphics public API", () => {
       },
     });
 
-    app.setAnimationPlaybackMode("manual");
     app.render({
       id: "async-transition",
       elements: [

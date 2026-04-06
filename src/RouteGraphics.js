@@ -29,6 +29,14 @@ import { createInputDomBridge } from "./util/inputDomBridge.js";
  */
 
 const createRouteGraphics = () => {
+  const assertAnimationPlaybackMode = (mode) => {
+    if (mode !== "auto" && mode !== "manual") {
+      throw new Error(
+        `Invalid animation playback mode "${mode}". Expected "auto" or "manual".`,
+      );
+    }
+  };
+
   /**
    * @type {ApplicationWithAudioStage}
    */
@@ -339,11 +347,7 @@ const createRouteGraphics = () => {
     },
 
     setAnimationPlaybackMode: (mode) => {
-      if (mode !== "auto" && mode !== "manual") {
-        throw new Error(
-          `Invalid animation playback mode "${mode}". Expected "auto" or "manual".`,
-        );
-      }
+      assertAnimationPlaybackMode(mode);
 
       animationPlaybackMode = mode;
 
@@ -390,10 +394,12 @@ const createRouteGraphics = () => {
         backgroundColor,
         debug = false,
         onFirstRender,
+        animationPlaybackMode: nextAnimationPlaybackMode = "auto",
       } = options;
 
       onFirstRenderCallback = onFirstRender;
-      animationPlaybackMode = "auto";
+      assertAnimationPlaybackMode(nextAnimationPlaybackMode);
+      animationPlaybackMode = nextAnimationPlaybackMode;
       animationPlaybackTimeMS = null;
       animationBusListenerCleanup.forEach((cleanup) => cleanup());
       animationBusListenerCleanup = [];
