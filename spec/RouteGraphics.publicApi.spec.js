@@ -161,6 +161,7 @@ const createPixiModuleMock = () => {
       this.ticker = {
         add: vi.fn(),
       };
+      this.render = vi.fn();
       this.renderer = {
         background: { color: 0 },
         events: {},
@@ -294,6 +295,150 @@ describe("RouteGraphics public API", () => {
 
     expect(backgroundGraphic.lastFill).toBe(0xff0000);
     expect(appInstance.renderer.background.color).toBe(0xff0000);
+  });
+
+  it("supports manual animation playback time sampling", async () => {
+    const { app } = await setupRouteGraphics({
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "preview-rect",
+          type: "rect",
+          x: 0,
+          y: 20,
+          width: 40,
+          height: 40,
+          fill: "#FFFFFF",
+        },
+      ],
+    });
+
+    app.setAnimationPlaybackMode("manual");
+    app.render({
+      id: "animated",
+      elements: [
+        {
+          id: "preview-rect",
+          type: "rect",
+          x: 100,
+          y: 20,
+          width: 40,
+          height: 40,
+          fill: "#FFFFFF",
+        },
+      ],
+      animations: [
+        {
+          id: "move-rect",
+          targetId: "preview-rect",
+          type: "update",
+          tween: {
+            x: {
+              keyframes: [{ duration: 400, value: 100, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    app.setAnimationTime(150);
+
+    expect(app.findElementByLabel("preview-rect")?.x).toBeCloseTo(37.5);
+  });
+
+  it("applies remembered manual time to transitions that start asynchronously", async () => {
+    let resolveAdd;
+    const addPromise = new Promise((resolve) => {
+      resolveAdd = resolve;
+    });
+
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        animationPlaybackMode: "manual",
+      },
+      pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+        const asyncTransitionPlugin = {
+          type: "async-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element, signal }) =>
+            addPromise.then(() => {
+              if (signal?.aborted || parent.destroyed) {
+                return;
+              }
+
+              const container = new activePixiMock.Container();
+              container.label = element.id;
+              parent.addChild(container);
+            }),
+          ),
+          update: vi.fn(),
+          delete: vi.fn(),
+        };
+
+        return {
+          elements: [asyncTransitionPlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "async-transition",
+      elements: [
+        {
+          id: "delayed-scene",
+          type: "async-node",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-enter",
+          targetId: "delayed-scene",
+          type: "transition",
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 400, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    app.setAnimationTime(200);
+
+    resolveAdd();
+    await addPromise;
+
+    const appInstance = pixiMock.__getLastApplication();
+
+    await vi.waitFor(() => {
+      const mounted = app.findElementByLabel("delayed-scene");
+      const overlay = appInstance.stage.children.at(-1);
+
+      expect(mounted).not.toBeNull();
+      expect(mounted?.visible).toBe(false);
+      expect(overlay.children).toHaveLength(1);
+      expect(overlay.children[0].alpha).toBeCloseTo(0.5);
+    });
   });
 
   it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {

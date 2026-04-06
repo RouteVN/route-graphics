@@ -577,6 +577,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {RouteGraphicsPlugins} [plugins] - Plugin groups to register
  * @property {boolean} [debug] - Whether debug mode is enabled
  * @property {Function} [onFirstRender] - Callback fired after the first render completes
+ * @property {"auto" | "manual"} [animationPlaybackMode] - Initial animation playback mode
  */
 
 /**
