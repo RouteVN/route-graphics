@@ -110,6 +110,16 @@ const createRouteGraphics = () => {
   let animationPlaybackMode = "auto";
 
   /**
+   * @type {number | null}
+   */
+  let animationPlaybackTimeMS = null;
+
+  /**
+   * @type {Function[]}
+   */
+  let animationBusListenerCleanup = [];
+
+  /**
    * @type {(event: MouseEvent) => void | undefined}
    */
   let canvasContextMenuListener;
@@ -261,6 +271,13 @@ const createRouteGraphics = () => {
     // Flush animation commands to apply initial values immediately
     animationBus.flush();
 
+    if (
+      animationPlaybackMode === "manual" &&
+      animationPlaybackTimeMS !== null
+    ) {
+      animationBus.setTime(animationPlaybackTimeMS);
+    }
+
     // Render audio
     renderAudio({
       app: appInstance,
@@ -329,6 +346,11 @@ const createRouteGraphics = () => {
       }
 
       animationPlaybackMode = mode;
+
+      if (animationPlaybackMode !== "manual") {
+        animationPlaybackTimeMS = null;
+        animationBus?.clearTime?.();
+      }
     },
 
     setAnimationTime: (timeMS) => {
@@ -337,8 +359,17 @@ const createRouteGraphics = () => {
         throw new Error("Animation time must be a finite number.");
       }
 
+      if (animationPlaybackMode === "manual") {
+        animationPlaybackTimeMS = nextTime;
+      }
+
       animationBus.flush();
       animationBus.setTime(nextTime);
+
+      if (animationPlaybackMode !== "manual") {
+        animationPlaybackTimeMS = null;
+        animationBus.clearTime();
+      }
 
       if (typeof app.render === "function") {
         app.render();
@@ -363,6 +394,9 @@ const createRouteGraphics = () => {
 
       onFirstRenderCallback = onFirstRender;
       animationPlaybackMode = "auto";
+      animationPlaybackTimeMS = null;
+      animationBusListenerCleanup.forEach((cleanup) => cleanup());
+      animationBusListenerCleanup = [];
 
       const parserPlugins = [];
 
@@ -415,6 +449,19 @@ const createRouteGraphics = () => {
 
       // Create animation bus and attach to ticker
       animationBus = createAnimationBus();
+      const renderManualFrame = () => {
+        if (
+          animationPlaybackMode === "manual" &&
+          typeof app.render === "function"
+        ) {
+          app.render();
+        }
+      };
+      animationBusListenerCleanup = [
+        animationBus.on("started", renderManualFrame),
+        animationBus.on("completed", renderManualFrame),
+        animationBus.on("cancelled", renderManualFrame),
+      ];
       if (!debug) {
         frameTickerListener = (time) => {
           if (animationPlaybackMode !== "auto") {
@@ -469,6 +516,8 @@ const createRouteGraphics = () => {
       app?.inputDomBridge?.destroy?.();
       keyboardManager?.destroy();
       clearPendingSounds();
+      animationBusListenerCleanup.forEach((cleanup) => cleanup());
+      animationBusListenerCleanup = [];
       if (animationBus) animationBus.destroy();
       if (app?.audioStage) app.audioStage.destroy();
 
@@ -491,6 +540,7 @@ const createRouteGraphics = () => {
 
       if (app) app.destroy();
       animationPlaybackMode = "auto";
+      animationPlaybackTimeMS = null;
       backgroundGraphic = undefined;
       revokeVideoBlobUrls();
     },

@@ -247,4 +247,37 @@ describe("animationBus auto tween shorthand", () => {
     expect(onComplete).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
   });
+
+  it("completes custom animations when sampled time reaches the end", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const applyTargetState = vi.fn();
+    const onComplete = vi.fn();
+    const onCancel = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-manual-time-complete",
+        driver: "custom",
+        duration: 500,
+        applyFrame,
+        applyTargetState,
+        onComplete,
+        onCancel,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.setTime(500);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(500);
+    expect(applyTargetState).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
 });
