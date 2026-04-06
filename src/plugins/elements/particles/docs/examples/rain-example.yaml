@@ -1,72 +1,66 @@
 # Rain Effect Example
 #
-# Creates fast falling raindrops that recycle at screen boundaries.
-# Raindrops fall at a slight angle with no rotation for realistic rain appearance.
+# Creates fast falling raindrops that recycle after leaving the visible region.
+# Raindrops fall at a slight angle with a fixed streak rotation.
 #
 # Customization tips:
-# - Change width/height to match your scene dimensions
-# - Update spawnShape.data.w to match width
-# - Update spawnBounds.width to width (no extra buffer needed for rain)
-# - Update spawnBounds.height to height
-# - Adjust maxParticles for lighter/heavier rain (200-500 recommended)
-# - Modify speed range for faster/slower rain
-# - Change direction for wind effect (85=slight angle, 90=straight down)
+# - Change width and height to match your scene dimensions
+# - Adjust modules.emission.rate for lighter or heavier rain
+# - Modify movement velocity direction for wind
+# - Adjust bounds.custom to control the recycle area
 
 elements:
   - id: rain-effect
     type: particles
     width: 1280
     height: 720
-    texture: raindrop
-    behaviors:
-      - type: spawnShape
-        config:
-          type: rect
+    modules:
+      emission:
+        mode: continuous
+        rate: 3000
+        maxActive: 300
+        duration: infinite
+        particleLifetime:
+          min: 0.8
+          max: 1.5
+        source:
+          kind: rect
           data:
-            x: -50      # Spawn slightly off-screen left for angled rain
-            y: -50      # Spawn above screen
-            w: 1280     # Should match width
-            h: 10       # Thin spawn area
+            x: -50
+            y: -50
+            width: 1280
+            height: 10
 
-      - type: movePoint
-        config:
+      movement:
+        velocity:
+          kind: directional
+          direction: 85
           speed:
-            min: 640    # Pixels per second (much faster than snow)
+            min: 640
             max: 960
-          direction: 85 # Slightly angled (85° = nearly vertical with slight drift)
 
-      - type: scaleStatic
-        config:
-          min: 0.8      # Slight size variation
+      appearance:
+        texture: raindrop
+        scale:
+          mode: range
+          min: 0.8
           max: 1.2
+        alpha:
+          mode: curve
+          keys:
+            - { time: 0, value: 0 }
+            - { time: 0.1, value: 0.6 }
+            - { time: 0.8, value: 0.6 }
+            - { time: 1, value: 0 }
+        rotation:
+          mode: fixed
+          value: -5
 
-      - type: alpha
-        config:
-          list:
-            - value: 0      # Start invisible
-              time: 0
-            - value: 0.6    # Fade in quickly (semi-transparent)
-              time: 0.1
-            - value: 0.6    # Stay visible
-              time: 0.8
-            - value: 0      # Fade out at end
-              time: 1
-
-      - type: noRotation
-        config:
-          rotation: -5  # Fixed angle (degrees) for raindrop streak
-
-    emitter:
-      lifetime:
-        min: 0.8        # Each raindrop lives 0.8-1.5 seconds
-        max: 1.5
-      frequency: 0.001  # Spawn every 1ms (very frequent)
-      particlesPerWave: 3
-      maxParticles: 300
-      emitterLifetime: -1  # Infinite
-      spawnBounds:
-        x: -100         # Recycle area
-        y: -100
-        width: 1280     # Match width (no buffer needed)
-        height: 720     # Match height (no buffer needed)
-      recycleOnBounds: true
+      bounds:
+        mode: recycle
+        source: custom
+        custom:
+          x: -100
+          y: -100
+          width: 1280
+          height: 720

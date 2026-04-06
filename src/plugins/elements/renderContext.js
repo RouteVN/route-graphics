@@ -28,6 +28,9 @@ const executeDeferredMountOperation = (operation) => {
           }
           if (event?.detail?.deltaMS) {
             operation.emitter.update(Number(event.detail.deltaMS) / 1000);
+            if (typeof operation.app?.render === "function") {
+              operation.app.render();
+            }
           }
         };
         window.addEventListener("snapShotKeyFrame", customTickerHandler);

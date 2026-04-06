@@ -6,6 +6,597 @@ suites:
 suite: parseParticles
 exportName: parseParticles
 ---
+case: Test parsing particles with structured modules
+in:
+  - state:
+      id: snow
+      type: particles
+      width: 1280
+      height: 720
+      seed: 12345
+      modules:
+        emission:
+          mode: continuous
+          rate: 40
+          maxActive: 180
+          duration: infinite
+          particleLifetime:
+            min: 4
+            max: 8
+          source:
+            kind: rect
+            data:
+              x: 0
+              y: -20
+              width: 1280
+              height: 10
+        movement:
+          velocity:
+            kind: directional
+            direction: 90
+            speed:
+              min: 50
+              max: 150
+        appearance:
+          texture: snowflake
+          scale:
+            mode: range
+            min: 0.3
+            max: 1
+          rotation:
+            mode: spin
+            start:
+              min: 0
+              max: 360
+            speed:
+              min: -45
+              max: 45
+        bounds:
+          mode: recycle
+          source: area
+          padding: 50
+out:
+  id: snow
+  type: particles
+  count: 180
+  width: 1280
+  height: 720
+  x: 0
+  "y": 0
+  alpha: 1
+  texture: snowflake
+  behaviors:
+    - type: spawnShape
+      config:
+        type: rect
+        data:
+          x: 0
+          y: -20
+          w: 1280
+          h: 10
+    - type: movement
+      config:
+        velocity:
+          kind: directional
+          direction:
+            min: 90
+            max: 90
+          speed:
+            min: 50
+            max: 150
+        maxSpeed: 0
+        faceVelocity: false
+    - type: scaleStatic
+      config:
+        min: 0.3
+        max: 1
+    - type: rotation
+      config:
+        minStart: 0
+        maxStart: 360
+        minSpeed: -45
+        maxSpeed: 45
+        accel: 0
+  emitter:
+    lifetime:
+      min: 4
+      max: 8
+    frequency: 0.025
+    particlesPerWave: 1
+    maxParticles: 180
+    emitterLifetime: -1
+    seed: 12345
+    spawnBounds:
+      x: -50
+      y: -50
+      width: 1380
+      height: 820
+    recycleOnBounds: true
+---
+case: Test parsing structured particles throws when modules mix with legacy raw fields
+in:
+  - state:
+      id: invalid-structured
+      type: particles
+      width: 100
+      height: 100
+      texture: circle
+      modules:
+        emission:
+          mode: burst
+          burstCount: 1
+          particleLifetime: 1
+          source:
+            kind: point
+            data:
+              x: 50
+              y: 50
+        appearance:
+          texture: circle
+throws: "Input Error: Structured particles cannot mix 'modules' with legacy texture/behaviors/emitter fields"
+---
+case: Test parsing structured particles throws on conflicting faceVelocity and rotation ownership
+in:
+  - state:
+      id: invalid-face-velocity
+      type: particles
+      width: 100
+      height: 100
+      modules:
+        emission:
+          mode: burst
+          burstCount: 4
+          particleLifetime:
+            min: 0.5
+            max: 1
+          source:
+            kind: point
+            data:
+              x: 50
+              y: 50
+        movement:
+          velocity:
+            kind: directional
+            direction: 90
+            speed:
+              min: 10
+              max: 20
+          faceVelocity: true
+        appearance:
+          texture: circle
+          rotation:
+            mode: fixed
+            value: 90
+throws: "Input Error: modules.appearance.rotation cannot be combined with modules.movement.faceVelocity"
+---
+case: Test parsing structured burst particles with radial movement and custom bounds
+in:
+  - state:
+      id: burst
+      type: particles
+      width: 400
+      height: 300
+      seed: 999
+      modules:
+        emission:
+          mode: burst
+          burstCount: 12
+          maxActive: 24
+          duration: 0.1
+          particleLifetime: 0.75
+          source:
+            kind: circle
+            data:
+              x: 200
+              y: 150
+              radius: 12
+              innerRadius: 4
+              affectRotation: true
+        movement:
+          velocity:
+            kind: radial
+            angle:
+              min: -30
+              max: 30
+            speed:
+              min: 150
+              max: 250
+              distribution:
+                kind: bias
+                toward: max
+                strength: 0.75
+          faceVelocity: true
+        appearance:
+          texture:
+            shape: rect
+            width: 6
+            height: 18
+            color: "#ffffff"
+          scale:
+            mode: single
+            value: 0.5
+          alpha:
+            mode: single
+            value: 0.8
+          color:
+            mode: gradient
+            keys:
+              - time: 0
+                value: "#ffffff"
+              - time: 1
+                value: "#4d4d4d"
+          rotation:
+            mode: none
+        bounds:
+          mode: recycle
+          source: custom
+          custom:
+            x: -25
+            y: -25
+            width: 450
+            height: 350
+out:
+  id: burst
+  type: particles
+  count: 24
+  width: 400
+  height: 300
+  x: 0
+  "y": 0
+  alpha: 1
+  texture:
+    shape: rect
+    width: 6
+    height: 18
+    color: "#ffffff"
+  behaviors:
+    - type: spawnShape
+      config:
+        type: circle
+        data:
+          x: 200
+          y: 150
+          radius: 12
+          innerRadius: 4
+          affectRotation: true
+    - type: movement
+      config:
+        velocity:
+          kind: radial
+          angle:
+            min: -30
+            max: 30
+          speed:
+            min: 150
+            max: 250
+            distribution:
+              kind: bias
+              toward: max
+              strength: 0.75
+        maxSpeed: 0
+        faceVelocity: true
+    - type: scaleStatic
+      config:
+        min: 0.5
+        max: 0.5
+    - type: alphaStatic
+      config:
+        alpha: 0.8
+    - type: color
+      config:
+        list:
+          - time: 0
+            value: "#ffffff"
+          - time: 1
+            value: "#4d4d4d"
+  emitter:
+    lifetime:
+      min: 0.75
+      max: 0.75
+    frequency: 0
+    particlesPerWave: 12
+    maxParticles: 24
+    emitterLifetime: 0.1
+    seed: 999
+    spawnBounds:
+      x: -25
+      y: -25
+      width: 450
+      height: 350
+    recycleOnBounds: true
+---
+case: Test parsing structured particles with selector texture and acceleration-only movement
+in:
+  - state:
+      id: selector
+      type: particles
+      width: 320
+      height: 240
+      seed: 4242
+      modules:
+        emission:
+          mode: continuous
+          rate: 6
+          particleLifetime:
+            min: 1
+            max: 2
+            distribution:
+              kind: normal
+              mean: 1.4
+              deviation: 0.2
+          source:
+            kind: line
+            data:
+              x1: 10
+              y1: 20
+              x2: 310
+              y2: 20
+        movement:
+          acceleration:
+            x: 0
+            y: 20
+          maxSpeed: 120
+        appearance:
+          texture:
+            mode: cycle
+            pick: perWave
+            items:
+              - src: spark-a
+              - shape: circle
+                radius: 3
+                color: "#d9d9d9"
+          rotation:
+            mode: random
+            min: -20
+            max: 20
+            distribution:
+              kind: bias
+              toward: center
+              strength: 0.9
+        bounds:
+          mode: none
+out:
+  id: selector
+  type: particles
+  count: 100
+  width: 320
+  height: 240
+  x: 0
+  "y": 0
+  alpha: 1
+  texture:
+    mode: cycle
+    pick: perWave
+    items:
+      - src: spark-a
+      - shape: circle
+        radius: 3
+        color: "#d9d9d9"
+  behaviors:
+    - type: spawnShape
+      config:
+        type: line
+        data:
+          x1: 10
+          y1: 20
+          x2: 310
+          y2: 20
+    - type: movement
+      config:
+        acceleration:
+          x: 0
+          y: 20
+        maxSpeed: 120
+        faceVelocity: false
+    - type: rotationStatic
+      config:
+        min: -20
+        max: 20
+        distribution:
+          kind: bias
+          toward: center
+          strength: 0.9
+  emitter:
+    lifetime:
+      min: 1
+      max: 2
+      distribution:
+        kind: normal
+        mean: 1.4
+        deviation: 0.2
+    frequency: 0.16666666666666666
+    particlesPerWave: 1
+    maxParticles: 100
+    emitterLifetime: -1
+    seed: 4242
+---
+case: Test parsing structured particles preserves custom asset texture selectors
+in:
+  - state:
+      id: asset-selector
+      type: particles
+      width: 640
+      height: 360
+      seed: 31415
+      modules:
+        emission:
+          mode: burst
+          burstCount: 6
+          maxActive: 10
+          duration: 0.1
+          particleLifetime:
+            min: 0.5
+            max: 0.9
+          source:
+            kind: point
+            data:
+              x: 320
+              y: 240
+        appearance:
+          texture:
+            mode: random
+            pick: perParticle
+            items:
+              - src: particle-ember-core
+                weight: 4
+              - src: particle-ember-glow
+                weight: 2
+          alpha:
+            mode: single
+            value: 0.85
+out:
+  id: asset-selector
+  type: particles
+  count: 10
+  width: 640
+  height: 360
+  x: 0
+  "y": 0
+  alpha: 1
+  texture:
+    mode: random
+    pick: perParticle
+    items:
+      - src: particle-ember-core
+        weight: 4
+      - src: particle-ember-glow
+        weight: 2
+  behaviors:
+    - type: spawnShape
+      config:
+        type: point
+        data:
+          x: 320
+          y: 240
+    - type: alphaStatic
+      config:
+        alpha: 0.85
+  emitter:
+    lifetime:
+      min: 0.5
+      max: 0.9
+    frequency: 0
+    particlesPerWave: 6
+    maxParticles: 10
+    emitterLifetime: 0.1
+    seed: 31415
+---
+case: Test parsing structured particles preserves a single custom asset texture alias
+in:
+  - state:
+      id: asset-single
+      type: particles
+      width: 640
+      height: 360
+      modules:
+        emission:
+          mode: continuous
+          rate: 12
+          particleLifetime: 2
+          source:
+            kind: point
+            data:
+              x: 320
+              y: 100
+        appearance:
+          texture: particle-snow-soft
+          scale:
+            mode: single
+            value: 0.4
+out:
+  id: asset-single
+  type: particles
+  count: 100
+  width: 640
+  height: 360
+  x: 0
+  "y": 0
+  alpha: 1
+  texture: particle-snow-soft
+  behaviors:
+    - type: spawnShape
+      config:
+        type: point
+        data:
+          x: 320
+          y: 100
+    - type: scaleStatic
+      config:
+        min: 0.4
+        max: 0.4
+  emitter:
+    lifetime:
+      min: 2
+      max: 2
+    frequency: 0.08333333333333333
+    particlesPerWave: 1
+    maxParticles: 100
+    emitterLifetime: -1
+---
+case: Test parsing structured particles collapses single selectors and compiles per-side area padding
+in:
+  - state:
+      id: single-selector
+      type: particles
+      width: 500
+      height: 200
+      seed: 7
+      modules:
+        emission:
+          mode: continuous
+          rate: 8
+          particleLifetime: 1
+          source:
+            kind: point
+            data:
+              x: 250
+              y: 100
+        appearance:
+          texture:
+            mode: single
+            items:
+              - src: spark-a
+        bounds:
+          mode: recycle
+          source: area
+          padding:
+            top: 10
+            right: 20
+            bottom: 30
+            left: 40
+out:
+  id: single-selector
+  type: particles
+  count: 100
+  width: 500
+  height: 200
+  x: 0
+  "y": 0
+  alpha: 1
+  texture: spark-a
+  behaviors:
+    - type: spawnShape
+      config:
+        type: point
+        data:
+          x: 250
+          y: 100
+  emitter:
+    lifetime:
+      min: 1
+      max: 1
+    frequency: 0.125
+    particlesPerWave: 1
+    maxParticles: 100
+    emitterLifetime: -1
+    seed: 7
+    spawnBounds:
+      x: -40
+      y: -10
+      width: 560
+      height: 240
+    recycleOnBounds: true
+---
 case: Test parsing particles with full config and shape texture
 in:
   - state:

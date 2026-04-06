@@ -648,58 +648,60 @@
           height: 500
           x: 20
           y: 40
-          texture:
-            shape: circle
-            radius: 5
-            color: "#FFFFFF"
-          behaviors:
-            - type: spawnShape
-              config:
-                type: rect
+          modules:
+            emission:
+              mode: continuous
+              rate: 66.67
+              maxActive: 120
+              duration: infinite
+              particleLifetime:
+                min: 0.8
+                max: 1.6
+              source:
+                kind: rect
                 data:
                   x: 200
                   y: 320
-                  w: 80
-                  h: 12
-            - type: acceleration
-              config:
-                accel:
-                  x: 0
-                  y: -180
-                minStart: 40
-                maxStart: 120
-                rotate: false
-            - type: scale
-              config:
-                list:
+                  width: 80
+                  height: 12
+            movement:
+              velocity:
+                kind: directional
+                direction: -90
+                speed:
+                  min: 40
+                  max: 120
+              acceleration:
+                x: 0
+                y: -180
+            appearance:
+              texture:
+                shape: circle
+                radius: 5
+                color: "#FFFFFF"
+              scale:
+                mode: curve
+                keys:
                   - value: 1
                     time: 0
                   - value: 0.4
                     time: 1
-            - type: alpha
-              config:
-                list:
+              alpha:
+                mode: curve
+                keys:
                   - value: 1
                     time: 0
                   - value: 0
                     time: 1
-            - type: color
-              config:
-                list:
+              color:
+                mode: gradient
+                keys:
                   - value: "#FFFFFF"
                     time: 0
                   - value: "#A6A6A6"
                     time: 0.5
                   - value: "#4D4D4D"
                     time: 1
-          emitter:
-            lifetime:
-              min: 0.8
-              max: 1.6
-            frequency: 0.03
-            particlesPerWave: 2
-            maxParticles: 120
-            emitterLifetime: -1
     - elements:
         - id: stage-bg
           type: rect
@@ -712,33 +714,42 @@
           type: particles
           width: 1280
           height: 720
-          texture:
-            shape: rect
-            width: 3
-            height: 12
-            color: "#FFFFFF"
-          behaviors:
-            - type: spawnShape
-              config:
-                type: rect
+          modules:
+            emission:
+              mode: continuous
+              rate: 60
+              maxActive: 220
+              duration: infinite
+              particleLifetime:
+                min: 3
+                max: 6
+              source:
+                kind: rect
                 data:
                   x: 0
                   y: -20
-                  w: 1280
-                  h: 10
-            - type: movePoint
-              config:
+                  width: 1280
+                  height: 10
+            movement:
+              velocity:
+                kind: directional
+                direction: 90
                 speed:
                   min: 50
                   max: 130
-                direction: 90
-            - type: scaleStatic
-              config:
+            appearance:
+              texture:
+                shape: rect
+                width: 3
+                height: 12
+                color: "#FFFFFF"
+              scale:
+                mode: range
                 min: 0.7
-                max: 1.0
-            - type: alpha
-              config:
-                list:
+                max: 1
+              alpha:
+                mode: curve
+                keys:
                   - value: 0
                     time: 0
                   - value: 0.75
@@ -747,20 +758,10 @@
                     time: 0.8
                   - value: 0
                     time: 1
-          emitter:
-            lifetime:
-              min: 3
-              max: 6
-            frequency: 0.05
-            particlesPerWave: 3
-            maxParticles: 220
-            emitterLifetime: -1
-            spawnBounds:
-              x: -50
-              y: -50
-              width: 1380
-              height: 820
-            recycleOnBounds: true
+            bounds:
+              mode: recycle
+              source: area
+              padding: 50
     - elements:
         - id: stage-bg
           type: rect
@@ -773,28 +774,37 @@
           type: particles
           width: 1280
           height: 720
-          texture:
-            shape: circle
-            radius: 4
-            color: "#D9D9D9"
-          behaviors:
-            - type: spawnShape
-              config:
-                type: rect
+          modules:
+            emission:
+              mode: continuous
+              rate: 50
+              maxActive: 200
+              duration: infinite
+              particleLifetime:
+                min: 4
+                max: 7
+              source:
+                kind: rect
                 data:
                   x: 0
                   y: -20
-                  w: 1280
-                  h: 10
-            - type: movePoint
-              config:
+                  width: 1280
+                  height: 10
+            movement:
+              velocity:
+                kind: directional
+                direction: 90
                 speed:
                   min: 35
                   max: 90
-                direction: 90
-            - type: alpha
-              config:
-                list:
+            appearance:
+              texture:
+                shape: circle
+                radius: 4
+                color: "#FFFFFF"
+              alpha:
+                mode: curve
+                keys:
                   - value: 0
                     time: 0
                   - value: 0.85
@@ -803,29 +813,19 @@
                     time: 0.75
                   - value: 0
                     time: 1
-            - type: color
-              config:
-                list:
+              color:
+                mode: gradient
+                keys:
                   - value: "#FFFFFF"
                     time: 0
                   - value: "#D9D9D9"
                     time: 0.5
                   - value: "#737373"
                     time: 1
-          emitter:
-            lifetime:
-              min: 4
-              max: 7
-            frequency: 0.04
-            particlesPerWave: 2
-            maxParticles: 200
-            emitterLifetime: -1
-            spawnBounds:
-              x: -50
-              y: -50
-              width: 1380
-              height: 820
-            recycleOnBounds: true
+            bounds:
+              mode: recycle
+              source: area
+              padding: 50
 
 - id: animated-sprite-demo
   name: Animated Sprite Demo

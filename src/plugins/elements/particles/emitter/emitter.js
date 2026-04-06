@@ -7,6 +7,17 @@
 import { Particle } from "./particle.js";
 import { getBehavior } from "../util/registries.js";
 import { SeededRandom } from "./seededRandom.js";
+import { sampleRange } from "../util/sampling.js";
+
+function isTextureSelector(texture) {
+  return (
+    typeof texture === "object" &&
+    texture !== null &&
+    !Array.isArray(texture) &&
+    typeof texture.mode === "string" &&
+    Array.isArray(texture.items)
+  );
+}
 
 /**
  * Particle Emitter
@@ -25,6 +36,18 @@ export class Emitter {
    * @type {Texture}
    */
   texture = null;
+
+  /**
+   * Optional texture selector for per-particle or per-wave assignment.
+   * @type {{mode: string, pick?: string, items: Array<{texture: Texture, weight?: number}>}|null}
+   */
+  textureSelector = null;
+
+  /**
+   * Cycle cursor for texture selector mode `cycle`.
+   * @type {number}
+   */
+  _textureCycleIndex = 0;
 
   /**
    * First active particle (linked list head)
@@ -156,19 +179,28 @@ export class Emitter {
    */
   init(config) {
     // Initialize seeded RNG if seed is provided
-    if (config.seed !== undefined && config.seed !== null) {
-      this.rng = new SeededRandom(config.seed);
-    }
+    this.rng =
+      config.seed !== undefined && config.seed !== null
+        ? new SeededRandom(config.seed)
+        : null;
 
     // Set texture
     if (config.texture) {
-      this.texture = config.texture;
+      if (isTextureSelector(config.texture)) {
+        this.textureSelector = config.texture;
+        this.texture = config.texture.items[0]?.texture ?? null;
+      } else {
+        this.textureSelector = null;
+        this.texture = config.texture;
+      }
     }
+    this._textureCycleIndex = 0;
 
     // Lifetime
     if (config.lifetime) {
       this.lifetime.min = config.lifetime.min ?? 1;
       this.lifetime.max = config.lifetime.max ?? config.lifetime.min ?? 2;
+      this.lifetime.distribution = config.lifetime.distribution;
     }
 
     // Spawn settings
@@ -178,6 +210,8 @@ export class Emitter {
     this.emitterLifetime = config.emitterLifetime ?? -1;
 
     // Bounds
+    this.spawnBounds = null;
+    this.recycleOnBounds = false;
     if (config.spawnBounds) {
       this.spawnBounds = config.spawnBounds;
       this.recycleOnBounds = config.recycleOnBounds ?? false;
@@ -238,9 +272,6 @@ export class Emitter {
       particle = new Particle(this);
     }
 
-    // Set texture
-    particle.texture = this.texture;
-
     return particle;
   }
 
@@ -258,17 +289,19 @@ export class Emitter {
 
     if (count <= 0) return null;
 
+    const waveTexture =
+      this.textureSelector?.pick === "perWave" ? this._pickTexture() : null;
+
     // Create particle chain
     let first = null;
     let last = null;
 
     for (let i = 0; i < count; i++) {
       const particle = this._createParticle();
+      particle.texture = waveTexture ?? this._pickTexture();
 
       // Calculate lifetime
-      const lifetime =
-        this.lifetime.min +
-        this.random() * (this.lifetime.max - this.lifetime.min);
+      const lifetime = sampleRange(this.random.bind(this), this.lifetime);
       particle.init(lifetime);
 
       // Add to chain
@@ -449,6 +482,44 @@ export class Emitter {
    */
   random() {
     return this.rng ? this.rng.next() : Math.random();
+  }
+
+  /**
+   * Resolve the texture for a newly spawned particle.
+   * @returns {Texture|null}
+   */
+  _pickTexture() {
+    if (!this.textureSelector) {
+      return this.texture;
+    }
+
+    const { mode, items } = this.textureSelector;
+    if (!items.length) return this.texture;
+
+    if (mode === "cycle") {
+      const item = items[this._textureCycleIndex % items.length];
+      this._textureCycleIndex += 1;
+      return item.texture;
+    }
+
+    if (mode === "random") {
+      const totalWeight = items.reduce(
+        (sum, item) => sum + (item.weight ?? 1),
+        0,
+      );
+
+      let cursor = this.random() * totalWeight;
+      for (const item of items) {
+        cursor -= item.weight ?? 1;
+        if (cursor <= 0) {
+          return item.texture;
+        }
+      }
+
+      return items[items.length - 1].texture;
+    }
+
+    return items[0].texture;
   }
 
   /**

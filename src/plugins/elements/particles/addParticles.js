@@ -8,6 +8,16 @@ import { queueDeferredParticlesStart } from "../renderContext.js";
  * @typedef {import('../../../types.js').ParticleTextureShape} ParticleTextureShape
  */
 
+function isTextureSelector(texture) {
+  return (
+    typeof texture === "object" &&
+    texture !== null &&
+    !Array.isArray(texture) &&
+    typeof texture.mode === "string" &&
+    Array.isArray(texture.items)
+  );
+}
+
 /**
  * Create a texture from inline shape definition.
  * Used when user specifies `texture: { shape: "circle", radius: 5 }` instead of a named texture.
@@ -48,6 +58,49 @@ function createCustomTexture(app, shapeConfig) {
   return app.renderer.generateTexture(g);
 }
 
+function resolveTextureDefinition(app, textureDefinition) {
+  if (typeof textureDefinition === "object" && textureDefinition?.shape) {
+    return createCustomTexture(app, textureDefinition);
+  }
+
+  const textureName = textureDefinition ?? "circle";
+  let texture = getTexture(textureName, app);
+  if (!texture) {
+    try {
+      texture = Texture.from(textureName);
+    } catch (e) {
+      console.warn(`Failed to load particle texture: ${textureName}`);
+      return null;
+    }
+  }
+
+  return texture;
+}
+
+function resolveTextureSelector(app, selector) {
+  const items = [];
+
+  for (const item of selector.items) {
+    const definition = item.src ? item.src : item;
+    const texture = resolveTextureDefinition(app, definition);
+    if (!texture) {
+      return null;
+    }
+
+    items.push(
+      item.weight === undefined
+        ? { texture }
+        : { texture, weight: item.weight },
+    );
+  }
+
+  return {
+    mode: selector.mode,
+    pick: selector.pick ?? "perParticle",
+    items,
+  };
+}
+
 /**
  * Add a particle effect to the stage using custom behavior configs.
  * @param {import("../elementPlugin.js").AddElementOptions} params
@@ -83,28 +136,49 @@ export const addParticle = ({
   };
 
   // Resolve texture: custom shape > named texture > circle
-  let texture;
-  if (typeof element.texture === "object" && element.texture.shape) {
-    texture = createCustomTexture(app, element.texture);
-  } else {
-    const textureName = element.texture ?? "circle";
-    texture = getTexture(textureName, app);
-    if (!texture) {
-      try {
-        texture = Texture.from(textureName);
-      } catch (e) {
-        console.warn(`Failed to load particle texture: ${textureName}`);
-        return;
-      }
-    }
-  }
+  const texture = isTextureSelector(element.texture)
+    ? resolveTextureSelector(app, element.texture)
+    : resolveTextureDefinition(app, element.texture);
+  if (!texture) return;
   emitterConfig.texture = texture;
 
   const emitter = new Emitter(container, emitterConfig);
   container.emitter = emitter;
 
-  // Pre-fill weather effects so they don't start empty
-  if (emitterConfig.recycleOnBounds) {
+  const isBurstEmitter = emitterConfig.frequency <= 0;
+
+  // Fire burst emitters immediately, then retry across the first few browser
+  // frames if the mount/update pipeline still leaves the emitter empty.
+  if (isBurstEmitter) {
+    emitter.emitNow();
+    emitter.emit = false;
+
+    const retryBurstMount = (delays) => {
+      if (!delays.length) {
+        return;
+      }
+
+      const [delay, ...rest] = delays;
+      const schedule =
+        delay === 0 && typeof requestAnimationFrame === "function"
+          ? requestAnimationFrame
+          : (callback) => setTimeout(callback, delay);
+
+      schedule(() => {
+        if (emitter.destroyed || emitter.particleCount > 0) {
+          return;
+        }
+
+        emitter.emitNow();
+        retryBurstMount(rest);
+      });
+    };
+
+    retryBurstMount([0, 50, 150]);
+  }
+
+  // Pre-fill continuous recycled effects so they do not start empty.
+  if (emitterConfig.recycleOnBounds && !isBurstEmitter) {
     const initialCount = Math.min(
       element.count ?? 100,
       emitterConfig.maxParticles,
@@ -125,7 +199,15 @@ export const addParticle = ({
       app.ticker.remove(tickerCallback);
       return;
     }
-    emitter.update(ticker.deltaTime / 60);
+
+    const deltaSec = Math.min(
+      typeof ticker.deltaMS === "number"
+        ? ticker.deltaMS / 1000
+        : ticker.deltaTime / 60,
+      0.1,
+    );
+
+    emitter.update(deltaSec);
   };
   container.tickerCallback = tickerCallback;
 

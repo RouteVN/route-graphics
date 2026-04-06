@@ -11,3 +11,4 @@ export * from "./acceleration.js";
 export * from "./rotation.js";
 export * from "./color.js";
 export * from "./spawnShape.js";
+export * from "./movement.js";
