@@ -3,6 +3,57 @@ import { describe, expect, it } from "vitest";
 import { parseTextRevealing } from "../../src/plugins/elements/text-revealing/parseTextRevealing.js";
 
 describe("parseTextRevealing wrap regressions", () => {
+  it("wraps long content into multiple lines while preserving text order", () => {
+    const sourceText =
+      "This is a longer text that should wrap to multiple lines when it exceeds the specified width constraint for proper text layout demonstration.";
+    const parsed = parseTextRevealing({
+      state: {
+        id: "tr2",
+        type: "text-revealing",
+        width: 300,
+        content: [
+          {
+            text: sourceText,
+          },
+        ],
+        textStyle: {
+          fontSize: 20,
+          fill: "#2c3e50",
+          fontFamily: "Arial",
+          breakWords: false,
+        },
+        x: 50,
+        y: 50,
+      },
+    });
+
+    expect(parsed.width).toBe(300);
+    expect(parsed.x).toBe(50);
+    expect(parsed.y).toBe(50);
+    expect(parsed.content.length).toBeGreaterThan(1);
+    expect(parsed.content.every((chunk) => chunk.lineParts.length === 1)).toBe(
+      true,
+    );
+    expect(parsed.content.every((chunk) => chunk.lineParts[0].x === 0)).toBe(
+      true,
+    );
+    expect(
+      parsed.content.every(
+        (chunk, index) => index === 0 || chunk.y > parsed.content[index - 1].y,
+      ),
+    ).toBe(true);
+
+    const normalizedRenderedText = parsed.content
+      .flatMap((chunk) => chunk.lineParts.map((part) => part.text))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    expect(normalizedRenderedText).toBe(
+      sourceText.replace(/\s+/g, " ").trim(),
+    );
+  });
+
   it("starts each automatically wrapped line at x=0 for breakWords content", () => {
     const parsed = parseTextRevealing({
       state: {

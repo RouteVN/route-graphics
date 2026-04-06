@@ -134,6 +134,19 @@ export const createAnimationBus = () => {
   const activeAnimations = new Map();
   const listeners = new Map();
   let stateVersion = 0;
+  let sampledTime = null;
+  let hasDeferredQueueProcessing = false;
+
+  const clampAnimationTime = (time, duration) => {
+    return Math.min(Math.max(time, 0), Math.max(duration ?? 0, 0));
+  };
+
+  const applyTimeToContext = (context, timeMS) => {
+    const nextTime = clampAnimationTime(timeMS, context.duration);
+    context.currentTime = nextTime;
+    context.applyFrame(nextTime);
+    return nextTime >= context.duration;
+  };
 
   const emit = (event, data) => {
     listeners.get(event)?.forEach((cb) => {
@@ -154,6 +167,21 @@ export const createAnimationBus = () => {
       } catch (_error) {
         // Completion callbacks are best-effort.
       }
+    }
+  };
+
+  const registerAnimation = (context) => {
+    context.applyFrame(0);
+    activeAnimations.set(context.id, context);
+
+    const completed =
+      sampledTime !== null && applyTimeToContext(context, sampledTime);
+
+    emit("started", { id: context.id });
+
+    if (completed) {
+      fireCompleteEvent(context);
+      activeAnimations.delete(context.id);
     }
   };
 
@@ -223,9 +251,7 @@ export const createAnimationBus = () => {
       isValid: () => Boolean(element) && !element.destroyed,
     };
 
-    context.applyFrame(0);
-    activeAnimations.set(id, context);
-    emit("started", { id });
+    registerAnimation(context);
   };
 
   const startCustomAnimation = (payload) => {
@@ -242,9 +268,7 @@ export const createAnimationBus = () => {
       isValid: payload.isValid ?? (() => true),
     };
 
-    context.applyFrame(0);
-    activeAnimations.set(context.id, context);
-    emit("started", { id: context.id });
+    registerAnimation(context);
   };
 
   const startAnimation = (payload) => {
@@ -290,6 +314,23 @@ export const createAnimationBus = () => {
     }
   };
 
+  const scheduleDeferredQueueProcessing = () => {
+    if (sampledTime === null || hasDeferredQueueProcessing) {
+      return;
+    }
+
+    hasDeferredQueueProcessing = true;
+    queueMicrotask(() => {
+      hasDeferredQueueProcessing = false;
+
+      if (sampledTime === null) {
+        return;
+      }
+
+      processQueue();
+    });
+  };
+
   const cancelAnimation = (id) => {
     const context = activeAnimations.get(id);
     if (!context) return;
@@ -301,6 +342,7 @@ export const createAnimationBus = () => {
 
   const dispatch = (command) => {
     commandQueue.push(command);
+    scheduleDeferredQueueProcessing();
   };
 
   const cancelAll = () => {
@@ -346,6 +388,38 @@ export const createAnimationBus = () => {
     }
   };
 
+  const setTime = (timeMS) => {
+    sampledTime = timeMS;
+    processQueue();
+
+    const toRemove = [];
+
+    for (const [id, context] of activeAnimations) {
+      if (context.stateVersion !== stateVersion) {
+        toRemove.push(id);
+        continue;
+      }
+
+      if (!context.isValid()) {
+        toRemove.push(id);
+        continue;
+      }
+
+      if (applyTimeToContext(context, timeMS)) {
+        fireCompleteEvent(context);
+        toRemove.push(id);
+      }
+    }
+
+    for (const id of toRemove) {
+      activeAnimations.delete(id);
+    }
+  };
+
+  const clearTime = () => {
+    sampledTime = null;
+  };
+
   const flush = () => {
     processQueue();
   };
@@ -386,6 +460,8 @@ export const createAnimationBus = () => {
     cancelAll,
     flush,
     tick,
+    setTime,
+    clearTime,
     on,
     off,
     getState,

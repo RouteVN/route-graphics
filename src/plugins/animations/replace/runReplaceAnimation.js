@@ -29,6 +29,14 @@ const smoothstep = (edge0, edge1, value) => {
   return t * t * (3 - 2 * t);
 };
 
+export const sampleMaskReveal = ({ progress, maskValue, softness } = {}) => {
+  const clampedMaskValue = clamp01(maskValue);
+  const lowerEdge = clamp01(clampedMaskValue - softness);
+  const upperEdge = clamp01(clampedMaskValue + softness);
+
+  return smoothstep(lowerEdge, upperEdge, clamp01(progress));
+};
+
 const getLocalBoundsRectangle = (displayObject) =>
   displayObject.getLocalBounds().rectangle.clone();
 
@@ -281,11 +289,11 @@ const createMaskSampler = (app, mask, width, height) => {
       duration,
       progressTimeline,
       sample: (progress, index) =>
-        smoothstep(
-          progress - softness,
-          progress + softness,
-          pixels[index] / 255,
-        ),
+        sampleMaskReveal({
+          progress,
+          maskValue: pixels[index] / 255,
+          softness,
+        }),
       destroy: () => {},
     };
   }
@@ -317,11 +325,11 @@ const createMaskSampler = (app, mask, width, height) => {
               frames[upperIndex][index] * ratio) /
             255;
 
-          return smoothstep(
-            progress - softness,
-            progress + softness,
+          return sampleMaskReveal({
+            progress,
             maskValue,
-          );
+            softness,
+          });
         }
 
         const frameIndex = Math.min(
@@ -329,11 +337,11 @@ const createMaskSampler = (app, mask, width, height) => {
           Math.max(0, Math.round(scaled)),
         );
 
-        return smoothstep(
-          progress - softness,
-          progress + softness,
-          frames[frameIndex][index] / 255,
-        );
+        return sampleMaskReveal({
+          progress,
+          maskValue: frames[frameIndex][index] / 255,
+          softness,
+        });
       },
       destroy: () => {},
     };
@@ -345,7 +353,11 @@ const createMaskSampler = (app, mask, width, height) => {
     duration,
     progressTimeline,
     sample: (progress, index) =>
-      smoothstep(progress - softness, progress + softness, pixels[index] / 255),
+      sampleMaskReveal({
+        progress,
+        maskValue: pixels[index] / 255,
+        softness,
+      }),
     destroy: () => {},
   };
 };
