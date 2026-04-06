@@ -47,7 +47,11 @@ export const addAnimatedSprite = async ({
   animatedSprite.loop = animation.loop ?? true;
 
   if (app.debug) {
-    setupDebugMode(animatedSprite, id, app.debug);
+    setupDebugMode(animatedSprite, id, app.debug, () => {
+      if (typeof app.render === "function") {
+        app.render();
+      }
+    });
   } else {
     queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
   }
@@ -59,4 +63,8 @@ export const addAnimatedSprite = async ({
   animatedSprite.alpha = alpha;
 
   parent.addChild(animatedSprite);
+
+  if (typeof app.render === "function") {
+    app.render();
+  }
 };

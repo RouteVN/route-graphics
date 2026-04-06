@@ -441,6 +441,61 @@ describe("RouteGraphics public API", () => {
     });
   });
 
+  it("does not abort pending async adds when re-rendering the same state", async () => {
+    let resolveAdd;
+    const addPromise = new Promise((resolve) => {
+      resolveAdd = resolve;
+    });
+
+    const { app } = await setupRouteGraphics({
+      pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+        const asyncNodePlugin = {
+          type: "async-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element, signal }) =>
+            addPromise.then(() => {
+              if (signal?.aborted || parent.destroyed) {
+                return;
+              }
+
+              const container = new activePixiMock.Container();
+              container.label = element.id;
+              parent.addChild(container);
+            }),
+          ),
+          update: vi.fn(),
+          delete: vi.fn(),
+        };
+
+        return {
+          elements: [asyncNodePlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    const sharedState = {
+      id: "async-same-state",
+      elements: [
+        {
+          id: "delayed-node",
+          type: "async-node",
+        },
+      ],
+    };
+
+    app.render(sharedState);
+    app.render(sharedState);
+
+    resolveAdd();
+    await addPromise;
+
+    await vi.waitFor(() => {
+      expect(app.findElementByLabel("delayed-node")).not.toBeNull();
+    });
+  });
+
   it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {
     const eventHandler = vi.fn();
 

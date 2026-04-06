@@ -248,6 +248,14 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = (appInstance, parent, nextState, handler) => {
+    if (isDeepEqual(state, nextState)) {
+      if (typeof appInstance.render === "function") {
+        appInstance.render();
+      }
+
+      return;
+    }
+
     if (renderAbortController) {
       renderAbortController.abort();
     }

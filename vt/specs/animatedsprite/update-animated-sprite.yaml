@@ -16,8 +16,8 @@ steps:
       frameIndex: 4
       elementId: "animated-sprite-2"
   - action: screenshot
-  - action: keypress
-    key: "n"
+  - action: customEvent
+    name: "vtNextState"
   - action: customEvent
     name: "snapShotAnimatedSpriteFrame"
     detail:

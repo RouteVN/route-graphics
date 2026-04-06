@@ -9,8 +9,8 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 250
-  - action: keypress
-    key: "n"
+  - action: customEvent
+    name: "vtNextState"
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
