@@ -1,6 +1,9 @@
 import { Container, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
-import { runReplaceAnimation } from "../../src/plugins/animations/replace/runReplaceAnimation.js";
+import {
+  runReplaceAnimation,
+  sampleMaskReveal,
+} from "../../src/plugins/animations/replace/runReplaceAnimation.js";
 import { queueDeferredAnimatedSpritePlay } from "../../src/plugins/elements/renderContext.js";
 
 const createFrame = (x = 0, y = 0, width = 100, height = 100) => ({
@@ -45,6 +48,49 @@ const createParent = (...children) => ({
 });
 
 describe("runReplaceAnimation", () => {
+  it("increases reveal over time for lower-valued mask pixels", () => {
+    const lowMaskStart = sampleMaskReveal({
+      progress: 0,
+      maskValue: 0.2,
+      softness: 0.08,
+    });
+    const lowMaskMid = sampleMaskReveal({
+      progress: 0.2,
+      maskValue: 0.2,
+      softness: 0.08,
+    });
+    const lowMaskEnd = sampleMaskReveal({
+      progress: 1,
+      maskValue: 0.2,
+      softness: 0.08,
+    });
+    const highMaskMid = sampleMaskReveal({
+      progress: 0.2,
+      maskValue: 0.8,
+      softness: 0.08,
+    });
+
+    expect(lowMaskStart).toBeLessThan(lowMaskMid);
+    expect(lowMaskMid).toBeLessThan(lowMaskEnd);
+    expect(highMaskMid).toBeLessThan(lowMaskMid);
+  });
+
+  it("fully completes edge pixels by the end of the transition", () => {
+    const startReveal = sampleMaskReveal({
+      progress: 0,
+      maskValue: 0,
+      softness: 0.08,
+    });
+    const endReveal = sampleMaskReveal({
+      progress: 1,
+      maskValue: 1,
+      softness: 0.08,
+    });
+
+    expect(startReveal).toBe(0);
+    expect(endReveal).toBe(1);
+  });
+
   it("mounts next-only transitions through hidden add flow and reveals the result on complete", () => {
     const parent = createParent();
     const nextDisplayObject = createDisplayObject("scene-root");
