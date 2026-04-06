@@ -143,19 +143,47 @@
  */
 
 /**
- * @typedef {string | ParticleTextureShape} ParticleTexture
+ * @typedef {Object} ParticleDistribution
+ * @property {'uniform' | 'normal' | 'bias'} kind
+ * @property {'min' | 'max' | 'center'} [toward]
+ * @property {number} [strength]
+ * @property {number} [mean]
+ * @property {number} [deviation]
+ */
+
+/**
+ * @typedef {Object} ParticleRangeValue
+ * @property {number} min
+ * @property {number} [max]
+ * @property {ParticleDistribution} [distribution]
+ */
+
+/**
+ * @typedef {Object} ParticleTextureItem
+ * @property {string} [src]
+ * @property {'circle' | 'ellipse' | 'rect'} [shape]
+ * @property {number} [radius]
+ * @property {number} [width]
+ * @property {number} [height]
+ * @property {string} [color]
+ * @property {number} [weight]
+ */
+
+/**
+ * @typedef {Object} ParticleTextureSelector
+ * @property {'single' | 'random' | 'cycle'} mode
+ * @property {'perParticle' | 'perWave'} [pick]
+ * @property {ParticleTextureItem[]} items
+ */
+
+/**
+ * @typedef {string | ParticleTextureShape | ParticleTextureSelector} ParticleTexture
  */
 
 /**
  * @typedef {Object} ParticleBehavior
  * @property {string} type - Behavior type name
  * @property {Object} [config] - Behavior-specific configuration
- */
-
-/**
- * @typedef {Object} ParticleEmitterLifetime
- * @property {number} min - Minimum particle lifespan in seconds
- * @property {number} max - Maximum particle lifespan in seconds
  */
 
 /**
@@ -168,7 +196,7 @@
 
 /**
  * @typedef {Object} ParticleEmitter
- * @property {ParticleEmitterLifetime} lifetime - Particle lifespan in seconds
+ * @property {ParticleRangeValue} lifetime - Particle lifespan in seconds
  * @property {number} frequency - Seconds between spawns (0 = burst all at once)
  * @property {number} particlesPerWave - Particles spawned per wave
  * @property {number} [maxParticles] - Maximum active particles
@@ -187,6 +215,64 @@
  * @property {ParticleEmitter} emitter - Emitter configuration
  * @property {number} alpha - Container opacity
  * @typedef {ComputedNode & ParticlesComputedProps} ParticlesComputedNode
+ */
+
+/**
+ * @typedef {Object} ParticleSource
+ * @property {'point' | 'rect' | 'circle' | 'line'} kind
+ * @property {Object} data
+ */
+
+/**
+ * @typedef {Object} ParticleEmissionModule
+ * @property {'continuous' | 'burst'} mode
+ * @property {number} [rate]
+ * @property {number} [burstCount]
+ * @property {number} [maxActive]
+ * @property {number | 'infinite'} [duration]
+ * @property {number | ParticleRangeValue} particleLifetime
+ * @property {ParticleSource} source
+ */
+
+/**
+ * @typedef {Object} ParticleVelocityModule
+ * @property {'directional' | 'radial'} kind
+ * @property {number | ParticleRangeValue} speed
+ * @property {number | ParticleRangeValue} [direction]
+ * @property {number | ParticleRangeValue} [angle]
+ */
+
+/**
+ * @typedef {Object} ParticleMovementModule
+ * @property {ParticleVelocityModule} [velocity]
+ * @property {{x: number, y: number}} [acceleration]
+ * @property {number} [maxSpeed]
+ * @property {boolean} [faceVelocity]
+ */
+
+/**
+ * @typedef {Object} ParticleAppearanceModule
+ * @property {ParticleTexture} texture
+ * @property {Object} [scale]
+ * @property {Object} [alpha]
+ * @property {Object} [color]
+ * @property {Object} [rotation]
+ */
+
+/**
+ * @typedef {Object} ParticleBoundsModule
+ * @property {'none' | 'recycle'} mode
+ * @property {'area' | 'custom'} [source]
+ * @property {number | {top: number, right: number, bottom: number, left: number}} [padding]
+ * @property {ParticleSpawnBounds} [custom]
+ */
+
+/**
+ * @typedef {Object} ParticleModules
+ * @property {ParticleEmissionModule} emission
+ * @property {ParticleMovementModule} [movement]
+ * @property {ParticleAppearanceModule} appearance
+ * @property {ParticleBoundsModule} [bounds]
  */
 
 /**

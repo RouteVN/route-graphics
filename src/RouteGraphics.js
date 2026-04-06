@@ -248,6 +248,14 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = (appInstance, parent, nextState, handler) => {
+    if (isDeepEqual(state, nextState)) {
+      if (typeof appInstance.render === "function") {
+        appInstance.render();
+      }
+
+      return;
+    }
+
     if (renderAbortController) {
       renderAbortController.abort();
     }
@@ -325,6 +333,10 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
+      if (typeof app.render === "function") {
+        app.render();
+      }
+
       const frame = new Rectangle(
         0,
         0,
@@ -434,6 +446,7 @@ const createRouteGraphics = () => {
         height,
         backgroundColor,
         preference: "webgl",
+        preserveDrawingBuffer: debug === true,
       });
       if (typeof app.ticker?.remove === "function") {
         app.ticker.remove(app.render, app);

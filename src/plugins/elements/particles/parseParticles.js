@@ -6,6 +6,8 @@ import {
   validateEmitterOptionalProps,
   validateOptionalFields,
 } from "./util/validateParticles.js";
+import { validateParticleModules } from "./util/validateParticleModules.js";
+import { compileParticleModules } from "./compileParticleModules.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -26,6 +28,12 @@ import {
  * @return {ParticlesComputedNode}
  */
 export const parseParticles = ({ state }) => {
+  if (state.modules) {
+    validateBasicFields(state);
+    validateParticleModules(state);
+    return compileParticleModules(state);
+  }
+
   // Run all validations
   validateBasicFields(state);
   validateTexture(state);

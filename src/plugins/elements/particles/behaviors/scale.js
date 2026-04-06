@@ -5,6 +5,7 @@
  */
 
 import { PropertyList } from "../emitter/propertyList.js";
+import { sampleRange } from "../util/sampling.js";
 
 /**
  * Applies interpolated scale values over particle lifetime.
@@ -79,13 +80,20 @@ export class StaticScaleBehavior {
   constructor(config) {
     this.min = config.min;
     this.max = config.max;
+    this.distribution = config.distribution;
   }
 
   initParticles(first) {
     let particle = first;
     while (particle) {
-      const scale =
-        particle.emitter.random() * (this.max - this.min) + this.min;
+      const scale = sampleRange(
+        particle.emitter.random.bind(particle.emitter),
+        {
+          min: this.min,
+          max: this.max,
+          distribution: this.distribution,
+        },
+      );
       particle.scale.set(scale, scale);
       particle = particle.next;
     }

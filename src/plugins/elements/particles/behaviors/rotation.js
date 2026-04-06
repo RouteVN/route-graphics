@@ -4,6 +4,8 @@
  * Original Copyright (c) 2015 CloudKid
  */
 
+import { sampleRange } from "../util/sampling.js";
+
 const DEG_TO_RAD = Math.PI / 180;
 
 /**
@@ -33,10 +35,16 @@ export class RotationBehavior {
    * @param {number} [config.accel=0] - Rotation acceleration (degrees/sec²)
    */
   constructor(config) {
-    this.minStart = config.minStart * DEG_TO_RAD;
-    this.maxStart = config.maxStart * DEG_TO_RAD;
-    this.minSpeed = config.minSpeed * DEG_TO_RAD;
-    this.maxSpeed = config.maxSpeed * DEG_TO_RAD;
+    this.startRange = {
+      min: config.minStart,
+      max: config.maxStart ?? config.minStart,
+      distribution: config.startDistribution,
+    };
+    this.speedRange = {
+      min: config.minSpeed,
+      max: config.maxSpeed ?? config.minSpeed,
+      distribution: config.speedDistribution,
+    };
     this.accel = (config.accel ?? 0) * DEG_TO_RAD;
   }
 
@@ -44,11 +52,15 @@ export class RotationBehavior {
     let particle = first;
     while (particle) {
       particle.rotation =
-        particle.emitter.random() * (this.maxStart - this.minStart) +
-        this.minStart;
+        sampleRange(
+          particle.emitter.random.bind(particle.emitter),
+          this.startRange,
+        ) * DEG_TO_RAD;
       particle.rotationSpeed =
-        particle.emitter.random() * (this.maxSpeed - this.minSpeed) +
-        this.minSpeed;
+        sampleRange(
+          particle.emitter.random.bind(particle.emitter),
+          this.speedRange,
+        ) * DEG_TO_RAD;
 
       particle = particle.next;
     }
@@ -84,15 +96,21 @@ export class StaticRotationBehavior {
    * @param {number} config.max - Maximum rotation (degrees)
    */
   constructor(config) {
-    this.min = config.min * DEG_TO_RAD;
-    this.max = config.max * DEG_TO_RAD;
+    this.range = {
+      min: config.min,
+      max: config.max ?? config.min,
+      distribution: config.distribution,
+    };
   }
 
   initParticles(first) {
     let particle = first;
     while (particle) {
       particle.rotation =
-        particle.emitter.random() * (this.max - this.min) + this.min;
+        sampleRange(
+          particle.emitter.random.bind(particle.emitter),
+          this.range,
+        ) * DEG_TO_RAD;
       particle = particle.next;
     }
   }

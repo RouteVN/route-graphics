@@ -3,8 +3,9 @@
  * @param {import("pixi.js").AnimatedSprite} animatedSprite
  * @param {string} elementId
  * @param {boolean} isDebug
+ * @param {() => void} [render]
  */
-export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
+export const setupDebugMode = (animatedSprite, elementId, isDebug, render) => {
   if (!isDebug) return;
 
   const handler = (event) => {
@@ -13,6 +14,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
       typeof event?.detail?.frameIndex === "number"
     ) {
       animatedSprite.gotoAndStop(event?.detail?.frameIndex);
+      render?.();
     }
   };
 

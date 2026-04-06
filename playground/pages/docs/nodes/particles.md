@@ -5,144 +5,245 @@ tags: documentation
 sidebarId: node-particles
 ---
 
-`particles` renders a particle emitter with configurable textures, behaviors, and emission rules.
+`particles` renders one particle emitter. The public authoring model is organized through high-level `modules` instead of raw emitter behaviors.
 
 Try it in the [Playground](/playground/?template=particles-demo).
+
+Need the exhaustive field reference? See `src/plugins/elements/particles/docs/SCHEMA.md` in the repository.
 
 ## Used In
 
 - `elements[]`
 
-## Field Reference
+## Top-Level Fields
 
-| Field       | Type             | Required | Default | Notes                                                 |
-| ----------- | ---------------- | -------- | ------- | ----------------------------------------------------- |
-| `id`        | string           | Yes      | -       | Element id.                                           |
-| `type`      | string           | Yes      | -       | Must be `particles`.                                  |
-| `width`     | number           | Yes      | -       | Effect area width.                                    |
-| `height`    | number           | Yes      | -       | Effect area height.                                   |
-| `texture`   | string \| object | Yes      | -       | Built-in texture name, alias, or custom shape object. |
-| `behaviors` | array            | Yes      | -       | Non-empty behavior list.                              |
-| `emitter`   | object           | Yes      | -       | Emission settings.                                    |
-| `x`         | number           | No       | `0`     | Container x.                                          |
-| `y`         | number           | No       | `0`     | Container y.                                          |
-| `alpha`     | number           | No       | `1`     | Container alpha.                                      |
-| `count`     | number           | No       | `100`   | Fallback max particle count.                          |
+| Field     | Type   | Required | Default | Notes                                              |
+| --------- | ------ | -------- | ------- | -------------------------------------------------- |
+| `id`      | string | Yes      | -       | Element id.                                        |
+| `type`    | string | Yes      | -       | Must be `particles`.                               |
+| `width`   | number | Yes      | -       | Effect area width.                                 |
+| `height`  | number | Yes      | -       | Effect area height.                                |
+| `modules` | object | Yes      | -       | Structured particle configuration.                 |
+| `x`       | number | No       | `0`     | Container x.                                       |
+| `y`       | number | No       | `0`     | Container y.                                       |
+| `alpha`   | number | No       | `1`     | Container alpha.                                   |
+| `seed`    | number | No       | -       | Deterministic randomness for testing and previews. |
 
-### Custom texture object
+## Modules
 
-| Field    | Type                            | Required | Default        |
-| -------- | ------------------------------- | -------- | -------------- |
-| `shape`  | `circle` \| `ellipse` \| `rect` | Yes      | -              |
-| `radius` | number                          | No       | `3`            |
-| `width`  | number                          | No       | shape-specific |
-| `height` | number                          | No       | shape-specific |
-| `color`  | string                          | No       | `#ffffff`      |
+`particles` exposes four public modules:
 
-### `emitter`
+- `emission`
+- `movement`
+- `appearance`
+- `bounds`
 
-| Field              | Type    | Required | Default      | Notes                                     |
-| ------------------ | ------- | -------- | ------------ | ----------------------------------------- |
-| `lifetime.min`     | number  | Yes      | -            | Particle lifespan minimum (seconds).      |
-| `lifetime.max`     | number  | Yes      | -            | Particle lifespan maximum (seconds).      |
-| `frequency`        | number  | Yes      | -            | Seconds between waves (`0` for burst).    |
-| `particlesPerWave` | number  | Yes      | -            | Spawn count per wave.                     |
-| `maxParticles`     | number  | No       | from `count` | Hard cap.                                 |
-| `emitterLifetime`  | number  | No       | `-1`         | `-1` means infinite.                      |
-| `spawnBounds`      | object  | No       | -            | Recycling bounds.                         |
-| `recycleOnBounds`  | boolean | No       | `false`      | Enables weather-like recycling.           |
-| `seed`             | number  | No       | -            | Deterministic randomness (useful for VT). |
+### `modules.emission`
 
-## Behavior Notes
+Controls when particles are created, how many can exist, how long they live, and where they come from.
 
-- Built-in behavior implementations include `alpha`, `scale`, `speed`, `acceleration`, `rotation`, `color`, and spawn-shape/burst variants.
-- Unknown texture names are attempted as external textures.
-- No element-level interaction events are emitted by particles.
+| Field              | Type                    | Required        | Notes                          |
+| ------------------ | ----------------------- | --------------- | ------------------------------ |
+| `mode`             | `continuous` \| `burst` | Yes             | Emission behavior.             |
+| `rate`             | number                  | Continuous only | Particles per second.          |
+| `burstCount`       | number                  | Burst only      | Particles spawned immediately. |
+| `maxActive`        | number                  | No              | Maximum active particles.      |
+| `duration`         | number \| `infinite`    | No              | Emitter lifetime.              |
+| `particleLifetime` | number \| range         | Yes             | Per-particle lifetime.         |
+| `source`           | object                  | Yes             | Spawn source definition.       |
 
-## Example: Minimal Burst
+`source.kind` may be `point`, `rect`, `circle`, or `line`.
+
+### `modules.movement`
+
+Controls initial velocity and ongoing forces.
+
+| Field          | Type    | Required | Notes                                       |
+| -------------- | ------- | -------- | ------------------------------------------- |
+| `velocity`     | object  | No       | Initial velocity definition.                |
+| `acceleration` | object  | No       | Ongoing acceleration vector.                |
+| `maxSpeed`     | number  | No       | Optional speed clamp.                       |
+| `faceVelocity` | boolean | No       | Rotate particles to match travel direction. |
+
+`velocity.kind` may be:
+
+- `directional`
+- `radial`
+
+### `modules.appearance`
+
+Controls how particles look.
+
+| Field      | Type                        | Required | Notes                            |
+| ---------- | --------------------------- | -------- | -------------------------------- |
+| `texture`  | string \| shape \| selector | Yes      | Base sprite or texture selector. |
+| `scale`    | object                      | No       | Size control.                    |
+| `alpha`    | object                      | No       | Opacity control.                 |
+| `color`    | object                      | No       | Tint control.                    |
+| `rotation` | object                      | No       | Rotation control.                |
+
+`appearance.texture` may be:
+
+- a single texture alias, such as `snowflake`
+- an inline shape texture
+- a selector with `mode: single | random | cycle`
+
+Texture selectors support:
+
+- `pick: perParticle | perWave`
+- weighted items for `mode: random`
+
+### `modules.bounds`
+
+Controls what happens when particles leave the allowed region.
+
+| Field     | Type                | Required     | Notes                                 |
+| --------- | ------------------- | ------------ | ------------------------------------- |
+| `mode`    | `none` \| `recycle` | No           | Bounds behavior.                      |
+| `source`  | `area` \| `custom`  | Recycle only | Area-derived or explicit bounds.      |
+| `padding` | number \| object    | No           | Extra area around the element bounds. |
+| `custom`  | object              | Custom only  | Explicit local-space bounds.          |
+
+## Range Values And Distributions
+
+Many numeric module fields accept either:
+
+- a single number
+- or a range object
+
+Example:
+
+```yaml
+speed:
+  min: 50
+  max: 150
+  distribution:
+    kind: normal
+    mean: 90
+    deviation: 20
+```
+
+Supported distribution kinds:
+
+- `uniform`
+- `normal`
+- `bias`
+
+## Example: Snow
 
 ```yaml
 elements:
-  - id: burst
+  - id: snow
     type: particles
-    x: 640
-    y: 360
-    width: 1
-    height: 1
-    texture: circle
-    behaviors:
-      - type: alpha
-        config:
-          alpha:
-            list:
-              - { value: 1, time: 0 }
-              - { value: 0, time: 1 }
-    emitter:
-      lifetime: { min: 0.2, max: 0.5 }
-      frequency: 0
-      particlesPerWave: 20
-      maxParticles: 20
+    width: 1280
+    height: 720
+    seed: 12345
+    modules:
+      emission:
+        mode: continuous
+        rate: 40
+        maxActive: 180
+        duration: infinite
+        particleLifetime:
+          min: 4
+          max: 8
+        source:
+          kind: rect
+          data:
+            x: 0
+            y: -20
+            width: 1280
+            height: 10
+      movement:
+        velocity:
+          kind: directional
+          direction: 90
+          speed:
+            min: 50
+            max: 150
+      appearance:
+        texture: snowflake
+        scale:
+          mode: range
+          min: 0.3
+          max: 1
+        alpha:
+          mode: curve
+          keys:
+            - { time: 0, value: 0 }
+            - { time: 0.1, value: 0.8 }
+            - { time: 0.8, value: 0.8 }
+            - { time: 1, value: 0 }
+        rotation:
+          mode: spin
+          start:
+            min: 0
+            max: 360
+          speed:
+            min: -45
+            max: 45
+      bounds:
+        mode: recycle
+        source: area
+        padding: 50
 ```
 
-## Example: Full-Screen Sparkle
+## Example: Sparkle With Multiple Textures
 
 ```yaml
 elements:
   - id: sparkles
     type: particles
-    x: 0
-    y: 0
     width: 1280
     height: 720
-    texture:
-      shape: circle
-      radius: 2
-      color: "#ffffff"
-    behaviors:
-      - type: speed
-        config:
-          speed:
-            list:
-              - { value: 20, time: 0 }
-              - { value: 5, time: 1 }
-      - type: alpha
-        config:
-          alpha:
-            list:
-              - { value: 0.8, time: 0 }
-              - { value: 0, time: 1 }
-    emitter:
-      lifetime: { min: 0.6, max: 1.2 }
-      frequency: 0.02
-      particlesPerWave: 3
-      maxParticles: 160
-      seed: 42
+    seed: 42
+    modules:
+      emission:
+        mode: continuous
+        rate: 10
+        maxActive: 24
+        particleLifetime:
+          min: 0.3
+          max: 0.8
+        source:
+          kind: rect
+          data:
+            x: 100
+            y: 100
+            width: 1080
+            height: 520
+      movement:
+        velocity:
+          kind: directional
+          direction: 0
+          speed: 0
+      appearance:
+        texture:
+          mode: random
+          pick: perParticle
+          items:
+            - src: sparkle-a
+              weight: 3
+            - src: sparkle-b
+              weight: 1
+        scale:
+          mode: curve
+          keys:
+            - { time: 0, value: 0 }
+            - { time: 0.3, value: 1.5 }
+            - { time: 0.7, value: 1.5 }
+            - { time: 1, value: 0 }
+        alpha:
+          mode: curve
+          keys:
+            - { time: 0, value: 0 }
+            - { time: 0.2, value: 1 }
+            - { time: 0.8, value: 1 }
+            - { time: 1, value: 0 }
 ```
 
-## Example: Rain With Recycling
+## Notes
 
-```yaml
-elements:
-  - id: rain
-    type: particles
-    width: 1280
-    height: 720
-    texture: raindrop
-    behaviors:
-      - type: acceleration
-        config:
-          accel:
-            x: 0
-            y: 600
-    emitter:
-      lifetime: { min: 1.2, max: 2.2 }
-      frequency: 0.01
-      particlesPerWave: 4
-      maxParticles: 500
-      recycleOnBounds: true
-      spawnBounds:
-        x: -20
-        y: -20
-        width: 1320
-        height: 780
-```
+- One `particles` element represents one emitter.
+- Compose more complex effects by combining multiple `particles` elements, usually in a `container`.
+- The older raw `texture + behaviors + emitter` surface may still be accepted internally for compatibility, but `modules` is the public authoring model.

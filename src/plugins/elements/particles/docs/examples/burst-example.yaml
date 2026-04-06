@@ -1,59 +1,51 @@
 # Burst / Explosion Effect Example
 #
-# Creates a one-shot radial explosion of particles.
-# All particles spawn at once, shoot outward in all directions, then fade out.
-# Perfect for hit effects, impact animations, or celebration bursts.
+# Creates a one-shot radial burst of particles.
+# All particles spawn at once, shoot outward in random directions, then shrink and fade out.
 #
 # Customization tips:
-# - Change spawnShape.data.x and y to position the burst center
-#   (x: 640, y: 360 would center burst in 1280x720 scene)
-# - Adjust particlesPerWave and maxParticles for bigger/smaller burst (30-100 recommended)
-# - Modify speedStatic range for faster/slower explosion
-# - Change spawnShape.data.radius for tighter/looser spawn point
-# - Adjust lifetime for longer/shorter burst effect
+# - Change modules.emission.source.data.x and y to position the burst center
+# - Adjust modules.emission.burstCount for a larger or smaller burst
+# - Modify movement velocity speed for a tighter or wider explosion
+# - Increase particleLifetime for a longer-lasting burst
 
 elements:
   - id: burst-effect
     type: particles
     width: 1280
     height: 720
-    texture: circle
-    behaviors:
-      - type: spawnShape
-        config:
-          type: circle
+    modules:
+      emission:
+        mode: burst
+        burstCount: 50
+        maxActive: 50
+        duration: 0.1
+        particleLifetime:
+          min: 0.5
+          max: 1
+        source:
+          kind: circle
           data:
-            x: 200            # Burst center X position (centered horizontally)
-            y: 200            # Burst center Y position (centered vertically)
-            radius: 10        # Spawn radius (larger = looser spread)
-            affectRotation: true  # Particles point outward from center
+            x: 200
+            y: 200
+            radius: 10
 
-      - type: speedStatic
-        config:
-          min: 200          # Minimum outward speed (pixels per second)
-          max: 400          # Maximum outward speed
+      movement:
+        velocity:
+          kind: radial
+          speed:
+            min: 200
+            max: 400
 
-      - type: scale
-        config:
-          list:
-            - value: 1      # Start at full size
-              time: 0
-            - value: 0      # Shrink to nothing
-              time: 1
-
-      - type: alpha
-        config:
-          list:
-            - value: 1      # Start fully visible
-              time: 0
-            - value: 0      # Fade to invisible
-              time: 1
-
-    emitter:
-      lifetime:
-        min: 0.5          # Each particle lives 0.5-1.0 seconds
-        max: 1.0
-      frequency: 0        # 0 = spawn all particles instantly
-      particlesPerWave: 50  # Number of particles in burst
-      maxParticles: 50
-      emitterLifetime: 0.1  # Emitter dies after 100ms (one-shot)
+      appearance:
+        texture: circle
+        scale:
+          mode: curve
+          keys:
+            - { time: 0, value: 1 }
+            - { time: 1, value: 0 }
+        alpha:
+          mode: curve
+          keys:
+            - { time: 0, value: 1 }
+            - { time: 1, value: 0 }

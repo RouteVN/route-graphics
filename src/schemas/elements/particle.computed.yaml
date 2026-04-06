@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
 title: Particles Computed Node
-description: Schema for particles computed node after parsing
+description: Schema for compiled particles node after parsing
 type: object
 required:
   - id
@@ -13,41 +13,23 @@ required:
 properties:
   id:
     type: string
-    description: Unique identifier
 
   type:
     const: particles
-    description: Element type
 
   count:
     type: number
-    description: Max particles count
+    description: Maximum active particles
     default: 100
 
   texture:
     oneOf:
       - type: string
-        description: Texture name (built-in or asset alias)
-      - type: object
-        description: Custom texture configuration
-        required:
-          - shape
-        properties:
-          shape:
-            type: string
-            enum: [circle, ellipse, rect]
-          radius:
-            type: number
-          width:
-            type: number
-          height:
-            type: number
-          color:
-            type: string
+      - $ref: "#/definitions/textureShape"
+      - $ref: "#/definitions/textureSelector"
 
   behaviors:
     type: array
-    description: Behavior configurations array
     minItems: 1
     items:
       type: object
@@ -61,15 +43,9 @@ properties:
 
   emitter:
     type: object
-    description: Emitter configuration
     properties:
       lifetime:
-        type: object
-        properties:
-          min:
-            type: number
-          max:
-            type: number
+        $ref: "#/definitions/rangeValue"
       frequency:
         type: number
       particlesPerWave:
@@ -93,29 +69,112 @@ properties:
         type: boolean
       seed:
         type: number
-        description: Seed for deterministic randomness (for visual testing)
 
   x:
     type: number
-    description: Container X position
     default: 0
 
   y:
     type: number
-    description: Container Y position
     default: 0
 
   width:
     type: number
-    description: Effect area width
 
   height:
     type: number
-    description: Effect area height
 
   alpha:
     type: number
-    description: Container opacity
     minimum: 0
     maximum: 1
     default: 1
+
+definitions:
+  distribution:
+    type: object
+    required:
+      - kind
+    properties:
+      kind:
+        type: string
+        enum: [uniform, normal, bias]
+      toward:
+        type: string
+        enum: [min, max, center]
+      strength:
+        type: number
+      mean:
+        type: number
+      deviation:
+        type: number
+
+  rangeValue:
+    type: object
+    required:
+      - min
+    properties:
+      min:
+        type: number
+      max:
+        type: number
+      distribution:
+        $ref: "#/definitions/distribution"
+
+  textureShape:
+    type: object
+    required:
+      - shape
+    properties:
+      shape:
+        type: string
+        enum: [circle, ellipse, rect]
+      radius:
+        type: number
+      width:
+        type: number
+      height:
+        type: number
+      color:
+        oneOf:
+          - type: string
+          - type: number
+
+  textureItem:
+    type: object
+    properties:
+      src:
+        type: string
+      shape:
+        type: string
+        enum: [circle, ellipse, rect]
+      radius:
+        type: number
+      width:
+        type: number
+      height:
+        type: number
+      color:
+        oneOf:
+          - type: string
+          - type: number
+      weight:
+        type: number
+
+  textureSelector:
+    type: object
+    required:
+      - mode
+      - items
+    properties:
+      mode:
+        type: string
+        enum: [single, random, cycle]
+      pick:
+        type: string
+        enum: [perParticle, perWave]
+      items:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/textureItem"

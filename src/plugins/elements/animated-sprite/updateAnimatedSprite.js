@@ -56,13 +56,25 @@ export const updateAnimatedSprite = async ({
           (index) => spriteSheet.textures[frameNames[index]],
         );
         animatedSpriteElement.textures = frameTextures;
+        if (typeof app.render === "function") {
+          app.render();
+        }
 
         if (!app.debug) {
           animatedSpriteElement.play();
         } else {
           if (prevElement.id !== nextElement.id) {
             cleanupDebugMode(animatedSpriteElement);
-            setupDebugMode(animatedSpriteElement, nextElement.id, app.debug);
+            setupDebugMode(
+              animatedSpriteElement,
+              nextElement.id,
+              app.debug,
+              () => {
+                if (typeof app.render === "function") {
+                  app.render();
+                }
+              },
+            );
           }
         }
       }

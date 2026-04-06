@@ -189,6 +189,50 @@
         "circle-blue": { url: "/public/circle-blue.png", type: "image/png" },
         "circle-red": { url: "/public/circle-red.png", type: "image/png" },
         "circle-green": { url: "/public/circle-green.png", type: "image/png" },
+        "particle-ember-core": {
+          url: "/public/particle-ember-core.svg",
+          type: "image/svg+xml",
+        },
+        "particle-ember-glow": {
+          url: "/public/particle-ember-glow.svg",
+          type: "image/svg+xml",
+        },
+        "particle-smoke-soft": {
+          url: "/public/particle-smoke-soft.svg",
+          type: "image/svg+xml",
+        },
+        "particle-smoke-ring": {
+          url: "/public/particle-smoke-ring.svg",
+          type: "image/svg+xml",
+        },
+        "particle-snow-crystal": {
+          url: "/public/particle-snow-crystal.svg",
+          type: "image/svg+xml",
+        },
+        "particle-snow-soft": {
+          url: "/public/particle-snow-soft.svg",
+          type: "image/svg+xml",
+        },
+        "particle-rain-streak": {
+          url: "/public/particle-rain-streak.svg",
+          type: "image/svg+xml",
+        },
+        "particle-rain-drop": {
+          url: "/public/particle-rain-drop.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-drop": {
+          url: "/public/particle-water-drop.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-splash": {
+          url: "/public/particle-water-splash.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-ripple": {
+          url: "/public/particle-water-ripple.svg",
+          type: "image/svg+xml",
+        },
         slider: { url: "/public/slider.png", type: "image/png" },
         "horizontal-idle-bar": {
           url: "/public/horizontal_idle_bar.png",
@@ -321,7 +365,7 @@
       await assetBufferManager.load(assetsObject);
 
       const app = createRouteGraphics();
-      window.takeVtScreenshotBase64 = async () => await app.extractBase64();
+      window.__VT_ROUTE_GRAPHICS__ = app;
       const plugins = {
         elements: [
           textPlugin,
@@ -346,6 +390,34 @@
       );
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
+      const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      if (!useBrowserScreenshot) {
+        let vtScreenshotHookPrimed = false;
+        const waitForStableScreenshotFrame = async () => {
+          await new Promise((resolve) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(resolve);
+            });
+          });
+        };
+        window.takeVtScreenshotBase64 = async () => {
+          await waitForStableScreenshotFrame();
+
+          // Pixi extraction can return an empty first frame immediately after mount.
+          // Warm the hook once and return the second capture for the first caller.
+          if (!vtScreenshotHookPrimed) {
+            vtScreenshotHookPrimed = true;
+            try {
+              await app.extractBase64();
+            } catch {}
+            await waitForStableScreenshotFrame();
+          }
+
+          return await app.extractBase64();
+        };
+      } else {
+        document.documentElement.classList.add("vt-browser-screenshot");
+      }
       window.__VT_STATE_DATA__ = vtState;
       window.__VT_STATES__ = states;
       const pager = document.createElement("nav");
@@ -399,7 +471,7 @@
             .map((event) => event.payload),
       };
       let vtReadySignaled = false;
-      const signalVtReady = () => {
+      const signalVtReady = async () => {
         if (vtReadySignaled) {
           return;
         }
@@ -414,7 +486,7 @@
 
       const updatePager = () => {
         const hasMultipleStates = states.length > 1;
-        pager.hidden = !hasMultipleStates;
+        pager.hidden = useBrowserScreenshot || !hasMultipleStates;
         if (!hasMultipleStates) {
           return;
         }
@@ -462,7 +534,6 @@
           app.render(nextRenderState);
         }
         updatePager();
-        signalVtReady();
       };
 
       await app.init({
@@ -483,7 +554,9 @@
           }
           window.__VT_EVENTS__.push(eventData);
         },
-        onFirstRender: () => {},
+        onFirstRender: () => {
+          void signalVtReady();
+        },
         debug: window?.RTGL_VT_DEBUG ?? false,
       });
       window.__VT_ROUTE_GRAPHICS__ = app;
@@ -491,7 +564,7 @@
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
       if (states.length > 0) {
-        renderState(index);
+        renderState(index, { doubleRender: true });
       } else {
         updatePager();
         signalVtReady();
@@ -524,6 +597,27 @@
 
         window.addEventListener("clearEvents", () => {
           clearEvents();
+        });
+
+        window.addEventListener("primeVtScreenshot", async () => {
+          if (typeof window.takeVtScreenshotBase64 !== "function") {
+            return;
+          }
+          try {
+            await window.takeVtScreenshotBase64();
+          } catch {}
+        });
+
+        window.addEventListener("vtNextState", () => {
+          if (states.length > index + 1) {
+            renderState(index + 1);
+          }
+        });
+
+        window.addEventListener("vtPrevState", () => {
+          if (index - 1 >= 0) {
+            renderState(index - 1);
+          }
         });
       };
       listenEvents();

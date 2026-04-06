@@ -2,6 +2,7 @@ vt:
   path: "vt"
   name: "Route Graphics UI Visual Tests"
   description: "Visual testing for Route Graphics"
+  concurrency: 1
   sections:
     - title: "Keyboard Group"
       type: "groupLabel"

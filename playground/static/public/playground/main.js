@@ -138,6 +138,50 @@ const privateAssets = {
   "circle-red": { type: "image/png", url: "/public/circle-red.png" },
   "circle-green": { type: "image/png", url: "/public/circle-green.png" },
   "circle-blue": { type: "image/png", url: "/public/circle-blue.png" },
+  "particle-ember-core": {
+    type: "image/svg+xml",
+    url: "/public/particle-ember-core.svg",
+  },
+  "particle-ember-glow": {
+    type: "image/svg+xml",
+    url: "/public/particle-ember-glow.svg",
+  },
+  "particle-smoke-soft": {
+    type: "image/svg+xml",
+    url: "/public/particle-smoke-soft.svg",
+  },
+  "particle-smoke-ring": {
+    type: "image/svg+xml",
+    url: "/public/particle-smoke-ring.svg",
+  },
+  "particle-snow-crystal": {
+    type: "image/svg+xml",
+    url: "/public/particle-snow-crystal.svg",
+  },
+  "particle-snow-soft": {
+    type: "image/svg+xml",
+    url: "/public/particle-snow-soft.svg",
+  },
+  "particle-rain-streak": {
+    type: "image/svg+xml",
+    url: "/public/particle-rain-streak.svg",
+  },
+  "particle-rain-drop": {
+    type: "image/svg+xml",
+    url: "/public/particle-rain-drop.svg",
+  },
+  "particle-water-drop": {
+    type: "image/svg+xml",
+    url: "/public/particle-water-drop.svg",
+  },
+  "particle-water-splash": {
+    type: "image/svg+xml",
+    url: "/public/particle-water-splash.svg",
+  },
+  "particle-water-ripple": {
+    type: "image/svg+xml",
+    url: "/public/particle-water-ripple.svg",
+  },
   "horizontal-idle-thumb": {
     type: "image/png",
     url: "/public/horizontal_idle_thumb.png",

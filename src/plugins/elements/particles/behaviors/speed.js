@@ -5,6 +5,7 @@
  */
 
 import { PropertyList } from "../emitter/propertyList.js";
+import { sampleRange } from "../util/sampling.js";
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -98,13 +99,20 @@ export class StaticSpeedBehavior {
   constructor(config) {
     this.min = config.min;
     this.max = config.max;
+    this.distribution = config.distribution;
   }
 
   initParticles(first) {
     let particle = first;
     while (particle) {
-      const speed =
-        particle.emitter.random() * (this.max - this.min) + this.min;
+      const speed = sampleRange(
+        particle.emitter.random.bind(particle.emitter),
+        {
+          min: this.min,
+          max: this.max,
+          distribution: this.distribution,
+        },
+      );
 
       // Set velocity based on rotation
       particle.velocity.x = Math.cos(particle.rotation) * speed;
@@ -144,20 +152,29 @@ export class PointMovementBehavior {
    * @param {number} config.direction - Direction in degrees
    */
   constructor(config) {
-    this.minSpeed = config.speed.min;
-    this.maxSpeed = config.speed.max;
-    this.direction = config.direction * DEG_TO_RAD;
+    this.speed = {
+      min: config.speed.min,
+      max: config.speed.max ?? config.speed.min,
+      distribution: config.speed.distribution,
+    };
+    this.direction = config.direction;
   }
 
   initParticles(first) {
     let particle = first;
     while (particle) {
-      const speed =
-        particle.emitter.random() * (this.maxSpeed - this.minSpeed) +
-        this.minSpeed;
+      const speed = sampleRange(
+        particle.emitter.random.bind(particle.emitter),
+        this.speed,
+      );
+      const direction =
+        sampleRange(
+          particle.emitter.random.bind(particle.emitter),
+          this.direction,
+        ) * DEG_TO_RAD;
 
-      particle.velocity.x = Math.cos(this.direction) * speed;
-      particle.velocity.y = Math.sin(this.direction) * speed;
+      particle.velocity.x = Math.cos(direction) * speed;
+      particle.velocity.y = Math.sin(direction) * speed;
 
       particle = particle.next;
     }

@@ -2,6 +2,19 @@
 
 Implementation details for developers who want to understand or extend the particle system.
 
+The public particle authoring model is now the structured `modules` shape:
+
+```yaml
+type: particles
+modules:
+  emission: ...
+  movement: ...
+  appearance: ...
+  bounds: ...
+```
+
+Internally, Route Graphics compiles that structured model into the existing emitter and behavior runtime.
+
 ## Attribution
 
 The core emitter code is adapted from [@pixi/particle-emitter](https://github.com/pixijs-userland/particle-emitter) (MIT License, Copyright (c) 2015 CloudKid).
@@ -33,11 +46,14 @@ particles/
 ├── addParticles.js       # Creates particle elements
 ├── updateParticles.js    # Updates particle elements
 ├── deleteParticles.js    # Removes particle elements
-├── parseParticles.js     # Parses YAML config to internal format
+├── parseParticles.js     # Parses public config to internal format
+├── compileParticleModules.js # Compiles modules -> texture/behaviors/emitter
 │
 ├── util/                 # Utility modules
 │   ├── registries.js     # Texture/behavior registries
-│   └── validateParticles.js # Validation helper functions
+│   ├── sampling.js       # Shared random sampling helpers
+│   ├── validateParticles.js # Legacy raw validation helpers
+│   └── validateParticleModules.js # Structured module validation
 │
 ├── emitter/              # Core particle engine
 │   ├── emitter.js        # Emitter class - spawns and manages particles
@@ -61,6 +77,31 @@ particles/
 ```
 
 ---
+
+## Public Model vs Runtime Model
+
+The public model is organized around four modules:
+
+- `emission`
+- `movement`
+- `appearance`
+- `bounds`
+
+Those modules are easier to validate and edit in UI.
+
+At parse time:
+
+1. `parseParticles.js` validates the structured shape.
+2. `compileParticleModules.js` lowers it into the runtime shape.
+3. `addParticles.js` resolves textures and creates the emitter.
+
+The runtime shape still looks like:
+
+- `texture`
+- `behaviors[]`
+- `emitter`
+
+That split lets the editor work with a stable product-facing model while the engine keeps its existing internals.
 
 ## Core Classes
 
@@ -208,6 +249,7 @@ class MyBehavior {
 | `color`          | -    | Yes    | Tint via PropertyList       |
 | `colorStatic`    | Yes  | -      | Fixed tint                  |
 | `movePoint`      | Yes  | Yes    | Direction + speed           |
+| `movement`       | Yes  | Yes    | Structured velocity/forces  |
 | `speed`          | Yes  | Yes    | Speed with acceleration     |
 | `speedStatic`    | Yes  | -      | Fixed outward speed         |
 | `acceleration`   | Yes  | Yes    | Apply forces (gravity)      |
