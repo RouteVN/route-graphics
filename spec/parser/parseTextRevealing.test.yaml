@@ -89,7 +89,7 @@ out:
   alpha: 1
   content:
     - lineParts:
-        - text: This is a longer text that should wrap to multiple lines when it
+        - text: This is a longer text that should wrap to multiple lines
           textStyle:
             fill: '#2c3e50'
             fontFamily: Arial
@@ -106,7 +106,7 @@ out:
       'y': 0
       lineMaxHeight: 24
     - lineParts:
-        - text: exceeds the specified width constraint for proper text layout
+        - text: when it exceeds the specified width constraint for proper
           textStyle:
             fill: '#2c3e50'
             fontFamily: Arial
@@ -123,7 +123,7 @@ out:
       'y': 24
       lineMaxHeight: 24
     - lineParts:
-        - text: demonstration.
+        - text: text layout demonstration.
           textStyle:
             fill: '#2c3e50'
             fontFamily: Arial
