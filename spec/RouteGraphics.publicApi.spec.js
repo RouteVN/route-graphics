@@ -296,6 +296,70 @@ describe("RouteGraphics public API", () => {
     expect(appInstance.renderer.background.color).toBe(0xff0000);
   });
 
+  it("supports manual animation playback time sampling", async () => {
+    const { app } = await setupRouteGraphics({
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "preview-rect",
+          type: "rect",
+          x: 0,
+          y: 20,
+          width: 40,
+          height: 40,
+          fill: "#FFFFFF",
+        },
+      ],
+    });
+
+    app.setAnimationPlaybackMode("manual");
+    app.render({
+      id: "animated",
+      elements: [
+        {
+          id: "preview-rect",
+          type: "rect",
+          x: 100,
+          y: 20,
+          width: 40,
+          height: 40,
+          fill: "#FFFFFF",
+        },
+      ],
+      animations: [
+        {
+          id: "move-rect",
+          targetId: "preview-rect",
+          type: "update",
+          tween: {
+            x: {
+              keyframes: [{ duration: 400, value: 100, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    app.setAnimationTime(150);
+
+    expect(app.findElementByLabel("preview-rect")?.x).toBeCloseTo(37.5);
+  });
+
   it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {
     const eventHandler = vi.fn();
 

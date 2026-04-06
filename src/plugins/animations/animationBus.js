@@ -135,6 +135,10 @@ export const createAnimationBus = () => {
   const listeners = new Map();
   let stateVersion = 0;
 
+  const clampAnimationTime = (time, duration) => {
+    return Math.min(Math.max(time, 0), Math.max(duration ?? 0, 0));
+  };
+
   const emit = (event, data) => {
     listeners.get(event)?.forEach((cb) => {
       try {
@@ -346,6 +350,32 @@ export const createAnimationBus = () => {
     }
   };
 
+  const setTime = (timeMS) => {
+    processQueue();
+
+    const toRemove = [];
+
+    for (const [id, context] of activeAnimations) {
+      if (context.stateVersion !== stateVersion) {
+        toRemove.push(id);
+        continue;
+      }
+
+      if (!context.isValid()) {
+        toRemove.push(id);
+        continue;
+      }
+
+      const nextTime = clampAnimationTime(timeMS, context.duration);
+      context.currentTime = nextTime;
+      context.applyFrame(nextTime);
+    }
+
+    for (const id of toRemove) {
+      activeAnimations.delete(id);
+    }
+  };
+
   const flush = () => {
     processQueue();
   };
@@ -386,6 +416,7 @@ export const createAnimationBus = () => {
     cancelAll,
     flush,
     tick,
+    setTime,
     on,
     off,
     getState,

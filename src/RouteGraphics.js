@@ -105,6 +105,11 @@ const createRouteGraphics = () => {
   let frameTickerListener;
 
   /**
+   * @type {"auto" | "manual"}
+   */
+  let animationPlaybackMode = "auto";
+
+  /**
    * @type {(event: MouseEvent) => void | undefined}
    */
   let canvasContextMenuListener;
@@ -316,6 +321,30 @@ const createRouteGraphics = () => {
       app.stage.on(eventType, callback);
     },
 
+    setAnimationPlaybackMode: (mode) => {
+      if (mode !== "auto" && mode !== "manual") {
+        throw new Error(
+          `Invalid animation playback mode "${mode}". Expected "auto" or "manual".`,
+        );
+      }
+
+      animationPlaybackMode = mode;
+    },
+
+    setAnimationTime: (timeMS) => {
+      const nextTime = Number(timeMS);
+      if (!Number.isFinite(nextTime)) {
+        throw new Error("Animation time must be a finite number.");
+      }
+
+      animationBus.flush();
+      animationBus.setTime(nextTime);
+
+      if (typeof app.render === "function") {
+        app.render();
+      }
+    },
+
     /**
      *
      * @param {RouteGraphicsInitOptions} options
@@ -333,6 +362,7 @@ const createRouteGraphics = () => {
       } = options;
 
       onFirstRenderCallback = onFirstRender;
+      animationPlaybackMode = "auto";
 
       const parserPlugins = [];
 
@@ -387,6 +417,10 @@ const createRouteGraphics = () => {
       animationBus = createAnimationBus();
       if (!debug) {
         frameTickerListener = (time) => {
+          if (animationPlaybackMode !== "auto") {
+            return;
+          }
+
           animationBus.tick(time.deltaMS);
           if (typeof app.render === "function") {
             app.render();
@@ -395,6 +429,10 @@ const createRouteGraphics = () => {
         app.ticker.add(frameTickerListener);
       } else {
         debugAnimationListener = (event) => {
+          if (animationPlaybackMode !== "auto") {
+            return;
+          }
+
           if (event?.detail?.deltaMS) {
             animationBus.tick(Number(event.detail.deltaMS));
             if (typeof app.render === "function") {
@@ -452,6 +490,7 @@ const createRouteGraphics = () => {
       }
 
       if (app) app.destroy();
+      animationPlaybackMode = "auto";
       backgroundGraphic = undefined;
       revokeVideoBlobUrls();
     },

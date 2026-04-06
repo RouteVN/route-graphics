@@ -179,4 +179,72 @@ describe("animationBus auto tween shorthand", () => {
     expect(element.scale.y).toBeCloseTo(0.5);
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
+
+  it("samples property animations at an exact time without completing them", () => {
+    const animationBus = createAnimationBus();
+    const onComplete = vi.fn();
+    const element = {
+      x: 10,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-time",
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 400, value: 110, easing: "linear" }],
+          },
+        },
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    animationBus.setTime(250);
+
+    expect(element.x).toBeCloseTo(72.5);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(animationBus.getState().animations).toEqual([
+      expect.objectContaining({
+        id: "manual-time",
+        currentTime: 250,
+        duration: 400,
+      }),
+    ]);
+  });
+
+  it("samples custom animations without running completion or target-state hooks", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const applyTargetState = vi.fn();
+    const onComplete = vi.fn();
+    const onCancel = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-manual-time",
+        driver: "custom",
+        duration: 500,
+        applyFrame,
+        applyTargetState,
+        onComplete,
+        onCancel,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.setTime(300);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(300);
+    expect(applyTargetState).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+  });
 });
