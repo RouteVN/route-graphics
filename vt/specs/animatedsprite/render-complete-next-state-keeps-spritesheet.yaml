@@ -1,0 +1,234 @@
+---
+title: Animated Sprite Survives RenderComplete Follow-Up State
+description: |
+  Reproduces the scene-preview regression where a spritesheet-animation entered in one state,
+  triggered a follow-up render on renderComplete, and then disappeared because the async atlas
+  parse from the previous render was aborted before the sprite reached the stage.
+specs:
+  - advancing to the next state on renderComplete should preserve an unchanged spritesheet-animation
+  - the final state should show the follow-up text and the spritesheet at the same time
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: customEvent
+    name: vtNextStateOnRenderComplete
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotAnimatedSpriteFrame
+    detail:
+      frameIndex: 0
+      elementId: "scene-layout-spritesheet"
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: baseline-text
+        type: text
+        x: 110
+        "y": 84
+        content: "Baseline scene"
+        textStyle:
+          fontSize: 30
+          fill: "#E6E6E6"
+  - id: layout-with-spritesheet
+    elements:
+      - id: background-card
+        type: rect
+        x: 72
+        "y": 96
+        width: 1136
+        height: 560
+        fill: "#242424"
+      - id: scene-layout-spritesheet
+        type: spritesheet-animation
+        x: 310
+        "y": 210
+        width: 175
+        height: 240
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0001.png:
+              frame:
+                x: 468
+                "y": 2
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0002.png:
+              frame:
+                x: 639
+                "y": 2
+                w: 167
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 5
+                w: 167
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            format: RGBA8888
+            size:
+              w: 1024
+              h: 1024
+            scale: "1"
+        playback:
+          frames:
+            - 0
+            - 1
+            - 2
+          fps: 30
+          loop: true
+        alpha: 1
+      - id: scene-caption
+        type: text
+        x: 586
+        "y": 238
+        content: "Layout state"
+        textStyle:
+          fontSize: 34
+          fill: "#F2F2F2"
+      - id: scene-body
+        type: text
+        x: 586
+        "y": 294
+        content: "renderComplete should wait for the atlas parse."
+        textStyle:
+          fontSize: 24
+          fill: "#D0D0D0"
+  - id: layout-after-render-complete
+    elements:
+      - id: background-card
+        type: rect
+        x: 72
+        "y": 96
+        width: 1136
+        height: 560
+        fill: "#242424"
+      - id: scene-layout-spritesheet
+        type: spritesheet-animation
+        x: 310
+        "y": 210
+        width: 175
+        height: 240
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0001.png:
+              frame:
+                x: 468
+                "y": 2
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0002.png:
+              frame:
+                x: 639
+                "y": 2
+                w: 167
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 5
+                w: 167
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            format: RGBA8888
+            size:
+              w: 1024
+              h: 1024
+            scale: "1"
+        playback:
+          frames:
+            - 0
+            - 1
+            - 2
+          fps: 30
+          loop: true
+        alpha: 1
+      - id: scene-caption
+        type: text
+        x: 586
+        "y": 238
+        content: "Follow-up state"
+        textStyle:
+          fontSize: 34
+          fill: "#F2F2F2"
+      - id: scene-body
+        type: text
+        x: 586
+        "y": 294
+        content: "The unchanged spritesheet must still be mounted here."
+        textStyle:
+          fontSize: 24
+          fill: "#D0D0D0"
+      - id: scene-status
+        type: text
+        x: 586
+        "y": 364
+        content: "renderComplete advanced after async sprite work finished."
+        textStyle:
+          fontSize: 22
+          fill: "#B8B8B8"

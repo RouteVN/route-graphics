@@ -383,6 +383,7 @@
         audio: [soundPlugin],
       };
       let index = 0;
+      let advanceToNextStateOnRenderComplete = false;
       const vtStateSource =
         document.getElementById("vt-state")?.textContent?.trim() ?? "";
       const vtDocuments = parseAllDocuments(vtStateSource).map(
@@ -550,6 +551,13 @@
           }
           window.__VT_ALL_EVENTS__.push(eventData);
           if (eventName === "renderComplete") {
+            if (
+              advanceToNextStateOnRenderComplete &&
+              payload?.aborted !== true
+            ) {
+              advanceToNextStateOnRenderComplete = false;
+              renderState(index + 1);
+            }
             return;
           }
           window.__VT_EVENTS__.push(eventData);
@@ -612,6 +620,10 @@
           if (states.length > index + 1) {
             renderState(index + 1);
           }
+        });
+
+        window.addEventListener("vtNextStateOnRenderComplete", () => {
+          advanceToNextStateOnRenderComplete = true;
         });
 
         window.addEventListener("vtPrevState", () => {

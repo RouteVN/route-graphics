@@ -18,6 +18,7 @@ export const addAnimatedSprite = async ({
   parent,
   element,
   renderContext,
+  completionTracker,
   zIndex,
   signal,
 }) => {
@@ -38,45 +39,52 @@ export const addAnimatedSprite = async ({
     clips: normalizedClips,
     playback,
   });
-  const spriteSheet = new Spritesheet(Texture.from(src), normalizedAtlas);
-  await spriteSheet.parse();
-  if (signal?.aborted || parent.destroyed) return;
+  const completionVersion = completionTracker?.getVersion?.();
+  completionTracker?.track?.(completionVersion);
 
-  const { frameTextures } = resolveAnimatedSpriteFrameTextures({
-    spritesheet: spriteSheet,
-    atlas: normalizedAtlas,
-    clips: normalizedClips,
-    playback: normalizedPlayback,
-  });
+  try {
+    const spriteSheet = new Spritesheet(Texture.from(src), normalizedAtlas);
+    await spriteSheet.parse();
+    if (signal?.aborted || parent.destroyed) return;
 
-  const animatedSprite = new AnimatedSprite(frameTextures);
-  animatedSprite.label = id;
-  animatedSprite.zIndex = zIndex;
-
-  animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(
-    normalizedPlayback.fps,
-  );
-  animatedSprite.loop = normalizedPlayback.loop;
-
-  if (app.debug) {
-    setupDebugMode(animatedSprite, id, app.debug, () => {
-      if (typeof app.render === "function") {
-        app.render();
-      }
+    const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+      spritesheet: spriteSheet,
+      atlas: normalizedAtlas,
+      clips: normalizedClips,
+      playback: normalizedPlayback,
     });
-  } else if (normalizedPlayback.autoplay) {
-    queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
-  }
 
-  animatedSprite.x = Math.round(x);
-  animatedSprite.y = Math.round(y);
-  animatedSprite.width = Math.round(width);
-  animatedSprite.height = Math.round(height);
-  animatedSprite.alpha = alpha;
+    const animatedSprite = new AnimatedSprite(frameTextures);
+    animatedSprite.label = id;
+    animatedSprite.zIndex = zIndex;
 
-  parent.addChild(animatedSprite);
+    animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(
+      normalizedPlayback.fps,
+    );
+    animatedSprite.loop = normalizedPlayback.loop;
 
-  if (typeof app.render === "function") {
-    app.render();
+    if (app.debug) {
+      setupDebugMode(animatedSprite, id, app.debug, () => {
+        if (typeof app.render === "function") {
+          app.render();
+        }
+      });
+    } else if (normalizedPlayback.autoplay) {
+      queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+    }
+
+    animatedSprite.x = Math.round(x);
+    animatedSprite.y = Math.round(y);
+    animatedSprite.width = Math.round(width);
+    animatedSprite.height = Math.round(height);
+    animatedSprite.alpha = alpha;
+
+    parent.addChild(animatedSprite);
+
+    if (typeof app.render === "function") {
+      app.render();
+    }
+  } finally {
+    completionTracker?.complete?.(completionVersion);
   }
 };
