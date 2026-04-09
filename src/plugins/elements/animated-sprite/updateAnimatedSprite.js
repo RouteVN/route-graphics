@@ -74,41 +74,48 @@ export const updateAnimatedSprite = async ({
       animatedSpriteElement.loop = nextPlayback.loop;
 
       if (playbackChanged || clipSetChanged || atlasChanged) {
-        const spriteSheet = new Spritesheet(Texture.from(nextSrc), nextAtlas);
-        await spriteSheet.parse();
-        if (signal?.aborted || animatedSpriteElement.destroyed) return;
+        const completionVersion = completionTracker?.getVersion?.();
+        completionTracker?.track?.(completionVersion);
 
-        const { frameTextures } = resolveAnimatedSpriteFrameTextures({
-          spritesheet: spriteSheet,
-          atlas: nextAtlas,
-          clips: nextClips,
-          playback: nextPlayback,
-        });
-        animatedSpriteElement.textures = frameTextures;
-        if (typeof app.render === "function") {
-          app.render();
-        }
+        try {
+          const spriteSheet = new Spritesheet(Texture.from(nextSrc), nextAtlas);
+          await spriteSheet.parse();
+          if (signal?.aborted || animatedSpriteElement.destroyed) return;
 
-        if (!app.debug && nextPlayback.autoplay) {
-          animatedSpriteElement.play();
-        } else {
-          if (!app.debug) {
-            animatedSpriteElement.stop?.();
+          const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+            spritesheet: spriteSheet,
+            atlas: nextAtlas,
+            clips: nextClips,
+            playback: nextPlayback,
+          });
+          animatedSpriteElement.textures = frameTextures;
+          if (typeof app.render === "function") {
+            app.render();
           }
 
-          if (prevElement.id !== nextElement.id) {
-            cleanupDebugMode(animatedSpriteElement);
-            setupDebugMode(
-              animatedSpriteElement,
-              nextElement.id,
-              app.debug,
-              () => {
-                if (typeof app.render === "function") {
-                  app.render();
-                }
-              },
-            );
+          if (!app.debug && nextPlayback.autoplay) {
+            animatedSpriteElement.play();
+          } else {
+            if (!app.debug) {
+              animatedSpriteElement.stop?.();
+            }
+
+            if (prevElement.id !== nextElement.id) {
+              cleanupDebugMode(animatedSpriteElement);
+              setupDebugMode(
+                animatedSpriteElement,
+                nextElement.id,
+                app.debug,
+                () => {
+                  if (typeof app.render === "function") {
+                    app.render();
+                  }
+                },
+              );
+            }
           }
+        } finally {
+          completionTracker?.complete?.(completionVersion);
         }
       }
     }
