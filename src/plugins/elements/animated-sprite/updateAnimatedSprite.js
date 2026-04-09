@@ -2,9 +2,16 @@ import { Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+  playbackFpsToAnimationSpeed,
+  resolveAnimatedSpriteFrameTextures,
+} from "./animatedSpriteConfig.js";
 
 /**
- * Update animated sprite element
+ * Update spritesheet animation element
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
 export const updateAnimatedSprite = async ({
@@ -32,37 +39,63 @@ export const updateAnimatedSprite = async ({
     if (signal?.aborted || animatedSpriteElement.destroyed) return;
 
     if (!isDeepEqual(prevElement, nextElement)) {
+      const nextSrc = nextElement.src;
+      const nextAtlas = normalizeAnimatedSpriteAtlas(nextElement.atlas);
+      const nextClips = normalizeAnimatedSpriteClips(
+        nextElement.clips,
+        nextElement.atlas?.animations,
+        nextElement.atlas?.meta,
+        Object.keys(nextAtlas.frames ?? {}),
+      );
+      const nextPlayback = normalizeAnimatedSpritePlayback({
+        atlas: nextAtlas,
+        clips: nextClips,
+        playback: nextElement.playback,
+      });
+
       animatedSpriteElement.x = Math.round(nextElement.x);
       animatedSpriteElement.y = Math.round(nextElement.y);
       animatedSpriteElement.width = Math.round(nextElement.width);
       animatedSpriteElement.height = Math.round(nextElement.height);
       animatedSpriteElement.alpha = nextElement.alpha;
 
-      if (!isDeepEqual(prevElement.animation, nextElement.animation)) {
-        animatedSpriteElement.animationSpeed =
-          nextElement.animation.animationSpeed ?? 0.5;
-        animatedSpriteElement.loop = nextElement.animation.loop ?? true;
+      const playbackChanged = !isDeepEqual(
+        prevElement.playback,
+        nextElement.playback,
+      );
+      const clipSetChanged = !isDeepEqual(prevElement.clips, nextElement.clips);
+      const atlasChanged =
+        prevElement.src !== nextSrc ||
+        !isDeepEqual(prevElement.atlas, nextElement.atlas);
 
-        const metadata = nextElement.spritesheetData;
-        const frameNames = Object.keys(metadata.frames);
-        const spriteSheet = new Spritesheet(
-          Texture.from(nextElement.spritesheetSrc),
-          metadata,
-        );
+      animatedSpriteElement.animationSpeed = playbackFpsToAnimationSpeed(
+        nextPlayback.fps,
+      );
+      animatedSpriteElement.loop = nextPlayback.loop;
+
+      if (playbackChanged || clipSetChanged || atlasChanged) {
+        const spriteSheet = new Spritesheet(Texture.from(nextSrc), nextAtlas);
         await spriteSheet.parse();
         if (signal?.aborted || animatedSpriteElement.destroyed) return;
 
-        const frameTextures = nextElement.animation.frames.map(
-          (index) => spriteSheet.textures[frameNames[index]],
-        );
+        const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+          spritesheet: spriteSheet,
+          atlas: nextAtlas,
+          clips: nextClips,
+          playback: nextPlayback,
+        });
         animatedSpriteElement.textures = frameTextures;
         if (typeof app.render === "function") {
           app.render();
         }
 
-        if (!app.debug) {
+        if (!app.debug && nextPlayback.autoplay) {
           animatedSpriteElement.play();
         } else {
+          if (!app.debug) {
+            animatedSpriteElement.stop?.();
+          }
+
           if (prevElement.id !== nextElement.id) {
             cleanupDebugMode(animatedSpriteElement);
             setupDebugMode(

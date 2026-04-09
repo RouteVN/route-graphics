@@ -122,14 +122,17 @@
 
 /**
  * @typedef {Object} AnimatedSpriteComputedProps
- * @property {'animated-sprite'} type
- * @property {string} spritesheetSrc
- * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
+ * @property {'spritesheet-animation'} type
+ * @property {string} src
+ * @property {Object} atlas - Direct atlas frame metadata
+ * @property {Object<string, string[]>} clips - Named playback clips
  * @property {number} alpha
- * @property {Object} animation
- * @property {number[]} animation.frames - Array of frame indexes for the animation sequence
- * @property {number} animation.animationSpeed - Animation speed multiplier
- * @property {boolean} [animation.loop=true] - Whether the animation should loop
+ * @property {Object} playback
+ * @property {string[]} playback.frames - Frame names for the playback sequence
+ * @property {string} [playback.clip] - Clip name resolved through `clips`
+ * @property {number} playback.fps - Playback rate in frames per second
+ * @property {boolean} [playback.loop=true] - Whether the animation should loop
+ * @property {boolean} [playback.autoplay=true] - Whether playback starts on mount/update
  * @typedef {ComputedNode & AnimatedSpriteComputedProps} AnimatedSpriteComputedNode
  */
 
@@ -597,7 +600,7 @@ export const ComputedNodeType = {
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
   PARTICLES: "particles",
-  ANIMATED_SPRITE: "animated-sprite",
+  SPRITESHEET_ANIMATION: "spritesheet-animation",
   VIDEO: "video",
 };
 

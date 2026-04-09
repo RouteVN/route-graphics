@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Animated Sprite Computed Node
-description: Schema for animated sprite computed node after parsing
+title: Spritesheet Animation Computed Node
+description: Schema for spritesheet animation computed node after parsing
 type: object
 required:
   - id
@@ -11,23 +11,24 @@ required:
   - y
   - originX
   - originY
-  - spritesheetSrc
-  - spritesheetData
-  - animation
+  - src
+  - atlas
+  - clips
+  - playback
   - alpha
 properties:
   id:
     type: string
-    description: Unique identifier for the animated sprite element
+    description: Unique identifier for the spritesheet animation element
   type:
-    const: animated-sprite
-    description: Element type, must be 'animated-sprite'
+    const: spritesheet-animation
+    description: Element type, must be 'spritesheet-animation'
   width:
     type: number
-    description: Width of the animated sprite after scale is applied
+    description: Width of the spritesheet animation after scale is applied
   height:
     type: number
-    description: Height of the animated sprite after scale is applied
+    description: Height of the spritesheet animation after scale is applied
   x:
     type: number
     description: X position adjusted for anchor point
@@ -40,16 +41,16 @@ properties:
   originY:
     type: number
     description: Calculated origin Y coordinate based on anchor
-  spritesheetSrc:
+  src:
     type: string
-    description: Alias of the sprite sheet image asset
-  spritesheetData:
+    description: Alias or URL of the spritesheet image asset
+  atlas:
     type: object
-    description: Direct spritesheet metadata JSON data (frames and meta)
+    description: Normalized atlas metadata used by the renderer
     properties:
       frames:
         type: object
-        description: Frame definitions with frame data for each sprite
+        description: Frame definitions with normalized Pixi-compatible frame data
         additionalProperties:
           type: object
           properties:
@@ -86,6 +87,22 @@ properties:
                   type: number
                 h:
                   type: number
+            anchor:
+              type: object
+              properties:
+                x:
+                  type: number
+                y:
+                  type: number
+            borders:
+              type: object
+      animations:
+        type: object
+        description: Named clip data normalized from atlas JSON when present
+        additionalProperties:
+          type: array
+          items:
+            type: string
       meta:
         type: object
         properties:
@@ -100,24 +117,35 @@ properties:
                 type: number
           scale:
             type: string
-  animation:
+  clips:
     type: object
-    required:
-      - frames
+    description: Named frame sequences for playback
+    additionalProperties:
+      type: array
+      items:
+        type: string
+  playback:
+    type: object
     properties:
+      clip:
+        type: string
+        description: Selected clip name when playback is clip-based
       frames:
         type: array
         items:
-          type: number
-        description: Array of frame indexes for the animation sequence
-      animationSpeed:
+          type: string
+        description: Ordered frame names for the playback sequence
+      fps:
         type: number
-        description: Animation speed multiplier
+        description: Playback rate in frames per second
       loop:
         type: boolean
         description: Whether the animation should loop
+      autoplay:
+        type: boolean
+        description: Whether playback starts automatically when mounted
   alpha:
     type: number
-    description: Opacity/transparency of the animated sprite (0-1)
+    description: Opacity/transparency of the spritesheet animation (0-1)
     minimum: 0
     maximum: 1

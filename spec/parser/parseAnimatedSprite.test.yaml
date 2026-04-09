@@ -6,95 +6,323 @@ suites:
 suite: parseAnimatedSprite
 exportName: parseAnimatedSprite
 ---
-case: Test parsing animated sprite with all properties
+case: Test parsing spritesheet animation with all properties
 in:
   - state:
       id: fighter-1
-      type: animated-sprite
+      type: spritesheet-animation
       x: 200
       "y": 150
       width: 100
       height: 100
-      spritesheetSrc: fighter-spritesheet
-      metadataSrc: fighter-spritesheet-metadata
-      animation:
+      src: fighter-spritesheet
+      atlas:
         frames:
-          - 0
-          - 1
-          - 2
-          - 3
-          - 4
-          - 5
-          - 6
-          - 7
-          - 8
-          - 9
-        animationSpeed: 0.5
+          idle-0:
+            x: 0
+            y: 0
+            width: 32
+            height: 32
+          idle-1:
+            x: 32
+            y: 0
+            width: 32
+            height: 32
+      clips:
+        idle:
+          - idle-0
+          - idle-1
+      playback:
+        clip: idle
+        fps: 12
         loop: true
+        autoplay: false
       alpha: 0.8
 out:
   id: fighter-1
-  type: animated-sprite
+  type: spritesheet-animation
   width: 100
   height: 100
   x: 200
   "y": 150
   originX: 0
   originY: 0
-  spritesheetSrc: fighter-spritesheet
-  spritesheetData:
-    frames: {}
-    meta: {}
-  animation:
+  src: fighter-spritesheet
+  atlas:
     frames:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      - 7
-      - 8
-      - 9
-    animationSpeed: 0.5
+      idle-0:
+        frame:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+      idle-1:
+        frame:
+          x: 32
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+    meta:
+      scale: "1"
+  clips:
+    idle:
+      - idle-0
+      - idle-1
+  playback:
+    clip: idle
+    frames:
+      - idle-0
+      - idle-1
+    fps: 12
     loop: true
+    autoplay: false
   alpha: 0.8
 ---
-case: Test parsing animated sprite with default values
+case: Test parsing JSON Array atlas with atlas animations
 in:
   - state:
-      id: fighter-2
-      type: animated-sprite
-      x: 100
-      "y": 100
-      width: 80
-      height: 80
-      spritesheetSrc: fighter-spritesheet
-      metadataSrc: fighter-spritesheet-metadata
-      animation:
+      id: fighter-3
+      type: spritesheet-animation
+      x: 320
+      "y": 180
+      width: 96
+      height: 96
+      src: fighter-spritesheet
+      atlas:
         frames:
-          - 10
-          - 11
-          - 12
+          - filename: roll-0
+            frame:
+              x: 0
+              y: 0
+              w: 32
+              h: 32
+            rotated: false
+            trimmed: false
+            sourceSize:
+              w: 32
+              h: 32
+          - filename: roll-1
+            frame:
+              x: 32
+              y: 0
+              w: 32
+              h: 32
+            rotated: false
+            trimmed: false
+            sourceSize:
+              w: 32
+              h: 32
+        animations:
+          roll:
+            - roll-0
+            - roll-1
+      playback:
+        clip: roll
+        fps: 24
 out:
-  id: fighter-2
-  type: animated-sprite
-  width: 80
-  height: 80
-  x: 100
-  "y": 100
+  id: fighter-3
+  type: spritesheet-animation
+  width: 96
+  height: 96
+  x: 320
+  "y": 180
   originX: 0
   originY: 0
-  spritesheetSrc: fighter-spritesheet
-  spritesheetData:
-    frames: {}
-    meta: {}
-  animation:
+  src: fighter-spritesheet
+  atlas:
     frames:
-      - 10
-      - 11
-      - 12
-    animationSpeed: 0.5
+      roll-0:
+        frame:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+      roll-1:
+        frame:
+          x: 32
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+    animations:
+      roll:
+        - roll-0
+        - roll-1
+    meta:
+      scale: "1"
+  clips:
+    roll:
+      - roll-0
+      - roll-1
+  playback:
+    clip: roll
+    frames:
+      - roll-0
+      - roll-1
+    fps: 24
     loop: true
+    autoplay: true
+  alpha: 1
+---
+case: Test parsing Aseprite frameTags as clips
+in:
+  - state:
+      id: fighter-4
+      type: spritesheet-animation
+      x: 420
+      "y": 240
+      width: 96
+      height: 96
+      src: fighter-spritesheet
+      atlas:
+        frames:
+          idle-0:
+            frame:
+              x: 0
+              y: 0
+              w: 32
+              h: 32
+            duration: 100
+          idle-1:
+            frame:
+              x: 32
+              y: 0
+              w: 32
+              h: 32
+            duration: 100
+          idle-2:
+            frame:
+              x: 64
+              y: 0
+              w: 32
+              h: 32
+            duration: 100
+        meta:
+          frameTags:
+            - name: idle
+              from: 0
+              to: 2
+              direction: forward
+      playback:
+        clip: idle
+out:
+  id: fighter-4
+  type: spritesheet-animation
+  width: 96
+  height: 96
+  x: 420
+  "y": 240
+  originX: 0
+  originY: 0
+  src: fighter-spritesheet
+  atlas:
+    frames:
+      idle-0:
+        frame:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+      idle-1:
+        frame:
+          x: 32
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+      idle-2:
+        frame:
+          x: 64
+          y: 0
+          w: 32
+          h: 32
+        rotated: false
+        trimmed: false
+        spriteSourceSize:
+          x: 0
+          y: 0
+          w: 32
+          h: 32
+        sourceSize:
+          w: 32
+          h: 32
+    meta:
+      frameTags:
+        - name: idle
+          from: 0
+          to: 2
+          direction: forward
+      scale: "1"
+  clips:
+    idle:
+      - idle-0
+      - idle-1
+      - idle-2
+  playback:
+    clip: idle
+    frames:
+      - idle-0
+      - idle-1
+      - idle-2
+    fps: 30
+    loop: true
+    autoplay: true
   alpha: 1

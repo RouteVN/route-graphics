@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
-title: Animated Sprite Element
-description: Schema for animated sprite element raw input
+title: Spritesheet Animation Element
+description: Schema for spritesheet animation element raw input
 type: object
 required:
   - id
@@ -9,29 +9,29 @@ required:
   - y
   - width
   - height
-  - spritesheetSrc
-  - spritesheetData
-  - animation
+  - src
+  - atlas
+  - playback
 properties:
   id:
     type: string
-    description: Unique identifier for the animated sprite element
+    description: Unique identifier for the spritesheet animation element
   type:
     type: string
-    const: animated-sprite
-    description: Element type, must be 'animated-sprite'
+    const: spritesheet-animation
+    description: Element type, must be 'spritesheet-animation'
   x:
     type: number
-    description: X position of the animated sprite
+    description: X position of the spritesheet animation
   y:
     type: number
-    description: Y position of the animated sprite
+    description: Y position of the spritesheet animation
   width:
     type: number
-    description: Width of the animated sprite in pixels
+    description: Width of the spritesheet animation in pixels
   height:
     type: number
-    description: Height of the animated sprite in pixels
+    description: Height of the spritesheet animation in pixels
   anchorX:
     type: number
     description: Horizontal anchor point where 0 is left edge, 1 is right edge (100% width). Values can extend beyond 0-1 range.
@@ -40,89 +40,241 @@ properties:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
     default: 0
-  spritesheetSrc:
+  src:
     type: string
-    description: Alias of the sprite sheet image asset
-  spritesheetData:
+    description: Alias or URL of the spritesheet image asset
+  atlas:
     type: object
-    description: Direct spritesheet metadata JSON data (frames and meta)
+    description: Atlas metadata for this spritesheet. Supports common Pixi/TexturePacker/Phaser/Aseprite single-sheet JSON formats.
     properties:
       frames:
+        description: Frame definitions keyed by frame name, or JSON Array entries with `filename`
+        oneOf:
+          - type: object
+            additionalProperties:
+              anyOf:
+                - type: object
+                  required:
+                    - x
+                    - y
+                    - width
+                    - height
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                    width:
+                      type: number
+                    height:
+                      type: number
+                    sourceWidth:
+                      type: number
+                    sourceHeight:
+                      type: number
+                    offsetX:
+                      type: number
+                    offsetY:
+                      type: number
+                    rotated:
+                      type: boolean
+                    trimmed:
+                      type: boolean
+                    anchor:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                    pivot:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                    borders:
+                      type: object
+                - type: object
+                  properties:
+                    frame:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                        w:
+                          type: number
+                        h:
+                          type: number
+                    rotated:
+                      type: boolean
+                    trimmed:
+                      type: boolean
+                    spriteSourceSize:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                        w:
+                          type: number
+                        h:
+                          type: number
+                    sourceSize:
+                      type: object
+                      properties:
+                        w:
+                          type: number
+                        h:
+                          type: number
+                    anchor:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                    pivot:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                    borders:
+                      type: object
+          - type: array
+            items:
+              type: object
+              required:
+                - filename
+              properties:
+                filename:
+                  type: string
+                frame:
+                  type: object
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                    w:
+                      type: number
+                    h:
+                      type: number
+                rotated:
+                  type: boolean
+                trimmed:
+                  type: boolean
+                spriteSourceSize:
+                  type: object
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                    w:
+                      type: number
+                    h:
+                      type: number
+                sourceSize:
+                  type: object
+                  properties:
+                    w:
+                      type: number
+                    h:
+                      type: number
+                anchor:
+                  type: object
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                pivot:
+                  type: object
+                  properties:
+                    x:
+                      type: number
+                    y:
+                      type: number
+                borders:
+                  type: object
+      animations:
         type: object
-        description: Frame definitions with frame data for each sprite
+        description: Optional named clips from Pixi/TexturePacker-style atlas JSON
         additionalProperties:
-          type: object
-          properties:
-            frame:
-              type: object
-              properties:
-                x:
-                  type: number
-                y:
-                  type: number
-                w:
-                  type: number
-                h:
-                  type: number
-            rotated:
-              type: boolean
-            trimmed:
-              type: boolean
-            spriteSourceSize:
-              type: object
-              properties:
-                x:
-                  type: number
-                y:
-                  type: number
-                w:
-                  type: number
-                h:
-                  type: number
-            sourceSize:
-              type: object
-              properties:
-                w:
-                  type: number
-                h:
-                  type: number
+          type: array
+          items:
+            type: string
       meta:
         type: object
         properties:
-          format:
-            type: string
-          size:
-            type: object
-            properties:
-              w:
-                type: number
-              h:
-                type: number
-          scale:
-            type: string
-  animation:
+          frameTags:
+            type: array
+            description: Optional Aseprite clip tags converted into named clips automatically
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                from:
+                  type: number
+                to:
+                  type: number
+                direction:
+                  type: string
+      width:
+        type: number
+        description: Optional atlas image width in pixels
+      height:
+        type: number
+        description: Optional atlas image height in pixels
+      scale:
+        oneOf:
+          - type: number
+          - type: string
+        description: Optional atlas scale factor
+  clips:
     type: object
-    required:
-      - frames
+    description: Named frame sequences for playback. If omitted, `atlas.animations` is used when available.
+    additionalProperties:
+      type: array
+      items:
+        type: string
+  playback:
+    type: object
+    description: Playback configuration
     properties:
+      clip:
+        type: string
+        description: Named clip to play from `clips` or `atlas.animations`
       frames:
         type: array
         items:
-          type: number
-        description: Array of frame indexes for the animation sequence
-        example: [0, 1, 2, 3, 4, 5]
-      animationSpeed:
+          type: string
+        description: Ordered frame names for playback
+        example: [idle-0, idle-1, idle-2]
+      fps:
         type: number
-        description: Animation speed multiplier
+        description: Playback rate in frames per second
         minimum: 0.1
-        default: 0.5
+        default: 30
       loop:
         type: boolean
         description: Whether the animation should loop
         default: true
+      autoplay:
+        type: boolean
+        description: Whether playback starts automatically when mounted
+        default: true
   alpha:
     type: number
-    description: Opacity/transparency of the animated sprite (0-1)
+    description: Opacity/transparency of the spritesheet animation (0-1)
     minimum: 0
     maximum: 1
     default: 1

@@ -33,13 +33,13 @@ steps:
 states:
   - elements:
       - id: animated-sprite1
-        type: animated-sprite
+        type: spritesheet-animation
         x: 100
         "y": 100
         width: 120
         height: 120
-        spritesheetSrc: fighter-spritesheet
-        spritesheetData:
+        src: fighter-spritesheet
+        atlas:
           frames:
             rollSequence0000.png:
               frame:
@@ -95,23 +95,23 @@ states:
               w: 1024
               h: 1024
             scale: "1"
-        animation:
+        playback:
           frames:
             - 0
             - 1
             - 2
-          animationSpeed: 0.5
+          fps: 30
           loop: true
         alpha: 1
   - elements:
       - id: animated-sprite1
-        type: animated-sprite
+        type: spritesheet-animation
         x: 500
         "y": 350
         width: 120
         height: 120
-        spritesheetSrc: fighter-spritesheet
-        spritesheetData:
+        src: fighter-spritesheet
+        atlas:
           frames:
             rollSequence0000.png:
               frame:
@@ -167,12 +167,12 @@ states:
               w: 1024
               h: 1024
             scale: "1"
-        animation:
+        playback:
           frames:
             - 0
             - 1
             - 2
-          animationSpeed: 0.5
+          fps: 30
           loop: true
         alpha: 1
     animations:

@@ -14,13 +14,13 @@ steps:
 states:
   - elements:
       - id: animated-sprite-1
-        type: animated-sprite
+        type: spritesheet-animation
         x: 200
         "y": 150
         width: 100
         height: 100
-        spritesheetSrc: fighter-spritesheet
-        spritesheetData:
+        src: fighter-spritesheet
+        atlas:
           frames:
             rollSequence0000.png:
               frame:
@@ -508,7 +508,7 @@ states:
               w: 1024
               h: 1024
             scale: "1"
-        animation:
+        playback:
           frames:
             - 0
             - 1
@@ -539,5 +539,5 @@ states:
             - 26
             - 27
             - 28
-          animationSpeed: 0.5
+          fps: 30
           loop: true
