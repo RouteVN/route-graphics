@@ -24,6 +24,7 @@ const {
         this.currentFrame = frameIndex;
       });
       this.play = vi.fn();
+      this.stop = vi.fn();
     }
   }
 
@@ -75,25 +76,31 @@ function createAnimatedSpriteElement(overrides = {}) {
     y: 150,
     width: 100,
     height: 100,
-    spritesheetSrc: "fighter-spritesheet",
-    spritesheetData: {
+    src: "fighter-spritesheet",
+    atlas: {
       frames: {
-        "frame-0.png": {},
-        "frame-1.png": {},
-        "frame-2.png": {},
+        "frame-0.png": { x: 0, y: 0, width: 32, height: 32 },
+        "frame-1.png": { x: 32, y: 0, width: 32, height: 32 },
+        "frame-2.png": { x: 64, y: 0, width: 32, height: 32 },
       },
+      width: 96,
+      height: 32,
     },
-    animation: {
-      frames: [0, 1, 2],
-      animationSpeed: 0.5,
+    clips: {
+      idle: ["frame-0.png", "frame-1.png", "frame-2.png"],
+    },
+    playback: {
+      clip: "idle",
+      fps: 30,
       loop: true,
+      autoplay: true,
     },
     alpha: 1,
     ...overrides,
   };
 }
 
-describe("animated sprite rendering", () => {
+describe("spritesheet animation rendering", () => {
   beforeEach(() => {
     textureFrom.mockReset();
     textureFrom.mockReturnValue({ alias: "fighter-spritesheet" });
@@ -105,7 +112,7 @@ describe("animated sprite rendering", () => {
     window.document.body.innerHTML = "";
   });
 
-  it("renders after asynchronously adding an animated sprite in debug/manual flows", async () => {
+  it("renders after asynchronously adding a spritesheet animation in debug/manual flows", async () => {
     const app = {
       debug: true,
       render: vi.fn(),
@@ -128,22 +135,25 @@ describe("animated sprite rendering", () => {
     expect(app.render).toHaveBeenCalledTimes(1);
   });
 
-  it("renders after replacing animated sprite frame textures asynchronously", async () => {
+  it("renders after replacing spritesheet animation frame textures asynchronously", async () => {
     const app = {
       debug: false,
       render: vi.fn(),
     };
-    const animatedSpriteElement = new MockAnimatedSprite([{ frameName: "old" }]);
+    const animatedSpriteElement = new MockAnimatedSprite([
+      { frameName: "old" },
+    ]);
     animatedSpriteElement.label = "animated-sprite-1";
     const parent = {
       children: [animatedSpriteElement],
     };
     const prevElement = createAnimatedSpriteElement();
     const nextElement = createAnimatedSpriteElement({
-      animation: {
-        frames: [2, 1, 0],
-        animationSpeed: 0.75,
+      playback: {
+        frames: ["frame-2.png", "frame-1.png", "frame-0.png"],
+        fps: 45,
         loop: false,
+        autoplay: true,
       },
     });
 
@@ -167,8 +177,56 @@ describe("animated sprite rendering", () => {
     expect(app.render).toHaveBeenCalledTimes(1);
   });
 
+  it("reloads textures when atlas or src changes even if playback does not", async () => {
+    const app = {
+      debug: false,
+      render: vi.fn(),
+    };
+    const animatedSpriteElement = new MockAnimatedSprite([
+      { frameName: "old" },
+    ]);
+    animatedSpriteElement.label = "animated-sprite-1";
+    const parent = {
+      children: [animatedSpriteElement],
+    };
+    const prevElement = createAnimatedSpriteElement();
+    const nextElement = createAnimatedSpriteElement({
+      src: "fighter-spritesheet-v2",
+      atlas: {
+        frames: {
+          "frame-0.png": { x: 0, y: 0, width: 48, height: 48 },
+          "frame-1.png": { x: 48, y: 0, width: 48, height: 48 },
+          "frame-2.png": { x: 96, y: 0, width: 48, height: 48 },
+        },
+        width: 144,
+        height: 48,
+      },
+    });
+
+    await updateAnimatedSprite({
+      app,
+      parent,
+      prevElement,
+      nextElement,
+      animations: [],
+      animationBus: {},
+      completionTracker: {},
+      zIndex: 4,
+      signal: undefined,
+    });
+
+    expect(textureFrom).toHaveBeenCalledWith("fighter-spritesheet-v2");
+    expect(animatedSpriteElement.textures).toEqual([
+      { frameName: "frame-0.png" },
+      { frameName: "frame-1.png" },
+      { frameName: "frame-2.png" },
+    ]);
+  });
+
   it("re-renders when a debug snapshot frame event changes the current frame", () => {
-    const animatedSprite = new MockAnimatedSprite([{ frameName: "frame-0.png" }]);
+    const animatedSprite = new MockAnimatedSprite([
+      { frameName: "frame-0.png" },
+    ]);
     const render = vi.fn();
 
     setupDebugMode(animatedSprite, "animated-sprite-1", true, render);

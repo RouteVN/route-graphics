@@ -827,9 +827,9 @@
               source: area
               padding: 50
 
-- id: animated-sprite-demo
-  name: Animated Sprite Demo
-  description: Animated-sprite support using a local grayscale atlas texture.
+- id: spritesheet-animation-demo
+  name: Spritesheet Animation Demo
+  description: Spritesheet-animation support using a local grayscale atlas texture.
   content:
     elements:
       - id: stage-bg
@@ -843,38 +843,28 @@
         type: text
         x: 40
         y: 36
-        content: "Animated Sprite Demo"
+        content: "Spritesheet Animation Demo"
         textStyle:
           fill: "#FFFFFF"
           fontSize: 30
       - id: animated-bar
-        type: animated-sprite
+        type: spritesheet-animation
         x: 60
         y: 140
         width: 520
         height: 28
-        spritesheetSrc: slider
-        spritesheetData:
+        src: slider
+        atlas:
           frames:
-            frame-0.png:
-              frame: { x: 0, y: 0, w: 218, h: 16 }
-              rotated: false
-              trimmed: false
-              spriteSourceSize: { x: 0, y: 0, w: 218, h: 16 }
-              sourceSize: { w: 218, h: 16 }
-            frame-1.png:
-              frame: { x: 218, y: 0, w: 218, h: 16 }
-              rotated: false
-              trimmed: false
-              spriteSourceSize: { x: 0, y: 0, w: 218, h: 16 }
-              sourceSize: { w: 218, h: 16 }
-          meta:
-            format: RGBA8888
-            size: { w: 436, h: 16 }
-            scale: "1"
-        animation:
-          frames: [0, 1]
-          animationSpeed: 0.18
+            frame-0.png: { x: 0, y: 0, width: 218, height: 16 }
+            frame-1.png: { x: 218, y: 0, width: 218, height: 16 }
+          width: 436
+          height: 16
+        clips:
+          pulse: [frame-0.png, frame-1.png]
+        playback:
+          clip: pulse
+          fps: 10.8
           loop: true
       - id: subtitle
         type: text

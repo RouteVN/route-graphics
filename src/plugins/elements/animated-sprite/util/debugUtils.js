@@ -1,5 +1,5 @@
 /**
- * Setup debug mode for animated sprite
+ * Setup debug mode for spritesheet animation
  * @param {import("pixi.js").AnimatedSprite} animatedSprite
  * @param {string} elementId
  * @param {boolean} isDebug
@@ -23,7 +23,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug, render) => {
 };
 
 /**
- * Cleanup debug mode for animated sprite
+ * Cleanup debug mode for spritesheet animation
  * @param {import("pixi.js").AnimatedSprite} animatedSprite
  */
 export const cleanupDebugMode = (animatedSprite) => {

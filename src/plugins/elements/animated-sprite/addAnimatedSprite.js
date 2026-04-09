@@ -1,9 +1,16 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
 import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+  playbackFpsToAnimationSpeed,
+  resolveAnimatedSpriteFrameTextures,
+} from "./animatedSpriteConfig.js";
 
 /**
- * Add animated sprite element to the stage
+ * Add spritesheet animation element to the stage
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addAnimatedSprite = async ({
@@ -16,35 +23,40 @@ export const addAnimatedSprite = async ({
 }) => {
   if (signal?.aborted) return;
 
-  const {
-    id,
-    x,
-    y,
-    width,
-    height,
-    spritesheetSrc,
-    spritesheetData,
-    animation,
-    alpha,
-  } = element;
+  const { id, x, y, width, height, src, atlas, clips, playback, alpha } =
+    element;
 
-  const metadata = spritesheetData;
-  const frameNames = Object.keys(metadata.frames);
-
-  const spriteSheet = new Spritesheet(Texture.from(spritesheetSrc), metadata);
+  const normalizedAtlas = normalizeAnimatedSpriteAtlas(atlas);
+  const normalizedClips = normalizeAnimatedSpriteClips(
+    clips,
+    atlas?.animations,
+    atlas?.meta,
+    Object.keys(normalizedAtlas.frames ?? {}),
+  );
+  const normalizedPlayback = normalizeAnimatedSpritePlayback({
+    atlas: normalizedAtlas,
+    clips: normalizedClips,
+    playback,
+  });
+  const spriteSheet = new Spritesheet(Texture.from(src), normalizedAtlas);
   await spriteSheet.parse();
   if (signal?.aborted || parent.destroyed) return;
 
-  const frameTextures = animation.frames.map(
-    (index) => spriteSheet.textures[frameNames[index]],
-  );
+  const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+    spritesheet: spriteSheet,
+    atlas: normalizedAtlas,
+    clips: normalizedClips,
+    playback: normalizedPlayback,
+  });
 
   const animatedSprite = new AnimatedSprite(frameTextures);
   animatedSprite.label = id;
   animatedSprite.zIndex = zIndex;
 
-  animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
-  animatedSprite.loop = animation.loop ?? true;
+  animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(
+    normalizedPlayback.fps,
+  );
+  animatedSprite.loop = normalizedPlayback.loop;
 
   if (app.debug) {
     setupDebugMode(animatedSprite, id, app.debug, () => {
@@ -52,7 +64,7 @@ export const addAnimatedSprite = async ({
         app.render();
       }
     });
-  } else {
+  } else if (normalizedPlayback.autoplay) {
     queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
   }
 

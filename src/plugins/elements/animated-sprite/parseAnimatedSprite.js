@@ -1,4 +1,9 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+} from "./animatedSpriteConfig.js";
 
 /**
  *  @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -7,23 +12,33 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 
 /**
  * @param {Object} params
- * @param {BaseElement} params.state - The animated sprite state to parse
+ * @param {BaseElement} params.state - The spritesheet animation state to parse
  * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
  * @return {AnimatedSpriteComputedNode}
  */
 export const parseAnimatedSprite = ({ state }) => {
   const computedObj = parseCommonObject(state);
+  const atlasInput = state.atlas;
+  const atlas = normalizeAnimatedSpriteAtlas(atlasInput);
+  const clips = normalizeAnimatedSpriteClips(
+    state.clips,
+    atlasInput?.animations,
+    atlasInput?.meta,
+    Object.keys(atlas.frames ?? {}),
+  );
+  const playback = normalizeAnimatedSpritePlayback({
+    atlas,
+    clips,
+    playback: state.playback,
+  });
 
   return {
     ...computedObj,
-    spritesheetSrc: state.spritesheetSrc ?? "",
-    spritesheetData: { frames: {}, meta: {}, ...(state.spritesheetData ?? {}) },
-    animation: {
-      frames: [],
-      animationSpeed: 0.5,
-      loop: true,
-      ...(state.animation ?? {}),
-    },
+    type: "spritesheet-animation",
+    src: state.src ?? "",
+    atlas,
+    clips,
+    playback,
     alpha: state.alpha ?? 1,
   };
 };

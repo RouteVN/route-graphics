@@ -379,24 +379,7 @@ const recursivelyLoadAssets = (objects) => {
       queueAsset(assets, obj.src, inferAssetType(obj.src, "video/mp4"));
     }
 
-    if (
-      obj.type === "animated-sprite" &&
-      typeof obj.spritesheetSrc === "string"
-    ) {
-      queueAsset(
-        assets,
-        obj.spritesheetSrc,
-        inferAssetType(obj.spritesheetSrc, "image/png"),
-      );
-    }
-
-    for (const key of [
-      "src",
-      "thumbSrc",
-      "barSrc",
-      "inactiveBarSrc",
-      "spritesheetSrc",
-    ]) {
+    for (const key of ["src", "thumbSrc", "barSrc", "inactiveBarSrc"]) {
       if (key === "src" && obj.type === "sound") continue;
       if (obj[key] && typeof obj[key] === "string") {
         const defaultType = obj.type === "video" ? "video/mp4" : "image/png";

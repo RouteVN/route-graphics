@@ -46,7 +46,7 @@ await app.loadAssets(assetBufferManager.getBufferMap());
 
 ## What The Runtime Loads
 
-- Images and other Pixi-compatible textures are loaded into `Assets` and can be used by `sprite`, `slider`, `animated-sprite`, `text-revealing`, and particle textures. When possible, images are loaded directly from their source URLs instead of being buffered into JS first.
+- Images and other Pixi-compatible textures are loaded into `Assets` and can be used by `sprite`, `slider`, `spritesheet-animation`, `text-revealing`, and particle textures. When possible, images are loaded directly from their source URLs instead of being buffered into JS first.
 - Audio assets are loaded into the internal audio stage and can be used by `sound` nodes or interaction props such as `soundSrc`. Audio remains buffer-backed because the runtime still needs decoded audio data.
 - Video assets are loaded through Pixi's video loader. When possible, Route Graphics passes the original source URL directly; blob URLs are only used as a fallback for buffer-backed video inputs.
 - Font assets are registered with `FontFace`; the alias key becomes the `textStyle.fontFamily` value.

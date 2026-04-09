@@ -53,9 +53,9 @@ items:
       - id: node-text-revealing
         title: "Text Revealing"
         href: "/docs/nodes/text-revealing/"
-      - id: node-animated-sprite
-        title: "Animated Sprite"
-        href: "/docs/nodes/animated-sprite/"
+      - id: node-spritesheet-animation
+        title: "Spritesheet Animation"
+        href: "/docs/nodes/spritesheet-animation/"
       - id: node-particles
         title: "Particles"
         href: "/docs/nodes/particles/"
