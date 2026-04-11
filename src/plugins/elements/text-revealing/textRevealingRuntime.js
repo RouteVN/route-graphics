@@ -8,6 +8,7 @@ import {
 } from "pixi.js";
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
+import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
@@ -137,7 +138,7 @@ export const clearTextRevealingContainer = (container) => {
 };
 
 const createPartObjects = (part, textValue = "", furiganaValue = "") => {
-  const textStyle = new TextStyle(part.textStyle);
+  const textStyle = new TextStyle(toPixiTextStyle(part.textStyle));
   const text = new Text({
     text: textValue,
     style: textStyle,
@@ -148,7 +149,9 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
   let furiganaText = null;
 
   if (part.furigana) {
-    const furiganaTextStyle = new TextStyle(part.furigana.textStyle);
+    const furiganaTextStyle = new TextStyle(
+      toPixiTextStyle(part.furigana.textStyle),
+    );
 
     furiganaText = new Text({
       text: furiganaValue,

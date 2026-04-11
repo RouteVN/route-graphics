@@ -441,6 +441,93 @@ describe("RouteGraphics public API", () => {
     });
   });
 
+  it("keeps same-id prev-only transitions pending until time advances", async () => {
+    const eventHandler = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "shared-rect",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 120,
+          height: 80,
+          fill: "#FFFFFF",
+          alpha: 1,
+        },
+      ],
+    });
+
+    eventHandler.mockClear();
+
+    app.render({
+      id: "same-id-prev-only",
+      elements: [
+        {
+          id: "shared-rect",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 120,
+          height: 80,
+          fill: "#FFFFFF",
+          alpha: 1,
+        },
+      ],
+      animations: [
+        {
+          id: "shared-slide-out",
+          targetId: "shared-rect",
+          type: "transition",
+          prev: {
+            tween: {
+              translateX: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: -1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "same-id-prev-only",
+      aborted: false,
+    });
+
+    app.setAnimationTime(200);
+
+    const appInstance = pixiMock.__getLastApplication();
+    const overlay = appInstance.stage.children.at(-1);
+
+    expect(overlay.children).toHaveLength(1);
+    expect(overlay.children[0].x).toBeLessThan(0);
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "same-id-prev-only",
+      aborted: false,
+    });
+  });
+
   it("does not abort pending async adds when re-rendering the same state", async () => {
     let resolveAdd;
     const addPromise = new Promise((resolve) => {

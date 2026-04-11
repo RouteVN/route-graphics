@@ -1,6 +1,7 @@
 import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -155,7 +156,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
     const measurements = CanvasTextMetrics.measureText(
       segment.text,
-      new TextStyle(styleWithWordWrap),
+      new TextStyle(toPixiTextStyle(styleWithWordWrap)),
     );
 
     // Check if text fits on current line
@@ -217,7 +218,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
     const measurementsWithNoWrapping = CanvasTextMetrics.measureText(
       textPart,
       new TextStyle({
-        ...segment.textStyle,
+        ...toPixiTextStyle(segment.textStyle),
         wordWrap: false,
         breakWords: false,
       }),
@@ -244,7 +245,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
       const furiganaMeasurements = CanvasTextMetrics.measureText(
         segment.furigana.text,
-        new TextStyle(segment.furigana.textStyle),
+        new TextStyle(toPixiTextStyle(segment.furigana.textStyle)),
       );
 
       // Calculate furigana position relative to current line's max height

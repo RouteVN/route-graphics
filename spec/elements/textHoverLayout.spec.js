@@ -146,6 +146,42 @@ describe("text hover layout", () => {
     expect(text.style.fontSize).toBe(24);
   });
 
+  it("maps strokeColor and strokeWidth to Pixi stroke options", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseText({
+      state: {
+        id: "text-stroke-style",
+        type: "text",
+        x: 20,
+        y: 30,
+        alpha: 1,
+        content: "Outlined",
+        textStyle: {
+          fontSize: 24,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+          strokeColor: "#112233",
+          strokeWidth: 4,
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element,
+    });
+
+    const text = parent.getChildByLabel("text-stroke-style");
+
+    expect(text.style.stroke).toMatchObject({
+      color: "#112233",
+      width: 4,
+    });
+  });
+
   it("positions centered fixed-width text inside the layout box", () => {
     const parent = new Container();
     const shared = createSharedParams();

@@ -1,4 +1,5 @@
 import { DEFAULT_TEXT_STYLE } from "../types.js";
+import { toPixiTextStyle } from "./toPixiTextStyle.js";
 
 export default (element, style) => {
   const appliedStyle = {
@@ -14,5 +15,5 @@ export default (element, style) => {
     wordWrapWidth: style?.wordWrapWidth ?? DEFAULT_TEXT_STYLE.wordWrapWidth,
   };
 
-  element.style = appliedStyle;
+  element.style = toPixiTextStyle(appliedStyle);
 };
