@@ -9,6 +9,8 @@ vi.mock(
   "../../src/plugins/elements/text-revealing/textRevealingRuntime.js",
   () => ({
     runTextReveal: mocks.runTextReveal,
+    shouldRenderTextRevealImmediately: (element) =>
+      element?.revealEffect === "none" || (element?.speed ?? 50) >= 100,
   }),
 );
 
@@ -64,5 +66,44 @@ describe("addTextRevealing", () => {
         playback: "autoplay",
       }),
     );
+  });
+
+  it("renders immediately at max speed without queueing deferred reveal work", async () => {
+    const parent = new Container();
+    const renderContext = createRenderContext({ suppressAnimations: true });
+
+    await addTextRevealing({
+      parent,
+      element: {
+        id: "line-1",
+        type: "text-revealing",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        speed: 100,
+        revealEffect: "typewriter",
+        content: [],
+      },
+      animationBus: { dispatch: vi.fn() },
+      renderContext,
+      completionTracker: {
+        getVersion: () => 0,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "autoplay",
+      }),
+    );
+
+    flushDeferredMountOperations(renderContext);
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
   });
 });

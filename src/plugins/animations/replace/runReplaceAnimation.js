@@ -543,6 +543,16 @@ const createMaskChannelWeights = (channel = "red") => {
 
 const OUTPUT_MASK_CHANNEL_WEIGHTS = createMaskChannelWeights("red");
 
+// These render textures are sampled as raw TextureSources in the custom
+// replace shader, so they must stay at logical resolution rather than the
+// renderer/device resolution.
+const createShaderRenderTexture = (width, height) =>
+  RenderTexture.create({
+    width,
+    height,
+    resolution: 1,
+  });
+
 const createMaskChannelFilter = (channelWeights, invert) => {
   const maskChannelUniforms = new UniformGroup({
     uMaskInvert: {
@@ -599,10 +609,7 @@ const renderMaskTextureToRenderTexture = ({
   const maskContainer = new Container();
   maskContainer.addChild(maskSprite);
 
-  const maskRenderTexture = RenderTexture.create({
-    width,
-    height,
-  });
+  const maskRenderTexture = createShaderRenderTexture(width, height);
   const { filter: maskChannelFilter } = createMaskChannelFilter(
     channelWeights,
     invert,
@@ -986,14 +993,14 @@ const createMaskedOverlay = ({
     nextRoot.addChild(nextSubject.wrapper);
   }
 
-  const prevTexture = RenderTexture.create({
-    width: unionBounds.width,
-    height: unionBounds.height,
-  });
-  const nextTexture = RenderTexture.create({
-    width: unionBounds.width,
-    height: unionBounds.height,
-  });
+  const prevTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const nextTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
 
   const overlay = new Container();
   overlay.zIndex = zIndex;

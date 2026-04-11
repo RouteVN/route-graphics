@@ -15,9 +15,49 @@ const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const MIN_SOFT_WIPE_EDGE = 18;
 const MAX_SOFT_WIPE_EDGE = 64;
 const SOFT_WIPE_EDGE_MULTIPLIER = 1.25;
+const DEFAULT_TEXT_REVEAL_SPEED = 50;
+const MIN_TEXT_REVEAL_SPEED = 0;
+const MAX_TEXT_REVEAL_SPEED = 100;
+const MAX_ANIMATED_TEXT_REVEAL_SPEED = MAX_TEXT_REVEAL_SPEED - 1;
+const MIN_TEXT_REVEAL_RATE = 10;
+const MAX_TEXT_REVEAL_RATE = 250;
 
-const getEffectiveSpeed = (speed) =>
-  typeof speed === "number" && speed > 0 ? speed : 1;
+const clampTextRevealSpeed = (speed = DEFAULT_TEXT_REVEAL_SPEED) => {
+  if (typeof speed !== "number" || !Number.isFinite(speed)) {
+    return DEFAULT_TEXT_REVEAL_SPEED;
+  }
+
+  return Math.max(
+    MIN_TEXT_REVEAL_SPEED,
+    Math.min(MAX_TEXT_REVEAL_SPEED, speed),
+  );
+};
+
+export const isInstantTextRevealSpeed = (speed) =>
+  clampTextRevealSpeed(speed) >= MAX_TEXT_REVEAL_SPEED;
+
+const getEffectiveSpeed = (speed) => {
+  const clampedSpeed = Math.min(
+    clampTextRevealSpeed(speed),
+    MAX_ANIMATED_TEXT_REVEAL_SPEED,
+  );
+  const normalizedSpeed =
+    MAX_ANIMATED_TEXT_REVEAL_SPEED > 0
+      ? clampedSpeed / MAX_ANIMATED_TEXT_REVEAL_SPEED
+      : 0;
+
+  return (
+    MIN_TEXT_REVEAL_RATE *
+    (MAX_TEXT_REVEAL_RATE / MIN_TEXT_REVEAL_RATE) ** normalizedSpeed
+  );
+};
+
+const getTextRevealSnapshotMode = (element) =>
+  element?.revealEffect === "softWipe" ? "softWipe" : "typewriter";
+
+export const shouldRenderTextRevealImmediately = (element) =>
+  element?.revealEffect === "none" ||
+  isInstantTextRevealSpeed(element?.speed ?? DEFAULT_TEXT_REVEAL_SPEED);
 
 const createIndicatorSprite = (element) => {
   let indicatorSprite = new Sprite(Texture.EMPTY);
@@ -676,6 +716,7 @@ export const runTextReveal = async ({
     return;
   }
 
+  const renderImmediately = shouldRenderTextRevealImmediately(element);
   const resumableSnapshot =
     playback === "resume" ? getResumableTypewriterSnapshot(container) : null;
 
@@ -694,15 +735,19 @@ export const runTextReveal = async ({
 
   try {
     if (playback === "paused-initial") {
-      if (element.revealEffect !== "none") {
+      if (!renderImmediately) {
         setTextRevealSnapshot(container, {
-          mode: "typewriter",
+          mode: getTextRevealSnapshotMode(element),
           revealedCharacters: 0,
           completed: false,
         });
       }
 
-      if (element.revealEffect === "none") {
+      if (renderImmediately) {
+        setTextRevealSnapshot(container, {
+          mode: "none",
+          completed: true,
+        });
         runNoneReveal({ contentContainer, indicatorSprite, element });
       } else {
         runPausedInitialReveal({ indicatorSprite, element });
@@ -710,7 +755,18 @@ export const runTextReveal = async ({
       return;
     }
 
-    if (element.revealEffect === "softWipe") {
+    const stateVersion = completionTracker.getVersion();
+    let completed = false;
+
+    if (renderImmediately) {
+      completionTracker.track(stateVersion);
+      setTextRevealSnapshot(container, {
+        mode: "none",
+        completed: true,
+      });
+      runNoneReveal({ contentContainer, indicatorSprite, element });
+      completed = true;
+    } else if (element.revealEffect === "softWipe") {
       setTextRevealSnapshot(container, {
         mode: "softWipe",
         completed: false,
@@ -726,28 +782,13 @@ export const runTextReveal = async ({
       });
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
-        const stateVersion = completionTracker.getVersion();
-
         completionTracker.track(stateVersion);
-        completionTracker.complete(stateVersion);
+        completed = true;
+      } else {
+        return;
       }
-
-      return;
-    }
-
-    const stateVersion = completionTracker.getVersion();
-    let completed = false;
-
-    completionTracker.track(stateVersion);
-
-    if (element.revealEffect === "none") {
-      setTextRevealSnapshot(container, {
-        mode: "none",
-        completed: true,
-      });
-      runNoneReveal({ contentContainer, indicatorSprite, element });
-      completed = true;
     } else {
+      completionTracker.track(stateVersion);
       const nextSnapshot = setTextRevealSnapshot(container, {
         mode: "typewriter",
         revealedCharacters: resumableSnapshot?.revealedCharacters ?? 0,

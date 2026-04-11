@@ -1,6 +1,9 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
-import { runTextReveal } from "./textRevealingRuntime.js";
+import {
+  runTextReveal,
+  shouldRenderTextRevealImmediately,
+} from "./textRevealingRuntime.js";
 
 const getRevealIdentity = (element = {}) =>
   JSON.stringify({
@@ -49,7 +52,7 @@ export const updateTextRevealing = async ({
     if (!shouldRestartReveal(prevElement, element)) {
       if (
         renderContext?.suppressAnimations !== true &&
-        element.revealEffect !== "none"
+        !shouldRenderTextRevealImmediately(element)
       ) {
         await runTextReveal({
           container: textRevealingElement,
@@ -67,7 +70,7 @@ export const updateTextRevealing = async ({
 
     if (
       renderContext?.suppressAnimations === true &&
-      element.revealEffect !== "none"
+      !shouldRenderTextRevealImmediately(element)
     ) {
       await runTextReveal({
         container: textRevealingElement,

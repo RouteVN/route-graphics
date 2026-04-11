@@ -1,6 +1,9 @@
 import { Container } from "pixi.js";
 import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
-import { runTextReveal } from "./textRevealingRuntime.js";
+import {
+  runTextReveal,
+  shouldRenderTextRevealImmediately,
+} from "./textRevealingRuntime.js";
 
 /**
  * Add text-revealing element to the stage
@@ -26,7 +29,10 @@ export const addTextRevealing = async ({
   if (element.alpha !== undefined) container.alpha = element.alpha;
   parent.addChild(container);
 
-  if (renderContext?.suppressAnimations && element.revealEffect !== "none") {
+  if (
+    renderContext?.suppressAnimations &&
+    !shouldRenderTextRevealImmediately(element)
+  ) {
     await runTextReveal({
       container,
       element,

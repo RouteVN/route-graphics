@@ -753,11 +753,13 @@ describe("runReplaceAnimation", () => {
     };
 
     const destroyOrder = [];
+    const renderTextureConfigs = [];
     let renderTextureIndex = 0;
     let filterIndex = 0;
     const renderTextureSpy = vi
       .spyOn(RenderTexture, "create")
-      .mockImplementation(() => {
+      .mockImplementation((config) => {
+        renderTextureConfigs.push(config);
         const id = renderTextureIndex++;
         const texture = Object.create(Texture.EMPTY);
         Object.defineProperty(texture, "source", {
@@ -865,6 +867,11 @@ describe("runReplaceAnimation", () => {
       expect(maskFilterDestroyIndex).toBeLessThan(
         destroyOrder.indexOf("renderTexture:2"),
       );
+      expect(renderTextureConfigs).toEqual([
+        expect.objectContaining({ resolution: 1 }),
+        expect.objectContaining({ resolution: 1 }),
+        expect.objectContaining({ resolution: 1 }),
+      ]);
     } finally {
       renderTextureSpy.mockRestore();
       filterSpy.mockRestore();

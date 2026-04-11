@@ -1,0 +1,195 @@
+---
+title: Text Revealing - Speed Scale
+description: Compares typewriter reveal progress across low, mid, high, and instant speed settings on the curved text-reveal scale.
+specs:
+  - lower speeds should reveal fewer characters after the same elapsed time
+  - upper-range speeds should progress much faster than the low half of the scale
+  - speed 100 should render complete text immediately without any reveal animation
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 450
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
+  - action: screenshot
+  - action: wait
+    ms: 1150
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
+  - action: screenshot
+---
+states:
+  - id: text-revealing-speed-scale-blank
+    elements: []
+  - id: text-revealing-speed-scale-grid
+    elements:
+      - id: scale-bg
+        type: rect
+        x: 24
+        y: 24
+        width: 1232
+        height: 648
+        fill: "#171717"
+      - id: scale-title
+        type: text
+        x: 52
+        y: 44
+        content: "Curved text reveal speed scale"
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          fontFamily: Arial
+      - id: scale-caption
+        type: text
+        x: 52
+        y: 78
+        content: "All rows start together; only speed changes."
+        textStyle:
+          fontSize: 14
+          fill: "#A6A6A6"
+          fontFamily: Arial
+      - id: speed-label-0
+        type: text
+        x: 52
+        y: 132
+        content: "speed 0"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-0
+        type: text-revealing
+        x: 180
+        y: 128
+        width: 980
+        speed: 0
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+      - id: speed-label-25
+        type: text
+        x: 52
+        y: 204
+        content: "speed 25"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-25
+        type: text-revealing
+        x: 180
+        y: 200
+        width: 980
+        speed: 25
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+      - id: speed-label-50
+        type: text
+        x: 52
+        y: 276
+        content: "speed 50"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-50
+        type: text-revealing
+        x: 180
+        y: 272
+        width: 980
+        speed: 50
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+      - id: speed-label-75
+        type: text
+        x: 52
+        y: 348
+        content: "speed 75"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-75
+        type: text-revealing
+        x: 180
+        y: 344
+        width: 980
+        speed: 75
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+      - id: speed-label-99
+        type: text
+        x: 52
+        y: 420
+        content: "speed 99"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-99
+        type: text-revealing
+        x: 180
+        y: 416
+        width: 980
+        speed: 99
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+      - id: speed-label-100
+        type: text
+        x: 52
+        y: 492
+        content: "speed 100"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-line-100
+        type: text-revealing
+        x: 180
+        y: 488
+        width: 980
+        speed: 100
+        revealEffect: typewriter
+        content:
+          - text: "Curved speed mapping keeps the upper range responsive without losing control."
+            textStyle:
+              fontSize: 18
+              fill: "#F2F2F2"
+              fontFamily: Arial
+              lineHeight: 1.25
+

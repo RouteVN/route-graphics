@@ -444,7 +444,7 @@
  * @property {number} [width] - Width constraint for text wrapping
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
- * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {number} [speed=50] - Animation speed on a curved 0-100 scale; 100 renders instantly
  * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
  * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
