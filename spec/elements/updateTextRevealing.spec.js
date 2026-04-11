@@ -9,6 +9,8 @@ vi.mock(
   "../../src/plugins/elements/text-revealing/textRevealingRuntime.js",
   () => ({
     runTextReveal: mocks.runTextReveal,
+    shouldRenderTextRevealImmediately: (element) =>
+      element?.revealEffect === "none" || (element?.speed ?? 50) >= 100,
   }),
 );
 
@@ -157,6 +159,39 @@ describe("updateTextRevealing", () => {
         playback: "autoplay",
       }),
     );
+  });
+
+  it("renders immediately at max speed without queueing deferred reveal work", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+    const renderContext = createRenderContext({ suppressAnimations: true });
+
+    await updateTextRevealing({
+      parent,
+      prevElement: createElement(),
+      nextElement: createElement({
+        speed: 100,
+      }),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext,
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "autoplay",
+      }),
+    );
+
+    flushDeferredMountOperations(renderContext);
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
   });
 
   it("resumes an unchanged in-flight reveal instead of leaving it frozen", async () => {

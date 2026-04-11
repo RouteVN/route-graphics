@@ -1,0 +1,119 @@
+---
+title: Render Complete Event - Text Revealing Speed 100
+description: Asserts renderComplete fires once for max-speed text-revealing, even when revealEffect stays animated.
+specs:
+  - renderComplete should fire once with aborted=false for immediate max-speed text reveals
+  - typewriter speed 100 should render fully without waiting for per-character animation
+  - softWipe speed 100 should render fully without dispatching wipe animation work
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: text-revealing-speed-100
+        aborted: false
+---
+states:
+  - id: baseline
+    elements:
+      - id: baseline-rect
+        type: rect
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: text-revealing-speed-100
+    elements:
+      - id: speed-100-bg
+        type: rect
+        x: 32
+        y: 32
+        width: 1216
+        height: 640
+        fill: "#171717"
+      - id: speed-100-title
+        type: text
+        x: 60
+        y: 48
+        content: "speed 100 should render immediately"
+        textStyle:
+          fontSize: 24
+          fill: "#FFFFFF"
+          fontFamily: Arial
+      - id: speed-100-typewriter-label
+        type: text
+        x: 60
+        y: 112
+        content: "typewriter"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-100-typewriter
+        type: text-revealing
+        x: 220
+        y: 108
+        width: 920
+        speed: 100
+        revealEffect: typewriter
+        indicator:
+          revealing:
+            src: circle-red
+            width: 12
+            height: 12
+          complete:
+            src: circle-green
+            width: 12
+            height: 12
+          offset: 12
+        content:
+          - text: "Maximum speed should skip the typewriter effect and draw the full sentence at once."
+            textStyle:
+              fontSize: 26
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.3
+      - id: speed-100-softwipe-label
+        type: text
+        x: 60
+        y: 240
+        content: "softWipe"
+        textStyle:
+          fontSize: 18
+          fill: "#8FD3FF"
+          fontFamily: Arial
+      - id: speed-100-softwipe
+        type: text-revealing
+        x: 220
+        y: 236
+        width: 920
+        speed: 100
+        revealEffect: softWipe
+        indicator:
+          revealing:
+            src: circle-red
+            width: 12
+            height: 12
+          complete:
+            src: circle-green
+            width: 12
+            height: 12
+          offset: 12
+        content:
+          - text: "Maximum speed should also bypass the soft wipe and present the final layout immediately."
+            textStyle:
+              fontSize: 26
+              fill: "#D9D9D9"
+              fontFamily: Arial
+              lineHeight: 1.3

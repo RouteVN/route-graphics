@@ -125,7 +125,7 @@ properties:
         default: 12
   speed:
     type: number
-    description: Animation speed for text revealing
+    description: Animation speed on a curved 0-100 scale; 100 renders instantly
     default: 50
   revealEffect:
     type: string
