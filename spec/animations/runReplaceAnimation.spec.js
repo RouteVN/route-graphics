@@ -1,4 +1,4 @@
-import { Container, Texture } from "pixi.js";
+import { Container, Filter, RenderTexture, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   runReplaceAnimation,
@@ -709,6 +709,166 @@ describe("runReplaceAnimation", () => {
     dispatched.payload.applyFrame(500);
 
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
+  });
+
+  it("destroys masked replace filters before their bound textures on completion", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const maskTexture = document.createElement("canvas");
+    maskTexture.width = 1;
+    maskTexture.height = 1;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    const destroyOrder = [];
+    let renderTextureIndex = 0;
+    let filterIndex = 0;
+    const renderTextureSpy = vi
+      .spyOn(RenderTexture, "create")
+      .mockImplementation(() => {
+        const id = renderTextureIndex++;
+        const texture = Object.create(Texture.EMPTY);
+        Object.defineProperty(texture, "source", {
+          value: {
+            destroyed: false,
+          },
+          writable: true,
+          configurable: true,
+        });
+        texture.destroy = vi.fn(() => {
+          texture.destroyed = true;
+          texture.source.destroyed = true;
+          destroyOrder.push(`renderTexture:${id}`);
+        });
+        Object.defineProperty(texture, "destroy", {
+          value: texture.destroy,
+          writable: true,
+          configurable: true,
+        });
+
+        return texture;
+      });
+    const filterSpy = vi.spyOn(Filter, "from").mockImplementation(() => {
+      if (filterIndex++ === 0) {
+        return {
+          destroy: vi.fn(() => {
+            destroyOrder.push("maskChannelFilter.destroy");
+          }),
+          resources: {},
+        };
+      }
+
+      const replaceMaskUniforms = {
+        uniforms: {},
+        update: vi.fn(),
+      };
+      const replaceMaskFilter = {
+        resources: {
+          replaceMaskUniforms,
+          uNextTexture: Texture.EMPTY.source,
+          uMaskTextureA: Texture.EMPTY.source,
+          uMaskTextureB: Texture.EMPTY.source,
+        },
+        destroy: vi.fn(() => {
+          destroyOrder.push("maskFilter.destroy");
+          const boundTextures = [
+            replaceMaskFilter.resources.uNextTexture,
+            replaceMaskFilter.resources.uMaskTextureA,
+            replaceMaskFilter.resources.uMaskTextureB,
+          ];
+
+          if (boundTextures.some((resource) => resource?.destroyed)) {
+            throw new Error("mask filter destroy ran after texture teardown");
+          }
+        }),
+      };
+
+      return replaceMaskFilter;
+    });
+
+    try {
+      runReplaceAnimation({
+        app,
+        parent,
+        prevElement: { id: "scene-root", type: "container" },
+        nextElement: { id: "scene-root", type: "container", children: [] },
+        animation: {
+          id: "scene-mask-replace",
+          targetId: "scene-root",
+          type: "transition",
+          mask: {
+            kind: "single",
+            texture: maskTexture,
+            channel: "red",
+            progress: {
+              initialValue: 0,
+              keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+            },
+          },
+        },
+        animations: new Map(),
+        animationBus,
+        completionTracker: tracker,
+        eventHandler: vi.fn(),
+        elementPlugins: [],
+        plugin,
+        zIndex: 0,
+        signal: new AbortController().signal,
+      });
+
+      const dispatched = animationBus.dispatch.mock.calls[0][0];
+
+      expect(() => dispatched.payload.onComplete()).not.toThrow();
+      expect(tracker.complete).toHaveBeenCalledWith(11);
+
+      const maskFilterDestroyIndex = destroyOrder.indexOf("maskFilter.destroy");
+
+      expect(maskFilterDestroyIndex).toBeGreaterThan(-1);
+      expect(maskFilterDestroyIndex).toBeLessThan(
+        destroyOrder.indexOf("renderTexture:0"),
+      );
+      expect(maskFilterDestroyIndex).toBeLessThan(
+        destroyOrder.indexOf("renderTexture:1"),
+      );
+      expect(maskFilterDestroyIndex).toBeLessThan(
+        destroyOrder.indexOf("renderTexture:2"),
+      );
+    } finally {
+      renderTextureSpy.mockRestore();
+      filterSpy.mockRestore();
+    }
   });
 
   it("does not preprocess sequence masks through CPU extraction", () => {

@@ -1096,12 +1096,12 @@ const createMaskedOverlay = ({
     destroy: () => {
       overlay.removeFromParent();
       sprite.filters = [];
+      maskFilter.destroy();
       overlay.destroy({ children: true });
       prevRoot.destroy({ children: true });
       nextRoot.destroy({ children: true });
       prevTexture.destroy(true);
       nextTexture.destroy(true);
-      maskFilter.destroy();
       destroySubjectSnapshot(prevSubject);
       destroySubjectSnapshot(nextSubject);
       maskTextureController.destroy();
@@ -1368,8 +1368,11 @@ export const runReplaceAnimation = ({
           finalize({ flushDeferredEffects: false });
         },
         onComplete: () => {
-          finalize({ flushDeferredEffects: true });
-          completeTransition();
+          try {
+            finalize({ flushDeferredEffects: true });
+          } finally {
+            completeTransition();
+          }
         },
         onCancel: () => {
           completeTransition();
