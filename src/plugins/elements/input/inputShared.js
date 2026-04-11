@@ -7,6 +7,7 @@ import {
 } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 
 export const INPUT_RUNTIME = Symbol("routeGraphicsInputRuntime");
 
@@ -113,7 +114,7 @@ const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
   return 0;
 };
 
-const createMeasuredStyle = (style) => new TextStyle(style);
+const createMeasuredStyle = (style) => new TextStyle(toPixiTextStyle(style));
 
 const measureWidth = (text, style) =>
   CanvasTextMetrics.measureText(text, createMeasuredStyle(style)).width;

@@ -194,10 +194,7 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations:
-        renderContext.suppressAnimations || element.type === "container"
-          ? animationsByTarget
-          : [],
+      animations: animationsByTarget,
       eventHandler,
       animationBus,
       completionTracker,
