@@ -20,7 +20,8 @@ const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
 const MAX_ANIMATED_TEXT_REVEAL_SPEED = MAX_TEXT_REVEAL_SPEED - 1;
 const MIN_TEXT_REVEAL_RATE = 10;
-const MAX_TEXT_REVEAL_RATE = 250;
+const MAX_TEXT_REVEAL_RATE = 120;
+const TEXT_REVEAL_RATE_CURVE = 0.9;
 
 const clampTextRevealSpeed = (speed = DEFAULT_TEXT_REVEAL_SPEED) => {
   if (typeof speed !== "number" || !Number.isFinite(speed)) {
@@ -45,10 +46,11 @@ const getEffectiveSpeed = (speed) => {
     MAX_ANIMATED_TEXT_REVEAL_SPEED > 0
       ? clampedSpeed / MAX_ANIMATED_TEXT_REVEAL_SPEED
       : 0;
+  const curvedSpeed = normalizedSpeed ** TEXT_REVEAL_RATE_CURVE;
 
   return (
     MIN_TEXT_REVEAL_RATE *
-    (MAX_TEXT_REVEAL_RATE / MIN_TEXT_REVEAL_RATE) ** normalizedSpeed
+    (MAX_TEXT_REVEAL_RATE / MIN_TEXT_REVEAL_RATE) ** curvedSpeed
   );
 };
 

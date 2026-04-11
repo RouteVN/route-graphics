@@ -1,51 +1,47 @@
 ---
-title: Text Revealing - Speed Scale
-description: Compares typewriter reveal progress across low, mid, high, and instant speed settings on the curved text-reveal scale.
+title: Text Revealing - Soft Wipe Speed Scale
+description: Compares softWipe reveal progress across low, mid, high, and instant speed settings on the shared text-reveal speed scale.
 specs:
-  - lower speeds should reveal fewer characters after the same elapsed time
-  - upper-range speeds should progress much faster than the low half of the scale
-  - speed 100 should render complete text immediately without any reveal animation
+  - lower speeds should leave more of the line masked after the same animation time
+  - upper-range speeds should expose much more of the line than the lower half of the scale
+  - speed 100 should bypass the wipe and render the full line immediately
 steps:
   - action: screenshot
   - action: keypress
     key: "n"
-  - action: wait
-    ms: 450
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 16
+      deltaMS: 450
   - action: screenshot
-  - action: wait
-    ms: 1150
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 16
+      deltaMS: 800
   - action: screenshot
 ---
 states:
-  - id: text-revealing-speed-scale-blank
+  - id: text-revealing-soft-wipe-speed-scale-blank
     elements: []
-  - id: text-revealing-speed-scale-grid
+  - id: text-revealing-soft-wipe-speed-scale-grid
     elements:
-      - id: scale-bg
+      - id: softwipe-scale-bg
         type: rect
         x: 24
         y: 24
         width: 1232
         height: 648
         fill: "#171717"
-      - id: scale-title
+      - id: softwipe-scale-title
         type: text
         x: 52
         y: 44
-        content: "Curved text reveal speed scale"
+        content: "Soft wipe speed scale"
         textStyle:
           fontSize: 24
           fill: "#FFFFFF"
           fontFamily: Arial
-      - id: scale-caption
+      - id: softwipe-scale-caption
         type: text
         x: 52
         y: 78
@@ -54,7 +50,7 @@ states:
           fontSize: 14
           fill: "#A6A6A6"
           fontFamily: Arial
-      - id: speed-label-0
+      - id: softwipe-speed-label-0
         type: text
         x: 52
         y: 132
@@ -63,13 +59,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-0
+      - id: softwipe-speed-line-0
         type: text-revealing
         x: 180
         y: 128
         width: 980
         speed: 0
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
@@ -77,7 +73,7 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.25
-      - id: speed-label-25
+      - id: softwipe-speed-label-25
         type: text
         x: 52
         y: 204
@@ -86,13 +82,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-25
+      - id: softwipe-speed-line-25
         type: text-revealing
         x: 180
         y: 200
         width: 980
         speed: 25
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
@@ -100,7 +96,7 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.25
-      - id: speed-label-50
+      - id: softwipe-speed-label-50
         type: text
         x: 52
         y: 276
@@ -109,13 +105,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-50
+      - id: softwipe-speed-line-50
         type: text-revealing
         x: 180
         y: 272
         width: 980
         speed: 50
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
@@ -123,7 +119,7 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.25
-      - id: speed-label-75
+      - id: softwipe-speed-label-75
         type: text
         x: 52
         y: 348
@@ -132,13 +128,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-75
+      - id: softwipe-speed-line-75
         type: text-revealing
         x: 180
         y: 344
         width: 980
         speed: 75
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
@@ -146,7 +142,7 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.25
-      - id: speed-label-99
+      - id: softwipe-speed-label-99
         type: text
         x: 52
         y: 420
@@ -155,13 +151,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-99
+      - id: softwipe-speed-line-99
         type: text-revealing
         x: 180
         y: 416
         width: 980
         speed: 99
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
@@ -169,7 +165,7 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.25
-      - id: speed-label-100
+      - id: softwipe-speed-label-100
         type: text
         x: 52
         y: 492
@@ -178,13 +174,13 @@ states:
           fontSize: 18
           fill: "#8FD3FF"
           fontFamily: Arial
-      - id: speed-line-100
+      - id: softwipe-speed-line-100
         type: text-revealing
         x: 180
         y: 488
         width: 980
         speed: 100
-        revealEffect: typewriter
+        revealEffect: softWipe
         content:
           - text: "Curved speed mapping keeps the upper range responsive without losing control, so the reveal stays readable for dialogue and captions while higher settings still feel clearly faster in motion."
             textStyle:
