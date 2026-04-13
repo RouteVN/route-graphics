@@ -711,6 +711,122 @@ describe("runReplaceAnimation", () => {
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
   });
 
+  it("maps masked replace secondary textures through the overlay sprite matrix", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const maskTexture = document.createElement("canvas");
+    maskTexture.width = 1;
+    maskTexture.height = 1;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+        extract: {
+          pixels: vi.fn(() => ({
+            pixels: new Uint8ClampedArray(100 * 100 * 4),
+          })),
+        },
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-mask-replace",
+        targetId: "scene-root",
+        type: "transition",
+        mask: {
+          kind: "single",
+          texture: maskTexture,
+          channel: "red",
+          progress: {
+            initialValue: 0,
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const overlay = parent.children.find((child) => child !== nextDisplayObject);
+    const sprite = overlay.children[0];
+    const maskFilter = sprite.filters[0];
+    const filterManager = {
+      calculateSpriteMatrix: vi.fn((matrix) => {
+        matrix.a = 1.6;
+        matrix.b = 0;
+        matrix.c = 0;
+        matrix.d = 1.4222222222222223;
+        matrix.tx = 0;
+        matrix.ty = 0;
+        return matrix;
+      }),
+      applyFilter: vi.fn(),
+    };
+
+    maskFilter.apply(filterManager, Texture.EMPTY, Texture.EMPTY, false);
+
+    expect(filterManager.calculateSpriteMatrix).toHaveBeenCalledWith(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uSecondaryMatrix,
+      sprite,
+    );
+    expect(filterManager.applyFilter).toHaveBeenCalledWith(
+      maskFilter,
+      Texture.EMPTY,
+      Texture.EMPTY,
+      false,
+    );
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uSecondaryMatrix.a,
+    ).toBeCloseTo(1.6);
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uSecondaryMatrix.d,
+    ).toBeCloseTo(1.4222222222222223);
+    expect(
+      Array.from(
+        maskFilter.resources.replaceMaskUniforms.uniforms.uSecondaryClamp,
+      ),
+    ).toEqual([0.5, 0.5, 0.5, 0.5]);
+  });
+
   it("destroys masked replace filters before their bound textures on completion", () => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const nextDisplayObject = createDisplayObject("scene-root");
