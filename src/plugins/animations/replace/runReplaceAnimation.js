@@ -158,10 +158,12 @@ const createMaskProgressTimeline = (mask) =>
 const REPLACE_MASK_FILTER_VERTEX = `
 in vec2 aPosition;
 out vec2 vTextureCoord;
+out vec2 vSecondaryCoord;
 
 uniform vec4 uInputSize;
 uniform vec4 uOutputFrame;
 uniform vec4 uOutputTexture;
+uniform mat3 uSecondaryMatrix;
 
 vec4 filterVertexPosition(void)
 {
@@ -182,11 +184,13 @@ void main(void)
 {
     gl_Position = filterVertexPosition();
     vTextureCoord = filterTextureCoord();
+    vSecondaryCoord = (uSecondaryMatrix * vec3(vTextureCoord, 1.0)).xy;
 }
 `;
 
 const REPLACE_MASK_FILTER_FRAGMENT = `
 in vec2 vTextureCoord;
+in vec2 vSecondaryCoord;
 out vec4 finalColor;
 
 uniform sampler2D uTexture;
@@ -198,11 +202,13 @@ uniform float uSoftness;
 uniform float uMaskMix;
 uniform float uMaskInvert;
 uniform vec4 uMaskChannelWeights;
+uniform vec4 uSecondaryClamp;
 
-float sampleMaskValue(vec2 uv)
+float sampleMaskValue(vec2 secondaryUv)
 {
-    vec4 rawMaskA = texture(uMaskTextureA, uv);
-    vec4 rawMaskB = texture(uMaskTextureB, uv);
+    vec2 clampedUv = clamp(secondaryUv, uSecondaryClamp.xy, uSecondaryClamp.zw);
+    vec4 rawMaskA = texture(uMaskTextureA, clampedUv);
+    vec4 rawMaskB = texture(uMaskTextureB, clampedUv);
     float maskA = dot(rawMaskA, uMaskChannelWeights);
     float maskB = dot(rawMaskB, uMaskChannelWeights);
     float maskValue = mix(maskA, maskB, clamp(uMaskMix, 0.0, 1.0));
@@ -227,9 +233,10 @@ float sampleReveal(float maskValue)
 void main()
 {
     vec2 uv = clamp(vTextureCoord, vec2(0.0), vec2(1.0));
+    vec2 secondaryUv = clamp(vSecondaryCoord, uSecondaryClamp.xy, uSecondaryClamp.zw);
     vec4 prevColor = texture(uTexture, uv);
-    vec4 nextColor = texture(uNextTexture, uv);
-    float reveal = sampleReveal(sampleMaskValue(uv));
+    vec4 nextColor = texture(uNextTexture, secondaryUv);
+    float reveal = sampleReveal(sampleMaskValue(secondaryUv));
 
     finalColor = mix(prevColor, nextColor, reveal);
 }
@@ -251,6 +258,8 @@ struct ReplaceMaskUniforms {
   uMaskMix: f32,
   uMaskInvert: f32,
   uMaskChannelWeights: vec4<f32>,
+  uSecondaryMatrix: mat3x3<f32>,
+  uSecondaryClamp: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
@@ -264,6 +273,7 @@ struct ReplaceMaskUniforms {
 struct VSOutput {
   @builtin(position) position: vec4<f32>,
   @location(0) uv: vec2<f32>,
+  @location(1) secondaryUv: vec2<f32>,
 };
 
 fn filterVertexPosition(aPosition: vec2<f32>) -> vec4<f32>
@@ -316,16 +326,25 @@ fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
   return VSOutput(
     filterVertexPosition(aPosition),
     filterTextureCoord(aPosition),
+    (replaceMaskUniforms.uSecondaryMatrix * vec3(filterTextureCoord(aPosition), 1.0)).xy,
   );
 }
 
 @fragment
-fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
+fn mainFragment(
+  @location(0) uv: vec2<f32>,
+  @location(1) secondaryUv: vec2<f32>,
+) -> @location(0) vec4<f32>
 {
   let clampedUv = clamp(uv, vec2(0.0), vec2(1.0));
+  let clampedSecondaryUv = clamp(
+    secondaryUv,
+    replaceMaskUniforms.uSecondaryClamp.xy,
+    replaceMaskUniforms.uSecondaryClamp.zw,
+  );
   let prevColor = textureSample(uTexture, uSampler, clampedUv);
-  let nextColor = textureSample(uNextTexture, uSampler, clampedUv);
-  let reveal = sampleReveal(sampleMaskValue(clampedUv));
+  let nextColor = textureSample(uNextTexture, uSampler, clampedSecondaryUv);
+  let reveal = sampleReveal(sampleMaskValue(clampedSecondaryUv));
 
   return mix(prevColor, nextColor, reveal);
 }
@@ -542,7 +561,6 @@ const createMaskChannelWeights = (channel = "red") => {
 };
 
 const OUTPUT_MASK_CHANNEL_WEIGHTS = createMaskChannelWeights("red");
-
 // These render textures are sampled as raw TextureSources in the custom
 // replace shader, so they must stay at logical resolution rather than the
 // renderer/device resolution.
@@ -740,8 +758,15 @@ const createReplaceMaskFilter = () => {
       value: new Float32Array([1, 0, 0, 0]),
       type: "vec4<f32>",
     },
+    uSecondaryMatrix: {
+      value: new Matrix(),
+      type: "mat3x3<f32>",
+    },
+    uSecondaryClamp: {
+      value: new Float32Array([0, 0, 1, 1]),
+      type: "vec4<f32>",
+    },
   });
-
   const filter = Filter.from({
     gpu: {
       vertex: {
@@ -859,6 +884,18 @@ const createMaskTextureController = (app, mask, width, height, filter) => {
     },
     destroy,
   };
+};
+
+const createFullFrameClamp = (width, height) => {
+  const safeWidth = Math.max(1, width);
+  const safeHeight = Math.max(1, height);
+
+  return new Float32Array([
+    0.5 / safeWidth,
+    0.5 / safeHeight,
+    1 - 0.5 / safeWidth,
+    1 - 0.5 / safeHeight,
+  ]);
 };
 
 const getUnionBounds = (subjects) => {
@@ -1019,6 +1056,26 @@ const createMaskedOverlay = ({
   const { filter: maskFilter } = createReplaceMaskFilter();
   maskFilter.resources.uNextTexture = nextTexture.source;
   sprite.filters = [maskFilter];
+  const secondaryClamp = createFullFrameClamp(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const baseApplyMaskFilter =
+    typeof maskFilter.apply === "function"
+      ? maskFilter.apply.bind(maskFilter)
+      : (filterManager, input, output, clearMode) => {
+          filterManager.applyFilter(maskFilter, input, output, clearMode);
+        };
+  maskFilter.apply = (filterManager, input, output, clearMode) => {
+    const replaceMaskUniforms = maskFilter.resources.replaceMaskUniforms;
+    filterManager.calculateSpriteMatrix(
+      replaceMaskUniforms.uniforms.uSecondaryMatrix,
+      sprite,
+    );
+    replaceMaskUniforms.uniforms.uSecondaryClamp = secondaryClamp;
+    replaceMaskUniforms.update();
+    baseApplyMaskFilter(filterManager, input, output, clearMode);
+  };
 
   const maskTextureController = createMaskTextureController(
     app,
@@ -1315,6 +1372,7 @@ export const runReplaceAnimation = ({
     const nextSubject = nextDisplayObject
       ? createSnapshotSubject(app, nextDisplayObject)
       : null;
+
     const overlaySubjects = resolveOverlaySubjects({
       prevElement,
       nextElement,

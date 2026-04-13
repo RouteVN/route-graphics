@@ -1,6 +1,7 @@
 ---
 title: Text Revealing - Speed Scale
 description: Compares typewriter reveal progress across low, mid, high, and instant speed settings on the curved text-reveal scale.
+diffThreshold: 0.5
 specs:
   - lower speeds should reveal fewer characters after the same elapsed time
   - upper-range speeds should progress much faster than the low half of the scale
