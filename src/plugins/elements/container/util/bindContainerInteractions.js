@@ -1,4 +1,5 @@
 import { Rectangle } from "pixi.js";
+import { normalizeVolume } from "../../../../util/normalizeVolume.js";
 import {
   isPrimaryPointerEvent,
   isSecondaryPointerEvent,
@@ -225,7 +226,7 @@ export const bindContainerInteractions = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
-          volume: (soundVolume ?? 1000) / 1000,
+          volume: normalizeVolume(soundVolume),
         });
     };
 

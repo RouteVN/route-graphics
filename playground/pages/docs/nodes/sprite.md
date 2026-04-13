@@ -72,7 +72,7 @@ elements:
     click:
       src: fighter-pressed
       soundSrc: click-sfx
-      soundVolume: 900
+      soundVolume: 90
       payload:
         action: selectHero
     rightClick:

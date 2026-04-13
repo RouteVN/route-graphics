@@ -1,5 +1,6 @@
 import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
@@ -157,7 +158,7 @@ export const updateSprite = ({
               id: `click-${Date.now()}`,
               url: soundSrc,
               loop: false,
-              volume: (soundVolume ?? 1000) / 1000,
+              volume: normalizeVolume(soundVolume),
             });
         };
 

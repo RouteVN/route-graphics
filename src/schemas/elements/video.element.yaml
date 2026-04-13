@@ -43,10 +43,10 @@ properties:
     description: Source URL of the video file
   volume:
     type: number
-    description: Volume of the video audio (0-1000)
+    description: Volume of the video audio (0-100)
     minimum: 0
-    maximum: 1000
-    default: 1000
+    maximum: 100
+    default: 100
   loop:
     type: boolean
     description: Whether the video should loop when it ends

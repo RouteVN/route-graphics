@@ -1,4 +1,5 @@
 import { Graphics } from "pixi.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "./setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
@@ -120,7 +121,7 @@ export const addRect = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
-          volume: (soundVolume ?? 1000) / 1000,
+          volume: normalizeVolume(soundVolume),
         });
     };
 

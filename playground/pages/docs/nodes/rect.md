@@ -89,7 +89,7 @@ elements:
         action: panelHover
     click:
       soundSrc: click-sfx
-      soundVolume: 900
+      soundVolume: 90
       payload:
         action: panelClick
     rightClick:

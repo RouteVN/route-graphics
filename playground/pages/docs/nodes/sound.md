@@ -20,7 +20,7 @@ Try it in the [Playground](/playground/?template=sound-demo).
 | `id`     | string  | Yes      | -       | Audio id.                                           |
 | `type`   | string  | Yes      | -       | Must be `sound`.                                    |
 | `src`    | string  | Yes      | -       | Audio source alias/URL.                             |
-| `volume` | number  | No       | `800`   | Runtime maps to `volume / 1000`; can exceed `1000`. |
+| `volume` | number  | No       | `80`    | Runtime maps to `volume / 100`.                      |
 | `loop`   | boolean | No       | `false` | Loop playback.                                      |
 | `delay`  | number  | No       | `0`     | Delay in ms before adding to audio stage.           |
 
@@ -46,7 +46,7 @@ audio:
   - id: bgm-main
     type: sound
     src: bgm-1
-    volume: 700
+    volume: 70
     loop: true
 ```
 
@@ -58,5 +58,5 @@ audio:
     type: sound
     src: sfx-announce
     delay: 1200
-    volume: 900
+    volume: 90
 ```

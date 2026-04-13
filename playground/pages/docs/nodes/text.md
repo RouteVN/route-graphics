@@ -96,7 +96,7 @@ elements:
         target: start
     click:
       soundSrc: click-sfx
-      soundVolume: 850
+      soundVolume: 85
       textStyle:
         fill: "#66ff99"
       payload:

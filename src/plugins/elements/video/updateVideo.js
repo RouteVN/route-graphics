@@ -5,6 +5,7 @@ import {
   syncVideoPlaybackTracking,
 } from "./playbackTracking.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 
 /**
  * Update video element
@@ -67,7 +68,7 @@ export const updateVideo = ({
         completionTracker,
       });
 
-      activeVideo.volume = nextElement.volume / 1000;
+      activeVideo.volume = normalizeVolume(nextElement.volume);
       activeVideo.loop = nextElement.loop ?? false;
 
       if (prevElement.src !== nextElement.src) {
