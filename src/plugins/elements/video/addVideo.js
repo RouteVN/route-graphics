@@ -1,6 +1,7 @@
 import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
 import { queueDeferredVideoPlay } from "../renderContext.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 
 /**
  * Add video element to the stage
@@ -21,7 +22,7 @@ export const addVideo = ({
   video.pause();
   video.currentTime = 0;
   video.loop = loop ?? false;
-  video.volume = volume / 1000;
+  video.volume = normalizeVolume(volume);
   video.muted = false;
 
   const sprite = new Sprite(texture);

@@ -43,7 +43,7 @@ describe("updateSound", () => {
         src: "next.mp3",
         delay: 100,
         loop: true,
-        volume: 500,
+        volume: 50,
       },
     });
 
@@ -78,7 +78,7 @@ describe("updateSound", () => {
         src: "new.mp3",
         delay: 0,
         loop: false,
-        volume: 900,
+        volume: 90,
       },
     });
 
@@ -106,7 +106,7 @@ describe("updateSound", () => {
         src: "amb-2.mp3",
         delay: 0,
         loop: true,
-        volume: 600,
+        volume: 60,
       },
     });
 

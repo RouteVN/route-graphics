@@ -18,7 +18,7 @@ export const parseVideo = ({ state }) => {
   return {
     ...finalObj,
     src: state.src,
-    volume: state.volume ?? 1000,
+    volume: state.volume ?? 100,
     loop: state.loop ?? false,
   };
 };

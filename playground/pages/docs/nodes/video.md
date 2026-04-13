@@ -27,7 +27,7 @@ Try it in the [Playground](/playground/?template=video-demo).
 | `anchorX` | number  | No                  | `0`            | Anchor offset ratio.              |
 | `anchorY` | number  | No                  | `0`            | Anchor offset ratio.              |
 | `alpha`   | number  | No                  | `1`            | Opacity `0..1`.                   |
-| `volume`  | number  | No                  | `1000`         | Runtime uses `volume / 1000`.     |
+| `volume`  | number  | No                  | `100`          | Runtime uses `volume / 100`.      |
 | `loop`    | boolean | No                  | `false`        | Replay video on end.              |
 
 ## Behavior Notes
@@ -61,7 +61,7 @@ elements:
     height: 720
     src: background-loop.mp4
     loop: true
-    volume: 200
+    volume: 20
     alpha: 0.9
 ```
 
@@ -76,7 +76,7 @@ elements:
     width: 1120
     height: 630
     src: chapter-1.mp4
-    volume: 700
+    volume: 70
 
 animations:
   - id: cutscene-fade

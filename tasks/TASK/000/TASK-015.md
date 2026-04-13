@@ -15,5 +15,4 @@ labels: ['feat']
 it should have these properties that sound element has:
 
 loop: boolean
-volume: number (from 0 to 1000)
-
+volume: number (from 0 to 100)

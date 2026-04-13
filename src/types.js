@@ -517,7 +517,7 @@
  * @property {string} id - Unique identifier
  * @property {string} type - Should be "sound"
  * @property {string} src - Source of the sound
- * @property {number} [volume=800] - Volume (0-1000+, 800 default)
+ * @property {number} [volume=80] - Volume (0-100, 80 default)
  * @property {boolean} [loop=false] - Whether to loop the sound
  * @property {number} [delay=0] - Delay in milliseconds before playing
  */

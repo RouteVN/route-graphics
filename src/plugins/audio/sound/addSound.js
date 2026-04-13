@@ -1,3 +1,5 @@
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
+
 // Track pending delayed sounds by sound id so updates/deletes can cancel specific entries.
 const pendingTimeoutById = new Map();
 
@@ -5,7 +7,7 @@ const createAudioElement = (element) => ({
   id: element.id,
   url: element.src,
   loop: element.loop ?? false,
-  volume: (element.volume ?? 800) / 1000,
+  volume: normalizeVolume(element.volume, 80),
 });
 
 export const hasPendingSound = (id) => pendingTimeoutById.has(id);

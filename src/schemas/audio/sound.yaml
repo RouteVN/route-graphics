@@ -18,9 +18,10 @@ properties:
     description: Source of the sound
   volume:
     type: number
-    description: Volume. 0 means muted. 1000 means original full volume. It can go above 1000, but there is no guarantee that it won't be clipped.
-    default: 800
+    description: Volume. 0 means muted. 100 means original full volume.
+    default: 80
     minimum: 0
+    maximum: 100
   loop:
     type: boolean
     description: Loop
