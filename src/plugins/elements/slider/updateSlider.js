@@ -1,11 +1,11 @@
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
-  applySliderVisualState,
-  bindSliderInteractions,
   getSliderParts,
   renameSliderParts,
   resizeSliderThumb,
+  SLIDER_RUNTIME,
+  syncSliderRuntime,
 } from "./sliderRuntime.js";
 
 /**
@@ -54,30 +54,6 @@ export const updateSlider = ({
         id: nextSliderComputedNode.id,
       });
 
-      // Check if handler configuration changed
-      const handlerConfigChanged =
-        !isDeepEqual(
-          prevSliderComputedNode.hover,
-          nextSliderComputedNode.hover,
-        ) ||
-        !isDeepEqual(
-          prevSliderComputedNode.change,
-          nextSliderComputedNode.change,
-        ) ||
-        prevSliderComputedNode.min !== nextSliderComputedNode.min ||
-        prevSliderComputedNode.max !== nextSliderComputedNode.max ||
-        prevSliderComputedNode.step !== nextSliderComputedNode.step ||
-        prevSliderComputedNode.direction !== nextSliderComputedNode.direction ||
-        prevSliderComputedNode.initialValue !==
-          nextSliderComputedNode.initialValue ||
-        prevSliderComputedNode.thumbSrc !== nextSliderComputedNode.thumbSrc ||
-        prevSliderComputedNode.barSrc !== nextSliderComputedNode.barSrc ||
-        prevSliderComputedNode.inactiveBarSrc !==
-          nextSliderComputedNode.inactiveBarSrc ||
-        prevSliderComputedNode.width !== nextSliderComputedNode.width ||
-        prevSliderComputedNode.height !== nextSliderComputedNode.height ||
-        prevSliderComputedNode.id !== nextSliderComputedNode.id;
-
       if (bar && thumb) {
         resizeSliderThumb({
           thumb,
@@ -86,42 +62,25 @@ export const updateSlider = ({
           trackWidth: nextSliderComputedNode.width,
           trackHeight: nextSliderComputedNode.height,
         });
-
-        applySliderVisualState({
-          sliderContainer: sliderElement,
-          sliderComputedNode: nextSliderComputedNode,
-          thumb,
-          currentValue: nextSliderComputedNode.initialValue,
-        });
       }
 
       if (!bar || !thumb) {
         return;
       }
 
-      // Only recreate event handlers if the handler configuration actually changed
-      // This prevents unnecessary handler replacement and avoids the "ReferenceError: Can't find variable: id"
-      // error that occurs when PixiJS tries to complete pointer events on destroyed closures
-      if (handlerConfigChanged) {
-        // Remove all existing event listeners from container, bar, and thumb
-        sliderElement.removeAllListeners("pointerover");
-        sliderElement.removeAllListeners("pointerout");
-        sliderElement.removeAllListeners("pointerup");
-        sliderElement.removeAllListeners("pointerupoutside");
-        sliderElement.removeAllListeners("pointerdown");
-        sliderElement.removeAllListeners("globalpointermove");
-      }
+      const shouldAdoptExternalValue =
+        sliderElement[SLIDER_RUNTIME]?.isDragging !== true ||
+        prevSliderComputedNode.initialValue !==
+          nextSliderComputedNode.initialValue;
 
-      // Re-attach event handlers if configuration changed
-      if (handlerConfigChanged) {
-        bindSliderInteractions({
-          app,
-          sliderContainer: sliderElement,
-          sliderComputedNode: nextSliderComputedNode,
-          thumb,
-          eventHandler,
-        });
-      }
+      syncSliderRuntime({
+        app,
+        sliderContainer: sliderElement,
+        sliderComputedNode: nextSliderComputedNode,
+        thumb,
+        eventHandler,
+        adoptExternalValue: shouldAdoptExternalValue,
+      });
     }
   };
 

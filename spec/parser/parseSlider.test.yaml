@@ -181,7 +181,7 @@ in:
       "y": 75
 throws: "Input error: slider initialValue is required"
 ---
-case: Test parsing slider throws when initialValue is outside min and max
+case: Test parsing slider clamps initialValue above max
 in:
   - state:
       id: outside-initial-value-slider
@@ -196,4 +196,53 @@ in:
       min: 10
       max: 20
       initialValue: 30
-throws: "Input error: slider initialValue must be between min and max"
+out:
+  id: outside-initial-value-slider
+  type: slider
+  barSrc: file:bar-minimal
+  thumbSrc: file:thumb-minimal
+  direction: vertical
+  alpha: 1
+  min: 10
+  max: 20
+  width: 100
+  height: 10
+  step: 1
+  initialValue: 20
+  x: 50
+  "y": 75
+  originX: 0
+  originY: 0
+---
+case: Test parsing slider clamps initialValue below min
+in:
+  - state:
+      id: below-initial-value-slider
+      type: slider
+      barSrc: file:bar-minimal
+      thumbSrc: file:thumb-minimal
+      direction: vertical
+      width: 100
+      height: 10
+      x: 50
+      "y": 75
+      min: 10
+      max: 20
+      initialValue: 5
+out:
+  id: below-initial-value-slider
+  type: slider
+  barSrc: file:bar-minimal
+  thumbSrc: file:thumb-minimal
+  direction: vertical
+  alpha: 1
+  min: 10
+  max: 20
+  width: 100
+  height: 10
+  step: 1
+  initialValue: 10
+  x: 50
+  "y": 75
+  originX: 0
+  originY: 0
