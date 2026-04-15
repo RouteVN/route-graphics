@@ -40,6 +40,36 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+  softWipe:
+    type: object
+    description: Parameters for the softWipe reveal effect.
+    properties:
+      direction:
+        type: string
+        enum: [leftToRight,rightToLeft]
+        description: Horizontal direction of the wipe.
+        default: leftToRight
+      softness:
+        type: number
+        minimum: 0
+        description: Multiplier applied to line height to determine the feathered edge width.
+        default: 1.25
+      easing:
+        type: string
+        enum: [linear,easeOutCubic]
+        description: Easing curve applied to each line wipe.
+        default: linear
+      lineOverlap:
+        type: number
+        minimum: 0
+        maximum: 0.95
+        description: Fraction of a line's duration that the next line may overlap.
+        default: 0
+      lineDelay:
+        type: number
+        minimum: 0
+        description: Delay in milliseconds before the next line starts after overlap is applied.
+        default: 0
 required:
   - id
   - type
@@ -158,3 +188,5 @@ properties:
     enum: [typewriter,softWipe,none]
     description: Text animation.
     default: typewriter
+  softWipe:
+    "$ref": "#/$def/softWipe"

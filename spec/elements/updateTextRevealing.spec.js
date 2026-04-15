@@ -161,6 +161,48 @@ describe("updateTextRevealing", () => {
     );
   });
 
+  it("restarts reveal when softWipe parameters change", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+
+    await updateTextRevealing({
+      parent,
+      prevElement: createElement({
+        revealEffect: "softWipe",
+        softWipe: {
+          easing: "linear",
+        },
+      }),
+      nextElement: createElement({
+        revealEffect: "softWipe",
+        softWipe: {
+          easing: "easeOutCubic",
+        },
+      }),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext: createRenderContext(),
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "autoplay",
+        element: expect.objectContaining({
+          revealEffect: "softWipe",
+          softWipe: expect.objectContaining({
+            easing: "easeOutCubic",
+          }),
+        }),
+      }),
+    );
+  });
+
   it("renders immediately at max speed without queueing deferred reveal work", async () => {
     const parent = new Container();
     const child = new Container();

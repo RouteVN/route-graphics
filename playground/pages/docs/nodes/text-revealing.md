@@ -15,22 +15,23 @@ Try it in the [Playground](/playground/?template=text-revealing).
 
 ## Field Reference
 
-| Field          | Type                                 | Required            | Default        | Notes                                                                                                                       |
-| -------------- | ------------------------------------ | ------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `id`           | string                               | Yes                 | -              | Element id.                                                                                                                 |
-| `type`         | string                               | Yes                 | -              | Must be `text-revealing`.                                                                                                   |
-| `x`            | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                           |
-| `y`            | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                           |
-| `content`      | array                                | No                  | `[]`           | Array of rich text segments.                                                                                                |
-| `width`        | number                               | No                  | auto           | If omitted, parser uses a 500px wrap basis for layout measurement.                                                          |
-| `anchorX`      | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                        |
-| `anchorY`      | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                        |
-| `alpha`        | number                               | No                  | `1`            | Opacity `0..1`.                                                                                                             |
-| `textStyle`    | object                               | No                  | text defaults  | Base style for segments.                                                                                                    |
+| Field          | Type                                 | Required            | Default        | Notes                                                                                                                           |
+| -------------- | ------------------------------------ | ------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | string                               | Yes                 | -              | Element id.                                                                                                                     |
+| `type`         | string                               | Yes                 | -              | Must be `text-revealing`.                                                                                                       |
+| `x`            | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                               |
+| `y`            | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                               |
+| `content`      | array                                | No                  | `[]`           | Array of rich text segments.                                                                                                    |
+| `width`        | number                               | No                  | auto           | If omitted, parser uses a 500px wrap basis for layout measurement.                                                              |
+| `anchorX`      | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                            |
+| `anchorY`      | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                            |
+| `alpha`        | number                               | No                  | `1`            | Opacity `0..1`.                                                                                                                 |
+| `textStyle`    | object                               | No                  | text defaults  | Base style for segments.                                                                                                        |
 | `speed`        | number                               | No                  | `50`           | Uses a curved `0..100` scale. `0..99` gets progressively faster with extra control in the upper range; `100` renders instantly. |
-| `revealEffect` | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly. |
-| `indicator`    | object                               | No                  | -              | Revealing/complete icon config + offset.                                                                                    |
-| `complete`     | object                               | No                  | -              | Parsed and kept in computed node.                                                                                           |
+| `revealEffect` | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.     |
+| `softWipe`     | object                               | No                  | see below      | Parameters used when `revealEffect: softWipe`.                                                                                  |
+| `indicator`    | object                               | No                  | -              | Revealing/complete icon config + offset.                                                                                        |
+| `complete`     | object                               | No                  | -              | Parsed and kept in computed node.                                                                                               |
 
 ### `content[]` item shape
 
@@ -52,12 +53,22 @@ Try it in the [Playground](/playground/?template=text-revealing).
 | `complete.height`  | number | `12`    |
 | `offset`           | number | `12`    |
 
+### `softWipe`
+
+| Field         | Type                           | Default       |
+| ------------- | ------------------------------ | ------------- |
+| `direction`   | `leftToRight` \| `rightToLeft` | `leftToRight` |
+| `softness`    | number                         | `1.25`        |
+| `easing`      | `linear` \| `easeOutCubic`     | `linear`      |
+| `lineOverlap` | number `0..0.95`               | `0`           |
+| `lineDelay`   | number                         | `0`           |
+
 ## Behavior Notes
 
 - Reveal runs chunk by chunk.
 - `speed` uses an exponential/log-like mapping so `50..99` covers most of the fast reveal range with finer control than a linear scale.
 - `speed: 100` skips animation entirely and paints the final text immediately, regardless of `revealEffect`.
-- `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask.
+- `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: left-to-right, linear motion, no overlap or lead highlight, and a feather width clamped to the legacy range.
 - `revealEffect: none` skips animation and paints text immediately.
 - Completion contributes to global `renderComplete` tracking.
 - `complete.payload` is currently parsed but no dedicated per-node event is emitted from this plugin.
@@ -188,6 +199,12 @@ elements:
     width: 720
     speed: 22
     revealEffect: softWipe
+    softWipe:
+      direction: leftToRight
+      softness: 1.25
+      easing: linear
+      lineOverlap: 0
+      lineDelay: 0
     indicator:
       revealing:
         src: circle-red

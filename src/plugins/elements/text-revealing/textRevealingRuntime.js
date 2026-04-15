@@ -9,12 +9,14 @@ import {
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import {
+  getSoftWipeEdgeWidth,
+  getSoftWipeEasing,
+  normalizeSoftWipeConfig,
+} from "./softWipeConfig.js";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
-const MIN_SOFT_WIPE_EDGE = 18;
-const MAX_SOFT_WIPE_EDGE = 64;
-const SOFT_WIPE_EDGE_MULTIPLIER = 1.25;
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
@@ -408,6 +410,57 @@ const runTypewriterReveal = async ({
   return true;
 };
 
+const createSoftWipeLineTimings = ({
+  lines,
+  edgeWidth,
+  baseDuration,
+  softWipe,
+}) => {
+  const lineWeights = lines.map((line) => {
+    const baseWeight = Math.max(1, line.totalCharacters);
+    const tailFactor = 1 + edgeWidth / Math.max(1, line.bounds.width);
+
+    return baseWeight * tailFactor;
+  });
+  const totalWeight = lineWeights.reduce((sum, weight) => sum + weight, 0);
+  const timedLines = [];
+  let nextStartTime = 0;
+  let totalDuration = 0;
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const weight = lineWeights[lineIndex];
+    const duration =
+      totalWeight > 0
+        ? Math.max(1, (baseDuration * weight) / totalWeight)
+        : baseDuration;
+    const startTime = Math.max(0, nextStartTime);
+    const endTime = startTime + duration;
+
+    timedLines.push({
+      ...lines[lineIndex],
+      startTime,
+      endTime,
+      duration,
+    });
+
+    totalDuration = Math.max(totalDuration, endTime);
+    nextStartTime =
+      endTime - duration * softWipe.lineOverlap + softWipe.lineDelay;
+  }
+
+  return {
+    timedLines,
+    duration: Math.max(1, Math.ceil(totalDuration)),
+  };
+};
+
+const getSoftWipeLineProgress = ({ currentTime, line, easing }) => {
+  const rawProgress =
+    line.duration > 0 ? (currentTime - line.startTime) / line.duration : 1;
+
+  return easing(Math.max(0, Math.min(rawProgress, 1)));
+};
+
 const runSoftWipeReveal = ({
   container,
   contentContainer,
@@ -445,39 +498,19 @@ const runSoftWipeReveal = ({
     return false;
   }
 
-  const edgeWidth = Math.max(
-    MIN_SOFT_WIPE_EDGE,
-    Math.min(
-      MAX_SOFT_WIPE_EDGE,
-      Math.round(maxLineHeight * SOFT_WIPE_EDGE_MULTIPLIER),
-    ),
-  );
-  const duration = Math.max(
+  const softWipe = normalizeSoftWipeConfig(element.softWipe);
+  const easing = getSoftWipeEasing(softWipe.easing);
+  const edgeWidth = getSoftWipeEdgeWidth({ maxLineHeight, softWipe });
+  const baseDuration = Math.max(
     1,
     Math.round((totalCharacters / effectiveSpeed) * 1000),
   );
-  const lineWeights = lines.map((line) => {
-    const baseWeight = Math.max(1, line.totalCharacters);
-    const tailFactor = 1 + edgeWidth / Math.max(1, line.bounds.width);
-
-    return baseWeight * tailFactor;
+  const { timedLines, duration } = createSoftWipeLineTimings({
+    lines,
+    edgeWidth,
+    baseDuration,
+    softWipe,
   });
-  const totalWeight = lineWeights.reduce((sum, weight) => sum + weight, 0);
-  const timedLines = [];
-  let accumulatedWeight = 0;
-
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const weight = lineWeights[lineIndex];
-    const start = totalWeight > 0 ? accumulatedWeight / totalWeight : 0;
-
-    accumulatedWeight += weight;
-
-    timedLines.push({
-      ...lines[lineIndex],
-      startProgress: start,
-      endProgress: totalWeight > 0 ? accumulatedWeight / totalWeight : 1,
-    });
-  }
 
   const stateVersion = completionTracker.getVersion();
   const animationId = `${element.id}-soft-wipe`;
@@ -496,7 +529,11 @@ const runSoftWipeReveal = ({
     const texture = getCanvasTexture(canvas);
     const sprite = new Sprite(texture);
 
-    sprite.x = Math.floor(line.bounds.x - edgeWidth);
+    sprite.x = Math.floor(
+      softWipe.direction === "rightToLeft"
+        ? line.bounds.x
+        : line.bounds.x - edgeWidth,
+    );
     sprite.y = Math.floor(line.bounds.y);
     line.container.mask = sprite;
     contentContainer.addChild(sprite);
@@ -591,21 +628,20 @@ const runSoftWipeReveal = ({
       driver: "custom",
       duration,
       applyFrame: (currentTime) => {
-        const progress = duration > 0 ? Math.min(currentTime / duration, 1) : 1;
         let activeLine = timedLines[0];
-        let activeLineProgress = 0;
+        let activeLineLeadingEdgeX =
+          softWipe.direction === "rightToLeft"
+            ? activeLine.bounds.x + activeLine.bounds.width
+            : activeLine.bounds.x;
 
         for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
           const line = timedLines[lineIndex];
           const lineMask = lineMasks[lineIndex];
-          const lineSpan = Math.max(
-            0.000001,
-            line.endProgress - line.startProgress,
-          );
-          const lineProgress = Math.max(
-            0,
-            Math.min((progress - line.startProgress) / lineSpan, 1),
-          );
+          const lineProgress = getSoftWipeLineProgress({
+            currentTime,
+            line,
+            easing,
+          });
           const { context, canvas, texture } = lineMask;
 
           context.clearRect(0, 0, canvas.width, canvas.height);
@@ -615,59 +651,106 @@ const runSoftWipeReveal = ({
             continue;
           }
 
-          const lineStart = edgeWidth;
           const lineY = 0;
           const lineTravelDistance = line.bounds.width + edgeWidth;
-          const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
-          const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
+          let leadingEdgeX;
 
-          if (hardEnd > lineStart) {
-            context.fillStyle = "#ffffff";
-            context.fillRect(
+          if (softWipe.direction === "rightToLeft") {
+            const lineStart = 0;
+            const lineEnd = line.bounds.width;
+            const lineLeadingEdge = lineEnd - lineProgress * lineTravelDistance;
+            const hardStart = Math.min(lineEnd, lineLeadingEdge + edgeWidth);
+
+            if (hardStart < lineEnd) {
+              context.fillStyle = "#ffffff";
+              context.fillRect(
+                Math.max(lineStart, hardStart),
+                lineY,
+                lineEnd - Math.max(lineStart, hardStart),
+                line.bounds.height,
+              );
+            }
+
+            const gradientStart = Math.max(lineStart, lineLeadingEdge);
+            const gradientEnd = Math.min(lineEnd, lineLeadingEdge + edgeWidth);
+
+            if (gradientEnd > gradientStart) {
+              const gradient = context.createLinearGradient(
+                gradientStart,
+                0,
+                gradientEnd,
+                0,
+              );
+
+              gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
+              gradient.addColorStop(1, "rgba(255, 255, 255, 1)");
+              context.fillStyle = gradient;
+              context.fillRect(
+                gradientStart,
+                lineY,
+                gradientEnd - gradientStart,
+                line.bounds.height,
+              );
+            }
+
+            leadingEdgeX =
+              line.bounds.x +
+              Math.max(0, Math.min(line.bounds.width, lineLeadingEdge));
+          } else {
+            const lineStart = edgeWidth;
+            const lineLeadingEdge =
+              lineStart + lineProgress * lineTravelDistance;
+            const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
+
+            if (hardEnd > lineStart) {
+              context.fillStyle = "#ffffff";
+              context.fillRect(
+                lineStart,
+                lineY,
+                Math.min(hardEnd - lineStart, line.bounds.width),
+                line.bounds.height,
+              );
+            }
+
+            const gradientStart = Math.max(
               lineStart,
-              lineY,
-              Math.min(hardEnd - lineStart, line.bounds.width),
-              line.bounds.height,
+              lineLeadingEdge - edgeWidth,
             );
-          }
-
-          const gradientStart = Math.max(
-            lineStart,
-            lineLeadingEdge - edgeWidth,
-          );
-          const gradientEnd = Math.min(
-            lineStart + line.bounds.width,
-            lineLeadingEdge,
-          );
-
-          if (gradientEnd > gradientStart) {
-            const gradient = context.createLinearGradient(
-              gradientStart,
-              0,
-              gradientEnd,
-              0,
+            const gradientEnd = Math.min(
+              lineStart + line.bounds.width,
+              lineLeadingEdge,
             );
 
-            gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-            context.fillStyle = gradient;
-            context.fillRect(
-              gradientStart,
-              lineY,
-              gradientEnd - gradientStart,
-              line.bounds.height,
-            );
+            if (gradientEnd > gradientStart) {
+              const gradient = context.createLinearGradient(
+                gradientStart,
+                0,
+                gradientEnd,
+                0,
+              );
+
+              gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+              gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+              context.fillStyle = gradient;
+              context.fillRect(
+                gradientStart,
+                lineY,
+                gradientEnd - gradientStart,
+                line.bounds.height,
+              );
+            }
+
+            leadingEdgeX =
+              line.bounds.x +
+              Math.min(
+                line.bounds.width,
+                Math.max(0, lineLeadingEdge - lineStart),
+              );
           }
 
           texture.source.update();
-
-          if (lineProgress < 1 || lineIndex === timedLines.length - 1) {
-            activeLine = line;
-            activeLineProgress = Math.min(
-              1,
-              (lineLeadingEdge - lineStart) / Math.max(1, line.bounds.width),
-            );
-          }
+          activeLine = line;
+          activeLineLeadingEdgeX = leadingEdgeX;
         }
 
         positionIndicatorForChunk(
@@ -676,12 +759,9 @@ const runSoftWipeReveal = ({
           indicatorOffset,
         );
         indicatorSprite.x =
-          activeLine.bounds.x +
-          Math.min(
-            activeLine.bounds.width,
-            activeLine.bounds.width * activeLineProgress,
-          ) +
-          indicatorOffset;
+          softWipe.direction === "rightToLeft"
+            ? activeLineLeadingEdgeX - indicatorOffset - indicatorSprite.width
+            : activeLineLeadingEdgeX + indicatorOffset;
       },
       applyTargetState: () => {
         finalize(false);

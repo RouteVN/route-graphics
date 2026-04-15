@@ -4,11 +4,16 @@ import {
   runTextReveal,
   shouldRenderTextRevealImmediately,
 } from "./textRevealingRuntime.js";
+import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
 
 const getRevealIdentity = (element = {}) =>
   JSON.stringify({
     content: element.content ?? null,
     revealEffect: element.revealEffect ?? "typewriter",
+    softWipe:
+      (element.revealEffect ?? "typewriter") === "softWipe"
+        ? normalizeSoftWipeConfig(element.softWipe)
+        : null,
     speed: element.speed ?? 50,
     width: element.width ?? null,
     indicator: element.indicator ?? null,

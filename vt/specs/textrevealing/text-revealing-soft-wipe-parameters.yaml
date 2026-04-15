@@ -1,0 +1,74 @@
+---
+title: Text Revealing - Soft Wipe Parameters
+description: Exercises configurable softWipe direction, softness, easing, line overlap, and line delay.
+specs:
+  - first state should show only the background before reveal starts
+  - softWipe should reveal left-to-right with a broader feathered edge
+  - easeOutCubic should accelerate the leading edge early in the wipe
+  - lineOverlap and lineDelay should produce staggered multi-line reveal timing
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 650
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 950
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-parameters-blank
+    elements:
+      - id: soft-wipe-parameters-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 800
+        height: 360
+        fill: "#111417"
+  - id: soft-wipe-parameters-text
+    elements:
+      - id: soft-wipe-parameters-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 800
+        height: 360
+        fill: "#111417"
+      - id: soft-wipe-parameters-line
+        type: text-revealing
+        x: 72
+        "y": 76
+        width: 610
+        speed: 24
+        revealEffect: softWipe
+        softWipe:
+          direction: leftToRight
+          softness: 1.85
+          easing: easeOutCubic
+          lineOverlap: 0.35
+          lineDelay: 140
+        content:
+          - text: "A richer soft wipe can feather the reveal,"
+            textStyle:
+              fontSize: 30
+              fill: "#F8FAFC"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " overlap wrapped lines,"
+            textStyle:
+              fontSize: 30
+              fill: "#B8F7D4"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " and carry a subtle highlighted leading edge."
+            textStyle:
+              fontSize: 30
+              fill: "#CBD5E1"
+              fontFamily: Arial
+              lineHeight: 1.35
