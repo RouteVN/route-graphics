@@ -75,7 +75,8 @@ states:
                 x: 360
                 y: 315
                 direction: horizontal
-                gap: 32
+                gapX: 32
+                gapY: 32
                 children:
                   - id: back-item
                     type: text
@@ -178,7 +179,8 @@ states:
                 x: 360
                 y: 315
                 direction: horizontal
-                gap: 32
+                gapX: 32
+                gapY: 32
                 children:
                   - id: back-item
                     type: text

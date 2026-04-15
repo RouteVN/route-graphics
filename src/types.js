@@ -307,7 +307,8 @@
  * @property {'container'} type
  * @property {'horizontal' | 'vertical'} direction
  * @property {SpriteComputedNode | TextComputedNode | RectComputedNode | ContainerComputedNode} children
- * @property {number} gap
+ * @property {number} gapX
+ * @property {number} gapY
  * @property {number} rotation
  * @property {boolean} scroll
  * @property {boolean} [anchorToBottom]

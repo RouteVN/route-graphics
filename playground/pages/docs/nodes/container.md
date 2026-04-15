@@ -15,31 +15,33 @@ Try it in the [Playground](/playground/?template=container-layout).
 
 ## Field Reference
 
-| Field        | Type                                     | Required            | Default                  | Notes                                                   |
-| ------------ | ---------------------------------------- | ------------------- | ------------------------ | ------------------------------------------------------- |
-| `id`         | string                                   | Yes                 | -                        | Element id.                                             |
-| `type`       | string                                   | Yes                 | -                        | Must be `container`.                                    |
-| `x`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                       |
-| `y`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                       |
-| `width`      | number                                   | No                  | auto                     | Derived from children if omitted.                       |
-| `height`     | number                                   | No                  | auto                     | Derived from children if omitted.                       |
-| `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                 |
-| `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                 |
-| `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                         |
-| `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.       |
-| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `""` (absolute behavior) | Auto-positioning for children in non-absolute modes.    |
-| `gap`        | number                                   | No                  | `0`                      | Space between children in layout mode.                  |
-| `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                |
-| `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.      |
-| `scrollbar`  | object                                   | No                  | -                        | Optional custom vertical scrollbar chrome for overflow. |
-| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.       |
-| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.       |
-| `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`. |
+| Field        | Type                                     | Required            | Default                  | Notes                                                               |
+| ------------ | ---------------------------------------- | ------------------- | ------------------------ | ------------------------------------------------------------------- |
+| `id`         | string                                   | Yes                 | -                        | Element id.                                                         |
+| `type`       | string                                   | Yes                 | -                        | Must be `container`.                                                |
+| `x`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                                   |
+| `y`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                                   |
+| `width`      | number                                   | No                  | auto                     | Derived from children if omitted.                                   |
+| `height`     | number                                   | No                  | auto                     | Derived from children if omitted.                                   |
+| `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
+| `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
+| `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                                     |
+| `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.                   |
+| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `""` (absolute behavior) | Auto-positioning for children in non-absolute modes.                |
+| `gapX`       | number                                   | No                  | `0`                      | Horizontal spacing between children, and between wrapped columns.   |
+| `gapY`       | number                                   | No                  | `0`                      | Vertical spacing between children, and between wrapped rows.        |
+| `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                            |
+| `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.                  |
+| `scrollbar`  | object                                   | No                  | -                        | Optional custom vertical scrollbar chrome for overflow.             |
+| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.                   |
+| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.                   |
+| `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`.             |
 
 ## Layout Behavior Notes
 
 - `absolute`: child `x`/`y` are used as-is.
 - `horizontal` / `vertical`: parser repositions children and can wrap by container `width`/`height` when provided and `scroll` is false.
+- `gapX` controls horizontal spacing. `gapY` controls vertical spacing. Legacy `gap` is not supported.
 - Child nodes are parsed with the active parser plugin set.
 - `scrollbar.vertical` renders on top of the viewport edge. It syncs with wheel scrolling, thumb dragging, track clicks, and optional start/end buttons.
 
@@ -136,7 +138,8 @@ elements:
     x: 120
     y: 120
     direction: vertical
-    gap: 10
+    gapX: 10
+    gapY: 10
     children:
       - id: btn-start
         type: rect
@@ -166,7 +169,8 @@ elements:
     width: 420
     height: 560
     direction: vertical
-    gap: 8
+    gapX: 8
+    gapY: 8
     scroll: true
     children:
       - id: item-1
@@ -197,7 +201,8 @@ elements:
     width: 420
     height: 560
     direction: vertical
-    gap: 8
+    gapX: 8
+    gapY: 8
     scroll: true
     scrollbar:
       vertical:

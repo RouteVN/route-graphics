@@ -106,7 +106,8 @@
             width: 220
             height: 240
             direction: vertical
-            gap: 12
+            gapX: 12
+            gapY: 12
             children:
               - id: vertical-1
                 type: rect
@@ -130,7 +131,8 @@
             width: 280
             height: 90
             direction: horizontal
-            gap: 10
+            gapX: 10
+            gapY: 10
             children:
               - id: horizontal-1
                 type: rect

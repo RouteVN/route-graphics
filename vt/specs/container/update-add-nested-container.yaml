@@ -21,7 +21,8 @@ states:
         width: 300
         height: 200
         direction: horizontal
-        gap: 10
+        gapX: 10
+        gapY: 10
         zIndex: 0
         children:
           - id: rect-1
@@ -42,7 +43,8 @@ states:
         width: 300
         height: 200
         direction: horizontal
-        gap: 10
+        gapX: 10
+        gapY: 10
         zIndex: 0
         children:
           - id: rect-1
@@ -53,7 +55,8 @@ states:
           - id: container-2
             type: container
             direction: vertical
-            gap: 5
+            gapX: 5
+            gapY: 5
             children:
               - id: rect-3
                 type: rect

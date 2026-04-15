@@ -60,7 +60,8 @@ states:
         width: 220
         height: 220
         direction: vertical
-        gap: 8
+        gapX: 8
+        gapY: 8
         scroll: true
         scrollbar:
           vertical:
@@ -128,7 +129,8 @@ states:
         width: 220
         height: 220
         direction: vertical
-        gap: 8
+        gapX: 8
+        gapY: 8
         scroll: true
         scrollbar:
           vertical:

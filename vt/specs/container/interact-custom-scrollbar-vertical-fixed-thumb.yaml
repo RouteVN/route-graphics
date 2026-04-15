@@ -43,7 +43,8 @@ states:
         width: 220
         height: 220
         direction: vertical
-        gap: 6
+        gapX: 6
+        gapY: 6
         scroll: true
         scrollbar:
           vertical:
