@@ -65,29 +65,33 @@ const getLineContainer = (container, element, lineIndex = 0) =>
     .getChildByLabel(`${element.id}-line-${lineIndex}`);
 
 describe("runTextReveal softWipe parameters", () => {
-  it("uses direction and softness when positioning line masks", async () => {
-    const left = await runSoftWipe({
+  it("uses softness when positioning line masks", async () => {
+    const baseline = await runSoftWipe({
       softWipe: {
-        direction: "leftToRight",
+        softness: 1.25,
+      },
+    });
+    const softened = await runSoftWipe({
+      softWipe: {
         softness: 2,
       },
     });
-    const right = await runSoftWipe({
-      softWipe: {
-        direction: "rightToLeft",
-        softness: 2,
-      },
-    });
 
-    const leftMask = getLineContainer(left.container, left.element).mask;
-    const rightMask = getLineContainer(right.container, right.element).mask;
+    const baselineMask = getLineContainer(
+      baseline.container,
+      baseline.element,
+    ).mask;
+    const softenedMask = getLineContainer(
+      softened.container,
+      softened.element,
+    ).mask;
 
-    expect(left.payload).toBeDefined();
-    expect(right.payload).toBeDefined();
-    expect(leftMask.x).toBeLessThan(rightMask.x);
+    expect(baseline.payload).toBeDefined();
+    expect(softened.payload).toBeDefined();
+    expect(softenedMask.x).toBeLessThan(baselineMask.x);
 
-    left.payload.onCancel();
-    right.payload.onCancel();
+    baseline.payload.onCancel();
+    softened.payload.onCancel();
   });
 
   it("applies easing to the indicator motion", async () => {

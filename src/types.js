@@ -441,7 +441,6 @@
 
 /**
  * @typedef {Object} SoftWipeConfig
- * @property {'leftToRight' | 'rightToLeft'} [direction='leftToRight'] - Horizontal direction of the soft wipe
  * @property {number} [softness=1.25] - Multiplier applied to line height to determine feathered edge width
  * @property {'linear' | 'easeOutCubic'} [easing='linear'] - Easing curve applied to each line wipe
  * @property {number} [lineOverlap=0] - Fraction of a line's duration that the next line may overlap

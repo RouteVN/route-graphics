@@ -529,11 +529,7 @@ const runSoftWipeReveal = ({
     const texture = getCanvasTexture(canvas);
     const sprite = new Sprite(texture);
 
-    sprite.x = Math.floor(
-      softWipe.direction === "rightToLeft"
-        ? line.bounds.x
-        : line.bounds.x - edgeWidth,
-    );
+    sprite.x = Math.floor(line.bounds.x - edgeWidth);
     sprite.y = Math.floor(line.bounds.y);
     line.container.mask = sprite;
     contentContainer.addChild(sprite);
@@ -629,10 +625,7 @@ const runSoftWipeReveal = ({
       duration,
       applyFrame: (currentTime) => {
         let activeLine = timedLines[0];
-        let activeLineLeadingEdgeX =
-          softWipe.direction === "rightToLeft"
-            ? activeLine.bounds.x + activeLine.bounds.width
-            : activeLine.bounds.x;
+        let activeLineLeadingEdgeX = activeLine.bounds.x;
 
         for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
           const line = timedLines[lineIndex];
@@ -653,104 +646,56 @@ const runSoftWipeReveal = ({
 
           const lineY = 0;
           const lineTravelDistance = line.bounds.width + edgeWidth;
-          let leadingEdgeX;
+          const lineStart = edgeWidth;
+          const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
+          const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
 
-          if (softWipe.direction === "rightToLeft") {
-            const lineStart = 0;
-            const lineEnd = line.bounds.width;
-            const lineLeadingEdge = lineEnd - lineProgress * lineTravelDistance;
-            const hardStart = Math.min(lineEnd, lineLeadingEdge + edgeWidth);
-
-            if (hardStart < lineEnd) {
-              context.fillStyle = "#ffffff";
-              context.fillRect(
-                Math.max(lineStart, hardStart),
-                lineY,
-                lineEnd - Math.max(lineStart, hardStart),
-                line.bounds.height,
-              );
-            }
-
-            const gradientStart = Math.max(lineStart, lineLeadingEdge);
-            const gradientEnd = Math.min(lineEnd, lineLeadingEdge + edgeWidth);
-
-            if (gradientEnd > gradientStart) {
-              const gradient = context.createLinearGradient(
-                gradientStart,
-                0,
-                gradientEnd,
-                0,
-              );
-
-              gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-              gradient.addColorStop(1, "rgba(255, 255, 255, 1)");
-              context.fillStyle = gradient;
-              context.fillRect(
-                gradientStart,
-                lineY,
-                gradientEnd - gradientStart,
-                line.bounds.height,
-              );
-            }
-
-            leadingEdgeX =
-              line.bounds.x +
-              Math.max(0, Math.min(line.bounds.width, lineLeadingEdge));
-          } else {
-            const lineStart = edgeWidth;
-            const lineLeadingEdge =
-              lineStart + lineProgress * lineTravelDistance;
-            const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
-
-            if (hardEnd > lineStart) {
-              context.fillStyle = "#ffffff";
-              context.fillRect(
-                lineStart,
-                lineY,
-                Math.min(hardEnd - lineStart, line.bounds.width),
-                line.bounds.height,
-              );
-            }
-
-            const gradientStart = Math.max(
+          if (hardEnd > lineStart) {
+            context.fillStyle = "#ffffff";
+            context.fillRect(
               lineStart,
-              lineLeadingEdge - edgeWidth,
+              lineY,
+              Math.min(hardEnd - lineStart, line.bounds.width),
+              line.bounds.height,
             );
-            const gradientEnd = Math.min(
-              lineStart + line.bounds.width,
-              lineLeadingEdge,
+          }
+
+          const gradientStart = Math.max(
+            lineStart,
+            lineLeadingEdge - edgeWidth,
+          );
+          const gradientEnd = Math.min(
+            lineStart + line.bounds.width,
+            lineLeadingEdge,
+          );
+
+          if (gradientEnd > gradientStart) {
+            const gradient = context.createLinearGradient(
+              gradientStart,
+              0,
+              gradientEnd,
+              0,
             );
 
-            if (gradientEnd > gradientStart) {
-              const gradient = context.createLinearGradient(
-                gradientStart,
-                0,
-                gradientEnd,
-                0,
-              );
-
-              gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-              gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-              context.fillStyle = gradient;
-              context.fillRect(
-                gradientStart,
-                lineY,
-                gradientEnd - gradientStart,
-                line.bounds.height,
-              );
-            }
-
-            leadingEdgeX =
-              line.bounds.x +
-              Math.min(
-                line.bounds.width,
-                Math.max(0, lineLeadingEdge - lineStart),
-              );
+            gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+            context.fillStyle = gradient;
+            context.fillRect(
+              gradientStart,
+              lineY,
+              gradientEnd - gradientStart,
+              line.bounds.height,
+            );
           }
 
           texture.source.update();
           activeLine = line;
-          activeLineLeadingEdgeX = leadingEdgeX;
+          activeLineLeadingEdgeX =
+            line.bounds.x +
+            Math.min(
+              line.bounds.width,
+              Math.max(0, lineLeadingEdge - lineStart),
+            );
         }
 
         positionIndicatorForChunk(
@@ -758,10 +703,7 @@ const runSoftWipeReveal = ({
           activeLine.chunk,
           indicatorOffset,
         );
-        indicatorSprite.x =
-          softWipe.direction === "rightToLeft"
-            ? activeLineLeadingEdgeX - indicatorOffset - indicatorSprite.width
-            : activeLineLeadingEdgeX + indicatorOffset;
+        indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
       },
       applyTargetState: () => {
         finalize(false);

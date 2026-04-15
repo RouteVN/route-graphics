@@ -44,11 +44,6 @@ $def:
     type: object
     description: Parameters for the softWipe reveal effect.
     properties:
-      direction:
-        type: string
-        enum: [leftToRight,rightToLeft]
-        description: Horizontal direction of the wipe.
-        default: leftToRight
       softness:
         type: number
         minimum: 0

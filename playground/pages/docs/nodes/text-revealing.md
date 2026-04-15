@@ -55,20 +55,19 @@ Try it in the [Playground](/playground/?template=text-revealing).
 
 ### `softWipe`
 
-| Field         | Type                           | Default       |
-| ------------- | ------------------------------ | ------------- |
-| `direction`   | `leftToRight` \| `rightToLeft` | `leftToRight` |
-| `softness`    | number                         | `1.25`        |
-| `easing`      | `linear` \| `easeOutCubic`     | `linear`      |
-| `lineOverlap` | number `0..0.95`               | `0`           |
-| `lineDelay`   | number                         | `0`           |
+| Field         | Type                       | Default  |
+| ------------- | -------------------------- | -------- |
+| `softness`    | number                     | `1.25`   |
+| `easing`      | `linear` \| `easeOutCubic` | `linear` |
+| `lineOverlap` | number `0..0.95`           | `0`      |
+| `lineDelay`   | number                     | `0`      |
 
 ## Behavior Notes
 
 - Reveal runs chunk by chunk.
 - `speed` uses an exponential/log-like mapping so `50..99` covers most of the fast reveal range with finer control than a linear scale.
 - `speed: 100` skips animation entirely and paints the final text immediately, regardless of `revealEffect`.
-- `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: left-to-right, linear motion, no overlap or lead highlight, and a feather width clamped to the legacy range.
+- `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: linear motion, no overlap, and a feather width clamped to the legacy range.
 - `revealEffect: none` skips animation and paints text immediately.
 - Completion contributes to global `renderComplete` tracking.
 - `complete.payload` is currently parsed but no dedicated per-node event is emitted from this plugin.
@@ -200,7 +199,6 @@ elements:
     speed: 22
     revealEffect: softWipe
     softWipe:
-      direction: leftToRight
       softness: 1.25
       easing: linear
       lineOverlap: 0

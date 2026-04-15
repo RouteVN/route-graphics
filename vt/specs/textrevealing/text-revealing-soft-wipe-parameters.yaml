@@ -1,9 +1,9 @@
 ---
 title: Text Revealing - Soft Wipe Parameters
-description: Exercises configurable softWipe direction, softness, easing, line overlap, and line delay.
+description: Exercises configurable softWipe softness, easing, line overlap, and line delay.
 specs:
   - first state should show only the background before reveal starts
-  - softWipe should reveal left-to-right with a broader feathered edge
+  - softWipe should reveal with a broader feathered edge
   - easeOutCubic should accelerate the leading edge early in the wipe
   - lineOverlap and lineDelay should produce staggered multi-line reveal timing
 steps:
@@ -48,7 +48,6 @@ states:
         speed: 24
         revealEffect: softWipe
         softWipe:
-          direction: leftToRight
           softness: 1.85
           easing: easeOutCubic
           lineOverlap: 0.35

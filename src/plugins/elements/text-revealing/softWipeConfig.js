@@ -1,5 +1,4 @@
 export const DEFAULT_SOFT_WIPE_CONFIG = {
-  direction: "leftToRight",
   softness: 1.25,
   easing: "linear",
   lineOverlap: 0,
@@ -8,8 +7,6 @@ export const DEFAULT_SOFT_WIPE_CONFIG = {
 
 export const LEGACY_SOFT_WIPE_MIN_EDGE = 18;
 export const LEGACY_SOFT_WIPE_MAX_EDGE = 64;
-
-const SOFT_WIPE_DIRECTIONS = new Set(["leftToRight", "rightToLeft"]);
 
 export const SOFT_WIPE_EASINGS = {
   linear: (progress) => progress,
@@ -25,9 +22,6 @@ export const normalizeSoftWipeConfig = (config = {}) => {
   const input = config && typeof config === "object" ? config : {};
 
   return {
-    direction: SOFT_WIPE_DIRECTIONS.has(input.direction)
-      ? input.direction
-      : DEFAULT_SOFT_WIPE_CONFIG.direction,
     softness: Math.max(
       0,
       finiteNumberOr(input.softness, DEFAULT_SOFT_WIPE_CONFIG.softness),

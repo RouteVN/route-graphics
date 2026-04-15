@@ -29,7 +29,6 @@ describe("parseTextRevealing softWipe", () => {
     });
 
     expect(parsed.softWipe).toEqual({
-      direction: "leftToRight",
       softness: 2,
       easing: "linear",
       lineOverlap: 0,
@@ -37,11 +36,11 @@ describe("parseTextRevealing softWipe", () => {
     });
   });
 
-  it("clamps unsafe numeric values and falls back for unsupported options", () => {
+  it("clamps unsafe numeric values and ignores unsupported options", () => {
     const parsed = parseTextRevealing({
       state: createState({
         softWipe: {
-          direction: "diagonal",
+          direction: "rightToLeft",
           softness: -1,
           easing: "bounce",
           lineOverlap: 2,
@@ -51,7 +50,6 @@ describe("parseTextRevealing softWipe", () => {
     });
 
     expect(parsed.softWipe).toEqual({
-      direction: "leftToRight",
       softness: 0,
       easing: "linear",
       lineOverlap: 0.95,
