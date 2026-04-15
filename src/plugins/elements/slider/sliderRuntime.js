@@ -6,6 +6,7 @@ import {
 
 const BAR_PADDING = 0;
 const DEFAULT_TEXTURE_SIZE = 16;
+export const SLIDER_RUNTIME = Symbol("routeGraphicsSliderRuntime");
 
 const hasOwn = (object, key) =>
   object !== null &&
@@ -13,6 +14,123 @@ const hasOwn = (object, key) =>
   Object.prototype.hasOwnProperty.call(object, key);
 
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
+
+const getInitialSliderValue = (sliderComputedNode) =>
+  sliderComputedNode.initialValue ?? sliderComputedNode.min;
+
+const readPointerId = (event) => {
+  if (!event || typeof event !== "object") {
+    return undefined;
+  }
+
+  if (typeof event.pointerId === "number") {
+    return event.pointerId;
+  }
+
+  if (typeof event.nativeEvent?.pointerId === "number") {
+    return event.nativeEvent.pointerId;
+  }
+
+  if (typeof event.data?.pointerId === "number") {
+    return event.data.pointerId;
+  }
+
+  return undefined;
+};
+
+const getNativeClientPoint = (event) => {
+  if (!event || typeof event !== "object") {
+    return null;
+  }
+
+  if (typeof event.clientX === "number" && typeof event.clientY === "number") {
+    return {
+      x: event.clientX,
+      y: event.clientY,
+    };
+  }
+
+  const touch = event.changedTouches?.[0] ?? event.touches?.[0];
+
+  if (
+    touch &&
+    typeof touch.clientX === "number" &&
+    typeof touch.clientY === "number"
+  ) {
+    return {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  }
+
+  return null;
+};
+
+const canUseNativeDragTracking = (app) =>
+  typeof globalThis.addEventListener === "function" &&
+  typeof globalThis.removeEventListener === "function" &&
+  typeof globalThis.document?.addEventListener === "function" &&
+  typeof globalThis.document?.removeEventListener === "function" &&
+  typeof app?.renderer?.events?.mapPositionToPoint === "function";
+
+const mapNativeEventToGlobalPoint = ({ app, nativeEvent }) => {
+  const clientPoint = getNativeClientPoint(nativeEvent);
+
+  if (!clientPoint) {
+    return null;
+  }
+
+  const globalPoint = { x: 0, y: 0 };
+
+  app.renderer.events.mapPositionToPoint(
+    globalPoint,
+    clientPoint.x,
+    clientPoint.y,
+  );
+
+  return globalPoint;
+};
+
+const detachNativeDragListeners = (runtime) => {
+  runtime.removeNativeDragListeners?.();
+  runtime.removeNativeDragListeners = null;
+};
+
+const attachNativeDragListeners = ({ runtime, moveListener, upListener }) => {
+  if (
+    !canUseNativeDragTracking(runtime.app) ||
+    runtime.removeNativeDragListeners
+  ) {
+    return;
+  }
+
+  const listeners = [];
+  const addListener = (target, type, listener) => {
+    target.addEventListener(type, listener, true);
+    listeners.push([target, type, listener]);
+  };
+
+  if (typeof globalThis.PointerEvent === "function") {
+    addListener(globalThis.document, "pointermove", moveListener);
+    addListener(globalThis, "pointerup", upListener);
+    addListener(globalThis, "pointercancel", upListener);
+  } else {
+    addListener(globalThis.document, "mousemove", moveListener);
+    addListener(globalThis, "mouseup", upListener);
+
+    if ("ontouchstart" in globalThis) {
+      addListener(globalThis.document, "touchmove", moveListener);
+      addListener(globalThis, "touchend", upListener);
+      addListener(globalThis, "touchcancel", upListener);
+    }
+  }
+
+  runtime.removeNativeDragListeners = () => {
+    for (const [target, type, listener] of listeners) {
+      target.removeEventListener(type, listener, true);
+    }
+  };
+};
 
 export const getSliderTexture = (src) =>
   src ? Texture.from(src) : Texture.EMPTY;
@@ -323,6 +441,117 @@ const setSliderCursor = ({ sliderContainer, sliderComputedNode, cursor }) => {
   }
 };
 
+const applySliderRuntimeVisualState = (runtime) => {
+  applySliderVisualState({
+    sliderContainer: runtime.sliderContainer,
+    sliderComputedNode: runtime.sliderComputedNode,
+    thumb: runtime.thumb,
+    currentValue: runtime.currentValue,
+    hoverOverride:
+      runtime.sliderComputedNode.hover && runtime.hoverController?.isHovering()
+        ? runtime.sliderComputedNode.hover
+        : null,
+  });
+};
+
+const syncSliderRuntimeCursor = (runtime) => {
+  const cursor =
+    runtime.hoverController?.isHovering() === true
+      ? runtime.sliderComputedNode.hover?.cursor
+      : null;
+
+  setSliderCursor({
+    sliderContainer: runtime.sliderContainer,
+    sliderComputedNode: runtime.sliderComputedNode,
+    cursor,
+  });
+};
+
+const ensureSliderRuntime = ({
+  app,
+  sliderContainer,
+  sliderComputedNode,
+  thumb,
+  eventHandler,
+}) => {
+  /** @type {any} */
+  let runtime = sliderContainer[SLIDER_RUNTIME];
+
+  if (!runtime) {
+    clearInheritedHoverTarget(sliderContainer);
+
+    runtime = {
+      app,
+      sliderContainer,
+      sliderComputedNode,
+      thumb,
+      eventHandler,
+      currentValue: getInitialSliderValue(sliderComputedNode),
+      isDragging: false,
+      activePointerId: undefined,
+      listenersBound: false,
+      hoverController: null,
+      removeNativeDragListeners: null,
+    };
+
+    runtime.hoverController = createHoverStateController({
+      displayObject: sliderContainer,
+      onHoverChange: () => {
+        applySliderRuntimeVisualState(runtime);
+        syncSliderRuntimeCursor(runtime);
+      },
+    });
+
+    sliderContainer[SLIDER_RUNTIME] = runtime;
+  }
+
+  runtime.app = app;
+  runtime.sliderContainer = sliderContainer;
+  runtime.sliderComputedNode = sliderComputedNode;
+  runtime.thumb = thumb;
+  runtime.eventHandler = eventHandler;
+
+  return runtime;
+};
+
+export const syncSliderRuntime = ({
+  app,
+  sliderContainer,
+  sliderComputedNode,
+  thumb,
+  eventHandler,
+  adoptExternalValue = true,
+}) => {
+  const runtime = ensureSliderRuntime({
+    app,
+    sliderContainer,
+    sliderComputedNode,
+    thumb,
+    eventHandler,
+  });
+
+  if (adoptExternalValue) {
+    runtime.currentValue = getInitialSliderValue(sliderComputedNode);
+  }
+
+  applySliderRuntimeVisualState(runtime);
+  syncSliderRuntimeCursor(runtime);
+
+  return runtime;
+};
+
+export const destroySliderRuntime = ({ sliderContainer }) => {
+  const runtime = sliderContainer?.[SLIDER_RUNTIME];
+
+  if (!runtime) {
+    return;
+  }
+
+  detachNativeDragListeners(runtime);
+  runtime.hoverController?.destroy?.();
+  delete sliderContainer[SLIDER_RUNTIME];
+};
+
 export const bindSliderInteractions = ({
   app,
   sliderContainer,
@@ -330,102 +559,145 @@ export const bindSliderInteractions = ({
   thumb,
   eventHandler,
 }) => {
-  clearInheritedHoverTarget(sliderContainer);
+  const runtime = ensureSliderRuntime({
+    app,
+    sliderContainer,
+    sliderComputedNode,
+    thumb,
+    eventHandler,
+  });
 
-  const {
-    id,
-    hover,
-    change,
-    min,
-    max,
-    step,
-    direction,
-    initialValue,
-    width,
-    height,
-  } = sliderComputedNode;
-  let currentValue = initialValue ?? min;
-  let isDragging = false;
-  let hoverController = null;
+  if (runtime.listenersBound) {
+    return;
+  }
 
-  const applyCurrentVisualState = () => {
-    applySliderVisualState({
-      sliderContainer,
-      sliderComputedNode,
-      thumb,
-      currentValue,
-      hoverOverride: hoverController?.isHovering() ? hover : null,
-    });
-  };
+  runtime.listenersBound = true;
 
-  const onChange = (event) => {
-    const newPosition = sliderContainer.toLocal(event.global);
+  const onChangeFromGlobalPoint = (globalPoint) => {
+    const { sliderComputedNode: currentNode } = runtime;
+    const newPosition = runtime.sliderContainer.toLocal(globalPoint);
     const newValue = getSliderValueFromPosition({
       position: newPosition,
-      thumb,
-      direction,
-      min,
-      max,
-      step,
-      trackWidth: width,
-      trackHeight: height,
+      thumb: runtime.thumb,
+      direction: currentNode.direction,
+      min: currentNode.min,
+      max: currentNode.max,
+      step: currentNode.step,
+      trackWidth: currentNode.width,
+      trackHeight: currentNode.height,
     });
 
-    if (newValue !== currentValue) {
-      currentValue = newValue;
-      applyCurrentVisualState();
+    if (newValue !== runtime.currentValue) {
+      runtime.currentValue = newValue;
+      applySliderRuntimeVisualState(runtime);
 
-      if (change?.payload && eventHandler) {
-        eventHandler("change", {
-          _event: { id, value: currentValue },
-          ...change.payload,
+      if (currentNode.change?.payload && runtime.eventHandler) {
+        runtime.eventHandler("change", {
+          _event: { id: currentNode.id, value: runtime.currentValue },
+          ...currentNode.change.payload,
         });
       }
     }
   };
 
+  const onChange = (event) => {
+    if (!event?.global) {
+      return;
+    }
+
+    onChangeFromGlobalPoint(event.global);
+  };
+
+  const dragEndListener = (event) => {
+    const pointerId = readPointerId(event);
+
+    if (
+      runtime.activePointerId !== undefined &&
+      pointerId !== undefined &&
+      pointerId !== runtime.activePointerId
+    ) {
+      return;
+    }
+
+    if (runtime.isDragging) {
+      runtime.isDragging = false;
+      runtime.activePointerId = undefined;
+      detachNativeDragListeners(runtime);
+    }
+  };
+
+  const nativeDragMoveListener = (nativeEvent) => {
+    if (!runtime.isDragging) {
+      return;
+    }
+
+    const pointerId = readPointerId(nativeEvent);
+
+    if (
+      runtime.activePointerId !== undefined &&
+      pointerId !== undefined &&
+      pointerId !== runtime.activePointerId
+    ) {
+      return;
+    }
+
+    const globalPoint = mapNativeEventToGlobalPoint({
+      app: runtime.app,
+      nativeEvent,
+    });
+
+    if (!globalPoint) {
+      return;
+    }
+
+    onChangeFromGlobalPoint(globalPoint);
+  };
+
   const dragStartListener = (event) => {
-    isDragging = true;
+    runtime.isDragging = true;
+    runtime.activePointerId = readPointerId(event);
+    attachNativeDragListeners({
+      runtime,
+      moveListener: nativeDragMoveListener,
+      upListener: dragEndListener,
+    });
     onChange(event);
   };
 
   const dragMoveListener = (event) => {
-    if (isDragging) {
+    if (runtime.isDragging) {
       onChange(event);
     }
   };
 
-  const dragEndListener = () => {
-    if (isDragging) {
-      isDragging = false;
-    }
-  };
-
   sliderContainer.on("pointerdown", dragStartListener);
-  sliderContainer.on("globalpointermove", dragMoveListener);
+
+  if (!canUseNativeDragTracking(app)) {
+    sliderContainer.on("globalpointermove", dragMoveListener);
+  }
+
   sliderContainer.on("pointerup", dragEndListener);
   sliderContainer.on("pointerupoutside", dragEndListener);
 
-  if (!hover) {
-    return;
-  }
-
-  hoverController = createHoverStateController({
-    displayObject: sliderContainer,
-    onHoverChange: applyCurrentVisualState,
-  });
-
   const overListener = () => {
-    hoverController.setDirectHover(true);
-    applyCurrentVisualState();
+    runtime.hoverController?.setDirectHover(true);
+    applySliderRuntimeVisualState(runtime);
+    syncSliderRuntimeCursor(runtime);
+
+    const hover = runtime.sliderComputedNode.hover;
+
+    if (!hover) {
+      return;
+    }
+
     setSliderCursor({
-      sliderContainer,
-      sliderComputedNode,
+      sliderContainer: runtime.sliderContainer,
+      sliderComputedNode: runtime.sliderComputedNode,
       cursor: hover.cursor,
     });
 
     if (hover.soundSrc) {
-      app.audioStage.add({
+      runtime.app?.audioStage?.add({
         id: `hover-${Date.now()}`,
         url: hover.soundSrc,
         loop: false,
@@ -434,13 +706,13 @@ export const bindSliderInteractions = ({
   };
 
   const outListener = () => {
-    if (isDragging) {
+    if (runtime.isDragging) {
       return;
     }
 
-    hoverController.setDirectHover(false);
-    applyCurrentVisualState();
-    setSliderCursor({ sliderContainer, sliderComputedNode, cursor: null });
+    runtime.hoverController?.setDirectHover(false);
+    applySliderRuntimeVisualState(runtime);
+    syncSliderRuntimeCursor(runtime);
   };
 
   sliderContainer.on("pointerover", overListener);

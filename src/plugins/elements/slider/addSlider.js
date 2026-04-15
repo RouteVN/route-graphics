@@ -1,11 +1,11 @@
 import { Sprite, Container } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
-  applySliderVisualState,
   bindSliderInteractions,
   getSliderLabels,
   getSliderTexture,
   resizeSliderThumb,
+  syncSliderRuntime,
 } from "./sliderRuntime.js";
 
 /**
@@ -23,18 +23,8 @@ export const addSlider = ({
   renderContext,
   zIndex,
 }) => {
-  const {
-    id,
-    x,
-    y,
-    width,
-    height,
-    alpha,
-    thumbSrc,
-    barSrc,
-    initialValue,
-    min,
-  } = sliderComputedNode;
+  const { id, x, y, width, height, alpha, thumbSrc, barSrc } =
+    sliderComputedNode;
 
   // Create container for the slider
   const sliderContainer = new Container();
@@ -60,7 +50,6 @@ export const addSlider = ({
   thumb.eventMode = "static";
   thumb.zIndex = 2;
 
-  let currentValue = initialValue ?? min;
   resizeSliderThumb({
     thumb,
     thumbSrc,
@@ -73,14 +62,15 @@ export const addSlider = ({
   sliderContainer.addChild(bar);
   sliderContainer.addChild(thumb);
 
-  applySliderVisualState({
+  bindSliderInteractions({
+    app,
     sliderContainer,
     sliderComputedNode,
     thumb,
-    currentValue,
+    eventHandler,
   });
 
-  bindSliderInteractions({
+  syncSliderRuntime({
     app,
     sliderContainer,
     sliderComputedNode,
