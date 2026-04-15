@@ -440,6 +440,14 @@
  */
 
 /**
+ * @typedef {Object} SoftWipeConfig
+ * @property {number} [softness=1.25] - Multiplier applied to line height to determine feathered edge width
+ * @property {'linear' | 'easeOutCubic'} [easing='linear'] - Easing curve applied to each line wipe
+ * @property {number} [lineOverlap=0] - Fraction of a line's duration that the next line may overlap
+ * @property {number} [lineDelay=0] - Delay in milliseconds before the next line starts after overlap is applied
+ */
+
+/**
  * @typedef {Object} TextRevealingComputedProps
  * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
@@ -457,6 +465,7 @@
  * @property {number} [indicator.complete.width] - Width of the indicator image when complete
  * @property {number} [indicator.complete.height] - Height of the indicator image when complete
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
+ * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 

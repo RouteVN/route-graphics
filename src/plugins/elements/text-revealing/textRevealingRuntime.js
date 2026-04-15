@@ -9,12 +9,14 @@ import {
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import {
+  getSoftWipeEdgeWidth,
+  getSoftWipeEasing,
+  normalizeSoftWipeConfig,
+} from "./softWipeConfig.js";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
-const MIN_SOFT_WIPE_EDGE = 18;
-const MAX_SOFT_WIPE_EDGE = 64;
-const SOFT_WIPE_EDGE_MULTIPLIER = 1.25;
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
@@ -408,6 +410,57 @@ const runTypewriterReveal = async ({
   return true;
 };
 
+const createSoftWipeLineTimings = ({
+  lines,
+  edgeWidth,
+  baseDuration,
+  softWipe,
+}) => {
+  const lineWeights = lines.map((line) => {
+    const baseWeight = Math.max(1, line.totalCharacters);
+    const tailFactor = 1 + edgeWidth / Math.max(1, line.bounds.width);
+
+    return baseWeight * tailFactor;
+  });
+  const totalWeight = lineWeights.reduce((sum, weight) => sum + weight, 0);
+  const timedLines = [];
+  let nextStartTime = 0;
+  let totalDuration = 0;
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const weight = lineWeights[lineIndex];
+    const duration =
+      totalWeight > 0
+        ? Math.max(1, (baseDuration * weight) / totalWeight)
+        : baseDuration;
+    const startTime = Math.max(0, nextStartTime);
+    const endTime = startTime + duration;
+
+    timedLines.push({
+      ...lines[lineIndex],
+      startTime,
+      endTime,
+      duration,
+    });
+
+    totalDuration = Math.max(totalDuration, endTime);
+    nextStartTime =
+      endTime - duration * softWipe.lineOverlap + softWipe.lineDelay;
+  }
+
+  return {
+    timedLines,
+    duration: Math.max(1, Math.ceil(totalDuration)),
+  };
+};
+
+const getSoftWipeLineProgress = ({ currentTime, line, easing }) => {
+  const rawProgress =
+    line.duration > 0 ? (currentTime - line.startTime) / line.duration : 1;
+
+  return easing(Math.max(0, Math.min(rawProgress, 1)));
+};
+
 const runSoftWipeReveal = ({
   container,
   contentContainer,
@@ -445,39 +498,19 @@ const runSoftWipeReveal = ({
     return false;
   }
 
-  const edgeWidth = Math.max(
-    MIN_SOFT_WIPE_EDGE,
-    Math.min(
-      MAX_SOFT_WIPE_EDGE,
-      Math.round(maxLineHeight * SOFT_WIPE_EDGE_MULTIPLIER),
-    ),
-  );
-  const duration = Math.max(
+  const softWipe = normalizeSoftWipeConfig(element.softWipe);
+  const easing = getSoftWipeEasing(softWipe.easing);
+  const edgeWidth = getSoftWipeEdgeWidth({ maxLineHeight, softWipe });
+  const baseDuration = Math.max(
     1,
     Math.round((totalCharacters / effectiveSpeed) * 1000),
   );
-  const lineWeights = lines.map((line) => {
-    const baseWeight = Math.max(1, line.totalCharacters);
-    const tailFactor = 1 + edgeWidth / Math.max(1, line.bounds.width);
-
-    return baseWeight * tailFactor;
+  const { timedLines, duration } = createSoftWipeLineTimings({
+    lines,
+    edgeWidth,
+    baseDuration,
+    softWipe,
   });
-  const totalWeight = lineWeights.reduce((sum, weight) => sum + weight, 0);
-  const timedLines = [];
-  let accumulatedWeight = 0;
-
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const weight = lineWeights[lineIndex];
-    const start = totalWeight > 0 ? accumulatedWeight / totalWeight : 0;
-
-    accumulatedWeight += weight;
-
-    timedLines.push({
-      ...lines[lineIndex],
-      startProgress: start,
-      endProgress: totalWeight > 0 ? accumulatedWeight / totalWeight : 1,
-    });
-  }
 
   const stateVersion = completionTracker.getVersion();
   const animationId = `${element.id}-soft-wipe`;
@@ -591,21 +624,17 @@ const runSoftWipeReveal = ({
       driver: "custom",
       duration,
       applyFrame: (currentTime) => {
-        const progress = duration > 0 ? Math.min(currentTime / duration, 1) : 1;
         let activeLine = timedLines[0];
-        let activeLineProgress = 0;
+        let activeLineLeadingEdgeX = activeLine.bounds.x;
 
         for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
           const line = timedLines[lineIndex];
           const lineMask = lineMasks[lineIndex];
-          const lineSpan = Math.max(
-            0.000001,
-            line.endProgress - line.startProgress,
-          );
-          const lineProgress = Math.max(
-            0,
-            Math.min((progress - line.startProgress) / lineSpan, 1),
-          );
+          const lineProgress = getSoftWipeLineProgress({
+            currentTime,
+            line,
+            easing,
+          });
           const { context, canvas, texture } = lineMask;
 
           context.clearRect(0, 0, canvas.width, canvas.height);
@@ -615,9 +644,9 @@ const runSoftWipeReveal = ({
             continue;
           }
 
-          const lineStart = edgeWidth;
           const lineY = 0;
           const lineTravelDistance = line.bounds.width + edgeWidth;
+          const lineStart = edgeWidth;
           const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
           const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
 
@@ -660,14 +689,13 @@ const runSoftWipeReveal = ({
           }
 
           texture.source.update();
-
-          if (lineProgress < 1 || lineIndex === timedLines.length - 1) {
-            activeLine = line;
-            activeLineProgress = Math.min(
-              1,
-              (lineLeadingEdge - lineStart) / Math.max(1, line.bounds.width),
+          activeLine = line;
+          activeLineLeadingEdgeX =
+            line.bounds.x +
+            Math.min(
+              line.bounds.width,
+              Math.max(0, lineLeadingEdge - lineStart),
             );
-          }
         }
 
         positionIndicatorForChunk(
@@ -675,13 +703,7 @@ const runSoftWipeReveal = ({
           activeLine.chunk,
           indicatorOffset,
         );
-        indicatorSprite.x =
-          activeLine.bounds.x +
-          Math.min(
-            activeLine.bounds.width,
-            activeLine.bounds.width * activeLineProgress,
-          ) +
-          indicatorOffset;
+        indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
       },
       applyTargetState: () => {
         finalize(false);
