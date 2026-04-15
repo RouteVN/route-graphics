@@ -12,7 +12,8 @@ in:
       id: container-1
       type: container
       direction: horizontal
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 240
       "y": 240
       anchorX: 0.5
@@ -47,7 +48,8 @@ out:
   id: container-1
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 322
   height: 96
   x: 79
@@ -121,7 +123,8 @@ out:
   id: hover-container
   type: container
   direction: ""
-  gap: 0
+  gapX: 0
+  gapY: 0
   width: 120
   height: 60
   x: 10
@@ -152,7 +155,8 @@ in:
       id: container-1
       type: container
       direction: vertical
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 240
       "y": 240
       anchorX: 0.5
@@ -187,7 +191,8 @@ out:
   id: container-1
   type: container
   direction: vertical
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 100
   height: 310
   x: 190
@@ -241,7 +246,8 @@ in:
       type: container
       direction: horizontal
       width: 200
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 240
       "y": 240
       anchorX: 0.5
@@ -268,7 +274,8 @@ out:
   id: container-1
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 200
   height: 181
   x: 140
@@ -313,7 +320,8 @@ in:
       type: container
       direction: vertical
       height: 200
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 240
       "y": 240
       anchorX: 0.5
@@ -348,7 +356,8 @@ out:
   id: container-1
   type: container
   direction: vertical
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 245
   height: 200
   x: 118
@@ -399,6 +408,156 @@ out:
       rotation: 90
       alpha: 1
 ---
+case: Test parsing horizontal container uses gapX for siblings and gapY for wrapped rows
+in:
+  - state:
+      id: container-gap-axes-horizontal
+      type: container
+      direction: horizontal
+      width: 170
+      gapX: 5
+      gapY: 7
+      children:
+        - id: rect-1
+          type: rect
+          width: 80
+          height: 20
+          fill: red
+        - id: rect-2
+          type: rect
+          width: 80
+          height: 30
+          fill: blue
+        - id: rect-3
+          type: rect
+          width: 80
+          height: 40
+          fill: green
+out:
+  id: container-gap-axes-horizontal
+  type: container
+  direction: horizontal
+  gapX: 5
+  gapY: 7
+  width: 170
+  height: 77
+  x: 0
+  "y": 0
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  children:
+    - id: rect-1
+      type: rect
+      width: 80
+      height: 20
+      x: 0
+      "y": 0
+      originX: 0
+      originY: 0
+      fill: red
+      rotation: 0
+      alpha: 1
+    - id: rect-2
+      type: rect
+      width: 80
+      height: 30
+      x: 85
+      "y": 0
+      originX: 0
+      originY: 0
+      fill: blue
+      rotation: 0
+      alpha: 1
+    - id: rect-3
+      type: rect
+      width: 80
+      height: 40
+      x: 0
+      "y": 37
+      originX: 0
+      originY: 0
+      fill: green
+      rotation: 0
+      alpha: 1
+---
+case: Test parsing vertical container uses gapY for siblings and gapX for wrapped columns
+in:
+  - state:
+      id: container-gap-axes-vertical
+      type: container
+      direction: vertical
+      height: 170
+      gapX: 7
+      gapY: 5
+      children:
+        - id: rect-1
+          type: rect
+          width: 20
+          height: 80
+          fill: red
+        - id: rect-2
+          type: rect
+          width: 30
+          height: 80
+          fill: blue
+        - id: rect-3
+          type: rect
+          width: 40
+          height: 80
+          fill: green
+out:
+  id: container-gap-axes-vertical
+  type: container
+  direction: vertical
+  gapX: 7
+  gapY: 5
+  width: 77
+  height: 170
+  x: 0
+  "y": 0
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  children:
+    - id: rect-1
+      type: rect
+      width: 20
+      height: 80
+      x: 0
+      "y": 0
+      originX: 0
+      originY: 0
+      fill: red
+      rotation: 0
+      alpha: 1
+    - id: rect-2
+      type: rect
+      width: 30
+      height: 80
+      x: 0
+      "y": 85
+      originX: 0
+      originY: 0
+      fill: blue
+      rotation: 0
+      alpha: 1
+    - id: rect-3
+      type: rect
+      width: 40
+      height: 80
+      x: 37
+      "y": 0
+      originX: 0
+      originY: 0
+      fill: green
+      rotation: 0
+      alpha: 1
+---
 case: Test parsing vertical container anchors to bottom without scroll
 in:
   - state:
@@ -406,7 +565,8 @@ in:
       type: container
       direction: vertical
       height: 200
-      gap: 5
+      gapX: 5
+      gapY: 5
       anchorToBottom: true
       children:
         - id: rect-1
@@ -428,7 +588,8 @@ out:
   id: container-anchor-bottom-vertical
   type: container
   direction: vertical
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 100
   height: 200
   x: 0
@@ -481,7 +642,8 @@ in:
       type: container
       direction: horizontal
       width: 200
-      gap: 5
+      gapX: 5
+      gapY: 5
       anchorToBottom: true
       children:
         - id: rect-1
@@ -503,7 +665,8 @@ out:
   id: container-anchor-bottom-horizontal
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 200
   height: 100
   x: 0
@@ -555,7 +718,8 @@ in:
       id: container-1
       type: container
       direction: vertical
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 240
       "y": 240
       anchorX: 0.5
@@ -565,7 +729,8 @@ out:
   id: container-1
   type: container
   direction: vertical
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 0
   height: 0
   x: 240
@@ -607,7 +772,8 @@ out:
   type: container
   direction: ""
   alpha: 1
-  gap: 0
+  gapX: 0
+  gapY: 0
   height: 100
   originX: 0
   originY: 0
@@ -628,7 +794,8 @@ out:
       originY: 100
       scroll: false
       rotation: 0
-      gap: 0
+      gapX: 0
+      gapY: 0
       alpha: 1
       children:
         - id: reactid
@@ -651,7 +818,8 @@ in:
       id: container-particles
       type: container
       direction: horizontal
-      gap: 10
+      gapX: 10
+      gapY: 10
       width: 500
       height: 300
       children:
@@ -706,7 +874,8 @@ out:
   type: container
   direction: horizontal
   alpha: 1
-  gap: 10
+  gapX: 10
+  gapY: 10
   height: 300
   originX: 0
   originY: 0
@@ -778,7 +947,8 @@ in:
       id: container-multi-particles
       type: container
       direction: vertical
-      gap: 20
+      gapX: 20
+      gapY: 20
       width: 400
       height: 600
       children:
@@ -902,7 +1072,8 @@ out:
   type: container
   direction: vertical
   alpha: 1
-  gap: 20
+  gapX: 20
+  gapY: 20
   height: 600
   originX: 0
   originY: 0
@@ -1041,7 +1212,8 @@ in:
       id: container-events
       type: container
       direction: horizontal
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 100
       "y": 100
       hover:
@@ -1070,7 +1242,8 @@ out:
   id: container-events
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 80
   height: 100
   x: 100
@@ -1109,13 +1282,26 @@ out:
       rotation: 0
       alpha: 1
 ---
+case: Test parsing container throws when legacy gap is used
+in:
+  - state:
+      id: legacy-gap-container
+      type: container
+      x: 0
+      "y": 0
+      direction: vertical
+      gap: 5
+      children: []
+throws: "Input Error: container.gap is no longer supported. Use gapX and gapY."
+---
 case: Test parsing container with children no scale
 in:
   - state:
       id: container-scaled-children
       type: container
       direction: horizontal
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 0
       "y": 0
       scaleX: 2
@@ -1135,7 +1321,8 @@ out:
   id: container-scaled-children
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 605
   height: 300
   x: 0
@@ -1179,7 +1366,8 @@ in:
       id: container-scaled-children
       type: container
       direction: horizontal
-      gap: 5
+      gapX: 5
+      gapY: 5
       x: 0
       "y": 0
       scaleX: 2
@@ -1203,7 +1391,8 @@ out:
   id: container-scaled-children
   type: container
   direction: horizontal
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 1205
   height: 600
   x: 0
@@ -1247,7 +1436,8 @@ in:
       id: container-anchor-bottom
       type: container
       direction: vertical
-      gap: 5
+      gapX: 5
+      gapY: 5
       width: 120
       height: 120
       x: 25
@@ -1264,7 +1454,8 @@ out:
   id: container-anchor-bottom
   type: container
   direction: vertical
-  gap: 5
+  gapX: 5
+  gapY: 5
   width: 120
   height: 120
   x: 25
@@ -1334,7 +1525,8 @@ out:
   id: inventory
   type: container
   direction: ""
-  gap: 0
+  gapX: 0
+  gapY: 0
   width: 200
   height: 160
   x: 24

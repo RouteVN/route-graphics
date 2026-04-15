@@ -67,7 +67,8 @@ states:
         width: 400
         height: 100
         direction: horizontal
-        gap: 20
+        gapX: 20
+        gapY: 20
         hover:
           payload:
             type: container-hover

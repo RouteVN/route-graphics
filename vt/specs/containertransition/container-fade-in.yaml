@@ -27,7 +27,8 @@ states:
         x: 150
         'y': 100
         direction: horizontal
-        gap: 10
+        gapX: 10
+        gapY: 10
         alpha: 1
         children:
           - id: rect1

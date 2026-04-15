@@ -26,7 +26,8 @@ states:
         x: 100
         "y": 100
         direction: horizontal
-        gap: 20
+        gapX: 20
+        gapY: 20
         children:
           - id: rect1
             type: rect
@@ -44,7 +45,8 @@ states:
         x: 400
         "y": 250
         direction: horizontal
-        gap: 20
+        gapX: 20
+        gapY: 20
         children:
           - id: rect1
             type: rect

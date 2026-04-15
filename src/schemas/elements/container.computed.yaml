@@ -13,7 +13,8 @@ required:
   - originY
   - children
   - direction
-  - gap
+  - gapX
+  - gapY
   - scroll
   - rotation
 properties:
@@ -43,7 +44,7 @@ properties:
     description: Calculated origin Y coordinate based on anchor
   children:
     type: array
-    description: Parsed child elements with positions adjusted based on direction and gap
+    description: Parsed child elements with positions adjusted based on direction, gapX, and gapY
     items:
       oneOf:
         - $ref: "./sprite.computed.yaml"
@@ -60,9 +61,13 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
-  gap:
+  gapX:
     type: number
-    description: Spacing between child elements in pixels
+    description: Horizontal spacing between child elements in pixels, and between wrapped columns.
+    default: 0
+  gapY:
+    type: number
+    description: Vertical spacing between child elements in pixels, and between wrapped rows.
     default: 0
   scroll:
     type: boolean

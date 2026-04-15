@@ -30,7 +30,8 @@ states:
         x: 300
         "y": 200
         direction: vertical
-        gap: 5
+        gapX: 5
+        gapY: 5
         scaleX: 1
         scaleY: 1
         children:
@@ -45,7 +46,8 @@ states:
         x: 300
         "y": 200
         direction: vertical
-        gap: 5
+        gapX: 5
+        gapY: 5
         scaleX: 1.5
         scaleY: 1.5
         children:

@@ -43,7 +43,8 @@ states:
         type: container
         direction: horizontal
         width: 200
-        gap: 5
+        gapX: 5
+        gapY: 5
         scroll: true
         zIndex: 0
         children:
@@ -87,7 +88,8 @@ states:
         direction: vertical
         height: 200
         x: 500
-        gap: 5
+        gapX: 5
+        gapY: 5
         scroll: true
         zIndex: 0
         children:

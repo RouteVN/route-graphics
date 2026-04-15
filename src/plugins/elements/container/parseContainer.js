@@ -20,9 +20,16 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 export const parseContainer = ({ state, parserPlugins = [] }) => {
   const direction = state.direction ?? "";
   const scroll = state.scroll ? true : false;
-  const gap = state.gap || 0;
+  const gapX = state.gapX ?? 0;
+  const gapY = state.gapY ?? 0;
   const children = structuredClone(state.children || []);
   const parsedChildren = [];
+
+  if (state.gap !== undefined) {
+    throw new Error(
+      "Input Error: container.gap is no longer supported. Use gapX and gapY.",
+    );
+  }
 
   let containerWidth = 0;
   let containerHeight = 0;
@@ -36,7 +43,6 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
   let currentColHeight = 0;
 
   for (let i = 0; i < children.length; i++) {
-    const gapValue = i < children.length - 1 ? gap : 0;
     let child = children[i];
 
     if (i > 0) {
@@ -72,6 +78,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     }
 
     if (direction === "horizontal") {
+      const gapValue = i < children.length - 1 ? gapX : 0;
+
       if (
         state.width &&
         child.width + currentRowWidth > state.width &&
@@ -81,7 +89,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
         //Wrap the child
         currentX = 0;
         currentRowWidth = 0;
-        lastRowHeight += maxRowHeight + gap;
+        lastRowHeight += maxRowHeight + gapY;
         maxRowHeight = child.height;
 
         child.x = 0;
@@ -94,6 +102,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       containerWidth = Math.max(currentX, containerWidth);
       containerHeight = Math.max(child.height + child.y, containerHeight);
     } else if (direction === "vertical") {
+      const gapValue = i < children.length - 1 ? gapY : 0;
+
       if (
         state.height &&
         child.height + currentColHeight > state.height &&
@@ -103,7 +113,7 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
         //Wrap the child
         currentY = 0;
         currentColHeight = 0;
-        lastColWidth += maxColWidth + gap;
+        lastColWidth += maxColWidth + gapX;
         maxColWidth = child.width;
 
         child.x = lastColWidth;
@@ -133,7 +143,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     ...containerComputed,
     children: parsedChildren,
     direction,
-    gap,
+    gapX,
+    gapY,
     scroll,
     ...(state.anchorToBottom && { anchorToBottom: true }),
     ...(state.scrollbar && { scrollbar: structuredClone(state.scrollbar) }),

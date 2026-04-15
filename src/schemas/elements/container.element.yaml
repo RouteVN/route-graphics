@@ -55,9 +55,13 @@ properties:
     enum: [absolute, horizontal, vertical]
     description: Layout direction for children. Horizontal arranges left-to-right, vertical arranges top-to-bottom.
     default: absolute
-  gap:
+  gapX:
     type: number
-    description: Spacing between child elements in pixels
+    description: Horizontal spacing between child elements in pixels, and between wrapped columns.
+    default: 0
+  gapY:
+    type: number
+    description: Vertical spacing between child elements in pixels, and between wrapped rows.
     default: 0
   rotation:
     type: number
