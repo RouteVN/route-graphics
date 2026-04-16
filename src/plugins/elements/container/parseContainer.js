@@ -18,7 +18,11 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
  */
 export const parseContainer = ({ state, parserPlugins = [] }) => {
-  const direction = state.direction ?? "";
+  // Treat missing or legacy empty direction as explicit absolute positioning.
+  const direction =
+    state.direction === "horizontal" || state.direction === "vertical"
+      ? state.direction
+      : "absolute";
   const scroll = state.scroll ? true : false;
   const gapX = state.gapX ?? 0;
   const gapY = state.gapY ?? 0;

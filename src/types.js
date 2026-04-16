@@ -305,7 +305,7 @@
 /**
  * @typedef {Object} ContainerComputedProps
  * @property {'container'} type
- * @property {'horizontal' | 'vertical'} direction
+ * @property {'absolute' | 'horizontal' | 'vertical'} direction
  * @property {SpriteComputedNode | TextComputedNode | RectComputedNode | ContainerComputedNode} children
  * @property {number} gapX
  * @property {number} gapY

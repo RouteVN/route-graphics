@@ -27,7 +27,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
 | `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                                     |
 | `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.                   |
-| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `""` (absolute behavior) | Auto-positioning for children in non-absolute modes.                |
+| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`               | Auto-positioning for children in non-absolute modes.                |
 | `gapX`       | number                                   | No                  | `0`                      | Horizontal spacing between children, and between wrapped columns.   |
 | `gapY`       | number                                   | No                  | `0`                      | Vertical spacing between children, and between wrapped rows.        |
 | `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                            |
