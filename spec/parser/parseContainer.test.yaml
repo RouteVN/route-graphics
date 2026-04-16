@@ -122,7 +122,7 @@ in:
 out:
   id: hover-container
   type: container
-  direction: ""
+  direction: absolute
   gapX: 0
   gapY: 0
   width: 120
@@ -146,6 +146,50 @@ out:
       originX: 0
       originY: 0
       fill: red
+      rotation: 0
+      alpha: 1
+---
+case: Test parsing container with explicit absolute direction
+in:
+  - state:
+      id: absolute-container
+      type: container
+      direction: absolute
+      x: 5
+      "y": 6
+      children:
+        - id: rect-1
+          type: rect
+          x: 12
+          "y": 18
+          width: 40
+          height: 20
+          fill: green
+out:
+  id: absolute-container
+  type: container
+  direction: absolute
+  gapX: 0
+  gapY: 0
+  width: 52
+  height: 38
+  x: 5
+  "y": 6
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  children:
+    - id: rect-1
+      type: rect
+      width: 40
+      height: 20
+      x: 12
+      "y": 18
+      originX: 0
+      originY: 0
+      fill: green
       rotation: 0
       alpha: 1
 ---
@@ -770,7 +814,7 @@ in:
 out:
   id: outer-container
   type: container
-  direction: ""
+  direction: absolute
   alpha: 1
   gapX: 0
   gapY: 0
@@ -785,7 +829,7 @@ out:
   children:
     - id: inner-container
       type: container
-      direction: ""
+      direction: absolute
       height: 100
       width: 100
       x: 250
@@ -1524,7 +1568,7 @@ in:
 out:
   id: inventory
   type: container
-  direction: ""
+  direction: absolute
   gapX: 0
   gapY: 0
   width: 200

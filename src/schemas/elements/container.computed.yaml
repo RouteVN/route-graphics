@@ -53,8 +53,9 @@ properties:
         - $ref: "./container.computed.yaml"
   direction:
     type: string
-    enum: [horizontal, vertical]
-    description: Layout direction for children
+    enum: [absolute, horizontal, vertical]
+    description: Layout direction for children. Absolute preserves child x/y, horizontal arranges left-to-right, vertical arranges top-to-bottom.
+    default: absolute
   alpha:
     type: number
     description: Opacity/transparency of the container (0-1)
