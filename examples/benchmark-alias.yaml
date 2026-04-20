@@ -1,0 +1,205 @@
+width: 1280
+height: 720
+backgroundColor: "#11151c"
+assets:
+  circle-blue: ../playground/static/public/circle-blue.png
+  circle-red: ../playground/static/public/circle-red.png
+  circle-green: ../playground/static/public/circle-green.png
+  h-thumb: ../playground/static/public/horizontal_idle_thumb.png
+  h-bar-idle: ../playground/static/public/horizontal_idle_bar.png
+  h-bar-hover: ../playground/static/public/horizontal_hover_bar.png
+  v-thumb: ../playground/static/public/vertical_idle_thumb.png
+  v-bar-idle: ../playground/static/public/vertical_idle_bar.png
+  v-bar-hover: ../playground/static/public/vertical_hover_bar.png
+elements:
+  - id: bg
+    type: rect
+    x: 0
+    y: 0
+    width: 1280
+    height: 720
+    fill: "#11151c"
+  - id: title
+    type: text
+    x: 48
+    y: 36
+    content: "Benchmark Scene: Image Inputs"
+    textStyle:
+      fill: "#f4f7fb"
+      fontSize: 34
+  - id: subtitle
+    type: text
+    x: 48
+    y: 82
+    content: "This scene is used to verify direct file paths and asset aliases."
+    textStyle:
+      fill: "#a9b4c2"
+      fontSize: 18
+  - id: sprite-1
+    type: sprite
+    x: 64
+    y: 148
+    width: 88
+    height: 88
+    src: circle-blue
+  - id: sprite-2
+    type: sprite
+    x: 176
+    y: 148
+    width: 88
+    height: 88
+    src: circle-red
+  - id: sprite-3
+    type: sprite
+    x: 288
+    y: 148
+    width: 88
+    height: 88
+    src: circle-green
+  - id: sprite-4
+    type: sprite
+    x: 400
+    y: 148
+    width: 88
+    height: 88
+    src: circle-blue
+  - id: sprite-5
+    type: sprite
+    x: 512
+    y: 148
+    width: 88
+    height: 88
+    src: circle-red
+  - id: sprite-6
+    type: sprite
+    x: 624
+    y: 148
+    width: 88
+    height: 88
+    src: circle-green
+  - id: sprite-7
+    type: sprite
+    x: 64
+    y: 268
+    width: 88
+    height: 88
+    src: circle-red
+  - id: sprite-8
+    type: sprite
+    x: 176
+    y: 268
+    width: 88
+    height: 88
+    src: circle-green
+  - id: sprite-9
+    type: sprite
+    x: 288
+    y: 268
+    width: 88
+    height: 88
+    src: circle-blue
+  - id: sprite-10
+    type: sprite
+    x: 400
+    y: 268
+    width: 88
+    height: 88
+    src: circle-red
+  - id: sprite-11
+    type: sprite
+    x: 512
+    y: 268
+    width: 88
+    height: 88
+    src: circle-green
+  - id: sprite-12
+    type: sprite
+    x: 624
+    y: 268
+    width: 88
+    height: 88
+    src: circle-blue
+  - id: section-a
+    type: text
+    x: 48
+    y: 396
+    content: "Horizontal Controls"
+    textStyle:
+      fill: "#f4f7fb"
+      fontSize: 22
+  - id: slider-a
+    type: slider
+    x: 48
+    y: 438
+    width: 420
+    height: 40
+    direction: horizontal
+    thumbSrc: h-thumb
+    barSrc: h-bar-idle
+    initialValue: 22
+  - id: slider-b
+    type: slider
+    x: 48
+    y: 506
+    width: 420
+    height: 40
+    direction: horizontal
+    thumbSrc: h-thumb
+    barSrc: h-bar-hover
+    inactiveBarSrc: h-bar-idle
+    initialValue: 68
+  - id: section-b
+    type: text
+    x: 830
+    y: 128
+    content: "Vertical Controls"
+    textStyle:
+      fill: "#f4f7fb"
+      fontSize: 22
+  - id: slider-c
+    type: slider
+    x: 862
+    y: 176
+    width: 44
+    height: 240
+    direction: vertical
+    thumbSrc: v-thumb
+    barSrc: v-bar-idle
+    initialValue: 70
+  - id: slider-d
+    type: slider
+    x: 952
+    y: 176
+    width: 44
+    height: 240
+    direction: vertical
+    thumbSrc: v-thumb
+    barSrc: v-bar-hover
+    inactiveBarSrc: v-bar-idle
+    initialValue: 35
+  - id: info-card
+    type: rect
+    x: 760
+    y: 470
+    width: 420
+    height: 170
+    fill: "#1a2330"
+  - id: info-title
+    type: text
+    x: 792
+    y: 500
+    content: "What this scene tests"
+    textStyle:
+      fill: "#f4f7fb"
+      fontSize: 24
+  - id: info-copy
+    type: text
+    x: 792
+    y: 544
+    width: 340
+    content: "If path-based and alias-based renders match byte-for-byte, src asset resolution is behaving correctly."
+    textStyle:
+      fill: "#c4cfdb"
+      fontSize: 18
+      wordWrap: true
+      wordWrapWidth: 340
