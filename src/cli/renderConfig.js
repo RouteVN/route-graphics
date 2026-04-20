@@ -116,6 +116,53 @@ const looksLikeLocalAssetPath = (value) => {
   );
 };
 
+const getNextNodePath = (currentPath, key) => {
+  if (typeof key === "number") {
+    return `${currentPath}[${key}]`;
+  }
+
+  return `${currentPath}.${key}`;
+};
+
+const validateAssetReferences = ({ states, assetDefinitions }) => {
+  const walk = (node, nodePath) => {
+    if (!isPlainObject(node) && !Array.isArray(node)) {
+      return;
+    }
+
+    if (Array.isArray(node)) {
+      node.forEach((value, index) => {
+        walk(value, getNextNodePath(nodePath, index));
+      });
+      return;
+    }
+
+    for (const [key, value] of Object.entries(node)) {
+      const nextPath = getNextNodePath(nodePath, key);
+
+      if (DIRECT_ASSET_KEYS.has(key) && typeof value === "string") {
+        if (looksLikeLocalAssetPath(value)) {
+          throw new Error(
+            `Direct asset references are not supported. Define "${value}" in top-level assets and reference its alias instead (at ${nextPath}).`,
+          );
+        }
+
+        if (!assetDefinitions[value]) {
+          throw new Error(
+            `Asset alias "${value}" referenced at ${nextPath} is not defined in top-level assets.`,
+          );
+        }
+      }
+
+      if (Array.isArray(value) || isPlainObject(value)) {
+        walk(value, nextPath);
+      }
+    }
+  };
+
+  walk(states, "states");
+};
+
 const inferMimeType = (assetPath, fallbackType = "image/png") => {
   const extension = getPathExtension(assetPath);
 
@@ -299,49 +346,10 @@ const collectAssetDefinitions = ({ assets = {}, states = [], baseDir }) => {
   for (const [key, value] of Object.entries(assets)) {
     register(key, value);
   }
-
-  const walk = (node) => {
-    if (!isPlainObject(node) && !Array.isArray(node)) {
-      return;
-    }
-
-    if (Array.isArray(node)) {
-      node.forEach(walk);
-      return;
-    }
-
-    if (node.type === "sound" && typeof node.src === "string") {
-      register(node.src, node.src, "audio/mpeg");
-    }
-
-    if (node.type === "video" && typeof node.src === "string") {
-      register(node.src, node.src, "video/mp4");
-    }
-
-    for (const [key, value] of Object.entries(node)) {
-      if (DIRECT_ASSET_KEYS.has(key) && typeof value === "string") {
-        const isAudioReference =
-          key === "soundSrc" || (key === "src" && node.type === "sound");
-        const fallbackType = isAudioReference
-          ? "audio/mpeg"
-          : node.type === "video"
-            ? "video/mp4"
-            : "image/png";
-
-        if (definitions[value] || !looksLikeLocalAssetPath(value)) {
-          continue;
-        }
-
-        register(value, value, fallbackType);
-      }
-
-      if (Array.isArray(value) || isPlainObject(value)) {
-        walk(value);
-      }
-    }
-  };
-
-  walk(states);
+  validateAssetReferences({
+    states,
+    assetDefinitions: definitions,
+  });
 
   return definitions;
 };
@@ -380,6 +388,5 @@ export {
   collectAssetDefinitions,
   inferMimeType,
   loadRenderDefinition,
-  looksLikeLocalAssetPath,
   parseBackgroundColor,
 };

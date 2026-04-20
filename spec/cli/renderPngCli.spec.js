@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -16,11 +16,6 @@ const execFileAsync = promisify(execFile);
 const specDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(specDir, "..", "..");
 const cliPath = path.join(projectRoot, "bin", "route-graphics-render.js");
-const directFixturePath = path.join(
-  projectRoot,
-  "examples",
-  "benchmark-direct.yaml",
-);
 const aliasFixturePath = path.join(
   projectRoot,
   "examples",
@@ -56,54 +51,79 @@ describe("route-graphics-render CLI", () => {
     });
   }, 30_000);
 
-  it("renders identical PNG output for direct paths and asset aliases", async () => {
+  it("renders a valid PNG from asset aliases", async () => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));
-    const directOutputPath = path.join(tempDir, "direct.png");
     const aliasOutputPath = path.join(tempDir, "alias.png");
-
-    const directRun = await runCliRender({
-      inputPath: directFixturePath,
-      outputPath: directOutputPath,
-    });
     const aliasRun = await runCliRender({
       inputPath: aliasFixturePath,
       outputPath: aliasOutputPath,
     });
 
-    expect(directRun.stdout).toContain(`Wrote ${directOutputPath}`);
     expect(aliasRun.stdout).toContain(`Wrote ${aliasOutputPath}`);
-    expect(directRun.stdout).toMatch(
-      /Timing: render=\d+(?:\.\d+)?(?:ms|s), write=\d+(?:\.\d+)?(?:ms|s), total=\d+(?:\.\d+)?(?:ms|s)/,
-    );
     expect(aliasRun.stdout).toMatch(
       /Timing: render=\d+(?:\.\d+)?(?:ms|s), write=\d+(?:\.\d+)?(?:ms|s), total=\d+(?:\.\d+)?(?:ms|s)/,
     );
 
-    const directPngBuffer = await fs.readFile(directOutputPath);
     const aliasPngBuffer = await fs.readFile(aliasOutputPath);
 
-    expect(directPngBuffer.length).toBeGreaterThan(50_000);
     expect(aliasPngBuffer.length).toBeGreaterThan(50_000);
-    expect(toHex(directPngBuffer)).toBe(toHex(aliasPngBuffer));
-
-    const directPng = PNG.sync.read(directPngBuffer);
     const aliasPng = PNG.sync.read(aliasPngBuffer);
 
-    expect(directPng.width).toBe(1280);
-    expect(directPng.height).toBe(720);
     expect(aliasPng.width).toBe(1280);
     expect(aliasPng.height).toBe(720);
 
-    expect(Buffer.from(readPixel(directPng, 10, 10))).toEqual(
+    expect(Buffer.from(readPixel(aliasPng, 10, 10))).toEqual(
       Buffer.from([0x11, 0x15, 0x1c, 0xff]),
     );
-    expect(Buffer.from(readPixel(directPng, 780, 480))).toEqual(
+    expect(Buffer.from(readPixel(aliasPng, 780, 480))).toEqual(
       Buffer.from([0x1a, 0x23, 0x30, 0xff]),
     );
 
-    const spriteCenterPixel = Buffer.from(readPixel(directPng, 108, 192));
+    expect(toHex(aliasPngBuffer)).toMatch(/^[0-9a-f]{64}$/);
+
+    const spriteCenterPixel = Buffer.from(readPixel(aliasPng, 108, 192));
     expect(
       spriteCenterPixel.equals(Buffer.from([0x11, 0x15, 0x1c, 0xff])),
     ).toBe(false);
   }, 30_000);
+
+  it("rejects direct file references inside render state", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));
+    const invalidInputPath = path.join(
+      tempDir,
+      `invalid-direct-${randomUUID()}.yaml`,
+    );
+    const outputPath = path.join(tempDir, "invalid.png");
+
+    await fs.writeFile(
+      invalidInputPath,
+      `
+width: 1280
+height: 720
+elements:
+  - id: avatar
+    type: sprite
+    x: 80
+    y: 80
+    width: 128
+    height: 128
+    src: ./assets/hero.png
+`,
+    );
+
+    let failure;
+    try {
+      await runCliRender({
+        inputPath: invalidInputPath,
+        outputPath,
+      });
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeDefined();
+    expect(failure.stderr).toContain(
+      "Direct asset references are not supported.",
+    );
+  });
 });

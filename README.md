@@ -137,9 +137,9 @@ elements:
 
 Asset handling:
 
-- Direct file references such as `src: ./sprite.png` are resolved relative to the YAML file.
-- Explicit aliases can be declared in top-level `assets`.
-- Remote `http(s)` URLs and `data:` URLs are passed through directly.
+- Asset-bearing render-state fields such as `src`, `thumbSrc`, `barSrc`, `inactiveBarSrc`, and `soundSrc` must reference top-level `assets` aliases.
+- Direct file paths and URLs are allowed inside top-level `assets` values.
+- Direct asset references inside `elements`, `audio`, or nested interaction config are rejected.
 
 Example with asset aliases:
 
@@ -168,6 +168,19 @@ elements:
     width: 128
     height: 128
     src: hero
+```
+
+Invalid example:
+
+```yaml
+elements:
+  - id: avatar
+    type: sprite
+    x: 60
+    y: 140
+    width: 128
+    height: 128
+    src: ./assets/hero.png # rejected by the CLI
 ```
 
 Useful flags:

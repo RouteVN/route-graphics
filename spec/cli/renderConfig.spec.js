@@ -63,7 +63,7 @@ elements: []
 });
 
 describe("collectAssetDefinitions", () => {
-  it("collects explicit aliases and direct file references", () => {
+  it("collects explicit aliases when render-state references use top-level assets", () => {
     const baseDir = path.resolve("/tmp/route-graphics");
     const states = [
       {
@@ -72,16 +72,16 @@ describe("collectAssetDefinitions", () => {
           {
             id: "sprite",
             type: "sprite",
-            src: "./sprite.png",
+            src: "hero",
             hover: {
-              src: "hero",
-              soundSrc: "./hover.mp3",
+              src: "hero-hover",
+              soundSrc: "hover-sfx",
             },
           },
           {
             id: "movie",
             type: "video",
-            src: "./intro.mp4",
+            src: "intro-video",
           },
         ],
       },
@@ -92,6 +92,9 @@ describe("collectAssetDefinitions", () => {
       states,
       assets: {
         hero: "./hero.png",
+        "hero-hover": "./hero-hover.png",
+        "hover-sfx": "./hover.mp3",
+        "intro-video": "./intro.mp4",
         uiFont: {
           path: "./fonts/ui.ttf",
           type: "font/ttf",
@@ -109,21 +112,65 @@ describe("collectAssetDefinitions", () => {
       path: path.join(baseDir, "fonts/ui.ttf"),
       type: "font/ttf",
     });
-    expect(definitions["./sprite.png"]).toMatchObject({
+    expect(definitions["hero-hover"]).toMatchObject({
       kind: "local",
-      path: path.join(baseDir, "sprite.png"),
+      path: path.join(baseDir, "hero-hover.png"),
       type: "image/png",
     });
-    expect(definitions["./hover.mp3"]).toMatchObject({
+    expect(definitions["hover-sfx"]).toMatchObject({
       kind: "local",
       path: path.join(baseDir, "hover.mp3"),
       type: "audio/mpeg",
     });
-    expect(definitions["./intro.mp4"]).toMatchObject({
+    expect(definitions["intro-video"]).toMatchObject({
       kind: "local",
       path: path.join(baseDir, "intro.mp4"),
       type: "video/mp4",
     });
+  });
+
+  it("throws when a render-state asset reference uses a direct path", () => {
+    expect(() =>
+      collectAssetDefinitions({
+        baseDir: path.resolve("/tmp/route-graphics"),
+        states: [
+          {
+            id: "demo",
+            elements: [
+              {
+                id: "sprite",
+                type: "sprite",
+                src: "./sprite.png",
+              },
+            ],
+          },
+        ],
+        assets: {
+          hero: "./hero.png",
+        },
+      }),
+    ).toThrow(/Direct asset references are not supported/);
+  });
+
+  it("throws when a referenced asset alias is missing from top-level assets", () => {
+    expect(() =>
+      collectAssetDefinitions({
+        baseDir: path.resolve("/tmp/route-graphics"),
+        states: [
+          {
+            id: "demo",
+            elements: [
+              {
+                id: "sprite",
+                type: "sprite",
+                src: "hero",
+              },
+            ],
+          },
+        ],
+        assets: {},
+      }),
+    ).toThrow(/Asset alias "hero" referenced/);
   });
 });
 
