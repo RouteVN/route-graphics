@@ -286,8 +286,9 @@ const normalizeBrowserAssets = async ({ assetDefinitions }) => {
 const buildRenderPayload = async ({ cliOptions, definition, inputPath }) => {
   const yamlDir = path.dirname(inputPath);
   const states = definition.states;
+  const selectedState = states[cliOptions.stateIndex];
 
-  if (!states[cliOptions.stateIndex]) {
+  if (!selectedState) {
     throw new Error(
       `State index ${cliOptions.stateIndex} is out of range for ${states.length} state(s).`,
     );
@@ -299,10 +300,10 @@ const buildRenderPayload = async ({ cliOptions, definition, inputPath }) => {
     backgroundColor: parseBackgroundColor(
       cliOptions.backgroundColor ?? definition.backgroundColor,
     ),
-    state: states[cliOptions.stateIndex],
+    state: selectedState,
     assetDefinitions: collectAssetDefinitions({
       assets: definition.assets,
-      states,
+      states: [selectedState],
       baseDir: yamlDir,
     }),
   };

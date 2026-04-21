@@ -32,10 +32,10 @@ const toHex = (buffer) => {
   return createHash("sha256").update(buffer).digest("hex");
 };
 
-const runCliRender = async ({ inputPath, outputPath }) => {
+const runCliRender = async ({ inputPath, outputPath, args = [] }) => {
   return await execFileAsync(
     process.execPath,
-    [cliPath, inputPath, "-o", outputPath],
+    [cliPath, inputPath, "-o", outputPath, ...args],
     {
       cwd: projectRoot,
       env: process.env,
@@ -126,4 +126,63 @@ elements:
       "Direct asset references are not supported.",
     );
   });
+
+  it("renders the selected state without validating unused broken states", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));
+    const validInputPath = path.join(
+      tempDir,
+      `selected-state-${randomUUID()}.yaml`,
+    );
+    const outputPath = path.join(tempDir, "selected-state.png");
+    const heroPath = path.join(
+      projectRoot,
+      "playground",
+      "static",
+      "public",
+      "circle-blue.png",
+    );
+
+    await fs.writeFile(
+      validInputPath,
+      `
+width: 256
+height: 256
+assets:
+  hero: ${JSON.stringify(heroPath)}
+states:
+  - id: valid
+    elements:
+      - id: avatar
+        type: sprite
+        x: 32
+        y: 32
+        width: 128
+        height: 128
+        src: hero
+  - id: broken
+    elements:
+      - id: missing
+        type: sprite
+        x: 32
+        y: 32
+        width: 128
+        height: 128
+        src: missing-asset
+`,
+    );
+
+    const run = await runCliRender({
+      inputPath: validInputPath,
+      outputPath,
+      args: ["--state", "0"],
+    });
+
+    expect(run.stdout).toContain(`Wrote ${outputPath}`);
+
+    const pngBuffer = await fs.readFile(outputPath);
+    const png = PNG.sync.read(pngBuffer);
+
+    expect(png.width).toBe(256);
+    expect(png.height).toBe(256);
+  }, 30_000);
 });

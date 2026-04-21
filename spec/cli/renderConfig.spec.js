@@ -70,6 +70,14 @@ describe("collectAssetDefinitions", () => {
         id: "demo",
         elements: [
           {
+            id: "title",
+            type: "text",
+            content: "Hello",
+            textStyle: {
+              fontFamily: "uiFont",
+            },
+          },
+          {
             id: "sprite",
             type: "sprite",
             src: "hero",
@@ -152,6 +160,46 @@ describe("collectAssetDefinitions", () => {
     ).toThrow(/Direct asset references are not supported/);
   });
 
+  it("accepts aliases that look like file paths", () => {
+    const baseDir = path.resolve("/tmp/route-graphics");
+
+    const definitions = collectAssetDefinitions({
+      baseDir,
+      states: [
+        {
+          id: "demo",
+          elements: [
+            {
+              id: "sprite-a",
+              type: "sprite",
+              src: "hero.png",
+            },
+            {
+              id: "sprite-b",
+              type: "sprite",
+              src: "icons/hero",
+            },
+          ],
+        },
+      ],
+      assets: {
+        "hero.png": "./hero.png",
+        "icons/hero": "./icons/hero.png",
+      },
+    });
+
+    expect(definitions["hero.png"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "hero.png"),
+      type: "image/png",
+    });
+    expect(definitions["icons/hero"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "icons/hero.png"),
+      type: "image/png",
+    });
+  });
+
   it("throws when a referenced asset alias is missing from top-level assets", () => {
     expect(() =>
       collectAssetDefinitions({
@@ -171,6 +219,57 @@ describe("collectAssetDefinitions", () => {
         assets: {},
       }),
     ).toThrow(/Asset alias "hero" referenced/);
+  });
+
+  it("infers string-asset mime types from the selected usage", () => {
+    const definitions = collectAssetDefinitions({
+      baseDir: path.resolve("/tmp/route-graphics"),
+      states: [
+        {
+          id: "demo",
+          elements: [
+            {
+              id: "poster",
+              type: "sprite",
+              src: "poster-stream",
+            },
+            {
+              id: "movie",
+              type: "video",
+              src: "intro-stream",
+            },
+          ],
+          audio: [
+            {
+              id: "narration",
+              type: "sound",
+              src: "narration-stream",
+            },
+          ],
+        },
+      ],
+      assets: {
+        "poster-stream": "https://cdn.example.com/download?id=poster",
+        "intro-stream": "https://cdn.example.com/download?id=video",
+        "narration-stream": "https://cdn.example.com/download?id=audio",
+      },
+    });
+
+    expect(definitions["poster-stream"]).toMatchObject({
+      kind: "remote",
+      type: "image/png",
+      url: "https://cdn.example.com/download?id=poster",
+    });
+    expect(definitions["intro-stream"]).toMatchObject({
+      kind: "remote",
+      type: "video/mp4",
+      url: "https://cdn.example.com/download?id=video",
+    });
+    expect(definitions["narration-stream"]).toMatchObject({
+      kind: "remote",
+      type: "audio/mpeg",
+      url: "https://cdn.example.com/download?id=audio",
+    });
   });
 });
 

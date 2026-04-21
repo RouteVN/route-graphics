@@ -55,6 +55,15 @@ const DIRECT_ASSET_KEYS = new Set([
   "thumbSrc",
 ]);
 
+const FONT_ASSET_KEYS = new Set(["fontFamily"]);
+
+const FIXED_ASSET_FALLBACK_TYPES = new Map([
+  ["barSrc", "image/png"],
+  ["inactiveBarSrc", "image/png"],
+  ["soundSrc", "audio/mpeg"],
+  ["thumbSrc", "image/png"],
+]);
+
 const isPlainObject = (value) => {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 };
@@ -124,46 +133,7 @@ const getNextNodePath = (currentPath, key) => {
   return `${currentPath}.${key}`;
 };
 
-const validateAssetReferences = ({ states, assetDefinitions }) => {
-  const walk = (node, nodePath) => {
-    if (!isPlainObject(node) && !Array.isArray(node)) {
-      return;
-    }
-
-    if (Array.isArray(node)) {
-      node.forEach((value, index) => {
-        walk(value, getNextNodePath(nodePath, index));
-      });
-      return;
-    }
-
-    for (const [key, value] of Object.entries(node)) {
-      const nextPath = getNextNodePath(nodePath, key);
-
-      if (DIRECT_ASSET_KEYS.has(key) && typeof value === "string") {
-        if (looksLikeLocalAssetPath(value)) {
-          throw new Error(
-            `Direct asset references are not supported. Define "${value}" in top-level assets and reference its alias instead (at ${nextPath}).`,
-          );
-        }
-
-        if (!assetDefinitions[value]) {
-          throw new Error(
-            `Asset alias "${value}" referenced at ${nextPath} is not defined in top-level assets.`,
-          );
-        }
-      }
-
-      if (Array.isArray(value) || isPlainObject(value)) {
-        walk(value, nextPath);
-      }
-    }
-  };
-
-  walk(states, "states");
-};
-
-const inferMimeType = (assetPath, fallbackType = "image/png") => {
+const detectMimeType = (assetPath) => {
   const extension = getPathExtension(assetPath);
 
   if (IMAGE_MIME_TYPES.has(extension)) {
@@ -182,7 +152,142 @@ const inferMimeType = (assetPath, fallbackType = "image/png") => {
     return FONT_MIME_TYPES.get(extension);
   }
 
-  return fallbackType;
+  return undefined;
+};
+
+const inferSrcFallbackType = ({ node, ancestry }) => {
+  const typedNodes = [node, ...ancestry.slice().reverse()];
+
+  for (const typedNode of typedNodes) {
+    if (!isPlainObject(typedNode) || typeof typedNode.type !== "string") {
+      continue;
+    }
+
+    if (typedNode.type === "sound") {
+      return "audio/mpeg";
+    }
+
+    if (typedNode.type === "video") {
+      return "video/mp4";
+    }
+  }
+
+  return "image/png";
+};
+
+const getRequiredAssetFallbackType = ({ key, node, ancestry }) => {
+  if (key === "src") {
+    return inferSrcFallbackType({
+      node,
+      ancestry,
+    });
+  }
+
+  return FIXED_ASSET_FALLBACK_TYPES.get(key) ?? "image/png";
+};
+
+const getAssetSourceValue = (rawValue) => {
+  if (typeof rawValue === "string") {
+    return rawValue;
+  }
+
+  if (!isPlainObject(rawValue)) {
+    return undefined;
+  }
+
+  return rawValue.path ?? rawValue.url ?? rawValue.src;
+};
+
+const getExplicitAssetType = (rawValue) => {
+  if (!isPlainObject(rawValue)) {
+    return undefined;
+  }
+
+  return typeof rawValue.type === "string" && rawValue.type.length > 0
+    ? rawValue.type
+    : undefined;
+};
+
+const collectAssetReferences = ({ states, assetAliases }) => {
+  const references = new Map();
+
+  const registerReference = ({ alias, fallbackType, nodePath }) => {
+    const record = references.get(alias);
+
+    if (!record) {
+      references.set(alias, {
+        fallbackTypes: new Set([fallbackType]),
+        nodePaths: [nodePath],
+      });
+      return;
+    }
+
+    record.fallbackTypes.add(fallbackType);
+    record.nodePaths.push(nodePath);
+  };
+
+  const walk = (node, nodePath, ancestry = []) => {
+    if (!isPlainObject(node) && !Array.isArray(node)) {
+      return;
+    }
+
+    if (Array.isArray(node)) {
+      node.forEach((value, index) => {
+        walk(value, getNextNodePath(nodePath, index), ancestry);
+      });
+      return;
+    }
+
+    for (const [key, value] of Object.entries(node)) {
+      const nextPath = getNextNodePath(nodePath, key);
+
+      if (DIRECT_ASSET_KEYS.has(key) && typeof value === "string") {
+        if (assetAliases.has(value)) {
+          registerReference({
+            alias: value,
+            fallbackType: getRequiredAssetFallbackType({
+              key,
+              node,
+              ancestry,
+            }),
+            nodePath: nextPath,
+          });
+        } else if (looksLikeLocalAssetPath(value)) {
+          throw new Error(
+            `Direct asset references are not supported. Define "${value}" in top-level assets and reference its alias instead (at ${nextPath}).`,
+          );
+        } else {
+          throw new Error(
+            `Asset alias "${value}" referenced at ${nextPath} is not defined in top-level assets.`,
+          );
+        }
+      }
+
+      if (
+        FONT_ASSET_KEYS.has(key) &&
+        typeof value === "string" &&
+        assetAliases.has(value)
+      ) {
+        registerReference({
+          alias: value,
+          fallbackType: "font/ttf",
+          nodePath: nextPath,
+        });
+      }
+
+      if (Array.isArray(value) || isPlainObject(value)) {
+        walk(value, nextPath, [...ancestry, node]);
+      }
+    }
+  };
+
+  walk(states, "states");
+
+  return references;
+};
+
+const inferMimeType = (assetPath, fallbackType = "image/png") => {
+  return detectMimeType(assetPath) ?? fallbackType;
 };
 
 const normalizeState = (value, index = 0) => {
@@ -329,27 +434,32 @@ const normalizeAssetConfigEntry = (rawValue, fallbackType, baseDir) => {
 };
 
 const collectAssetDefinitions = ({ assets = {}, states = [], baseDir }) => {
+  const assetAliases = new Set(Object.keys(assets));
+  const references = collectAssetReferences({
+    states,
+    assetAliases,
+  });
   const definitions = {};
 
-  const register = (key, rawValue, fallbackType = "image/png") => {
-    if (typeof key !== "string" || key.length === 0 || definitions[key]) {
-      return;
+  for (const [key, reference] of references.entries()) {
+    const rawValue = assets[key];
+    const explicitType = getExplicitAssetType(rawValue);
+    const sourceValue = getAssetSourceValue(rawValue);
+    const detectedType = sourceValue ? detectMimeType(sourceValue) : undefined;
+    const fallbackTypes = [...reference.fallbackTypes];
+
+    if (fallbackTypes.length > 1 && !explicitType && !detectedType) {
+      throw new Error(
+        `Asset alias "${key}" is referenced as multiple asset types (${fallbackTypes.join(", ")} at ${reference.nodePaths.join(", ")}). Define assets.${key}.type explicitly.`,
+      );
     }
 
     definitions[key] = normalizeAssetConfigEntry(
       rawValue,
-      fallbackType,
+      fallbackTypes[0],
       baseDir,
     );
-  };
-
-  for (const [key, value] of Object.entries(assets)) {
-    register(key, value);
   }
-  validateAssetReferences({
-    states,
-    assetDefinitions: definitions,
-  });
 
   return definitions;
 };
