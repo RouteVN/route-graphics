@@ -221,6 +221,51 @@ describe("collectAssetDefinitions", () => {
     ).toThrow(/Asset alias "hero" referenced/);
   });
 
+  it("ignores arbitrary payload fields when discovering render assets", () => {
+    const baseDir = path.resolve("/tmp/route-graphics");
+
+    const definitions = collectAssetDefinitions({
+      baseDir,
+      states: [
+        {
+          id: "demo",
+          global: {
+            keyboard: {
+              enter: {
+                payload: {
+                  soundSrc: "open-detail-sound",
+                },
+              },
+            },
+          },
+          elements: [
+            {
+              id: "sprite",
+              type: "sprite",
+              src: "hero",
+              click: {
+                payload: {
+                  src: "detail-view",
+                },
+              },
+            },
+          ],
+        },
+      ],
+      assets: {
+        hero: "./hero.png",
+      },
+    });
+
+    expect(definitions).toEqual({
+      hero: {
+        kind: "local",
+        path: path.join(baseDir, "hero.png"),
+        type: "image/png",
+      },
+    });
+  });
+
   it("infers string-asset mime types from the selected usage", () => {
     const definitions = collectAssetDefinitions({
       baseDir: path.resolve("/tmp/route-graphics"),
@@ -269,6 +314,69 @@ describe("collectAssetDefinitions", () => {
       kind: "remote",
       type: "audio/mpeg",
       url: "https://cdn.example.com/download?id=audio",
+    });
+  });
+
+  it("discovers scrollbar hover and pressed state asset aliases", () => {
+    const baseDir = path.resolve("/tmp/route-graphics");
+
+    const definitions = collectAssetDefinitions({
+      baseDir,
+      states: [
+        {
+          id: "demo",
+          elements: [
+            {
+              id: "container",
+              type: "container",
+              scrollbar: {
+                vertical: {
+                  thickness: 12,
+                  track: {
+                    src: "track",
+                    hoverSrc: "track-hover",
+                    pressSrc: "track-press",
+                  },
+                  thumb: {
+                    src: "thumb",
+                    hoverSrc: "thumb-hover",
+                    pressSrc: "thumb-press",
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+      assets: {
+        track: "./track.png",
+        "track-hover": "./track-hover.png",
+        "track-press": "./track-press.png",
+        thumb: "./thumb.png",
+        "thumb-hover": "./thumb-hover.png",
+        "thumb-press": "./thumb-press.png",
+      },
+    });
+
+    expect(definitions["track-hover"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "track-hover.png"),
+      type: "image/png",
+    });
+    expect(definitions["track-press"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "track-press.png"),
+      type: "image/png",
+    });
+    expect(definitions["thumb-hover"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "thumb-hover.png"),
+      type: "image/png",
+    });
+    expect(definitions["thumb-press"]).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "thumb-press.png"),
+      type: "image/png",
     });
   });
 });

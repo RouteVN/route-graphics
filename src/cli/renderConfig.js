@@ -49,7 +49,9 @@ const CONFIG_ONLY_KEYS = new Set([
 
 const DIRECT_ASSET_KEYS = new Set([
   "barSrc",
+  "hoverSrc",
   "inactiveBarSrc",
+  "pressSrc",
   "soundSrc",
   "src",
   "thumbSrc",
@@ -57,9 +59,13 @@ const DIRECT_ASSET_KEYS = new Set([
 
 const FONT_ASSET_KEYS = new Set(["fontFamily"]);
 
+const NON_RENDER_BRANCH_KEYS = new Set(["payload"]);
+
 const FIXED_ASSET_FALLBACK_TYPES = new Map([
   ["barSrc", "image/png"],
+  ["hoverSrc", "image/png"],
   ["inactiveBarSrc", "image/png"],
+  ["pressSrc", "image/png"],
   ["soundSrc", "audio/mpeg"],
   ["thumbSrc", "image/png"],
 ]);
@@ -240,6 +246,10 @@ const collectAssetReferences = ({ states, assetAliases }) => {
 
     for (const [key, value] of Object.entries(node)) {
       const nextPath = getNextNodePath(nodePath, key);
+
+      if (NON_RENDER_BRANCH_KEYS.has(key)) {
+        continue;
+      }
 
       if (DIRECT_ASSET_KEYS.has(key) && typeof value === "string") {
         if (assetAliases.has(value)) {

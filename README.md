@@ -96,6 +96,8 @@ This repo now includes a repo-local CLI scaffold that renders YAML into a PNG by
 
 It is intentionally scaffolded as a repo workflow first, not a published package entrypoint yet.
 
+Full CLI reference: [`docs/png-render-cli.md`](./docs/png-render-cli.md)
+
 ```bash
 # one-time browser install if Chromium is not already available
 npx playwright install chromium
