@@ -85,11 +85,121 @@ For complete usage details, go to:
 - [Events & Render Complete](http://route-graphics.routevn.com/docs/guides/events-render-complete/)
 - [Custom Plugins](http://route-graphics.routevn.com/docs/guides/custom-plugins/)
 
+## PNG Render CLI Scaffold
+
+This repo now includes a repo-local CLI scaffold that renders YAML into a PNG by:
+
+1. reading YAML in Node,
+2. launching headless Chromium through Playwright,
+3. rendering with the bundled `dist/RouteGraphics.js`, and
+4. exporting pixels with `app.extractBase64()`.
+
+It is intentionally scaffolded as a repo workflow first, not a published package entrypoint yet.
+
+Full CLI reference: [`docs/png-render-cli.md`](./docs/png-render-cli.md)
+
+```bash
+# one-time browser install if Chromium is not already available
+npx playwright install chromium
+
+# render a YAML file to PNG
+bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
+```
+
+Supported top-level YAML shapes:
+
+- A single state object
+- An array of states
+- A wrapper object with `width`, `height`, `backgroundColor`, optional `assets`, and either `state` or `states`
+- Multiple YAML documents separated by `---` (treated as a state list)
+
+Minimal example:
+
+```yaml
+width: 1280
+height: 720
+backgroundColor: "#101820"
+elements:
+  - id: title
+    type: text
+    x: 80
+    y: 80
+    content: "Hello PNG"
+    textStyle:
+      fill: "#ffffff"
+      fontSize: 48
+  - id: bar
+    type: rect
+    x: 80
+    y: 160
+    width: 320
+    height: 24
+    fill: "#4fd1c5"
+```
+
+Asset handling:
+
+- Asset-bearing render-state fields such as `src`, `thumbSrc`, `barSrc`, `inactiveBarSrc`, and `soundSrc` must reference top-level `assets` aliases.
+- Direct file paths and URLs are allowed inside top-level `assets` values.
+- Direct asset references inside `elements`, `audio`, or nested interaction config are rejected.
+
+Example with asset aliases:
+
+```yaml
+width: 1280
+height: 720
+assets:
+  hero: ./assets/hero.png
+  uiFont:
+    path: ./assets/fonts/NotoSans-Regular.ttf
+    type: font/ttf
+elements:
+  - id: title
+    type: text
+    x: 60
+    y: 60
+    content: "Alias-backed render"
+    textStyle:
+      fill: "#ffffff"
+      fontSize: 42
+      fontFamily: uiFont
+  - id: avatar
+    type: sprite
+    x: 60
+    y: 140
+    width: 128
+    height: 128
+    src: hero
+```
+
+Invalid example:
+
+```yaml
+elements:
+  - id: avatar
+    type: sprite
+    x: 60
+    y: 140
+    width: 128
+    height: 128
+    src: ./assets/hero.png # rejected by the CLI
+```
+
+Useful flags:
+
+- `--state <index>` selects a state from an array or multi-document YAML file.
+- `--time <ms>` samples animations at a specific manual timeline position.
+- `--wait-for-render-complete` waits for a `renderComplete` event before capture.
+- `--browser-executable <path>` uses a system Chrome/Chromium instead of Playwright's managed browser.
+
 ## Development
 
 ```bash
 # Run tests
 bun run test
+
+# Render a YAML file into a PNG
+bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
 
 # Ensure VT assets are real binaries, not Git LFS pointer files
 git lfs pull
