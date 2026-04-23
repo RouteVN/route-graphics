@@ -132,6 +132,7 @@ const buildPropertyTimelines = (
 export const createAnimationBus = () => {
   const commandQueue = [];
   const activeAnimations = new Map();
+  const pendingAnimations = new Map();
   const listeners = new Map();
   let stateVersion = 0;
   let sampledTime = null;
@@ -170,8 +171,28 @@ export const createAnimationBus = () => {
     }
   };
 
+  const attachAnimationMetadata = (context, metadata = {}) => {
+    context.animationType = metadata.animationType ?? context.animationType;
+    context.targetId = metadata.targetId ?? context.targetId;
+    context.signature = metadata.signature ?? context.signature;
+    context.continuity = metadata.continuity ?? context.continuity ?? "render";
+    context.onContinuationUpdate =
+      metadata.onContinuationUpdate ?? context.onContinuationUpdate;
+    return context;
+  };
+
+  const toContinuableDescriptor = (context) => ({
+    id: context.id,
+    type: context.animationType ?? null,
+    targetId: context.targetId ?? null,
+    signature: context.signature ?? null,
+    continuity: context.continuity ?? "render",
+    pending: context.pending === true,
+  });
+
   const registerAnimation = (context) => {
     context.applyFrame(0);
+    pendingAnimations.delete(context.id);
     activeAnimations.set(context.id, context);
 
     const completed =
@@ -251,7 +272,7 @@ export const createAnimationBus = () => {
       isValid: () => Boolean(element) && !element.destroyed,
     };
 
-    registerAnimation(context);
+    registerAnimation(attachAnimationMetadata(context, payload));
   };
 
   const startCustomAnimation = (payload) => {
@@ -268,7 +289,7 @@ export const createAnimationBus = () => {
       isValid: payload.isValid ?? (() => true),
     };
 
-    registerAnimation(context);
+    registerAnimation(attachAnimationMetadata(context, payload));
   };
 
   const startAnimation = (payload) => {
@@ -294,6 +315,15 @@ export const createAnimationBus = () => {
         // Best-effort cancellation callback.
       }
     }
+  };
+
+  const cancelPendingAnimation = (id) => {
+    const context = pendingAnimations.get(id);
+    if (!context) return;
+
+    applyCancellation(context);
+    pendingAnimations.delete(id);
+    emit("cancelled", { id });
   };
 
   const executeCommand = (cmd) => {
@@ -333,7 +363,10 @@ export const createAnimationBus = () => {
 
   const cancelAnimation = (id) => {
     const context = activeAnimations.get(id);
-    if (!context) return;
+    if (!context) {
+      cancelPendingAnimation(id);
+      return;
+    }
 
     applyCancellation(context);
     activeAnimations.delete(id);
@@ -351,8 +384,39 @@ export const createAnimationBus = () => {
       emit("cancelled", { id });
     }
 
+    for (const [id, context] of pendingAnimations) {
+      applyCancellation(context);
+      emit("cancelled", { id });
+    }
+
     activeAnimations.clear();
+    pendingAnimations.clear();
     stateVersion++;
+  };
+
+  const cancelAllExcept = (idsToKeep = new Set()) => {
+    const keepIds =
+      idsToKeep instanceof Set ? idsToKeep : new Set(idsToKeep ?? []);
+
+    for (const [id, context] of activeAnimations) {
+      if (keepIds.has(id)) {
+        continue;
+      }
+
+      applyCancellation(context);
+      activeAnimations.delete(id);
+      emit("cancelled", { id });
+    }
+
+    for (const [id, context] of pendingAnimations) {
+      if (keepIds.has(id)) {
+        continue;
+      }
+
+      applyCancellation(context);
+      pendingAnimations.delete(id);
+      emit("cancelled", { id });
+    }
   };
 
   const tick = (deltaMS) => {
@@ -437,9 +501,85 @@ export const createAnimationBus = () => {
     listeners.get(event)?.delete(callback);
   };
 
+  const registerPending = (payload) => {
+    const context = attachAnimationMetadata(
+      {
+        id: payload.id,
+        kind: "pending",
+        pending: true,
+        applyTargetState: payload.applyTargetState ?? (() => {}),
+        onCancel: payload.onCancel,
+      },
+      payload,
+    );
+
+    pendingAnimations.set(context.id, context);
+  };
+
+  const activatePending = (id, payload) => {
+    const pendingContext = pendingAnimations.get(id);
+    if (!pendingContext) {
+      return false;
+    }
+
+    pendingAnimations.delete(id);
+    startAnimation({
+      ...payload,
+      id,
+      animationType: pendingContext.animationType,
+      targetId: pendingContext.targetId,
+      signature: pendingContext.signature,
+      continuity: pendingContext.continuity,
+      onContinuationUpdate:
+        payload.onContinuationUpdate ?? pendingContext.onContinuationUpdate,
+    });
+
+    return true;
+  };
+
+  const removePending = (id) => {
+    pendingAnimations.delete(id);
+  };
+
+  const getContinuableAnimations = () => {
+    const descriptors = new Map();
+
+    for (const [id, context] of pendingAnimations) {
+      if (context.continuity === "persistent") {
+        descriptors.set(id, toContinuableDescriptor(context));
+      }
+    }
+
+    for (const [id, context] of activeAnimations) {
+      if (context.continuity === "persistent") {
+        descriptors.set(id, toContinuableDescriptor(context));
+      }
+    }
+
+    return descriptors;
+  };
+
+  const hasContext = (id) =>
+    activeAnimations.has(id) || pendingAnimations.has(id);
+
+  const updateContinuation = (id, payload) => {
+    const context = activeAnimations.get(id) ?? pendingAnimations.get(id);
+
+    if (!context?.onContinuationUpdate) {
+      return;
+    }
+
+    try {
+      context.onContinuationUpdate(payload);
+    } catch (_error) {
+      // Continuation updates are best-effort.
+    }
+  };
+
   const getState = () => ({
     stateVersion,
     activeCount: activeAnimations.size,
+    pendingCount: pendingAnimations.size,
     animations: Array.from(activeAnimations.entries()).map(([id, ctx]) => ({
       id,
       currentTime: ctx.currentTime,
@@ -458,14 +598,21 @@ export const createAnimationBus = () => {
   return {
     dispatch,
     cancelAll,
+    cancelAllExcept,
     flush,
     tick,
     setTime,
     clearTime,
     on,
     off,
+    registerPending,
+    activatePending,
+    removePending,
+    getContinuableAnimations,
     getState,
     isAnimating,
+    hasContext,
+    updateContinuation,
     destroy,
   };
 };

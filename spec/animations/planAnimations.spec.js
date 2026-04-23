@@ -1,12 +1,368 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  buildAnimationContinuityPlan,
   dispatchUpdateAnimations,
+  getAnimationContinuitySignature,
   groupAnimationsByTarget,
 } from "../../src/plugins/animations/planAnimations.js";
 import {
   createRenderContext,
   flushDeferredMountOperations,
 } from "../../src/plugins/elements/renderContext.js";
+
+describe("buildAnimationContinuityPlan", () => {
+  it("continues a persistent update when the target is unchanged", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "persistent" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+      },
+      nextState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set(["bg-breathe"]));
+  });
+
+  it("does not continue a persistent update when the target changed", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "persistent" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+      },
+      nextState: {
+        elements: [
+          { id: "bg", type: "rect", x: 5, y: 0, width: 10, height: 10 },
+        ],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+
+  it("does not continue an update when playback continuity is explicitly render-scoped", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "render" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+      },
+      nextState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "render",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+
+  it("does not continue a persistent update when the target is reparented", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "persistent" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const bgNode = {
+      id: "bg",
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 10,
+      height: 10,
+    };
+    const prevState = {
+      elements: [
+        {
+          id: "left",
+          type: "container",
+          x: 0,
+          y: 0,
+          alpha: 1,
+          children: [bgNode],
+        },
+        {
+          id: "right",
+          type: "container",
+          x: 20,
+          y: 0,
+          alpha: 1,
+          children: [],
+        },
+      ],
+    };
+    const nextState = {
+      elements: [
+        {
+          id: "left",
+          type: "container",
+          x: 0,
+          y: 0,
+          alpha: 1,
+          children: [],
+        },
+        {
+          id: "right",
+          type: "container",
+          x: 20,
+          y: 0,
+          alpha: 1,
+          children: [{ ...bgNode }],
+        },
+      ],
+      animations: [animation],
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState,
+      nextState,
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+
+  it("continues a persistent transition when the target subtree is unchanged", () => {
+    const animation = {
+      id: "scene-fade",
+      targetId: "scene-root",
+      type: "transition",
+      playback: { continuity: "persistent" },
+      next: {
+        tween: {
+          alpha: {
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+    };
+
+    const sceneNode = {
+      id: "scene-root",
+      type: "container",
+      children: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+    };
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [sceneNode],
+      },
+      nextState: {
+        elements: [sceneNode],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "scene-fade",
+          {
+            id: "scene-fade",
+            type: "transition",
+            targetId: "scene-root",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set(["scene-fade"]));
+  });
+
+  it("continues a persistent delete-only transition when the target remains absent", () => {
+    const animation = {
+      id: "fade-out",
+      targetId: "portrait",
+      type: "transition",
+      playback: { continuity: "persistent" },
+      prev: {
+        tween: {
+          alpha: {
+            keyframes: [{ duration: 1000, value: 0, easing: "linear" }],
+          },
+        },
+      },
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [],
+      },
+      nextState: {
+        elements: [],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "fade-out",
+          {
+            id: "fade-out",
+            type: "transition",
+            targetId: "portrait",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set(["fade-out"]));
+  });
+
+  it("does not continue a persistent transition when a descendant animation is introduced", () => {
+    const transitionAnimation = {
+      id: "scene-fade",
+      targetId: "scene-root",
+      type: "transition",
+      playback: { continuity: "persistent" },
+      next: {
+        tween: {
+          alpha: {
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+    };
+    const descendantAnimation = {
+      id: "bg-pulse",
+      targetId: "bg",
+      type: "update",
+      tween: {
+        alpha: {
+          keyframes: [{ duration: 1000, value: 0.5, easing: "linear" }],
+        },
+      },
+    };
+
+    const sceneNode = {
+      id: "scene-root",
+      type: "container",
+      x: 0,
+      y: 0,
+      alpha: 1,
+      children: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+    };
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [sceneNode],
+      },
+      nextState: {
+        elements: [{ ...sceneNode, children: [...sceneNode.children] }],
+        animations: [transitionAnimation, descendantAnimation],
+      },
+      activeAnimations: new Map([
+        [
+          "scene-fade",
+          {
+            id: "scene-fade",
+            type: "transition",
+            targetId: "scene-root",
+            signature: getAnimationContinuitySignature(transitionAnimation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+});
 
 describe("dispatchUpdateAnimations", () => {
   it("returns false when the target has no update animations", () => {
@@ -204,6 +560,43 @@ describe("dispatchUpdateAnimations", () => {
         }),
       }),
     );
+  });
+
+  it("treats already-running persistent update animations as dispatched without restarting them", () => {
+    const animationBus = {
+      dispatch: vi.fn(),
+      hasContext: vi.fn().mockReturnValue(true),
+    };
+    const completionTracker = {
+      getVersion: vi.fn(),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    const dispatched = dispatchUpdateAnimations({
+      animations: groupAnimationsByTarget([
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: { continuity: "persistent" },
+          tween: {
+            scaleX: {
+              keyframes: [{ duration: 300, value: 1.2, easing: "linear" }],
+            },
+          },
+        },
+      ]),
+      targetId: "bg",
+      animationBus,
+      completionTracker,
+      element: { scale: { x: 1, y: 1 } },
+      targetState: { scaleX: 1.2 },
+    });
+
+    expect(dispatched).toBe(true);
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+    expect(completionTracker.track).not.toHaveBeenCalled();
   });
 
   it("throws when deferred update animations receive an onComplete hook", () => {

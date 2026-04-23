@@ -48,6 +48,10 @@ const createPixiModuleMock = () => {
     on() {
       return this;
     }
+
+    removeAllListeners() {
+      return this;
+    }
   }
 
   class MockGraphics extends MockDisplayObject {
@@ -270,6 +274,19 @@ const setupRouteGraphics = async ({
   return { app, pixiMock };
 };
 
+const getAutoAnimationTick = (pixiMock) =>
+  pixiMock.__getLastApplication().ticker.add.mock.calls.at(-1)?.[0];
+
+const findTransitionOverlay = (pixiMock) =>
+  pixiMock
+    .__getLastApplication()
+    .stage.children.find(
+      (child) =>
+        (child.label === null || child.label === undefined) &&
+        Array.isArray(child.children) &&
+        child.children.length > 0,
+    ) ?? null;
+
 describe("RouteGraphics public API", () => {
   afterEach(() => {
     currentApp?.destroy();
@@ -359,6 +376,738 @@ describe("RouteGraphics public API", () => {
     app.setAnimationTime(150);
 
     expect(app.findElementByLabel("preview-rect")?.x).toBeCloseTo(37.5);
+  });
+
+  it("continues persistent update animations across unrelated renders without restarting", async () => {
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+    });
+
+    app.render({
+      id: "persistent-update-1",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: {
+            continuity: "persistent",
+          },
+          tween: {
+            scaleX: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 2, easing: "linear" }],
+            },
+            scaleY: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 2, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    frameTick({ deltaMS: 400 });
+    expect(app.findElementByLabel("bg")?.scale.x).toBeCloseTo(1.4);
+    expect(app.findElementByLabel("bg")?.scale.y).toBeCloseTo(1.4);
+
+    app.render({
+      id: "persistent-update-2",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 180,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: {
+            continuity: "persistent",
+          },
+          tween: {
+            scaleX: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 2, easing: "linear" }],
+            },
+            scaleY: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 2, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    expect(app.findElementByLabel("bg")?.scale.x).toBeCloseTo(1.4);
+    expect(app.findElementByLabel("bg")?.scale.y).toBeCloseTo(1.4);
+
+    frameTick({ deltaMS: 100 });
+    expect(app.findElementByLabel("bg")?.scale.x).toBeCloseTo(1.5);
+    expect(app.findElementByLabel("bg")?.scale.y).toBeCloseTo(1.5);
+  });
+
+  it("still completes the originating render when a persistent update finishes before any later render adopts it", async () => {
+    const eventHandler = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+      ],
+    });
+
+    eventHandler.mockClear();
+
+    app.render({
+      id: "persistent-update-finish",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+      ],
+      animations: [
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: {
+            continuity: "persistent",
+          },
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-finish",
+      aborted: false,
+    });
+
+    frameTick({ deltaMS: 300 });
+
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-finish",
+      aborted: false,
+    });
+  });
+
+  it("detaches persistent updates from renderComplete after a later render adopts them", async () => {
+    const eventHandler = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+    });
+
+    eventHandler.mockClear();
+
+    app.render({
+      id: "persistent-update-old",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: {
+            continuity: "persistent",
+          },
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    frameTick({ deltaMS: 400 });
+    eventHandler.mockClear();
+
+    app.render({
+      id: "persistent-update-new",
+      elements: [
+        {
+          id: "bg",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 180,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: {
+            continuity: "persistent",
+          },
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ],
+    });
+
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-old",
+      aborted: true,
+    });
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-new",
+      aborted: false,
+    });
+
+    const eventCountAfterAdoption = eventHandler.mock.calls.length;
+    frameTick({ deltaMS: 600 });
+
+    expect(eventHandler.mock.calls).toHaveLength(eventCountAfterAdoption);
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-old",
+      aborted: false,
+    });
+  });
+
+  it("continues persistent transition overlays across unrelated renders without restarting", async () => {
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "baseline",
+      elements: [
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+    });
+
+    app.render({
+      id: "persistent-transition-1",
+      elements: [
+        {
+          id: "scene",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 120,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-fade",
+          targetId: "scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    frameTick({ deltaMS: 400 });
+    let overlay = findTransitionOverlay(pixiMock);
+    expect(overlay?.children).toHaveLength(1);
+    expect(overlay?.children[0].alpha).toBeCloseTo(0.4);
+
+    app.render({
+      id: "persistent-transition-2",
+      elements: [
+        {
+          id: "scene",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+        {
+          id: "front",
+          type: "rect",
+          x: 180,
+          y: 0,
+          width: 40,
+          height: 40,
+          fill: "#999999",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-fade",
+          targetId: "scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    overlay = findTransitionOverlay(pixiMock);
+    expect(overlay?.children[0].alpha).toBeCloseTo(0.4);
+
+    frameTick({ deltaMS: 100 });
+    overlay = findTransitionOverlay(pixiMock);
+    expect(overlay?.children[0].alpha).toBeCloseTo(0.5);
+  });
+
+  it("detaches persistent transitions from renderComplete after a later render adopts them", async () => {
+    const eventHandler = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const [{ rectPlugin }, { tweenPlugin }] = await Promise.all([
+          import("../src/plugins/elements/rect/index.js"),
+          import("../src/plugins/animations/tween/index.js"),
+        ]);
+
+        return {
+          elements: [rectPlugin],
+          animations: [tweenPlugin],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "baseline",
+      elements: [],
+    });
+
+    eventHandler.mockClear();
+
+    app.render({
+      id: "persistent-transition-old",
+      elements: [
+        {
+          id: "scene",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-fade",
+          targetId: "scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    frameTick({ deltaMS: 400 });
+    eventHandler.mockClear();
+
+    app.render({
+      id: "persistent-transition-new",
+      elements: [
+        {
+          id: "scene",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+          fill: "#FFFFFF",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-fade",
+          targetId: "scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-transition-old",
+      aborted: true,
+    });
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-transition-new",
+      aborted: false,
+    });
+
+    const eventCountAfterAdoption = eventHandler.mock.calls.length;
+    frameTick({ deltaMS: 600 });
+
+    expect(eventHandler.mock.calls).toHaveLength(eventCountAfterAdoption);
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-transition-old",
+      aborted: false,
+    });
+  });
+
+  it("preserves pending persistent transitions across later renders before async mount resolves", async () => {
+    let resolveAdd;
+    const addPromise = new Promise((resolve) => {
+      resolveAdd = resolve;
+    });
+
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+        const asyncNodePlugin = {
+          type: "async-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element, signal }) =>
+            addPromise.then(() => {
+              if (signal?.aborted || parent.destroyed) {
+                return;
+              }
+
+              const container = new activePixiMock.Container();
+              container.label = element.id;
+              parent.addChild(container);
+            }),
+          ),
+          update: vi.fn(),
+          delete: vi.fn(),
+        };
+
+        return {
+          elements: [asyncNodePlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({
+      id: "persistent-async-old",
+      elements: [
+        {
+          id: "delayed-scene",
+          type: "async-node",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-enter",
+          targetId: "delayed-scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    app.render({
+      id: "persistent-async-new",
+      elements: [
+        {
+          id: "delayed-scene",
+          type: "async-node",
+        },
+      ],
+      animations: [
+        {
+          id: "scene-enter",
+          targetId: "delayed-scene",
+          type: "transition",
+          playback: {
+            continuity: "persistent",
+          },
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    resolveAdd();
+    await addPromise;
+
+    await vi.waitFor(() => {
+      const mounted = app.findElementByLabel("delayed-scene");
+      const overlay = findTransitionOverlay(pixiMock);
+
+      expect(mounted).not.toBeNull();
+      expect(mounted?.visible).toBe(false);
+      expect(overlay).not.toBeNull();
+    });
+
+    frameTick({ deltaMS: 200 });
+
+    const overlay = findTransitionOverlay(pixiMock);
+    expect(overlay?.children[0].alpha).toBeCloseTo(0.2);
   });
 
   it("applies remembered manual time to transitions that start asynchronously", async () => {

@@ -1,0 +1,96 @@
+---
+title: Rect Persistent Transition Continuity
+description: A persistent rect transition keeps the same in-flight overlay alive across an unrelated sibling rerender.
+specs:
+  - the first state should show a partially visible entering scene rect
+  - the second render should move only the sibling foreground rect while preserving the transition progress
+  - the entering scene rect should keep advancing from the carried-over transition time after the second render
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 100
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: front
+        type: rect
+        x: 900
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+  - id: transition-start
+    elements:
+      - id: scene
+        type: rect
+        x: 120
+        y: 110
+        width: 860
+        height: 500
+        fill: "#FFFFFF"
+        alpha: 1
+      - id: front
+        type: rect
+        x: 900
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    animations:
+      - id: scene-fade
+        targetId: scene
+        type: transition
+        playback:
+          continuity: persistent
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear
+  - id: transition-carried-forward
+    elements:
+      - id: scene
+        type: rect
+        x: 120
+        y: 110
+        width: 860
+        height: 500
+        fill: "#FFFFFF"
+        alpha: 1
+      - id: front
+        type: rect
+        x: 700
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    animations:
+      - id: scene-fade
+        targetId: scene
+        type: transition
+        playback:
+          continuity: persistent
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

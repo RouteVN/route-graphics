@@ -124,7 +124,15 @@ export const renderElements = ({
     const replaceAnimation = renderContext.suppressAnimations
       ? null
       : getTransitionAnimation(animationsByTarget, element.id);
+    const continuedTransition =
+      replaceAnimation &&
+      typeof animationBus?.hasContext === "function" &&
+      animationBus.hasContext(replaceAnimation.id);
     const plugin = getPlugin(element.type);
+
+    if (continuedTransition) {
+      continue;
+    }
 
     if (replaceAnimation) {
       runReplaceAnimation({
@@ -165,10 +173,21 @@ export const renderElements = ({
     const replaceAnimation = renderContext.suppressAnimations
       ? null
       : getTransitionAnimation(animationsByTarget, element.id);
+    const continuedTransition =
+      replaceAnimation &&
+      typeof animationBus?.hasContext === "function" &&
+      animationBus.hasContext(replaceAnimation.id);
     const plugin = getPlugin(element.type);
 
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(element.id) ?? -1;
+
+    if (continuedTransition) {
+      if (typeof animationBus?.updateContinuation === "function") {
+        animationBus.updateContinuation(replaceAnimation.id, { zIndex });
+      }
+      continue;
+    }
 
     if (replaceAnimation) {
       runReplaceAnimation({
@@ -215,8 +234,16 @@ export const renderElements = ({
     const replaceAnimation = renderContext.suppressAnimations
       ? null
       : getTransitionAnimation(animationsByTarget, next.id);
+    const continuedTransition =
+      replaceAnimation &&
+      typeof animationBus?.hasContext === "function" &&
+      animationBus.hasContext(replaceAnimation.id);
 
-    if (replaceAnimation) {
+    if (continuedTransition) {
+      if (typeof animationBus?.updateContinuation === "function") {
+        animationBus.updateContinuation(replaceAnimation.id, { zIndex });
+      }
+    } else if (replaceAnimation) {
       runReplaceAnimation({
         app,
         parent,

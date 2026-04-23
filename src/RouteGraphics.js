@@ -13,6 +13,7 @@ import { createCompletionTracker } from "./util/completionTracker.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
+import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -256,6 +257,12 @@ const createRouteGraphics = () => {
       return;
     }
 
+    const continuityPlan = buildAnimationContinuityPlan({
+      prevState: state,
+      nextState,
+      activeAnimations: animationBus.getContinuableAnimations(),
+    });
+
     if (renderAbortController) {
       renderAbortController.abort();
     }
@@ -267,8 +274,8 @@ const createRouteGraphics = () => {
 
     applyGlobalObjects(appInstance, state.global, nextState.global);
 
-    // Cancel all running animations synchronously
-    animationBus.cancelAll();
+    // Cancel any running animation that is not explicitly continuing.
+    animationBus.cancelAllExcept(continuityPlan.continuedAnimationIds);
 
     // Render elements (now synchronous)
     renderElements({

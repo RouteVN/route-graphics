@@ -1,6 +1,7 @@
 import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
 
 const ANIMATION_TYPES = new Set(["update", "transition"]);
+const CONTINUITY_MODES = new Set(["render", "persistent"]);
 const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
@@ -38,6 +39,20 @@ const assertNumber = (value, path) => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     throw new Error(`${path} must be a number.`);
   }
+};
+
+const normalizePlayback = (playback, path) => {
+  assertPlainObject(playback, path);
+
+  if (!CONTINUITY_MODES.has(playback.continuity)) {
+    throw new Error(
+      `${path}.continuity must be one of: ${Array.from(CONTINUITY_MODES).join(", ")}.`,
+    );
+  }
+
+  return {
+    continuity: playback.continuity,
+  };
 };
 
 const normalizeAutoTween = (autoConfig, path) => {
@@ -370,6 +385,13 @@ export const normalizeAnimations = (animations = []) => {
     if (animation.complete !== undefined) {
       assertPlainObject(animation.complete, `${path}.complete`);
       normalizedAnimation.complete = animation.complete;
+    }
+
+    if (animation.playback !== undefined) {
+      normalizedAnimation.playback = normalizePlayback(
+        animation.playback,
+        `${path}.playback`,
+      );
     }
 
     assertLegacyFieldAbsent(
