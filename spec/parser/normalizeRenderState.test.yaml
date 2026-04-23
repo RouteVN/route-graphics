@@ -204,6 +204,70 @@ out:
             easing: easeOutQuad
   audio: []
 ---
+case: Normalize update animation with persistent playback continuity
+in:
+  - id: state-2-persistent-update
+    animations:
+      - id: anim-persistent-update
+        targetId: portrait
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 300
+                value: 1.2
+out:
+  id: state-2-persistent-update
+  elements: []
+  animations:
+    - id: anim-persistent-update
+      targetId: portrait
+      type: update
+      playback:
+        continuity: persistent
+      tween:
+        scaleX:
+          keyframes:
+            - duration: 300
+              value: 1.2
+              easing: linear
+  audio: []
+---
+case: Normalize transition animation with persistent playback continuity
+in:
+  - id: state-2-persistent-transition
+    animations:
+      - id: anim-persistent-transition
+        targetId: scene-root
+        type: transition
+        playback:
+          continuity: persistent
+        next:
+          tween:
+            alpha:
+              keyframes:
+                - duration: 300
+                  value: 1
+out:
+  id: state-2-persistent-transition
+  elements: []
+  animations:
+    - id: anim-persistent-transition
+      targetId: scene-root
+      type: transition
+      playback:
+        continuity: persistent
+      next:
+        tween:
+          alpha:
+            keyframes:
+              - duration: 300
+                value: 1
+                easing: linear
+  audio: []
+---
 case: Throw when transitions field is provided
 in:
   - id: state-3
@@ -376,6 +440,22 @@ in:
               duration: 100
               easing: easeInHexagon
 throws: "animations[0].tween.x.auto.easing must be one of:"
+---
+case: Throw when playback continuity is unsupported
+in:
+  - id: state-3c-playback
+    animations:
+      - id: anim-playback
+        targetId: text-1
+        type: update
+        playback:
+          continuity: looping
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+throws: "animations[0].playback.continuity must be one of: persistent."
 ---
 case: Throw when target mixes update and transition types
 in:

@@ -243,6 +243,15 @@ $defs:
         then:
           required:
             - items
+  playback:
+    type: object
+    required:
+      - continuity
+    properties:
+      continuity:
+        type: string
+        enum: [persistent]
+    additionalProperties: false
 properties:
   id:
     type: string
@@ -260,6 +269,8 @@ properties:
       payload:
         type: object
     additionalProperties: true
+  playback:
+    $ref: "#/$defs/playback"
   tween:
     $ref: "#/$defs/updateTween"
   prev:

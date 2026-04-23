@@ -1,6 +1,6 @@
 # Animation Implementation Plan
 
-Last updated: 2026-03-23
+Last updated: 2026-04-23
 
 ## Goal
 
@@ -20,6 +20,7 @@ Current runtime shape:
 
 - public normalization still expects `type: live | replace`
 - live element animation is driven through one central animation bus
+- every changed render cancels all active update animations before planning the next state
 - replace supports add, update, and delete lifecycles through diff planning
 - replace supports `prev` and `next` tween composition with optional `mask`
 - shader-backed replace has been removed for now
@@ -92,6 +93,7 @@ animations:
 Key rules:
 
 - `update` uses `tween`
+- `update` and `transition` support optional `playback.continuity: persistent`
 - `transition` uses `prev`, `next`, and optional `mask`
 - `transition` may define:
   - `prev` only
@@ -188,6 +190,81 @@ Work:
 - keep update-time motion on one live display object
 - use `transition` for enter/exit/swap even when the effect is a simple fade
 - use `update` only for elements that persist across the state change
+
+## Step 5A: Add Persistent Playback Continuity
+
+Goal:
+
+- allow selected `update` and `transition` animations to continue across later
+  renders without adding a third top-level animation type
+
+Specified public interface:
+
+```yaml
+animations:
+  - id: "bg-breathe"
+    targetId: "bg"
+    type: "update"
+    playback:
+      continuity: "persistent"
+    tween:
+      scaleX:
+        keyframes:
+          - duration: 3000
+            value: 1.05
+            easing: "easeInOutSine"
+          - duration: 3000
+            value: 1
+            easing: "easeInOutSine"
+```
+
+Implemented contract:
+
+- `playback` is optional on `update` and `transition`
+- `playback.continuity` currently supports one value:
+  - `persistent`
+- when omitted, `update` keeps current render-scoped behavior
+- when omitted, `transition` keeps current render-scoped behavior
+- when present on `update`, the same animation should continue across later
+  renders if `id`, `targetId`, and normalized config are unchanged
+- when present on `transition`, the same in-flight handoff should continue
+  across later renders if `id`, `targetId`, and normalized `prev` / `next` /
+  `mask` / `playback` config are unchanged
+- if a later render omits the animation, it stops
+- if a later render changes the animation config, it restarts
+- a persistent animation should still count toward the originating render's
+  `renderComplete` if it finishes before continuity carries it into a later
+  render
+- once continuity carries that in-flight animation into a later render, it
+  must be detached from render completion tracking
+- persistent transition continuity keeps the same active handoff alive; it does
+  not retarget the transition mid-flight
+
+Implemented work:
+
+- extend normalization and schema for optional `playback.continuity`
+- reconcile persistent update animations by stable animation `id` instead of
+  cancelling them unconditionally on every changed render
+- reconcile persistent transitions by stable animation `id` and keep the
+  existing overlay / hidden-next handoff alive across unrelated later renders
+- keep render-scoped animations on current reset behavior when continuity is not
+  requested
+- preserve completion for the originating render when a persistent animation
+  finishes before any later render adopts it
+- detach completion tracking when an in-flight persistent animation is adopted
+  by a later render, so its eventual finish no longer emits `renderComplete`
+- keep the restart rules simple: changed config or changed owned target/subtree
+  breaks continuity and starts a new animation instance
+
+Primary runtime files:
+
+- `src/util/normalizeAnimations.js`
+- `src/schemas/animations/animation.yaml`
+- `src/RouteGraphics.js`
+- `src/plugins/animations/animationBus.js`
+- `src/plugins/animations/planAnimations.js`
+- `src/plugins/animations/updateAnimationDispatch.js`
+- `src/util/diffElements.js`
 
 ## Step 6: Keep Mask Transition As The Reveal Primitive
 

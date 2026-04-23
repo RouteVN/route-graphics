@@ -18,6 +18,7 @@ import {
   createRenderContext,
   flushDeferredMountOperations,
 } from "../../elements/renderContext.js";
+import { getAnimationContinuitySignature } from "../planAnimations.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -1302,6 +1303,12 @@ export const runReplaceAnimation = ({
   const prevSubject = prevDisplayObject
     ? createSnapshotSubject(app, prevDisplayObject)
     : null;
+  const isPersistent = animation.playback?.continuity === "persistent";
+  const continuitySignature = getAnimationContinuitySignature(animation);
+  const transitionSignalController = isPersistent
+    ? new AbortController()
+    : null;
+  const transitionSignal = transitionSignalController?.signal ?? signal;
 
   const transitionMountParent = new Container();
   const hiddenMountContext = createRenderContext({
@@ -1327,6 +1334,31 @@ export const runReplaceAnimation = ({
     completionTracker.complete(stateVersion);
     completionTracked = false;
   };
+  const nextDisplayObjectRef = { value: null };
+  const replaceOverlayRef = { value: null };
+  let finalized = false;
+  const cleanupPendingTransition = () => {
+    if (typeof animationBus?.removePending === "function") {
+      animationBus.removePending(animation.id);
+    }
+  };
+  const handleContinuationUpdate = ({ zIndex: nextZIndex } = {}) => {
+    if (
+      typeof nextZIndex === "number" &&
+      nextDisplayObjectRef.value &&
+      !nextDisplayObjectRef.value.destroyed
+    ) {
+      nextDisplayObjectRef.value.zIndex = nextZIndex;
+    }
+
+    if (
+      typeof nextZIndex === "number" &&
+      replaceOverlayRef.value?.overlay &&
+      !replaceOverlayRef.value.overlay.destroyed
+    ) {
+      replaceOverlayRef.value.overlay.zIndex = nextZIndex;
+    }
+  };
 
   const finalize = ({ flushDeferredEffects }) => {
     if (finalized) return;
@@ -1345,14 +1377,30 @@ export const runReplaceAnimation = ({
 
     clearDeferredMountOperations(hiddenMountContext);
   };
-  const nextDisplayObjectRef = { value: null };
-  const replaceOverlayRef = { value: null };
-  let finalized = false;
+
+  if (isPersistent && typeof animationBus?.registerPending === "function") {
+    animationBus.registerPending({
+      id: animation.id,
+      animationType: animation.type,
+      targetId: animation.targetId,
+      signature: continuitySignature,
+      continuity: "persistent",
+      onCancel: () => {
+        transitionSignalController?.abort();
+        clearDeferredMountOperations(hiddenMountContext);
+        transitionMountParent.destroy({ children: true });
+        destroySubjectSnapshot(prevSubject);
+        completeTransition();
+      },
+      onContinuationUpdate: handleContinuationUpdate,
+    });
+  }
 
   trackTransition();
 
   const continueWithNextDisplayObject = (nextDisplayObject) => {
-    if (signal?.aborted || parent.destroyed) {
+    if (transitionSignal?.aborted || parent.destroyed) {
+      cleanupPendingTransition();
       clearDeferredMountOperations(hiddenMountContext);
       transitionMountParent.destroy({ children: true });
       destroySubjectSnapshot(prevSubject);
@@ -1361,6 +1409,7 @@ export const runReplaceAnimation = ({
     }
 
     if (nextElement && !nextDisplayObject) {
+      cleanupPendingTransition();
       clearDeferredMountOperations(hiddenMountContext);
       completeTransition();
       throw new Error(
@@ -1402,7 +1451,7 @@ export const runReplaceAnimation = ({
         eventHandler,
         elementPlugins,
         renderContext,
-        signal,
+        signal: transitionSignal,
       });
     }
 
@@ -1422,31 +1471,47 @@ export const runReplaceAnimation = ({
     replaceOverlayRef.value = replaceOverlay;
 
     parent.addChild(replaceOverlay.overlay);
+    const animationPayload = {
+      id: animation.id,
+      driver: "custom",
+      animationType: animation.type,
+      targetId: animation.targetId,
+      signature: continuitySignature,
+      continuity: isPersistent ? "persistent" : "render",
+      onContinuationUpdate: handleContinuationUpdate,
+      duration: replaceOverlay.duration,
+      applyFrame: replaceOverlay.apply,
+      applyTargetState: () => {
+        finalize({ flushDeferredEffects: false });
+      },
+      onComplete: () => {
+        try {
+          finalize({ flushDeferredEffects: true });
+        } finally {
+          completeTransition();
+        }
+      },
+      onCancel: () => {
+        completeTransition();
+      },
+      isValid: () =>
+        Boolean(replaceOverlay.overlay) &&
+        !replaceOverlay.overlay.destroyed &&
+        (!nextDisplayObject || !nextDisplayObject.destroyed),
+    };
+
+    if (
+      isPersistent &&
+      typeof animationBus?.activatePending === "function" &&
+      animationBus.activatePending(animation.id, animationPayload)
+    ) {
+      return;
+    }
+
+    cleanupPendingTransition();
     animationBus.dispatch({
       type: "START",
-      payload: {
-        id: animation.id,
-        driver: "custom",
-        duration: replaceOverlay.duration,
-        applyFrame: replaceOverlay.apply,
-        applyTargetState: () => {
-          finalize({ flushDeferredEffects: false });
-        },
-        onComplete: () => {
-          try {
-            finalize({ flushDeferredEffects: true });
-          } finally {
-            completeTransition();
-          }
-        },
-        onCancel: () => {
-          completeTransition();
-        },
-        isValid: () =>
-          Boolean(replaceOverlay.overlay) &&
-          !replaceOverlay.overlay.destroyed &&
-          (!nextDisplayObject || !nextDisplayObject.destroyed),
-      },
+      payload: animationPayload,
     });
   };
 
@@ -1463,7 +1528,7 @@ export const runReplaceAnimation = ({
         elementPlugins,
         renderContext: hiddenMountContext,
         zIndex,
-        signal,
+        signal: transitionSignal,
       })
     : null;
 

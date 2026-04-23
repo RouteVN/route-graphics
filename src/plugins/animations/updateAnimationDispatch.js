@@ -68,6 +68,13 @@ export const dispatchUpdateAnimationsNow = ({
   onComplete,
 }) => {
   for (const animation of animations) {
+    if (
+      typeof animationBus?.hasContext === "function" &&
+      animationBus.hasContext(animation.id)
+    ) {
+      continue;
+    }
+
     for (const [property, config] of Object.entries(animation.tween)) {
       if (
         config.auto &&
@@ -87,6 +94,16 @@ export const dispatchUpdateAnimationsNow = ({
       type: "START",
       payload: {
         id: animation.id,
+        animationType: animation.type,
+        targetId: animation.targetId,
+        continuity: animation.playback?.continuity ?? "render",
+        signature:
+          animation.signature ??
+          JSON.stringify({
+            type: animation.type,
+            tween: animation.tween,
+            playback: animation.playback ?? null,
+          }),
         element,
         properties: animation.tween,
         targetState,

@@ -280,4 +280,114 @@ describe("animationBus auto tween shorthand", () => {
     expect(onCancel).not.toHaveBeenCalled();
     expect(animationBus.getState().activeCount).toBe(0);
   });
+
+  it("keeps explicitly preserved persistent animations active across selective cancellation", () => {
+    const animationBus = createAnimationBus();
+    const onCancel = vi.fn();
+    const element = {
+      x: 10,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "persistent-update",
+        animationType: "update",
+        targetId: "bg",
+        continuity: "persistent",
+        signature: '{"type":"update"}',
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 110, easing: "linear" }],
+          },
+        },
+        onCancel,
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(300);
+    expect(element.x).toBeCloseTo(40);
+
+    animationBus.cancelAllExcept(new Set(["persistent-update"]));
+    animationBus.tick(100);
+
+    expect(element.x).toBeCloseTo(50);
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(animationBus.isAnimating("persistent-update")).toBe(true);
+  });
+
+  it("exposes pending persistent contexts for continuity planning and cancels unkept ones", () => {
+    const animationBus = createAnimationBus();
+    const onCancel = vi.fn();
+
+    animationBus.registerPending({
+      id: "pending-transition",
+      animationType: "transition",
+      targetId: "scene-root",
+      continuity: "persistent",
+      signature: '{"type":"transition"}',
+      onCancel,
+    });
+
+    expect(animationBus.hasContext("pending-transition")).toBe(true);
+    expect(animationBus.getContinuableAnimations()).toEqual(
+      new Map([
+        [
+          "pending-transition",
+          {
+            id: "pending-transition",
+            type: "transition",
+            targetId: "scene-root",
+            signature: '{"type":"transition"}',
+            continuity: "persistent",
+            pending: true,
+          },
+        ],
+      ]),
+    );
+
+    animationBus.cancelAllExcept(new Set());
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(animationBus.hasContext("pending-transition")).toBe(false);
+  });
+
+  it("updates continuation metadata for active and pending contexts", () => {
+    const animationBus = createAnimationBus();
+    const activeUpdate = vi.fn();
+    const pendingUpdate = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "active-transition",
+        driver: "custom",
+        animationType: "transition",
+        targetId: "scene-root",
+        continuity: "persistent",
+        signature: '{"type":"transition"}',
+        duration: 500,
+        onContinuationUpdate: activeUpdate,
+      },
+    });
+    animationBus.flush();
+
+    animationBus.registerPending({
+      id: "pending-transition",
+      animationType: "transition",
+      targetId: "scene-root",
+      continuity: "persistent",
+      signature: '{"type":"transition"}',
+      onContinuationUpdate: pendingUpdate,
+    });
+
+    animationBus.updateContinuation("active-transition", { zIndex: 7 });
+    animationBus.updateContinuation("pending-transition", { zIndex: 3 });
+
+    expect(activeUpdate).toHaveBeenCalledWith({ zIndex: 7 });
+    expect(pendingUpdate).toHaveBeenCalledWith({ zIndex: 3 });
+  });
 });

@@ -9,6 +9,9 @@ sidebarId: node-tween
 
 Try it in the [Playground](/playground/?template=animations-showcase).
 
+`playback.continuity: persistent` enables cross-render continuity on `update`
+and `transition`.
+
 ## Used In
 
 - `animations[]`
@@ -21,6 +24,7 @@ Try it in the [Playground](/playground/?template=animations-showcase).
 | `targetId` | string | Yes        | -       | Must match an element id in the same render state.                    |
 | `type`     | string | Yes        | -       | One of `update` or `transition`.                                      |
 | `tween`    | object | Update     | -       | Required for `type: update`.                                          |
+| `playback` | object | No         | -       | Optional cross-render continuity contract for `update` and `transition`. |
 | `prev`     | object | Transition | -       | Optional for `type: transition`; drives the previous captured visual. |
 | `next`     | object | Transition | -       | Optional for `type: transition`; drives the next captured visual.     |
 | `mask`     | object | Transition | -       | Optional for `type: transition`; image-driven reveal field.           |
@@ -78,6 +82,25 @@ Each keyframe accepts:
 `update` is update-only. Do not use it for enter, exit, or replace lifecycles.
 Higher-level adapters should reject that and require `transition` instead.
 
+## Playback Continuity
+
+Specified interface:
+
+```yaml
+playback:
+  continuity: persistent
+```
+
+Rules:
+
+- `playback` is valid on `type: update` and `type: transition`
+- `continuity` currently supports one value: `persistent`
+- when omitted, `update` and `transition` keep current render-scoped behavior
+- on `update`, the same animation should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized config stay the same
+- on `transition`, the same in-flight prev/next handoff should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized `prev`/`next`/`mask`/`playback` config stay the same
+- if a later render omits the animation, or changes its config, it stops or restarts
+- persistent `transition` continuity keeps the same active handoff alive; it does not retarget the transition mid-flight
+
 ## Transition Prev/Next
 
 `transition` animations can drive `prev` and `next` separately.
@@ -124,10 +147,13 @@ Supported mask channels:
 ## Behavior Notes
 
 - Update animations are driven by the central animation bus.
+- `playback.continuity: persistent` keeps qualifying `update` and `transition` animations alive across later renders instead of restarting them.
 - `transition` animations snapshot the previous and next visuals for the same `targetId`.
 - `transition` may define `prev` only, `next` only, or both.
 - Missing `prev` or `next` is treated as transparent.
 - On render interruption, pending animations are canceled and the current render is marked aborted through `renderComplete`.
+- A persistent animation still contributes to `renderComplete` for the render that started it if it finishes before continuity carries it into a later render.
+- Once continuity carries that in-flight animation into a later render, it stops contributing to `renderComplete`, and its eventual finish should not fire `renderComplete` for either render.
 - Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations and reveals settle.
 
 ## Example: Enter Fade
@@ -188,6 +214,53 @@ animations:
         auto:
           duration: 450
           easing: easeOutQuad
+```
+
+## Example: Planned Persistent Update
+
+```yaml
+animations:
+  - id: bg-breathe
+    targetId: bg
+    type: update
+    playback:
+      continuity: persistent
+    tween:
+      scaleX:
+        keyframes:
+          - value: 1.05
+            duration: 3000
+            easing: easeInOutSine
+          - value: 1
+            duration: 3000
+            easing: easeInOutSine
+      scaleY:
+        keyframes:
+          - value: 1.05
+            duration: 3000
+            easing: easeInOutSine
+          - value: 1
+            duration: 3000
+            easing: easeInOutSine
+```
+
+## Example: Planned Persistent Transition
+
+```yaml
+animations:
+  - id: bg-fade-in
+    targetId: bg
+    type: transition
+    playback:
+      continuity: persistent
+    next:
+      tween:
+        alpha:
+          initialValue: 0
+          keyframes:
+            - value: 1
+              duration: 900
+              easing: linear
 ```
 
 ## Example: Relative Keyframes

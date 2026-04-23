@@ -1,6 +1,6 @@
 # Animation Model
 
-Last updated: 2026-04-02
+Last updated: 2026-04-23
 
 See also:
 
@@ -24,6 +24,7 @@ The runtime now exposes:
 - required `type: update | transition`
 - `tween` as the motion payload
 - `mask` only inside `transition`
+- optional `playback.continuity: persistent` on `update` and `transition`
 
 Current known runtime limitations are tracked in
 `docs/animation-implementation-plan.md`.
@@ -104,6 +105,7 @@ instead.
 `update` supports:
 
 - `tween`
+- `playback.continuity`
 
 `update` does not support:
 
@@ -135,6 +137,7 @@ Use it for:
 - `prev.tween`
 - `next.tween`
 - `mask`
+- `playback.continuity`
 - future `shader`
 
 `transition` may define:
@@ -219,6 +222,111 @@ animations:
           duration: 600
           easing: "easeOutQuad"
 ```
+
+## Playback Continuity
+
+```yaml
+animations:
+  - id: "bg-breathe"
+    targetId: "bg"
+    type: "update"
+    playback:
+      continuity: "persistent"
+    tween:
+      scaleX:
+        keyframes:
+          - duration: 3000
+            value: 1.05
+            easing: "easeInOutSine"
+          - duration: 3000
+            value: 1
+            easing: "easeInOutSine"
+      scaleY:
+        keyframes:
+          - duration: 3000
+            value: 1.05
+            easing: "easeInOutSine"
+          - duration: 3000
+            value: 1
+            easing: "easeInOutSine"
+```
+
+### Shape
+
+- `playback` is optional
+- `playback` is valid on `type: update` and `type: transition`
+- `playback.continuity` currently supports one value:
+  - `persistent`
+
+### Meaning For `update`
+
+Without `playback.continuity: persistent`, `update` keeps the current
+render-scoped behavior:
+
+- a later changed render may cancel the current update animation
+- if the same animation appears again in that later render, it starts again
+
+With `playback.continuity: persistent`, the runtime lets the same update
+animation continue across later renders instead of restarting, as long as all
+of these remain true:
+
+- the animation `id` is the same
+- the `targetId` is the same
+- the normalized `tween` and `playback` config are the same
+- the target element still exists as the same live display object
+
+### Meaning For `transition`
+
+Without `playback.continuity: persistent`, `transition` keeps the current
+render-scoped behavior:
+
+- a later changed render cancels the in-flight transition
+- if the same transition appears again in that later render, it starts again
+
+With `playback.continuity: persistent`, the runtime lets the same in-flight
+transition continue across later renders instead of restarting, as long as all
+of these remain true:
+
+- the animation `id` is the same
+- the `targetId` is the same
+- the normalized `prev`, `next`, `mask`, and `playback` config are the same
+- the transition still owns the same target subtree handoff
+
+This is continuity of one already-started transition.
+
+It is not a live retargeting model.
+
+That means:
+
+- the runtime does not rebuild the transition's snapshots just because a later unrelated render happened
+- the runtime does not reinterpret the active transition against newly changed target content mid-flight
+
+### Restart And Stop Rules
+
+- if a later render omits that animation, it stops
+- if a later render changes that animation's `tween` or `playback` config, it restarts from the beginning
+- if a later render changes a persistent transition's `prev`, `next`, or `mask` config, it restarts from the beginning
+- if the target element or target subtree is deleted, replaced, or otherwise no longer matches the active handoff, it stops or restarts
+
+### Transition Ownership Rule
+
+Persistent transition continuity follows the same subtree ownership rule as
+normal `transition`:
+
+- the active transition continues to own the target subtree surface while it is running
+- later unrelated renders may proceed around that target
+- later renders that need to change that same target must cancel or restart the transition rather than mutate it in place
+
+### Render Completion Rule
+
+Persistent continuity should not keep the current render open forever.
+
+So the contract is:
+
+- a persistent animation still starts as tracked work for the render that started it
+- if that animation finishes before any later render carries it forward, it completes normally and contributes to that render's `renderComplete`
+- if a later render reuses that in-flight animation through `playback.continuity: persistent`, that animation stops contributing to render completion from that point onward
+- after continuity has carried it into a later render, its eventual finish must not trigger `renderComplete` for either the old render or the newer render
 
 ## Transition Examples
 
@@ -361,7 +469,9 @@ It should live next to `mask`, not on `update`.
 ## Validation Rules
 
 - `update` requires `tween`
+- `update` may optionally define `playback.continuity: persistent`
 - `update` cannot define `prev`, `next`, or `mask`
+- `transition` may optionally define `playback.continuity: persistent`
 - `transition` requires at least one of:
   - `prev`
   - `next`
@@ -374,6 +484,7 @@ It should live next to `mask`, not on `update`.
 - keep `animations` as the top-level field
 - use required `type: update | transition`
 - use `tween` instead of generic `properties`
+- allow optional `playback.continuity: persistent`
 - let `transition` define `prev` and/or `next`
 - keep `mask` as a transition-only primitive
 - keep future `shader` transition-only as well
