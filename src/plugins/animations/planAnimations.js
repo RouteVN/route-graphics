@@ -4,6 +4,7 @@ import {
 } from "./updateAnimationDispatch.js";
 import { queueDeferredUpdateAnimationStart } from "../elements/renderContext.js";
 import { isDeepEqual } from "../../util/isDeepEqual.js";
+import { collectAllElementIds } from "../../util/collectElementIds.js";
 
 export const groupAnimationsByTarget = (animations = []) => {
   if (animations instanceof Map) {
@@ -41,14 +42,20 @@ export const getTransitionAnimation = (animationsOrMap, targetId) =>
     (animation) => animation.type === "transition",
   ) ?? null;
 
-const findElementById = (elements = [], targetId) => {
+const findElementMatchById = (elements = [], targetId, ancestorIds = []) => {
   for (const element of elements) {
     if (element?.id === targetId) {
-      return element;
+      return {
+        element,
+        ancestorIds,
+      };
     }
 
     if (Array.isArray(element?.children)) {
-      const childMatch = findElementById(element.children, targetId);
+      const childMatch = findElementMatchById(element.children, targetId, [
+        ...ancestorIds,
+        element.id,
+      ]);
       if (childMatch) {
         return childMatch;
       }
@@ -56,6 +63,33 @@ const findElementById = (elements = [], targetId) => {
   }
 
   return null;
+};
+
+const hasSameOwnershipPath = (prevMatch, nextMatch) =>
+  isDeepEqual(prevMatch?.ancestorIds ?? null, nextMatch?.ancestorIds ?? null);
+
+const hasSubtreeAnimationConflict = ({
+  subtreeRoot,
+  nextAnimations,
+  continuingAnimationId,
+}) => {
+  if (!subtreeRoot) {
+    return false;
+  }
+
+  const subtreeIds = collectAllElementIds(subtreeRoot);
+
+  for (const candidate of nextAnimations ?? []) {
+    if (!candidate || candidate.id === continuingAnimationId) {
+      continue;
+    }
+
+    if (subtreeIds.has(candidate.targetId)) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export const getAnimationContinuitySignature = (animation = {}) => {
@@ -77,21 +111,56 @@ export const getAnimationContinuitySignature = (animation = {}) => {
 };
 
 const canContinuePersistentUpdate = ({ prevState, nextState, animation }) => {
-  const prevTarget = findElementById(prevState?.elements, animation.targetId);
-  const nextTarget = findElementById(nextState?.elements, animation.targetId);
+  const prevTarget = findElementMatchById(
+    prevState?.elements,
+    animation.targetId,
+  );
+  const nextTarget = findElementMatchById(
+    nextState?.elements,
+    animation.targetId,
+  );
 
   return (
     prevTarget !== null &&
     nextTarget !== null &&
-    isDeepEqual(prevTarget, nextTarget)
+    hasSameOwnershipPath(prevTarget, nextTarget) &&
+    isDeepEqual(prevTarget.element, nextTarget.element)
   );
 };
 
-const canContinuePersistentTransition = ({ prevState, nextState, animation }) =>
-  isDeepEqual(
-    findElementById(prevState?.elements, animation.targetId),
-    findElementById(nextState?.elements, animation.targetId),
+const canContinuePersistentTransition = ({
+  prevState,
+  nextState,
+  animation,
+}) => {
+  const prevTarget = findElementMatchById(
+    prevState?.elements,
+    animation.targetId,
   );
+  const nextTarget = findElementMatchById(
+    nextState?.elements,
+    animation.targetId,
+  );
+
+  if (prevTarget === null && nextTarget === null) {
+    return true;
+  }
+
+  if (
+    prevTarget === null ||
+    nextTarget === null ||
+    !hasSameOwnershipPath(prevTarget, nextTarget) ||
+    !isDeepEqual(prevTarget.element, nextTarget.element)
+  ) {
+    return false;
+  }
+
+  return !hasSubtreeAnimationConflict({
+    subtreeRoot: nextTarget.element,
+    nextAnimations: nextState?.animations,
+    continuingAnimationId: animation.id,
+  });
+};
 
 export const buildAnimationContinuityPlan = ({
   prevState,

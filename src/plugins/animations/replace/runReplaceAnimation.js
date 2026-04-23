@@ -1316,6 +1316,7 @@ export const runReplaceAnimation = ({
   });
   const stateVersion = completionTracker.getVersion();
   let completionTracked = false;
+  let currentZIndex = zIndex;
 
   const trackTransition = () => {
     if (completionTracked) {
@@ -1343,20 +1344,21 @@ export const runReplaceAnimation = ({
     }
   };
   const handleContinuationUpdate = ({ zIndex: nextZIndex } = {}) => {
-    if (
-      typeof nextZIndex === "number" &&
-      nextDisplayObjectRef.value &&
-      !nextDisplayObjectRef.value.destroyed
-    ) {
-      nextDisplayObjectRef.value.zIndex = nextZIndex;
+    if (typeof nextZIndex !== "number") {
+      return;
+    }
+
+    currentZIndex = nextZIndex;
+
+    if (nextDisplayObjectRef.value && !nextDisplayObjectRef.value.destroyed) {
+      nextDisplayObjectRef.value.zIndex = currentZIndex;
     }
 
     if (
-      typeof nextZIndex === "number" &&
       replaceOverlayRef.value?.overlay &&
       !replaceOverlayRef.value.overlay.destroyed
     ) {
-      replaceOverlayRef.value.overlay.zIndex = nextZIndex;
+      replaceOverlayRef.value.overlay.zIndex = currentZIndex;
     }
   };
 
@@ -1456,7 +1458,7 @@ export const runReplaceAnimation = ({
     }
 
     if (nextDisplayObject) {
-      nextDisplayObject.zIndex = zIndex;
+      nextDisplayObject.zIndex = currentZIndex;
       parent.addChild(nextDisplayObject);
       nextDisplayObject.visible = false;
     }
@@ -1466,7 +1468,7 @@ export const runReplaceAnimation = ({
       animation,
       prevSubject: overlaySubjects.prevSubject,
       nextSubject: overlaySubjects.nextSubject,
-      zIndex,
+      zIndex: currentZIndex,
     });
     replaceOverlayRef.value = replaceOverlay;
 

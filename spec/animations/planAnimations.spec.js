@@ -26,10 +26,14 @@ describe("buildAnimationContinuityPlan", () => {
 
     const plan = buildAnimationContinuityPlan({
       prevState: {
-        elements: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
       },
       nextState: {
-        elements: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
         animations: [animation],
       },
       activeAnimations: new Map([
@@ -64,12 +68,99 @@ describe("buildAnimationContinuityPlan", () => {
 
     const plan = buildAnimationContinuityPlan({
       prevState: {
-        elements: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
       },
       nextState: {
-        elements: [{ id: "bg", type: "rect", x: 5, y: 0, width: 10, height: 10 }],
+        elements: [
+          { id: "bg", type: "rect", x: 5, y: 0, width: 10, height: 10 },
+        ],
         animations: [animation],
       },
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+
+  it("does not continue a persistent update when the target is reparented", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "persistent" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const bgNode = {
+      id: "bg",
+      type: "rect",
+      x: 0,
+      y: 0,
+      width: 10,
+      height: 10,
+    };
+    const prevState = {
+      elements: [
+        {
+          id: "left",
+          type: "container",
+          x: 0,
+          y: 0,
+          alpha: 1,
+          children: [bgNode],
+        },
+        {
+          id: "right",
+          type: "container",
+          x: 20,
+          y: 0,
+          alpha: 1,
+          children: [],
+        },
+      ],
+    };
+    const nextState = {
+      elements: [
+        {
+          id: "left",
+          type: "container",
+          x: 0,
+          y: 0,
+          alpha: 1,
+          children: [],
+        },
+        {
+          id: "right",
+          type: "container",
+          x: 20,
+          y: 0,
+          alpha: 1,
+          children: [{ ...bgNode }],
+        },
+      ],
+      animations: [animation],
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState,
+      nextState,
       activeAnimations: new Map([
         [
           "bg-breathe",
@@ -170,6 +261,64 @@ describe("buildAnimationContinuityPlan", () => {
     });
 
     expect(plan.continuedAnimationIds).toEqual(new Set(["fade-out"]));
+  });
+
+  it("does not continue a persistent transition when a descendant animation is introduced", () => {
+    const transitionAnimation = {
+      id: "scene-fade",
+      targetId: "scene-root",
+      type: "transition",
+      playback: { continuity: "persistent" },
+      next: {
+        tween: {
+          alpha: {
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+    };
+    const descendantAnimation = {
+      id: "bg-pulse",
+      targetId: "bg",
+      type: "update",
+      tween: {
+        alpha: {
+          keyframes: [{ duration: 1000, value: 0.5, easing: "linear" }],
+        },
+      },
+    };
+
+    const sceneNode = {
+      id: "scene-root",
+      type: "container",
+      x: 0,
+      y: 0,
+      alpha: 1,
+      children: [{ id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 }],
+    };
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [sceneNode],
+      },
+      nextState: {
+        elements: [{ ...sceneNode, children: [...sceneNode.children] }],
+        animations: [transitionAnimation, descendantAnimation],
+      },
+      activeAnimations: new Map([
+        [
+          "scene-fade",
+          {
+            id: "scene-fade",
+            type: "transition",
+            targetId: "scene-root",
+            signature: getAnimationContinuitySignature(transitionAnimation),
+            continuity: "persistent",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
   });
 });
 
