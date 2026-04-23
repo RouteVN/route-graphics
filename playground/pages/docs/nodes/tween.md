@@ -9,8 +9,8 @@ sidebarId: node-tween
 
 Try it in the [Playground](/playground/?template=animations-showcase).
 
-`playback.continuity: persistent` enables cross-render continuity on `update`
-and `transition`.
+`playback.continuity` controls whether an animation is render-scoped or can
+continue across later renders on `update` and `transition`.
 
 ## Used In
 
@@ -18,17 +18,17 @@ and `transition`.
 
 ## Field Reference
 
-| Field      | Type   | Required   | Default | Notes                                                                 |
-| ---------- | ------ | ---------- | ------- | --------------------------------------------------------------------- |
-| `id`       | string | Yes        | -       | Animation id.                                                         |
-| `targetId` | string | Yes        | -       | Must match an element id in the same render state.                    |
-| `type`     | string | Yes        | -       | One of `update` or `transition`.                                      |
-| `tween`    | object | Update     | -       | Required for `type: update`.                                          |
+| Field      | Type   | Required   | Default | Notes                                                                    |
+| ---------- | ------ | ---------- | ------- | ------------------------------------------------------------------------ |
+| `id`       | string | Yes        | -       | Animation id.                                                            |
+| `targetId` | string | Yes        | -       | Must match an element id in the same render state.                       |
+| `type`     | string | Yes        | -       | One of `update` or `transition`.                                         |
+| `tween`    | object | Update     | -       | Required for `type: update`.                                             |
 | `playback` | object | No         | -       | Optional cross-render continuity contract for `update` and `transition`. |
-| `prev`     | object | Transition | -       | Optional for `type: transition`; drives the previous captured visual. |
-| `next`     | object | Transition | -       | Optional for `type: transition`; drives the next captured visual.     |
-| `mask`     | object | Transition | -       | Optional for `type: transition`; image-driven reveal field.           |
-| `complete` | object | No         | -       | Schema supports it, runtime completion is still tracked globally.     |
+| `prev`     | object | Transition | -       | Optional for `type: transition`; drives the previous captured visual.    |
+| `next`     | object | Transition | -       | Optional for `type: transition`; drives the next captured visual.        |
+| `mask`     | object | Transition | -       | Optional for `type: transition`; image-driven reveal field.              |
+| `complete` | object | No         | -       | Schema supports it, runtime completion is still tracked globally.        |
 
 ## Types
 
@@ -94,7 +94,8 @@ playback:
 Rules:
 
 - `playback` is valid on `type: update` and `type: transition`
-- `continuity` currently supports one value: `persistent`
+- `continuity` supports two values: `render` and `persistent`
+- `render` is explicit render-scoped behavior and is equivalent to omitting `playback`
 - when omitted, `update` and `transition` keep current render-scoped behavior
 - on `update`, the same animation should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized config stay the same
 - on `transition`, the same in-flight prev/next handoff should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized `prev`/`next`/`mask`/`playback` config stay the same
@@ -147,6 +148,7 @@ Supported mask channels:
 ## Behavior Notes
 
 - Update animations are driven by the central animation bus.
+- `playback.continuity: render` keeps the default render-scoped behavior and is equivalent to omitting `playback`.
 - `playback.continuity: persistent` keeps qualifying `update` and `transition` animations alive across later renders instead of restarting them.
 - `transition` animations snapshot the previous and next visuals for the same `targetId`.
 - `transition` may define `prev` only, `next` only, or both.

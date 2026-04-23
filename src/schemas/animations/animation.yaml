@@ -250,7 +250,7 @@ $defs:
     properties:
       continuity:
         type: string
-        enum: [persistent]
+        enum: [render, persistent]
     additionalProperties: false
 properties:
   id:

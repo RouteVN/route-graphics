@@ -95,6 +95,48 @@ describe("buildAnimationContinuityPlan", () => {
     expect(plan.continuedAnimationIds).toEqual(new Set());
   });
 
+  it("does not continue an update when playback continuity is explicitly render-scoped", () => {
+    const animation = {
+      id: "bg-breathe",
+      targetId: "bg",
+      type: "update",
+      playback: { continuity: "render" },
+      tween: {
+        scaleX: {
+          keyframes: [{ duration: 1000, value: 1.2, easing: "linear" }],
+        },
+      },
+    };
+
+    const plan = buildAnimationContinuityPlan({
+      prevState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+      },
+      nextState: {
+        elements: [
+          { id: "bg", type: "rect", x: 0, y: 0, width: 10, height: 10 },
+        ],
+        animations: [animation],
+      },
+      activeAnimations: new Map([
+        [
+          "bg-breathe",
+          {
+            id: "bg-breathe",
+            type: "update",
+            targetId: "bg",
+            signature: getAnimationContinuitySignature(animation),
+            continuity: "render",
+          },
+        ],
+      ]),
+    });
+
+    expect(plan.continuedAnimationIds).toEqual(new Set());
+  });
+
   it("does not continue a persistent update when the target is reparented", () => {
     const animation = {
       id: "bg-breathe",

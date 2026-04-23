@@ -24,7 +24,7 @@ The runtime now exposes:
 - required `type: update | transition`
 - `tween` as the motion payload
 - `mask` only inside `transition`
-- optional `playback.continuity: persistent` on `update` and `transition`
+- optional `playback.continuity: render | persistent` on `update` and `transition`
 
 Current known runtime limitations are tracked in
 `docs/animation-implementation-plan.md`.
@@ -255,12 +255,15 @@ animations:
 
 - `playback` is optional
 - `playback` is valid on `type: update` and `type: transition`
-- `playback.continuity` currently supports one value:
+- `playback.continuity` currently supports two values:
+  - `render`
   - `persistent`
+- `render` is explicit render-scoped behavior and is equivalent to omitting
+  `playback`
 
 ### Meaning For `update`
 
-Without `playback.continuity: persistent`, `update` keeps the current
+Without `playback`, or with `playback.continuity: render`, `update` keeps the current
 render-scoped behavior:
 
 - a later changed render may cancel the current update animation
@@ -277,7 +280,7 @@ of these remain true:
 
 ### Meaning For `transition`
 
-Without `playback.continuity: persistent`, `transition` keeps the current
+Without `playback`, or with `playback.continuity: render`, `transition` keeps the current
 render-scoped behavior:
 
 - a later changed render cancels the in-flight transition
@@ -469,9 +472,9 @@ It should live next to `mask`, not on `update`.
 ## Validation Rules
 
 - `update` requires `tween`
-- `update` may optionally define `playback.continuity: persistent`
+- `update` may optionally define `playback.continuity: render | persistent`
 - `update` cannot define `prev`, `next`, or `mask`
-- `transition` may optionally define `playback.continuity: persistent`
+- `transition` may optionally define `playback.continuity: render | persistent`
 - `transition` requires at least one of:
   - `prev`
   - `next`
@@ -484,7 +487,7 @@ It should live next to `mask`, not on `update`.
 - keep `animations` as the top-level field
 - use required `type: update | transition`
 - use `tween` instead of generic `properties`
-- allow optional `playback.continuity: persistent`
+- allow optional `playback.continuity: render | persistent`
 - let `transition` define `prev` and/or `next`
 - keep `mask` as a transition-only primitive
 - keep future `shader` transition-only as well

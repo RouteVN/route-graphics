@@ -1,7 +1,7 @@
 import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
 
 const ANIMATION_TYPES = new Set(["update", "transition"]);
-const CONTINUITY_MODES = new Set(["persistent"]);
+const CONTINUITY_MODES = new Set(["render", "persistent"]);
 const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
