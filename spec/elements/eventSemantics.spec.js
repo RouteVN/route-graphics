@@ -551,6 +551,7 @@ describe("event semantics", () => {
     dispatchKeyboardEvent("keydown", "b");
     dispatchKeyboardEvent("keyup", "b");
     hotkeys.trigger("shift+c");
+    dispatchKeyboardEvent("keyup", "c", { code: "KeyC" });
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "keydown",
@@ -574,6 +575,59 @@ describe("event semantics", () => {
       _event: { key: "shift+c" },
       source: "ShiftCUp",
     });
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager emits keyup for modifier-only bindings", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      shift: {
+        keyup: { payload: { source: "ShiftUp" } },
+      },
+    });
+
+    hotkeys.trigger("shift");
+    dispatchKeyboardEvent("keyup", "Shift", { code: "ShiftLeft" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "shift" },
+          source: "ShiftUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager emits combo keyup even when the modifier is released first", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      "shift+c": {
+        keyup: { payload: { source: "ShiftCUp" } },
+      },
+    });
+
+    hotkeys.trigger("shift+c");
+    dispatchKeyboardEvent("keyup", "Shift", { code: "ShiftLeft" });
+    dispatchKeyboardEvent("keyup", "c", { code: "KeyC" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "shift+c" },
+          source: "ShiftCUp",
+        },
+      ],
+    ]);
 
     keyboardManager.destroy();
   });
