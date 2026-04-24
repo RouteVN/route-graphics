@@ -1,7 +1,39 @@
 import hotkeys from "hotkeys-js";
 import { isDeepEqual } from "./isDeepEqual.js";
 
-const hasOwn = Object.prototype.hasOwnProperty;
+const isPlainObject = (value) => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+};
+
+const normalizePhaseConfig = (config) => {
+  if (!isPlainObject(config)) {
+    return null;
+  }
+
+  return {
+    payload: isPlainObject(config.payload) ? config.payload : {},
+  };
+};
+
+const normalizeBindingConfig = (config) => {
+  if (!isPlainObject(config)) {
+    return null;
+  }
+
+  const normalizedConfig = {};
+  const keydown = normalizePhaseConfig(config.keydown);
+  const keyup = normalizePhaseConfig(config.keyup);
+
+  if (keydown) {
+    normalizedConfig.keydown = keydown;
+  }
+
+  if (keyup) {
+    normalizedConfig.keyup = keyup;
+  }
+
+  return Object.keys(normalizedConfig).length > 0 ? normalizedConfig : null;
+};
 
 /**
  * Create keyboard manager for handling global hotkeys
@@ -13,57 +45,70 @@ export const createKeyboardManager = (eventHandler) => {
 
   /**
    * @param {Object} hotkeyConfigs - Object with key mappings
-   * @param {Object} hotkeyConfigs[key].payload - Event payload for the key
+   * @param {Object} hotkeyConfigs[key].keydown - Keydown event configuration for the key
+   * @param {Object} hotkeyConfigs[key].keyup - Keyup event configuration for the key
    */
   const registerHotkeys = (hotkeyConfigs = {}) => {
     if (typeof hotkeyConfigs !== "object" || hotkeyConfigs === null) return;
 
-    const keysToAdd = [];
-    const keysToUpdate = [];
-    const keysToRemove = [];
+    const nextHotkeys = new Map();
+    const bindingsToAdd = [];
+    const bindingsToUpdate = [];
+    const bindingsToRemove = [];
 
-    Object.keys(hotkeyConfigs).forEach((key) => {
-      const active = activeHotkeys.get(key);
+    Object.keys(hotkeyConfigs).forEach((binding) => {
+      const normalizedConfig = normalizeBindingConfig(hotkeyConfigs[binding]);
+
+      if (normalizedConfig) {
+        nextHotkeys.set(binding, normalizedConfig);
+      }
+    });
+
+    nextHotkeys.forEach((config, binding) => {
+      const active = activeHotkeys.get(binding);
       if (!active) {
-        keysToAdd.push(key);
-      } else if (!isDeepEqual(active.payload, hotkeyConfigs[key].payload)) {
-        keysToUpdate.push(key);
-        hotkeys.unbind(key);
+        bindingsToAdd.push(binding);
+      } else if (!isDeepEqual(active, config)) {
+        bindingsToUpdate.push(binding);
+        hotkeys.unbind(binding);
       }
     });
 
-    activeHotkeys.forEach((_, key) => {
-      if (!hasOwn.call(hotkeyConfigs, key)) {
-        keysToRemove.push(key);
+    activeHotkeys.forEach((_, binding) => {
+      if (!nextHotkeys.has(binding)) {
+        bindingsToRemove.push(binding);
       }
     });
 
-    keysToRemove.forEach((key) => {
-      hotkeys.unbind(key);
-      activeHotkeys.delete(key);
+    bindingsToRemove.forEach((binding) => {
+      hotkeys.unbind(binding);
+      activeHotkeys.delete(binding);
     });
 
-    [...keysToAdd, ...keysToUpdate].forEach((key) => {
-      const config = hotkeyConfigs[key];
-      const payload = config.payload ?? {};
+    [...bindingsToAdd, ...bindingsToUpdate].forEach((binding) => {
+      const config = nextHotkeys.get(binding);
 
-      const handler = () => {
-        if (eventHandler) {
-          eventHandler("keydown", {
-            _event: {
-              key: key,
-            },
-            ...payload,
-          });
-        }
-      };
-
-      hotkeys(key, handler);
-
-      activeHotkeys.set(key, {
-        value: key,
-        payload: payload,
+      Object.entries(config).forEach(([eventName, phaseConfig]) => {
+        hotkeys(
+          binding,
+          {
+            keydown: eventName === "keydown",
+            keyup: eventName === "keyup",
+          },
+          () => {
+            if (eventHandler) {
+              eventHandler(eventName, {
+                _event: {
+                  key: binding,
+                },
+                ...phaseConfig.payload,
+              });
+            }
+          },
+        );
       });
+
+      activeHotkeys.set(binding, config);
     });
   };
 

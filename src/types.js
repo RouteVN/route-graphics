@@ -648,13 +648,24 @@ export const DEFAULT_TEXT_STYLE = {
  */
 
 /**
+ * @typedef {Object} KeyboardEventConfig
+ * @property {Object} [payload] - App-defined payload merged into the emitted keyboard event
+ */
+
+/**
+ * @typedef {Object} KeyboardBindingConfig
+ * @property {KeyboardEventConfig} [keydown] - Keydown event configuration for the binding
+ * @property {KeyboardEventConfig} [keyup] - Keyup event configuration for the binding
+ */
+
+/**
  * @typedef {Object} GlobalConfiguration
  * @property {Object} [cursorStyles] - Global cursor styles configuration
  * @property {string} [cursorStyles.default] - Default cursor style
  * @property {string} [cursorStyles.hover] - Hover cursor style
  * @property {string} [cursorStyles.disabled] - Disabled cursor style
  * @property {string} [cursorStyles.loading] - Loading cursor style
- * @property {Object<string, {payload?: Object}>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
+ * @property {Object<string, KeyboardBindingConfig>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
  */
 
 /**

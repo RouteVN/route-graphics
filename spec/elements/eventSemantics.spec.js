@@ -26,6 +26,19 @@ const createSharedParams = () => ({
 });
 
 const createPointerEvent = (button) => ({ button });
+const dispatchKeyboardEvent = (type, key, options = {}) => {
+  document.dispatchEvent(
+    new KeyboardEvent(type, {
+      key,
+      code:
+        options.code ??
+        (key.length === 1 ? `Key${key.toUpperCase()}` : undefined),
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    }),
+  );
+};
 
 afterEach(() => {
   hotkeys.unbind();
@@ -521,29 +534,45 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[0][1]._event.value).toBeTypeOf("number");
   });
 
-  it("keyboard manager emits keydown payload for registered keys", () => {
+  it("keyboard manager emits keydown and keyup payloads for registered keys", () => {
     const eventHandler = vi.fn();
     const keyboardManager = createKeyboardManager(eventHandler);
 
     keyboardManager.registerHotkeys({
-      a: { payload: { source: "A" } },
-      "shift+c": { payload: { source: "ShiftC" } },
+      a: { keydown: { payload: { source: "A" } } },
+      b: { keyup: { payload: { source: "B" } } },
+      "shift+c": {
+        keydown: { payload: { source: "ShiftCDown" } },
+        keyup: { payload: { source: "ShiftCUp" } },
+      },
     });
 
     hotkeys.trigger("a");
+    dispatchKeyboardEvent("keydown", "b");
+    dispatchKeyboardEvent("keyup", "b");
     hotkeys.trigger("shift+c");
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "keydown",
+      "keyup",
       "keydown",
+      "keyup",
     ]);
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
       _event: { key: "a" },
       source: "A",
     });
     expect(eventHandler.mock.calls[1][1]).toMatchObject({
+      _event: { key: "b" },
+      source: "B",
+    });
+    expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { key: "shift+c" },
-      source: "ShiftC",
+      source: "ShiftCDown",
+    });
+    expect(eventHandler.mock.calls[3][1]).toMatchObject({
+      _event: { key: "shift+c" },
+      source: "ShiftCUp",
     });
 
     keyboardManager.destroy();

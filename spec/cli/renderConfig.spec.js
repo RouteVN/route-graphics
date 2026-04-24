@@ -232,8 +232,10 @@ describe("collectAssetDefinitions", () => {
           global: {
             keyboard: {
               enter: {
-                payload: {
-                  soundSrc: "open-detail-sound",
+                keydown: {
+                  payload: {
+                    soundSrc: "open-detail-sound",
+                  },
                 },
               },
             },

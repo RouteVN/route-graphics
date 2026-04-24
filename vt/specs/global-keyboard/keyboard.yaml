@@ -54,11 +54,13 @@ states:
     global:
       keyboard:
         a:
-          payload:
-            action: keyA_Pressed
+          keydown:
+            payload:
+              action: keyA_Pressed
         b:
-          payload:
-            action: keyB_Pressed
+          keydown:
+            payload:
+              action: keyB_Pressed
   - elements:
       - id: rect-keyboard-test
         type: rect
@@ -71,8 +73,10 @@ states:
     global:
       keyboard:
         c:
-          payload:
-            action: keyC_Pressed
+          keydown:
+            payload:
+              action: keyC_Pressed
         shift+c:
-          payload:
-            action: shift_c_Pressed
+          keydown:
+            payload:
+              action: shift_c_Pressed

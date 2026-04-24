@@ -21,6 +21,7 @@ The authoritative contract for event naming and payload shape is in [`docs/api-n
 - `dragEnd`
 - `change`
 - `keydown`
+- `keyup`
 - `renderComplete`
 
 ## Naming Convention

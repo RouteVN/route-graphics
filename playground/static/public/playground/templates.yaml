@@ -887,9 +887,10 @@
         hover: pointer
       keyboard:
         r:
-          payload:
-            shortcut: reset-demo
-            source: global-keyboard
+          keydown:
+            payload:
+              shortcut: reset-demo
+              source: global-keyboard
     elements:
       - id: stage-bg
         type: rect
