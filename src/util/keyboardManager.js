@@ -3,6 +3,8 @@ import { isDeepEqual } from "./isDeepEqual.js";
 
 const BINDING_DELIMITER = ",";
 const TOKEN_DELIMITER = "+";
+const MODIFIER_META_KEY_CODES = new Set([93, 224]);
+const SHORTCUT_ACTIVATION_KEY_DELIMITER = "\u0000";
 
 const isPlainObject = (value) => {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -40,54 +42,96 @@ const resolveKeyCode = (token) => {
   return null;
 };
 
-const getEventKeyCode = (event) => {
-  if (typeof event?.code === "string" && /^Key[A-Z]$/.test(event.code)) {
-    return event.code.charCodeAt(3);
-  }
-
-  const resolvedKeyCode = resolveKeyCode(event?.key ?? "");
-
-  if (typeof resolvedKeyCode === "number") {
-    return resolvedKeyCode;
-  }
-
-  if (typeof event?.which === "number" && event.which > 0) {
-    return event.which;
-  }
-
-  if (typeof event?.keyCode === "number" && event.keyCode > 0) {
-    return event.keyCode;
-  }
-
-  if (typeof event?.charCode === "number" && event.charCode > 0) {
-    return event.charCode;
-  }
-
-  return null;
+const normalizeKeyCode = (keyCode) => {
+  return MODIFIER_META_KEY_CODES.has(keyCode) ? 91 : keyCode;
 };
 
-const getBindingReleaseCodes = (binding) => {
-  const releaseCodes = new Set();
+const getEventKeyCode = (event) => {
+  let keyCode = null;
 
-  if (typeof binding !== "string" || binding.length === 0) {
-    return releaseCodes;
+  if (typeof event?.keyCode === "number" && event.keyCode > 0) {
+    keyCode = event.keyCode;
+  } else if (typeof event?.which === "number" && event.which > 0) {
+    keyCode = event.which;
+  } else if (typeof event?.charCode === "number" && event.charCode > 0) {
+    keyCode = event.charCode;
   }
 
-  binding
-    .replace(/\s/g, "")
-    .split(BINDING_DELIMITER)
-    .filter(Boolean)
-    .forEach((shortcut) => {
-      shortcut
-        .split(TOKEN_DELIMITER)
-        .map((token) => resolveKeyCode(token))
-        .filter((keyCode) => typeof keyCode === "number")
-        .forEach((keyCode) => {
-          releaseCodes.add(keyCode);
-        });
-    });
+  if (typeof event?.code === "string" && /^Key[A-Z]$/.test(event.code)) {
+    keyCode = event.code.charCodeAt(3);
+  }
 
-  return releaseCodes;
+  if (typeof keyCode === "number") {
+    return normalizeKeyCode(keyCode);
+  }
+
+  return resolveKeyCode(event?.key ?? "");
+};
+
+const splitBindingShortcuts = (binding) => {
+  if (typeof binding !== "string" || binding.length === 0) {
+    return [];
+  }
+
+  const shortcuts = binding.replace(/\s/g, "").split(BINDING_DELIMITER);
+  let emptyShortcutIndex = shortcuts.lastIndexOf("");
+
+  while (emptyShortcutIndex >= 0) {
+    if (emptyShortcutIndex > 0) {
+      shortcuts[emptyShortcutIndex - 1] += BINDING_DELIMITER;
+    }
+
+    shortcuts.splice(emptyShortcutIndex, 1);
+    emptyShortcutIndex = shortcuts.lastIndexOf("");
+  }
+
+  return shortcuts.filter(Boolean);
+};
+
+const isModifierKeyCode = (keyCode) => {
+  return typeof hotkeys.modifierMap?.[keyCode] === "string";
+};
+
+const parseBindingShortcuts = (binding) => {
+  return splitBindingShortcuts(binding)
+    .map((shortcut) => {
+      const releaseCodes = new Set(
+        shortcut
+          .split(TOKEN_DELIMITER)
+          .map((token) => resolveKeyCode(token))
+          .filter((keyCode) => typeof keyCode === "number")
+          .map((keyCode) => normalizeKeyCode(keyCode)),
+      );
+
+      if (releaseCodes.size === 0) {
+        return null;
+      }
+
+      return {
+        shortcut,
+        releaseCodes,
+        isModifierOnly: [...releaseCodes].every(isModifierKeyCode),
+      };
+    })
+    .filter(Boolean);
+};
+
+const hasAllCodes = (pressedKeyCodes, releaseCodes) => {
+  for (const keyCode of releaseCodes) {
+    if (!pressedKeyCodes.has(keyCode)) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const getShortcutActivationKey = (binding, shortcut) => {
+  return `${binding}${SHORTCUT_ACTIVATION_KEY_DELIMITER}${shortcut.shortcut}`;
+};
+
+const shouldHandleKeydown = (event) => {
+  return typeof hotkeys.filter !== "function" || hotkeys.filter(event);
 };
 
 const normalizeBindingConfig = (config) => {
@@ -117,8 +161,10 @@ const normalizeBindingConfig = (config) => {
  */
 export const createKeyboardManager = (eventHandler) => {
   const registeredBindings = new Map();
-  const bindingReleaseCodes = new Map();
-  const activeKeyupBindings = new Set();
+  const bindingShortcuts = new Map();
+  const activeKeyupShortcuts = new Map();
+  const activeModifierShortcuts = new Map();
+  const pressedKeyCodes = new Set();
 
   const emitKeyboardEvent = (eventName, binding, payload) => {
     if (!eventHandler) {
@@ -134,7 +180,101 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const clearActiveKeyupBindings = () => {
-    activeKeyupBindings.clear();
+    activeKeyupShortcuts.clear();
+    activeModifierShortcuts.clear();
+    pressedKeyCodes.clear();
+  };
+
+  const clearBindingState = (binding) => {
+    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+      if (activeShortcut.binding === binding) {
+        activeKeyupShortcuts.delete(activationKey);
+      }
+    }
+
+    for (const [activationKey, activeShortcut] of [
+      ...activeModifierShortcuts,
+    ]) {
+      if (activeShortcut.binding === binding) {
+        activeModifierShortcuts.delete(activationKey);
+      }
+    }
+
+    bindingShortcuts.delete(binding);
+  };
+
+  const getHandlerShortcut = (binding, handler) => {
+    const shortcuts = bindingShortcuts.get(binding) ?? [];
+    const shortcutName =
+      typeof handler?.shortcut === "string"
+        ? handler.shortcut
+        : typeof handler?.key === "string"
+          ? handler.key
+          : null;
+
+    return (
+      shortcuts.find((shortcut) => shortcut.shortcut === shortcutName) ??
+      shortcuts[0] ??
+      null
+    );
+  };
+
+  const activateKeyupShortcut = (binding, shortcut) => {
+    const config = registeredBindings.get(binding);
+
+    if (!config?.keyup || !shortcut) {
+      return;
+    }
+
+    activeKeyupShortcuts.set(getShortcutActivationKey(binding, shortcut), {
+      binding,
+      releaseCodes: new Set(shortcut.releaseCodes),
+    });
+  };
+
+  const activateModifierShortcut = (binding, shortcut) => {
+    const activationKey = getShortcutActivationKey(binding, shortcut);
+    const wasActive = activeModifierShortcuts.has(activationKey);
+
+    activeModifierShortcuts.set(activationKey, {
+      binding,
+      releaseCodes: new Set(shortcut.releaseCodes),
+    });
+
+    return wasActive;
+  };
+
+  const onDocumentKeydown = (event) => {
+    if (!shouldHandleKeydown(event)) {
+      return;
+    }
+
+    const pressedKeyCode = getEventKeyCode(event);
+
+    if (typeof pressedKeyCode !== "number") {
+      return;
+    }
+
+    pressedKeyCodes.add(pressedKeyCode);
+
+    for (const [binding, config] of registeredBindings) {
+      const shortcuts = bindingShortcuts.get(binding) ?? [];
+
+      shortcuts
+        .filter((shortcut) => shortcut.isModifierOnly)
+        .forEach((shortcut) => {
+          if (!hasAllCodes(pressedKeyCodes, shortcut.releaseCodes)) {
+            return;
+          }
+
+          const wasActive = activateModifierShortcut(binding, shortcut);
+          activateKeyupShortcut(binding, shortcut);
+
+          if (config.keydown && !wasActive) {
+            emitKeyboardEvent("keydown", binding, config.keydown.payload);
+          }
+        });
+    }
   };
 
   const onDocumentKeyup = (event) => {
@@ -144,20 +284,30 @@ export const createKeyboardManager = (eventHandler) => {
       return;
     }
 
-    for (const binding of [...activeKeyupBindings]) {
-      const releaseCodes = bindingReleaseCodes.get(binding);
-      const config = registeredBindings.get(binding);
+    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+      const config = registeredBindings.get(activeShortcut.binding);
 
-      if (!releaseCodes?.has(releasedKeyCode) || !config?.keyup) {
+      if (!activeShortcut.releaseCodes.has(releasedKeyCode) || !config?.keyup) {
         continue;
       }
 
-      activeKeyupBindings.delete(binding);
-      emitKeyboardEvent("keyup", binding, config.keyup.payload);
+      activeKeyupShortcuts.delete(activationKey);
+      emitKeyboardEvent("keyup", activeShortcut.binding, config.keyup.payload);
     }
+
+    for (const [activationKey, activeShortcut] of [
+      ...activeModifierShortcuts,
+    ]) {
+      if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
+        activeModifierShortcuts.delete(activationKey);
+      }
+    }
+
+    pressedKeyCodes.delete(releasedKeyCode);
   };
 
   if (typeof document !== "undefined") {
+    document.addEventListener("keydown", onDocumentKeydown);
     document.addEventListener("keyup", onDocumentKeyup);
   }
 
@@ -205,35 +355,46 @@ export const createKeyboardManager = (eventHandler) => {
     bindingsToRemove.forEach((binding) => {
       hotkeys.unbind(binding);
       registeredBindings.delete(binding);
-      bindingReleaseCodes.delete(binding);
-      activeKeyupBindings.delete(binding);
+      clearBindingState(binding);
     });
 
     [...bindingsToAdd, ...bindingsToUpdate].forEach((binding) => {
       const config = nextHotkeys.get(binding);
-      const releaseCodes = getBindingReleaseCodes(binding);
+      const shortcuts = parseBindingShortcuts(binding);
 
-      activeKeyupBindings.delete(binding);
-      bindingReleaseCodes.set(binding, releaseCodes);
+      clearBindingState(binding);
+      bindingShortcuts.set(binding, shortcuts);
+      registeredBindings.set(binding, config);
 
       // hotkeys-js is reliable for combo activation, but not for combo release
       // when modifiers are released before the final non-modifier key.
-      hotkeys(binding, () => {
-        if (config.keyup) {
-          activeKeyupBindings.add(binding);
+      hotkeys(binding, (_event, handler) => {
+        const shortcut = getHandlerShortcut(binding, handler);
+
+        if (shortcut?.isModifierOnly) {
+          const wasActive = activateModifierShortcut(binding, shortcut);
+
+          activateKeyupShortcut(binding, shortcut);
+
+          if (config.keydown && !wasActive) {
+            emitKeyboardEvent("keydown", binding, config.keydown.payload);
+          }
+
+          return;
         }
+
+        activateKeyupShortcut(binding, shortcut);
 
         if (config.keydown) {
           emitKeyboardEvent("keydown", binding, config.keydown.payload);
         }
       });
-
-      registeredBindings.set(binding, config);
     });
   };
 
   const destroy = () => {
     if (typeof document !== "undefined") {
+      document.removeEventListener("keydown", onDocumentKeydown);
       document.removeEventListener("keyup", onDocumentKeyup);
     }
 
@@ -245,8 +406,10 @@ export const createKeyboardManager = (eventHandler) => {
       hotkeys.unbind(key);
     }
     registeredBindings.clear();
-    bindingReleaseCodes.clear();
-    activeKeyupBindings.clear();
+    bindingShortcuts.clear();
+    activeKeyupShortcuts.clear();
+    activeModifierShortcuts.clear();
+    pressedKeyCodes.clear();
   };
 
   return {

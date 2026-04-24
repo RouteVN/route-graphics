@@ -13,6 +13,14 @@ try {
     esbuild.build({
       entryPoints: ["./src/index.js"],
       bundle: true,
+      minify: true,
+      sourcemap: false,
+      outfile: "./playground/static/RouteGraphics.js",
+      format: "esm",
+    }),
+    esbuild.build({
+      entryPoints: ["./src/index.js"],
+      bundle: true,
       minify: false,
       sourcemap: true,
       outfile: "./vt/static/RouteGraphics.js",

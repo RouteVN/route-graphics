@@ -579,20 +579,28 @@ describe("event semantics", () => {
     keyboardManager.destroy();
   });
 
-  it("keyboard manager emits keyup for modifier-only bindings", () => {
+  it("keyboard manager emits keydown and keyup for real modifier-only bindings", () => {
     const eventHandler = vi.fn();
     const keyboardManager = createKeyboardManager(eventHandler);
 
     keyboardManager.registerHotkeys({
       shift: {
+        keydown: { payload: { source: "ShiftDown" } },
         keyup: { payload: { source: "ShiftUp" } },
       },
     });
 
-    hotkeys.trigger("shift");
+    dispatchKeyboardEvent("keydown", "Shift", { code: "ShiftLeft" });
     dispatchKeyboardEvent("keyup", "Shift", { code: "ShiftLeft" });
 
     expect(eventHandler.mock.calls).toEqual([
+      [
+        "keydown",
+        {
+          _event: { key: "shift" },
+          source: "ShiftDown",
+        },
+      ],
       [
         "keyup",
         {
@@ -625,6 +633,66 @@ describe("event semantics", () => {
         {
           _event: { key: "shift+c" },
           source: "ShiftCUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager matches keyup to the activated shortcut in comma-separated bindings", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      "a,b": {
+        keyup: { payload: { source: "AlternateUp" } },
+      },
+    });
+
+    hotkeys.trigger("a");
+    dispatchKeyboardEvent("keyup", "b", { code: "KeyB" });
+
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    dispatchKeyboardEvent("keyup", "a", { code: "KeyA" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "a,b" },
+          source: "AlternateUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager resolves numpad keyup from keyCode before key", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      num_0: {
+        keyup: { payload: { source: "Numpad0Up" } },
+      },
+    });
+
+    hotkeys.trigger("num_0");
+    dispatchKeyboardEvent("keyup", "0", {
+      code: "Numpad0",
+      keyCode: 96,
+      which: 96,
+    });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "num_0" },
+          source: "Numpad0Up",
         },
       ],
     ]);
