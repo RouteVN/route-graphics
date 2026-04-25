@@ -26,6 +26,19 @@ const createSharedParams = () => ({
 });
 
 const createPointerEvent = (button) => ({ button });
+const dispatchKeyboardEvent = (type, key, options = {}) => {
+  document.dispatchEvent(
+    new KeyboardEvent(type, {
+      key,
+      code:
+        options.code ??
+        (key.length === 1 ? `Key${key.toUpperCase()}` : undefined),
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    }),
+  );
+};
 
 afterEach(() => {
   hotkeys.unbind();
@@ -521,30 +534,168 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[0][1]._event.value).toBeTypeOf("number");
   });
 
-  it("keyboard manager emits keydown payload for registered keys", () => {
+  it("keyboard manager emits keydown and keyup payloads for registered keys", () => {
     const eventHandler = vi.fn();
     const keyboardManager = createKeyboardManager(eventHandler);
 
     keyboardManager.registerHotkeys({
-      a: { payload: { source: "A" } },
-      "shift+c": { payload: { source: "ShiftC" } },
+      a: { keydown: { payload: { source: "A" } } },
+      b: { keyup: { payload: { source: "B" } } },
+      "shift+c": {
+        keydown: { payload: { source: "ShiftCDown" } },
+        keyup: { payload: { source: "ShiftCUp" } },
+      },
     });
 
     hotkeys.trigger("a");
+    dispatchKeyboardEvent("keydown", "b");
+    dispatchKeyboardEvent("keyup", "b");
     hotkeys.trigger("shift+c");
+    dispatchKeyboardEvent("keyup", "c", { code: "KeyC" });
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "keydown",
+      "keyup",
       "keydown",
+      "keyup",
     ]);
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
       _event: { key: "a" },
       source: "A",
     });
     expect(eventHandler.mock.calls[1][1]).toMatchObject({
-      _event: { key: "shift+c" },
-      source: "ShiftC",
+      _event: { key: "b" },
+      source: "B",
     });
+    expect(eventHandler.mock.calls[2][1]).toMatchObject({
+      _event: { key: "shift+c" },
+      source: "ShiftCDown",
+    });
+    expect(eventHandler.mock.calls[3][1]).toMatchObject({
+      _event: { key: "shift+c" },
+      source: "ShiftCUp",
+    });
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager emits keydown and keyup for real modifier-only bindings", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      shift: {
+        keydown: { payload: { source: "ShiftDown" } },
+        keyup: { payload: { source: "ShiftUp" } },
+      },
+    });
+
+    dispatchKeyboardEvent("keydown", "Shift", { code: "ShiftLeft" });
+    dispatchKeyboardEvent("keyup", "Shift", { code: "ShiftLeft" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keydown",
+        {
+          _event: { key: "shift" },
+          source: "ShiftDown",
+        },
+      ],
+      [
+        "keyup",
+        {
+          _event: { key: "shift" },
+          source: "ShiftUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager emits combo keyup even when the modifier is released first", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      "shift+c": {
+        keyup: { payload: { source: "ShiftCUp" } },
+      },
+    });
+
+    hotkeys.trigger("shift+c");
+    dispatchKeyboardEvent("keyup", "Shift", { code: "ShiftLeft" });
+    dispatchKeyboardEvent("keyup", "c", { code: "KeyC" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "shift+c" },
+          source: "ShiftCUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager matches keyup to the activated shortcut in comma-separated bindings", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      "a,b": {
+        keyup: { payload: { source: "AlternateUp" } },
+      },
+    });
+
+    hotkeys.trigger("a");
+    dispatchKeyboardEvent("keyup", "b", { code: "KeyB" });
+
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    dispatchKeyboardEvent("keyup", "a", { code: "KeyA" });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "a,b" },
+          source: "AlternateUp",
+        },
+      ],
+    ]);
+
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager resolves numpad keyup from keyCode before key", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+
+    keyboardManager.registerHotkeys({
+      num_0: {
+        keyup: { payload: { source: "Numpad0Up" } },
+      },
+    });
+
+    hotkeys.trigger("num_0");
+    dispatchKeyboardEvent("keyup", "0", {
+      code: "Numpad0",
+      keyCode: 96,
+      which: 96,
+    });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keyup",
+        {
+          _event: { key: "num_0" },
+          source: "Numpad0Up",
+        },
+      ],
+    ]);
 
     keyboardManager.destroy();
   });

@@ -603,6 +603,16 @@
       });
 
       const listenEvents = () => {
+        const dispatchVtKeyboardEvent = (type, options) => {
+          document.dispatchEvent(
+            new KeyboardEvent(type, {
+              bubbles: true,
+              cancelable: true,
+              ...options,
+            }),
+          );
+        };
+
         document.addEventListener("keydown", async (e) => {
           if (e.shiftKey && e.key !== "Shift") {
             if (states.length > index + 1) {
@@ -621,6 +631,50 @@
 
         window.addEventListener("clearEvents", () => {
           clearEvents();
+        });
+
+        window.addEventListener("vtKeyboardShiftCReleaseShiftFirst", () => {
+          dispatchVtKeyboardEvent("keydown", {
+            key: "Shift",
+            code: "ShiftLeft",
+            keyCode: 16,
+            which: 16,
+            shiftKey: true,
+          });
+          dispatchVtKeyboardEvent("keydown", {
+            key: "c",
+            code: "KeyC",
+            keyCode: 67,
+            which: 67,
+            shiftKey: true,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "Shift",
+            code: "ShiftLeft",
+            keyCode: 16,
+            which: 16,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "c",
+            code: "KeyC",
+            keyCode: 67,
+            which: 67,
+          });
+        });
+
+        window.addEventListener("vtKeyboardNumpad0", () => {
+          dispatchVtKeyboardEvent("keydown", {
+            key: "0",
+            code: "Numpad0",
+            keyCode: 96,
+            which: 96,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "0",
+            code: "Numpad0",
+            keyCode: 96,
+            which: 96,
+          });
         });
 
         window.addEventListener("primeVtScreenshot", async () => {

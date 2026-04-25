@@ -61,6 +61,7 @@ The public semantic event names are:
 - `dragEnd`
 - `change`
 - `keydown`
+- `keyup`
 - `renderComplete`
 
 These are the names Route Graphics consumers should listen for in `eventHandler`.
@@ -104,10 +105,11 @@ Event names are semantic Route Graphics events, not native input events.
 - Fired when a control emits a value change.
 - Current canonical example is `slider`.
 
-### `keydown`
+### `keydown` / `keyup`
 
 - Fired for Route Graphics global keyboard bindings.
-- The public event name remains `keydown` even though the keyboard library is an internal implementation detail.
+- The public event names remain `keydown` and `keyup` even though the keyboard library is an internal implementation detail.
+- Route Graphics does not expose browser `keypress` as a public event.
 
 ### `renderComplete`
 
@@ -170,8 +172,9 @@ Global keyboard mappings use:
 global:
   keyboard:
     shift+s:
-      payload:
-        action: save
+      keydown:
+        payload:
+          action: save
 ```
 
 ## Event Handler Contract
@@ -305,7 +308,8 @@ Platform differences should be handled by the runtime adapter, not pushed into c
 ### Global keyboard interactions
 
 - `keydown`
-- configured via `global.keyboard[key].payload`
+- `keyup`
+- configured via `global.keyboard[key].keydown.payload` and `global.keyboard[key].keyup.payload`
 
 ### Render lifecycle
 
@@ -379,6 +383,10 @@ drag:
 global:
   keyboard:
     enter:
-      payload:
-        action: confirm
+      keydown:
+        payload:
+          action: confirm
+      keyup:
+        payload:
+          action: confirmReleased
 ```
