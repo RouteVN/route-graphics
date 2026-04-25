@@ -3,8 +3,11 @@ title: Global Keyboard Events
 description: Test global keyboard event handling
 specs:
   - global keyboard handlers should emit payloads for configured keys
+  - global keyboard handlers should emit keyup payloads for configured keys
   - state changes should swap the active keyboard mapping
   - modified key combinations should remain distinct from plain key presses
+  - modifier-first release order should still emit combo keyup
+  - numpad keyup should resolve from browser keyCode instead of event.key
 steps:
   - action: customEvent
     name: clearEvents
@@ -16,11 +19,13 @@ steps:
   - action: screenshot
   - action: keypress
     key: "n"
-  - action: keypress
-    key: Shift+c
+  - action: customEvent
+    name: vtKeyboardShiftCReleaseShiftFirst
   - action: screenshot
   - action: keypress
     key: c
+  - action: customEvent
+    name: vtKeyboardNumpad0
   - action: screenshot
   - action: assert
     type: js
@@ -35,11 +40,35 @@ steps:
           key: b
         action: keyB_Pressed
       - _event:
+          key: shift
+        action: shift_Pressed
+      - _event:
           key: shift+c
         action: shift_c_Pressed
       - _event:
           key: c
         action: keyC_Pressed
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keyup
+    value:
+      - _event:
+          key: a
+        action: keyA_Released
+      - _event:
+          key: b
+        action: keyB_Released
+      - _event:
+          key: shift
+        action: shift_Released
+      - _event:
+          key: shift+c
+        action: shift_c_Released
+      - _event:
+          key: num_0
+        action: num0_Released
 ---
 states:
   - elements:
@@ -57,10 +86,16 @@ states:
           keydown:
             payload:
               action: keyA_Pressed
+          keyup:
+            payload:
+              action: keyA_Released
         b:
           keydown:
             payload:
               action: keyB_Pressed
+          keyup:
+            payload:
+              action: keyB_Released
   - elements:
       - id: rect-keyboard-test
         type: rect
@@ -76,7 +111,21 @@ states:
           keydown:
             payload:
               action: keyC_Pressed
+        shift:
+          keydown:
+            payload:
+              action: shift_Pressed
+          keyup:
+            payload:
+              action: shift_Released
         shift+c:
           keydown:
             payload:
               action: shift_c_Pressed
+          keyup:
+            payload:
+              action: shift_c_Released
+        num_0:
+          keyup:
+            payload:
+              action: num0_Released
