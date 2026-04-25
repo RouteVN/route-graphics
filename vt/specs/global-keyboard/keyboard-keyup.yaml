@@ -1,0 +1,97 @@
+---
+title: Global Keyboard Keyup Events
+description: Test the keyup phase for global keyboard bindings
+specs:
+  - keypress should emit keydown and keyup payloads for a plain key
+  - modifier-only bindings should emit keydown and keyup from real keyboard events
+  - combo keyup should fire even when the modifier is released first
+  - numpad keyup should resolve from browser keyCode instead of event.key
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: a
+  - action: screenshot
+  - action: customEvent
+    name: vtKeyboardShiftCReleaseShiftFirst
+  - action: screenshot
+  - action: customEvent
+    name: vtKeyboardNumpad0
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keydown
+    value:
+      - _event:
+          key: a
+        action: plainA_Down
+      - _event:
+          key: shift
+        action: shift_Down
+      - _event:
+          key: shift+c
+        action: shiftC_Down
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keyup
+    value:
+      - _event:
+          key: a
+        action: plainA_Up
+      - _event:
+          key: shift
+        action: shift_Up
+      - _event:
+          key: shift+c
+        action: shiftC_Up
+      - _event:
+          key: num_0
+        action: num0_Up
+---
+states:
+  - elements:
+      - id: keyboard-keyup-frame
+        type: rect
+        x: 160
+        "y": 120
+        width: 480
+        height: 320
+        fill: "#A6A6A6"
+      - id: keyboard-keyup-anchor
+        type: rect
+        x: 200
+        "y": 160
+        width: 400
+        height: 240
+        fill: "#FFFFFF"
+    global:
+      keyboard:
+        a:
+          keydown:
+            payload:
+              action: plainA_Down
+          keyup:
+            payload:
+              action: plainA_Up
+        shift:
+          keydown:
+            payload:
+              action: shift_Down
+          keyup:
+            payload:
+              action: shift_Up
+        shift+c:
+          keydown:
+            payload:
+              action: shiftC_Down
+          keyup:
+            payload:
+              action: shiftC_Up
+        num_0:
+          keyup:
+            payload:
+              action: num0_Up
