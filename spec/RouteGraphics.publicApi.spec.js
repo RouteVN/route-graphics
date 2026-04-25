@@ -12,6 +12,7 @@ const createMockBounds = (width, height) => ({
 
 const createPixiModuleMock = () => {
   let lastApplication = null;
+  const assetCache = new Map();
 
   class MockDisplayObject {
     constructor(label = null) {
@@ -196,6 +197,11 @@ const createPixiModuleMock = () => {
     Assets: {
       registerPlugin: vi.fn(),
       load: vi.fn(),
+      cache: {
+        has: vi.fn((key) => assetCache.has(key)),
+        get: vi.fn((key) => assetCache.get(key)),
+        set: vi.fn((key, value) => assetCache.set(key, value)),
+      },
     },
     Graphics: MockGraphics,
     LoaderParserPriority: {
@@ -300,6 +306,48 @@ describe("RouteGraphics public API", () => {
     expect(() => app.findElementByLabel("missing-label")).not.toThrow();
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
+
+  it("uses Pixi loadParser overrides for extensionless video URLs", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:http://route-graphics/video");
+
+    pixiMock.Assets.load.mockResolvedValue({ source: "loaded" });
+
+    try {
+      await app.loadAssets({
+        urlTexture: {
+          source: "url",
+          url: "blob:http://route-graphics/texture",
+          type: "image/png",
+        },
+        bufferVideo: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "video/mp4",
+        },
+      });
+    } finally {
+      createObjectURL.mockRestore();
+    }
+
+    expect(pixiMock.Assets.load).toHaveBeenNthCalledWith(1, {
+      alias: "urlTexture",
+      src: "blob:http://route-graphics/texture",
+    });
+    expect(pixiMock.Assets.load).toHaveBeenNthCalledWith(2, {
+      alias: "bufferVideo",
+      src: "blob:http://route-graphics/video",
+      loadParser: "loadVideo",
+      data: {
+        mime: "video/mp4",
+      },
+    });
+    expect(pixiMock.Assets.load.mock.calls[0][0]).not.toHaveProperty(
+      "loadParser",
+    );
+    expect(pixiMock.Assets.load.mock.calls[1][0]).not.toHaveProperty("parser");
+  });
 
   it("updates the visible stage background graphic color", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
