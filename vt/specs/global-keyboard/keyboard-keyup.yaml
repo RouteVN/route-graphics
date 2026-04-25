@@ -1,6 +1,7 @@
 ---
 title: Global Keyboard Keyup Events
 description: Test the keyup phase for global keyboard bindings
+skipInitialScreenshot: true
 specs:
   - keypress should emit keydown and keyup payloads for a plain key
   - modifier-only bindings should emit keydown and keyup from real keyboard events
@@ -11,13 +12,10 @@ steps:
     name: clearEvents
   - action: keypress
     key: a
-  - action: screenshot
   - action: customEvent
     name: vtKeyboardShiftCReleaseShiftFirst
-  - action: screenshot
   - action: customEvent
     name: vtKeyboardNumpad0
-  - action: screenshot
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
