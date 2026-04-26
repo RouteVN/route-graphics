@@ -45,6 +45,8 @@ These properties are valid on `type: update`:
 - `scaleX`
 - `scaleY`
 - `rotation`
+- `blurX`
+- `blurY`
 
 Each property accepts:
 
@@ -78,6 +80,9 @@ Each keyframe accepts:
 | `easing`   | string | No       | `linear` | Same easing list as manual keyframes. |
 
 `keyframes` and `auto` are mutually exclusive for the same property.
+
+`blurX` and `blurY` animate element `blur.x` and `blur.y`. Static blur options
+such as `quality`, `kernelSize`, and `repeatEdgePixels` are not tween targets.
 
 `update` is update-only. Do not use it for enter, exit, or replace lifecycles.
 Higher-level adapters should reject that and require `transition` instead.

@@ -1,6 +1,7 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
 import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
+import { syncBlurEffect } from "../util/blurEffect.js";
 import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
@@ -78,6 +79,7 @@ export const addAnimatedSprite = async ({
     animatedSprite.width = Math.round(width);
     animatedSprite.height = Math.round(height);
     animatedSprite.alpha = alpha;
+    syncBlurEffect(animatedSprite, element.blur);
 
     parent.addChild(animatedSprite);
 

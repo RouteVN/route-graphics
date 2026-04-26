@@ -2,6 +2,7 @@ import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
 import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
 import { renderElements } from "../renderElements.js";
+import { syncBlurEffect } from "../util/blurEffect.js";
 
 const hasDuplicateChildIds = (children = []) => {
   const seen = new Set();
@@ -82,6 +83,7 @@ export const addContainer = ({
   container.x = Math.round(x);
   container.y = Math.round(y);
   container.alpha = alpha;
+  syncBlurEffect(container, element.blur);
 
   parent.addChild(container);
 

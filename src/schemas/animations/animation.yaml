@@ -144,6 +144,10 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       rotation:
         $ref: "#/$defs/tweenProperty"
+      blurX:
+        $ref: "#/$defs/tweenProperty"
+      blurY:
+        $ref: "#/$defs/tweenProperty"
     additionalProperties: false
     minProperties: 1
   transitionTween:

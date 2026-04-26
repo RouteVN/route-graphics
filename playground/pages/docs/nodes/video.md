@@ -29,6 +29,19 @@ Try it in the [Playground](/playground/?template=video-demo).
 | `alpha`   | number  | No                  | `1`            | Opacity `0..1`.                   |
 | `volume`  | number  | No                  | `100`          | Runtime uses `volume / 100`.      |
 | `loop`    | boolean | No                  | `false`        | Replay video on end.              |
+| `blur`    | object  | No                  | -              | Directional Gaussian blur.        |
+
+## Blur
+
+`blur` requires explicit horizontal and vertical axes. There is no scalar shorthand.
+
+| Field              | Type    | Required | Default | Notes                                             |
+| ------------------ | ------- | -------- | ------- | ------------------------------------------------- |
+| `x`                | number  | Yes      | -       | Horizontal blur strength in pixels.               |
+| `y`                | number  | Yes      | -       | Vertical blur strength in pixels.                 |
+| `quality`          | number  | No       | `4`     | Number of blur passes. Higher is smoother/slower. |
+| `kernelSize`       | number  | No       | `5`     | One of `5`, `7`, `9`, `11`, `13`, `15`.           |
+| `repeatEdgePixels` | boolean | No       | `false` | Clamp edge pixels instead of padding blur bounds. |
 
 ## Behavior Notes
 

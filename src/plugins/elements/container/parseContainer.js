@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { normalizeBlurConfig } from "../util/blurEffect.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -152,6 +153,9 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     scroll,
     ...(state.anchorToBottom && { anchorToBottom: true }),
     ...(state.scrollbar && { scrollbar: structuredClone(state.scrollbar) }),
+    ...(state.blur !== undefined && {
+      blur: normalizeBlurConfig(state.blur),
+    }),
     rotation: state.rotation ?? 0,
   };
 

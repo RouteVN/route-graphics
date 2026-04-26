@@ -180,6 +180,42 @@ describe("animationBus auto tween shorthand", () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
+  it("applies property path mapping for blur tweens", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      _routeGraphicsBlur: {
+        x: 0,
+        y: 2,
+      },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-blur",
+        element,
+        properties: {
+          blurX: {
+            keyframes: [{ duration: 200, value: 10, easing: "linear" }],
+          },
+          blurY: {
+            auto: {
+              duration: 200,
+              easing: "linear",
+            },
+          },
+        },
+        targetState: { blurX: 10, blurY: 6 },
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(100);
+
+    expect(element._routeGraphicsBlur.x).toBeCloseTo(5);
+    expect(element._routeGraphicsBlur.y).toBeCloseTo(4);
+  });
+
   it("samples property animations at an exact time without completing them", () => {
     const animationBus = createAnimationBus();
     const onComplete = vi.fn();

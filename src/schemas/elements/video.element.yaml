@@ -57,3 +57,32 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
+  blur:
+    type: object
+    description: Optional directional Gaussian blur.
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        description: Horizontal blur strength in pixels.
+        minimum: 0
+      y:
+        type: number
+        description: Vertical blur strength in pixels.
+        minimum: 0
+      quality:
+        type: number
+        description: Number of blur passes. Higher values are smoother but slower.
+        minimum: 1
+        default: 4
+      kernelSize:
+        type: number
+        enum: [5, 7, 9, 11, 13, 15]
+        description: Blur kernel size.
+        default: 5
+      repeatEdgePixels:
+        type: boolean
+        description: Clamp edge pixels instead of padding the blur bounds.
+        default: false

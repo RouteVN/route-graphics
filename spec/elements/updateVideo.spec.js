@@ -1,10 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { textureFrom } = vi.hoisted(() => ({
-  textureFrom: vi.fn(),
-}));
+const { MockBlurFilter, textureFrom } = vi.hoisted(() => {
+  class HoistedMockBlurFilter {
+    constructor(options = {}) {
+      this.strengthX = options.strengthX ?? options.strength ?? 0;
+      this.strengthY = options.strengthY ?? options.strength ?? 0;
+      this.quality = options.quality ?? 4;
+      this.kernelSize = options.kernelSize ?? 5;
+      this.repeatEdgePixels = false;
+      this.destroy = vi.fn();
+    }
+  }
+
+  return {
+    MockBlurFilter: HoistedMockBlurFilter,
+    textureFrom: vi.fn(),
+  };
+});
 
 vi.mock("pixi.js", () => ({
+  BlurFilter: MockBlurFilter,
   Texture: {
     from: textureFrom,
   },

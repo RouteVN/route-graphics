@@ -3,6 +3,11 @@ import { setupDebugMode, cleanupDebugMode } from "./util/debugUtils.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
   normalizeAnimatedSpritePlayback,
@@ -34,6 +39,10 @@ export const updateAnimatedSprite = async ({
   if (!animatedSpriteElement) return;
 
   animatedSpriteElement.zIndex = zIndex;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(animatedSpriteElement, prevElement.blur, { force: true });
+  }
 
   const updateElement = async () => {
     if (signal?.aborted || animatedSpriteElement.destroyed) return;
@@ -58,6 +67,9 @@ export const updateAnimatedSprite = async ({
       animatedSpriteElement.width = Math.round(nextElement.width);
       animatedSpriteElement.height = Math.round(nextElement.height);
       animatedSpriteElement.alpha = nextElement.alpha;
+      syncBlurEffect(animatedSpriteElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
 
       const playbackChanged = !isDeepEqual(
         prevElement.playback,
@@ -129,7 +141,16 @@ export const updateAnimatedSprite = async ({
     animationBus,
     completionTracker,
     element: animatedSpriteElement,
-    targetState: { x, y, width, height, alpha },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha,
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+    },
     onComplete: () => {
       void updateElement();
     },

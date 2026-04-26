@@ -149,6 +149,44 @@ out:
       rotation: 0
       alpha: 1
 ---
+case: Test parsing container blur
+in:
+  - state:
+      id: blur-container
+      type: container
+      x: 20
+      "y": 30
+      width: 160
+      height: 120
+      blur:
+        x: 6
+        "y": 9
+        quality: 3
+        kernelSize: 9
+      children: []
+out:
+  id: blur-container
+  type: container
+  direction: absolute
+  gapX: 0
+  gapY: 0
+  width: 160
+  height: 120
+  x: 20
+  "y": 30
+  originX: 0
+  originY: 0
+  scroll: false
+  rotation: 0
+  alpha: 1
+  blur:
+    x: 6
+    "y": 9
+    quality: 3
+    kernelSize: 9
+    repeatEdgePixels: false
+  children: []
+---
 case: Test parsing container with explicit absolute direction
 in:
   - state:

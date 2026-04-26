@@ -149,3 +149,27 @@ properties:
     description: Opacity/transparency of the spritesheet animation (0-1)
     minimum: 0
     maximum: 1
+  blur:
+    type: object
+    description: Directional Gaussian blur configuration.
+    required:
+      - x
+      - y
+      - quality
+      - kernelSize
+      - repeatEdgePixels
+    properties:
+      x:
+        type: number
+        minimum: 0
+      y:
+        type: number
+        minimum: 0
+      quality:
+        type: number
+        minimum: 1
+      kernelSize:
+        type: number
+        enum: [5, 7, 9, 11, 13, 15]
+      repeatEdgePixels:
+        type: boolean
