@@ -62,6 +62,30 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
+  blur:
+    type: object
+    description: Directional Gaussian blur applied to the whole container subtree.
+    required:
+      - x
+      - y
+      - quality
+      - kernelSize
+      - repeatEdgePixels
+    properties:
+      x:
+        type: number
+        minimum: 0
+      y:
+        type: number
+        minimum: 0
+      quality:
+        type: number
+        minimum: 1
+      kernelSize:
+        type: number
+        enum: [5, 7, 9, 11, 13, 15]
+      repeatEdgePixels:
+        type: boolean
   gapX:
     type: number
     description: Horizontal spacing between child elements in pixels, and between wrapped columns.

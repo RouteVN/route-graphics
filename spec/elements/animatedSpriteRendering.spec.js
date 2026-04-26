@@ -4,6 +4,7 @@ const {
   textureFrom,
   dispatchLiveAnimations,
   MockAnimatedSprite,
+  MockBlurFilter,
   MockSpritesheet,
 } = vi.hoisted(() => {
   class HoistedMockAnimatedSprite {
@@ -42,16 +43,29 @@ const {
     }
   }
 
+  class HoistedMockBlurFilter {
+    constructor(options = {}) {
+      this.strengthX = options.strengthX ?? options.strength ?? 0;
+      this.strengthY = options.strengthY ?? options.strength ?? 0;
+      this.quality = options.quality ?? 4;
+      this.kernelSize = options.kernelSize ?? 5;
+      this.repeatEdgePixels = false;
+      this.destroy = vi.fn();
+    }
+  }
+
   return {
     textureFrom: vi.fn(),
     dispatchLiveAnimations: vi.fn(() => false),
     MockAnimatedSprite: HoistedMockAnimatedSprite,
+    MockBlurFilter: HoistedMockBlurFilter,
     MockSpritesheet: HoistedMockSpritesheet,
   };
 });
 
 vi.mock("pixi.js", () => ({
   AnimatedSprite: MockAnimatedSprite,
+  BlurFilter: MockBlurFilter,
   Spritesheet: MockSpritesheet,
   Texture: {
     from: textureFrom,

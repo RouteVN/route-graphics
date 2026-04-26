@@ -9,6 +9,8 @@ const UPDATE_TWEEN_PROPERTIES = new Set([
   "scaleX",
   "scaleY",
   "rotation",
+  "blurX",
+  "blurY",
 ]);
 const TRANSITION_TWEEN_PROPERTIES = new Set([
   "translateX",

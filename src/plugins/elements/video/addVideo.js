@@ -2,6 +2,7 @@ import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
 import { queueDeferredVideoPlay } from "../renderContext.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
+import { syncBlurEffect } from "../util/blurEffect.js";
 
 /**
  * Add video element to the stage
@@ -36,6 +37,7 @@ export const addVideo = ({
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha ?? 1;
+  syncBlurEffect(sprite, element.blur);
 
   syncVideoPlaybackTracking({
     videoElement: sprite,

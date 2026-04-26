@@ -38,6 +38,9 @@ in:
         loop: true
         autoplay: false
       alpha: 0.8
+      blur:
+        x: 3
+        "y": 5
 out:
   id: fighter-1
   type: spritesheet-animation
@@ -97,6 +100,12 @@ out:
     loop: true
     autoplay: false
   alpha: 0.8
+  blur:
+    x: 3
+    "y": 5
+    quality: 4
+    kernelSize: 5
+    repeatEdgePixels: false
 ---
 case: Test parsing JSON Array atlas with atlas animations
 in:

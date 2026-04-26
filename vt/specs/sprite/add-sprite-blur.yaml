@@ -1,0 +1,38 @@
+---
+title: Sprite Blur
+description: Uses colored sprite assets intentionally so blurred texture edges are easy to compare (guideline exception for asset-based tests).
+specs:
+  - sprite blur should soften the configured texture without changing layout
+  - directional blur should support different x and y strengths
+---
+states:
+  - elements:
+      - id: sprite-crisp
+        type: sprite
+        src: circle-blue
+        x: 120
+        "y": 180
+        width: 150
+        height: 150
+      - id: sprite-uniform-blur
+        type: sprite
+        src: circle-blue
+        x: 360
+        "y": 180
+        width: 150
+        height: 150
+        blur:
+          x: 10
+          "y": 10
+      - id: sprite-directional-blur
+        type: sprite
+        src: circle-blue
+        x: 600
+        "y": 180
+        width: 150
+        height: 150
+        blur:
+          x: 22
+          "y": 3
+          quality: 4
+          kernelSize: 7

@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { normalizeBlurConfig } from "../util/blurEffect.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement}
  *  @typedef {import('../../../types.js').VideoComputedNode}
@@ -20,5 +21,8 @@ export const parseVideo = ({ state }) => {
     src: state.src,
     volume: state.volume ?? 100,
     loop: state.loop ?? false,
+    ...(state.blur !== undefined && {
+      blur: normalizeBlurConfig(state.blur),
+    }),
   };
 };

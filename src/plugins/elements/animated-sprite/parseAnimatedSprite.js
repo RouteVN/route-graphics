@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { normalizeBlurConfig } from "../util/blurEffect.js";
 import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
@@ -40,5 +41,8 @@ export const parseAnimatedSprite = ({ state }) => {
     clips,
     playback,
     alpha: state.alpha ?? 1,
+    ...(state.blur !== undefined && {
+      blur: normalizeBlurConfig(state.blur),
+    }),
   };
 };

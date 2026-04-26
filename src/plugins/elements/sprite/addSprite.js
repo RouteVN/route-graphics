@@ -3,6 +3,11 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
   createHoverStateController,
   createPressStateController,
   createRightPressStateController,
@@ -35,6 +40,8 @@ export const addSprite = ({
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
@@ -200,7 +207,14 @@ export const addSprite = ({
     animationBus,
     completionTracker,
     element: sprite,
-    targetState: { x, y, width, height, alpha },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha,
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+    },
     renderContext,
   });
 };

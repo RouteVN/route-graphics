@@ -4,6 +4,11 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
   clearInheritedHoverTarget,
   clearInheritedPressTarget,
   clearInheritedRightPressTarget,
@@ -35,7 +40,11 @@ export const updateSprite = ({
 
   spriteElement.zIndex = zIndex;
 
-  const { id, x, y, width, height, src, alpha } = nextElement;
+  const { x, y, width, height, src, alpha } = nextElement;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(spriteElement, prevElement.blur, { force: true });
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -47,6 +56,9 @@ export const updateSprite = ({
       spriteElement.width = Math.round(width);
       spriteElement.height = Math.round(height);
       spriteElement.alpha = alpha;
+      syncBlurEffect(spriteElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
 
       spriteElement.removeAllListeners("pointerover");
       spriteElement.removeAllListeners("pointerout");
@@ -225,7 +237,16 @@ export const updateSprite = ({
     animationBus,
     completionTracker,
     element: spriteElement,
-    targetState: { x, y, width, height, alpha },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha,
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },

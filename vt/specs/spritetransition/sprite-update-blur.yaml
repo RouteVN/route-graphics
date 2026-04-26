@@ -1,0 +1,56 @@
+---
+title: Sprite Update Blur
+description: Uses a colored sprite asset intentionally so animated blur is visually observable (guideline exception for asset-based tests).
+specs:
+  - blurX and blurY should animate from sharp to blurred
+  - auto blur tweens should derive their target from the next element blur config
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: sprite-blur-target
+        type: sprite
+        src: circle-green
+        x: 340
+        "y": 180
+        width: 170
+        height: 170
+        blur:
+          x: 0
+          "y": 0
+  - elements:
+      - id: sprite-blur-target
+        type: sprite
+        src: circle-green
+        x: 340
+        "y": 180
+        width: 170
+        height: 170
+        blur:
+          x: 16
+          "y": 16
+    animations:
+      - id: sprite-blur-auto
+        targetId: sprite-blur-target
+        type: update
+        tween:
+          blurX:
+            auto:
+              duration: 1000
+              easing: linear
+          blurY:
+            auto:
+              duration: 1000
+              easing: linear

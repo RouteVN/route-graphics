@@ -13,6 +13,12 @@ in:
       type: sprite
       src: file:circle-red
       alpha: 0.8
+      blur:
+        x: 4
+        "y": 8
+        quality: 2
+        kernelSize: 7
+        repeatEdgePixels: true
       width: 80
       height: 100
       scaleX: 1.2
@@ -44,6 +50,12 @@ out:
   originX: 48
   originY: 40
   alpha: 0.8
+  blur:
+    x: 4
+    "y": 8
+    quality: 2
+    kernelSize: 7
+    repeatEdgePixels: true
   src: file:circle-red
   hover:
     soundSrc: sound-1

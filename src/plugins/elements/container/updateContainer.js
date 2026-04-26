@@ -14,6 +14,11 @@ import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { getTargetAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
 
 /**
  * Update container element (synchronous)
@@ -44,6 +49,10 @@ export const updateContainer = ({
   containerElement.zIndex = zIndex;
 
   const { x, y, alpha } = nextElement;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(containerElement, prevElement.blur, { force: true });
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -53,6 +62,9 @@ export const updateContainer = ({
       containerElement.alpha = alpha;
       containerElement.scale.x = 1;
       containerElement.scale.y = 1;
+      syncBlurEffect(containerElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
       const nextUsesViewport = nextElement.scroll || nextElement.anchorToBottom;
@@ -148,7 +160,14 @@ export const updateContainer = ({
     animationBus,
     completionTracker,
     element: containerElement,
-    targetState: { x, y, alpha },
+    targetState: {
+      x,
+      y,
+      alpha,
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },

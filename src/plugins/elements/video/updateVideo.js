@@ -6,6 +6,11 @@ import {
 } from "./playbackTracking.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
 
 /**
  * Update video element
@@ -30,6 +35,10 @@ export const updateVideo = ({
   videoElement.zIndex = zIndex;
 
   const { x, y, width, height, alpha } = nextElement;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(videoElement, prevElement.blur, { force: true });
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -38,6 +47,9 @@ export const updateVideo = ({
       videoElement.width = Math.round(width);
       videoElement.height = Math.round(height);
       videoElement.alpha = alpha ?? 1;
+      syncBlurEffect(videoElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
 
       let activeVideo = videoElement.texture.source.resource;
 
@@ -83,7 +95,16 @@ export const updateVideo = ({
     animationBus,
     completionTracker,
     element: videoElement,
-    targetState: { x, y, width, height, alpha: alpha ?? 1 },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha: alpha ?? 1,
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+    },
     onComplete: updateElement,
   });
 

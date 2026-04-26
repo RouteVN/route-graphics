@@ -56,10 +56,20 @@
  */
 
 /**
+ * @typedef {Object} BlurConfig
+ * @property {number} x
+ * @property {number} y
+ * @property {number} quality
+ * @property {5 | 7 | 9 | 11 | 13 | 15} kernelSize
+ * @property {boolean} repeatEdgePixels
+ */
+
+/**
  * @typedef {Object} SpriteComputedProps
  * @property {'sprite'} type
  * @property {number} alpha
  * @property {string} url
+ * @property {BlurConfig} [blur]
  * @property {SpriteHover} hover
  * @property {SpriteClick} click
  * @typedef {ComputedNode & SpriteComputedProps } SpriteComputedNode
@@ -127,6 +137,7 @@
  * @property {Object} atlas - Direct atlas frame metadata
  * @property {Object<string, string[]>} clips - Named playback clips
  * @property {number} alpha
+ * @property {BlurConfig} [blur]
  * @property {Object} playback
  * @property {string[]} playback.frames - Frame names for the playback sequence
  * @property {string} [playback.clip] - Clip name resolved through `clips`
@@ -311,6 +322,7 @@
  * @property {number} gapY
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {BlurConfig} [blur]
  * @property {boolean} [anchorToBottom]
  * @property {{ vertical?: VerticalScrollbarConfig }} [scrollbar]
  * @property {HoverProps} hover
@@ -557,6 +569,8 @@ export const WhiteListAnimationProps = {
   scaleX: "scaleX",
   scaleY: "scaleY",
   rotation: "rotation",
+  blurX: "blurX",
+  blurY: "blurY",
 };
 
 export const WhiteListTransitionProps = WhiteListAnimationProps;
@@ -572,6 +586,8 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
   y: ["y"],
   alpha: ["alpha"],
   rotation: ["rotation"],
+  blurX: ["_routeGraphicsBlur", "x"],
+  blurY: ["_routeGraphicsBlur", "y"],
 };
 
 export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {

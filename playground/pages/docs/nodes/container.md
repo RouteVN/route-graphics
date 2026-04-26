@@ -26,6 +26,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
 | `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
 | `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                                     |
+| `blur`       | object                                   | No                  | -                        | Directional Gaussian blur applied to the whole subtree.             |
 | `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.                   |
 | `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`               | Auto-positioning for children in non-absolute modes.                |
 | `gapX`       | number                                   | No                  | `0`                      | Horizontal spacing between children, and between wrapped columns.   |
@@ -44,6 +45,18 @@ Try it in the [Playground](/playground/?template=container-layout).
 - `gapX` controls horizontal spacing. `gapY` controls vertical spacing. Legacy `gap` is not supported.
 - Child nodes are parsed with the active parser plugin set.
 - `scrollbar.vertical` renders on top of the viewport edge. It syncs with wheel scrolling, thumb dragging, track clicks, and optional start/end buttons.
+
+## Blur
+
+`blur` applies to the rendered output of the whole container subtree. It requires explicit horizontal and vertical axes.
+
+| Field              | Type    | Required | Default | Notes                                             |
+| ------------------ | ------- | -------- | ------- | ------------------------------------------------- |
+| `x`                | number  | Yes      | -       | Horizontal blur strength in pixels.               |
+| `y`                | number  | Yes      | -       | Vertical blur strength in pixels.                 |
+| `quality`          | number  | No       | `4`     | Number of blur passes. Higher is smoother/slower. |
+| `kernelSize`       | number  | No       | `5`     | One of `5`, `7`, `9`, `11`, `13`, `15`.           |
+| `repeatEdgePixels` | boolean | No       | `false` | Clamp edge pixels instead of padding blur bounds. |
 
 ## Scrollbar Notes
 
