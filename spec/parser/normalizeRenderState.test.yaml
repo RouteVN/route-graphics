@@ -204,6 +204,43 @@ out:
             easing: easeOutQuad
   audio: []
 ---
+case: Normalize update blur tween
+in:
+  - id: state-2-blur
+    animations:
+      - id: anim-blur
+        targetId: portrait
+        type: update
+        tween:
+          blurX:
+            initialValue: 0
+            keyframes:
+              - duration: 180
+                value: 8
+          blurY:
+            auto:
+              duration: 220
+              easing: easeOutQuad
+out:
+  id: state-2-blur
+  elements: []
+  animations:
+    - id: anim-blur
+      targetId: portrait
+      type: update
+      tween:
+        blurX:
+          initialValue: 0
+          keyframes:
+            - duration: 180
+              value: 8
+              easing: linear
+        blurY:
+          auto:
+            duration: 220
+            easing: easeOutQuad
+  audio: []
+---
 case: Normalize update animation with persistent playback continuity
 in:
   - id: state-2-persistent-update
