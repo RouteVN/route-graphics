@@ -202,6 +202,85 @@ describe("runReplaceAnimation", () => {
     expect(tracker.complete).toHaveBeenCalledWith(11);
   });
 
+  it("runs persistent transitions without tracking render completion", () => {
+    const parent = createParent();
+    const nextDisplayObject = createDisplayObject("scene-root");
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const tracker = {
+      getVersion: vi.fn(),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+      registerPending: vi.fn(),
+      removePending: vi.fn(),
+      activatePending: vi.fn().mockReturnValue(false),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        children: [],
+      },
+      animation: {
+        id: "scene-enter",
+        targetId: "scene-root",
+        type: "transition",
+        playback: { continuity: "persistent" },
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(animationBus.registerPending).toHaveBeenCalledTimes(1);
+    expect(tracker.getVersion).not.toHaveBeenCalled();
+    expect(tracker.track).not.toHaveBeenCalled();
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    expect(dispatched.payload.continuity).toBe("persistent");
+
+    dispatched.payload.onComplete();
+    dispatched.payload.onCancel();
+
+    expect(tracker.complete).not.toHaveBeenCalled();
+  });
+
   it("runs delete-only transitions without mounting a next element", () => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const parent = createParent(prevDisplayObject);

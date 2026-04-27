@@ -232,11 +232,8 @@ Implemented contract:
   `mask` / `playback` config are unchanged
 - if a later render omits the animation, it stops
 - if a later render changes the animation config, it restarts
-- a persistent animation should still count toward the originating render's
-  `renderComplete` if it finishes before continuity carries it into a later
-  render
-- once continuity carries that in-flight animation into a later render, it
-  must be detached from render completion tracking
+- a persistent animation should not count toward any render's
+  `renderComplete`; renders complete independently of persistent playback
 - persistent transition continuity keeps the same active handoff alive; it does
   not retarget the transition mid-flight
 
@@ -249,10 +246,8 @@ Implemented work:
   existing overlay / hidden-next handoff alive across unrelated later renders
 - keep render-scoped animations on current reset behavior when continuity is not
   requested
-- preserve completion for the originating render when a persistent animation
-  finishes before any later render adopts it
-- detach completion tracking when an in-flight persistent animation is adopted
-  by a later render, so its eventual finish no longer emits `renderComplete`
+- skip completion tracking for persistent animations, so their eventual finish
+  never emits `renderComplete`
 - keep the restart rules simple: changed config or changed owned target/subtree
   breaks continuity and starts a new animation instance
 

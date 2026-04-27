@@ -87,8 +87,14 @@ export const dispatchUpdateAnimationsNow = ({
       }
     }
 
-    const stateVersion = completionTracker.getVersion();
-    completionTracker.track(stateVersion);
+    const trackCompletion = animation.playback?.continuity !== "persistent";
+    const stateVersion = trackCompletion
+      ? completionTracker.getVersion()
+      : null;
+
+    if (trackCompletion) {
+      completionTracker.track(stateVersion);
+    }
 
     animationBus.dispatch({
       type: "START",
@@ -108,7 +114,10 @@ export const dispatchUpdateAnimationsNow = ({
         properties: animation.tween,
         targetState,
         onComplete: () => {
-          completionTracker.complete(stateVersion);
+          if (trackCompletion) {
+            completionTracker.complete(stateVersion);
+          }
+
           onComplete?.(animation);
         },
       },
