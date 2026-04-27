@@ -1,0 +1,140 @@
+---
+title: Render Complete Event - Persistent Playback
+description: Asserts renderComplete does not wait for persistent update or transition playback.
+specs:
+  - persistent update playback should emit renderComplete immediately
+  - persistent transition playback should emit renderComplete immediately
+  - completing persistent playback later should not emit additional renderComplete events
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: persistent-update-render-complete
+        aborted: false
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: persistent-update-render-complete
+        aborted: false
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: persistent-transition-render-complete
+        aborted: false
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: persistent-transition-render-complete
+        aborted: false
+---
+states:
+  - id: baseline
+    elements:
+      - id: scene
+        type: rect
+        x: 80
+        y: 120
+        width: 320
+        height: 220
+        fill: "#4D4D4D"
+      - id: marker
+        type: rect
+        x: 880
+        y: 160
+        width: 180
+        height: 180
+        fill: "#A6A6A6"
+  - id: persistent-update-render-complete
+    elements:
+      - id: scene
+        type: rect
+        x: 520
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+      - id: marker
+        type: rect
+        x: 880
+        y: 160
+        width: 180
+        height: 180
+        fill: "#A6A6A6"
+    animations:
+      - id: persistent-update
+        targetId: scene
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+  - id: persistent-transition-render-complete
+    elements:
+      - id: scene
+        type: rect
+        x: 160
+        y: 120
+        width: 720
+        height: 420
+        fill: "#FFFFFF"
+        alpha: 1
+      - id: marker
+        type: rect
+        x: 920
+        y: 180
+        width: 180
+        height: 180
+        fill: "#A6A6A6"
+    animations:
+      - id: persistent-transition
+        targetId: scene
+        type: transition
+        playback:
+          continuity: persistent
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear
