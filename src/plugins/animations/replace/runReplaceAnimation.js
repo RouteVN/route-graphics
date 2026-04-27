@@ -1314,12 +1314,13 @@ export const runReplaceAnimation = ({
   const hiddenMountContext = createRenderContext({
     suppressAnimations: true,
   });
-  const stateVersion = completionTracker.getVersion();
+  const trackCompletion = !isPersistent;
+  const stateVersion = trackCompletion ? completionTracker.getVersion() : null;
   let completionTracked = false;
   let currentZIndex = zIndex;
 
   const trackTransition = () => {
-    if (completionTracked) {
+    if (!trackCompletion || completionTracked) {
       return;
     }
 

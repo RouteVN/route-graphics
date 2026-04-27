@@ -53,6 +53,8 @@ It fires after the current render finishes all tracked asynchronous work:
 - `text-revealing`
 - non-looping video playback
 
+Animations with `playback.continuity: persistent` are not tracked by `renderComplete`, so renders do not wait for them to finish.
+
 Payload shape:
 
 ```js

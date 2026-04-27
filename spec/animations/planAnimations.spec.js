@@ -500,6 +500,63 @@ describe("dispatchUpdateAnimations", () => {
     ]);
   });
 
+  it("dispatches persistent update animations without tracking render completion", () => {
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: vi.fn(),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const onComplete = vi.fn();
+    const element = {
+      alpha: 1,
+    };
+
+    const dispatched = dispatchUpdateAnimations({
+      animations: groupAnimationsByTarget([
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: { continuity: "persistent" },
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ]),
+      targetId: "bg",
+      animationBus,
+      completionTracker,
+      element,
+      targetState: { alpha: 1 },
+      onComplete,
+    });
+
+    expect(dispatched).toBe(true);
+    expect(completionTracker.getVersion).not.toHaveBeenCalled();
+    expect(completionTracker.track).not.toHaveBeenCalled();
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "bg-breathe",
+          continuity: "persistent",
+        }),
+      }),
+    );
+
+    const dispatchedPayload = animationBus.dispatch.mock.calls[0][0].payload;
+    dispatchedPayload.onComplete();
+
+    expect(completionTracker.complete).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "bg-breathe" }),
+    );
+  });
+
   it("defers update animations during suppressed mounts and applies initial values", () => {
     const animationBus = { dispatch: vi.fn() };
     const completionTracker = {
@@ -557,6 +614,61 @@ describe("dispatchUpdateAnimations", () => {
           id: "child-update",
           element,
           targetState: { x: 100, alpha: 1 },
+        }),
+      }),
+    );
+  });
+
+  it("defers persistent update animations without tracking render completion", () => {
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: vi.fn(),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const renderContext = createRenderContext({ suppressAnimations: true });
+    const element = {
+      alpha: 1,
+    };
+
+    const dispatched = dispatchUpdateAnimations({
+      animations: groupAnimationsByTarget([
+        {
+          id: "bg-breathe",
+          targetId: "bg",
+          type: "update",
+          playback: { continuity: "persistent" },
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ]),
+      targetId: "bg",
+      animationBus,
+      completionTracker,
+      element,
+      targetState: { alpha: 1 },
+      renderContext,
+    });
+
+    expect(dispatched).toBe(true);
+    expect(element.alpha).toBe(0);
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+    expect(completionTracker.track).not.toHaveBeenCalled();
+
+    flushDeferredMountOperations(renderContext);
+
+    expect(completionTracker.getVersion).not.toHaveBeenCalled();
+    expect(completionTracker.track).not.toHaveBeenCalled();
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "bg-breathe",
+          continuity: "persistent",
         }),
       }),
     );

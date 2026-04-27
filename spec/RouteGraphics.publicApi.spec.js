@@ -568,7 +568,7 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("bg")?.scale.y).toBeCloseTo(1.5);
   });
 
-  it("still completes the originating render when a persistent update finishes before any later render adopts it", async () => {
+  it("emits renderComplete immediately for persistent update playback", async () => {
     const eventHandler = vi.fn();
     const { app, pixiMock } = await setupRouteGraphics({
       initOptions: {
@@ -638,20 +638,18 @@ describe("RouteGraphics public API", () => {
       ],
     });
 
-    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
-      id: "persistent-update-finish",
-      aborted: false,
-    });
-
-    frameTick({ deltaMS: 300 });
-
     expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
       id: "persistent-update-finish",
       aborted: false,
     });
+
+    const eventCountAfterRender = eventHandler.mock.calls.length;
+    frameTick({ deltaMS: 300 });
+
+    expect(eventHandler.mock.calls).toHaveLength(eventCountAfterRender);
   });
 
-  it("detaches persistent updates from renderComplete after a later render adopts them", async () => {
+  it("does not abort or re-complete persistent updates after a later render adopts them", async () => {
     const eventHandler = vi.fn();
     const { app, pixiMock } = await setupRouteGraphics({
       initOptions: {
@@ -739,6 +737,11 @@ describe("RouteGraphics public API", () => {
       ],
     });
 
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-update-old",
+      aborted: false,
+    });
+
     frameTick({ deltaMS: 400 });
     eventHandler.mockClear();
 
@@ -782,7 +785,7 @@ describe("RouteGraphics public API", () => {
       ],
     });
 
-    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
       id: "persistent-update-old",
       aborted: true,
     });
@@ -931,7 +934,7 @@ describe("RouteGraphics public API", () => {
     expect(overlay?.children[0].alpha).toBeCloseTo(0.5);
   });
 
-  it("detaches persistent transitions from renderComplete after a later render adopts them", async () => {
+  it("does not abort or re-complete persistent transitions after a later render adopts them", async () => {
     const eventHandler = vi.fn();
     const { app, pixiMock } = await setupRouteGraphics({
       initOptions: {
@@ -993,6 +996,11 @@ describe("RouteGraphics public API", () => {
       ],
     });
 
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "persistent-transition-old",
+      aborted: false,
+    });
+
     frameTick({ deltaMS: 400 });
     eventHandler.mockClear();
 
@@ -1029,7 +1037,7 @@ describe("RouteGraphics public API", () => {
       ],
     });
 
-    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+    expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
       id: "persistent-transition-old",
       aborted: true,
     });
