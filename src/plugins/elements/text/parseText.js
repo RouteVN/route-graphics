@@ -2,6 +2,7 @@ import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -16,10 +17,7 @@ import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
  * @returns {TextComputedNode}
  */
 export const parseText = ({ state }) => {
-  const textStyle = {
-    ...DEFAULT_TEXT_STYLE,
-    ...state.textStyle,
-  };
+  const textStyle = mergeTextStyle(DEFAULT_TEXT_STYLE, state.textStyle);
 
   textStyle.lineHeight = Math.round(textStyle.fontSize * textStyle.lineHeight);
 
@@ -34,7 +32,7 @@ export const parseText = ({ state }) => {
 
   const { width, height } = CanvasTextMetrics.measureText(
     contentString,
-    new TextStyle(toPixiTextStyle(textStyle)),
+    new TextStyle(toPixiTextStyle(textStyle, { includeShadow: false })),
   );
 
   // Round pixel calculations

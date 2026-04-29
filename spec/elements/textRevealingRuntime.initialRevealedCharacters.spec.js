@@ -70,8 +70,9 @@ const runReveal = async ({ element, playback = "autoplay", signal } = {}) => {
 };
 
 const getSoftWipeStartAction = (animationBus) =>
-  animationBus.dispatch.mock.calls.find(([action]) => action.type === "START")
-    ?.[0];
+  animationBus.dispatch.mock.calls.find(
+    ([action]) => action.type === "START",
+  )?.[0];
 
 const getLineContainer = (container, element, lineIndex = 0) =>
   container
@@ -100,8 +101,9 @@ describe("runTextReveal initialRevealedCharacters", () => {
     });
     const initialText = getRenderedText(container);
 
-    expect(initialText.startsWith(fullText.slice(0, initialRevealedCharacters)))
-      .toBe(true);
+    expect(
+      initialText.startsWith(fullText.slice(0, initialRevealedCharacters)),
+    ).toBe(true);
     expect(initialText.length).toBeGreaterThan(initialRevealedCharacters);
     expect(initialText.length).toBeLessThan(fullText.length);
 
@@ -139,7 +141,8 @@ describe("runTextReveal initialRevealedCharacters", () => {
     const container = new Container();
     const completionTracker = createCompletionTracker();
     const animationBus = { dispatch: vi.fn() };
-    const fullText = "Prefix resumes from the live snapshot, not the old offset.";
+    const fullText =
+      "Prefix resumes from the live snapshot, not the old offset.";
     const element = createTextRevealingElement({
       content: [{ text: fullText }],
       initialRevealedCharacters: "Prefix ".length,
@@ -192,7 +195,8 @@ describe("runTextReveal initialRevealedCharacters", () => {
   });
 
   it("starts softWipe from a shifted prefix time", async () => {
-    const fullText = "Soft wipe should continue from an already visible prefix.";
+    const fullText =
+      "Soft wipe should continue from an already visible prefix.";
     const softWipe = {
       easing: "linear",
       softness: 0,
@@ -230,6 +234,42 @@ describe("runTextReveal initialRevealedCharacters", () => {
 
     baselineStart.payload.onCancel();
     shiftedStart.payload.onCancel();
+  });
+
+  it("keeps overlapped softWipe lines hidden after a completed prefix line", async () => {
+    const firstLine = "First soft wipe line";
+    const secondLine = "Second soft wipe line";
+    const element = createTextRevealingElement({
+      content: [{ text: `${firstLine}\n${secondLine}` }],
+      revealEffect: "softWipe",
+      softWipe: {
+        easing: "linear",
+        softness: 0,
+        lineOverlap: 0.5,
+      },
+      initialRevealedCharacters: firstLine.length,
+    });
+    const { container, animationBus } = await runReveal({ element });
+    const startAction = getSoftWipeStartAction(animationBus);
+
+    expect(startAction?.payload).toBeDefined();
+
+    startAction.payload.applyFrame(0);
+
+    const indicator = container.children[1];
+    const firstChunkIndicatorY =
+      element.content[0].y +
+      element.content[0].lineMaxHeight -
+      indicator.height;
+    const secondChunkIndicatorY =
+      element.content[1].y +
+      element.content[1].lineMaxHeight -
+      indicator.height;
+
+    expect(indicator.y).toBe(firstChunkIndicatorY);
+    expect(indicator.y).not.toBe(secondChunkIndicatorY);
+
+    startAction.payload.onCancel();
   });
 
   it("renders a paused-initial softWipe prefix without dispatching animation work", async () => {

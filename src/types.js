@@ -399,6 +399,15 @@
  */
 
 /**
+ * @typedef {Object} TextShadow
+ * @property {string} [color] - Shadow color
+ * @property {number} [alpha] - Shadow opacity from 0 to 1
+ * @property {number} [blur] - Shadow blur radius in pixels
+ * @property {number} [offsetX] - Horizontal shadow offset in pixels
+ * @property {number} [offsetY] - Vertical shadow offset in pixels
+ */
+
+/**
  * @typedef {Object} TextStyle
  * @property {string} fill - Text color
  * @property {string} fontFamily - Font family
@@ -410,6 +419,7 @@
  * @property {number} wordWrapWidth - Word wrap width
  * @property {string} [strokeColor] - Text stroke/outline color
  * @property {number} [strokeWidth] - Text stroke/outline width
+ * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
 /**
@@ -726,6 +736,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fontFamily - The font family of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
+ * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
 /**

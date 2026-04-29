@@ -15,21 +15,21 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 
 ## Field Reference
 
-| Field        | Type   | Required            | Default         | Notes                                       |
-| ------------ | ------ | ------------------- | --------------- | ------------------------------------------- |
-| `id`         | string | Yes                 | -               | Element id.                                 |
-| `type`       | string | Yes                 | -               | Must be `text`.                             |
-| `x`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.           |
-| `y`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.           |
-| `content`    | string | No                  | `""`            | Converted to string at parse time.          |
+| Field        | Type   | Required            | Default         | Notes                                                                    |
+| ------------ | ------ | ------------------- | --------------- | ------------------------------------------------------------------------ |
+| `id`         | string | Yes                 | -               | Element id.                                                              |
+| `type`       | string | Yes                 | -               | Must be `text`.                                                          |
+| `x`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                        |
+| `y`          | number | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                        |
+| `content`    | string | No                  | `""`            | Converted to string at parse time.                                       |
 | `width`      | number | No                  | auto            | Fixed layout box width. Also enables wrapping (`wordWrapWidth = width`). |
-| `anchorX`    | number | No                  | `0`             | Can be outside `0..1`.                      |
-| `anchorY`    | number | No                  | `0`             | Can be outside `0..1`.                      |
-| `alpha`      | number | No                  | `1`             | Opacity `0..1`.                             |
-| `textStyle`  | object | No                  | engine defaults | See table below.                            |
-| `hover`      | object | No                  | -               | Hover style, cursor, sound, payload.        |
-| `click`      | object | No                  | -               | Press style, sound, payload.                |
-| `rightClick` | object | No                  | -               | Right-press style, sound, payload.          |
+| `anchorX`    | number | No                  | `0`             | Can be outside `0..1`.                                                   |
+| `anchorY`    | number | No                  | `0`             | Can be outside `0..1`.                                                   |
+| `alpha`      | number | No                  | `1`             | Opacity `0..1`.                                                          |
+| `textStyle`  | object | No                  | engine defaults | See table below.                                                         |
+| `hover`      | object | No                  | -               | Hover style, cursor, sound, payload.                                     |
+| `click`      | object | No                  | -               | Press style, sound, payload.                                             |
+| `rightClick` | object | No                  | -               | Right-press style, sound, payload.                                       |
 
 ### `textStyle`
 
@@ -45,6 +45,19 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `wordWrapWidth` | number                        | `0`           |
 | `strokeColor`   | string                        | `transparent` |
 | `strokeWidth`   | number                        | `0`           |
+| `shadow`        | object \| null                | -             |
+
+### `textStyle.shadow`
+
+`shadow` enables a single text shadow. Omit it for no shadow. Set it to `null` inside an interaction style to remove a base shadow for that state.
+
+| Field     | Type   | Default |
+| --------- | ------ | ------- |
+| `color`   | string | `black` |
+| `alpha`   | number | `1`     |
+| `blur`    | number | `0`     |
+| `offsetX` | number | `2`     |
+| `offsetY` | number | `2`     |
 
 ## Layout Notes
 
@@ -86,11 +99,20 @@ elements:
       fontSize: 42
       strokeColor: "#000000"
       strokeWidth: 4
+      shadow:
+        color: "#000000"
+        alpha: 0.45
+        blur: 6
+        offsetX: 0
+        offsetY: 4
     hover:
       cursor: pointer
       soundSrc: hover-sfx
       textStyle:
         fill: "#ffdd55"
+        shadow:
+          alpha: 0.8
+          blur: 8
       payload:
         action: menuHover
         target: start

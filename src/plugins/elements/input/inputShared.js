@@ -114,7 +114,8 @@ const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
   return 0;
 };
 
-const createMeasuredStyle = (style) => new TextStyle(toPixiTextStyle(style));
+const createMeasuredStyle = (style) =>
+  new TextStyle(toPixiTextStyle(style, { includeShadow: false }));
 
 const measureWidth = (text, style) =>
   CanvasTextMetrics.measureText(text, createMeasuredStyle(style)).width;
