@@ -159,8 +159,7 @@ Supported mask channels:
 - `transition` may define `prev` only, `next` only, or both.
 - Missing `prev` or `next` is treated as transparent.
 - On render interruption, pending animations are canceled and the current render is marked aborted through `renderComplete`.
-- A persistent animation still contributes to `renderComplete` for the render that started it if it finishes before continuity carries it into a later render.
-- Once continuity carries that in-flight animation into a later render, it stops contributing to `renderComplete`, and its eventual finish should not fire `renderComplete` for either render.
+- Persistent animations do not contribute to `renderComplete`; renders do not wait for them, and their eventual finish does not emit render completion.
 - Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations and reveals settle.
 
 ## Example: Enter Fade
