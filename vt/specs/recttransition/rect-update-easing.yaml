@@ -1,0 +1,98 @@
+---
+title: Rect Update Easing Transition
+description: Rect update tweens should sample easing from the keyframe or auto target being reached.
+specs:
+  - manual keyframe easing should affect the first update segment
+  - auto easing should affect the first update segment
+  - halfway through easeInQuad motion should be one quarter of the distance
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: expected-marker
+        type: rect
+        x: 300
+        "y": 80
+        width: 8
+        height: 480
+        fill: "#4D4D4D"
+      - id: linear-marker
+        type: rect
+        x: 500
+        "y": 80
+        width: 8
+        height: 480
+        fill: "#737373"
+      - id: manual-rect
+        type: rect
+        x: 100
+        "y": 150
+        width: 120
+        height: 100
+        fill: "#D9D9D9"
+      - id: auto-rect
+        type: rect
+        x: 100
+        "y": 350
+        width: 120
+        height: 100
+        fill: "#D9D9D9"
+  - elements:
+      - id: expected-marker
+        type: rect
+        x: 300
+        "y": 80
+        width: 8
+        height: 480
+        fill: "#4D4D4D"
+      - id: linear-marker
+        type: rect
+        x: 500
+        "y": 80
+        width: 8
+        height: 480
+        fill: "#737373"
+      - id: manual-rect
+        type: rect
+        x: 900
+        "y": 150
+        width: 120
+        height: 100
+        fill: "#D9D9D9"
+      - id: auto-rect
+        type: rect
+        x: 900
+        "y": 350
+        width: 120
+        height: 100
+        fill: "#D9D9D9"
+    animations:
+      - id: manual-ease-in
+        targetId: manual-rect
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 900
+                easing: easeInQuad
+      - id: auto-ease-in
+        targetId: auto-rect
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: easeInQuad

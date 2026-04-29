@@ -29,6 +29,11 @@ Each `tween` property can use either:
 
 `keyframes` and `auto` are mutually exclusive on the same property.
 
+Each keyframe's `easing` applies to the segment that reaches that keyframe
+from the previous value. The first authored keyframe controls the segment from
+the current value to that keyframe. `auto.easing` controls the single segment
+from the current value to the next state value.
+
 Use `update` only when the same target stays mounted before and after the
 change. Do not use it for first-enter or final-exit. Those are `transition`
 cases.

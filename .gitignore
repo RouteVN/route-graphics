@@ -2,6 +2,7 @@ _site
 .DS_Store
 node_modules
 coverage
+playground/static/RouteGraphics.js
 vt/static/RouteGraphics.js
 vt/static/RouteGraphics.js.map
 vt_old/static/RouteGraphics.js
