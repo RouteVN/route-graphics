@@ -15,6 +15,7 @@ const getRevealIdentity = (element = {}) =>
         ? normalizeSoftWipeConfig(element.softWipe)
         : null,
     speed: element.speed ?? 50,
+    initialRevealedCharacters: element.initialRevealedCharacters ?? 0,
     width: element.width ?? null,
     indicator: element.indicator ?? null,
     x: element.x ?? null,

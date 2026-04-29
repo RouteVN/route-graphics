@@ -25,6 +25,8 @@ const MIN_TEXT_REVEAL_RATE = 10;
 const MAX_TEXT_REVEAL_RATE = 120;
 const TEXT_REVEAL_RATE_CURVE = 0.9;
 
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
 const clampTextRevealSpeed = (speed = DEFAULT_TEXT_REVEAL_SPEED) => {
   if (typeof speed !== "number" || !Number.isFinite(speed)) {
     return DEFAULT_TEXT_REVEAL_SPEED;
@@ -58,6 +60,27 @@ const getEffectiveSpeed = (speed) => {
 
 const getTextRevealSnapshotMode = (element) =>
   element?.revealEffect === "softWipe" ? "softWipe" : "typewriter";
+
+const getInitialRevealedCharacters = (element) => {
+  const value = element?.initialRevealedCharacters;
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
+};
+
+const getTextRevealCharacterCount = (element) =>
+  (element?.content ?? []).reduce(
+    (chunkTotal, chunk) =>
+      chunkTotal +
+      (chunk.lineParts ?? []).reduce(
+        (partTotal, part) => partTotal + (part.text?.length ?? 0),
+        0,
+      ),
+    0,
+  );
 
 export const shouldRenderTextRevealImmediately = (element) =>
   element?.revealEffect === "none" ||
@@ -292,11 +315,124 @@ const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
   applyCompleteIndicator(indicatorSprite, element);
 };
 
-const runPausedInitialReveal = ({ indicatorSprite, element }) => {
+const runTypewriterPrefixReveal = ({
+  contentContainer,
+  indicatorSprite,
+  element,
+  revealedCharacters,
+}) => {
   const indicatorOffset = element?.indicator?.offset ?? 12;
   const firstChunk = element.content[0] ?? null;
+  const totalCharacters = getTextRevealCharacterCount(element);
+  let remainingCharacters = Math.min(
+    revealedCharacters,
+    Math.max(0, totalCharacters),
+  );
+  let lastVisibleTextObject = null;
+  let lastVisibleChunk = null;
 
-  positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+  if (remainingCharacters <= 0) {
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    return;
+  }
+
+  chunkLoop: for (
+    let chunkIndex = 0;
+    chunkIndex < element.content.length;
+    chunkIndex++
+  ) {
+    const chunk = element.content[chunkIndex];
+
+    for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
+      const part = chunk.lineParts[partIndex];
+      const prefilledCharacters = Math.min(
+        part.text.length,
+        remainingCharacters,
+      );
+
+      if (prefilledCharacters <= 0) {
+        break chunkLoop;
+      }
+
+      const fullFurigana = part.furigana?.text || "";
+      const furiganaLength = fullFurigana.length;
+      const prefilledFuriganaLength =
+        part.text.length > 0
+          ? Math.round(
+              (prefilledCharacters / part.text.length) * furiganaLength,
+            )
+          : 0;
+      const { text, furiganaText } = createPartObjects(
+        part,
+        part.text.substring(0, prefilledCharacters),
+        fullFurigana.substring(0, prefilledFuriganaLength),
+      );
+
+      if (furiganaText) {
+        contentContainer.addChild(furiganaText);
+      }
+
+      contentContainer.addChild(text);
+      lastVisibleTextObject = text;
+      lastVisibleChunk = chunk;
+      remainingCharacters -= prefilledCharacters;
+
+      if (prefilledCharacters < part.text.length) {
+        break chunkLoop;
+      }
+    }
+  }
+
+  if (lastVisibleChunk) {
+    positionIndicatorForChunk(
+      indicatorSprite,
+      lastVisibleChunk,
+      indicatorOffset,
+    );
+    positionIndicatorAtTextEnd(
+      indicatorSprite,
+      lastVisibleTextObject,
+      indicatorOffset,
+    );
+  } else {
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+  }
+
+  if (revealedCharacters >= totalCharacters) {
+    applyCompleteIndicator(indicatorSprite, element);
+  }
+};
+
+const runPausedInitialReveal = ({
+  contentContainer,
+  indicatorSprite,
+  element,
+}) => {
+  const revealedCharacters = getInitialRevealedCharacters(element);
+
+  if (revealedCharacters <= 0) {
+    const indicatorOffset = element?.indicator?.offset ?? 12;
+    const firstChunk = element.content[0] ?? null;
+
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    return;
+  }
+
+  if (element.revealEffect === "softWipe") {
+    runSoftWipePausedInitialReveal({
+      contentContainer,
+      indicatorSprite,
+      element,
+      revealedCharacters,
+    });
+  } else {
+    runTypewriterPrefixReveal({
+      contentContainer,
+      indicatorSprite,
+      element,
+      revealedCharacters,
+    });
+  }
 };
 
 const runTypewriterReveal = async ({
@@ -461,6 +597,281 @@ const getSoftWipeLineProgress = ({ currentTime, line, easing }) => {
   return easing(Math.max(0, Math.min(rawProgress, 1)));
 };
 
+const getInverseSoftWipeProgress = ({ progress, easingName }) => {
+  const clampedProgress = clamp(progress, 0, 1);
+
+  if (easingName === "easeOutCubic") {
+    return 1 - Math.cbrt(1 - clampedProgress);
+  }
+
+  return clampedProgress;
+};
+
+const getSoftWipeInitialTime = ({
+  timedLines,
+  duration,
+  initialRevealedCharacters,
+  easingName,
+}) => {
+  let remainingCharacters = Math.max(0, Math.floor(initialRevealedCharacters));
+
+  if (remainingCharacters <= 0) {
+    return 0;
+  }
+
+  for (const line of timedLines) {
+    const lineCharacters = Math.max(0, line.totalCharacters ?? 0);
+
+    if (lineCharacters <= 0) {
+      continue;
+    }
+
+    if (remainingCharacters <= lineCharacters) {
+      const easedProgress = remainingCharacters / lineCharacters;
+      const rawProgress = getInverseSoftWipeProgress({
+        progress: easedProgress,
+        easingName,
+      });
+
+      return clamp(line.startTime + rawProgress * line.duration, 0, duration);
+    }
+
+    remainingCharacters -= lineCharacters;
+  }
+
+  return duration;
+};
+
+const destroySoftWipeLineMasks = (lineMasks) => {
+  lineMasks.forEach((lineMask) => {
+    if (!lineMask) {
+      return;
+    }
+
+    if (lineMask.line.container.mask === lineMask.sprite) {
+      lineMask.line.container.mask = null;
+    }
+
+    if (lineMask.sprite.parent) {
+      lineMask.sprite.parent.removeChild(lineMask.sprite);
+    }
+
+    lineMask.sprite.destroy();
+    lineMask.texture.destroy(true);
+  });
+};
+
+const createSoftWipeLineMasks = ({
+  contentContainer,
+  timedLines,
+  edgeWidth,
+}) => {
+  const lineMasks = timedLines.map((line) => {
+    const canvas = document.createElement("canvas");
+
+    canvas.width = Math.max(1, Math.ceil(line.bounds.width + edgeWidth));
+    canvas.height = Math.max(1, Math.ceil(line.bounds.height));
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return null;
+    }
+
+    const texture = getCanvasTexture(canvas);
+    const sprite = new Sprite(texture);
+
+    sprite.x = Math.floor(line.bounds.x - edgeWidth);
+    sprite.y = Math.floor(line.bounds.y);
+    line.container.mask = sprite;
+    contentContainer.addChild(sprite);
+
+    return {
+      canvas,
+      context,
+      texture,
+      sprite,
+      line,
+      edgeWidth,
+    };
+  });
+
+  if (lineMasks.some((lineMask) => lineMask === null)) {
+    destroySoftWipeLineMasks(lineMasks);
+    return null;
+  }
+
+  return lineMasks;
+};
+
+const applySoftWipeFrame = ({
+  timedLines,
+  lineMasks,
+  easing,
+  indicatorSprite,
+  indicatorOffset,
+  currentTime,
+}) => {
+  let activeLine = timedLines[0];
+  let activeLineLeadingEdgeX = activeLine.bounds.x;
+
+  for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
+    const line = timedLines[lineIndex];
+    const lineMask = lineMasks[lineIndex];
+    const lineProgress = getSoftWipeLineProgress({
+      currentTime,
+      line,
+      easing,
+    });
+    const { context, canvas, texture } = lineMask;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (lineProgress <= 0) {
+      texture.source.update();
+      continue;
+    }
+
+    const lineY = 0;
+    const lineTravelDistance = line.bounds.width + lineMask.edgeWidth;
+    const lineStart = lineMask.edgeWidth;
+    const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
+    const hardEnd = Math.max(lineStart, lineLeadingEdge - lineMask.edgeWidth);
+
+    if (hardEnd > lineStart) {
+      context.fillStyle = "#ffffff";
+      context.fillRect(
+        lineStart,
+        lineY,
+        Math.min(hardEnd - lineStart, line.bounds.width),
+        line.bounds.height,
+      );
+    }
+
+    const gradientStart = Math.max(
+      lineStart,
+      lineLeadingEdge - lineMask.edgeWidth,
+    );
+    const gradientEnd = Math.min(
+      lineStart + line.bounds.width,
+      lineLeadingEdge,
+    );
+
+    if (gradientEnd > gradientStart) {
+      const gradient = context.createLinearGradient(
+        gradientStart,
+        0,
+        gradientEnd,
+        0,
+      );
+
+      gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+      context.fillStyle = gradient;
+      context.fillRect(
+        gradientStart,
+        lineY,
+        gradientEnd - gradientStart,
+        line.bounds.height,
+      );
+    }
+
+    texture.source.update();
+    activeLine = line;
+    activeLineLeadingEdgeX =
+      line.bounds.x +
+      Math.min(line.bounds.width, Math.max(0, lineLeadingEdge - lineStart));
+  }
+
+  positionIndicatorForChunk(indicatorSprite, activeLine.chunk, indicatorOffset);
+  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
+};
+
+const runSoftWipePausedInitialReveal = ({
+  contentContainer,
+  indicatorSprite,
+  element,
+  revealedCharacters,
+}) => {
+  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
+    buildFullTextContent(contentContainer, element);
+
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
+
+  if (
+    lines.length === 0 ||
+    totalCharacters === 0 ||
+    revealedCharacters >= totalCharacters ||
+    !lines.some((line) => line.bounds.width > 0 && line.bounds.height > 0) ||
+    !globalThis.document
+  ) {
+    positionIndicatorAtTextEnd(
+      indicatorSprite,
+      lastTextObject,
+      indicatorOffset,
+    );
+    applyCompleteIndicator(indicatorSprite, element);
+    return;
+  }
+
+  const softWipe = normalizeSoftWipeConfig(element.softWipe);
+  const easing = getSoftWipeEasing(softWipe.easing);
+  const edgeWidth = getSoftWipeEdgeWidth({ maxLineHeight, softWipe });
+  const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
+  const baseDuration = Math.max(
+    1,
+    Math.round((totalCharacters / effectiveSpeed) * 1000),
+  );
+  const { timedLines, duration } = createSoftWipeLineTimings({
+    lines,
+    edgeWidth,
+    baseDuration,
+    softWipe,
+  });
+  const startTime = getSoftWipeInitialTime({
+    timedLines,
+    duration,
+    initialRevealedCharacters: revealedCharacters,
+    easingName: softWipe.easing,
+  });
+
+  if (startTime >= duration) {
+    positionIndicatorAtTextEnd(
+      indicatorSprite,
+      lastTextObject,
+      indicatorOffset,
+    );
+    applyCompleteIndicator(indicatorSprite, element);
+    return;
+  }
+
+  const lineMasks = createSoftWipeLineMasks({
+    contentContainer,
+    timedLines,
+    edgeWidth,
+  });
+
+  if (!lineMasks) {
+    positionIndicatorAtTextEnd(
+      indicatorSprite,
+      lastTextObject,
+      indicatorOffset,
+    );
+    applyCompleteIndicator(indicatorSprite, element);
+    return;
+  }
+
+  applySoftWipeFrame({
+    timedLines,
+    lineMasks,
+    easing,
+    indicatorSprite,
+    indicatorOffset,
+    currentTime: startTime,
+  });
+};
+
 const runSoftWipeReveal = ({
   container,
   contentContainer,
@@ -471,14 +882,8 @@ const runSoftWipeReveal = ({
 }) => {
   const indicatorOffset = element?.indicator?.offset ?? 12;
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
-  const {
-    lines,
-    lastTextObject,
-    lastChunk,
-    totalCharacters,
-    maxLineHeight,
-    bounds,
-  } = buildFullTextContent(contentContainer, element);
+  const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
+    buildFullTextContent(contentContainer, element);
 
   positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
 
@@ -511,56 +916,33 @@ const runSoftWipeReveal = ({
     baseDuration,
     softWipe,
   });
+  const initialRevealedCharacters = getInitialRevealedCharacters(element);
+  const startTime = getSoftWipeInitialTime({
+    timedLines,
+    duration,
+    initialRevealedCharacters,
+    easingName: softWipe.easing,
+  });
+
+  if (startTime >= duration) {
+    positionIndicatorAtTextEnd(
+      indicatorSprite,
+      lastTextObject,
+      indicatorOffset,
+    );
+    applyCompleteIndicator(indicatorSprite, element);
+    return false;
+  }
 
   const stateVersion = completionTracker.getVersion();
   const animationId = `${element.id}-soft-wipe`;
-  const lineMasks = timedLines.map((line) => {
-    const canvas = document.createElement("canvas");
-
-    canvas.width = Math.max(1, Math.ceil(line.bounds.width + edgeWidth));
-    canvas.height = Math.max(1, Math.ceil(line.bounds.height));
-
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      return null;
-    }
-
-    const texture = getCanvasTexture(canvas);
-    const sprite = new Sprite(texture);
-
-    sprite.x = Math.floor(line.bounds.x - edgeWidth);
-    sprite.y = Math.floor(line.bounds.y);
-    line.container.mask = sprite;
-    contentContainer.addChild(sprite);
-
-    return {
-      canvas,
-      context,
-      texture,
-      sprite,
-      line,
-    };
+  const lineMasks = createSoftWipeLineMasks({
+    contentContainer,
+    timedLines,
+    edgeWidth,
   });
 
-  if (lineMasks.some((lineMask) => lineMask === null)) {
-    lineMasks.forEach((lineMask) => {
-      if (!lineMask) {
-        return;
-      }
-
-      if (lineMask.line.container.mask === lineMask.sprite) {
-        lineMask.line.container.mask = null;
-      }
-
-      if (lineMask.sprite.parent) {
-        lineMask.sprite.parent.removeChild(lineMask.sprite);
-      }
-
-      lineMask.sprite.destroy();
-      lineMask.texture.destroy(true);
-    });
-
+  if (!lineMasks) {
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastTextObject,
@@ -616,94 +998,23 @@ const runSoftWipeReveal = ({
 
   registerTextRevealRuntime(container, finalizeCleanup);
   completionTracker.track(stateVersion);
+  const remainingDuration = Math.max(1, Math.ceil(duration - startTime));
 
   animationBus.dispatch({
     type: "START",
     payload: {
       id: animationId,
       driver: "custom",
-      duration,
+      duration: remainingDuration,
       applyFrame: (currentTime) => {
-        let activeLine = timedLines[0];
-        let activeLineLeadingEdgeX = activeLine.bounds.x;
-
-        for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
-          const line = timedLines[lineIndex];
-          const lineMask = lineMasks[lineIndex];
-          const lineProgress = getSoftWipeLineProgress({
-            currentTime,
-            line,
-            easing,
-          });
-          const { context, canvas, texture } = lineMask;
-
-          context.clearRect(0, 0, canvas.width, canvas.height);
-
-          if (lineProgress <= 0) {
-            texture.source.update();
-            continue;
-          }
-
-          const lineY = 0;
-          const lineTravelDistance = line.bounds.width + edgeWidth;
-          const lineStart = edgeWidth;
-          const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
-          const hardEnd = Math.max(lineStart, lineLeadingEdge - edgeWidth);
-
-          if (hardEnd > lineStart) {
-            context.fillStyle = "#ffffff";
-            context.fillRect(
-              lineStart,
-              lineY,
-              Math.min(hardEnd - lineStart, line.bounds.width),
-              line.bounds.height,
-            );
-          }
-
-          const gradientStart = Math.max(
-            lineStart,
-            lineLeadingEdge - edgeWidth,
-          );
-          const gradientEnd = Math.min(
-            lineStart + line.bounds.width,
-            lineLeadingEdge,
-          );
-
-          if (gradientEnd > gradientStart) {
-            const gradient = context.createLinearGradient(
-              gradientStart,
-              0,
-              gradientEnd,
-              0,
-            );
-
-            gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-            gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-            context.fillStyle = gradient;
-            context.fillRect(
-              gradientStart,
-              lineY,
-              gradientEnd - gradientStart,
-              line.bounds.height,
-            );
-          }
-
-          texture.source.update();
-          activeLine = line;
-          activeLineLeadingEdgeX =
-            line.bounds.x +
-            Math.min(
-              line.bounds.width,
-              Math.max(0, lineLeadingEdge - lineStart),
-            );
-        }
-
-        positionIndicatorForChunk(
+        applySoftWipeFrame({
+          timedLines,
+          lineMasks,
+          easing,
           indicatorSprite,
-          activeLine.chunk,
           indicatorOffset,
-        );
-        indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
+          currentTime: Math.min(duration, startTime + currentTime),
+        });
       },
       applyTargetState: () => {
         finalize(false);
@@ -743,6 +1054,7 @@ export const runTextReveal = async ({
   const renderImmediately = shouldRenderTextRevealImmediately(element);
   const resumableSnapshot =
     playback === "resume" ? getResumableTypewriterSnapshot(container) : null;
+  const initialRevealedCharacters = getInitialRevealedCharacters(element);
 
   if (playback === "resume" && !resumableSnapshot) {
     return;
@@ -762,7 +1074,7 @@ export const runTextReveal = async ({
       if (!renderImmediately) {
         setTextRevealSnapshot(container, {
           mode: getTextRevealSnapshotMode(element),
-          revealedCharacters: 0,
+          revealedCharacters: initialRevealedCharacters,
           completed: false,
         });
       }
@@ -774,7 +1086,7 @@ export const runTextReveal = async ({
         });
         runNoneReveal({ contentContainer, indicatorSprite, element });
       } else {
-        runPausedInitialReveal({ indicatorSprite, element });
+        runPausedInitialReveal({ contentContainer, indicatorSprite, element });
       }
       return;
     }
@@ -793,6 +1105,7 @@ export const runTextReveal = async ({
     } else if (element.revealEffect === "softWipe") {
       setTextRevealSnapshot(container, {
         mode: "softWipe",
+        revealedCharacters: initialRevealedCharacters,
         completed: false,
       });
 
@@ -813,9 +1126,11 @@ export const runTextReveal = async ({
       }
     } else {
       completionTracker.track(stateVersion);
+      const startAtCharacter =
+        resumableSnapshot?.revealedCharacters ?? initialRevealedCharacters;
       const nextSnapshot = setTextRevealSnapshot(container, {
         mode: "typewriter",
-        revealedCharacters: resumableSnapshot?.revealedCharacters ?? 0,
+        revealedCharacters: startAtCharacter,
         completed: false,
       });
 
@@ -824,7 +1139,7 @@ export const runTextReveal = async ({
         indicatorSprite,
         element,
         signal,
-        startAtCharacter: resumableSnapshot?.revealedCharacters ?? 0,
+        startAtCharacter,
         snapshot: nextSnapshot,
       });
     }

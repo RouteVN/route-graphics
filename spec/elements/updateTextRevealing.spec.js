@@ -161,6 +161,86 @@ describe("updateTextRevealing", () => {
     );
   });
 
+  it("restarts reveal when only the initial revealed character offset changes", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+
+    await updateTextRevealing({
+      parent,
+      prevElement: createElement({
+        initialRevealedCharacters: 0,
+      }),
+      nextElement: createElement({
+        initialRevealedCharacters: 12,
+      }),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext: createRenderContext(),
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledTimes(1);
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "autoplay",
+        element: expect.objectContaining({
+          initialRevealedCharacters: 12,
+        }),
+      }),
+    );
+  });
+
+  it("preserves initial revealed character offset through deferred autoplay", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+    const renderContext = createRenderContext({ suppressAnimations: true });
+
+    await updateTextRevealing({
+      parent,
+      prevElement: createElement(),
+      nextElement: createElement({
+        content: [
+          {
+            text: "Original text content with appended continuation",
+          },
+        ],
+        initialRevealedCharacters: "Original text content".length,
+      }),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext,
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(mocks.runTextReveal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        playback: "paused-initial",
+        element: expect.objectContaining({
+          initialRevealedCharacters: "Original text content".length,
+        }),
+      }),
+    );
+
+    flushDeferredMountOperations(renderContext);
+
+    expect(mocks.runTextReveal).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        playback: "autoplay",
+        element: expect.objectContaining({
+          initialRevealedCharacters: "Original text content".length,
+        }),
+      }),
+    );
+  });
+
   it("restarts reveal when softWipe parameters change", async () => {
     const parent = new Container();
     const child = new Container();

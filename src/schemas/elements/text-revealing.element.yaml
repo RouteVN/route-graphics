@@ -152,6 +152,11 @@ properties:
     type: number
     description: Animation speed on a curved 0-100 scale; 100 renders instantly
     default: 50
+  initialRevealedCharacters:
+    type: number
+    minimum: 0
+    description: Number of leading text characters to render as already revealed before the reveal animation starts.
+    default: 0
   revealEffect:
     type: string
     enum: [typewriter,softWipe,none]
