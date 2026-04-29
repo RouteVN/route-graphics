@@ -172,6 +172,12 @@ This format is preferred because:
 - total duration can be derived from the keyframes
 - easing supports `linear` plus the common Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` families
 
+Each keyframe's `easing` applies to the segment that reaches that keyframe
+from the previous value. The first authored keyframe controls the segment from
+`initialValue` or the current live value to that keyframe. `auto.easing` follows
+the same rule for the single segment from the current live value to the next
+state value.
+
 The same payload is reused in two places:
 
 - manual `update.tween`
