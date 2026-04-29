@@ -466,6 +466,7 @@
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed on a curved 0-100 scale; 100 renders instantly
+ * @property {number} [initialRevealedCharacters=0] - Number of leading text characters rendered as already revealed before the reveal animation starts
  * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
  * @property {Object} [indicator.revealing] - Settings for the revealing state indicator

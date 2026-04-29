@@ -4,6 +4,14 @@ import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
 
+const normalizeInitialRevealedCharacters = (value) => {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
+};
+
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').TextRevealingComputedNode} TextRevealingComputedNode
@@ -435,6 +443,11 @@ export const parseTextRevealing = ({ state }) => {
     revealEffect: state.revealEffect ?? "typewriter",
     ...(state.softWipe !== undefined && {
       softWipe: normalizeSoftWipeConfig(state.softWipe),
+    }),
+    ...(state.initialRevealedCharacters !== undefined && {
+      initialRevealedCharacters: normalizeInitialRevealedCharacters(
+        state.initialRevealedCharacters,
+      ),
     }),
     ...(state.width !== undefined && { width: state.width }),
     ...(state.complete && { complete: state.complete }),

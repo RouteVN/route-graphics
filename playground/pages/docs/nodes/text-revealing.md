@@ -28,6 +28,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 | `alpha`        | number                               | No                  | `1`            | Opacity `0..1`.                                                                                                                 |
 | `textStyle`    | object                               | No                  | text defaults  | Base style for segments.                                                                                                        |
 | `speed`        | number                               | No                  | `50`           | Uses a curved `0..100` scale. `0..99` gets progressively faster with extra control in the upper range; `100` renders instantly. |
+| `initialRevealedCharacters` | number                  | No                  | `0`            | Leading characters to paint as already revealed before the animation starts.                                                     |
 | `revealEffect` | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.     |
 | `softWipe`     | object                               | No                  | see below      | Parameters used when `revealEffect: softWipe`.                                                                                  |
 | `indicator`    | object                               | No                  | -              | Revealing/complete icon config + offset.                                                                                        |
@@ -67,6 +68,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 - Reveal runs chunk by chunk.
 - `speed` uses an exponential/log-like mapping so `50..99` covers most of the fast reveal range with finer control than a linear scale.
 - `speed: 100` skips animation entirely and paints the final text immediately, regardless of `revealEffect`.
+- `initialRevealedCharacters` is useful when an upstream engine appends to an existing line: keep the full combined `content`, set the count to the already-visible prefix length, and only the remaining suffix animates.
 - `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: linear motion, no overlap, and a feather width clamped to the legacy range.
 - `revealEffect: none` skips animation and paints text immediately.
 - Completion contributes to global `renderComplete` tracking.
