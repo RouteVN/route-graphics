@@ -607,39 +607,70 @@ const getInverseSoftWipeProgress = ({ progress, easingName }) => {
   return clampedProgress;
 };
 
-const getSoftWipeInitialTime = ({
+const createSoftWipeInitialTimeline = ({
   timedLines,
-  duration,
   initialRevealedCharacters,
+  softWipe,
   easingName,
 }) => {
   let remainingCharacters = Math.max(0, Math.floor(initialRevealedCharacters));
+  let reachedRevealBoundary = remainingCharacters <= 0;
+  let nextStartTime = 0;
+  let totalDuration = 0;
 
-  if (remainingCharacters <= 0) {
-    return 0;
-  }
-
-  for (const line of timedLines) {
+  const adjustedTimedLines = timedLines.map((line) => {
     const lineCharacters = Math.max(0, line.totalCharacters ?? 0);
+    let rawInitialProgress = 0;
+    let completedByInitialReveal = false;
 
-    if (lineCharacters <= 0) {
-      continue;
+    if (!reachedRevealBoundary && remainingCharacters > 0) {
+      if (lineCharacters <= 0 || remainingCharacters >= lineCharacters) {
+        remainingCharacters -= lineCharacters;
+        rawInitialProgress = 1;
+        completedByInitialReveal = true;
+      } else {
+        const easedProgress = remainingCharacters / lineCharacters;
+
+        rawInitialProgress = getInverseSoftWipeProgress({
+          progress: easedProgress,
+          easingName,
+        });
+        remainingCharacters = 0;
+        reachedRevealBoundary = true;
+      }
     }
 
-    if (remainingCharacters <= lineCharacters) {
-      const easedProgress = remainingCharacters / lineCharacters;
-      const rawProgress = getInverseSoftWipeProgress({
-        progress: easedProgress,
-        easingName,
-      });
-
-      return clamp(line.startTime + rawProgress * line.duration, 0, duration);
+    if (completedByInitialReveal) {
+      return {
+        ...line,
+        startTime: -line.duration,
+        endTime: 0,
+      };
     }
 
-    remainingCharacters -= lineCharacters;
-  }
+    reachedRevealBoundary = true;
 
-  return duration;
+    const startTime =
+      rawInitialProgress > 0
+        ? -rawInitialProgress * line.duration
+        : Math.max(0, nextStartTime);
+    const endTime = startTime + line.duration;
+
+    totalDuration = Math.max(totalDuration, endTime);
+    nextStartTime =
+      endTime - line.duration * softWipe.lineOverlap + softWipe.lineDelay;
+
+    return {
+      ...line,
+      startTime,
+      endTime,
+    };
+  });
+
+  return {
+    timedLines: adjustedTimedLines,
+    duration: Math.max(1, Math.ceil(totalDuration)),
+  };
 };
 
 const destroySoftWipeLineMasks = (lineMasks) => {
@@ -823,28 +854,18 @@ const runSoftWipePausedInitialReveal = ({
     1,
     Math.round((totalCharacters / effectiveSpeed) * 1000),
   );
-  const { timedLines, duration } = createSoftWipeLineTimings({
+  const baseTimeline = createSoftWipeLineTimings({
     lines,
     edgeWidth,
     baseDuration,
     softWipe,
   });
-  const startTime = getSoftWipeInitialTime({
-    timedLines,
-    duration,
+  const { timedLines } = createSoftWipeInitialTimeline({
+    timedLines: baseTimeline.timedLines,
     initialRevealedCharacters: revealedCharacters,
+    softWipe,
     easingName: softWipe.easing,
   });
-
-  if (startTime >= duration) {
-    positionIndicatorAtTextEnd(
-      indicatorSprite,
-      lastTextObject,
-      indicatorOffset,
-    );
-    applyCompleteIndicator(indicatorSprite, element);
-    return;
-  }
 
   const lineMasks = createSoftWipeLineMasks({
     contentContainer,
@@ -868,7 +889,7 @@ const runSoftWipePausedInitialReveal = ({
     easing,
     indicatorSprite,
     indicatorOffset,
-    currentTime: startTime,
+    currentTime: 0,
   });
 };
 
@@ -885,11 +906,14 @@ const runSoftWipeReveal = ({
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
+  const initialRevealedCharacters = getInitialRevealedCharacters(element);
+
   positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
 
   if (
     lines.length === 0 ||
     totalCharacters === 0 ||
+    initialRevealedCharacters >= totalCharacters ||
     !lines.some((line) => line.bounds.width > 0 && line.bounds.height > 0) ||
     !globalThis.document ||
     !animationBus
@@ -910,29 +934,18 @@ const runSoftWipeReveal = ({
     1,
     Math.round((totalCharacters / effectiveSpeed) * 1000),
   );
-  const { timedLines, duration } = createSoftWipeLineTimings({
+  const baseTimeline = createSoftWipeLineTimings({
     lines,
     edgeWidth,
     baseDuration,
     softWipe,
   });
-  const initialRevealedCharacters = getInitialRevealedCharacters(element);
-  const startTime = getSoftWipeInitialTime({
-    timedLines,
-    duration,
+  const { timedLines, duration } = createSoftWipeInitialTimeline({
+    timedLines: baseTimeline.timedLines,
     initialRevealedCharacters,
+    softWipe,
     easingName: softWipe.easing,
   });
-
-  if (startTime >= duration) {
-    positionIndicatorAtTextEnd(
-      indicatorSprite,
-      lastTextObject,
-      indicatorOffset,
-    );
-    applyCompleteIndicator(indicatorSprite, element);
-    return false;
-  }
 
   const stateVersion = completionTracker.getVersion();
   const animationId = `${element.id}-soft-wipe`;
@@ -998,14 +1011,13 @@ const runSoftWipeReveal = ({
 
   registerTextRevealRuntime(container, finalizeCleanup);
   completionTracker.track(stateVersion);
-  const remainingDuration = Math.max(1, Math.ceil(duration - startTime));
 
   animationBus.dispatch({
     type: "START",
     payload: {
       id: animationId,
       driver: "custom",
-      duration: remainingDuration,
+      duration,
       applyFrame: (currentTime) => {
         applySoftWipeFrame({
           timedLines,
@@ -1013,7 +1025,7 @@ const runSoftWipeReveal = ({
           easing,
           indicatorSprite,
           indicatorOffset,
-          currentTime: Math.min(duration, startTime + currentTime),
+          currentTime: Math.min(duration, currentTime),
         });
       },
       applyTargetState: () => {

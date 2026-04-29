@@ -2,6 +2,7 @@ import { CanvasTextMetrics, TextStyle } from "pixi.js";
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
 
 const normalizeInitialRevealedCharacters = (value) => {
@@ -165,7 +166,9 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
     const measurements = CanvasTextMetrics.measureText(
       segment.text,
-      new TextStyle(toPixiTextStyle(styleWithWordWrap)),
+      new TextStyle(
+        toPixiTextStyle(styleWithWordWrap, { includeShadow: false }),
+      ),
     );
 
     // Check if text fits on current line
@@ -227,7 +230,7 @@ const createTextChunks = (segments, wordWrapWidth) => {
     const measurementsWithNoWrapping = CanvasTextMetrics.measureText(
       textPart,
       new TextStyle({
-        ...toPixiTextStyle(segment.textStyle),
+        ...toPixiTextStyle(segment.textStyle, { includeShadow: false }),
         wordWrap: false,
         breakWords: false,
       }),
@@ -254,7 +257,11 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
       const furiganaMeasurements = CanvasTextMetrics.measureText(
         segment.furigana.text,
-        new TextStyle(toPixiTextStyle(segment.furigana.textStyle)),
+        new TextStyle(
+          toPixiTextStyle(segment.furigana.textStyle, {
+            includeShadow: false,
+          }),
+        ),
       );
 
       // Calculate furigana position relative to current line's max height
@@ -340,18 +347,17 @@ const createTextChunks = (segments, wordWrapWidth) => {
  * @returns {TextRevealingComputedNode}
  */
 export const parseTextRevealing = ({ state }) => {
-  const defaultTextStyle = {
-    ...DEFAULT_TEXT_STYLE,
-    wordWrap: true,
-    ...(state.textStyle || {}),
-  };
+  const defaultTextStyle = mergeTextStyle(
+    {
+      ...DEFAULT_TEXT_STYLE,
+      wordWrap: true,
+    },
+    state.textStyle,
+  );
 
   const processedContent = (state.content || []).map((item) => {
     // TODO: if breakwords is true this will crash
-    const itemTextStyle = {
-      ...defaultTextStyle,
-      ...(item.textStyle || {}),
-    };
+    const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
 
     itemTextStyle.lineHeight = Math.round(
       itemTextStyle.lineHeight * itemTextStyle.fontSize,
@@ -364,10 +370,10 @@ export const parseTextRevealing = ({ state }) => {
 
     let furigana = null;
     if (item.furigana) {
-      const furiganaTextStyle = {
-        ...defaultTextStyle,
-        ...(item.furigana.textStyle || {}),
-      };
+      const furiganaTextStyle = mergeTextStyle(
+        defaultTextStyle,
+        item.furigana.textStyle,
+      );
 
       furiganaTextStyle.lineHeight = Math.round(
         furiganaTextStyle.lineHeight * furiganaTextStyle.fontSize,
@@ -437,7 +443,6 @@ export const parseTextRevealing = ({ state }) => {
     content: chunks,
     textStyle: {
       ...defaultTextStyle,
-      ...(state.textStyle || {}),
     },
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",

@@ -3,6 +3,35 @@ title: Text Revealing Computed Node
 description: Schema for text revealing computed node after parsing
 type: object
 $def:
+  textShadow:
+    description: Optional text shadow. Null removes a base shadow in resolved segment styles.
+    oneOf:
+      - type: "null"
+      - type: object
+        properties:
+          color:
+            type: string
+            description: Shadow color
+            default: black
+          alpha:
+            type: number
+            description: Shadow opacity (0-1)
+            minimum: 0
+            maximum: 1
+            default: 1
+          blur:
+            type: number
+            description: Shadow blur radius in pixels
+            minimum: 0
+            default: 0
+          offsetX:
+            type: number
+            description: Horizontal shadow offset in pixels
+            default: 2
+          offsetY:
+            type: number
+            description: Vertical shadow offset in pixels
+            default: 2
   textStyle:
     type: object
     properties:
@@ -40,6 +69,8 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+      shadow:
+        "$ref": "#/$def/textShadow"
   softWipe:
     type: object
     description: Parameters for the softWipe reveal effect.
