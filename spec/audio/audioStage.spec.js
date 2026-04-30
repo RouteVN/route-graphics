@@ -19,10 +19,12 @@ const createAudioParam = (initialValue = 0) => {
 const createAudioContextMock = () => {
   const context = {
     currentTime: 10,
+    state: "running",
     destination: { label: "destination" },
     gainNodes: [],
     pannerNodes: [],
     sources: [],
+    resume: vi.fn(() => Promise.resolve()),
     createGain: vi.fn(() => {
       const node = {
         type: "gain",
@@ -147,6 +149,17 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources).toHaveLength(2);
     expect(context.sources[0].loop).toBe(true);
     expect(context.sources[0].start).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("resumes a suspended audio context before playback starts", async () => {
+    const { stage, context } = await setupAudioStage();
+    context.state = "suspended";
+
+    stage.renderGraph({
+      nextAudio: [{ id: "sfx", type: "sound", src: "click" }],
+    });
+
+    expect(context.resume).toHaveBeenCalled();
   });
 
   it("applies enter, update, and exit volume transitions", async () => {

@@ -1,0 +1,146 @@
+---
+title: Audio Manual - Volume Transitions
+description: Manual fixture for audioTransition enter, update, exit, and same-id source crossfade. Use the state pager or n/b keys.
+specs:
+  - state 1 is silent baseline
+  - state 2 should fade in bgm-1 through a channel
+  - state 3 should ramp the channel down
+  - state 4 should crossfade the same sound id from bgm-1 to bgm-2
+  - state 5 should fade out and clean up the remaining audio
+---
+states:
+  - id: transition-silent
+    elements:
+      - id: silent
+        type: rect
+        x: 240
+        "y": 220
+        width: 240
+        height: 240
+        fill: "#4D4D4D"
+    audio: []
+  - id: transition-enter
+    elements:
+      - id: level
+        type: rect
+        x: 240
+        "y": 220
+        width: 320
+        height: 240
+        fill: "#A6A6A6"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 80
+        children:
+          - id: transition-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 100
+    audioEffects:
+      - id: music-enter
+        type: audioTransition
+        targetId: music
+        properties:
+          volume:
+            enter:
+              from: 0
+              duration: 2000
+              easing: linear
+  - id: transition-update-down
+    elements:
+      - id: level
+        type: rect
+        x: 240
+        "y": 220
+        width: 180
+        height: 240
+        fill: "#737373"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 30
+        children:
+          - id: transition-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 100
+    audioEffects:
+      - id: music-update-down
+        type: audioTransition
+        targetId: music
+        properties:
+          volume:
+            update:
+              duration: 1500
+              easing: linear
+      - id: transition-bgm-exit-ready
+        type: audioTransition
+        targetId: transition-bgm
+        properties:
+          volume:
+            exit:
+              to: 0
+              duration: 1200
+              easing: linear
+  - id: transition-crossfade-source
+    elements:
+      - id: level
+        type: rect
+        x: 240
+        "y": 220
+        width: 320
+        height: 240
+        fill: "#D9D9D9"
+      - id: source
+        type: rect
+        x: 720
+        "y": 220
+        width: 240
+        height: 240
+        fill: "#A6A6A6"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 80
+        children:
+          - id: transition-bgm
+            type: sound
+            src: bgm-2
+            loop: true
+            volume: 100
+    audioEffects:
+      - id: transition-bgm-enter
+        type: audioTransition
+        targetId: transition-bgm
+        properties:
+          volume:
+            enter:
+              from: 0
+              duration: 1200
+              easing: linear
+            exit:
+              to: 0
+              duration: 1200
+              easing: linear
+      - id: music-exit-ready
+        type: audioTransition
+        targetId: music
+        properties:
+          volume:
+            exit:
+              to: 0
+              duration: 2000
+              easing: linear
+  - id: transition-exit
+    elements:
+      - id: silent
+        type: rect
+        x: 240
+        "y": 220
+        width: 240
+        height: 240
+        fill: "#4D4D4D"
+    audio: []

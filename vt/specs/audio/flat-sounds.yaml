@@ -1,0 +1,169 @@
+---
+title: Audio Manual - Flat Sounds
+description: Manual fixture for flat sound compatibility, continuing same-id sounds, source replacement, and one-shot replay ids. Use the state pager or n/b keys.
+specs:
+  - state 1 is silent so pressing n starts audio from a user gesture
+  - state 2 should play bgm-1 as a flat looping sound
+  - state 3 should keep the same id and source, changing volume without replaying
+  - state 4 should keep the same id but replace the source with bgm-2
+  - states 5 and 6 should replay sfx-1 because the one-shot ids change
+---
+states:
+  - id: flat-ready
+    elements:
+      - id: ready
+        type: rect
+        x: 180
+        "y": 180
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    audio: []
+  - id: flat-bgm-start
+    elements:
+      - id: marker
+        type: rect
+        x: 180
+        "y": 180
+        width: 220
+        height: 220
+        fill: "#737373"
+    audio:
+      - id: flat-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 60
+    audioEffects:
+      - id: flat-bgm-enter
+        type: audioTransition
+        targetId: flat-bgm
+        properties:
+          volume:
+            enter:
+              from: 0
+              duration: 1000
+              easing: linear
+  - id: flat-bgm-continue-quieter
+    elements:
+      - id: marker
+        type: rect
+        x: 180
+        "y": 180
+        width: 220
+        height: 220
+        fill: "#A6A6A6"
+      - id: level
+        type: rect
+        x: 520
+        "y": 260
+        width: 160
+        height: 80
+        fill: "#737373"
+    audio:
+      - id: flat-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 25
+    audioEffects:
+      - id: flat-bgm-update
+        type: audioTransition
+        targetId: flat-bgm
+        properties:
+          volume:
+            update:
+              duration: 800
+              easing: linear
+            exit:
+              to: 0
+              duration: 1000
+              easing: linear
+  - id: flat-bgm-replace-source
+    elements:
+      - id: marker
+        type: rect
+        x: 180
+        "y": 180
+        width: 220
+        height: 220
+        fill: "#D9D9D9"
+      - id: level
+        type: rect
+        x: 520
+        "y": 220
+        width: 260
+        height: 160
+        fill: "#A6A6A6"
+    audio:
+      - id: flat-bgm
+        type: sound
+        src: bgm-2
+        loop: true
+        volume: 55
+    audioEffects:
+      - id: flat-bgm-replace-enter
+        type: audioTransition
+        targetId: flat-bgm
+        properties:
+          volume:
+            enter:
+              from: 0
+              duration: 1000
+              easing: linear
+            exit:
+              to: 0
+              duration: 1000
+              easing: linear
+  - id: flat-one-shot-first
+    elements:
+      - id: marker
+        type: rect
+        x: 180
+        "y": 180
+        width: 220
+        height: 220
+        fill: "#FFFFFF"
+      - id: pulse
+        type: rect
+        x: 860
+        "y": 260
+        width: 80
+        height: 80
+        fill: "#D9D9D9"
+    audio:
+      - id: flat-bgm
+        type: sound
+        src: bgm-2
+        loop: true
+        volume: 45
+      - id: one-shot-1
+        type: sound
+        src: sfx-1
+        volume: 100
+  - id: flat-one-shot-second
+    elements:
+      - id: marker
+        type: rect
+        x: 180
+        "y": 180
+        width: 220
+        height: 220
+        fill: "#FFFFFF"
+      - id: pulse
+        type: rect
+        x: 960
+        "y": 260
+        width: 80
+        height: 80
+        fill: "#D9D9D9"
+    audio:
+      - id: flat-bgm
+        type: sound
+        src: bgm-2
+        loop: true
+        volume: 45
+      - id: one-shot-2
+        type: sound
+        src: sfx-1
+        volume: 100

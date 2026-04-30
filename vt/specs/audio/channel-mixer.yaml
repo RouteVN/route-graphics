@@ -1,0 +1,168 @@
+---
+title: Audio Manual - Channel Mixer
+description: Manual fixture for channel volume, sound volume, mute, pan, and moving a continuing sound between channels. Use the state pager or n/b keys.
+specs:
+  - state 1 is silent so pressing n starts audio from a user gesture
+  - state 2 should play bgm-1 through the music channel at moderate level
+  - state 3 should raise channel gain without restarting the same sound
+  - state 4 should mute the child sound while the channel stays present
+  - state 5 should unmute and pan the sound left
+  - state 6 should move the same sound id to a second channel and pan right without restarting
+---
+states:
+  - id: channel-ready
+    elements:
+      - id: ready
+        type: rect
+        x: 160
+        "y": 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    audio: []
+  - id: channel-music-moderate
+    elements:
+      - id: meter
+        type: rect
+        x: 160
+        "y": 160
+        width: 240
+        height: 240
+        fill: "#737373"
+      - id: channel-a
+        type: rect
+        x: 520
+        "y": 220
+        width: 160
+        height: 160
+        fill: "#A6A6A6"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 45
+        children:
+          - id: bgm-bed
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+  - id: channel-music-louder
+    elements:
+      - id: meter
+        type: rect
+        x: 160
+        "y": 160
+        width: 480
+        height: 240
+        fill: "#D9D9D9"
+      - id: channel-a
+        type: rect
+        x: 520
+        "y": 220
+        width: 160
+        height: 160
+        fill: "#FFFFFF"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 90
+        children:
+          - id: bgm-bed
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+    audioEffects:
+      - id: music-volume-update
+        type: audioTransition
+        targetId: music
+        properties:
+          volume:
+            update:
+              duration: 1200
+              easing: linear
+  - id: channel-child-muted
+    elements:
+      - id: meter
+        type: rect
+        x: 160
+        "y": 160
+        width: 120
+        height: 240
+        fill: "#4D4D4D"
+      - id: channel-a
+        type: rect
+        x: 520
+        "y": 220
+        width: 160
+        height: 160
+        fill: "#737373"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 90
+        children:
+          - id: bgm-bed
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+            muted: true
+  - id: channel-child-left-pan
+    elements:
+      - id: meter
+        type: rect
+        x: 160
+        "y": 160
+        width: 360
+        height: 240
+        fill: "#A6A6A6"
+      - id: channel-a
+        type: rect
+        x: 320
+        "y": 220
+        width: 160
+        height: 160
+        fill: "#FFFFFF"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        children:
+          - id: bgm-bed
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+            pan: -1
+  - id: channel-move-right-pan
+    elements:
+      - id: meter
+        type: rect
+        x: 160
+        "y": 160
+        width: 360
+        height: 240
+        fill: "#A6A6A6"
+      - id: channel-b
+        type: rect
+        x: 800
+        "y": 220
+        width: 160
+        height: 160
+        fill: "#FFFFFF"
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        children: []
+      - id: effects
+        type: audio-channel
+        volume: 70
+        children:
+          - id: bgm-bed
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+            pan: 1

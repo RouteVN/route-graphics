@@ -36,6 +36,12 @@ const disconnect = (node) => {
 const getParamValue = (param, fallback = 0) =>
   typeof param?.value === "number" ? param.value : fallback;
 
+const resumeAudioContext = (context = getAudioContext()) => {
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    void context.resume().catch(() => {});
+  }
+};
+
 const setParamNow = (param, value, context = getAudioContext()) => {
   if (!param) return;
   if (typeof param.cancelScheduledValues === "function") {
@@ -179,6 +185,7 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
 
 const createSourceForSound = (sound) => {
   const context = getAudioContext();
+  resumeAudioContext(context);
   const audioBuffer = AudioAsset.getAsset(sound.src);
   if (!audioBuffer) {
     console.warn("AudioStage: asset not found", sound.src);

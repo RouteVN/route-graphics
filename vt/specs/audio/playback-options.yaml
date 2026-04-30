@@ -1,0 +1,102 @@
+---
+title: Audio Manual - Playback Options
+description: Manual fixture for startDelayMs, playbackRate, startAt, endAt, loop, and stopping audio. Use the state pager or n/b keys.
+specs:
+  - state 1 is silent so pressing n starts audio from a user gesture
+  - state 2 should play sfx-1 after a one second delay
+  - state 3 should play a fast partial bgm-3 segment
+  - state 4 should loop a slower bgm-3 segment
+  - state 5 should remove all audio
+---
+states:
+  - id: playback-ready
+    elements:
+      - id: ready
+        type: rect
+        x: 180
+        "y": 260
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    audio: []
+  - id: delayed-sfx
+    elements:
+      - id: delay-track
+        type: rect
+        x: 180
+        "y": 310
+        width: 520
+        height: 80
+        fill: "#737373"
+      - id: delay-marker
+        type: rect
+        x: 180
+        "y": 260
+        width: 80
+        height: 180
+        fill: "#D9D9D9"
+    audio:
+      - id: delayed-sfx
+        type: sound
+        src: sfx-1
+        volume: 100
+        startDelayMs: 1000
+  - id: partial-fast-segment
+    elements:
+      - id: segment
+        type: rect
+        x: 260
+        "y": 240
+        width: 360
+        height: 180
+        fill: "#A6A6A6"
+      - id: speed
+        type: rect
+        x: 760
+        "y": 210
+        width: 140
+        height: 240
+        fill: "#FFFFFF"
+    audio:
+      - id: partial-fast
+        type: sound
+        src: bgm-3
+        volume: 70
+        playbackRate: 1.5
+        startAt: 1
+        endAt: 5
+  - id: partial-slow-loop
+    elements:
+      - id: segment
+        type: rect
+        x: 260
+        "y": 240
+        width: 360
+        height: 180
+        fill: "#A6A6A6"
+      - id: speed
+        type: rect
+        x: 760
+        "y": 270
+        width: 140
+        height: 120
+        fill: "#737373"
+    audio:
+      - id: partial-loop
+        type: sound
+        src: bgm-3
+        volume: 70
+        loop: true
+        playbackRate: 0.75
+        startAt: 0
+        endAt: 4
+  - id: stop-all-audio
+    elements:
+      - id: stop
+        type: rect
+        x: 420
+        "y": 220
+        width: 280
+        height: 280
+        fill: "#4D4D4D"
+    audio: []
