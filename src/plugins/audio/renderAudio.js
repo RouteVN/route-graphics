@@ -1,4 +1,5 @@
 import { diffAudio } from "../../util/diffAudio.js";
+import { normalizeAudioRenderState } from "../../util/normalizeAudio.js";
 
 /**
  * Render audio using plugin system (synchronous)
@@ -6,14 +7,37 @@ import { diffAudio } from "../../util/diffAudio.js";
  * @param {import('../types.js').Application} params.app - The PixiJS application
  * @param {import('../types.js').SoundElement[]} params.prevAudioTree - Previous audio tree
  * @param {import('../types.js').SoundElement[]} params.nextAudioTree - Next audio tree
+ * @param {Object[]} [params.prevAudioEffects] - Previous audio effects
+ * @param {Object[]} [params.nextAudioEffects] - Next audio effects
  * @param {import("./audio/audioPlugin.js").AudioPlugin[]} params.audioPlugins - Array of audio plugins
  */
 export const renderAudio = ({
   app,
   prevAudioTree,
   nextAudioTree,
+  prevAudioEffects = [],
+  nextAudioEffects = [],
   audioPlugins,
 }) => {
+  normalizeAudioRenderState({
+    audio: prevAudioTree,
+    audioEffects: prevAudioEffects,
+  });
+  normalizeAudioRenderState({
+    audio: nextAudioTree,
+    audioEffects: nextAudioEffects,
+  });
+
+  if (typeof app.audioStage?.renderGraph === "function") {
+    app.audioStage.renderGraph({
+      prevAudio: prevAudioTree,
+      nextAudio: nextAudioTree,
+      prevAudioEffects,
+      nextAudioEffects,
+    });
+    return;
+  }
+
   const { toAddElement, toDeleteElement, toUpdateElement } = diffAudio(
     prevAudioTree,
     nextAudioTree,

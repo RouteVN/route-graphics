@@ -1,0 +1,36 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Audio Channel
+description: Schema for an audio bus/container
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    description: Unique identifier
+  type:
+    const: audio-channel
+    description: Audio channel
+  volume:
+    type: number
+    description: Channel volume. 0 means muted. 100 means original full volume.
+    default: 100
+    minimum: 0
+    maximum: 100
+  muted:
+    type: boolean
+    description: Whether the channel is muted
+    default: false
+  pan:
+    type: number
+    description: Stereo pan. -1 means left. 1 means right.
+    default: 0
+    minimum: -1
+    maximum: 1
+  children:
+    type: array
+    description: Sound nodes owned by this channel
+    default: []
+    items:
+      $ref: "sound.yaml"

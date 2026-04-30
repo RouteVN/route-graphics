@@ -2,12 +2,11 @@
 
 Last updated: 2026-04-30
 
-This document defines the intended channel-based audio interface for
-Route Graphics render state.
+This document defines the channel-based audio interface for Route Graphics
+render state.
 
-It is a design and interface document. The current runtime still accepts flat
-Route Graphics `sound` audio nodes. The channel and `audioEffects` model below
-is the planned public contract for the next audio graph implementation.
+It documents the current channel-based audio graph implementation. The runtime
+also still accepts flat Route Graphics `sound` audio nodes for compatibility.
 
 ## Goals
 
@@ -30,7 +29,7 @@ is the planned public contract for the next audio graph implementation.
 
 ## Render-State Shape
 
-Route Graphics should accept two audio-facing top-level arrays:
+Route Graphics accepts two audio-facing top-level arrays:
 
 ```yaml
 audio: []
@@ -66,23 +65,9 @@ audioEffects:
         enter: { from: 0, duration: 1000, easing: linear }
         exit: { to: 0, duration: 1000, easing: linear }
         update: { duration: 300, easing: linear }
-
-  - id: music-lowpass
-    type: audioFilter
-    targetId: music
-    filterType: lowpass
-    frequency: 12000
-    q: 1
-
-  - id: music-lowpass-sweep
-    type: audioTransition
-    targetId: music-lowpass
-    properties:
-      frequency:
-        update: { duration: 500, easing: linear }
 ```
 
-For compatibility, flat `sound` nodes should remain valid:
+For compatibility, flat `sound` nodes remain valid:
 
 ```yaml
 audio:
@@ -118,14 +103,14 @@ children: []
 
 Fields:
 
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `id` | string | required | Stable globally unique channel ID |
-| `type` | `audio-channel` | required | Node type |
-| `volume` | number | `100` | Local channel volume, `0` to `100` |
-| `muted` | boolean | `false` | Forces this channel's effective output to zero |
-| `pan` | number | `0` | Stereo pan, `-1` left to `1` right |
-| `children` | sound[] | `[]` | Sound nodes owned by this channel |
+| Field      | Type            | Default  | Description                                    |
+| ---------- | --------------- | -------- | ---------------------------------------------- |
+| `id`       | string          | required | Stable globally unique channel ID              |
+| `type`     | `audio-channel` | required | Node type                                      |
+| `volume`   | number          | `100`    | Local channel volume, `0` to `100`             |
+| `muted`    | boolean         | `false`  | Forces this channel's effective output to zero |
+| `pan`      | number          | `0`      | Stereo pan, `-1` left to `1` right             |
+| `children` | sound[]         | `[]`     | Sound nodes owned by this channel              |
 
 First implementation rule:
 
@@ -152,26 +137,25 @@ endAt: null
 
 Fields:
 
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `id` | string | required | Globally unique playback identity |
-| `type` | `sound` | required | Node type |
-| `src` | string | required | Audio asset alias or source URL |
-| `volume` | number | `100` | Local sound volume, `0` to `100` |
-| `muted` | boolean | `false` | Forces this sound's effective output to zero |
-| `pan` | number | `0` | Stereo pan, `-1` left to `1` right |
-| `loop` | boolean | `false` | Loop playback |
-| `startDelayMs` | number | `0` | Delay in milliseconds before playback starts |
-| `playbackRate` | number | `1` | Playback speed multiplier |
-| `startAt` | number | `0` | Start offset in seconds |
-| `endAt` | number/null | `null` | Optional end time in seconds |
+| Field          | Type        | Default  | Description                                  |
+| -------------- | ----------- | -------- | -------------------------------------------- |
+| `id`           | string      | required | Globally unique playback identity            |
+| `type`         | `sound`     | required | Node type                                    |
+| `src`          | string      | required | Audio asset alias or source URL              |
+| `volume`       | number      | `100`    | Local sound volume, `0` to `100`             |
+| `muted`        | boolean     | `false`  | Forces this sound's effective output to zero |
+| `pan`          | number      | `0`      | Stereo pan, `-1` left to `1` right           |
+| `loop`         | boolean     | `false`  | Loop playback                                |
+| `startDelayMs` | number      | `0`      | Delay in milliseconds before playback starts |
+| `playbackRate` | number      | `1`      | Playback speed multiplier                    |
+| `startAt`      | number      | `0`      | Start offset in seconds                      |
+| `endAt`        | number/null | `null`   | Optional end time in seconds                 |
 
 `startAt` and `endAt` are intended for partial playback. If `endAt` is present,
 duration is `endAt - startAt`.
 
-Legacy Route Graphics `sound.delay` may be accepted as a migration alias, but
-new render state should use `startDelayMs`. This avoids confusion with the
-future `delay` audio filter.
+The channel audio graph uses `startDelayMs` only. `sound.delay` is not part of
+this interface, which avoids confusion with the future `delay` audio filter.
 
 ### Sound Identity and Replay
 
@@ -214,10 +198,9 @@ not "play it again".
 `audioEffects` is a typed effect list. It contains automation and processing
 nodes that target audio node IDs or other effect IDs.
 
-Supported effect item types:
+First implementation effect item types:
 
 - `audioTransition`
-- `audioFilter`
 
 Effects are render-state entries, not resources.
 
@@ -230,8 +213,6 @@ Route Graphics should reject invalid audio render state instead of guessing:
 - nested `audio-channel` nodes in the first implementation
 - `audioTransition.targetId` that cannot be resolved in the state used for its
   lifecycle
-- `audioFilter.targetId` that does not resolve to an `audio-channel` or `sound`
-  in the first implementation
 - transition phases missing required `duration` or `easing`
 - transition phases that use an unsupported easing name
 - unknown audio node, effect, filter, or automated property types
@@ -256,34 +237,33 @@ audioEffects:
 
 Fields:
 
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `id` | string | required | Stable effect ID |
-| `type` | `audioTransition` | required | Effect type |
-| `targetId` | string | required | Audio node or effect ID to automate |
-| `properties` | object | required | Property automation map |
+| Field        | Type              | Default  | Description                         |
+| ------------ | ----------------- | -------- | ----------------------------------- |
+| `id`         | string            | required | Stable effect ID                    |
+| `type`       | `audioTransition` | required | Effect type                         |
+| `targetId`   | string            | required | Audio node or effect ID to automate |
+| `properties` | object            | required | Property automation map             |
 
-`targetId` may reference:
+First implementation `targetId` may reference:
 
 - an `audio-channel`
 - a `sound`
-- an `audioFilter`
 
 Transition phases:
 
-| Phase | When it applies | Transition source |
-| --- | --- | --- |
-| `enter` | Target appears in the next render state | next `audioEffects` |
-| `exit` | Target disappears from the next render state | previous `audioEffects` |
-| `update` | Target remains but the property value changes | next `audioEffects` |
+| Phase    | When it applies                               | Transition source       |
+| -------- | --------------------------------------------- | ----------------------- |
+| `enter`  | Target appears in the next render state       | next `audioEffects`     |
+| `exit`   | Target disappears from the next render state  | previous `audioEffects` |
+| `update` | Target remains but the property value changes | next `audioEffects`     |
 
 Transition phase fields:
 
-| Phase | Required fields | Value rule |
-| --- | --- | --- |
-| `enter` | `from`, `duration`, `easing` | Starts at `from`; ends at the target's declared value |
-| `exit` | `to`, `duration`, `easing` | Starts at the current value; ends at `to` |
-| `update` | `duration`, `easing` | Starts at the current value; ends at the next declared value |
+| Phase    | Required fields              | Value rule                                                   |
+| -------- | ---------------------------- | ------------------------------------------------------------ |
+| `enter`  | `from`, `duration`, `easing` | Starts at `from`; ends at the target's declared value        |
+| `exit`   | `to`, `duration`, `easing`   | Starts at the current value; ends at `to`                    |
+| `update` | `duration`, `easing`         | Starts at the current value; ends at the next declared value |
 
 `duration` is in milliseconds. `easing` is required and must not be defaulted
 silently. The first implementation only needs to support `linear`.
@@ -319,10 +299,10 @@ audioEffects:
         update: { duration: 500, easing: linear }
 ```
 
-## Audio Filters
+## Planned Audio Filters
 
-An `audioFilter` is a Web Audio processing effect. In the first implementation,
-it targets an audio node.
+An `audioFilter` is a planned Web Audio processing effect. It will target an
+audio node when implemented.
 
 ```yaml
 audioEffects:
@@ -336,13 +316,13 @@ audioEffects:
 
 Fields:
 
-| Field | Type | Default | Description |
-| --- | --- | --- | --- |
-| `id` | string | required | Stable filter effect ID |
-| `type` | `audioFilter` | required | Effect type |
-| `targetId` | string | required | Audio node ID to process |
-| `filterType` | string | required | Web Audio filter kind |
-| `enabled` | boolean | `true` | Disabled filters are bypassed |
+| Field        | Type          | Default  | Description                   |
+| ------------ | ------------- | -------- | ----------------------------- |
+| `id`         | string        | required | Stable filter effect ID       |
+| `type`       | `audioFilter` | required | Effect type                   |
+| `targetId`   | string        | required | Audio node ID to process      |
+| `filterType` | string        | required | Web Audio filter kind         |
+| `enabled`    | boolean       | `true`   | Disabled filters are bypassed |
 
 Filter-specific fields depend on `filterType`.
 
@@ -360,19 +340,19 @@ should not be part of the first filter implementation.
 
 ### Planned Filter Types
 
-| `filterType` | Web Audio node | Common fields |
-| --- | --- | --- |
-| `lowpass` | `BiquadFilterNode` | `frequency`, `q` |
-| `highpass` | `BiquadFilterNode` | `frequency`, `q` |
-| `bandpass` | `BiquadFilterNode` | `frequency`, `q` |
-| `notch` | `BiquadFilterNode` | `frequency`, `q` |
-| `lowshelf` | `BiquadFilterNode` | `frequency`, `gain` |
-| `highshelf` | `BiquadFilterNode` | `frequency`, `gain` |
-| `peaking` | `BiquadFilterNode` | `frequency`, `q`, `gain` |
-| `allpass` | `BiquadFilterNode` | `frequency`, `q` |
-| `delay` | `DelayNode` plus feedback gain | `delayTime`, `feedback`, `wet` |
-| `compressor` | `DynamicsCompressorNode` | `threshold`, `knee`, `ratio`, `attack`, `release` |
-| `reverb` | `ConvolverNode` | `impulseSrc`, `wet` |
+| `filterType` | Web Audio node                 | Common fields                                     |
+| ------------ | ------------------------------ | ------------------------------------------------- |
+| `lowpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
+| `highpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
+| `bandpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
+| `notch`      | `BiquadFilterNode`             | `frequency`, `q`                                  |
+| `lowshelf`   | `BiquadFilterNode`             | `frequency`, `gain`                               |
+| `highshelf`  | `BiquadFilterNode`             | `frequency`, `gain`                               |
+| `peaking`    | `BiquadFilterNode`             | `frequency`, `q`, `gain`                          |
+| `allpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
+| `delay`      | `DelayNode` plus feedback gain | `delayTime`, `feedback`, `wet`                    |
+| `compressor` | `DynamicsCompressorNode`       | `threshold`, `knee`, `ratio`, `attack`, `release` |
+| `reverb`     | `ConvolverNode`                | `impulseSrc`, `wet`                               |
 
 Filters are not required for the first implementation. The interface should be
 designed now so filters can be added without changing the audio tree shape.
@@ -547,13 +527,19 @@ For removed nodes with an exit transition, cleanup happens after the ramp:
 source.stop(now + seconds);
 ```
 
-## Suggested Implementation Stages
+## Implementation Status
 
-1. Add Route Graphics schemas for `audio-channel`, extended `sound`, and
-   `audioEffects`.
-2. Normalize flat `sound` nodes into an implicit root channel.
-3. Refactor Route Graphics `AudioStage` into an audio graph manager with channel
-   gain nodes and internal playback instance IDs.
-4. Implement `audioTransition` for `volume` on channels and sounds.
-5. Add `audioFilter`, pan transitions, and playback-rate transitions in separate
-   patches.
+Implemented:
+
+- schemas for `audio-channel`, extended `sound`, and `audioTransition`
+- flat `sound` normalization through an implicit root channel
+- channel gain nodes and internal playback instance IDs
+- `audioTransition` for `volume` on channels and sounds
+- same-ID, different-source replacement with overlapping internal instances
+- removal of the legacy `sound.delay` interface in favor of `startDelayMs`
+
+Planned separately:
+
+- `audioFilter`
+- transition automation for `pan`
+- transition automation for `playbackRate`
