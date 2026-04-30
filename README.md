@@ -85,25 +85,27 @@ For complete usage details, go to:
 - [Events & Render Complete](http://route-graphics.routevn.com/docs/guides/events-render-complete/)
 - [Custom Plugins](http://route-graphics.routevn.com/docs/guides/custom-plugins/)
 
-## PNG Render CLI Scaffold
+## Render CLI
 
-This repo now includes a repo-local CLI scaffold that renders YAML into a PNG by:
+This repo includes a CLI that renders RouteGraphics YAML into PNG or MP4 output by:
 
 1. reading YAML in Node,
 2. launching headless Chromium through Playwright,
 3. rendering with the bundled `dist/RouteGraphics.js`, and
-4. exporting pixels with `app.extractBase64()`.
+4. exporting either a still frame or an autoplayed state sequence.
 
-It is intentionally scaffolded as a repo workflow first, not a published package entrypoint yet.
+Full CLI reference: [`docs/render-cli.md`](./docs/render-cli.md)
 
-Full CLI reference: [`docs/png-render-cli.md`](./docs/png-render-cli.md)
+The legacy PNG-only reference is still available at
+[`docs/png-render-cli.md`](./docs/png-render-cli.md).
 
 ```bash
 # one-time browser install if Chromium is not already available
 npx playwright install chromium
 
-# render a YAML file to PNG
-bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
+# render a YAML file to PNG or MP4
+route-graphics render ./examples/hello.yaml -o ./out/hello.png
+route-graphics render ./examples/storyboard.yaml -o ./out/storyboard.mp4
 ```
 
 Supported top-level YAML shapes:
@@ -185,11 +187,17 @@ elements:
     src: ./assets/hero.png # rejected by the CLI
 ```
 
-Useful flags:
+Useful PNG flags:
 
 - `--state <index>` selects a state from an array or multi-document YAML file.
 - `--time <ms>` samples animations at a specific manual timeline position.
 - `--wait-for-render-complete` waits for a `renderComplete` event before capture.
+
+Useful MP4 flags:
+
+- `--states <list>` selects state indexes/ranges such as `0,2-5`.
+- `--fps <number>` controls output frame rate.
+- `--hold`, `--initial-hold`, and `--final-hold` control state dwell time.
 - `--browser-executable <path>` uses a system Chrome/Chromium instead of Playwright's managed browser.
 
 ## Development
@@ -198,8 +206,9 @@ Useful flags:
 # Run tests
 bun run test
 
-# Render a YAML file into a PNG
-bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
+# Render a YAML file into a PNG or MP4
+route-graphics render ./examples/hello.yaml -o ./out/hello.png
+route-graphics render ./examples/hello.yaml -o ./out/hello.mp4
 
 # Ensure VT assets are real binaries, not Git LFS pointer files
 git lfs pull
