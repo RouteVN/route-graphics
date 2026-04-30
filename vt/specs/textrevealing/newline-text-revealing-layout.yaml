@@ -1,0 +1,92 @@
+---
+title: Text Revealing Newline Layout
+description: |
+  Tests escaped \n handling for text-revealing content. Visible text is intentional because
+  reveal chunking, computed dimensions, and runtime line construction are the behavior under test.
+specs:
+  - text-revealing content should split escaped \n into separate reveal lines
+  - computed chunks should preserve explicit newline boundaries without rendering the newline glyph
+  - computed width, height, and anchor-adjusted coordinates should use the multiline reveal layout
+  - revealEffect none should render the separated runtime line containers immediately
+steps:
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.textRevealingComputedNewlineLayout
+    args:
+      - reveal-newline-anchor
+    value:
+      lineTexts:
+        - REVEAL TOP
+        - REVEAL BOTTOM
+      lineCount: 2
+      hasExplicitNewline: true
+      width: 300
+      height: 76
+      x: 210
+      "y": 102
+      originX: 150
+      originY: 38
+      chunkYs:
+        - 0
+        - 38
+      chunkHeights:
+        - 38
+        - 38
+      anchorResolvesX: true
+      anchorResolvesY: true
+      heightCoversChunks: true
+      chunksAdvanceDownward: true
+  - action: assert
+    type: js
+    fn: vtAssert.textRevealingRuntimeNewlineLayout
+    args:
+      - reveal-newline-anchor
+    value:
+      lineTexts:
+        - REVEAL TOP
+        - REVEAL BOTTOM
+      lineCount: 2
+      xMatchesComputed: true
+      yMatchesComputed: true
+---
+states:
+  - elements:
+      - id: reveal-guide-x
+        type: rect
+        x: 360
+        "y": 60
+        width: 2
+        height: 164
+        fill: "#737373"
+      - id: reveal-guide-y
+        type: rect
+        x: 190
+        "y": 140
+        width: 340
+        height: 2
+        fill: "#737373"
+      - id: reveal-box
+        type: rect
+        x: 210
+        "y": 102
+        width: 300
+        height: 76
+        fill: "#4D4D4D"
+      - id: reveal-newline-anchor
+        type: text-revealing
+        content:
+          - text: "REVEAL TOP\nREVEAL BOTTOM"
+            textStyle:
+              fontSize: 30
+              lineHeight: 1.25
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 360
+        "y": 140
+        width: 300
+        anchorX: 0.5
+        anchorY: 0.5
+        alpha: 1
+        speed: 100
+        revealEffect: none
