@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { execFile } from "node:child_process";
+import { execFile, spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -16,11 +16,15 @@ const execFileAsync = promisify(execFile);
 const specDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(specDir, "..", "..");
 const cliPath = path.join(projectRoot, "bin", "route-graphics-render.js");
+const routeGraphicsCliPath = path.join(projectRoot, "bin", "route-graphics.js");
 const aliasFixturePath = path.join(
   projectRoot,
   "examples",
   "benchmark-alias.yaml",
 );
+const hasExecutable = (name) =>
+  spawnSync(name, ["-version"], { stdio: "ignore" }).status === 0;
+const hasVideoToolchain = hasExecutable("ffmpeg") && hasExecutable("ffprobe");
 
 const readPixel = (png, x, y) => {
   const offset = (png.width * y + x) * 4;
@@ -32,10 +36,27 @@ const toHex = (buffer) => {
   return createHash("sha256").update(buffer).digest("hex");
 };
 
+const expectPixelNear = (actual, expected, tolerance = 8) => {
+  expected.forEach((channel, index) => {
+    expect(Math.abs(actual[index] - channel)).toBeLessThanOrEqual(tolerance);
+  });
+};
+
 const runCliRender = async ({ inputPath, outputPath, args = [] }) => {
   return await execFileAsync(
     process.execPath,
     [cliPath, inputPath, "-o", outputPath, ...args],
+    {
+      cwd: projectRoot,
+      env: process.env,
+    },
+  );
+};
+
+const runRouteGraphicsRender = async ({ inputPath, outputPath, args = [] }) => {
+  return await execFileAsync(
+    process.execPath,
+    [routeGraphicsCliPath, "render", inputPath, "-o", outputPath, ...args],
     {
       cwd: projectRoot,
       env: process.env,
@@ -185,4 +206,193 @@ states:
     expect(png.width).toBe(256);
     expect(png.height).toBe(256);
   }, 30_000);
+});
+
+describe("route-graphics render CLI", () => {
+  beforeAll(async () => {
+    await execFileAsync("bun", ["run", "build"], {
+      cwd: projectRoot,
+      env: process.env,
+    });
+  }, 30_000);
+
+  it("renders PNG output using the package CLI entrypoint", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));
+    const outputPath = path.join(tempDir, "hello.png");
+
+    const run = await runRouteGraphicsRender({
+      inputPath: path.join(projectRoot, "examples", "hello.yaml"),
+      outputPath,
+      args: ["--width", "320", "--height", "180"],
+    });
+
+    expect(run.stdout).toContain(`Wrote ${outputPath}`);
+
+    const pngBuffer = await fs.readFile(outputPath);
+    const png = PNG.sync.read(pngBuffer);
+
+    expect(png.width).toBe(320);
+    expect(png.height).toBe(180);
+  }, 30_000);
+
+  it.skipIf(!hasVideoToolchain)(
+    "renders MP4 output using all selected states",
+    async () => {
+      const tempDir = await fs.mkdtemp(
+        path.join(os.tmpdir(), "rtgl-cli-test-"),
+      );
+      const inputPath = path.join(tempDir, `video-${randomUUID()}.yaml`);
+      const outputPath = path.join(tempDir, "sequence.mp4");
+
+      await fs.writeFile(
+        inputPath,
+        `
+width: 160
+height: 90
+backgroundColor: "#101820"
+states:
+  - id: first
+    elements:
+      - id: panel
+        type: rect
+        x: 0
+        y: 0
+        width: 160
+        height: 90
+        fill: "#ff0000"
+  - id: second
+    elements:
+      - id: panel
+        type: rect
+        x: 20
+        y: 10
+        width: 120
+        height: 70
+        fill: "#00ff00"
+    animations:
+      - id: panel-move
+        targetId: panel
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 200
+                value: 20
+                easing: linear
+`,
+      );
+
+      const run = await runRouteGraphicsRender({
+        inputPath,
+        outputPath,
+        args: [
+          "--states",
+          "0-1",
+          "--fps",
+          "10",
+          "--initial-hold",
+          "200",
+          "--final-hold",
+          "400",
+          "--max-state-duration",
+          "3000",
+        ],
+      });
+
+      expect(run.stdout).toContain(`Wrote ${outputPath}`);
+      expect(run.stdout).toContain("Video: states=2");
+
+      const mp4Buffer = await fs.readFile(outputPath);
+      expect(mp4Buffer.length).toBeGreaterThan(1000);
+
+      const probe = await execFileAsync(
+        "ffprobe",
+        [
+          "-v",
+          "error",
+          "-select_streams",
+          "v:0",
+          "-show_entries",
+          "stream=width,height,codec_name",
+          "-show_entries",
+          "format=duration",
+          "-of",
+          "json",
+          outputPath,
+        ],
+        {
+          cwd: projectRoot,
+          env: process.env,
+        },
+      );
+      const metadata = JSON.parse(probe.stdout);
+
+      expect(metadata.streams[0]).toMatchObject({
+        width: 160,
+        height: 90,
+        codec_name: "h264",
+      });
+      expect(Number(metadata.format.duration)).toBeGreaterThan(0.4);
+
+      const firstFramePath = path.join(tempDir, "first-frame.png");
+      const finalFramePath = path.join(tempDir, "final-frame.png");
+
+      await execFileAsync(
+        "ffmpeg",
+        [
+          "-y",
+          "-ss",
+          "0.10",
+          "-i",
+          outputPath,
+          "-frames:v",
+          "1",
+          "-update",
+          "1",
+          firstFramePath,
+        ],
+        {
+          cwd: projectRoot,
+          env: process.env,
+        },
+      );
+      await execFileAsync(
+        "ffmpeg",
+        [
+          "-y",
+          "-ss",
+          "0.55",
+          "-i",
+          outputPath,
+          "-frames:v",
+          "1",
+          "-update",
+          "1",
+          finalFramePath,
+        ],
+        {
+          cwd: projectRoot,
+          env: process.env,
+        },
+      );
+
+      const firstFrame = PNG.sync.read(await fs.readFile(firstFramePath));
+      const finalFrame = PNG.sync.read(await fs.readFile(finalFramePath));
+
+      expectPixelNear(
+        Array.from(readPixel(firstFrame, 80, 45)),
+        [0xff, 0x00, 0x00, 0xff],
+      );
+      expectPixelNear(
+        Array.from(readPixel(finalFrame, 80, 45)),
+        [0x00, 0xff, 0x00, 0xff],
+      );
+      expectPixelNear(
+        Array.from(readPixel(finalFrame, 5, 5)),
+        [0x10, 0x18, 0x20, 0xff],
+        12,
+      );
+    },
+    60_000,
+  );
 });
