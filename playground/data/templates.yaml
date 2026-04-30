@@ -262,6 +262,8 @@
               lineHeight: 1.35
             furigana:
               text: "stable"
+              placement: top
+              gap: 2
               textStyle:
                 fontSize: 12
                 fill: "#737373"

@@ -1,0 +1,121 @@
+---
+title: Text Revealing Furigana Placement and Gap
+description: Visual coverage for text-revealing furigana top and bottom placement with side-relative gap.
+specs:
+  - omitted placement should keep the default top furigana layout
+  - top placement with gap should move furigana farther above the base text
+  - bottom placement with gap should render furigana below the base text
+steps:
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: default-top-label
+        type: text
+        content: default top
+        x: 80
+        "y": 58
+        textStyle:
+          fontSize: 16
+          fill: "#A6A6A6"
+          fontFamily: Arial
+      - id: top-gap-label
+        type: text
+        content: top gap 10
+        x: 300
+        "y": 58
+        textStyle:
+          fontSize: 16
+          fill: "#A6A6A6"
+          fontFamily: Arial
+      - id: bottom-gap-label
+        type: text
+        content: bottom gap 10
+        x: 520
+        "y": 58
+        textStyle:
+          fontSize: 16
+          fill: "#A6A6A6"
+          fontFamily: Arial
+      - id: default-top-rule
+        type: rect
+        x: 80
+        "y": 126
+        width: 150
+        height: 2
+        fill: "#737373"
+      - id: top-gap-rule
+        type: rect
+        x: 300
+        "y": 126
+        width: 150
+        height: 2
+        fill: "#737373"
+      - id: bottom-gap-rule
+        type: rect
+        x: 520
+        "y": 126
+        width: 150
+        height: 2
+        fill: "#737373"
+      - id: furigana-default-top
+        type: text-revealing
+        x: 80
+        "y": 126
+        width: 160
+        revealEffect: none
+        content:
+          - text: BASE
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.25
+            furigana:
+              text: TOP
+              textStyle:
+                fontSize: 14
+                fill: "#D9D9D9"
+                fontFamily: Arial
+      - id: furigana-top-gap
+        type: text-revealing
+        x: 300
+        "y": 126
+        width: 160
+        revealEffect: none
+        content:
+          - text: BASE
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.25
+            furigana:
+              text: TOP GAP
+              placement: top
+              gap: 10
+              textStyle:
+                fontSize: 14
+                fill: "#D9D9D9"
+                fontFamily: Arial
+      - id: furigana-bottom-gap
+        type: text-revealing
+        x: 520
+        "y": 126
+        width: 160
+        revealEffect: none
+        content:
+          - text: BASE
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.25
+            furigana:
+              text: BOTTOM GAP
+              placement: bottom
+              gap: 10
+              textStyle:
+                fontSize: 14
+                fill: "#D9D9D9"
+                fontFamily: Arial

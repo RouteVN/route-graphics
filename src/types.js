@@ -512,8 +512,8 @@
  * @typedef {Object} FuriganaPart
  * @property {string} text - Furigana text
  * @property {Object} textStyle - Furigana text style
- * @property {number} x - Horizontal position (centered above parent)
- * @property {number} y - Vertical position (negative, above parent text)
+ * @property {number} x - Horizontal position relative to the parent text part
+ * @property {number} y - Vertical position relative to the parent text part
  */
 
 /**
