@@ -1,3 +1,5 @@
+import { isDeepEqual } from "./isDeepEqual.js";
+
 /**
  * @typedef {import("../types.js").DiffElementResult} DiffElementResult
  * @typedef {import("../types.js").SoundElement} SoundElement
@@ -36,17 +38,7 @@ export const diffAudio = (prevElements = [], nextElements = []) => {
       toAddElement.push(nextEl);
     } else if (prevEl && !nextEl) {
       toDeleteElement.push(prevEl);
-    } else if (
-      prevEl.src !== nextEl.src ||
-      prevEl.volume !== nextEl.volume ||
-      prevEl.loop !== nextEl.loop ||
-      prevEl.startDelayMs !== nextEl.startDelayMs ||
-      prevEl.muted !== nextEl.muted ||
-      prevEl.pan !== nextEl.pan ||
-      prevEl.playbackRate !== nextEl.playbackRate ||
-      prevEl.startAt !== nextEl.startAt ||
-      prevEl.endAt !== nextEl.endAt
-    ) {
+    } else if (!isDeepEqual(prevEl, nextEl)) {
       //Update element
       toUpdateElement.push({
         prev: prevEl,

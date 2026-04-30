@@ -88,6 +88,32 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow('duplicate audio render-state id "music"');
   });
 
+  it("preserves top-level custom audio plugin nodes", () => {
+    const result = normalizeAudioRenderState({
+      audio: [
+        { id: "custom-1", type: "custom-audio", customValue: 1 },
+        { id: "sfx", type: "sound", src: "click" },
+      ],
+    });
+
+    expect(result.audio).toEqual([
+      { id: "custom-1", type: "custom-audio", customValue: 1 },
+      { id: "sfx", type: "sound", src: "click" },
+    ]);
+    expect(result.sounds).toHaveLength(1);
+  });
+
+  it("still rejects duplicate custom audio plugin node IDs", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [
+          { id: "custom-1", type: "custom-audio" },
+          { id: "custom-1", type: "sound", src: "click" },
+        ],
+      }),
+    ).toThrow('duplicate audio render-state id "custom-1"');
+  });
+
   it("rejects nested channels and non-sound channel children", () => {
     expect(() =>
       normalizeAudioRenderState({

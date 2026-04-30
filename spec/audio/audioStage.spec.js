@@ -50,6 +50,8 @@ const createAudioContextMock = () => {
         type: "source",
         buffer: null,
         loop: false,
+        loopStart: 0,
+        loopEnd: 0,
         playbackRate: createAudioParam(1),
         connect: vi.fn(),
         disconnect: vi.fn(),
@@ -252,6 +254,129 @@ describe("AudioStage graph rendering", () => {
     expect(bgmSource.stop).toHaveBeenCalledWith(11);
   });
 
+  it("does not cancel unchanged channel or sound volume ramps", async () => {
+    const { stage } = await setupAudioStage();
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        volume: 80,
+        children: [{ id: "bgm", type: "sound", src: "theme", volume: 60 }],
+      },
+    ];
+
+    stage.renderGraph({
+      nextAudio: audio,
+      nextAudioEffects: [
+        {
+          id: "music-enter",
+          type: "audioTransition",
+          targetId: "music",
+          properties: {
+            volume: {
+              enter: { from: 0, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+        {
+          id: "bgm-enter",
+          type: "audioTransition",
+          targetId: "bgm",
+          properties: {
+            volume: {
+              enter: { from: 0, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    const music = stage._inspect().channels.get("music");
+    const bgm = findCurrentSound(stage, "bgm");
+    music.gainNode.gain.cancelScheduledValues.mockClear();
+    music.gainNode.gain.setValueAtTime.mockClear();
+    bgm.gainNode.gain.cancelScheduledValues.mockClear();
+    bgm.gainNode.gain.setValueAtTime.mockClear();
+
+    stage.renderGraph({
+      prevAudio: audio,
+      nextAudio: audio,
+    });
+
+    expect(music.gainNode.gain.cancelScheduledValues).not.toHaveBeenCalled();
+    expect(music.gainNode.gain.setValueAtTime).not.toHaveBeenCalled();
+    expect(bgm.gainNode.gain.cancelScheduledValues).not.toHaveBeenCalled();
+    expect(bgm.gainNode.gain.setValueAtTime).not.toHaveBeenCalled();
+  });
+
+  it("uses a fresh channel bus when re-adding a channel that is still exiting", async () => {
+    const { stage, context } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        volume: 80,
+        children: [{ id: "bgm", type: "sound", src: "track-a" }],
+      },
+    ];
+    const nextAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        volume: 80,
+        children: [{ id: "bgm", type: "sound", src: "track-b" }],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: firstAudio });
+    const exitingChannel = stage._inspect().channels.get("music");
+    const firstSource = context.sources[0];
+
+    stage.renderGraph({
+      prevAudio: firstAudio,
+      nextAudio: [],
+      prevAudioEffects: [
+        {
+          id: "music-exit",
+          type: "audioTransition",
+          targetId: "music",
+          properties: {
+            volume: {
+              exit: { to: 0, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    stage.renderGraph({
+      prevAudio: [],
+      nextAudio,
+      nextAudioEffects: [
+        {
+          id: "music-enter",
+          type: "audioTransition",
+          targetId: "music",
+          properties: {
+            volume: {
+              enter: { from: 0, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    const activeChannel = stage._inspect().channels.get("music");
+    expect(activeChannel).not.toBe(exitingChannel);
+    expect(context.sources).toHaveLength(2);
+    expect(firstSource.stop).toHaveBeenCalledWith(11);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(stage._inspect().channels.get("music")).toBe(activeChannel);
+    expect(findCurrentSound(stage, "bgm").src).toBe("track-b");
+  });
+
   it("replaces same-id sounds with different sources using overlapping instances", async () => {
     const { stage, context } = await setupAudioStage();
     const firstAudio = [{ id: "bgm", type: "sound", src: "track-a" }];
@@ -358,6 +483,68 @@ describe("AudioStage graph rendering", () => {
 
     expect(getAsset).not.toHaveBeenCalled();
     expect(findSound(stage, "sfx")).toBeUndefined();
+  });
+
+  it("reschedules pending startDelayMs playback when the delay changes", async () => {
+    const { stage, getAsset } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "sfx",
+        type: "sound",
+        src: "click",
+        startDelayMs: 100,
+      },
+    ];
+    const secondAudio = [
+      {
+        id: "sfx",
+        type: "sound",
+        src: "click",
+        startDelayMs: 300,
+      },
+    ];
+    const immediateAudio = [
+      {
+        id: "sfx",
+        type: "sound",
+        src: "click",
+        startDelayMs: 0,
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: firstAudio });
+    vi.advanceTimersByTime(50);
+
+    stage.renderGraph({ prevAudio: firstAudio, nextAudio: secondAudio });
+    vi.advanceTimersByTime(50);
+    expect(getAsset).not.toHaveBeenCalled();
+
+    stage.renderGraph({ prevAudio: secondAudio, nextAudio: immediateAudio });
+    expect(getAsset).toHaveBeenCalledWith("click");
+  });
+
+  it("loops bounded sound segments instead of starting them with a duration", async () => {
+    const { stage, context } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "loop",
+          type: "sound",
+          src: "track",
+          loop: true,
+          startAt: 1,
+          endAt: 4,
+        },
+      ],
+    });
+
+    const source = context.sources[0];
+    expect(source.loop).toBe(true);
+    expect(source.loopStart).toBe(1);
+    expect(source.loopEnd).toBe(4);
+    expect(source.start).toHaveBeenCalledWith(0, 1);
+    expect(source.start.mock.calls[0]).toHaveLength(2);
   });
 
   it("validates effects when renderGraph is called directly", async () => {

@@ -161,27 +161,36 @@ const validateAudioNodes = (audio, ids) => {
 
   const flattenedChannels = [];
   const flattenedSounds = [];
+  const builtinNodeIds = new Set();
 
   for (const [index, node] of audio.entries()) {
     const path = `audio[${index}]`;
     assertRecord(node, path);
 
     if (!AUDIO_NODE_TYPES.has(node.type)) {
-      throw new Error(
-        `Input error: unsupported audio node type "${node.type}" at ${path}.`,
-      );
+      assertNonEmptyString(node.id, `${path}.id`);
+      assertUniqueId(ids, node.id, `${path}.id`);
+      continue;
     }
 
     if (node.type === "audio-channel") {
       validateChannel(node, path, ids, flattenedChannels, flattenedSounds);
+      builtinNodeIds.add(node.id);
+      for (const sound of flattenedSounds) {
+        if (sound.channelId === node.id) {
+          builtinNodeIds.add(sound.id);
+        }
+      }
     } else {
       validateSound(node, path, ids, flattenedSounds);
+      builtinNodeIds.add(node.id);
     }
   }
 
   return {
     channels: flattenedChannels,
     sounds: flattenedSounds,
+    builtinNodeIds,
   };
 };
 
@@ -303,12 +312,19 @@ export const normalizeAudioRenderState = ({
 } = {}) => {
   const ids = new Set();
   const flattened = validateAudioNodes(audio, ids);
-  const nodeIds = new Set(ids);
-  validateAudioEffects(audioEffects, ids, nodeIds);
+  validateAudioEffects(audioEffects, ids, flattened.builtinNodeIds);
 
   return {
     audio,
     audioEffects,
-    ...flattened,
+    channels: flattened.channels,
+    sounds: flattened.sounds,
   };
 };
+
+export const isGraphAudioNode = (node) => AUDIO_NODE_TYPES.has(node?.type);
+
+export const filterGraphAudio = (audio = []) => audio.filter(isGraphAudioNode);
+
+export const filterPluginAudio = (audio = []) =>
+  audio.filter((node) => !isGraphAudioNode(node));

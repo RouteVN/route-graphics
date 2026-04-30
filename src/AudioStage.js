@@ -208,7 +208,11 @@ const createSourceForSound = (sound) => {
       ? Math.max(sound.endAt - offset, 0)
       : undefined;
 
-  if (duration !== undefined) {
+  if (source.loop && sound.endAt !== null && sound.endAt !== undefined) {
+    source.loopStart = offset;
+    source.loopEnd = sound.endAt;
+    source.start(0, offset);
+  } else if (duration !== undefined) {
     source.start(0, offset, duration);
   } else {
     source.start(0, offset);
@@ -389,21 +393,45 @@ export const createAudioStage = () => {
     const existing = channels.get(channel.id);
     const transition = getTransitionPhase(effects, channel.id, "volume", phase);
 
+    if (existing && existing.cleanupTimeoutId !== null) {
+      const created = createChannelInstance(
+        channel,
+        getAudioContext().destination,
+      );
+      channels.set(channel.id, created);
+      applyVolume({
+        gainNode: created.gainNode,
+        targetValue: getVolumeValue(channel),
+        transition,
+      });
+      return created;
+    }
+
     if (existing) {
-      if (existing.cleanupTimeoutId !== null) {
-        clearTimeout(existing.cleanupTimeoutId);
-        existing.cleanupTimeoutId = null;
-      }
+      const currentVolumeValue = getVolumeValue(existing);
+      const nextVolumeValue = getVolumeValue(channel);
+      const volumeChanged = currentVolumeValue !== nextVolumeValue;
+      const panChanged = existing.pan !== (channel.pan ?? 0);
 
       existing.volume = channel.volume;
       existing.muted = channel.muted;
       existing.pan = channel.pan;
-      applyVolume({
-        gainNode: existing.gainNode,
-        targetValue: getVolumeValue(channel),
-        transition,
-      });
-      if (existing.pannerNode?.pan) {
+
+      if (volumeChanged && transition) {
+        applyVolume({
+          gainNode: existing.gainNode,
+          targetValue: nextVolumeValue,
+          transition,
+        });
+      } else if (volumeChanged) {
+        applyVolume({
+          gainNode: existing.gainNode,
+          targetValue: nextVolumeValue,
+          transition: null,
+        });
+      }
+
+      if (panChanged && existing.pannerNode?.pan) {
         setParamNow(existing.pannerNode.pan, channel.pan ?? 0);
       }
       return existing;
@@ -515,6 +543,11 @@ export const createAudioStage = () => {
   };
 
   const updateSoundInstance = ({ instance, sound, effects }) => {
+    const currentVolumeValue = getVolumeValue(instance);
+    const nextVolumeValue = getVolumeValue(sound);
+    const volumeChanged = currentVolumeValue !== nextVolumeValue;
+    const startDelayChanged = instance.startDelayMs !== sound.startDelayMs;
+
     if (instance.channelId !== sound.channelId) {
       const parentChannel = getParentChannelForSound(sound);
       connectSoundToChannel(instance, parentChannel.gainNode);
@@ -547,11 +580,23 @@ export const createAudioStage = () => {
       "volume",
       "update",
     );
-    applyVolume({
-      gainNode: instance.gainNode,
-      targetValue: getVolumeValue(sound),
-      transition,
-    });
+    if (volumeChanged && transition) {
+      applyVolume({
+        gainNode: instance.gainNode,
+        targetValue: nextVolumeValue,
+        transition,
+      });
+    } else if (volumeChanged) {
+      applyVolume({
+        gainNode: instance.gainNode,
+        targetValue: nextVolumeValue,
+        transition: null,
+      });
+    }
+
+    if (startDelayChanged && instance.pendingTimeoutId !== null) {
+      playSound(instance);
+    }
   };
 
   const renderGraph = ({
@@ -686,7 +731,9 @@ export const createAudioStage = () => {
       const duration = channelCleanupDurations.get(id) ?? 0;
       channel.cleanupTimeoutId = schedule(() => {
         cleanupChannel(channel);
-        channels.delete(id);
+        if (channels.get(id) === channel) {
+          channels.delete(id);
+        }
       }, duration);
     }
   };
