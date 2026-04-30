@@ -14,7 +14,7 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
  */
 export const updateSound = ({ app, prevElement, nextElement }) => {
   const id = prevElement.id;
-  const nextDelay = nextElement.delay ?? 0;
+  const nextDelay = nextElement.startDelayMs ?? 0;
 
   // Delayed sound updates are rescheduled from scratch.
   if (nextDelay > 0) {
@@ -30,7 +30,7 @@ export const updateSound = ({ app, prevElement, nextElement }) => {
       id,
       url: nextElement.src,
       loop: nextElement.loop ?? false,
-      volume: normalizeVolume(nextElement.volume, 80),
+      volume: normalizeVolume(nextElement.volume, 100),
     });
     return;
   }
@@ -41,12 +41,12 @@ export const updateSound = ({ app, prevElement, nextElement }) => {
       id,
       url: nextElement.src,
       loop: nextElement.loop ?? false,
-      volume: normalizeVolume(nextElement.volume, 80),
+      volume: normalizeVolume(nextElement.volume, 100),
     });
     return;
   }
 
   audioElement.url = nextElement.src;
   audioElement.loop = nextElement.loop ?? false;
-  audioElement.volume = normalizeVolume(nextElement.volume, 80);
+  audioElement.volume = normalizeVolume(nextElement.volume, 100);
 };

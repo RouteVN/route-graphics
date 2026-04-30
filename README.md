@@ -85,6 +85,10 @@ For complete usage details, go to:
 - [Events & Render Complete](http://route-graphics.routevn.com/docs/guides/events-render-complete/)
 - [Custom Plugins](http://route-graphics.routevn.com/docs/guides/custom-plugins/)
 
+Design notes:
+
+- [Audio Effects](./docs/audio-effects.md)
+
 ## Render CLI
 
 This repo includes a CLI that renders RouteGraphics YAML into PNG or MP4 output by:

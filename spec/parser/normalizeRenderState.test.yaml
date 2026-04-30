@@ -14,6 +14,7 @@ out:
   elements: []
   animations: []
   audio: []
+  audioEffects: []
 ---
 case: Preserve provided arrays
 in:
@@ -33,6 +34,7 @@ in:
     audio:
       - id: sound-1
         type: sound
+        src: sfx-1
 out:
   id: state-2
   elements:
@@ -51,6 +53,8 @@ out:
   audio:
     - id: sound-1
       type: sound
+      src: sfx-1
+  audioEffects: []
 ---
 case: Normalize transition animation with mask defaults
 in:
@@ -79,6 +83,7 @@ out:
               value: 1
               easing: linear
   audio: []
+  audioEffects: []
 ---
 case: Normalize transition animation with prev tween
 in:
@@ -110,6 +115,7 @@ out:
                 value: 0
                 easing: linear
   audio: []
+  audioEffects: []
 ---
 case: Normalize transition animation with next tween
 in:
@@ -142,6 +148,7 @@ out:
                 value: 0
                 easing: easeInCubic
   audio: []
+  audioEffects: []
 ---
 case: Preserve advanced easing names
 in:
@@ -170,6 +177,7 @@ out:
               value: 20
               easing: easeInCubic
   audio: []
+  audioEffects: []
 ---
 case: Normalize update auto tween shorthand
 in:
@@ -203,6 +211,7 @@ out:
             duration: 220
             easing: easeOutQuad
   audio: []
+  audioEffects: []
 ---
 case: Normalize update blur tween
 in:
@@ -240,6 +249,7 @@ out:
             duration: 220
             easing: easeOutQuad
   audio: []
+  audioEffects: []
 ---
 case: Normalize update animation with persistent playback continuity
 in:
@@ -271,6 +281,7 @@ out:
               value: 1.2
               easing: linear
   audio: []
+  audioEffects: []
 ---
 case: Normalize update animation with render playback continuity
 in:
@@ -302,6 +313,7 @@ out:
               value: 1.2
               easing: linear
   audio: []
+  audioEffects: []
 ---
 case: Normalize transition animation with persistent playback continuity
 in:
@@ -335,6 +347,7 @@ out:
                 value: 1
                 easing: linear
   audio: []
+  audioEffects: []
 ---
 case: Throw when transitions field is provided
 in:

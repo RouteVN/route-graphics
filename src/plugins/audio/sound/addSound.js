@@ -7,7 +7,7 @@ const createAudioElement = (element) => ({
   id: element.id,
   url: element.src,
   loop: element.loop ?? false,
-  volume: normalizeVolume(element.volume, 80),
+  volume: normalizeVolume(element.volume, 100),
 });
 
 export const hasPendingSound = (id) => pendingTimeoutById.has(id);
@@ -23,11 +23,11 @@ export const scheduleSound = ({ app, element }) => {
   const audioElement = createAudioElement(element);
   cancelPendingSound(audioElement.id);
 
-  if (element.delay && element.delay > 0) {
+  if (element.startDelayMs && element.startDelayMs > 0) {
     const timeoutId = setTimeout(() => {
       pendingTimeoutById.delete(audioElement.id);
       app.audioStage.add(audioElement);
-    }, element.delay);
+    }, element.startDelayMs);
     pendingTimeoutById.set(audioElement.id, timeoutId);
     return;
   }

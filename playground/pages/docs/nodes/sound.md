@@ -15,19 +15,19 @@ Try it in the [Playground](/playground/?template=sound-demo).
 
 ## Field Reference
 
-| Field    | Type    | Required | Default | Notes                                               |
-| -------- | ------- | -------- | ------- | --------------------------------------------------- |
-| `id`     | string  | Yes      | -       | Audio id.                                           |
-| `type`   | string  | Yes      | -       | Must be `sound`.                                    |
-| `src`    | string  | Yes      | -       | Audio source alias/URL.                             |
-| `volume` | number  | No       | `80`    | Runtime maps to `volume / 100`.                      |
-| `loop`   | boolean | No       | `false` | Loop playback.                                      |
-| `delay`  | number  | No       | `0`     | Delay in ms before adding to audio stage.           |
+| Field          | Type    | Required | Default | Notes                               |
+| -------------- | ------- | -------- | ------- | ----------------------------------- |
+| `id`           | string  | Yes      | -       | Audio id.                           |
+| `type`         | string  | Yes      | -       | Must be `sound`.                    |
+| `src`          | string  | Yes      | -       | Audio source alias/URL.             |
+| `volume`       | number  | No       | `100`   | Runtime maps to `volume / 100`.     |
+| `loop`         | boolean | No       | `false` | Loop playback.                      |
+| `startDelayMs` | number  | No       | `0`     | Delay in ms before playback starts. |
 
 ## Behavior Notes
 
 - Delayed sounds are scheduled and can be canceled by updates/deletes with the same `id`.
-- Updating a sound with delay reschedules from scratch.
+- Updating a pending delayed sound with `startDelayMs` reschedules from scratch.
 - If a pending delayed sound is updated to immediate playback, the pending timer is canceled and sound is added immediately.
 
 ## Example: Minimal SFX
@@ -57,6 +57,6 @@ audio:
   - id: stage-announce
     type: sound
     src: sfx-announce
-    delay: 1200
+    startDelayMs: 1200
     volume: 90
 ```
