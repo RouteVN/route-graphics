@@ -136,7 +136,7 @@ First implementation rule:
 
 ### Sounds
 
-A `sound` is a playable source. It resolves to one Web Audio source instance.
+A `sound` is a playable source. It represents one logical playback instance.
 
 ```yaml
 id: bgm
@@ -156,7 +156,7 @@ Fields:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `id` | string | required | Stable globally unique sound ID |
+| `id` | string | required | Globally unique playback identity |
 | `type` | `sound` | required | Node type |
 | `src` | string | required | Audio asset alias or source URL |
 | `volume` | number | `100` | Local sound volume, `0` to `100` |
@@ -174,6 +174,42 @@ duration is `endAt - startAt`.
 Legacy Route Graphics `sound.delay` may be accepted as a migration alias, but
 new render state should use `startDelayMs`. This avoids confusion with the
 future `delay` audio filter.
+
+### Sound Identity and Replay
+
+Route Graphics treats `sound.id` as the playback identity.
+
+If a `sound` remains present with the same `id` and same `src`, it is a
+continuing playback instance. It should not restart just because the same render
+state is submitted again.
+
+Use stable IDs for persistent sounds:
+
+```yaml
+id: bgm
+type: sound
+src: theme
+loop: true
+```
+
+Use generated playback-instance IDs for one-shot sounds that should replay, even
+when they use the same audio asset as a previous one-shot:
+
+```yaml
+id: voice-${lineId}-${playbackIndex}
+type: sound
+src: voices/current-scene/alice_001.ogg
+loop: false
+```
+
+The playback-instance component can come from a line ID, event ID, sequence
+number, or consumer-level playback token. If the same line can be entered more
+than once and should replay voice, the generated ID must include a visit or
+playback counter, not only the static line ID.
+
+Avoid fixed one-shot IDs such as `line-voice` or `click`. With a declarative
+diff model, repeating the same fixed ID and `src` means "keep this existing
+sound", not "play it again".
 
 ## Audio Effects
 
@@ -429,6 +465,9 @@ Route Graphics should keep audio declarative.
 
 No explicit `op: play` or `op: stop` is needed in Route Graphics render state.
 
+Same `sound.id` and same `sound.src` means continuation. It does not replay.
+Consumers must use a new playback-instance ID when replaying a one-shot sound.
+
 ### Same ID, Different Source
 
 If a `sound` keeps the same `id` but changes `src`, treat it as replacement:
@@ -556,11 +595,15 @@ audio:
     volume: ${runtime.soundVolume}
     muted: ${runtime.muteAll}
     children:
-      - id: door
+      - id: sfx-${lineId}-${item.id}-${playbackIndex}
         type: sound
         src: door-close-file
         volume: 80
 ```
+
+Replayable one-shot SFX should use generated playback-instance IDs. Stable SFX
+IDs are only appropriate for sounds that should persist across render states,
+such as a looping ambient effect.
 
 ### `voice`
 
@@ -578,11 +621,16 @@ audio:
     volume: ${runtime.soundVolume}
     muted: ${runtime.muteAll}
     children:
-      - id: line-voice
+      - id: voice-${lineId}-${playbackIndex}
         type: sound
         src: voices/current-scene/alice_001.ogg
         loop: false
 ```
+
+The generated voice sound ID must identify the playback instance, not only the
+voice asset. Two consecutive lines may use the same `voice.resourceId`; they
+still need distinct generated `sound.id` values so the renderer sees a removed
+old sound and an added new sound.
 
 Future voice-specific controls, such as per-character voice mute, should affect
 the `voice` channel or the generated voice sound volume. They should not require
