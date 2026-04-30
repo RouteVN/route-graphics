@@ -164,6 +164,34 @@ describe("AudioStage graph rendering", () => {
     expect(context.resume).toHaveBeenCalled();
   });
 
+  it("resumes a suspended audio context before scheduling delayed playback", async () => {
+    const { stage, context, getAsset } = await setupAudioStage();
+    context.state = "suspended";
+    context.resume.mockImplementation(() => {
+      context.state = "running";
+      return Promise.resolve();
+    });
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "sfx",
+          type: "sound",
+          src: "click",
+          startDelayMs: 100,
+        },
+      ],
+    });
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+    expect(getAsset).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(100);
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+    expect(getAsset).toHaveBeenCalledWith("click");
+  });
+
   it("applies enter, update, and exit volume transitions", async () => {
     const { stage, context } = await setupAudioStage();
     const firstAudio = [

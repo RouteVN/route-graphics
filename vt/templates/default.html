@@ -408,6 +408,10 @@
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
       const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      const stateHasAudio = (state) =>
+        (Array.isArray(state?.audio) && state.audio.length > 0) ||
+        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0);
+      const hasAudioStates = states.some(stateHasAudio);
       if (!useBrowserScreenshot) {
         let vtScreenshotHookPrimed = false;
         const waitForStableScreenshotFrame = async () => {
@@ -553,6 +557,33 @@
         }
         updatePager();
       };
+
+      let hasStartedAudioFixtureFromPointer = false;
+      const startAudioFixtureFromPointer = (event) => {
+        if (!hasAudioStates || hasStartedAudioFixtureFromPointer) {
+          return;
+        }
+        if (event.target?.closest?.(".vt-state-pager")) {
+          return;
+        }
+        if (stateHasAudio(states[index])) {
+          return;
+        }
+
+        const nextAudioStateIndex = states.findIndex(
+          (state, stateIndex) => stateIndex > index && stateHasAudio(state),
+        );
+        if (nextAudioStateIndex === -1) {
+          return;
+        }
+
+        hasStartedAudioFixtureFromPointer = true;
+        renderState(nextAudioStateIndex);
+      };
+
+      document.addEventListener("pointerdown", startAudioFixtureFromPointer, {
+        capture: true,
+      });
 
       await app.init({
         width: 1280,

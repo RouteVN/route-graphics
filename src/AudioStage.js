@@ -227,6 +227,8 @@ const playSound = (sound) => {
     sound.pendingTimeoutId = null;
   }
 
+  resumeAudioContext(getAudioContext());
+
   const start = () => {
     sound.pendingTimeoutId = null;
     sound.source = createSourceForSound(sound);
