@@ -13,6 +13,64 @@ const normalizeInitialRevealedCharacters = (value) => {
   return Math.max(0, Math.floor(value));
 };
 
+const DEFAULT_FURIGANA_PLACEMENT = "top";
+const LEGACY_TOP_FURIGANA_OFFSET = 2;
+const FURIGANA_PLACEMENTS = ["top", "bottom"];
+const FURIGANA_PLACEMENT_SET = new Set(FURIGANA_PLACEMENTS);
+
+const normalizeFuriganaPlacement = (placement, path) => {
+  if (placement === undefined) {
+    return DEFAULT_FURIGANA_PLACEMENT;
+  }
+
+  if (FURIGANA_PLACEMENT_SET.has(placement)) {
+    return placement;
+  }
+
+  throw new Error(
+    `Input Error: ${path}.placement must be one of ${FURIGANA_PLACEMENTS.join(
+      ", ",
+    )}.`,
+  );
+};
+
+const normalizeFuriganaGap = (gap, path) => {
+  if (gap === undefined) {
+    return 0;
+  }
+
+  if (typeof gap === "number" && Number.isFinite(gap) && gap >= 0) {
+    return gap;
+  }
+
+  throw new Error(`Input Error: ${path}.gap must be a finite number >= 0.`);
+};
+
+const getFuriganaPosition = ({
+  placement,
+  gap,
+  x,
+  y,
+  partWidth,
+  partHeight,
+  furiganaWidth,
+  furiganaHeight,
+}) => {
+  const furiganaX = Math.round(x + (partWidth - furiganaWidth) / 2);
+
+  if (placement === "bottom") {
+    return {
+      x: furiganaX,
+      y: y + partHeight + gap,
+    };
+  }
+
+  return {
+    x: furiganaX,
+    y: y - furiganaHeight + LEGACY_TOP_FURIGANA_OFFSET - gap,
+  };
+};
+
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').TextRevealingComputedNode} TextRevealingComputedNode
@@ -264,14 +322,22 @@ const createTextChunks = (segments, wordWrapWidth) => {
         ),
       );
 
-      // Calculate furigana position relative to current line's max height
-      const furiganaYOffset = -furiganaMeasurements.height + y + 2;
+      const furiganaPosition = getFuriganaPosition({
+        placement: segment.furigana.placement,
+        gap: segment.furigana.gap,
+        x,
+        y,
+        partWidth,
+        partHeight: measurementsWithNoWrapping.height,
+        furiganaWidth: furiganaMeasurements.width,
+        furiganaHeight: furiganaMeasurements.height,
+      });
 
       const furiganaPart = {
         text: segment.furigana.text,
         textStyle: segment.furigana.textStyle,
-        x: Math.round(x + (partWidth - furiganaMeasurements.width) / 2),
-        y: furiganaYOffset,
+        x: furiganaPosition.x,
+        y: furiganaPosition.y,
       };
 
       newTextPart.furigana = furiganaPart;
@@ -355,7 +421,7 @@ export const parseTextRevealing = ({ state }) => {
     state.textStyle,
   );
 
-  const processedContent = (state.content || []).map((item) => {
+  const processedContent = (state.content || []).map((item, itemIndex) => {
     // TODO: if breakwords is true this will crash
     const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
 
@@ -387,6 +453,14 @@ export const parseTextRevealing = ({ state }) => {
       furigana = {
         text: String(item.furigana.text),
         textStyle: furiganaTextStyle,
+        placement: normalizeFuriganaPlacement(
+          item.furigana.placement,
+          `content[${itemIndex}].furigana`,
+        ),
+        gap: normalizeFuriganaGap(
+          item.furigana.gap,
+          `content[${itemIndex}].furigana`,
+        ),
       };
     }
 

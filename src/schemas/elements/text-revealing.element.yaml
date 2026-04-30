@@ -128,6 +128,16 @@ properties:
               type: string
             textStyle:
               "$ref": "#/$def/textStyle"
+            placement:
+              type: string
+              enum: [top, bottom]
+              default: top
+              description: Side of the base text where furigana is placed. Currently supports top and bottom; the side-based name leaves room for future left/right support without changing the spacing API.
+            gap:
+              type: number
+              minimum: 0
+              default: 0
+              description: Additional distance in pixels between the furigana and base text along the placement axis. Positive values move furigana farther from the base text.
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.

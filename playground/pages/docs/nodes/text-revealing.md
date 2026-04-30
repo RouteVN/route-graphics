@@ -36,11 +36,29 @@ Try it in the [Playground](/playground/?template=text-revealing).
 
 ### `content[]` item shape
 
-| Field       | Type   | Required | Notes                                                |
-| ----------- | ------ | -------- | ---------------------------------------------------- |
-| `text`      | string | Yes      | Segment text.                                        |
-| `textStyle` | object | No       | Overrides root style.                                |
-| `furigana`  | object | No       | `{ text, textStyle }` rendered above parent segment. |
+| Field       | Type   | Required | Notes                                                              |
+| ----------- | ------ | -------- | ------------------------------------------------------------------ |
+| `text`      | string | Yes      | Segment text.                                                      |
+| `textStyle` | object | No       | Overrides root style.                                              |
+| `furigana`  | object | No       | `{ text, textStyle, placement, gap }` rendered beside the segment. |
+
+### `content[].furigana`
+
+| Field       | Type              | Required | Default | Notes                                                                                                                                        |
+| ----------- | ----------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`      | string            | Yes      | -       | Furigana/ruby text.                                                                                                                          |
+| `textStyle` | object            | No       | segment | Furigana style. Inherits from root `textStyle`, then applies the furigana override.                                                          |
+| `placement` | `top` \| `bottom` | No       | `top`   | Side of the base text where furigana is placed. The side-based name leaves room for future `left`/`right` support for vertical text layouts. |
+| `gap`       | number `>= 0`     | No       | `0`     | Additional side-relative spacing in pixels. `top` moves farther upward; `bottom` moves farther downward.                                     |
+
+```yaml
+furigana:
+  text: "かな"
+  placement: top
+  gap: 2
+  textStyle:
+    fontSize: 12
+```
 
 ### `textStyle.shadow`
 
@@ -83,6 +101,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 - `initialRevealedCharacters` is useful when an upstream engine appends to an existing line: keep the full combined `content`, set the count to the already-visible prefix length, and only the remaining suffix animates.
 - `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: linear motion, no overlap, and a feather width clamped to the legacy range.
 - `revealEffect: none` skips animation and paints text immediately.
+- Furigana currently supports `placement: top` and `placement: bottom`. `gap` is intentionally direction-neutral so future vertical text can add `left` and `right` without renaming the field.
 - Completion contributes to global `renderComplete` tracking.
 - `complete.payload` is currently parsed but no dedicated per-node event is emitted from this plugin.
 
@@ -122,6 +141,8 @@ elements:
       - text: "漢字"
         furigana:
           text: "かんじ"
+          placement: top
+          gap: 4
           textStyle:
             fontSize: 14
             fill: "#ffd166"
@@ -171,6 +192,8 @@ elements:
           lineHeight: 1.35
         furigana:
           text: "ま"
+          placement: top
+          gap: 2
           textStyle:
             fontSize: 13
             fill: "#fff2bf"
@@ -255,6 +278,8 @@ elements:
           lineHeight: 1.35
         furigana:
           text: "そくど"
+          placement: top
+          gap: 2
           textStyle:
             fontSize: 13
             fill: "#fff2bf"

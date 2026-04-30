@@ -135,10 +135,10 @@ properties:
                 "$ref": "#/$def/textStyle"
               x:
                 type: number
-                description: Horizontal position (centered above parent)
+                description: Horizontal position
               y:
                 type: number
-                description: Vertical position (negative, above parent text)
+                description: Vertical position
               furigana:
                 type: object
                 properties:
@@ -148,10 +148,10 @@ properties:
                     "$ref": "#/$def/textStyle"
                   x:
                     type: number
-                    description: Horizontal position (centered above parent)
+                    description: Horizontal position relative to the parent text part
                   y:
                     type: number
-                    description: Vertical position (negative, above parent text)
+                    description: Vertical position relative to the parent text part
         lineMaxHeight:
           type: number
           description: Maximum height of text in this line
