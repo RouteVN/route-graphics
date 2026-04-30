@@ -22,6 +22,16 @@ const aliasFixturePath = path.join(
   "examples",
   "benchmark-alias.yaml",
 );
+const videoFixtureDir = path.join(specDir, "fixtures", "render-video");
+const videoSequenceFixturePath = path.join(videoFixtureDir, "sequence.yaml");
+const expectedVideoFirstFramePath = path.join(
+  videoFixtureDir,
+  "expected-first-frame.png",
+);
+const expectedVideoFinalFramePath = path.join(
+  videoFixtureDir,
+  "expected-final-frame.png",
+);
 const hasExecutable = (name) =>
   spawnSync(name, ["-version"], { stdio: "ignore" }).status === 0;
 const hasVideoToolchain = hasExecutable("ffmpeg") && hasExecutable("ffprobe");
@@ -40,6 +50,32 @@ const expectPixelNear = (actual, expected, tolerance = 8) => {
   expected.forEach((channel, index) => {
     expect(Math.abs(actual[index] - channel)).toBeLessThanOrEqual(tolerance);
   });
+};
+
+const expectPngCloseToFixture = async ({
+  actualPath,
+  expectedPath,
+  maxChannelDelta = 32,
+}) => {
+  const actual = PNG.sync.read(await fs.readFile(actualPath));
+  const expected = PNG.sync.read(await fs.readFile(expectedPath));
+
+  expect(actual.width).toBe(expected.width);
+  expect(actual.height).toBe(expected.height);
+
+  let largestDelta = 0;
+  for (let offset = 0; offset < actual.data.length; offset += 4) {
+    for (let channel = 0; channel < 4; channel += 1) {
+      largestDelta = Math.max(
+        largestDelta,
+        Math.abs(
+          actual.data[offset + channel] - expected.data[offset + channel],
+        ),
+      );
+    }
+  }
+
+  expect(largestDelta).toBeLessThanOrEqual(maxChannelDelta);
 };
 
 const runCliRender = async ({ inputPath, outputPath, args = [] }) => {
@@ -236,54 +272,15 @@ describe("route-graphics render CLI", () => {
   }, 30_000);
 
   it.skipIf(!hasVideoToolchain)(
-    "renders MP4 output using all selected states",
+    "renders MP4 output matching checked-in frame fixtures",
     async () => {
       const tempDir = await fs.mkdtemp(
         path.join(os.tmpdir(), "rtgl-cli-test-"),
       );
-      const inputPath = path.join(tempDir, `video-${randomUUID()}.yaml`);
       const outputPath = path.join(tempDir, "sequence.mp4");
 
-      await fs.writeFile(
-        inputPath,
-        `
-width: 160
-height: 90
-backgroundColor: "#101820"
-states:
-  - id: first
-    elements:
-      - id: panel
-        type: rect
-        x: 0
-        y: 0
-        width: 160
-        height: 90
-        fill: "#ff0000"
-  - id: second
-    elements:
-      - id: panel
-        type: rect
-        x: 20
-        y: 10
-        width: 120
-        height: 70
-        fill: "#00ff00"
-    animations:
-      - id: panel-move
-        targetId: panel
-        type: update
-        tween:
-          x:
-            keyframes:
-              - duration: 200
-                value: 20
-                easing: linear
-`,
-      );
-
       const run = await runRouteGraphicsRender({
-        inputPath,
+        inputPath: videoSequenceFixturePath,
         outputPath,
         args: [
           "--states",
@@ -341,6 +338,8 @@ states:
         "ffmpeg",
         [
           "-y",
+          "-v",
+          "error",
           "-ss",
           "0.10",
           "-i",
@@ -360,6 +359,8 @@ states:
         "ffmpeg",
         [
           "-y",
+          "-v",
+          "error",
           "-ss",
           "0.55",
           "-i",
@@ -378,6 +379,15 @@ states:
 
       const firstFrame = PNG.sync.read(await fs.readFile(firstFramePath));
       const finalFrame = PNG.sync.read(await fs.readFile(finalFramePath));
+
+      await expectPngCloseToFixture({
+        actualPath: firstFramePath,
+        expectedPath: expectedVideoFirstFramePath,
+      });
+      await expectPngCloseToFixture({
+        actualPath: finalFramePath,
+        expectedPath: expectedVideoFinalFramePath,
+      });
 
       expectPixelNear(
         Array.from(readPixel(firstFrame, 80, 45)),
