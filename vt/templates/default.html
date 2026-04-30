@@ -352,20 +352,20 @@
         },
         "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+        "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
+        "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
+        "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
       };
 
-      const shouldLoadOptionalMedia =
+      const shouldLoadOptionalVideo =
         !window?.RTGL_VT_DEBUG &&
         (window?.RTGL_VT_INCLUDE_MEDIA === true ||
           new URLSearchParams(window.location.search).get("media") === "1");
 
-      // Keep video/audio opt-in for manual browser runs so pages that do not
-      // use media do not block on video preload.
-      if (shouldLoadOptionalMedia) {
+      // Keep video opt-in for manual browser runs so pages that do not use
+      // video do not block on video preload.
+      if (shouldLoadOptionalVideo) {
         Object.assign(assetsObject, {
-          "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
-          "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
-          "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
           "video-sample": {
             url: "/public/video_sample.mp4",
             type: "video/mp4",

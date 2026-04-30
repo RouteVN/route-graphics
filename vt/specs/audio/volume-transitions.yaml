@@ -10,24 +10,8 @@ specs:
 ---
 states:
   - id: transition-silent
-    elements:
-      - id: silent
-        type: rect
-        x: 240
-        "y": 220
-        width: 240
-        height: 240
-        fill: "#4D4D4D"
     audio: []
   - id: transition-enter
-    elements:
-      - id: level
-        type: rect
-        x: 240
-        "y": 220
-        width: 320
-        height: 240
-        fill: "#A6A6A6"
     audio:
       - id: music
         type: audio-channel
@@ -49,14 +33,6 @@ states:
               duration: 2000
               easing: linear
   - id: transition-update-down
-    elements:
-      - id: level
-        type: rect
-        x: 240
-        "y": 220
-        width: 180
-        height: 240
-        fill: "#737373"
     audio:
       - id: music
         type: audio-channel
@@ -86,21 +62,6 @@ states:
               duration: 1200
               easing: linear
   - id: transition-crossfade-source
-    elements:
-      - id: level
-        type: rect
-        x: 240
-        "y": 220
-        width: 320
-        height: 240
-        fill: "#D9D9D9"
-      - id: source
-        type: rect
-        x: 720
-        "y": 220
-        width: 240
-        height: 240
-        fill: "#A6A6A6"
     audio:
       - id: music
         type: audio-channel
@@ -135,12 +96,4 @@ states:
               duration: 2000
               easing: linear
   - id: transition-exit
-    elements:
-      - id: silent
-        type: rect
-        x: 240
-        "y": 220
-        width: 240
-        height: 240
-        fill: "#4D4D4D"
     audio: []
