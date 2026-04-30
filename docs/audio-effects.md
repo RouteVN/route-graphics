@@ -19,8 +19,6 @@ is the planned public contract for the next audio graph implementation.
 - support mixer-style channel volume without a separate mixer concept
 - support smooth volume fades and crossfades
 - preserve compatibility with existing flat `sound` render state
-- support higher-level consumers that normalize authored `bgm`, `sfx`, and
-  `voice` actions into channel render state
 - leave room for pan, playback-rate automation, and Web Audio filters
 
 ## Non-Goals
@@ -196,20 +194,20 @@ Use generated playback-instance IDs for one-shot sounds that should replay, even
 when they use the same audio asset as a previous one-shot:
 
 ```yaml
-id: voice-${lineId}-${playbackIndex}
+id: one-shot-${eventId}-${playbackIndex}
 type: sound
-src: voices/current-scene/alice_001.ogg
+src: ui-confirm
 loop: false
 ```
 
-The playback-instance component can come from a line ID, event ID, sequence
-number, or consumer-level playback token. If the same line can be entered more
-than once and should replay voice, the generated ID must include a visit or
-playback counter, not only the static line ID.
+The playback-instance component can come from an event ID, sequence number, or
+consumer-level playback token. If the same event can be submitted more than once
+and should replay audio, the generated ID must include a visit or playback
+counter, not only a static event ID.
 
-Avoid fixed one-shot IDs such as `line-voice` or `click`. With a declarative
-diff model, repeating the same fixed ID and `src` means "keep this existing
-sound", not "play it again".
+Avoid fixed one-shot IDs such as `click` or `confirm`. With a declarative diff
+model, repeating the same fixed ID and `src` means "keep this existing sound",
+not "play it again".
 
 ## Audio Effects
 
@@ -549,93 +547,6 @@ For removed nodes with an exit transition, cleanup happens after the ramp:
 source.stop(now + seconds);
 ```
 
-## Consumer Mapping
-
-Higher-level consumers such as Route Engine can keep domain-specific authored
-actions and normalize them into channel render state.
-
-### `bgm`
-
-```yaml
-bgm:
-  resourceId: theme
-```
-
-Normalizes to:
-
-```yaml
-audio:
-  - id: music
-    type: audio-channel
-    volume: ${runtime.musicVolume}
-    muted: ${runtime.muteAll}
-    children:
-      - id: bgm
-        type: sound
-        src: theme-file
-        loop: true
-```
-
-### `sfx`
-
-```yaml
-sfx:
-  items:
-    - id: door
-      resourceId: door-close
-      volume: 80
-```
-
-Normalizes to:
-
-```yaml
-audio:
-  - id: sfx
-    type: audio-channel
-    volume: ${runtime.soundVolume}
-    muted: ${runtime.muteAll}
-    children:
-      - id: sfx-${lineId}-${item.id}-${playbackIndex}
-        type: sound
-        src: door-close-file
-        volume: 80
-```
-
-Replayable one-shot SFX should use generated playback-instance IDs. Stable SFX
-IDs are only appropriate for sounds that should persist across render states,
-such as a looping ambient effect.
-
-### `voice`
-
-```yaml
-voice:
-  resourceId: alice_001
-```
-
-Normalizes to:
-
-```yaml
-audio:
-  - id: voice
-    type: audio-channel
-    volume: ${runtime.soundVolume}
-    muted: ${runtime.muteAll}
-    children:
-      - id: voice-${lineId}-${playbackIndex}
-        type: sound
-        src: voices/current-scene/alice_001.ogg
-        loop: false
-```
-
-The generated voice sound ID must identify the playback instance, not only the
-voice asset. Two consecutive lines may use the same `voice.resourceId`; they
-still need distinct generated `sound.id` values so the renderer sees a removed
-old sound and an added new sound.
-
-Future voice-specific controls, such as per-character voice mute, should affect
-the `voice` channel or the generated voice sound volume. They should not require
-channel declarations in `resources`.
-
 ## Suggested Implementation Stages
 
 1. Add Route Graphics schemas for `audio-channel`, extended `sound`, and
@@ -644,8 +555,5 @@ channel declarations in `resources`.
 3. Refactor Route Graphics `AudioStage` into an audio graph manager with channel
    gain nodes and internal playback instance IDs.
 4. Implement `audioTransition` for `volume` on channels and sounds.
-5. Update Route Engine render-state construction to emit channels for `bgm`,
-   `sfx`, and `voice`.
-6. Add Route Engine generic `audio` authoring once renderer support is stable.
-7. Add `audioFilter`, pan transitions, and playback-rate transitions in separate
+5. Add `audioFilter`, pan transitions, and playback-rate transitions in separate
    patches.
