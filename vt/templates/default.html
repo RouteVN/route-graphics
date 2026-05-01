@@ -352,20 +352,20 @@
         },
         "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+        "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
+        "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
+        "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
       };
 
-      const shouldLoadOptionalMedia =
+      const shouldLoadOptionalVideo =
         !window?.RTGL_VT_DEBUG &&
         (window?.RTGL_VT_INCLUDE_MEDIA === true ||
           new URLSearchParams(window.location.search).get("media") === "1");
 
-      // Keep video/audio opt-in for manual browser runs so pages that do not
-      // use media do not block on video preload.
-      if (shouldLoadOptionalMedia) {
+      // Keep video opt-in for manual browser runs so pages that do not use
+      // video do not block on video preload.
+      if (shouldLoadOptionalVideo) {
         Object.assign(assetsObject, {
-          "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
-          "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
-          "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
           "video-sample": {
             url: "/public/video_sample.mp4",
             type: "video/mp4",
@@ -408,6 +408,10 @@
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
       const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      const stateHasAudio = (state) =>
+        (Array.isArray(state?.audio) && state.audio.length > 0) ||
+        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0);
+      const hasAudioStates = states.some(stateHasAudio);
       if (!useBrowserScreenshot) {
         let vtScreenshotHookPrimed = false;
         const waitForStableScreenshotFrame = async () => {
@@ -543,6 +547,7 @@
           elements: state.elements ?? [],
           animations: state.animations ?? [],
           audio: state.audio ?? [],
+          audioEffects: state.audioEffects ?? [],
           global: state.global ?? {},
         };
 
@@ -552,6 +557,33 @@
         }
         updatePager();
       };
+
+      let hasStartedAudioFixtureFromPointer = false;
+      const startAudioFixtureFromPointer = (event) => {
+        if (!hasAudioStates || hasStartedAudioFixtureFromPointer) {
+          return;
+        }
+        if (event.target?.closest?.(".vt-state-pager")) {
+          return;
+        }
+        if (stateHasAudio(states[index])) {
+          return;
+        }
+
+        const nextAudioStateIndex = states.findIndex(
+          (state, stateIndex) => stateIndex > index && stateHasAudio(state),
+        );
+        if (nextAudioStateIndex === -1) {
+          return;
+        }
+
+        hasStartedAudioFixtureFromPointer = true;
+        renderState(nextAudioStateIndex);
+      };
+
+      document.addEventListener("pointerdown", startAudioFixtureFromPointer, {
+        capture: true,
+      });
 
       await app.init({
         width: 1280,

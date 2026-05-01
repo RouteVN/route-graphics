@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { addSound, clearPendingSounds } from "../../src/plugins/audio/sound/addSound.js";
+import {
+  addSound,
+  clearPendingSounds,
+} from "../../src/plugins/audio/sound/addSound.js";
 import { updateSound } from "../../src/plugins/audio/sound/updateSound.js";
 
 const createMockApp = () => {
@@ -36,12 +39,17 @@ describe("updateSound", () => {
 
     updateSound({
       app,
-      prevElement: { id: "bgm", type: "sound", src: "old.mp3", delay: 0 },
+      prevElement: {
+        id: "bgm",
+        type: "sound",
+        src: "old.mp3",
+        startDelayMs: 0,
+      },
       nextElement: {
         id: "bgm",
         type: "sound",
         src: "next.mp3",
-        delay: 100,
+        startDelayMs: 100,
         loop: true,
         volume: 50,
       },
@@ -62,21 +70,26 @@ describe("updateSound", () => {
     });
   });
 
-  it("promotes pending delayed sound to immediate playback when delay becomes zero", () => {
+  it("promotes pending delayed sound to immediate playback when startDelayMs becomes zero", () => {
     const app = createMockApp();
     addSound({
       app,
-      element: { id: "sfx", type: "sound", src: "old.mp3", delay: 100 },
+      element: { id: "sfx", type: "sound", src: "old.mp3", startDelayMs: 100 },
     });
 
     updateSound({
       app,
-      prevElement: { id: "sfx", type: "sound", src: "old.mp3", delay: 100 },
+      prevElement: {
+        id: "sfx",
+        type: "sound",
+        src: "old.mp3",
+        startDelayMs: 100,
+      },
       nextElement: {
         id: "sfx",
         type: "sound",
         src: "new.mp3",
-        delay: 0,
+        startDelayMs: 0,
         loop: false,
         volume: 90,
       },
@@ -99,12 +112,17 @@ describe("updateSound", () => {
 
     updateSound({
       app,
-      prevElement: { id: "amb", type: "sound", src: "amb.mp3", delay: 0 },
+      prevElement: {
+        id: "amb",
+        type: "sound",
+        src: "amb.mp3",
+        startDelayMs: 0,
+      },
       nextElement: {
         id: "amb",
         type: "sound",
         src: "amb-2.mp3",
-        delay: 0,
+        startDelayMs: 0,
         loop: true,
         volume: 60,
       },

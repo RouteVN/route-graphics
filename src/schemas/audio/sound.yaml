@@ -19,15 +19,42 @@ properties:
   volume:
     type: number
     description: Volume. 0 means muted. 100 means original full volume.
-    default: 80
+    default: 100
     minimum: 0
     maximum: 100
+  muted:
+    type: boolean
+    description: Whether the sound is muted
+    default: false
+  pan:
+    type: number
+    description: Stereo pan. -1 means left. 1 means right.
+    default: 0
+    minimum: -1
+    maximum: 1
   loop:
     type: boolean
     description: Loop
     default: false
-  delay:
+  startDelayMs:
     type: number
     description: Delay in milliseconds before playing the sound
     default: 0
+    minimum: 0
+  playbackRate:
+    type: number
+    description: Playback speed multiplier
+    default: 1
+    minimum: 0
+  startAt:
+    type: number
+    description: Start offset in seconds
+    default: 0
+    minimum: 0
+  endAt:
+    type:
+      - number
+      - "null"
+    description: Optional end time in seconds
+    default: null
     minimum: 0

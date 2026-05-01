@@ -311,6 +311,7 @@ const normalizeState = (value, index = 0) => {
     elements: Array.isArray(value.elements) ? value.elements : [],
     animations: Array.isArray(value.animations) ? value.animations : [],
     audio: Array.isArray(value.audio) ? value.audio : [],
+    audioEffects: Array.isArray(value.audioEffects) ? value.audioEffects : [],
     global: isPlainObject(value.global) ? value.global : {},
   };
 };

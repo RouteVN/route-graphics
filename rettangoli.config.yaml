@@ -76,6 +76,12 @@ vt:
         - title: "Render Complete Events"
           files: "rendercompleteevent"
           description: "Tests for renderComplete event firing"
+    - title: "Audio Group"
+      type: "groupLabel"
+      items:
+        - title: "Audio Manual Fixtures"
+          files: "audio"
+          description: "Manual audio fixtures for channels, transitions, and playback options"
     - title: "Slider Group"
       type: "groupLabel"
       items:

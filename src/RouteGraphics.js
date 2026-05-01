@@ -55,6 +55,7 @@ const createRouteGraphics = () => {
     elements: [],
     animations: [],
     audio: [],
+    audioEffects: [],
   };
 
   /**
@@ -306,6 +307,8 @@ const createRouteGraphics = () => {
       app: appInstance,
       prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
+      prevAudioEffects: state.audioEffects,
+      nextAudioEffects: nextState.audioEffects,
       audioPlugins: plugins.audio,
     });
 

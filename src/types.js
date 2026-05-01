@@ -550,9 +550,32 @@
  * @property {string} id - Unique identifier
  * @property {string} type - Should be "sound"
  * @property {string} src - Source of the sound
- * @property {number} [volume=80] - Volume (0-100, 80 default)
+ * @property {number} [volume=100] - Volume (0-100, 100 default)
+ * @property {boolean} [muted=false] - Whether the sound is muted
+ * @property {number} [pan=0] - Stereo pan from -1 to 1
  * @property {boolean} [loop=false] - Whether to loop the sound
- * @property {number} [delay=0] - Delay in milliseconds before playing
+ * @property {number} [startDelayMs=0] - Delay in milliseconds before playing
+ * @property {number} [playbackRate=1] - Playback speed multiplier
+ * @property {number} [startAt=0] - Start offset in seconds
+ * @property {number|null} [endAt=null] - Optional end time in seconds
+ */
+
+/**
+ * @typedef {Object} AudioChannelElement
+ * @property {string} id - Unique identifier
+ * @property {string} type - Should be "audio-channel"
+ * @property {number} [volume=100] - Volume (0-100, 100 default)
+ * @property {boolean} [muted=false] - Whether the channel is muted
+ * @property {number} [pan=0] - Stereo pan from -1 to 1
+ * @property {SoundElement[]} [children=[]] - Sound nodes owned by the channel
+ */
+
+/**
+ * @typedef {Object} AudioTransition
+ * @property {string} id - Unique identifier
+ * @property {string} type - Should be "audioTransition"
+ * @property {string} targetId - Target sound or audio-channel id
+ * @property {Object} properties - Transition properties
  */
 
 /**
@@ -702,6 +725,8 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} id - ID
  * @property {E[]} elements - Array of elements
  * @property {T[]} animations - Array of animations
+ * @property {(SoundElement|AudioChannelElement)[]} audio - Array of audio nodes
+ * @property {AudioTransition[]} audioEffects - Array of audio effects
  * @property {GlobalConfiguration} [global] - Global configuration options
  */
 
