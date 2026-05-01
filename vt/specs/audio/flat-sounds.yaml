@@ -1,6 +1,7 @@
 ---
 title: Audio Manual - Flat Sounds
 description: Manual fixture for flat sound compatibility, continuing same-id sounds, source replacement, and one-shot replay ids. Use the state pager or n/b keys.
+skipScreenshot: true
 specs:
   - state 1 is silent so pressing n starts audio from a user gesture
   - state 2 should play bgm-1 as a flat looping sound

@@ -1,6 +1,7 @@
 ---
 title: Audio Manual - Channel Mixer
 description: Manual fixture for channel volume, sound volume, mute, pan, and moving a continuing sound between channels. Use the state pager or n/b keys.
+skipScreenshot: true
 specs:
   - state 1 is silent so pressing n starts audio from a user gesture
   - state 2 should play bgm-1 through the music channel at moderate level

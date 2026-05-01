@@ -1,6 +1,7 @@
 ---
 title: Audio Manual - Playback Options
 description: Manual fixture for startDelayMs, playbackRate, startAt, endAt, loop, and stopping audio. Use the state pager or n/b keys.
+skipScreenshot: true
 specs:
   - state 1 is silent so pressing n starts audio from a user gesture
   - state 2 should play sfx-1 after a one second delay

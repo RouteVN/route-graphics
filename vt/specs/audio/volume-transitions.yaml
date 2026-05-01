@@ -1,6 +1,7 @@
 ---
 title: Audio Manual - Volume Transitions
 description: Manual fixture for audioTransition enter, update, exit, and same-id source crossfade. Use the state pager or n/b keys.
+skipScreenshot: true
 specs:
   - state 1 is silent baseline
   - state 2 should fade in bgm-1 through a channel
