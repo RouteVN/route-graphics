@@ -307,11 +307,27 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
 
-  it("uses Pixi loadParser overrides for extensionless video URLs", async () => {
+  it("loads video assets through an early-ready HTML video texture", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const createObjectURL = vi
       .spyOn(URL, "createObjectURL")
       .mockReturnValue("blob:http://route-graphics/video");
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+
+        if (tagName === "video") {
+          Object.defineProperty(element, "readyState", {
+            value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          element.load = vi.fn();
+        }
+
+        return element;
+      });
 
     pixiMock.Assets.load.mockResolvedValue({ source: "loaded" });
 
@@ -328,25 +344,21 @@ describe("RouteGraphics public API", () => {
         },
       });
     } finally {
+      createElement.mockRestore();
       createObjectURL.mockRestore();
     }
 
-    expect(pixiMock.Assets.load).toHaveBeenNthCalledWith(1, {
+    expect(pixiMock.Assets.load).toHaveBeenCalledTimes(1);
+    expect(pixiMock.Assets.load).toHaveBeenCalledWith({
       alias: "urlTexture",
       src: "blob:http://route-graphics/texture",
     });
-    expect(pixiMock.Assets.load).toHaveBeenNthCalledWith(2, {
-      alias: "bufferVideo",
-      src: "blob:http://route-graphics/video",
-      loadParser: "loadVideo",
-      data: {
-        mime: "video/mp4",
-      },
-    });
-    expect(pixiMock.Assets.load.mock.calls[0][0]).not.toHaveProperty(
-      "loadParser",
+    expect(pixiMock.Assets.cache.set).toHaveBeenCalledWith(
+      "bufferVideo",
+      expect.objectContaining({
+        source: expect.any(Object),
+      }),
     );
-    expect(pixiMock.Assets.load.mock.calls[1][0]).not.toHaveProperty("parser");
   });
 
   it("updates the visible stage background graphic color", async () => {
