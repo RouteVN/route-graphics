@@ -52,20 +52,10 @@ const createParent = (...children) => ({
 });
 
 describe("runReplaceAnimation", () => {
-  it("increases reveal over time for lower-valued mask pixels", () => {
-    const lowMaskStart = sampleMaskReveal({
+  it("reveals higher-valued mask pixels earlier by default", () => {
+    const highMaskStart = sampleMaskReveal({
       progress: 0,
-      maskValue: 0.2,
-      softness: 0.08,
-    });
-    const lowMaskMid = sampleMaskReveal({
-      progress: 0.2,
-      maskValue: 0.2,
-      softness: 0.08,
-    });
-    const lowMaskEnd = sampleMaskReveal({
-      progress: 1,
-      maskValue: 0.2,
+      maskValue: 0.8,
       softness: 0.08,
     });
     const highMaskMid = sampleMaskReveal({
@@ -73,26 +63,42 @@ describe("runReplaceAnimation", () => {
       maskValue: 0.8,
       softness: 0.08,
     });
+    const highMaskEnd = sampleMaskReveal({
+      progress: 1,
+      maskValue: 0.8,
+      softness: 0.08,
+    });
+    const lowMaskMid = sampleMaskReveal({
+      progress: 0.2,
+      maskValue: 0.2,
+      softness: 0.08,
+    });
 
-    expect(lowMaskStart).toBeLessThan(lowMaskMid);
-    expect(lowMaskMid).toBeLessThan(lowMaskEnd);
-    expect(highMaskMid).toBeLessThan(lowMaskMid);
+    expect(highMaskStart).toBeLessThan(highMaskMid);
+    expect(highMaskMid).toBeLessThan(highMaskEnd);
+    expect(lowMaskMid).toBeLessThan(highMaskMid);
   });
 
-  it("fully completes edge pixels by the end of the transition", () => {
-    const startReveal = sampleMaskReveal({
+  it("reveals white edge pixels first and black edge pixels last", () => {
+    const blackStartReveal = sampleMaskReveal({
       progress: 0,
       maskValue: 0,
-      softness: 0.08,
+      softness: 0,
     });
-    const endReveal = sampleMaskReveal({
-      progress: 1,
+    const whiteStartReveal = sampleMaskReveal({
+      progress: 0,
       maskValue: 1,
-      softness: 0.08,
+      softness: 0,
+    });
+    const blackEndReveal = sampleMaskReveal({
+      progress: 1,
+      maskValue: 0,
+      softness: 0,
     });
 
-    expect(startReveal).toBe(0);
-    expect(endReveal).toBe(1);
+    expect(blackStartReveal).toBe(0);
+    expect(whiteStartReveal).toBe(1);
+    expect(blackEndReveal).toBe(1);
   });
 
   it("selects adjacent sequence mask frames for linear sampling", () => {
@@ -1458,7 +1464,7 @@ describe("runReplaceAnimation", () => {
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
   });
 
-  it("still preprocesses composite masks through the fallback path", () => {
+  it("still preprocesses composite masks through the fallback path and applies top-level invert", () => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const nextDisplayObject = createDisplayObject("scene-root");
     const parent = createParent(prevDisplayObject);
@@ -1515,6 +1521,7 @@ describe("runReplaceAnimation", () => {
         mask: {
           kind: "composite",
           combine: "max",
+          invert: true,
           items: [
             { texture: leftMask, channel: "red" },
             { texture: rightMask, channel: "red" },
@@ -1540,6 +1547,18 @@ describe("runReplaceAnimation", () => {
     });
 
     expect(app.renderer.extract.pixels).toHaveBeenCalledTimes(2);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.applyFrame(500);
+
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const maskFilter = overlay.children[0].filters[0];
+
+    expect(maskFilter.resources.replaceMaskUniforms.uniforms.uMaskInvert).toBe(
+      1,
+    );
   });
 
   it("does not flush deferred activation when a transition is cancelled", () => {

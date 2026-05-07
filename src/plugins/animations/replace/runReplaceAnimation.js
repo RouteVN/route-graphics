@@ -41,9 +41,9 @@ const smoothstep = (edge0, edge1, value) => {
 };
 
 export const sampleMaskReveal = ({ progress, maskValue, softness } = {}) => {
-  const clampedMaskValue = clamp01(maskValue);
-  const lowerEdge = clamp01(clampedMaskValue - softness);
-  const upperEdge = clamp01(clampedMaskValue + softness);
+  const revealThreshold = 1 - clamp01(maskValue);
+  const lowerEdge = clamp01(revealThreshold - softness);
+  const upperEdge = clamp01(revealThreshold + softness);
 
   return smoothstep(lowerEdge, upperEdge, clamp01(progress));
 };
@@ -221,8 +221,9 @@ float sampleMaskValue(vec2 secondaryUv)
 float sampleReveal(float maskValue)
 {
     float progress = clamp(uProgress, 0.0, 1.0);
-    float lowerEdge = clamp(maskValue - uSoftness, 0.0, 1.0);
-    float upperEdge = clamp(maskValue + uSoftness, 0.0, 1.0);
+    float revealThreshold = 1.0 - clamp(maskValue, 0.0, 1.0);
+    float lowerEdge = clamp(revealThreshold - uSoftness, 0.0, 1.0);
+    float upperEdge = clamp(revealThreshold + uSoftness, 0.0, 1.0);
 
     if (lowerEdge == upperEdge) {
         return progress < lowerEdge ? 0.0 : 1.0;
@@ -307,8 +308,9 @@ fn sampleMaskValue(uv: vec2<f32>) -> f32
 fn sampleReveal(maskValue: f32) -> f32
 {
   let progress = clamp(replaceMaskUniforms.uProgress, 0.0, 1.0);
-  let lowerEdge = clamp(maskValue - replaceMaskUniforms.uSoftness, 0.0, 1.0);
-  let upperEdge = clamp(maskValue + replaceMaskUniforms.uSoftness, 0.0, 1.0);
+  let revealThreshold = 1.0 - clamp(maskValue, 0.0, 1.0);
+  let lowerEdge = clamp(revealThreshold - replaceMaskUniforms.uSoftness, 0.0, 1.0);
+  let upperEdge = clamp(revealThreshold + replaceMaskUniforms.uSoftness, 0.0, 1.0);
 
   if (lowerEdge == upperEdge) {
     if (progress < lowerEdge) {
@@ -729,7 +731,7 @@ const createMaskTextures = (app, mask, width, height) => {
   return {
     textures: [texture.source],
     channelWeights: OUTPUT_MASK_CHANNEL_WEIGHTS,
-    invert: 0,
+    invert: mask.invert ? 1 : 0,
     destroy: () => {
       if (!texture.destroyed) {
         texture.destroy(true);
