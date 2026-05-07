@@ -921,6 +921,14 @@ const renderOffscreenContainer = ({ app, container, target, frame }) => {
   });
 };
 
+const detachChildFromParent = (child, parent) => {
+  if (!child || child.parent !== parent) {
+    return;
+  }
+
+  parent.removeChild(child);
+};
+
 const destroySubjectSnapshot = (subject, app) => {
   if (subject?.wrapper && !subject.wrapper.destroyed) {
     cleanupParticlesInTree({ app, root: subject.wrapper });
@@ -1449,8 +1457,9 @@ export const runReplaceAnimation = ({
       destroySubjectSnapshot(nextSubject, app);
     }
 
+    detachChildFromParent(nextDisplayObject, transitionMountParent);
     cleanupParticlesInTree({ app, root: transitionMountParent });
-    transitionMountParent.destroy({ children: false });
+    transitionMountParent.destroy({ children: true });
 
     if (prevDisplayObject) {
       plugin.delete({

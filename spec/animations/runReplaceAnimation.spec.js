@@ -5,7 +5,10 @@ import {
   sampleMaskReveal,
   selectSequenceMaskFrameState,
 } from "../../src/plugins/animations/replace/runReplaceAnimation.js";
-import { queueDeferredAnimatedSpritePlay } from "../../src/plugins/elements/renderContext.js";
+import {
+  queueDeferredAnimatedSpritePlay,
+  queueDeferredParticlesStart,
+} from "../../src/plugins/elements/renderContext.js";
 
 const createFrame = (x = 0, y = 0, width = 100, height = 100) => ({
   x,
@@ -649,6 +652,93 @@ describe("runReplaceAnimation", () => {
 
     expect(nextDisplayObject.visible).toBe(true);
     expect(deferredEffect).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves particle runtimes on the next live element during hidden replace mount cleanup", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const tickerCallback = vi.fn();
+    const emitter = {
+      destroyed: false,
+      destroy: vi.fn(() => {
+        emitter.destroyed = true;
+      }),
+    };
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element, renderContext }) => {
+        nextDisplayObject.label = element.id;
+        nextDisplayObject.emitter = emitter;
+        nextDisplayObject.tickerCallback = tickerCallback;
+        queueDeferredParticlesStart(renderContext, {
+          app,
+          emitter,
+          container: nextDisplayObject,
+          tickerCallback,
+        });
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+      ticker: {
+        add: vi.fn(),
+        remove: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "particles" },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(emitter.destroy).not.toHaveBeenCalled();
+    expect(app.ticker.remove).not.toHaveBeenCalled();
+    expect(nextDisplayObject.emitter).toBe(emitter);
+    expect(nextDisplayObject.tickerCallback).toBe(tickerCallback);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.onComplete();
+
+    expect(app.ticker.add).toHaveBeenCalledWith(tickerCallback);
+    expect(nextDisplayObject.visible).toBe(true);
   });
 
   it("uses only the previous snapshot for same-id prev-only transitions", () => {

@@ -413,8 +413,6 @@ export class Emitter {
     // Add to pool
     particle.next = this._poolFirst;
     this._poolFirst = particle;
-
-    this.particleCount--;
   }
 
   /**

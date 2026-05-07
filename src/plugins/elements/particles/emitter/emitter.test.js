@@ -22,4 +22,30 @@ describe("Emitter", () => {
     expect(emitter._activeFirst).toBeNull();
     expect(emitter._activeLast).toBeNull();
   });
+
+  it("keeps particle counts accurate when recycling live particles", () => {
+    const container = new Container();
+    const emitter = new Emitter(container, {
+      texture: Texture.EMPTY,
+      lifetime: { min: 10, max: 10 },
+      frequency: 0,
+      particlesPerWave: 2,
+      maxParticles: 2,
+    });
+
+    emitter.spawn(2);
+    const firstParticle = emitter._activeFirst;
+
+    emitter.recycle(firstParticle);
+
+    expect(emitter.particleCount).toBe(1);
+
+    emitter.recycle(emitter._activeFirst);
+
+    expect(emitter.particleCount).toBe(0);
+
+    emitter.spawn(2);
+
+    expect(emitter.particleCount).toBe(2);
+  });
 });
