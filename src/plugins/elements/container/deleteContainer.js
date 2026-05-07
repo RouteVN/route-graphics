@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { cleanupParticlesInTree } from "../particles/particleRuntime.js";
 
 /**
  * Delete container element (synchronous)
@@ -19,6 +20,7 @@ export const deleteContainer = ({
 
   const deleteElement = () => {
     if (containerElement && !containerElement.destroyed) {
+      cleanupParticlesInTree({ app, root: containerElement });
       parent.removeChild(containerElement);
       containerElement.destroy({
         children: true,
