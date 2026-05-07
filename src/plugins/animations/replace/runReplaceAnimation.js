@@ -18,6 +18,7 @@ import {
   createRenderContext,
   flushDeferredMountOperations,
 } from "../../elements/renderContext.js";
+import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
@@ -920,8 +921,17 @@ const renderOffscreenContainer = ({ app, container, target, frame }) => {
   });
 };
 
-const destroySubjectSnapshot = (subject) => {
+const detachChildFromParent = (child, parent) => {
+  if (!child || child.parent !== parent) {
+    return;
+  }
+
+  parent.removeChild(child);
+};
+
+const destroySubjectSnapshot = (subject, app) => {
   if (subject?.wrapper && !subject.wrapper.destroyed) {
+    cleanupParticlesInTree({ app, root: subject.wrapper });
     subject.wrapper.destroy({ children: true });
   }
 
@@ -1005,9 +1015,10 @@ const createPlainOverlay = ({
     },
     destroy: () => {
       overlay.removeFromParent();
+      cleanupParticlesInTree({ app, root: overlay });
       overlay.destroy({ children: true });
-      destroySubjectSnapshot(prevSubject);
-      destroySubjectSnapshot(nextSubject);
+      destroySubjectSnapshot(prevSubject, app);
+      destroySubjectSnapshot(nextSubject, app);
     },
   };
 };
@@ -1162,13 +1173,16 @@ const createMaskedOverlay = ({
       overlay.removeFromParent();
       sprite.filters = [];
       maskFilter.destroy();
+      cleanupParticlesInTree({ app, root: overlay });
+      cleanupParticlesInTree({ app, root: prevRoot });
+      cleanupParticlesInTree({ app, root: nextRoot });
       overlay.destroy({ children: true });
       prevRoot.destroy({ children: true });
       nextRoot.destroy({ children: true });
       prevTexture.destroy(true);
       nextTexture.destroy(true);
-      destroySubjectSnapshot(prevSubject);
-      destroySubjectSnapshot(nextSubject);
+      destroySubjectSnapshot(prevSubject, app);
+      destroySubjectSnapshot(nextSubject, app);
       maskTextureController.destroy();
     },
   };
@@ -1391,8 +1405,9 @@ export const runReplaceAnimation = ({
       onCancel: () => {
         transitionSignalController?.abort();
         clearDeferredMountOperations(hiddenMountContext);
+        cleanupParticlesInTree({ app, root: transitionMountParent });
         transitionMountParent.destroy({ children: true });
-        destroySubjectSnapshot(prevSubject);
+        destroySubjectSnapshot(prevSubject, app);
         completeTransition();
       },
       onContinuationUpdate: handleContinuationUpdate,
@@ -1405,8 +1420,9 @@ export const runReplaceAnimation = ({
     if (transitionSignal?.aborted || parent.destroyed) {
       cleanupPendingTransition();
       clearDeferredMountOperations(hiddenMountContext);
+      cleanupParticlesInTree({ app, root: transitionMountParent });
       transitionMountParent.destroy({ children: true });
-      destroySubjectSnapshot(prevSubject);
+      destroySubjectSnapshot(prevSubject, app);
       completeTransition();
       return;
     }
@@ -1434,14 +1450,16 @@ export const runReplaceAnimation = ({
     });
 
     if (overlaySubjects.prevSubject !== prevSubject) {
-      destroySubjectSnapshot(prevSubject);
+      destroySubjectSnapshot(prevSubject, app);
     }
 
     if (overlaySubjects.nextSubject !== nextSubject) {
-      destroySubjectSnapshot(nextSubject);
+      destroySubjectSnapshot(nextSubject, app);
     }
 
-    transitionMountParent.destroy({ children: false });
+    detachChildFromParent(nextDisplayObject, transitionMountParent);
+    cleanupParticlesInTree({ app, root: transitionMountParent });
+    transitionMountParent.destroy({ children: true });
 
     if (prevDisplayObject) {
       plugin.delete({

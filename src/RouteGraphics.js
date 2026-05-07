@@ -14,6 +14,7 @@ import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
 import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
+import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRuntime.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -565,6 +566,7 @@ const createRouteGraphics = () => {
 
       if (app?.stage) {
         pauseVideosRecursively(app.stage);
+        cleanupParticlesInTree({ app, root: app.stage });
       }
 
       if (app) app.destroy();

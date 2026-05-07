@@ -115,13 +115,17 @@ export class Particle extends Sprite {
   /**
    * Clean up for garbage collection
    */
-  destroy() {
+  destroy(options) {
+    if (this.destroyed) {
+      return;
+    }
+
     if (this.parent) {
       this.parent.removeChild(this);
     }
     this.emitter = null;
     this.next = null;
     this.prev = null;
-    super.destroy();
+    super.destroy(options);
   }
 }

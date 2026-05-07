@@ -276,6 +276,48 @@ export class Emitter {
   }
 
   /**
+   * Remove a particle from the active linked list without recycling it.
+   * This is used when a particle was destroyed externally by a parent
+   * container teardown.
+   * @param {Particle} particle
+   */
+  _unlinkActiveParticle(particle) {
+    if (!particle) return false;
+
+    const isActive =
+      particle === this._activeFirst ||
+      particle === this._activeLast ||
+      particle.prev !== null ||
+      particle.next !== null;
+
+    if (!isActive) {
+      return false;
+    }
+
+    if (particle.prev) {
+      particle.prev.next = particle.next;
+    } else {
+      this._activeFirst = particle.next;
+    }
+
+    if (particle.next) {
+      particle.next.prev = particle.prev;
+    } else {
+      this._activeLast = particle.prev;
+    }
+
+    particle.prev = null;
+    particle.next = null;
+    if (!this._activeFirst) {
+      this._activeLast = null;
+      this.particleCount = 0;
+    } else {
+      this.particleCount = Math.max(0, this.particleCount - 1);
+    }
+    return true;
+  }
+
+  /**
    * Spawn a wave of particles
    * @param {number} count - Number to spawn
    * @returns {Particle|null} - First particle in spawned chain
@@ -349,27 +391,19 @@ export class Emitter {
    * @param {Particle} particle
    */
   recycle(particle) {
+    if (!particle || particle.destroyed) {
+      this._unlinkActiveParticle(particle);
+      return;
+    }
+
     // Run recycle behaviors
     for (const behavior of this.recycleBehaviors) {
       behavior.recycleParticle(particle);
     }
 
-    // Remove from active list
-    if (particle.prev) {
-      particle.prev.next = particle.next;
-    } else {
-      this._activeFirst = particle.next;
+    if (!this._unlinkActiveParticle(particle)) {
+      return;
     }
-
-    if (particle.next) {
-      particle.next.prev = particle.prev;
-    } else {
-      this._activeLast = particle.prev;
-    }
-
-    // Reset links
-    particle.prev = null;
-    particle.next = null;
 
     // Remove from display
     if (particle.parent) {
@@ -379,8 +413,6 @@ export class Emitter {
     // Add to pool
     particle.next = this._poolFirst;
     this._poolFirst = particle;
-
-    this.particleCount--;
   }
 
   /**
@@ -417,6 +449,12 @@ export class Emitter {
     let particle = this._activeFirst;
     while (particle) {
       const next = particle.next; // Store next before potential recycle
+
+      if (particle.destroyed || !particle.position) {
+        this._unlinkActiveParticle(particle);
+        particle = next;
+        continue;
+      }
 
       // Age particle
       particle.age += deltaSec;
