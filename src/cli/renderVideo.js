@@ -10,6 +10,78 @@ import { chromium } from "playwright";
 import { getRendererBrowserLaunchOptions } from "./browserLaunch.js";
 import { parseStateSelection } from "./stateSelection.js";
 
+const debugVideoRender = (...args) => {
+  if (process.env.ROUTE_GRAPHICS_RENDER_VIDEO_DEBUG === "1") {
+    console.error("[render-video]", ...args);
+  }
+};
+
+const isUnsupportedMediaError = (error) =>
+  /DEMUXER_ERROR_NO_SUPPORTED_STREAMS|MEDIA_ERR_SRC_NOT_SUPPORTED|no supported streams/i.test(
+    error?.message ?? "",
+  );
+
+const getPlaywrightCacheDir = () => {
+  const configuredPath = process.env.PLAYWRIGHT_BROWSERS_PATH;
+
+  if (configuredPath && configuredPath !== "0") {
+    return configuredPath;
+  }
+
+  return path.join(os.homedir(), ".cache", "ms-playwright");
+};
+
+const findCachedChromiumExecutables = async () => {
+  const cacheDir = getPlaywrightCacheDir();
+  let entries;
+
+  try {
+    entries = await fsPromises.readdir(cacheDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const candidates = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const match = /^chromium-(\d+)$/.exec(entry.name);
+    if (!match) {
+      continue;
+    }
+
+    const revision = Number.parseInt(match[1], 10);
+    for (const executableRelativePath of [
+      "chrome-linux64/chrome",
+      "chrome-linux/chrome",
+    ]) {
+      const executablePath = path.join(
+        cacheDir,
+        entry.name,
+        executableRelativePath,
+      );
+
+      try {
+        await fsPromises.access(executablePath, fs.constants.X_OK);
+      } catch {
+        continue;
+      }
+
+      candidates.push({
+        executablePath,
+        revision,
+      });
+    }
+  }
+
+  return candidates
+    .sort((left, right) => right.revision - left.revision)
+    .map((candidate) => candidate.executablePath);
+};
+
 const createWriteStreamChunkBinding = async (page, outputPath) => {
   const stream = fs.createWriteStream(outputPath);
 
@@ -57,11 +129,13 @@ const captureVideoWebm = async ({
   browserExecutablePath,
   webmPath,
 }) => {
+  debugVideoRender("launch browser");
   const browser = await chromium.launch(
     getRendererBrowserLaunchOptions(browserExecutablePath),
   );
 
   try {
+    debugVideoRender("new page", `${width}x${height}`);
     const page = await browser.newPage({
       viewport: {
         width,
@@ -73,11 +147,18 @@ const captureVideoWebm = async ({
     page.on("pageerror", (error) => {
       pageErrors.push(error.stack ?? error.message);
     });
+    page.on("console", (message) => {
+      if (process.env.ROUTE_GRAPHICS_RENDER_VIDEO_DEBUG === "1") {
+        console.error("[render-video:page]", message.type(), message.text());
+      }
+    });
 
+    debugVideoRender("goto", origin);
     await page.goto(origin, {
       waitUntil: "domcontentloaded",
     });
 
+    debugVideoRender("open chunk stream", webmPath);
     const closeChunkStream = await createWriteStreamChunkBinding(
       page,
       webmPath,
@@ -93,8 +174,15 @@ const captureVideoWebm = async ({
     };
 
     try {
+      debugVideoRender("evaluate capture script");
       const result = await page.evaluate(
         async ({ moduleUrl, renderPayload }) => {
+          const debug = (...args) => {
+            if (renderPayload.debug) {
+              console.debug("[capture]", ...args);
+            }
+          };
+
           const sleep = (ms) =>
             new Promise((resolve) => {
               window.setTimeout(resolve, Math.max(0, ms));
@@ -150,6 +238,7 @@ const captureVideoWebm = async ({
           }
 
           const routeGraphicsModule = await import(moduleUrl);
+          debug("module imported");
           const {
             default: createRouteGraphics,
             animatedSpritePlugin,
@@ -203,6 +292,7 @@ const captureVideoWebm = async ({
             });
 
           try {
+            debug("app init start");
             await app.init({
               width: renderPayload.width,
               height: renderPayload.height,
@@ -245,16 +335,22 @@ const captureVideoWebm = async ({
               },
               debug: false,
             });
+            debug("app init complete");
 
             if (Object.keys(renderPayload.assets).length > 0) {
+              debug("asset load start", Object.keys(renderPayload.assets));
               await assetBufferManager.load(renderPayload.assets);
+              debug("asset buffer load complete");
               await app.loadAssets(assetBufferManager.getBufferMap());
+              debug("app asset load complete");
             }
 
             document.body.replaceChildren(app.canvas);
             await nextFrame(2);
+            debug("canvas mounted");
 
             const stream = app.canvas.captureStream(renderPayload.fps);
+            debug("capture stream created", stream.getTracks().length);
             const recorder = new MediaRecorder(stream, {
               mimeType: recorderMimeType,
             });
@@ -270,6 +366,7 @@ const captureVideoWebm = async ({
               if (!event.data || event.data.size === 0) {
                 return;
               }
+              debug("dataavailable", event.data.size);
 
               chunkWrites.push(
                 (async () => {
@@ -281,6 +378,7 @@ const captureVideoWebm = async ({
             });
 
             recorder.start(250);
+            debug("recorder started");
 
             try {
               for (
@@ -292,9 +390,11 @@ const captureVideoWebm = async ({
                 const state = renderPayload.states[stateIndex];
                 const waitForComplete = createRenderCompleteWaiter(state.id);
 
+                debug("render state start", state.id);
                 app.render(state);
                 app.render(state);
                 await waitForComplete;
+                debug("render state complete", state.id);
 
                 const isFinal =
                   renderIndex === renderPayload.stateIndexes.length - 1;
@@ -305,17 +405,23 @@ const captureVideoWebm = async ({
                     : renderPayload.holdMS;
 
                 if (hold > 0) {
+                  debug("hold start", hold);
                   await sleep(hold);
+                  debug("hold complete", hold);
                 }
               }
 
               await nextFrame(2);
+              debug("post-render frames complete");
             } finally {
               if (recorder.state !== "inactive") {
+                debug("recorder stop requested");
                 recorder.stop();
               }
               await stopped;
+              debug("recorder stopped");
               await Promise.all(chunkWrites);
+              debug("chunk writes complete");
               stream.getTracks().forEach((track) => {
                 track.stop();
               });
@@ -347,11 +453,14 @@ const captureVideoWebm = async ({
             initialHoldMS,
             finalHoldMS,
             maxStateDurationMS,
+            debug: process.env.ROUTE_GRAPHICS_RENDER_VIDEO_DEBUG === "1",
           },
         },
       );
 
+      debugVideoRender("evaluate complete");
       await closeChunksOnce();
+      debugVideoRender("chunk stream closed");
 
       if (pageErrors.length > 0) {
         throw new Error(pageErrors.join("\n"));
@@ -412,6 +521,41 @@ const transcodeWebmToMp4 = async ({ ffmpegPath, inputPath, outputPath }) => {
   ]);
 };
 
+const captureVideoWebmWithBrowserFallback = async (options) => {
+  try {
+    return await captureVideoWebm(options);
+  } catch (error) {
+    if (options.browserExecutablePath || !isUnsupportedMediaError(error)) {
+      throw error;
+    }
+
+    const fallbackExecutables = await findCachedChromiumExecutables();
+    const errors = [error];
+
+    for (const executablePath of fallbackExecutables) {
+      debugVideoRender("retry with cached chromium", executablePath);
+
+      try {
+        return await captureVideoWebm({
+          ...options,
+          browserExecutablePath: executablePath,
+        });
+      } catch (fallbackError) {
+        errors.push(fallbackError);
+
+        if (!isUnsupportedMediaError(fallbackError)) {
+          throw fallbackError;
+        }
+      }
+    }
+
+    const lastError = errors.at(-1) ?? error;
+    throw new Error(
+      `${lastError.message}\nThe selected Chromium build cannot decode at least one input video stream. Install or select a codec-capable Chrome/Chromium with --browser-executable.`,
+    );
+  }
+};
+
 export const renderMp4 = async ({
   cliOptions,
   definition,
@@ -435,7 +579,8 @@ export const renderMp4 = async ({
 
   try {
     const renderStartedAt = performance.now();
-    const captureInfo = await captureVideoWebm({
+    debugVideoRender("capture webm start", webmPath);
+    const captureInfo = await captureVideoWebmWithBrowserFallback({
       origin,
       width,
       height,
@@ -453,14 +598,20 @@ export const renderMp4 = async ({
       webmPath,
     });
     const renderDurationMS = performance.now() - renderStartedAt;
+    debugVideoRender(
+      "capture webm complete",
+      `${Math.round(renderDurationMS)}ms`,
+    );
 
     const writeStartedAt = performance.now();
+    debugVideoRender("transcode start", outputPath);
     await transcodeWebmToMp4({
       ffmpegPath,
       inputPath: webmPath,
       outputPath,
     });
     const writeDurationMS = performance.now() - writeStartedAt;
+    debugVideoRender("transcode complete", `${Math.round(writeDurationMS)}ms`);
 
     return {
       inputPath,

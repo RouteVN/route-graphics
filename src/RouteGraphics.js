@@ -197,6 +197,79 @@ const createRouteGraphics = () => {
     videoSourceUrls.clear();
   };
 
+  const waitForVideoReady = (video, key) =>
+    new Promise((resolve, reject) => {
+      const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
+
+      if (video.readyState >= haveCurrentData) {
+        resolve();
+        return;
+      }
+
+      let timeoutId;
+      const cleanup = () => {
+        window.clearTimeout(timeoutId);
+        video.removeEventListener("loadeddata", onReady);
+        video.removeEventListener("canplay", onReady);
+        video.removeEventListener("error", onError);
+      };
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        const details = [
+          video.error?.code ? `code=${video.error.code}` : null,
+          video.error?.message ? `message=${video.error.message}` : null,
+          `networkState=${video.networkState}`,
+          `readyState=${video.readyState}`,
+          video.currentSrc ? `src=${video.currentSrc}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        reject(
+          new Error(
+            `Failed to load video asset "${key}"${details ? ` (${details})` : ""}.`,
+          ),
+        );
+      };
+
+      timeoutId = window.setTimeout(() => {
+        cleanup();
+        reject(new Error(`Timed out loading video asset "${key}".`));
+      }, 5000);
+
+      video.addEventListener("loadeddata", onReady, { once: true });
+      video.addEventListener("canplay", onReady, { once: true });
+      video.addEventListener("error", onError, { once: true });
+    });
+
+  const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
+    if (Assets.cache.has(key)) {
+      return Assets.cache.get(key);
+    }
+
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    if (typeof mimeType === "string" && mimeType.length > 0) {
+      video.type = mimeType;
+    }
+    const ready = waitForVideoReady(video, key);
+    video.src = sourceUrl;
+    video.load();
+
+    await ready;
+
+    const texture = Texture.from(video);
+    Assets.cache.set(key, texture);
+
+    return texture;
+  };
+
   /**
    * Apply global cursor styles to the PixiJS application
    * @param {Application} appInstance - The PixiJS application instance
@@ -653,6 +726,10 @@ const createRouteGraphics = () => {
       // to a revokable blob URL for buffer-backed inputs.
       const videoPromises = Object.entries(assetsByType.video).map(
         async ([key, asset]) => {
+          if (Assets.cache.has(key)) {
+            return Assets.cache.get(key);
+          }
+
           const sourceUrl =
             asset?.source === "url" && typeof asset?.url === "string"
               ? asset.url
@@ -665,26 +742,19 @@ const createRouteGraphics = () => {
             revokable: isRevokableBlobUrl,
           });
 
-          const videoAssetDescriptor = {
-            alias: key,
-            src: sourceUrl,
-            loadParser: "loadVideo",
-            data: {},
-          };
-
-          if (typeof asset?.type === "string" && asset.type.length > 0) {
-            videoAssetDescriptor.data.mime = asset.type;
-          }
-
-          return Assets.load(videoAssetDescriptor)
-            .then((texture) => texture)
-            .catch((error) => {
-              videoSourceUrls.delete(key);
-              if (isRevokableBlobUrl) {
-                URL.revokeObjectURL(sourceUrl);
-              }
-              throw error;
+          try {
+            return await loadVideoTexture({
+              key,
+              sourceUrl,
+              mimeType: asset?.type,
             });
+          } catch (error) {
+            videoSourceUrls.delete(key);
+            if (isRevokableBlobUrl) {
+              URL.revokeObjectURL(sourceUrl);
+            }
+            throw error;
+          }
         },
       );
 
