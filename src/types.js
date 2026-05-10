@@ -437,7 +437,7 @@
 
 /**
  * @typedef {Object} TextComputedProps
- * @property {string} content - The text content to display
+ * @property {string | Array<TextChunk>} content - The text content to display. Arrays contain static rich text lines.
  * @property {number} measuredWidth - The rendered text width before fixed-width layout is applied
  * @property {Object} textStyle - Text style object
  * @property {TextHover} [hover]

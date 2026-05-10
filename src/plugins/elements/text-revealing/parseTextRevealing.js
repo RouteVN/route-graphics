@@ -18,7 +18,7 @@ const LEGACY_TOP_FURIGANA_OFFSET = 2;
 const FURIGANA_PLACEMENTS = ["top", "bottom"];
 const FURIGANA_PLACEMENT_SET = new Set(FURIGANA_PLACEMENTS);
 
-const normalizeFuriganaPlacement = (placement, path) => {
+export const normalizeFuriganaPlacement = (placement, path) => {
   if (placement === undefined) {
     return DEFAULT_FURIGANA_PLACEMENT;
   }
@@ -34,7 +34,7 @@ const normalizeFuriganaPlacement = (placement, path) => {
   );
 };
 
-const normalizeFuriganaGap = (gap, path) => {
+export const normalizeFuriganaGap = (gap, path) => {
   if (gap === undefined) {
     return 0;
   }
@@ -170,7 +170,11 @@ const consumeMeasuredLineFromSource = (
  * @param {number} wordWrapWidth - Maximum width for wrapping
  * @returns {Object} Object containing chunks and dimensions
  */
-const createTextChunks = (segments, wordWrapWidth) => {
+export const createTextChunks = (
+  segments,
+  wordWrapWidth,
+  { minimumWidth = wordWrapWidth } = {},
+) => {
   const chunks = [];
   let lineParts = [];
   let x = 0;
@@ -217,10 +221,12 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
     const originalText = segment.text;
     const remainingWidth = Math.max(1, Math.round(wordWrapWidth - x));
-    const styleWithWordWrap = {
-      ...segment.textStyle,
-      wordWrapWidth: remainingWidth,
-    };
+    const styleWithWordWrap = segment.textStyle.wordWrap
+      ? {
+          ...segment.textStyle,
+          wordWrapWidth: remainingWidth,
+        }
+      : segment.textStyle;
 
     const measurements = CanvasTextMetrics.measureText(
       segment.text,
@@ -400,37 +406,21 @@ const createTextChunks = (segments, wordWrapWidth) => {
 
   return {
     chunks,
-    width: Math.max(maxTotalWidth, wordWrapWidth),
+    width: Math.max(maxTotalWidth, minimumWidth),
     height: finalHeight,
   };
 };
 
-/**
- * Parse text-revealing object and calculate final position after anchor adjustment
- * @param {Object} params
- * @param {BaseElement} params.state - The text-revealing state to parse
- * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
- * @returns {TextRevealingComputedNode}
- */
-export const parseTextRevealing = ({ state }) => {
-  const defaultTextStyle = mergeTextStyle(
-    {
-      ...DEFAULT_TEXT_STYLE,
-      wordWrap: true,
-    },
-    state.textStyle,
-  );
-
-  const processedContent = (state.content || []).map((item, itemIndex) => {
-    // TODO: if breakwords is true this will crash
+export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
+  (content || []).map((item, itemIndex) => {
     const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
 
     itemTextStyle.lineHeight = Math.round(
       itemTextStyle.lineHeight * itemTextStyle.fontSize,
     );
 
-    if (state.width) {
-      itemTextStyle.wordWrapWidth = state.width;
+    if (typeof width === "number") {
+      itemTextStyle.wordWrapWidth = width;
       itemTextStyle.wordWrap = true;
     }
 
@@ -445,8 +435,8 @@ export const parseTextRevealing = ({ state }) => {
         furiganaTextStyle.lineHeight * furiganaTextStyle.fontSize,
       );
 
-      if (state.width) {
-        furiganaTextStyle.wordWrapWidth = state.width;
+      if (typeof width === "number") {
+        furiganaTextStyle.wordWrapWidth = width;
         furiganaTextStyle.wordWrap = true;
       }
 
@@ -464,7 +454,6 @@ export const parseTextRevealing = ({ state }) => {
       };
     }
 
-    // Replace trailing spaces with non-breaking spaces
     const convertedText = String(item.text).replace(/ +$/, (match) =>
       "\u00A0".repeat(match.length),
     );
@@ -474,6 +463,28 @@ export const parseTextRevealing = ({ state }) => {
       textStyle: itemTextStyle,
       ...(furigana && { furigana }),
     };
+  });
+
+/**
+ * Parse text-revealing object and calculate final position after anchor adjustment
+ * @param {Object} params
+ * @param {BaseElement} params.state - The text-revealing state to parse
+ * @param {Array} params.parserPlugins - Array of parser plugins (not used by this parser)
+ * @returns {TextRevealingComputedNode}
+ */
+export const parseTextRevealing = ({ state }) => {
+  const defaultTextStyle = mergeTextStyle(
+    {
+      ...DEFAULT_TEXT_STYLE,
+      wordWrap: true,
+    },
+    state.textStyle,
+  );
+
+  const processedContent = prepareRichTextSegments({
+    content: state.content,
+    defaultTextStyle,
+    width: state.width || undefined,
   });
 
   // Calculate text dimensions using unified chunk approach

@@ -77,6 +77,32 @@ $def:
         description: Text stroke/outline width
       shadow:
         "$ref": "#/$def/textShadow"
+  contentSegment:
+    type: object
+    required:
+      - text
+    properties:
+      text:
+        type: string
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      furigana:
+        type: object
+        properties:
+          text:
+            type: string
+          textStyle:
+            "$ref": "#/$def/textStyle"
+          placement:
+            type: string
+            enum: [top, bottom]
+            default: top
+            description: Side of the base text where furigana is placed.
+          gap:
+            type: number
+            minimum: 0
+            default: 0
+            description: Additional distance in pixels between the furigana and base text.
 properties:
   id:
     type: string
@@ -85,8 +111,12 @@ properties:
     const: text
     description: Element type, must be 'text'
   content:
-    type: string
-    description: The text content to display
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          "$ref": "#/$def/contentSegment"
+    description: The text content to display. Strings render as one Pixi text object; arrays render static rich text segments.
     default: ""
   width:
     type: number

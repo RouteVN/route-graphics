@@ -1,6 +1,5 @@
 import { Text } from "pixi.js";
 import applyTextStyle from "../../../util/applyTextStyle.js";
-import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
   getTextLayoutPosition,
@@ -8,13 +7,56 @@ import {
   positionTextInLayoutBox,
   syncTextAnchorRatios,
 } from "./textLayout.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { bindTextInteractions } from "./textInteractions.js";
 import {
-  createHoverStateController,
-  createPressStateController,
-  createRightPressStateController,
-} from "../util/hoverInheritance.js";
-import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+  createRichTextDisplayObject,
+  getRichTextLayoutPosition,
+  isRichTextComputedNode,
+  renderRichTextDisplayObject,
+} from "./richTextDisplay.js";
+
+export const getTextAnimationTargetState = (textComputedNode) => ({
+  ...(isRichTextComputedNode(textComputedNode)
+    ? getRichTextLayoutPosition(textComputedNode)
+    : getTextLayoutPosition(textComputedNode)),
+  alpha: textComputedNode.alpha,
+});
+
+export const createTextDisplayObject = (textComputedNode, zIndex) => {
+  if (isRichTextComputedNode(textComputedNode)) {
+    return createRichTextDisplayObject(textComputedNode, zIndex);
+  }
+
+  const text = new Text({
+    label: textComputedNode.id,
+  });
+
+  text.zIndex = zIndex;
+  text.text = textComputedNode.content;
+  applyTextStyle(text, textComputedNode.textStyle);
+  syncTextAnchorRatios(text, textComputedNode);
+  text.alpha = textComputedNode.alpha;
+  positionTextInLayoutBox(text, textComputedNode);
+
+  return text;
+};
+
+export const applyTextDisplayStyle = (
+  displayObject,
+  textComputedNode,
+  overrideStyle,
+) => {
+  if (isRichTextComputedNode(textComputedNode)) {
+    renderRichTextDisplayObject(displayObject, textComputedNode, overrideStyle);
+    return;
+  }
+
+  applyInteractiveTextStyle(
+    displayObject,
+    textComputedNode.textStyle,
+    overrideStyle,
+  );
+};
 
 /**
  * Add text element to the stage (synchronous)
@@ -31,194 +73,16 @@ export const addText = ({
   renderContext,
   zIndex,
 }) => {
-  const text = new Text({
-    label: textComputedNode.id,
+  const text = createTextDisplayObject(textComputedNode, zIndex);
+
+  bindTextInteractions({
+    app,
+    displayObject: text,
+    textComputedNode,
+    eventHandler,
+    applyStyle: (overrideStyle) =>
+      applyTextDisplayStyle(text, textComputedNode, overrideStyle),
   });
-  text.zIndex = zIndex;
-
-  // Apply initial state
-  text.text = textComputedNode.content;
-  applyTextStyle(text, textComputedNode.textStyle);
-  syncTextAnchorRatios(text, textComputedNode);
-  text.alpha = textComputedNode.alpha;
-  positionTextInLayoutBox(text, textComputedNode);
-
-  const hoverEvents = textComputedNode?.hover;
-  const clickEvents = textComputedNode?.click;
-  const rightClickEvents = textComputedNode?.rightClick;
-  const scrollUpEvent = textComputedNode?.scrollUp;
-  const scrollDownEvent = textComputedNode?.scrollDown;
-
-  let hoverController = null;
-  let pressController = null;
-  let rightPressController = null;
-
-  const updateTextStyle = () => {
-    const isHovering = hoverController?.isHovering() ?? false;
-    const isPressed = pressController?.isPressed() ?? false;
-    const isRightPressed = rightPressController?.isPressed() ?? false;
-
-    if (isRightPressed && rightClickEvents?.textStyle) {
-      applyInteractiveTextStyle(
-        text,
-        textComputedNode.textStyle,
-        rightClickEvents.textStyle,
-      );
-    } else if (isPressed && clickEvents?.textStyle) {
-      applyInteractiveTextStyle(
-        text,
-        textComputedNode.textStyle,
-        clickEvents.textStyle,
-      );
-    } else if (isHovering && hoverEvents?.textStyle) {
-      applyInteractiveTextStyle(
-        text,
-        textComputedNode.textStyle,
-        hoverEvents.textStyle,
-      );
-    } else {
-      applyInteractiveTextStyle(text, textComputedNode.textStyle);
-    }
-  };
-
-  if (hoverEvents) {
-    const { cursor, soundSrc, payload } = hoverEvents;
-    text.eventMode = "static";
-    hoverController = createHoverStateController({
-      displayObject: text,
-      onHoverChange: updateTextStyle,
-    });
-
-    const overListener = () => {
-      hoverController.setDirectHover(true);
-      if (payload && eventHandler)
-        eventHandler(`hover`, {
-          _event: {
-            id: text.label,
-          },
-          ...payload,
-        });
-      if (cursor) text.cursor = cursor;
-      if (soundSrc)
-        app.audioStage.add({
-          id: `hover-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-        });
-    };
-
-    const outListener = () => {
-      hoverController.setDirectHover(false);
-      text.cursor = "auto";
-    };
-
-    text.on("pointerover", overListener);
-    text.on("pointerout", outListener);
-  }
-
-  if (clickEvents) {
-    const { soundSrc, soundVolume, payload } = clickEvents;
-    text.eventMode = "static";
-    pressController = createPressStateController({
-      displayObject: text,
-      onPressChange: updateTextStyle,
-    });
-
-    const clickListener = (event) => {
-      if (!isPrimaryPointerEvent(event)) {
-        return;
-      }
-
-      pressController.setDirectPress(true);
-    };
-
-    const releaseListener = (event) => {
-      if (!isPrimaryPointerEvent(event)) {
-        return;
-      }
-
-      pressController.setDirectPress(false);
-
-      if (payload && eventHandler)
-        eventHandler(`click`, {
-          _event: {
-            id: text.label,
-          },
-          ...payload,
-        });
-      if (soundSrc)
-        app.audioStage.add({
-          id: `click-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-          volume: normalizeVolume(soundVolume),
-        });
-    };
-
-    const outListener = () => {
-      pressController.setDirectPress(false);
-    };
-
-    text.on("pointerdown", clickListener);
-    text.on("pointerup", releaseListener);
-    text.on("pointerupoutside", outListener);
-  }
-
-  if (rightClickEvents) {
-    const { soundSrc, payload } = rightClickEvents;
-    text.eventMode = "static";
-    rightPressController = createRightPressStateController({
-      displayObject: text,
-      onPressChange: updateTextStyle,
-    });
-
-    const rightPressListener = () => {
-      rightPressController.setDirectPress(true);
-    };
-
-    const rightReleaseListener = () => {
-      rightPressController.setDirectPress(false);
-    };
-
-    const rightClickListener = () => {
-      rightPressController.setDirectPress(false);
-
-      if (payload && eventHandler) {
-        eventHandler(`rightClick`, {
-          _event: {
-            id: text.label,
-          },
-          ...payload,
-        });
-      }
-      if (soundSrc) {
-        app.audioStage.add({
-          id: `rightClick-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-        });
-      }
-    };
-
-    const rightOutListener = () => {
-      rightPressController.setDirectPress(false);
-    };
-
-    text.on("rightdown", rightPressListener);
-    text.on("rightup", rightReleaseListener);
-    text.on("rightclick", rightClickListener);
-    text.on("rightupoutside", rightOutListener);
-  }
-
-  if (scrollUpEvent || scrollDownEvent) {
-    setupScrollInteraction({
-      canvas: app.canvas,
-      displayObject: text,
-      scrollUpEvent,
-      scrollDownEvent,
-      eventHandler,
-    });
-  }
 
   parent.addChild(text);
 
@@ -228,10 +92,7 @@ export const addText = ({
     animationBus,
     completionTracker,
     element: text,
-    targetState: {
-      ...getTextLayoutPosition(textComputedNode),
-      alpha: textComputedNode.alpha,
-    },
+    targetState: getTextAnimationTargetState(textComputedNode),
     renderContext,
   });
 };
