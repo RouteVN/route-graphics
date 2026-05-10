@@ -33,3 +33,23 @@ properties:
           id:
             type: string
             description: The ID of the element that was right-clicked
+  scrollUp:
+    type: object
+    description: This event type is called "scrollUp" and will be invoked when scrolling up on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was scrolled up on
+  scrollDown:
+    type: object
+    description: This event type is called "scrollDown" and will be invoked when scrolling down on an element.
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+            description: The ID of the element that was scrolled down on

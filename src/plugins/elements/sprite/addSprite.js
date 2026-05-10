@@ -12,6 +12,7 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -46,6 +47,8 @@ export const addSprite = ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
+  const scrollUpEvent = element?.scrollUp;
+  const scrollDownEvent = element?.scrollDown;
 
   let hoverController = null;
   let pressController = null;
@@ -197,6 +200,16 @@ export const addSprite = ({
     sprite.on("rightup", rightReleaseListener);
     sprite.on("rightclick", rightClickListener);
     sprite.on("rightupoutside", rightOutListener);
+  }
+
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      displayObject: sprite,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   parent.addChild(sprite);

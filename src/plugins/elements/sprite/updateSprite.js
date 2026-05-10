@@ -16,6 +16,7 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 
 /**
  * Update sprite element (synchronous)
@@ -48,6 +49,7 @@ export const updateSprite = ({
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
+      spriteElement._cleanupScrollInteraction?.();
       const texture = src ? Texture.from(src) : Texture.EMPTY;
       spriteElement.texture = texture;
 
@@ -69,6 +71,7 @@ export const updateSprite = ({
       spriteElement.removeAllListeners("rightclick");
       spriteElement.removeAllListeners("rightup");
       spriteElement.removeAllListeners("rightupoutside");
+      spriteElement.removeAllListeners("wheel");
       clearInheritedHoverTarget(spriteElement);
       clearInheritedPressTarget(spriteElement);
       clearInheritedRightPressTarget(spriteElement);
@@ -76,6 +79,8 @@ export const updateSprite = ({
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
       const rightClickEvents = nextElement?.rightClick;
+      const scrollUpEvent = nextElement?.scrollUp;
+      const scrollDownEvent = nextElement?.scrollDown;
 
       let hoverController = null;
       let pressController = null;
@@ -227,6 +232,16 @@ export const updateSprite = ({
         spriteElement.on("rightup", rightReleaseListener);
         spriteElement.on("rightclick", rightClickListener);
         spriteElement.on("rightupoutside", rightOutListener);
+      }
+
+      if (scrollUpEvent || scrollDownEvent) {
+        setupScrollInteraction({
+          canvas: app.canvas,
+          displayObject: spriteElement,
+          scrollUpEvent,
+          scrollDownEvent,
+          eventHandler,
+        });
       }
     }
   };

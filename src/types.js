@@ -42,6 +42,11 @@
  */
 
 /**
+ * @typedef {Object} ScrollProps
+ * @property {Object} [payload]
+ */
+
+/**
  * @typedef {Object} ComputedNode
  * @property {string} type - Type of the computed node
  * @property {string} id - ID of the computed node
@@ -72,6 +77,9 @@
  * @property {BlurConfig} [blur]
  * @property {SpriteHover} hover
  * @property {SpriteClick} click
+ * @property {SpriteClick} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & SpriteComputedProps } SpriteComputedNode
  */
 
@@ -328,6 +336,8 @@
  * @property {HoverProps} hover
  * @property {ClickProps} click
  * @property {ClickProps} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & ContainerComputedProps } ContainerComputedNode
  */
 
@@ -383,6 +393,9 @@
  * @property {number} rotation - Rotation in degrees
  * @property {HoverProps} hover
  * @property {ClickProps} click
+ * @property {ClickProps} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {(ComputedNode & RectComputedProps)} RectComputedNode
  */
 
@@ -429,6 +442,9 @@
  * @property {Object} textStyle - Text style object
  * @property {TextHover} [hover]
  * @property {TextClick} [click]
+ * @property {TextClick} [rightClick]
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & TextComputedProps} TextComputedNode
  */
 

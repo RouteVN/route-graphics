@@ -14,6 +14,7 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 
 /**
  * Add text element to the stage (synchronous)
@@ -45,6 +46,8 @@ export const addText = ({
   const hoverEvents = textComputedNode?.hover;
   const clickEvents = textComputedNode?.click;
   const rightClickEvents = textComputedNode?.rightClick;
+  const scrollUpEvent = textComputedNode?.scrollUp;
+  const scrollDownEvent = textComputedNode?.scrollDown;
 
   let hoverController = null;
   let pressController = null;
@@ -205,6 +208,16 @@ export const addText = ({
     text.on("rightup", rightReleaseListener);
     text.on("rightclick", rightClickListener);
     text.on("rightupoutside", rightOutListener);
+  }
+
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      displayObject: text,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   parent.addChild(text);

@@ -31,6 +31,8 @@ Try it in the [Playground](/playground/?template=sprite-demo).
 | `hover`      | object | No                  | -              | Optional hover image/sound/cursor/payload.  |
 | `click`      | object | No                  | -              | Optional pressed image/sound/payload.       |
 | `rightClick` | object | No                  | -              | Optional right-pressed image/sound/payload. |
+| `scrollUp`   | object | No                  | -              | Wheel-up payload hook.                      |
+| `scrollDown` | object | No                  | -              | Wheel-down payload hook.                    |
 
 ## Blur
 
@@ -51,6 +53,8 @@ Try it in the [Playground](/playground/?template=sprite-demo).
 | `hover`      | pointer enters sprite | `{ _event: { id }, ...hover.payload }`      |
 | `click`      | pointer up            | `{ _event: { id }, ...click.payload }`      |
 | `rightClick` | right pointer up      | `{ _event: { id }, ...rightClick.payload }` |
+| `scrollUp`   | wheel up over sprite  | `{ _event: { id }, ...scrollUp.payload }`   |
+| `scrollDown` | wheel down over sprite | `{ _event: { id }, ...scrollDown.payload }` |
 
 ## Example: Minimal
 
@@ -93,6 +97,12 @@ elements:
       soundSrc: rightclick-sfx
       payload:
         action: openHeroMenu
+    scrollUp:
+      payload:
+        action: previousHero
+    scrollDown:
+      payload:
+        action: nextHero
 ```
 
 ## Example: Sprite With Enter Motion

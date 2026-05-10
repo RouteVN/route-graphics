@@ -157,6 +157,29 @@ properties:
       payload:
         type: object
         description: Payload for click action event
+  rightClick:
+    type: object
+    properties:
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      soundSrc:
+        type: string
+        description: URL to sound file to play on right-click
+      payload:
+        type: object
+        description: Payload for right-click action event
+  scrollUp:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll down action event
 events:
   type: object
   description: Events emitted by this element
@@ -181,3 +204,33 @@ events:
             id:
               type: string
               description: The ID of the element that was hovered
+    rightClick:
+      type: object
+      description: This event type is called "rightClick" and will be invoked when the right mouse button is clicked on an element.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that was right-clicked
+    scrollUp:
+      type: object
+      description: This event type is called "scrollUp" and will be invoked when scrolling up on an element.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that was scrolled up on
+    scrollDown:
+      type: object
+      description: This event type is called "scrollDown" and will be invoked when scrolling down on an element.
+      properties:
+        _event:
+          type: object
+          properties:
+            id:
+              type: string
+              description: The ID of the element that was scrolled down on

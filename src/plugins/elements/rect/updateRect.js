@@ -1,7 +1,7 @@
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
-import { setupScrollInteraction } from "./setupScrollInteraction.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 const normalizeRectFill = (fill) =>
@@ -167,7 +167,7 @@ export const updateRect = ({
       if (scrollUpEvent || scrollDownEvent) {
         setupScrollInteraction({
           canvas: app.canvas,
-          rect: rectElement,
+          displayObject: rectElement,
           width,
           height,
           scrollUpEvent,

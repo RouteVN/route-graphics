@@ -1,7 +1,7 @@
 import { Graphics } from "pixi.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
-import { setupScrollInteraction } from "./setupScrollInteraction.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 
 const normalizeRectFill = (fill) =>
@@ -154,7 +154,7 @@ export const addRect = ({
   if (scrollUpEvent || scrollDownEvent) {
     setupScrollInteraction({
       canvas: app.canvas,
-      rect,
+      displayObject: rect,
       width,
       height,
       scrollUpEvent,
