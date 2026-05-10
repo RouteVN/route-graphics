@@ -287,7 +287,7 @@ Platform differences should be handled by the runtime adapter, not pushed into c
 - `rightClick`
 - configured via `payload`
 
-### Rect directional wheel interactions
+### Text / Sprite / Rect / Container directional wheel interactions
 
 - `scrollUp`
 - `scrollDown`
@@ -350,7 +350,7 @@ click:
     target: start
 ```
 
-### Rect scroll
+### Element scroll
 
 ```yaml
 scrollUp:

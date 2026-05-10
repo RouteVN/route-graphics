@@ -17,6 +17,7 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 
 /**
  * Update text element (synchronous)
@@ -45,6 +46,7 @@ export const updateText = ({
 
   const updateElement = () => {
     if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
+      textElement._cleanupScrollInteraction?.();
       textElement.text = nextTextComputedNode.content;
       applyTextStyle(textElement, nextTextComputedNode.textStyle);
       syncTextAnchorRatios(textElement, nextTextComputedNode);
@@ -61,6 +63,7 @@ export const updateText = ({
       textElement.removeAllListeners("rightclick");
       textElement.removeAllListeners("rightup");
       textElement.removeAllListeners("rightupoutside");
+      textElement.removeAllListeners("wheel");
       clearInheritedHoverTarget(textElement);
       clearInheritedPressTarget(textElement);
       clearInheritedRightPressTarget(textElement);
@@ -68,6 +71,8 @@ export const updateText = ({
       const hoverEvents = nextTextComputedNode?.hover;
       const clickEvents = nextTextComputedNode?.click;
       const rightClickEvents = nextTextComputedNode?.rightClick;
+      const scrollUpEvent = nextTextComputedNode?.scrollUp;
+      const scrollDownEvent = nextTextComputedNode?.scrollDown;
 
       let hoverController = null;
       let pressController = null;
@@ -231,6 +236,16 @@ export const updateText = ({
         textElement.on("rightup", rightReleaseListener);
         textElement.on("rightclick", rightClickListener);
         textElement.on("rightupoutside", rightOutListener);
+      }
+
+      if (scrollUpEvent || scrollDownEvent) {
+        setupScrollInteraction({
+          canvas: app.canvas,
+          displayObject: textElement,
+          scrollUpEvent,
+          scrollDownEvent,
+          eventHandler,
+        });
       }
     }
   };

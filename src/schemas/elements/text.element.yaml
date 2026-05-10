@@ -155,3 +155,15 @@ properties:
       payload:
         type: object
         description: Payload for right-click action event
+  scrollUp:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll down action event

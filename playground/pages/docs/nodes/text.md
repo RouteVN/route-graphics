@@ -30,6 +30,8 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `hover`      | object | No                  | -               | Hover style, cursor, sound, payload.                                     |
 | `click`      | object | No                  | -               | Press style, sound, payload.                                             |
 | `rightClick` | object | No                  | -               | Right-press style, sound, payload.                                       |
+| `scrollUp`   | object | No                  | -               | Wheel-up payload hook.                                                   |
+| `scrollDown` | object | No                  | -               | Wheel-down payload hook.                                                 |
 
 ### `textStyle`
 
@@ -72,6 +74,8 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `hover`      | pointer enters text      | `{ _event: { id }, ...hover.payload }`      |
 | `click`      | pointer up on text       | `{ _event: { id }, ...click.payload }`      |
 | `rightClick` | right pointer up on text | `{ _event: { id }, ...rightClick.payload }` |
+| `scrollUp`   | wheel up over text       | `{ _event: { id }, ...scrollUp.payload }`   |
+| `scrollDown` | wheel down over text     | `{ _event: { id }, ...scrollDown.payload }` |
 
 ## Example: Minimal
 
@@ -130,6 +134,14 @@ elements:
         fill: "#ff7777"
       payload:
         action: menuAlt
+        target: start
+    scrollUp:
+      payload:
+        action: menuPrevious
+        target: start
+    scrollDown:
+      payload:
+        action: menuNext
         target: start
 ```
 

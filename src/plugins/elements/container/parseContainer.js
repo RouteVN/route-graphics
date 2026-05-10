@@ -163,5 +163,13 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     finalContainer.rightClick = state.rightClick;
   }
 
+  if (state.scrollUp) {
+    finalContainer.scrollUp = state.scrollUp;
+  }
+
+  if (state.scrollDown) {
+    finalContainer.scrollDown = state.scrollDown;
+  }
+
   return finalContainer;
 };

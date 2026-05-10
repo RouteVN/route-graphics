@@ -59,6 +59,8 @@ export const parseText = ({ state }) => {
     ...(state.hover && { hover: state.hover }),
     ...(state.click && { click: state.click }),
     ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.scrollUp && { scrollUp: state.scrollUp }),
+    ...(state.scrollDown && { scrollDown: state.scrollDown }),
   };
 
   Object.defineProperties(computedText, {

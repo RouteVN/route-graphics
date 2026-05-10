@@ -26,6 +26,7 @@ export const deleteSprite = ({
     targetState: null,
     onComplete: () => {
       if (spriteElement && !spriteElement.destroyed) {
+        spriteElement._cleanupScrollInteraction?.();
         spriteElement.destroy();
       }
     },
@@ -33,6 +34,7 @@ export const deleteSprite = ({
 
   if (!dispatched) {
     // No animation, destroy immediately
+    spriteElement._cleanupScrollInteraction?.();
     spriteElement.destroy();
   }
 };

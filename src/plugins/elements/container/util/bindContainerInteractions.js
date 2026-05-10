@@ -12,6 +12,7 @@ import {
   setTreeInheritedHover,
   setTreeInheritedRightPress,
 } from "../../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../../util/setupScrollInteraction.js";
 
 const setContainerHitArea = ({ container, element, enabled }) => {
   const width = Number.isFinite(element?.width) ? element.width : 0;
@@ -87,6 +88,7 @@ export const bindContainerInteractions = ({
     getTreeInheritedRightPressState(container);
   let isHovered = wasInheritedHoverActive;
 
+  container._cleanupScrollInteraction?.();
   setTreeInheritedHover({ root: container, isHovered: false });
   setTreeInheritedPress({ root: container, isPressed: false });
   setTreeInheritedRightPress({ root: container, isPressed: false });
@@ -109,8 +111,14 @@ export const bindContainerInteractions = ({
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
+  const scrollUpEvent = element?.scrollUp;
+  const scrollDownEvent = element?.scrollDown;
   const hasPointerInteraction = Boolean(
-    hoverEvents || clickEvents || rightClickEvents,
+    hoverEvents ||
+    clickEvents ||
+    rightClickEvents ||
+    scrollUpEvent ||
+    scrollDownEvent,
   );
 
   if (hasPointerInteraction) {
@@ -322,6 +330,16 @@ export const bindContainerInteractions = ({
     container.on("rightclick", rightClickListener);
     container.on("pointerupoutside", rightPointerReleaseListener);
     container.on("rightupoutside", rightOutListener);
+  }
+
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      displayObject: container,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   if (hoverEvents?.inheritToChildren && wasInheritedHoverActive) {

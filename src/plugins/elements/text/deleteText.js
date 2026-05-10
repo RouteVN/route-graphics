@@ -24,6 +24,7 @@ export const deleteText = ({
     targetState: null,
     onComplete: () => {
       if (text && !text.destroyed) {
+        text._cleanupScrollInteraction?.();
         text.destroy();
       }
     },
@@ -31,6 +32,7 @@ export const deleteText = ({
 
   if (!dispatched) {
     // No animation, destroy immediately
+    text._cleanupScrollInteraction?.();
     text.destroy();
   }
 };

@@ -249,7 +249,7 @@ describe("event semantics", () => {
     });
   });
 
-  it("sprite emits hover/click/rightClick payload events", () => {
+  it("sprite emits hover/click/rightClick/scroll payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -270,6 +270,8 @@ describe("event semantics", () => {
         hover: { payload: { source: "hover" } },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
+        scrollUp: { payload: { direction: "up" } },
+        scrollDown: { payload: { direction: "down" } },
       },
     });
 
@@ -280,15 +282,27 @@ describe("event semantics", () => {
     sprite.emit("rightdown");
     sprite.emit("rightup");
     sprite.emit("rightclick");
+    sprite.emit("wheel", { deltaY: -1 });
+    sprite.emit("wheel", { deltaY: 1 });
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
       "rightClick",
+      "scrollUp",
+      "scrollDown",
     ]);
     expect(eventHandler.mock.calls[2][1]).toMatchObject({
       _event: { id: "sprite-1" },
       source: "rightClick",
+    });
+    expect(eventHandler.mock.calls[3][1]).toMatchObject({
+      _event: { id: "sprite-1" },
+      direction: "up",
+    });
+    expect(eventHandler.mock.calls[4][1]).toMatchObject({
+      _event: { id: "sprite-1" },
+      direction: "down",
     });
   });
 
@@ -327,7 +341,42 @@ describe("event semantics", () => {
     ]);
   });
 
-  it("text emits hover/click/rightClick payload events", () => {
+  it("scroll events emit element metadata without requiring app payload", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const shared = createSharedParams();
+
+    addSprite({
+      ...shared,
+      parent,
+      eventHandler,
+      zIndex: 0,
+      element: {
+        id: "sprite-scroll-empty-payload",
+        type: "sprite",
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 50,
+        alpha: 1,
+        scrollUp: {},
+      },
+    });
+
+    const sprite = parent.getChildByLabel("sprite-scroll-empty-payload");
+    sprite.emit("wheel", { deltaY: -1 });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "scrollUp",
+        {
+          _event: { id: "sprite-scroll-empty-payload" },
+        },
+      ],
+    ]);
+  });
+
+  it("text emits hover/click/rightClick/scroll payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -353,6 +402,8 @@ describe("event semantics", () => {
         hover: { payload: { source: "hover" } },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
+        scrollUp: { payload: { direction: "up" } },
+        scrollDown: { payload: { direction: "down" } },
       },
     });
 
@@ -363,15 +414,27 @@ describe("event semantics", () => {
     text.emit("rightdown");
     text.emit("rightup");
     text.emit("rightclick");
+    text.emit("wheel", { deltaY: -1 });
+    text.emit("wheel", { deltaY: 1 });
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
       "rightClick",
+      "scrollUp",
+      "scrollDown",
     ]);
     expect(eventHandler.mock.calls[0][1]).toMatchObject({
       _event: { id: "text-1" },
       source: "hover",
+    });
+    expect(eventHandler.mock.calls[3][1]).toMatchObject({
+      _event: { id: "text-1" },
+      direction: "up",
+    });
+    expect(eventHandler.mock.calls[4][1]).toMatchObject({
+      _event: { id: "text-1" },
+      direction: "down",
     });
   });
 
@@ -415,7 +478,7 @@ describe("event semantics", () => {
     ]);
   });
 
-  it("container emits hover/click/rightClick payload events", () => {
+  it("container emits hover/click/rightClick/scroll payload events", () => {
     const parent = new Container();
     const eventHandler = vi.fn();
     const shared = createSharedParams();
@@ -439,6 +502,8 @@ describe("event semantics", () => {
         hover: { payload: { source: "hover" } },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
+        scrollUp: { payload: { direction: "up" } },
+        scrollDown: { payload: { direction: "down" } },
       },
     });
 
@@ -446,12 +511,24 @@ describe("event semantics", () => {
     container.emit("pointerover");
     container.emit("pointerup");
     container.emit("rightclick");
+    container.emit("wheel", { deltaY: -1 });
+    container.emit("wheel", { deltaY: 1 });
 
     expect(eventHandler.mock.calls.map((call) => call[0])).toEqual([
       "hover",
       "click",
       "rightClick",
+      "scrollUp",
+      "scrollDown",
     ]);
+    expect(eventHandler.mock.calls[3][1]).toMatchObject({
+      _event: { id: "container-1" },
+      direction: "up",
+    });
+    expect(eventHandler.mock.calls[4][1]).toMatchObject({
+      _event: { id: "container-1" },
+      direction: "down",
+    });
   });
 
   it("container click does not fire for right mouse release", () => {

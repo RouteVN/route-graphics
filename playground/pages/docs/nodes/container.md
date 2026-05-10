@@ -37,6 +37,8 @@ Try it in the [Playground](/playground/?template=container-layout).
 | `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.                   |
 | `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.                   |
 | `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`.             |
+| `scrollUp`   | object                                   | No                  | -                        | Wheel-up payload hook.                                              |
+| `scrollDown` | object                                   | No                  | -                        | Wheel-down payload hook.                                            |
 
 ## Layout Behavior Notes
 
@@ -45,6 +47,7 @@ Try it in the [Playground](/playground/?template=container-layout).
 - `gapX` controls horizontal spacing. `gapY` controls vertical spacing. Legacy `gap` is not supported.
 - Child nodes are parsed with the active parser plugin set.
 - `scrollbar.vertical` renders on top of the viewport edge. It syncs with wheel scrolling, thumb dragging, track clicks, and optional start/end buttons.
+- `scrollUp` and `scrollDown` emit semantic wheel events. They are independent of `scroll: true`, which controls overflow clipping and content movement.
 
 ## Blur
 
@@ -108,6 +111,8 @@ Each visual object supports:
 | `hover`      | pointer enters container | `{ _event: { id }, ...hover.payload }`      |
 | `click`      | pointer up               | `{ _event: { id }, ...click.payload }`      |
 | `rightClick` | right click              | `{ _event: { id }, ...rightClick.payload }` |
+| `scrollUp`   | wheel up over container  | `{ _event: { id }, ...scrollUp.payload }`   |
+| `scrollDown` | wheel down over container | `{ _event: { id }, ...scrollDown.payload }` |
 
 ## Hover Inheritance
 
@@ -185,6 +190,12 @@ elements:
     gapX: 8
     gapY: 8
     scroll: true
+    scrollUp:
+      payload:
+        action: inventoryWheelUp
+    scrollDown:
+      payload:
+        action: inventoryWheelDown
     children:
       - id: item-1
         type: text

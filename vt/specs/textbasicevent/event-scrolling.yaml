@@ -1,0 +1,56 @@
+---
+title: Text scrolling events
+description: Test scrolling up and down interactions on a text element
+specs:
+  - scroll up and scroll down interactions are accepted on text elements
+  - text remains visually stable while interaction events fire
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 260
+    "y": 220
+  - action: scroll
+    deltaX: 0
+    deltaY: -120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollUp
+    value:
+      - _event:
+          id: text-scroll
+        message: text scrolled up
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollDown
+    value:
+      - _event:
+          id: text-scroll
+        message: text scrolled down
+---
+states:
+  - elements:
+      - id: text-scroll
+        type: text
+        x: 200
+        "y": 190
+        content: "Scroll target"
+        textStyle:
+          fill: "#D9D9D9"
+          fontFamily: Arial
+          fontSize: 42
+        scrollUp:
+          payload:
+            message: text scrolled up
+        scrollDown:
+          payload:
+            message: text scrolled down
