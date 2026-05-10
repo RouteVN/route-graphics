@@ -1,0 +1,54 @@
+---
+title: Sprite scrolling events
+description: Test scrolling up and down interactions on a sprite element; uses the existing colored sprite fixture because sprite event tests require image assets.
+specs:
+  - scroll up and scroll down interactions are accepted on sprite elements
+  - sprite remains visually stable while interaction events fire
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 260
+    "y": 220
+  - action: scroll
+    deltaX: 0
+    deltaY: -120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollUp
+    value:
+      - _event:
+          id: sprite-scroll
+        message: sprite scrolled up
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollDown
+    value:
+      - _event:
+          id: sprite-scroll
+        message: sprite scrolled down
+---
+states:
+  - elements:
+      - id: sprite-scroll
+        type: sprite
+        x: 200
+        "y": 160
+        width: 140
+        height: 140
+        src: circle-blue
+        scrollUp:
+          payload:
+            message: sprite scrolled up
+        scrollDown:
+          payload:
+            message: sprite scrolled down

@@ -1,0 +1,61 @@
+---
+title: Container scrolling events
+description: Test scrolling up and down interactions on a container element
+specs:
+  - scroll up and scroll down interactions are accepted on container elements
+  - container remains visually stable while interaction events fire
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 260
+    "y": 220
+  - action: scroll
+    deltaX: 0
+    deltaY: -120
+  - action: screenshot
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollUp
+    value:
+      - _event:
+          id: container-scroll
+        message: container scrolled up
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - scrollDown
+    value:
+      - _event:
+          id: container-scroll
+        message: container scrolled down
+---
+states:
+  - elements:
+      - id: container-scroll
+        type: container
+        x: 200
+        "y": 160
+        width: 260
+        height: 140
+        children:
+          - id: container-scroll-child
+            type: rect
+            x: 20
+            "y": 20
+            width: 220
+            height: 100
+            fill: "#D9D9D9"
+        scrollUp:
+          payload:
+            message: container scrolled up
+        scrollDown:
+          payload:
+            message: container scrolled down
