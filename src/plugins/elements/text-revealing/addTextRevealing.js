@@ -1,4 +1,5 @@
 import { Container } from "pixi.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
 import {
   runTextReveal,
@@ -12,6 +13,7 @@ import {
 export const addTextRevealing = async ({
   parent,
   element,
+  animations,
   animationBus,
   renderContext,
   completionTracker,
@@ -28,6 +30,20 @@ export const addTextRevealing = async ({
   if (element.y !== undefined) container.y = Math.round(element.y);
   if (element.alpha !== undefined) container.alpha = element.alpha;
   parent.addChild(container);
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x: element.x ?? container.x,
+      y: element.y ?? container.y,
+      alpha: element.alpha ?? container.alpha,
+    },
+    renderContext,
+  });
 
   if (
     renderContext?.suppressAnimations &&

@@ -1,0 +1,75 @@
+---
+title: Container Transition Defers Child Update Enter
+description: A parent transition owns the enter handoff before a child update animation starts.
+specs:
+  - parent transition should reveal the child at the update animation initial position
+  - child update animation should start only after the parent transition completes
+  - child should settle at the authored next-state position
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: transitioned-then-updated
+    elements:
+      - id: container1
+        type: container
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        direction: absolute
+        alpha: 1
+        children:
+          - id: child1
+            type: rect
+            x: 560
+            "y": 180
+            width: 220
+            height: 180
+            fill: "#FFFFFF"
+            alpha: 1
+    animations:
+      - id: container-enter-transition
+        targetId: container1
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 500
+                  value: 1
+                  easing: linear
+      - id: child-enter-update
+        targetId: child1
+        type: update
+        tween:
+          x:
+            initialValue: 160
+            keyframes:
+              - duration: 500
+                value: 560
+                easing: linear

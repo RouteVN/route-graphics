@@ -1,0 +1,83 @@
+---
+title: Container Child Update Enter Exit
+description: A child inside a freshly added container using update animations on add and delete.
+specs:
+  - child update animations should run when a new container mounts its children
+  - child update animations should run before a child is removed from an existing container
+  - the parent container should stay mounted after the child is removed
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: child-entered
+    elements:
+      - id: container1
+        type: container
+        x: 260
+        "y": 160
+        direction: absolute
+        children:
+          - id: child1
+            type: rect
+            x: 0
+            "y": 0
+            width: 360
+            height: 240
+            fill: "#FFFFFF"
+            alpha: 1
+    animations:
+      - id: child-update-enter
+        targetId: child1
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: child-removed
+    elements:
+      - id: container1
+        type: container
+        x: 260
+        "y": 160
+        width: 360
+        height: 240
+        direction: absolute
+        children: []
+    animations:
+      - id: child-update-exit
+        targetId: child1
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear
