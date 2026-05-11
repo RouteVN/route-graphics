@@ -1,20 +1,33 @@
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 const loadedAssets = {};
+const loadingAssets = {};
 
-const load = async (key, arrayBuffer) => {
+const load = (key, arrayBuffer) => {
   if (loadedAssets[key]) {
-    return;
+    return loadedAssets[key];
+  }
+  if (loadingAssets[key]) {
+    return loadingAssets[key];
   }
   if (arrayBuffer.byteLength === 0) {
     return;
   }
-  try {
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    loadedAssets[key] = audioBuffer;
-  } catch (error) {
-    console.error(`AudioAsset.load: Failed to decode ${key}:`, error);
-  }
+
+  loadingAssets[key] = audioContext
+    .decodeAudioData(arrayBuffer)
+    .then((audioBuffer) => {
+      loadedAssets[key] = audioBuffer;
+      return audioBuffer;
+    })
+    .catch((error) => {
+      console.error(`AudioAsset.load: Failed to decode ${key}:`, error);
+    })
+    .finally(() => {
+      delete loadingAssets[key];
+    });
+
+  return loadingAssets[key];
 };
 
 const getAsset = (url) => {

@@ -239,6 +239,10 @@ let currentApp = null;
 const setupRouteGraphics = async ({
   initOptions = {},
   pluginsFactory,
+  audioAsset = {
+    load: vi.fn(),
+    getAsset: vi.fn(),
+  },
 } = {}) => {
   const pixiMock = createPixiModuleMock();
 
@@ -250,10 +254,7 @@ const setupRouteGraphics = async ({
     }),
   }));
   vi.doMock("../src/AudioAsset.js", () => ({
-    AudioAsset: {
-      load: vi.fn(),
-      getAsset: vi.fn(),
-    },
+    AudioAsset: audioAsset,
   }));
 
   const resolvedPlugins = pluginsFactory
@@ -277,7 +278,7 @@ const setupRouteGraphics = async ({
 
   currentApp = app;
 
-  return { app, pixiMock };
+  return { app, pixiMock, audioAsset };
 };
 
 const getAutoAnimationTick = (pixiMock) =>
@@ -359,6 +360,43 @@ describe("RouteGraphics public API", () => {
         source: expect.any(Object),
       }),
     );
+  });
+
+  it("awaits audio asset decoding during loadAssets", async () => {
+    let resolveAudioLoad;
+    const audioLoadPromise = new Promise((resolve) => {
+      resolveAudioLoad = resolve;
+    });
+    const audioAsset = {
+      load: vi.fn(() => audioLoadPromise),
+      getAsset: vi.fn(),
+    };
+    const { app } = await setupRouteGraphics({ audioAsset });
+    let loadAssetsResolved = false;
+
+    const loadAssetsPromise = app
+      .loadAssets({
+        click: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "audio/mpeg",
+        },
+      })
+      .then(() => {
+        loadAssetsResolved = true;
+      });
+
+    await Promise.resolve();
+
+    expect(audioAsset.load).toHaveBeenCalledWith(
+      "click",
+      expect.any(ArrayBuffer),
+    );
+    expect(loadAssetsResolved).toBe(false);
+
+    resolveAudioLoad();
+    await loadAssetsPromise;
+
+    expect(loadAssetsResolved).toBe(true);
   });
 
   it("updates the visible stage background graphic color", async () => {
