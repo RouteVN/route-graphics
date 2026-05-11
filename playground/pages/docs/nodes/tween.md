@@ -141,7 +141,6 @@ prev:
 
 - `single`
 - `sequence`
-- `composite`
 
 Supported mask channels:
 
@@ -149,6 +148,38 @@ Supported mask channels:
 - `green`
 - `blue`
 - `alpha`
+
+Sequence masks use explicit frame positions:
+
+```yaml
+mask:
+  kind: sequence
+  progress:
+    initialValue: 0
+    keyframes:
+      - value: 1
+        duration: 1000
+        easing: linear
+  sample: linear
+  frames:
+    - at: 0
+      texture: masks/a.png
+    - at: 0.5
+      texture: masks/b.png
+    - at: 1
+      texture: masks/c.png
+  channel: alpha
+```
+
+`progress` controls frame selection. The sampled frame value directly controls
+the reveal amount. `frames[].at` marks where each frame sits on that `0..1`
+progress ruler. `sample: hold` holds each frame until the next `at`;
+`sample: linear` blends between adjacent frames.
+
+Sequence masks require at least two frames, sorted by unique `at` values, with
+the first frame at `0` and the last frame at `1`. `sample` defaults to `hold`.
+Feathering belongs in the frame alpha; `softness` is not valid for sequence
+masks.
 
 ## Behavior Notes
 

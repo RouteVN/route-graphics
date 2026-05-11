@@ -101,28 +101,42 @@ describe("runReplaceAnimation", () => {
     expect(blackEndReveal).toBe(1);
   });
 
-  it("selects adjacent sequence mask frames for linear sampling", () => {
+  it("selects sequence mask frames from explicit progress positions", () => {
+    const frames = [{ at: 0 }, { at: 0.25 }, { at: 1 }];
+
     expect(
       selectSequenceMaskFrameState({
         progress: 0.5,
-        frameCount: 2,
+        frames,
         sampleMode: "linear",
       }),
     ).toEqual({
-      fromIndex: 0,
-      toIndex: 1,
-      mix: 0.5,
+      fromIndex: 1,
+      toIndex: 2,
+      mix: 1 / 3,
     });
 
     expect(
       selectSequenceMaskFrameState({
         progress: 0.74,
-        frameCount: 3,
+        frames,
         sampleMode: "hold",
       }),
     ).toEqual({
       fromIndex: 1,
       toIndex: 1,
+      mix: 0,
+    });
+
+    expect(
+      selectSequenceMaskFrameState({
+        progress: 1.2,
+        frames,
+        sampleMode: "linear",
+      }),
+    ).toEqual({
+      fromIndex: 2,
+      toIndex: 2,
       mix: 0,
     });
   });
@@ -980,6 +994,14 @@ describe("runReplaceAnimation", () => {
     dispatched.payload.applyFrame(500);
 
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const maskFilter = overlay.children[0].filters[0];
+
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+    ).toBe(0);
   });
 
   it("routes single alpha masks through the alpha preprocessing filter", () => {
@@ -1083,6 +1105,9 @@ describe("runReplaceAnimation", () => {
           maskFilter.resources.replaceMaskUniforms.uniforms.uMaskChannelWeights,
         ),
       ).toEqual([1, 0, 0, 0]);
+      expect(
+        maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+      ).toBe(0);
       expect(maskFilter.resources.uMaskTextureA).not.toBe(Texture.EMPTY.source);
       expect(maskFilter.resources.uMaskTextureB).not.toBe(Texture.EMPTY.source);
       expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
@@ -1432,7 +1457,10 @@ describe("runReplaceAnimation", () => {
         type: "transition",
         mask: {
           kind: "sequence",
-          textures: [leftMask, rightMask],
+          frames: [
+            { at: 0, texture: leftMask },
+            { at: 1, texture: rightMask },
+          ],
           channel: "alpha",
           sample: "linear",
           invert: true,
@@ -1462,103 +1490,14 @@ describe("runReplaceAnimation", () => {
     dispatched.payload.applyFrame(500);
 
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
-  });
-
-  it("still preprocesses composite masks through the fallback path and applies top-level invert", () => {
-    const prevDisplayObject = createDisplayObject("scene-root");
-    const nextDisplayObject = createDisplayObject("scene-root");
-    const parent = createParent(prevDisplayObject);
-    prevDisplayObject.parent = parent;
-    const leftMask = document.createElement("canvas");
-    const rightMask = document.createElement("canvas");
-    leftMask.width = 1;
-    leftMask.height = 1;
-    rightMask.width = 1;
-    rightMask.height = 1;
-
-    const plugin = {
-      add: vi.fn(({ parent: targetParent, element }) => {
-        nextDisplayObject.label = element.id;
-        targetParent.addChild(nextDisplayObject);
-      }),
-      delete: vi.fn(({ parent: targetParent, element }) => {
-        const child = targetParent.children.find(
-          (item) => item.label === element.id,
-        );
-        if (child) {
-          targetParent.removeChild(child);
-        }
-      }),
-    };
-
-    const animationBus = {
-      dispatch: vi.fn(),
-    };
-
-    const app = {
-      renderer: {
-        width: 1280,
-        height: 720,
-        generateTexture: vi.fn(() => Texture.EMPTY),
-        render: vi.fn(),
-        extract: {
-          pixels: vi.fn(() => ({
-            pixels: new Uint8ClampedArray(100 * 100 * 4),
-          })),
-        },
-      },
-    };
-
-    runReplaceAnimation({
-      app,
-      parent,
-      prevElement: { id: "scene-root", type: "container" },
-      nextElement: { id: "scene-root", type: "container", children: [] },
-      animation: {
-        id: "scene-mask-composite",
-        targetId: "scene-root",
-        type: "transition",
-        mask: {
-          kind: "composite",
-          combine: "max",
-          invert: true,
-          items: [
-            { texture: leftMask, channel: "red" },
-            { texture: rightMask, channel: "red" },
-          ],
-          progress: {
-            initialValue: 0,
-            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
-          },
-        },
-      },
-      animations: new Map(),
-      animationBus,
-      completionTracker: {
-        getVersion: () => 11,
-        track: vi.fn(),
-        complete: vi.fn(),
-      },
-      eventHandler: vi.fn(),
-      elementPlugins: [],
-      plugin,
-      zIndex: 0,
-      signal: new AbortController().signal,
-    });
-
-    expect(app.renderer.extract.pixels).toHaveBeenCalledTimes(2);
-
-    const dispatched = animationBus.dispatch.mock.calls[0][0];
-    dispatched.payload.applyFrame(500);
-
     const overlay = parent.children.find(
       (child) => child !== nextDisplayObject,
     );
     const maskFilter = overlay.children[0].filters[0];
 
-    expect(maskFilter.resources.replaceMaskUniforms.uniforms.uMaskInvert).toBe(
-      1,
-    );
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+    ).toBe(1);
   });
 
   it("does not flush deferred activation when a transition is cancelled", () => {

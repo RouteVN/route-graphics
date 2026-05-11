@@ -1,26 +1,31 @@
 ---
-title: Rect Sequence Mask Linear
-description: A same-id rect transition using linear sampling between sequence mask frames
+title: Rect Sequence Mask Nonuniform Linear
+description: A same-id rect transition using linear sampling between nonuniform sequence frame positions
 specs:
-  - linear sequence sampling should blend adjacent frames instead of snapping to one mask texture
-  - the left reveal region should be visible at 500ms without flashing at the start
-  - the transition should settle on the next rect fill by 1000ms
+  - linear sampling should interpolate from empty to left-band over the short first span
+  - linear sampling should interpolate from left-band to full reveal over the longer second span
+  - the transition should settle on the next rect fill after progress reaches 1
 steps:
   - action: keypress
     key: "n"
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 500
+      deltaMS: 250
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 500
+      deltaMS: 375
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 375
   - action: screenshot
 ---
 states:
-  - id: sequence-linear-start
+  - id: sequence-linear-nonuniform-start
     elements:
       - id: rect1
         type: rect
@@ -30,7 +35,7 @@ states:
         height: 480
         fill: "#F2F2F2"
         alpha: 1
-  - id: sequence-linear-end
+  - id: sequence-linear-nonuniform-end
     elements:
       - id: rect1
         type: rect
@@ -41,7 +46,7 @@ states:
         fill: "#4D4D4D"
         alpha: 1
     animations:
-      - id: rect-sequence-linear
+      - id: rect-sequence-linear-nonuniform
         targetId: rect1
         type: transition
         mask:
@@ -49,7 +54,7 @@ states:
           frames:
             - at: 0
               texture: mask-empty
-            - at: 0.5
+            - at: 0.25
               texture: mask-left-band
             - at: 1
               texture: mask-full

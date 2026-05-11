@@ -203,6 +203,7 @@ uniform float uProgress;
 uniform float uSoftness;
 uniform float uMaskMix;
 uniform float uMaskInvert;
+uniform float uMaskDirectReveal;
 uniform vec4 uMaskChannelWeights;
 uniform vec4 uSecondaryClamp;
 
@@ -239,7 +240,12 @@ void main()
     vec2 secondaryUv = clamp(vSecondaryCoord, uSecondaryClamp.xy, uSecondaryClamp.zw);
     vec4 prevColor = texture(uTexture, uv);
     vec4 nextColor = texture(uNextTexture, secondaryUv);
-    float reveal = sampleReveal(sampleMaskValue(secondaryUv));
+    float maskValue = sampleMaskValue(secondaryUv);
+    float reveal = mix(
+        sampleReveal(maskValue),
+        clamp(maskValue, 0.0, 1.0),
+        clamp(uMaskDirectReveal, 0.0, 1.0)
+    );
 
     finalColor = mix(prevColor, nextColor, reveal);
 }
@@ -260,6 +266,7 @@ struct ReplaceMaskUniforms {
   uSoftness: f32,
   uMaskMix: f32,
   uMaskInvert: f32,
+  uMaskDirectReveal: f32,
   uMaskChannelWeights: vec4<f32>,
   uSecondaryMatrix: mat3x3<f32>,
   uSecondaryClamp: vec4<f32>,
@@ -348,7 +355,12 @@ fn mainFragment(
   );
   let prevColor = textureSample(uTexture, uSampler, clampedUv);
   let nextColor = textureSample(uNextTexture, uSampler, clampedSecondaryUv);
-  let reveal = sampleReveal(sampleMaskValue(clampedSecondaryUv));
+  let maskValue = sampleMaskValue(clampedSecondaryUv);
+  let reveal = mix(
+    sampleReveal(maskValue),
+    clamp(maskValue, 0.0, 1.0),
+    clamp(replaceMaskUniforms.uMaskDirectReveal, 0.0, 1.0),
+  );
 
   return mix(prevColor, nextColor, reveal);
 }
@@ -435,121 +447,6 @@ fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
   return vec4(outputValue, outputValue, outputValue, 1.0);
 }
 `;
-
-const createCanvasContext = (width, height) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!context) {
-    throw new Error("Replace mask composition could not create a 2D canvas.");
-  }
-
-  return {
-    canvas,
-    context,
-  };
-};
-
-const readChannelValue = (pixelData, offset, channel = "red") => {
-  switch (channel) {
-    case "green":
-      return pixelData[offset + 1];
-    case "blue":
-      return pixelData[offset + 2];
-    case "alpha":
-      return pixelData[offset + 3];
-    default:
-      return pixelData[offset];
-  }
-};
-
-const extractMaskPixelsFromTexture = ({
-  app,
-  texture,
-  width,
-  height,
-  channel = "red",
-  invert = false,
-}) => {
-  const values = new Uint8ClampedArray(width * height);
-  const maskSprite = new Sprite(Texture.from(texture));
-  maskSprite.width = width;
-  maskSprite.height = height;
-
-  const maskContainer = new Container();
-  maskContainer.addChild(maskSprite);
-
-  const maskRenderTexture = RenderTexture.create({
-    width,
-    height,
-  });
-
-  app.renderer.render({
-    container: maskContainer,
-    target: maskRenderTexture,
-    clear: true,
-  });
-
-  const imageData = app.renderer.extract.pixels(maskRenderTexture).pixels;
-
-  for (let index = 0, offset = 0; index < values.length; index++, offset += 4) {
-    let value = readChannelValue(imageData, offset, channel);
-
-    if (invert) {
-      value = 255 - value;
-    }
-
-    values[index] = value;
-  }
-
-  maskContainer.destroy({ children: true });
-  maskRenderTexture.destroy(true);
-
-  return values;
-};
-
-const buildCompositeMaskPixels = (app, mask, width, height) => {
-  let combined = null;
-
-  for (const item of mask.items) {
-    const current = extractMaskPixelsFromTexture({
-      app,
-      texture: item.texture,
-      width,
-      height,
-      channel: item.channel ?? "red",
-      invert: item.invert ?? false,
-    });
-
-    if (!combined) {
-      combined = current;
-      continue;
-    }
-
-    for (let index = 0; index < combined.length; index++) {
-      switch (mask.combine ?? "max") {
-        case "min":
-          combined[index] = Math.min(combined[index], current[index]);
-          break;
-        case "multiply":
-          combined[index] = Math.round(
-            (combined[index] / 255) * (current[index] / 255) * 255,
-          );
-          break;
-        case "add":
-          combined[index] = Math.min(255, combined[index] + current[index]);
-          break;
-        default:
-          combined[index] = Math.max(combined[index], current[index]);
-          break;
-      }
-    }
-  }
-
-  return combined ?? new Uint8ClampedArray(width * height);
-};
 
 const createMaskChannelWeights = (channel = "red") => {
   switch (channel) {
@@ -651,23 +548,6 @@ const renderMaskTextureToRenderTexture = ({
   return maskRenderTexture;
 };
 
-const createMaskTextureFromPixels = (width, height, pixels) => {
-  const { canvas, context } = createCanvasContext(width, height);
-  const imageData = context.createImageData(width, height);
-  const output = imageData.data;
-
-  for (let index = 0, offset = 0; index < pixels.length; index++, offset += 4) {
-    const value = pixels[index];
-    output[offset] = value;
-    output[offset + 1] = value;
-    output[offset + 2] = value;
-    output[offset + 3] = 255;
-  }
-
-  context.putImageData(imageData, 0, 0);
-  return Texture.from(canvas);
-};
-
 const createMaskTextures = (app, mask, width, height) => {
   if (!mask) {
     return {
@@ -699,10 +579,10 @@ const createMaskTextures = (app, mask, width, height) => {
   }
 
   if (mask.kind === "sequence") {
-    const textures = mask.textures.map((texture) =>
+    const textures = mask.frames.map((frame) =>
       renderMaskTextureToRenderTexture({
         app,
-        texture,
+        texture: frame.texture,
         width,
         height,
         channelWeights: createMaskChannelWeights(mask.channel ?? "red"),
@@ -722,22 +602,7 @@ const createMaskTextures = (app, mask, width, height) => {
     };
   }
 
-  const texture = createMaskTextureFromPixels(
-    width,
-    height,
-    buildCompositeMaskPixels(app, mask, width, height),
-  );
-
-  return {
-    textures: [texture.source],
-    channelWeights: OUTPUT_MASK_CHANNEL_WEIGHTS,
-    invert: mask.invert ? 1 : 0,
-    destroy: () => {
-      if (!texture.destroyed) {
-        texture.destroy(true);
-      }
-    },
-  };
+  throw new Error(`Unsupported replace mask kind: ${mask.kind}.`);
 };
 
 const createReplaceMaskFilter = () => {
@@ -755,6 +620,10 @@ const createReplaceMaskFilter = () => {
       type: "f32",
     },
     uMaskInvert: {
+      value: 0,
+      type: "f32",
+    },
+    uMaskDirectReveal: {
       value: 0,
       type: "f32",
     },
@@ -803,10 +672,10 @@ const createReplaceMaskFilter = () => {
 
 export const selectSequenceMaskFrameState = ({
   progress = 0,
-  frameCount = 0,
+  frames = [],
   sampleMode = "hold",
 } = {}) => {
-  if (frameCount <= 1) {
+  if (frames.length <= 1) {
     return {
       fromIndex: 0,
       toIndex: 0,
@@ -814,20 +683,57 @@ export const selectSequenceMaskFrameState = ({
     };
   }
 
-  const scaled = clamp01(progress) * Math.max(0, frameCount - 1);
+  const clampedProgress = clamp01(progress);
 
   if (sampleMode === "linear") {
-    const fromIndex = Math.floor(scaled);
-    const toIndex = Math.min(frameCount - 1, fromIndex + 1);
+    if (clampedProgress <= frames[0].at) {
+      return {
+        fromIndex: 0,
+        toIndex: 0,
+        mix: 0,
+      };
+    }
+
+    const lastIndex = frames.length - 1;
+    if (clampedProgress >= frames[lastIndex].at) {
+      return {
+        fromIndex: lastIndex,
+        toIndex: lastIndex,
+        mix: 0,
+      };
+    }
+
+    for (let index = 0; index < frames.length - 1; index++) {
+      const currentFrame = frames[index];
+      const nextFrame = frames[index + 1];
+
+      if (clampedProgress <= nextFrame.at) {
+        const span = nextFrame.at - currentFrame.at;
+
+        return {
+          fromIndex: index,
+          toIndex: index + 1,
+          mix: span === 0 ? 0 : (clampedProgress - currentFrame.at) / span,
+        };
+      }
+    }
 
     return {
-      fromIndex,
-      toIndex,
-      mix: scaled - fromIndex,
+      fromIndex: lastIndex,
+      toIndex: lastIndex,
+      mix: 0,
     };
   }
 
-  const fromIndex = Math.min(frameCount - 1, Math.max(0, Math.round(scaled)));
+  let fromIndex = 0;
+
+  for (let index = 1; index < frames.length; index++) {
+    if (clampedProgress < frames[index].at) {
+      break;
+    }
+
+    fromIndex = index;
+  }
 
   return {
     fromIndex,
@@ -858,7 +764,7 @@ const createMaskTextureController = (app, mask, width, height, filter) => {
         mask?.kind === "sequence"
           ? selectSequenceMaskFrameState({
               progress,
-              frameCount: textures.length,
+              frames: mask.frames,
               sampleMode: mask.sample ?? "hold",
             })
           : {
@@ -883,6 +789,8 @@ const createMaskTextureController = (app, mask, width, height, filter) => {
       replaceMaskUniforms.uniforms.uSoftness = softness;
       replaceMaskUniforms.uniforms.uMaskMix = selection.mix;
       replaceMaskUniforms.uniforms.uMaskInvert = invert;
+      replaceMaskUniforms.uniforms.uMaskDirectReveal =
+        mask?.kind === "sequence" ? 1 : 0;
       replaceMaskUniforms.uniforms.uMaskChannelWeights = channelWeights;
       replaceMaskUniforms.update();
     },

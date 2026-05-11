@@ -269,8 +269,9 @@ Goal:
 
 Work:
 
-- keep `mask.kind: single | sequence | composite`
+- keep `mask.kind: single | sequence`
 - keep `channel`, `softness`, `invert`, and `progress`
+- keep sequence masks on explicit `frames[].at` positions with `sample: hold | linear`
 - keep mask transition-only
 
 No new public primitive is needed here.
