@@ -446,9 +446,9 @@ Supported kinds:
 ### Common Mask Fields
 
 - `channel`
-- `softness`
 - `progress`
 - optional `invert`
+- `softness` for `single` and `composite` masks only
 
 ### `channel`
 
@@ -468,10 +468,15 @@ Defines how sharp or feathered the reveal edge is.
 - lower value: harder edge
 - higher value: softer edge
 
+`softness` is not valid for sequence masks. Sequence feathering should be
+authored into the sequence frame alpha.
+
 ### Sequence Masks
 
-`kind: sequence` uses an ordered set of mask frames over the same normalized
-`progress` timeline that drives the reveal.
+`kind: sequence` uses an ordered set of authored reveal frames over a normalized
+`progress` timeline. For sequence masks, `progress` chooses or interpolates the
+frame; the sampled frame value is then used directly as the next-visual reveal
+amount.
 
 ```yaml
 mask:
@@ -491,13 +496,13 @@ mask:
     - at: 1
       texture: "masks/c.png"
   channel: "alpha"
-  softness: 0.02
 ```
 
 Sequence rules:
 
-- `progress` controls both how much of the next visual is revealed and which
-  mask frame is sampled.
+- `progress` controls which mask frame is sampled.
+- the sampled sequence frame value directly controls how much of the next visual
+  is revealed.
 - `progress` is clamped to `0..1` at runtime.
 - `progress` may move forward or backward through keyframes.
 - `frames[].at` is a normalized point on the progress ruler.
@@ -508,6 +513,8 @@ Sequence rules:
 - the first frame must use `at: 0`.
 - the last frame must use `at: 1`.
 - `sample` defaults to `hold`.
+- sequence frame textures should include their own feathering/alpha softness;
+  `softness` is not valid on `kind: sequence`.
 
 ## Future Shader
 

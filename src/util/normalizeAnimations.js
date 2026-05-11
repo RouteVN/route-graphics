@@ -323,6 +323,11 @@ const normalizeMask = (mask, path) => {
         `${path}.textures is no longer supported. Use ${path}.frames with texture and at entries instead.`,
       );
     }
+    if (mask.softness !== undefined) {
+      throw new Error(
+        `${path}.softness is not valid for sequence masks. Author feathering into ${path}.frames[].texture instead.`,
+      );
+    }
 
     normalized.frames = normalizeSequenceFrames(mask.frames, `${path}.frames`);
 

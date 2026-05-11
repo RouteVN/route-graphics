@@ -994,6 +994,14 @@ describe("runReplaceAnimation", () => {
     dispatched.payload.applyFrame(500);
 
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const maskFilter = overlay.children[0].filters[0];
+
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+    ).toBe(0);
   });
 
   it("routes single alpha masks through the alpha preprocessing filter", () => {
@@ -1097,6 +1105,9 @@ describe("runReplaceAnimation", () => {
           maskFilter.resources.replaceMaskUniforms.uniforms.uMaskChannelWeights,
         ),
       ).toEqual([1, 0, 0, 0]);
+      expect(
+        maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+      ).toBe(0);
       expect(maskFilter.resources.uMaskTextureA).not.toBe(Texture.EMPTY.source);
       expect(maskFilter.resources.uMaskTextureB).not.toBe(Texture.EMPTY.source);
       expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
@@ -1479,6 +1490,14 @@ describe("runReplaceAnimation", () => {
     dispatched.payload.applyFrame(500);
 
     expect(app.renderer.extract.pixels).not.toHaveBeenCalled();
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const maskFilter = overlay.children[0].filters[0];
+
+    expect(
+      maskFilter.resources.replaceMaskUniforms.uniforms.uMaskDirectReveal,
+    ).toBe(1);
   });
 
   it("still preprocesses composite masks through the fallback path and applies top-level invert", () => {

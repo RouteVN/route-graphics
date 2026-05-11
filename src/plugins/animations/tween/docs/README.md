@@ -205,13 +205,14 @@ states:
             - at: 1
               texture: "masks/wipe-c.png"
           channel: "alpha"
-          softness: 0.02
 ```
 
-For sequence masks, `progress` drives both reveal amount and frame selection.
-`sample: hold` holds each frame until the next `at`, while `sample: linear`
-blends between adjacent frames. Sequence frames must start at `0`, end at `1`,
-and be sorted by unique `at` values.
+For sequence masks, `progress` drives frame selection. The sampled frame value
+directly controls the reveal amount. `sample: hold` holds each frame until the
+next `at`, while `sample: linear` blends between adjacent frames. Sequence
+frames must start at `0`, end at `1`, and be sorted by unique `at` values.
+Feathering belongs in the frame alpha; `softness` is not valid for sequence
+masks.
 
 ## Current Transition Rules
 

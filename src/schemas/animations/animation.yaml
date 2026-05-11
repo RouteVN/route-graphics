@@ -266,6 +266,7 @@ $defs:
               - required: [texture]
               - required: [items]
               - required: [combine]
+              - required: [softness]
       - if:
           properties:
             kind:

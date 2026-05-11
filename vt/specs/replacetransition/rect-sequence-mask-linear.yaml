@@ -3,7 +3,7 @@ title: Rect Sequence Mask Linear
 description: A same-id rect transition using linear sampling between sequence mask frames
 specs:
   - linear sequence sampling should blend adjacent frames instead of snapping to one mask texture
-  - both left and right reveal regions should be visible at 500ms
+  - the left reveal region should be visible at 500ms without flashing at the start
   - the transition should settle on the next rect fill by 1000ms
 steps:
   - action: keypress
@@ -48,12 +48,13 @@ states:
           kind: sequence
           frames:
             - at: 0
+              texture: mask-empty
+            - at: 0.5
               texture: mask-left-band
             - at: 1
-              texture: mask-right-band
+              texture: mask-full
           channel: alpha
           sample: linear
-          softness: 0.001
           progress:
             initialValue: 0
             keyframes:

@@ -203,6 +203,7 @@ uniform float uProgress;
 uniform float uSoftness;
 uniform float uMaskMix;
 uniform float uMaskInvert;
+uniform float uMaskDirectReveal;
 uniform vec4 uMaskChannelWeights;
 uniform vec4 uSecondaryClamp;
 
@@ -239,7 +240,12 @@ void main()
     vec2 secondaryUv = clamp(vSecondaryCoord, uSecondaryClamp.xy, uSecondaryClamp.zw);
     vec4 prevColor = texture(uTexture, uv);
     vec4 nextColor = texture(uNextTexture, secondaryUv);
-    float reveal = sampleReveal(sampleMaskValue(secondaryUv));
+    float maskValue = sampleMaskValue(secondaryUv);
+    float reveal = mix(
+        sampleReveal(maskValue),
+        clamp(maskValue, 0.0, 1.0),
+        clamp(uMaskDirectReveal, 0.0, 1.0)
+    );
 
     finalColor = mix(prevColor, nextColor, reveal);
 }
@@ -260,6 +266,7 @@ struct ReplaceMaskUniforms {
   uSoftness: f32,
   uMaskMix: f32,
   uMaskInvert: f32,
+  uMaskDirectReveal: f32,
   uMaskChannelWeights: vec4<f32>,
   uSecondaryMatrix: mat3x3<f32>,
   uSecondaryClamp: vec4<f32>,
@@ -348,7 +355,12 @@ fn mainFragment(
   );
   let prevColor = textureSample(uTexture, uSampler, clampedUv);
   let nextColor = textureSample(uNextTexture, uSampler, clampedSecondaryUv);
-  let reveal = sampleReveal(sampleMaskValue(clampedSecondaryUv));
+  let maskValue = sampleMaskValue(clampedSecondaryUv);
+  let reveal = mix(
+    sampleReveal(maskValue),
+    clamp(maskValue, 0.0, 1.0),
+    clamp(replaceMaskUniforms.uMaskDirectReveal, 0.0, 1.0),
+  );
 
   return mix(prevColor, nextColor, reveal);
 }
@@ -758,6 +770,10 @@ const createReplaceMaskFilter = () => {
       value: 0,
       type: "f32",
     },
+    uMaskDirectReveal: {
+      value: 0,
+      type: "f32",
+    },
     uMaskChannelWeights: {
       value: new Float32Array([1, 0, 0, 0]),
       type: "vec4<f32>",
@@ -920,6 +936,8 @@ const createMaskTextureController = (app, mask, width, height, filter) => {
       replaceMaskUniforms.uniforms.uSoftness = softness;
       replaceMaskUniforms.uniforms.uMaskMix = selection.mix;
       replaceMaskUniforms.uniforms.uMaskInvert = invert;
+      replaceMaskUniforms.uniforms.uMaskDirectReveal =
+        mask?.kind === "sequence" ? 1 : 0;
       replaceMaskUniforms.uniforms.uMaskChannelWeights = channelWeights;
       replaceMaskUniforms.update();
     },

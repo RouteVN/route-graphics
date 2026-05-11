@@ -170,15 +170,17 @@ mask:
     - at: 1
       texture: masks/c.png
   channel: alpha
-  softness: 0.02
 ```
 
-`progress` controls both reveal amount and frame selection. `frames[].at` marks
-where each frame sits on that `0..1` progress ruler. `sample: hold` holds each
-frame until the next `at`; `sample: linear` blends between adjacent frames.
+`progress` controls frame selection. The sampled frame value directly controls
+the reveal amount. `frames[].at` marks where each frame sits on that `0..1`
+progress ruler. `sample: hold` holds each frame until the next `at`;
+`sample: linear` blends between adjacent frames.
 
 Sequence masks require at least two frames, sorted by unique `at` values, with
 the first frame at `0` and the last frame at `1`. `sample` defaults to `hold`.
+Feathering belongs in the frame alpha; `softness` is not valid for sequence
+masks.
 
 ## Behavior Notes
 

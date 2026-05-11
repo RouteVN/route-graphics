@@ -2,8 +2,8 @@
 title: Rect Sequence Mask Nonuniform Linear
 description: A same-id rect transition using linear sampling between nonuniform sequence frame positions
 specs:
-  - linear sampling should interpolate from left to center over the short first span
-  - linear sampling should interpolate from center to right over the longer second span
+  - linear sampling should interpolate from empty to left-band over the short first span
+  - linear sampling should interpolate from left-band to full reveal over the longer second span
   - the transition should settle on the next rect fill after progress reaches 1
 steps:
   - action: keypress
@@ -53,14 +53,13 @@ states:
           kind: sequence
           frames:
             - at: 0
-              texture: mask-left-band
+              texture: mask-empty
             - at: 0.25
-              texture: mask-center-band
+              texture: mask-left-band
             - at: 1
-              texture: mask-right-band
+              texture: mask-full
           channel: alpha
           sample: linear
-          softness: 0.001
           progress:
             initialValue: 0
             keyframes:
