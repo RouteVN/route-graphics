@@ -2,7 +2,12 @@ import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
 import { queueDeferredVideoPlay } from "../renderContext.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
-import { syncBlurEffect } from "../util/blurEffect.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
 
 /**
  * Add video element to the stage
@@ -11,6 +16,8 @@ import { syncBlurEffect } from "../util/blurEffect.js";
 export const addVideo = ({
   parent,
   element,
+  animations,
+  animationBus,
   renderContext,
   completionTracker,
   zIndex,
@@ -37,7 +44,8 @@ export const addVideo = ({
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha ?? 1;
-  syncBlurEffect(sprite, element.blur);
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
 
   syncVideoPlaybackTracking({
     videoElement: sprite,
@@ -49,4 +57,21 @@ export const addVideo = ({
   queueDeferredVideoPlay(renderContext, video);
 
   parent.addChild(sprite);
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    animationBus,
+    completionTracker,
+    element: sprite,
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha: alpha ?? 1,
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+    },
+    renderContext,
+  });
 };

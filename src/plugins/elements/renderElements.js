@@ -158,7 +158,7 @@ export const renderElements = ({
       app,
       parent,
       element,
-      animations: [],
+      animations: animationsByTarget,
       animationBus,
       completionTracker,
       eventHandler,

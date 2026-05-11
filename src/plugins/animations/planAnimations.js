@@ -25,6 +25,10 @@ export const groupAnimationsByTarget = (animations = []) => {
 };
 
 export const getTargetAnimations = (animationsOrMap, targetId) => {
+  if (!animationsOrMap) {
+    return [];
+  }
+
   if (animationsOrMap instanceof Map) {
     return animationsOrMap.get(targetId) ?? [];
   }

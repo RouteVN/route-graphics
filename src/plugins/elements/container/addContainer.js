@@ -2,7 +2,12 @@ import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
 import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
 import { renderElements } from "../renderElements.js";
-import { syncBlurEffect } from "../util/blurEffect.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
 
 const hasDuplicateChildIds = (children = []) => {
   const seen = new Set();
@@ -83,7 +88,8 @@ export const addContainer = ({
   container.x = Math.round(x);
   container.y = Math.round(y);
   container.alpha = alpha;
-  syncBlurEffect(container, element.blur);
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(container, element.blur, { force: shouldForceBlur });
 
   parent.addChild(container);
 
@@ -133,5 +139,20 @@ export const addContainer = ({
     container,
     element,
     eventHandler,
+  });
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x,
+      y,
+      alpha,
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+    },
+    renderContext,
   });
 };

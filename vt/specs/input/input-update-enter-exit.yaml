@@ -1,0 +1,73 @@
+---
+title: Input Update Enter Exit
+description: An input using update animations when it is first added and before it is unmounted.
+specs:
+  - newly added input should fade in through an update animation
+  - removed input should fade out through an update animation before the DOM bridge unmounts it
+  - final state should contain no input
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: input-entered
+    elements:
+      - id: input1
+        type: input
+        x: 260
+        "y": 220
+        width: 420
+        height: 64
+        placeholder: Name
+        alpha: 1
+        textStyle:
+          fill: "#111111"
+          fontSize: 24
+          fontFamily: Arial
+    animations:
+      - id: input-update-enter
+        targetId: input1
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: input-removed
+    elements: []
+    animations:
+      - id: input-update-exit
+        targetId: input1
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

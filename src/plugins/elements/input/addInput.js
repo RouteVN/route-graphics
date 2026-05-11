@@ -1,4 +1,5 @@
 import { Container } from "pixi.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
   INPUT_RUNTIME,
   buildInputRuntime,
@@ -157,7 +158,17 @@ const createCallbacks = ({
   },
 });
 
-export const addInput = ({ app, parent, element, eventHandler, zIndex }) => {
+export const addInput = ({
+  app,
+  parent,
+  element,
+  animations,
+  animationBus,
+  completionTracker,
+  eventHandler,
+  renderContext,
+  zIndex,
+}) => {
   if (
     !app.inputDomBridge?.mount ||
     !app.inputDomBridge?.focus ||
@@ -319,6 +330,20 @@ export const addInput = ({ app, parent, element, eventHandler, zIndex }) => {
   });
 
   parent.addChild(container);
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x: element.x,
+      y: element.y,
+      alpha: element.alpha,
+    },
+    renderContext,
+  });
 };
 
 export default addInput;

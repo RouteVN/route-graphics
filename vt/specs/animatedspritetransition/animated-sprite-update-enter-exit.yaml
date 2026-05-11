@@ -1,0 +1,113 @@
+---
+title: Animated Sprite Update Enter Exit
+description: A spritesheet animation using update animations when it is first added and before it is removed.
+specs:
+  - newly added animated sprites should fade in through an update animation
+  - removed animated sprites should fade out through an update animation before being destroyed
+  - final state should contain no animated sprite
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite1"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite1"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite1"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: animated-sprite-entered
+    elements:
+      - id: animated-sprite1
+        type: spritesheet-animation
+        x: 360
+        "y": 160
+        width: 180
+        height: 180
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            format: RGBA8888
+            size:
+              w: 1024
+              h: 1024
+            scale: "1"
+        playback:
+          frames:
+            - 0
+          fps: 1
+          loop: true
+        alpha: 1
+    animations:
+      - id: animated-sprite-update-enter
+        targetId: animated-sprite1
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: animated-sprite-removed
+    elements: []
+    animations:
+      - id: animated-sprite-update-exit
+        targetId: animated-sprite1
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

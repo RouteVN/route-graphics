@@ -2,6 +2,7 @@ import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
 import { queueDeferredParticlesStart } from "../renderContext.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
@@ -109,6 +110,9 @@ export const addParticle = ({
   app,
   parent,
   element,
+  animations,
+  animationBus,
+  completionTracker,
   renderContext,
   zIndex,
 }) => {
@@ -221,4 +225,18 @@ export const addParticle = ({
   if (element.alpha !== undefined) {
     container.alpha = element.alpha;
   }
+
+  dispatchLiveAnimations({
+    animations,
+    targetId: element.id,
+    animationBus,
+    completionTracker,
+    element: container,
+    targetState: {
+      x: element.x ?? 0,
+      y: element.y ?? 0,
+      alpha: element.alpha ?? container.alpha,
+    },
+    renderContext,
+  });
 };

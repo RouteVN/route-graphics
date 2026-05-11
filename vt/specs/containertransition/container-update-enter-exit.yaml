@@ -1,0 +1,87 @@
+---
+title: Container Update Enter Exit
+description: A container using update animations when it is first added and before it is removed.
+specs:
+  - newly added container should fade in with its children
+  - removed container should fade out with its children before being destroyed
+  - final state should contain no container
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: container-entered
+    elements:
+      - id: container1
+        type: container
+        x: 220
+        "y": 160
+        width: 520
+        height: 220
+        direction: horizontal
+        gapX: 24
+        gapY: 0
+        alpha: 1
+        children:
+          - id: child1
+            type: rect
+            width: 150
+            height: 180
+            fill: "#FFFFFF"
+          - id: child2
+            type: rect
+            width: 150
+            height: 180
+            fill: "#A6A6A6"
+          - id: child3
+            type: rect
+            width: 150
+            height: 180
+            fill: "#FFFFFF"
+    animations:
+      - id: container-update-enter
+        targetId: container1
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: container-removed
+    elements: []
+    animations:
+      - id: container-update-exit
+        targetId: container1
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

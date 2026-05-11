@@ -91,16 +91,15 @@ Use it for:
 - fading a persistent element
 - scaling a portrait in place
 - changing properties on an already-mounted element
-- only when the same target persists across the state change
+- simple "in" animations on a newly mounted live element
+- simple "out" animations before a live element is removed
 
 Do not use `update` for:
 
-- first show / enter
-- final hide / exit
 - prev/next replacement handoffs
 
-Higher-level adapters should reject those cases and require `transition`
-instead.
+Use `transition` instead when the animation needs a previous/next visual
+handoff, including masked reveals, dissolves, exits, and replacements.
 
 `update` supports:
 
