@@ -441,14 +441,13 @@ Supported kinds:
 
 - `single`
 - `sequence`
-- `composite`
 
 ### Common Mask Fields
 
 - `channel`
 - `progress`
 - optional `invert`
-- `softness` for `single` and `composite` masks only
+- `softness` for `single` masks only
 
 ### `channel`
 

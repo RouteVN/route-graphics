@@ -601,6 +601,20 @@ in:
             - masks/b.png
 throws: "animations[0].mask.textures is no longer supported. Use animations[0].mask.frames with texture and at entries instead."
 ---
+case: Throw when transition mask uses composite kind
+in:
+  - id: state-3c-composite-mask
+    animations:
+      - id: anim-composite-mask
+        targetId: scene-root
+        type: transition
+        mask:
+          kind: composite
+          items:
+            - texture: masks/a.png
+            - texture: masks/b.png
+throws: "animations[0].mask.kind must be one of: single, sequence."
+---
 case: Throw when sequence mask uses softness
 in:
   - id: state-3c-sequence-softness

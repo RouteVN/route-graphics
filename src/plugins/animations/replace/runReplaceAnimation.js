@@ -448,121 +448,6 @@ fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
 }
 `;
 
-const createCanvasContext = (width, height) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  if (!context) {
-    throw new Error("Replace mask composition could not create a 2D canvas.");
-  }
-
-  return {
-    canvas,
-    context,
-  };
-};
-
-const readChannelValue = (pixelData, offset, channel = "red") => {
-  switch (channel) {
-    case "green":
-      return pixelData[offset + 1];
-    case "blue":
-      return pixelData[offset + 2];
-    case "alpha":
-      return pixelData[offset + 3];
-    default:
-      return pixelData[offset];
-  }
-};
-
-const extractMaskPixelsFromTexture = ({
-  app,
-  texture,
-  width,
-  height,
-  channel = "red",
-  invert = false,
-}) => {
-  const values = new Uint8ClampedArray(width * height);
-  const maskSprite = new Sprite(Texture.from(texture));
-  maskSprite.width = width;
-  maskSprite.height = height;
-
-  const maskContainer = new Container();
-  maskContainer.addChild(maskSprite);
-
-  const maskRenderTexture = RenderTexture.create({
-    width,
-    height,
-  });
-
-  app.renderer.render({
-    container: maskContainer,
-    target: maskRenderTexture,
-    clear: true,
-  });
-
-  const imageData = app.renderer.extract.pixels(maskRenderTexture).pixels;
-
-  for (let index = 0, offset = 0; index < values.length; index++, offset += 4) {
-    let value = readChannelValue(imageData, offset, channel);
-
-    if (invert) {
-      value = 255 - value;
-    }
-
-    values[index] = value;
-  }
-
-  maskContainer.destroy({ children: true });
-  maskRenderTexture.destroy(true);
-
-  return values;
-};
-
-const buildCompositeMaskPixels = (app, mask, width, height) => {
-  let combined = null;
-
-  for (const item of mask.items) {
-    const current = extractMaskPixelsFromTexture({
-      app,
-      texture: item.texture,
-      width,
-      height,
-      channel: item.channel ?? "red",
-      invert: item.invert ?? false,
-    });
-
-    if (!combined) {
-      combined = current;
-      continue;
-    }
-
-    for (let index = 0; index < combined.length; index++) {
-      switch (mask.combine ?? "max") {
-        case "min":
-          combined[index] = Math.min(combined[index], current[index]);
-          break;
-        case "multiply":
-          combined[index] = Math.round(
-            (combined[index] / 255) * (current[index] / 255) * 255,
-          );
-          break;
-        case "add":
-          combined[index] = Math.min(255, combined[index] + current[index]);
-          break;
-        default:
-          combined[index] = Math.max(combined[index], current[index]);
-          break;
-      }
-    }
-  }
-
-  return combined ?? new Uint8ClampedArray(width * height);
-};
-
 const createMaskChannelWeights = (channel = "red") => {
   switch (channel) {
     case "green":
@@ -663,23 +548,6 @@ const renderMaskTextureToRenderTexture = ({
   return maskRenderTexture;
 };
 
-const createMaskTextureFromPixels = (width, height, pixels) => {
-  const { canvas, context } = createCanvasContext(width, height);
-  const imageData = context.createImageData(width, height);
-  const output = imageData.data;
-
-  for (let index = 0, offset = 0; index < pixels.length; index++, offset += 4) {
-    const value = pixels[index];
-    output[offset] = value;
-    output[offset + 1] = value;
-    output[offset + 2] = value;
-    output[offset + 3] = 255;
-  }
-
-  context.putImageData(imageData, 0, 0);
-  return Texture.from(canvas);
-};
-
 const createMaskTextures = (app, mask, width, height) => {
   if (!mask) {
     return {
@@ -734,22 +602,7 @@ const createMaskTextures = (app, mask, width, height) => {
     };
   }
 
-  const texture = createMaskTextureFromPixels(
-    width,
-    height,
-    buildCompositeMaskPixels(app, mask, width, height),
-  );
-
-  return {
-    textures: [texture.source],
-    channelWeights: OUTPUT_MASK_CHANNEL_WEIGHTS,
-    invert: mask.invert ? 1 : 0,
-    destroy: () => {
-      if (!texture.destroyed) {
-        texture.destroy(true);
-      }
-    },
-  };
+  throw new Error(`Unsupported replace mask kind: ${mask.kind}.`);
 };
 
 const createReplaceMaskFilter = () => {

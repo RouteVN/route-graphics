@@ -141,7 +141,6 @@ prev:
 
 - `single`
 - `sequence`
-- `composite`
 
 Supported mask channels:
 

@@ -20,9 +20,8 @@ const TRANSITION_TWEEN_PROPERTIES = new Set([
   "scaleY",
   "rotation",
 ]);
-const MASK_KINDS = new Set(["single", "sequence", "composite"]);
+const MASK_KINDS = new Set(["single", "sequence"]);
 const MASK_CHANNELS = new Set(["red", "green", "blue", "alpha"]);
-const MASK_COMBINE_MODES = new Set(["max", "min", "multiply", "add"]);
 const MASK_SEQUENCE_SAMPLE_MODES = new Set(["hold", "linear"]);
 const SUPPORTED_EASINGS = new Set(SUPPORTED_EASING_NAMES);
 
@@ -194,27 +193,6 @@ const normalizeTweenMap = (
   return Object.fromEntries(normalizedEntries);
 };
 
-const normalizeMaskResource = (maskItem, path) => {
-  assertPlainObject(maskItem, path);
-  assertString(maskItem.texture, `${path}.texture`);
-
-  if (maskItem.channel !== undefined && !MASK_CHANNELS.has(maskItem.channel)) {
-    throw new Error(
-      `${path}.channel must be one of: ${Array.from(MASK_CHANNELS).join(", ")}.`,
-    );
-  }
-
-  if (maskItem.invert !== undefined && typeof maskItem.invert !== "boolean") {
-    throw new Error(`${path}.invert must be a boolean.`);
-  }
-
-  return {
-    texture: maskItem.texture,
-    ...(maskItem.channel ? { channel: maskItem.channel } : {}),
-    ...(maskItem.invert !== undefined ? { invert: maskItem.invert } : {}),
-  };
-};
-
 const normalizeSequenceFrame = (frame, path) => {
   assertPlainObject(frame, path);
   assertString(frame.texture, `${path}.texture`);
@@ -302,6 +280,12 @@ const normalizeMask = (mask, path) => {
     if (mask.sample !== undefined) {
       throw new Error(`${path}.sample is only valid for sequence masks.`);
     }
+    if (mask.items !== undefined) {
+      throw new Error(`${path}.items is not supported.`);
+    }
+    if (mask.combine !== undefined) {
+      throw new Error(`${path}.combine is not supported.`);
+    }
     assertString(mask.texture, `${path}.texture`);
     normalized.texture = mask.texture;
   }
@@ -313,10 +297,10 @@ const normalizeMask = (mask, path) => {
       );
     }
     if (mask.items !== undefined) {
-      throw new Error(`${path}.items is only valid for composite masks.`);
+      throw new Error(`${path}.items is not supported.`);
     }
     if (mask.combine !== undefined) {
-      throw new Error(`${path}.combine is only valid for composite masks.`);
+      throw new Error(`${path}.combine is not supported.`);
     }
     if (mask.textures !== undefined) {
       throw new Error(
@@ -341,29 +325,6 @@ const normalizeMask = (mask, path) => {
     }
 
     normalized.sample = mask.sample ?? "hold";
-  }
-
-  if (mask.kind === "composite") {
-    if (mask.frames !== undefined) {
-      throw new Error(`${path}.frames is only valid for sequence masks.`);
-    }
-    if (mask.sample !== undefined) {
-      throw new Error(`${path}.sample is only valid for sequence masks.`);
-    }
-    if (!MASK_COMBINE_MODES.has(mask.combine ?? "max")) {
-      throw new Error(
-        `${path}.combine must be one of: ${Array.from(MASK_COMBINE_MODES).join(", ")}.`,
-      );
-    }
-
-    if (!Array.isArray(mask.items) || mask.items.length === 0) {
-      throw new Error(`${path}.items must be a non-empty array.`);
-    }
-
-    normalized.combine = mask.combine ?? "max";
-    normalized.items = mask.items.map((item, index) =>
-      normalizeMaskResource(item, `${path}.items[${index}]`),
-    );
   }
 
   if (!normalized.progress) {

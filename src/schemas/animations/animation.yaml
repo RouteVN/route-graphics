@@ -177,19 +177,6 @@ $defs:
     additionalProperties: false
   maskProgress:
     $ref: "#/$defs/tweenProperty"
-  compositeMaskItem:
-    type: object
-    required:
-      - texture
-    properties:
-      texture:
-        type: string
-      channel:
-        type: string
-        enum: [red, green, blue, alpha]
-      invert:
-        type: boolean
-    additionalProperties: false
   sequenceMaskFrame:
     type: object
     required:
@@ -211,7 +198,7 @@ $defs:
     properties:
       kind:
         type: string
-        enum: [single, sequence, composite]
+        enum: [single, sequence]
       texture:
         type: string
       frames:
@@ -219,14 +206,6 @@ $defs:
         minItems: 2
         items:
           $ref: "#/$defs/sequenceMaskFrame"
-      items:
-        type: array
-        minItems: 1
-        items:
-          $ref: "#/$defs/compositeMaskItem"
-      combine:
-        type: string
-        enum: [max, min, multiply, add]
       channel:
         type: string
         enum: [red, green, blue, alpha]
@@ -251,8 +230,6 @@ $defs:
           not:
             anyOf:
               - required: [frames]
-              - required: [items]
-              - required: [combine]
               - required: [sample]
       - if:
           properties:
@@ -264,21 +241,7 @@ $defs:
           not:
             anyOf:
               - required: [texture]
-              - required: [items]
-              - required: [combine]
               - required: [softness]
-      - if:
-          properties:
-            kind:
-              const: composite
-        then:
-          required:
-            - items
-          not:
-            anyOf:
-              - required: [texture]
-              - required: [frames]
-              - required: [sample]
   playback:
     type: object
     required:
