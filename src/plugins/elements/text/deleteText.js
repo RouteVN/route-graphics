@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { clearTextInteractions } from "./textInteractions.js";
 
 /**
  * Delete text element (synchronous)
@@ -24,15 +25,15 @@ export const deleteText = ({
     targetState: null,
     onComplete: () => {
       if (text && !text.destroyed) {
-        text._cleanupScrollInteraction?.();
-        text.destroy();
+        clearTextInteractions(text);
+        text.destroy({ children: true });
       }
     },
   });
 
   if (!dispatched) {
     // No animation, destroy immediately
-    text._cleanupScrollInteraction?.();
-    text.destroy();
+    clearTextInteractions(text);
+    text.destroy({ children: true });
   }
 };

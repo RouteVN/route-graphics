@@ -1,23 +1,83 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
-import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { positionTextInLayoutBox, syncTextAnchorRatios } from "./textLayout.js";
 import {
-  getTextLayoutPosition,
-  applyInteractiveTextStyle,
-  positionTextInLayoutBox,
-  syncTextAnchorRatios,
-} from "./textLayout.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+  applyTextDisplayStyle,
+  createTextDisplayObject,
+  getTextAnimationTargetState,
+} from "./addText.js";
 import {
-  clearInheritedHoverTarget,
-  clearInheritedPressTarget,
-  clearInheritedRightPressTarget,
-  createHoverStateController,
-  createPressStateController,
-  createRightPressStateController,
-} from "../util/hoverInheritance.js";
-import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+  isRichTextComputedNode,
+  isRichTextDisplayObject,
+  renderRichTextDisplayObject,
+} from "./richTextDisplay.js";
+import {
+  bindTextInteractions,
+  clearTextInteractions,
+} from "./textInteractions.js";
+
+const displayKindChanged = (displayObject, textComputedNode) =>
+  isRichTextDisplayObject(displayObject) !==
+  isRichTextComputedNode(textComputedNode);
+
+const replaceTextDisplayObject = ({
+  app,
+  parent,
+  displayObject,
+  textComputedNode,
+  eventHandler,
+  zIndex,
+}) => {
+  clearTextInteractions(displayObject);
+
+  const replacement = createTextDisplayObject(textComputedNode, zIndex);
+
+  bindTextInteractions({
+    app,
+    displayObject: replacement,
+    textComputedNode,
+    eventHandler,
+    applyStyle: (overrideStyle) =>
+      applyTextDisplayStyle(replacement, textComputedNode, overrideStyle),
+  });
+
+  parent.addChild(replacement);
+  displayObject.destroy({ children: true });
+
+  return replacement;
+};
+
+const updatePlainTextDisplayObject = (displayObject, textComputedNode) => {
+  displayObject.text = textComputedNode.content;
+  applyTextStyle(displayObject, textComputedNode.textStyle);
+  syncTextAnchorRatios(displayObject, textComputedNode);
+  positionTextInLayoutBox(displayObject, textComputedNode);
+  displayObject.alpha = textComputedNode.alpha;
+};
+
+const updateTextDisplayObject = ({
+  displayObject,
+  textComputedNode,
+  app,
+  eventHandler,
+}) => {
+  if (isRichTextComputedNode(textComputedNode)) {
+    renderRichTextDisplayObject(displayObject, textComputedNode);
+  } else {
+    updatePlainTextDisplayObject(displayObject, textComputedNode);
+  }
+
+  clearTextInteractions(displayObject);
+  bindTextInteractions({
+    app,
+    displayObject,
+    textComputedNode,
+    eventHandler,
+    applyStyle: (overrideStyle) =>
+      applyTextDisplayStyle(displayObject, textComputedNode, overrideStyle),
+  });
+};
 
 /**
  * Update text element (synchronous)
@@ -34,7 +94,7 @@ export const updateText = ({
   completionTracker,
   zIndex,
 }) => {
-  const textElement = parent.children.find(
+  let textElement = parent.children.find(
     (child) => child.label === prevTextComputedNode.id,
   );
 
@@ -42,212 +102,29 @@ export const updateText = ({
 
   textElement.zIndex = zIndex;
 
-  const { alpha } = nextTextComputedNode;
-
   const updateElement = () => {
-    if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
-      textElement._cleanupScrollInteraction?.();
-      textElement.text = nextTextComputedNode.content;
-      applyTextStyle(textElement, nextTextComputedNode.textStyle);
-      syncTextAnchorRatios(textElement, nextTextComputedNode);
-
-      positionTextInLayoutBox(textElement, nextTextComputedNode);
-      textElement.alpha = alpha;
-
-      textElement.removeAllListeners("pointerover");
-      textElement.removeAllListeners("pointerout");
-      textElement.removeAllListeners("pointerdown");
-      textElement.removeAllListeners("pointerupoutside");
-      textElement.removeAllListeners("pointerup");
-      textElement.removeAllListeners("rightdown");
-      textElement.removeAllListeners("rightclick");
-      textElement.removeAllListeners("rightup");
-      textElement.removeAllListeners("rightupoutside");
-      textElement.removeAllListeners("wheel");
-      clearInheritedHoverTarget(textElement);
-      clearInheritedPressTarget(textElement);
-      clearInheritedRightPressTarget(textElement);
-
-      const hoverEvents = nextTextComputedNode?.hover;
-      const clickEvents = nextTextComputedNode?.click;
-      const rightClickEvents = nextTextComputedNode?.rightClick;
-      const scrollUpEvent = nextTextComputedNode?.scrollUp;
-      const scrollDownEvent = nextTextComputedNode?.scrollDown;
-
-      let hoverController = null;
-      let pressController = null;
-      let rightPressController = null;
-
-      const updateTextStyle = () => {
-        const isHovering = hoverController?.isHovering() ?? false;
-        const isPressed = pressController?.isPressed() ?? false;
-        const isRightPressed = rightPressController?.isPressed() ?? false;
-
-        if (isRightPressed && rightClickEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            rightClickEvents.textStyle,
-          );
-        } else if (isPressed && clickEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            clickEvents.textStyle,
-          );
-        } else if (isHovering && hoverEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            hoverEvents.textStyle,
-          );
-        } else {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-          );
-        }
-      };
-
-      if (hoverEvents) {
-        const { cursor, soundSrc, payload } = hoverEvents;
-        textElement.eventMode = "static";
-        hoverController = createHoverStateController({
-          displayObject: textElement,
-          onHoverChange: updateTextStyle,
-        });
-
-        const overListener = () => {
-          hoverController.setDirectHover(true);
-          if (payload && eventHandler)
-            eventHandler(`hover`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          if (cursor) textElement.cursor = cursor;
-          if (soundSrc)
-            app.audioStage.add({
-              id: `hover-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-        };
-
-        const outListener = () => {
-          hoverController.setDirectHover(false);
-          textElement.cursor = "auto";
-        };
-
-        textElement.on("pointerover", overListener);
-        textElement.on("pointerout", outListener);
-      }
-
-      if (clickEvents) {
-        const { soundSrc, soundVolume, payload } = clickEvents;
-        textElement.eventMode = "static";
-        pressController = createPressStateController({
-          displayObject: textElement,
-          onPressChange: updateTextStyle,
-        });
-
-        const clickListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          pressController.setDirectPress(true);
-        };
-
-        const releaseListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          pressController.setDirectPress(false);
-
-          if (payload && eventHandler)
-            eventHandler(`click`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `click-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-              volume: normalizeVolume(soundVolume),
-            });
-        };
-
-        const outListener = () => {
-          pressController.setDirectPress(false);
-        };
-
-        textElement.on("pointerdown", clickListener);
-        textElement.on("pointerup", releaseListener);
-        textElement.on("pointerupoutside", outListener);
-      }
-
-      if (rightClickEvents) {
-        const { soundSrc, payload } = rightClickEvents;
-        textElement.eventMode = "static";
-        rightPressController = createRightPressStateController({
-          displayObject: textElement,
-          onPressChange: updateTextStyle,
-        });
-
-        const rightPressListener = () => {
-          rightPressController.setDirectPress(true);
-        };
-
-        const rightReleaseListener = () => {
-          rightPressController.setDirectPress(false);
-        };
-
-        const rightClickListener = () => {
-          rightPressController.setDirectPress(false);
-
-          if (payload && eventHandler) {
-            eventHandler(`rightClick`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          }
-          if (soundSrc) {
-            app.audioStage.add({
-              id: `rightClick-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-          }
-        };
-
-        const rightOutListener = () => {
-          rightPressController.setDirectPress(false);
-        };
-
-        textElement.on("rightdown", rightPressListener);
-        textElement.on("rightup", rightReleaseListener);
-        textElement.on("rightclick", rightClickListener);
-        textElement.on("rightupoutside", rightOutListener);
-      }
-
-      if (scrollUpEvent || scrollDownEvent) {
-        setupScrollInteraction({
-          canvas: app.canvas,
-          displayObject: textElement,
-          scrollUpEvent,
-          scrollDownEvent,
-          eventHandler,
-        });
-      }
+    if (isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
+      return;
     }
+
+    if (displayKindChanged(textElement, nextTextComputedNode)) {
+      textElement = replaceTextDisplayObject({
+        app,
+        parent,
+        displayObject: textElement,
+        textComputedNode: nextTextComputedNode,
+        eventHandler,
+        zIndex,
+      });
+      return;
+    }
+
+    updateTextDisplayObject({
+      displayObject: textElement,
+      textComputedNode: nextTextComputedNode,
+      app,
+      eventHandler,
+    });
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -256,17 +133,13 @@ export const updateText = ({
     animationBus,
     completionTracker,
     element: textElement,
-    targetState: {
-      ...getTextLayoutPosition(nextTextComputedNode),
-      alpha,
-    },
+    targetState: getTextAnimationTargetState(nextTextComputedNode),
     onComplete: () => {
       updateElement();
     },
   });
 
   if (!dispatched) {
-    // No animations, update immediately
     updateElement();
   }
 };

@@ -1,0 +1,112 @@
+---
+title: Rich Text Segments
+description: |
+  Text fill and segment styling are the behavior under test, so grayscale segment fills are used intentionally.
+specs:
+  - text content arrays should render multiple styled inline segments
+  - fixed-width rich text should wrap and align inside the configured text box
+  - updating from plain string text to rich text should replace the runtime display object cleanly
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: rich-line-box
+        type: rect
+        x: 36
+        "y": 36
+        width: 420
+        height: 64
+        fill: "#4D4D4D"
+      - id: rich-line
+        type: text
+        x: 56
+        "y": 50
+        width: 380
+        textStyle:
+          fontSize: 30
+          fontFamily: Arial
+          fill: "#FFFFFF"
+        content:
+          - text: "HP"
+          - text: "42"
+            textStyle:
+              fill: "#D9D9D9"
+              fontWeight: bold
+          - text: "OK"
+            textStyle:
+              fill: "#A6A6A6"
+      - id: rich-wrap-box
+        type: rect
+        x: 36
+        "y": 132
+        width: 240
+        height: 142
+        fill: "#4D4D4D"
+      - id: rich-wrap
+        type: text
+        x: 56
+        "y": 148
+        width: 200
+        textStyle:
+          fontSize: 26
+          fontFamily: Arial
+          fill: "#FFFFFF"
+          align: center
+          lineHeight: 1.25
+          breakWords: true
+        content:
+          - text: "STATICSTATIC"
+          - text: "RICHSEGMENT"
+            textStyle:
+              fill: "#D9D9D9"
+              fontWeight: bold
+          - text: "TEXTBLOCK"
+            textStyle:
+              fill: "#A6A6A6"
+  - elements:
+      - id: rich-line-box
+        type: rect
+        x: 36
+        "y": 36
+        width: 420
+        height: 64
+        fill: "#4D4D4D"
+      - id: rich-line
+        type: text
+        x: 56
+        "y": 50
+        width: 380
+        textStyle:
+          fontSize: 30
+          fontFamily: Arial
+          fill: "#FFFFFF"
+        content: "Plain string"
+      - id: rich-wrap-box
+        type: rect
+        x: 36
+        "y": 132
+        width: 240
+        height: 142
+        fill: "#4D4D4D"
+      - id: rich-wrap
+        type: text
+        x: 56
+        "y": 148
+        width: 200
+        textStyle:
+          fontSize: 26
+          fontFamily: Arial
+          fill: "#FFFFFF"
+          align: center
+          lineHeight: 1.25
+          breakWords: true
+        content:
+          - text: "UPDATEDSTATIC"
+          - text: "RICHSEGMENTS"
+            textStyle:
+              fill: "#D9D9D9"
+              fontWeight: bold

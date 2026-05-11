@@ -75,6 +75,45 @@ $def:
         description: Text stroke/outline width
       shadow:
         "$ref": "#/$def/textShadow"
+  textChunk:
+    type: object
+    properties:
+      y:
+        type: number
+        description: Y position of the line
+      lineParts:
+        type: array
+        description: Array of rich text parts in this line
+        items:
+          type: object
+          properties:
+            text:
+              type: string
+              description: The text content
+            textStyle:
+              "$ref": "#/$def/textStyle"
+            x:
+              type: number
+              description: Horizontal position
+            y:
+              type: number
+              description: Vertical position
+            furigana:
+              type: object
+              properties:
+                text:
+                  type: string
+                textStyle:
+                  "$ref": "#/$def/textStyle"
+                x:
+                  type: number
+                  description: Horizontal position relative to the parent text part
+                y:
+                  type: number
+                  description: Vertical position relative to the parent text part
+      lineMaxHeight:
+        type: number
+        description: Maximum height of text in this line
 required:
   - id
   - type
@@ -95,8 +134,12 @@ properties:
     const: text
     description: Element type, must be 'text'
   content:
-    type: string
-    description: The text content to display
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          "$ref": "#/$def/textChunk"
+    description: The text content to display. String content stays a single text object; array content is parsed into rich text lines.
   width:
     type: number
     description: Layout width of the text box. When input width is provided, this matches that fixed width.

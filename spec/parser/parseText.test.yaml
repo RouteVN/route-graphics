@@ -122,6 +122,97 @@ out:
     strokeWidth: 0
     wordWrapWidth: 200
 ---
+case: Test parsing text with rich content segments
+in:
+  - state:
+      id: rich-text
+      type: text
+      content:
+        - text: HP
+        - text: '42'
+          textStyle:
+            fill: '#D9D9D9'
+            fontWeight: bold
+        - text: OK
+          textStyle:
+            fill: '#A6A6A6'
+      x: 100
+      'y': 50
+      width: 260
+      textStyle:
+        fontSize: 24
+        fontFamily: Arial
+        fill: '#FFFFFF'
+out:
+  id: rich-text
+  type: text
+  width: 260
+  height: 29
+  x: 100
+  'y': 50
+  originX: 0
+  originY: 0
+  alpha: 1
+  content:
+    - lineParts:
+        - text: HP
+          textStyle:
+            fill: '#FFFFFF'
+            fontFamily: Arial
+            fontSize: 24
+            align: left
+            lineHeight: 29
+            wordWrap: true
+            breakWords: false
+            strokeColor: transparent
+            strokeWidth: 0
+            wordWrapWidth: 260
+          x: 0
+          'y': 0
+        - text: '42'
+          textStyle:
+            fill: '#D9D9D9'
+            fontFamily: Arial
+            fontSize: 24
+            align: left
+            lineHeight: 29
+            wordWrap: true
+            breakWords: false
+            strokeColor: transparent
+            strokeWidth: 0
+            wordWrapWidth: 226
+            fontWeight: bold
+          x: 34
+          'y': 0
+        - text: OK
+          textStyle:
+            fill: '#A6A6A6'
+            fontFamily: Arial
+            fontSize: 24
+            align: left
+            lineHeight: 29
+            wordWrap: true
+            breakWords: false
+            strokeColor: transparent
+            strokeWidth: 0
+            wordWrapWidth: 199
+          x: 61
+          'y': 0
+      'y': 0
+      lineMaxHeight: 29
+  measuredWidth: 96
+  textStyle:
+    fill: '#FFFFFF'
+    fontFamily: Arial
+    fontSize: 24
+    align: left
+    lineHeight: 29
+    wordWrap: true
+    breakWords: false
+    strokeColor: transparent
+    strokeWidth: 0
+    wordWrapWidth: 260
+---
 case: Test parsing simple text object with no textStyle
 in:
   - state:
