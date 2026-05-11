@@ -1,10 +1,10 @@
 ---
-title: Rect Sequence Mask Linear
-description: A same-id rect transition using linear sampling between sequence mask frames
+title: Rect Sequence Mask Nonuniform Hold
+description: A same-id rect transition using hold sampling with nonuniform sequence frame positions
 specs:
-  - linear sequence sampling should blend adjacent frames instead of snapping to one mask texture
-  - both left and right reveal regions should be visible at 500ms
-  - the transition should settle on the next rect fill by 1000ms
+  - hold sampling should keep the first frame until progress reaches the next authored at value
+  - nonuniform frame positions should delay the center-band reveal until late progress
+  - the transition should settle on the next rect fill after progress reaches 1
 steps:
   - action: keypress
     key: "n"
@@ -16,11 +16,16 @@ steps:
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 500
+      deltaMS: 350
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 150
   - action: screenshot
 ---
 states:
-  - id: sequence-linear-start
+  - id: sequence-hold-nonuniform-start
     elements:
       - id: rect1
         type: rect
@@ -30,7 +35,7 @@ states:
         height: 480
         fill: "#F2F2F2"
         alpha: 1
-  - id: sequence-linear-end
+  - id: sequence-hold-nonuniform-end
     elements:
       - id: rect1
         type: rect
@@ -41,7 +46,7 @@ states:
         fill: "#4D4D4D"
         alpha: 1
     animations:
-      - id: rect-sequence-linear
+      - id: rect-sequence-hold-nonuniform
         targetId: rect1
         type: transition
         mask:
@@ -49,11 +54,12 @@ states:
           frames:
             - at: 0
               texture: mask-left-band
+            - at: 0.8
+              texture: mask-center-band
             - at: 1
               texture: mask-right-band
           channel: alpha
-          sample: linear
-          softness: 0.001
+          softness: 0.01
           progress:
             initialValue: 0
             keyframes:

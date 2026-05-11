@@ -101,28 +101,42 @@ describe("runReplaceAnimation", () => {
     expect(blackEndReveal).toBe(1);
   });
 
-  it("selects adjacent sequence mask frames for linear sampling", () => {
+  it("selects sequence mask frames from explicit progress positions", () => {
+    const frames = [{ at: 0 }, { at: 0.25 }, { at: 1 }];
+
     expect(
       selectSequenceMaskFrameState({
         progress: 0.5,
-        frameCount: 2,
+        frames,
         sampleMode: "linear",
       }),
     ).toEqual({
-      fromIndex: 0,
-      toIndex: 1,
-      mix: 0.5,
+      fromIndex: 1,
+      toIndex: 2,
+      mix: 1 / 3,
     });
 
     expect(
       selectSequenceMaskFrameState({
         progress: 0.74,
-        frameCount: 3,
+        frames,
         sampleMode: "hold",
       }),
     ).toEqual({
       fromIndex: 1,
       toIndex: 1,
+      mix: 0,
+    });
+
+    expect(
+      selectSequenceMaskFrameState({
+        progress: 1.2,
+        frames,
+        sampleMode: "linear",
+      }),
+    ).toEqual({
+      fromIndex: 2,
+      toIndex: 2,
       mix: 0,
     });
   });
@@ -1432,7 +1446,10 @@ describe("runReplaceAnimation", () => {
         type: "transition",
         mask: {
           kind: "sequence",
-          textures: [leftMask, rightMask],
+          frames: [
+            { at: 0, texture: leftMask },
+            { at: 1, texture: rightMask },
+          ],
           channel: "alpha",
           sample: "linear",
           invert: true,

@@ -468,6 +468,47 @@ Defines how sharp or feathered the reveal edge is.
 - lower value: harder edge
 - higher value: softer edge
 
+### Sequence Masks
+
+`kind: sequence` uses an ordered set of mask frames over the same normalized
+`progress` timeline that drives the reveal.
+
+```yaml
+mask:
+  kind: "sequence"
+  progress:
+    initialValue: 0
+    keyframes:
+      - duration: 1000
+        value: 1
+        easing: "linear"
+  sample: "linear"
+  frames:
+    - at: 0
+      texture: "masks/a.png"
+    - at: 0.5
+      texture: "masks/b.png"
+    - at: 1
+      texture: "masks/c.png"
+  channel: "alpha"
+  softness: 0.02
+```
+
+Sequence rules:
+
+- `progress` controls both how much of the next visual is revealed and which
+  mask frame is sampled.
+- `progress` is clamped to `0..1` at runtime.
+- `progress` may move forward or backward through keyframes.
+- `frames[].at` is a normalized point on the progress ruler.
+- `sample: hold` holds a frame from its `at` point until the next frame.
+- `sample: linear` blends between adjacent frames.
+- `frames` must contain at least two entries.
+- `frames` must be sorted by ascending unique `at` values.
+- the first frame must use `at: 0`.
+- the last frame must use `at: 1`.
+- `sample` defaults to `hold`.
+
 ## Future Shader
 
 If shader support comes back later, it should be `transition`-only.

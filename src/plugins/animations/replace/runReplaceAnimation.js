@@ -699,10 +699,10 @@ const createMaskTextures = (app, mask, width, height) => {
   }
 
   if (mask.kind === "sequence") {
-    const textures = mask.textures.map((texture) =>
+    const textures = mask.frames.map((frame) =>
       renderMaskTextureToRenderTexture({
         app,
-        texture,
+        texture: frame.texture,
         width,
         height,
         channelWeights: createMaskChannelWeights(mask.channel ?? "red"),
@@ -803,10 +803,10 @@ const createReplaceMaskFilter = () => {
 
 export const selectSequenceMaskFrameState = ({
   progress = 0,
-  frameCount = 0,
+  frames = [],
   sampleMode = "hold",
 } = {}) => {
-  if (frameCount <= 1) {
+  if (frames.length <= 1) {
     return {
       fromIndex: 0,
       toIndex: 0,
@@ -814,20 +814,57 @@ export const selectSequenceMaskFrameState = ({
     };
   }
 
-  const scaled = clamp01(progress) * Math.max(0, frameCount - 1);
+  const clampedProgress = clamp01(progress);
 
   if (sampleMode === "linear") {
-    const fromIndex = Math.floor(scaled);
-    const toIndex = Math.min(frameCount - 1, fromIndex + 1);
+    if (clampedProgress <= frames[0].at) {
+      return {
+        fromIndex: 0,
+        toIndex: 0,
+        mix: 0,
+      };
+    }
+
+    const lastIndex = frames.length - 1;
+    if (clampedProgress >= frames[lastIndex].at) {
+      return {
+        fromIndex: lastIndex,
+        toIndex: lastIndex,
+        mix: 0,
+      };
+    }
+
+    for (let index = 0; index < frames.length - 1; index++) {
+      const currentFrame = frames[index];
+      const nextFrame = frames[index + 1];
+
+      if (clampedProgress <= nextFrame.at) {
+        const span = nextFrame.at - currentFrame.at;
+
+        return {
+          fromIndex: index,
+          toIndex: index + 1,
+          mix: span === 0 ? 0 : (clampedProgress - currentFrame.at) / span,
+        };
+      }
+    }
 
     return {
-      fromIndex,
-      toIndex,
-      mix: scaled - fromIndex,
+      fromIndex: lastIndex,
+      toIndex: lastIndex,
+      mix: 0,
     };
   }
 
-  const fromIndex = Math.min(frameCount - 1, Math.max(0, Math.round(scaled)));
+  let fromIndex = 0;
+
+  for (let index = 1; index < frames.length; index++) {
+    if (clampedProgress < frames[index].at) {
+      break;
+    }
+
+    fromIndex = index;
+  }
 
   return {
     fromIndex,
@@ -858,7 +895,7 @@ const createMaskTextureController = (app, mask, width, height, filter) => {
         mask?.kind === "sequence"
           ? selectSequenceMaskFrameState({
               progress,
-              frameCount: textures.length,
+              frames: mask.frames,
               sampleMode: mask.sample ?? "hold",
             })
           : {

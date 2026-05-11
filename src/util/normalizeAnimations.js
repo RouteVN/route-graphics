@@ -23,6 +23,7 @@ const TRANSITION_TWEEN_PROPERTIES = new Set([
 const MASK_KINDS = new Set(["single", "sequence", "composite"]);
 const MASK_CHANNELS = new Set(["red", "green", "blue", "alpha"]);
 const MASK_COMBINE_MODES = new Set(["max", "min", "multiply", "add"]);
+const MASK_SEQUENCE_SAMPLE_MODES = new Set(["hold", "linear"]);
 const SUPPORTED_EASINGS = new Set(SUPPORTED_EASING_NAMES);
 
 const assertPlainObject = (value, path) => {
@@ -214,6 +215,48 @@ const normalizeMaskResource = (maskItem, path) => {
   };
 };
 
+const normalizeSequenceFrame = (frame, path) => {
+  assertPlainObject(frame, path);
+  assertString(frame.texture, `${path}.texture`);
+  assertNumber(frame.at, `${path}.at`);
+
+  if (frame.at < 0 || frame.at > 1) {
+    throw new Error(`${path}.at must be between 0 and 1.`);
+  }
+
+  return {
+    at: frame.at,
+    texture: frame.texture,
+  };
+};
+
+const normalizeSequenceFrames = (frames, path) => {
+  if (!Array.isArray(frames) || frames.length < 2) {
+    throw new Error(`${path} must be an array with at least two frames.`);
+  }
+
+  const normalized = frames.map((frame, index) =>
+    normalizeSequenceFrame(frame, `${path}[${index}]`),
+  );
+
+  if (normalized[0].at !== 0) {
+    throw new Error(`${path}[0].at must be 0.`);
+  }
+
+  const lastIndex = normalized.length - 1;
+  if (normalized[lastIndex].at !== 1) {
+    throw new Error(`${path}[${lastIndex}].at must be 1.`);
+  }
+
+  for (let index = 1; index < normalized.length; index++) {
+    if (normalized[index].at <= normalized[index - 1].at) {
+      throw new Error(`${path} must be sorted by ascending unique at values.`);
+    }
+  }
+
+  return normalized;
+};
+
 const normalizeMask = (mask, path) => {
   assertPlainObject(mask, path);
 
@@ -253,27 +296,55 @@ const normalizeMask = (mask, path) => {
   }
 
   if (mask.kind === "single") {
+    if (mask.frames !== undefined) {
+      throw new Error(`${path}.frames is only valid for sequence masks.`);
+    }
+    if (mask.sample !== undefined) {
+      throw new Error(`${path}.sample is only valid for sequence masks.`);
+    }
     assertString(mask.texture, `${path}.texture`);
     normalized.texture = mask.texture;
   }
 
   if (mask.kind === "sequence") {
-    if (!Array.isArray(mask.textures) || mask.textures.length === 0) {
-      throw new Error(`${path}.textures must be a non-empty array.`);
+    if (mask.texture !== undefined) {
+      throw new Error(
+        `${path}.texture is not valid for sequence masks. Use ${path}.frames[].texture instead.`,
+      );
+    }
+    if (mask.items !== undefined) {
+      throw new Error(`${path}.items is only valid for composite masks.`);
+    }
+    if (mask.combine !== undefined) {
+      throw new Error(`${path}.combine is only valid for composite masks.`);
+    }
+    if (mask.textures !== undefined) {
+      throw new Error(
+        `${path}.textures is no longer supported. Use ${path}.frames with texture and at entries instead.`,
+      );
     }
 
-    normalized.textures = mask.textures.map((texture, index) => {
-      assertString(texture, `${path}.textures[${index}]`);
-      return texture;
-    });
+    normalized.frames = normalizeSequenceFrames(mask.frames, `${path}.frames`);
 
     if (mask.sample !== undefined) {
       assertString(mask.sample, `${path}.sample`);
-      normalized.sample = mask.sample;
+      if (!MASK_SEQUENCE_SAMPLE_MODES.has(mask.sample)) {
+        throw new Error(
+          `${path}.sample must be one of: ${Array.from(MASK_SEQUENCE_SAMPLE_MODES).join(", ")}.`,
+        );
+      }
     }
+
+    normalized.sample = mask.sample ?? "hold";
   }
 
   if (mask.kind === "composite") {
+    if (mask.frames !== undefined) {
+      throw new Error(`${path}.frames is only valid for sequence masks.`);
+    }
+    if (mask.sample !== undefined) {
+      throw new Error(`${path}.sample is only valid for sequence masks.`);
+    }
     if (!MASK_COMBINE_MODES.has(mask.combine ?? "max")) {
       throw new Error(
         `${path}.combine must be one of: ${Array.from(MASK_COMBINE_MODES).join(", ")}.`,

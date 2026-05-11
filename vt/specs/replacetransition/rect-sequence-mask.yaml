@@ -47,10 +47,13 @@ states:
         type: transition
         mask:
           kind: sequence
-          textures:
-            - mask-left-band
-            - mask-center-band
-            - mask-right-band
+          frames:
+            - at: 0
+              texture: mask-left-band
+            - at: 0.5
+              texture: mask-center-band
+            - at: 1
+              texture: mask-right-band
           channel: alpha
           softness: 0.01
           progress:

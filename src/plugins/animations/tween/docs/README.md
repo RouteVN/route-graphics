@@ -172,6 +172,47 @@ states:
                 easing: linear
 ```
 
+Sequence mask transition:
+
+```yaml
+states:
+  - elements:
+      - id: "scene-root"
+        type: "container"
+        children: []
+  - elements:
+      - id: "scene-root"
+        type: "container"
+        children: []
+    animations:
+      - id: "scene-sequence-wipe"
+        targetId: "scene-root"
+        type: "transition"
+        mask:
+          kind: "sequence"
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 900
+                value: 1
+                easing: linear
+          sample: "linear"
+          frames:
+            - at: 0
+              texture: "masks/wipe-a.png"
+            - at: 0.5
+              texture: "masks/wipe-b.png"
+            - at: 1
+              texture: "masks/wipe-c.png"
+          channel: "alpha"
+          softness: 0.02
+```
+
+For sequence masks, `progress` drives both reveal amount and frame selection.
+`sample: hold` holds each frame until the next `at`, while `sample: linear`
+blends between adjacent frames. Sequence frames must start at `0`, end at `1`,
+and be sorted by unique `at` values.
+
 ## Current Transition Rules
 
 - `update` is update-only. Integrations should reject `type: update` for enter, exit, and replace paths.
