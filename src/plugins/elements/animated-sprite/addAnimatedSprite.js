@@ -1,7 +1,12 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
 import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
-import { syncBlurEffect } from "../util/blurEffect.js";
+import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
 import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
@@ -18,6 +23,8 @@ export const addAnimatedSprite = async ({
   app,
   parent,
   element,
+  animations,
+  animationBus,
   renderContext,
   completionTracker,
   zIndex,
@@ -79,9 +86,27 @@ export const addAnimatedSprite = async ({
     animatedSprite.width = Math.round(width);
     animatedSprite.height = Math.round(height);
     animatedSprite.alpha = alpha;
-    syncBlurEffect(animatedSprite, element.blur);
+    const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+    syncBlurEffect(animatedSprite, element.blur, { force: shouldForceBlur });
 
     parent.addChild(animatedSprite);
+
+    dispatchLiveAnimations({
+      animations,
+      targetId: id,
+      animationBus,
+      completionTracker,
+      element: animatedSprite,
+      targetState: {
+        x,
+        y,
+        width,
+        height,
+        alpha,
+        ...getBlurTargetState(element, { force: shouldForceBlur }),
+      },
+      renderContext,
+    });
 
     if (typeof app.render === "function") {
       app.render();

@@ -1,6 +1,7 @@
 import { Container } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import { addInput } from "../../src/plugins/elements/input/addInput.js";
+import { deleteInput } from "../../src/plugins/elements/input/deleteInput.js";
 import { parseInput } from "../../src/plugins/elements/input/parseInput.js";
 import { updateInput } from "../../src/plugins/elements/input/updateInput.js";
 
@@ -277,5 +278,76 @@ describe("input plugin", () => {
     inputContainer.emit("pointerup", {
       global: { x: 120, y: 52 },
     });
+  });
+
+  it("runs update animations before unmounting a deleted input", () => {
+    const parent = new Container();
+    const { app } = createApp();
+    const element = parseInput({
+      state: {
+        id: "name",
+        type: "input",
+        x: 20,
+        y: 40,
+        width: 200,
+        height: 44,
+      },
+    });
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: () => 4,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    addInput({
+      app,
+      parent,
+      element,
+      eventHandler: vi.fn(),
+      zIndex: 0,
+    });
+
+    const inputContainer = parent.getChildByLabel("name");
+
+    deleteInput({
+      app,
+      parent,
+      element,
+      animations: [
+        {
+          id: "input-exit",
+          targetId: "name",
+          type: "update",
+          tween: {
+            alpha: {
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+      ],
+      animationBus,
+      completionTracker,
+    });
+
+    expect(app.inputDomBridge.unmount).not.toHaveBeenCalled();
+    expect(completionTracker.track).toHaveBeenCalledWith(4);
+    expect(animationBus.dispatch).toHaveBeenCalledWith({
+      type: "START",
+      payload: expect.objectContaining({
+        id: "input-exit",
+        animationType: "update",
+        targetId: "name",
+        element: inputContainer,
+        targetState: null,
+      }),
+    });
+
+    const onComplete =
+      animationBus.dispatch.mock.calls[0][0].payload.onComplete;
+    onComplete();
+
+    expect(app.inputDomBridge.unmount).toHaveBeenCalledWith("name");
+    expect(inputContainer.destroyed).toBe(true);
   });
 });

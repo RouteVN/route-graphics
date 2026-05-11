@@ -1,0 +1,74 @@
+---
+title: Rect Same Id Transition Handoff
+description: A same-id rect uses type transition as a replace handoff instead of an in-place update
+specs:
+  - transition animation should run when the target id exists in both states
+  - outgoing and incoming snapshots should both be visible during the handoff
+  - final state should settle on the next live rect
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: same-id-transition-start
+    elements:
+      - id: rect1
+        type: rect
+        x: 220
+        "y": 180
+        width: 320
+        height: 240
+        fill: "#FFFFFF"
+        alpha: 1
+  - id: same-id-transition-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 640
+        "y": 180
+        width: 320
+        height: 240
+        fill: "#A6A6A6"
+        alpha: 1
+    animations:
+      - id: rect-same-id-transition
+        targetId: rect1
+        type: transition
+        prev:
+          tween:
+            translateX:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: -0.25
+                  easing: linear
+            alpha:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear
+        next:
+          tween:
+            translateX:
+              initialValue: 0.25
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

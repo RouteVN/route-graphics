@@ -149,6 +149,67 @@ describe("spritesheet animation rendering", () => {
     expect(app.render).toHaveBeenCalledTimes(1);
   });
 
+  it("dispatches update animations after asynchronously adding a spritesheet animation", async () => {
+    const app = {
+      debug: true,
+      render: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: () => 2,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const parent = {
+      destroyed: false,
+      addChild: vi.fn(),
+    };
+    const renderContext = {};
+
+    await addAnimatedSprite({
+      app,
+      parent,
+      element: createAnimatedSpriteElement(),
+      animations: [
+        {
+          id: "animated-sprite-enter",
+          targetId: "animated-sprite-1",
+          type: "update",
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ],
+      animationBus,
+      completionTracker,
+      renderContext,
+      zIndex: 3,
+      signal: undefined,
+    });
+
+    const addedSprite = parent.addChild.mock.calls[0][0];
+
+    expect(dispatchLiveAnimations).toHaveBeenCalledWith(
+      expect.objectContaining({
+        targetId: "animated-sprite-1",
+        animationBus,
+        completionTracker,
+        element: addedSprite,
+        targetState: expect.objectContaining({
+          x: 200,
+          y: 150,
+          width: 100,
+          height: 100,
+          alpha: 1,
+        }),
+        renderContext,
+      }),
+    );
+  });
+
   it("renders after replacing spritesheet animation frame textures asynchronously", async () => {
     const app = {
       debug: false,

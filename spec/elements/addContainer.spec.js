@@ -38,7 +38,9 @@ describe("addContainer", () => {
           },
         ],
       },
-      animations: [{ id: "child-enter", targetId: "child-1", type: "transition" }],
+      animations: [
+        { id: "child-enter", targetId: "child-1", type: "transition" },
+      ],
       eventHandler: vi.fn(),
       animationBus: { dispatch: vi.fn() },
       elementPlugins: [],
@@ -64,6 +66,67 @@ describe("addContainer", () => {
         renderContext,
       }),
     );
+  });
+
+  it("dispatches update animations when the container is newly added", () => {
+    const parent = new Container();
+    const animationBus = { dispatch: vi.fn() };
+    const completionTracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    addContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      element: {
+        id: "container-1",
+        type: "container",
+        x: 20,
+        y: 30,
+        alpha: 1,
+        children: [],
+      },
+      animations: [
+        {
+          id: "container-enter",
+          targetId: "container-1",
+          type: "update",
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      ],
+      eventHandler: vi.fn(),
+      animationBus,
+      elementPlugins: [],
+      renderContext: createRenderContext(),
+      zIndex: 0,
+      completionTracker,
+      signal: new AbortController().signal,
+    });
+
+    const container = parent.getChildByLabel("container-1");
+
+    expect(completionTracker.track).toHaveBeenCalledWith(11);
+    expect(animationBus.dispatch).toHaveBeenCalledWith({
+      type: "START",
+      payload: expect.objectContaining({
+        id: "container-enter",
+        animationType: "update",
+        targetId: "container-1",
+        element: container,
+        targetState: {
+          x: 20,
+          y: 30,
+          alpha: 1,
+        },
+      }),
+    });
   });
 
   it("falls back to direct child add when sibling ids are duplicated", () => {
@@ -102,7 +165,9 @@ describe("addContainer", () => {
           },
         ],
       },
-      animations: [{ id: "child-enter", targetId: "child-1", type: "transition" }],
+      animations: [
+        { id: "child-enter", targetId: "child-1", type: "transition" },
+      ],
       eventHandler: vi.fn(),
       animationBus: { dispatch: vi.fn() },
       elementPlugins: [childPlugin],
