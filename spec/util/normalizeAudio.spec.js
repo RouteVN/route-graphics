@@ -68,6 +68,46 @@ describe("normalizeAudioRenderState", () => {
     ]);
   });
 
+  it("clamps audio node volumes and defaults omitted volumes to 100", () => {
+    const result = flattenAudioNodes([
+      {
+        id: "music",
+        type: "audio-channel",
+        volume: 500,
+        children: [
+          {
+            id: "bgm",
+            type: "sound",
+            src: "theme",
+            volume: -10,
+          },
+        ],
+      },
+      {
+        id: "click",
+        type: "sound",
+        src: "click-sfx",
+      },
+    ]);
+
+    expect(result.channels[0].volume).toBe(100);
+    expect(result.sounds[0].volume).toBe(0);
+    expect(result.sounds[1].volume).toBe(100);
+  });
+
+  it("still rejects non-number audio node volumes", () => {
+    expect(() =>
+      flattenAudioNodes([
+        {
+          id: "sfx",
+          type: "sound",
+          src: "click-sfx",
+          volume: "100",
+        },
+      ]),
+    ).toThrow("audio[0].volume must be a number");
+  });
+
   it("rejects duplicate IDs across nodes and effects", () => {
     expect(() =>
       normalizeAudioRenderState({
