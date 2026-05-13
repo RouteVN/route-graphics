@@ -252,6 +252,7 @@ const createRouteGraphics = () => {
     }
 
     const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
     video.preload = "auto";
     video.playsInline = true;
     video.setAttribute("playsinline", "");
