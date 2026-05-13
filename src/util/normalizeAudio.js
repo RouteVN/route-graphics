@@ -54,6 +54,15 @@ const assertOptionalNumber = (value, path, range) => {
   }
 };
 
+const normalizeVolumeValue = (value, path) => {
+  if (value === undefined || value === null) {
+    return 100;
+  }
+
+  assertNumber(value, path);
+  return Math.max(0, Math.min(100, value));
+};
+
 const assertUniqueId = (ids, id, path) => {
   if (ids.has(id)) {
     throw new Error(
@@ -74,7 +83,7 @@ const validateSound = (node, path, ids, flattenedSounds, channelId = null) => {
     );
   }
 
-  assertOptionalNumber(node.volume, `${path}.volume`, { min: 0, max: 100 });
+  const volume = normalizeVolumeValue(node.volume, `${path}.volume`);
   assertOptionalBoolean(node.muted, `${path}.muted`);
   assertOptionalNumber(node.pan, `${path}.pan`, { min: -1, max: 1 });
   assertOptionalBoolean(node.loop, `${path}.loop`);
@@ -98,7 +107,7 @@ const validateSound = (node, path, ids, flattenedSounds, channelId = null) => {
     id: node.id,
     type: "sound",
     src: node.src,
-    volume: node.volume ?? 100,
+    volume,
     muted: node.muted ?? false,
     pan: node.pan ?? 0,
     loop: node.loop ?? false,
@@ -120,7 +129,7 @@ const validateChannel = (
   assertNonEmptyString(node.id, `${path}.id`);
   assertUniqueId(ids, node.id, `${path}.id`);
 
-  assertOptionalNumber(node.volume, `${path}.volume`, { min: 0, max: 100 });
+  const volume = normalizeVolumeValue(node.volume, `${path}.volume`);
   assertOptionalBoolean(node.muted, `${path}.muted`);
   assertOptionalNumber(node.pan, `${path}.pan`, { min: -1, max: 1 });
 
@@ -131,7 +140,7 @@ const validateChannel = (
   flattenedChannels.push({
     id: node.id,
     type: "audio-channel",
-    volume: node.volume ?? 100,
+    volume,
     muted: node.muted ?? false,
     pan: node.pan ?? 0,
   });
