@@ -310,6 +310,7 @@ describe("RouteGraphics public API", () => {
 
   it("loads video assets through an early-ready HTML video texture", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
+    const createdVideos = [];
     const createObjectURL = vi
       .spyOn(URL, "createObjectURL")
       .mockReturnValue("blob:http://route-graphics/video");
@@ -320,6 +321,7 @@ describe("RouteGraphics public API", () => {
         const element = originalCreateElement(tagName, ...args);
 
         if (tagName === "video") {
+          createdVideos.push(element);
           Object.defineProperty(element, "readyState", {
             value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
             configurable: true,
@@ -343,6 +345,11 @@ describe("RouteGraphics public API", () => {
           buffer: new Uint8Array([1, 2, 3]).buffer,
           type: "video/mp4",
         },
+        urlVideo: {
+          source: "url",
+          url: "http://project-file.localhost/pixi-asset.mp4?path=video",
+          type: "video/mp4",
+        },
       });
     } finally {
       createElement.mockRestore();
@@ -360,6 +367,16 @@ describe("RouteGraphics public API", () => {
         source: expect.any(Object),
       }),
     );
+    expect(pixiMock.Assets.cache.set).toHaveBeenCalledWith(
+      "urlVideo",
+      expect.objectContaining({
+        source: expect.any(Object),
+      }),
+    );
+    expect(createdVideos).toHaveLength(2);
+    expect(
+      createdVideos.every((video) => video.crossOrigin === "anonymous"),
+    ).toBe(true);
   });
 
   it("awaits audio asset decoding during loadAssets", async () => {
