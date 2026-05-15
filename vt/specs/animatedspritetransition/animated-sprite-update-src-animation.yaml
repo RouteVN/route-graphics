@@ -1,0 +1,116 @@
+---
+title: Animated Sprite Update Src Animation
+description: A same-id spritesheet-animation changes atlas source while running an update animation.
+specs:
+  - spritesheet animation should swap to the next source before the update animation starts
+  - the mid-animation checkpoint should show the incoming slider atlas frame, not the previous fighter frame
+  - final state should keep the incoming atlas frame at the target position
+steps:
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite1"
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-sprite1"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: animated-sprite1
+        type: spritesheet-animation
+        x: 180
+        "y": 160
+        width: 150
+        height: 150
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            format: RGBA8888
+            size:
+              w: 1024
+              h: 1024
+            scale: "1"
+        clips:
+          idle:
+            - rollSequence0000.png
+        playback:
+          clip: idle
+          fps: 1
+          loop: true
+        alpha: 1
+  - elements:
+      - id: animated-sprite1
+        type: spritesheet-animation
+        x: 520
+        "y": 330
+        width: 360
+        height: 64
+        src: slider
+        atlas:
+          frames:
+            frame-0.png:
+              x: 0
+              "y": 0
+              width: 218
+              height: 16
+            frame-1.png:
+              x: 218
+              "y": 0
+              width: 218
+              height: 16
+          width: 436
+          height: 16
+        clips:
+          pulse:
+            - frame-0.png
+            - frame-1.png
+        playback:
+          clip: pulse
+          fps: 1
+          loop: true
+        alpha: 1
+    animations:
+      - id: animated-sprite-src-update
+        targetId: animated-sprite1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear
