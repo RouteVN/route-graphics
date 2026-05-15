@@ -1,0 +1,53 @@
+---
+title: Sprite Update Src Animation
+description: A same-id sprite changes source while running an update animation; colored sprite assets intentionally make the resource handoff visible.
+specs:
+  - sprite should swap to the next source before the update animation starts
+  - the mid-animation checkpoint should show the red sprite, not the previous blue sprite
+  - final state should keep the red sprite at the target position
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: sprite1
+        type: sprite
+        src: circle-blue
+        x: 120
+        "y": 120
+        width: 140
+        height: 140
+        alpha: 1
+  - elements:
+      - id: sprite1
+        type: sprite
+        src: circle-red
+        x: 520
+        "y": 340
+        width: 140
+        height: 140
+        alpha: 1
+    animations:
+      - id: sprite-src-update
+        targetId: sprite1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear
