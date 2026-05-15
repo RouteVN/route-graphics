@@ -407,6 +407,7 @@ describe("RouteGraphics public API", () => {
     expect(audioAsset.load).toHaveBeenCalledWith(
       "click",
       expect.any(ArrayBuffer),
+      "audio/mpeg",
     );
     expect(loadAssetsResolved).toBe(false);
 
