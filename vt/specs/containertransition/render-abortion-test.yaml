@@ -60,22 +60,22 @@ states:
                   value: 1
                   easing: linear
             translateX:
-              initialValue: -0.0390625
+              initialValue: -0.16666666666666666
               keyframes:
                 - duration: 1000
-                  value: 0.0390625
+                  value: 0.16666666666666666
                   easing: linear
                 - duration: 1000
-                  value: 0.1171875
+                  value: 0.5
                   easing: linear
             translateY:
-              initialValue: -0.06944444444444445
+              initialValue: -0.25
               keyframes:
                 - duration: 1000
-                  value: 0.06944444444444445
+                  value: 0.25
                   easing: linear
                 - duration: 1000
-                  value: 0.20833333333333334
+                  value: 0.75
                   easing: linear
   - elements:
       - id: container-render-test

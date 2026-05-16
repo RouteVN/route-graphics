@@ -46,22 +46,22 @@ states:
         next:
           tween:
             translateX:
-              initialValue: -0.0390625
+              initialValue: -1
               keyframes:
                 - duration: 1000
-                  value: 0.0390625
+                  value: 0.5
                   easing: linear
                 - duration: 1000
-                  value: 0.1171875
+                  value: 1
                   easing: linear
             translateY:
-              initialValue: -0.06944444444444445
+              initialValue: -1
               keyframes:
                 - duration: 1000
-                  value: 0.027777777777777776
+                  value: 0.5
                   easing: linear
                 - duration: 1000
-                  value: 0.1388888888888889
+                  value: 1
                   easing: linear
   - elements:
       - id: text-render-test

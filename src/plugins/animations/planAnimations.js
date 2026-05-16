@@ -3,6 +3,10 @@ import {
   dispatchUpdateAnimationsNow,
 } from "./updateAnimationDispatch.js";
 import { queueDeferredUpdateAnimationStart } from "../elements/renderContext.js";
+import {
+  createAnimationSubjectState,
+  isTranslateAnimationProperty,
+} from "./animationPropertyUtils.js";
 import { isDeepEqual } from "../../util/isDeepEqual.js";
 import { collectAllElementIds } from "../../util/collectElementIds.js";
 
@@ -45,6 +49,11 @@ export const getTransitionAnimation = (animationsOrMap, targetId) =>
   getTargetAnimations(animationsOrMap, targetId).find(
     (animation) => animation.type === "transition",
   ) ?? null;
+
+const animationsUseTranslate = (animations = []) =>
+  animations.some((animation) =>
+    Object.keys(animation.tween ?? {}).some(isTranslateAnimationProperty),
+  );
 
 const findElementMatchById = (elements = [], targetId, ancestorIds = []) => {
   for (const element of elements) {
@@ -259,7 +268,16 @@ export const dispatchUpdateAnimations = ({
       );
     }
 
-    applyInitialUpdateAnimationState(element, animationsToStart);
+    const animationBaseState = animationsUseTranslate(animationsToStart)
+      ? createAnimationSubjectState(element)
+      : undefined;
+
+    applyInitialUpdateAnimationState(
+      element,
+      animationsToStart,
+      undefined,
+      animationBaseState,
+    );
 
     queueDeferredUpdateAnimationStart(renderContext, {
       animations: animationsToStart,
@@ -267,6 +285,7 @@ export const dispatchUpdateAnimations = ({
       completionTracker,
       element,
       targetState,
+      animationBaseState,
     });
 
     return true;
@@ -279,6 +298,9 @@ export const dispatchUpdateAnimations = ({
     element,
     targetState,
     onComplete,
+    animationBaseState: animationsUseTranslate(animationsToStart)
+      ? createAnimationSubjectState(element)
+      : undefined,
   });
 
   return true;

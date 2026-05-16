@@ -2,41 +2,20 @@ import {
   TRANSITION_PROPERTY_PATH_MAP,
   WhiteListAnimationProps,
 } from "../../types.js";
-
-const getMappedPath = (propertyPathMap, path) => {
-  if (typeof path !== "string") {
-    return path;
-  }
-
-  return propertyPathMap[path] ?? path;
-};
-
-const setAnimationProperty = (object, path, propertyPathMap, value) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
-    return object;
-  }
-
-  let current = object;
-  for (let index = 0; index < mappedPath.length - 1; index++) {
-    const key = mappedPath[index];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-
-  current[mappedPath[mappedPath.length - 1]] = value;
-  return object;
-};
+import {
+  applyAnimationProperty,
+  createAnimationSubjectState,
+  isTranslateAnimationProperty,
+} from "./animationPropertyUtils.js";
 
 export const applyInitialUpdateAnimationState = (
   element,
   animations,
   propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
+  animationBaseState,
 ) => {
+  let subjectState = animationBaseState;
+
   for (const animation of animations) {
     for (const [property, config] of Object.entries(animation.tween)) {
       if (!WhiteListAnimationProps[property]) {
@@ -49,12 +28,17 @@ export const applyInitialUpdateAnimationState = (
         continue;
       }
 
-      setAnimationProperty(
-        element,
+      if (!subjectState && isTranslateAnimationProperty(property)) {
+        subjectState = createAnimationSubjectState(element);
+      }
+
+      applyAnimationProperty({
+        object: element,
         property,
         propertyPathMap,
-        config.initialValue,
-      );
+        subjectState,
+        value: config.initialValue,
+      });
     }
   }
 };
@@ -66,6 +50,7 @@ export const dispatchUpdateAnimationsNow = ({
   element,
   targetState,
   onComplete,
+  animationBaseState,
 }) => {
   for (const animation of animations) {
     if (
@@ -113,6 +98,7 @@ export const dispatchUpdateAnimationsNow = ({
         element,
         properties: animation.tween,
         targetState,
+        animationBaseState,
         onComplete: () => {
           if (trackCompletion) {
             completionTracker.complete(stateVersion);

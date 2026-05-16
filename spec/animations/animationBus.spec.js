@@ -216,6 +216,50 @@ describe("animationBus auto tween shorthand", () => {
     expect(element._routeGraphicsBlur.y).toBeCloseTo(4);
   });
 
+  it("applies translate tweens relative to the subject dimensions", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      x: 10,
+      y: 20,
+      width: 120,
+      height: 80,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-translate",
+        element,
+        properties: {
+          translateX: {
+            initialValue: 0,
+            keyframes: [{ duration: 200, value: 1, easing: "linear" }],
+          },
+          translateY: {
+            initialValue: -0.5,
+            keyframes: [{ duration: 200, value: 0.5, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    animationBus.flush();
+
+    expect(element.x).toBeCloseTo(10);
+    expect(element.y).toBeCloseTo(-20);
+
+    animationBus.tick(100);
+
+    expect(element.x).toBeCloseTo(70);
+    expect(element.y).toBeCloseTo(20);
+
+    animationBus.tick(100);
+
+    expect(element.x).toBeCloseTo(130);
+    expect(element.y).toBeCloseTo(60);
+  });
+
   it("samples property animations at an exact time without completing them", () => {
     const animationBus = createAnimationBus();
     const onComplete = vi.fn();

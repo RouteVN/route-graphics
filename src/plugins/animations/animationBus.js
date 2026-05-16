@@ -3,58 +3,19 @@ import {
   WhiteListAnimationProps,
 } from "../../types.js";
 import {
+  applyAnimationProperty,
+  createAnimationSubjectState,
+  getTimelineInitialValue,
+  isTranslateAnimationProperty,
+} from "./animationPropertyUtils.js";
+import {
   buildTimeline,
   calculateMaxDuration,
   getValueAtTime,
 } from "../../util/animationTimeline.js";
 
-const getMappedPath = (propertyPathMap, path) => {
-  if (typeof path !== "string") {
-    return path;
-  }
-
-  return propertyPathMap[path] ?? path;
-};
-
-const getAnimationProperty = (object, path, propertyPathMap, defaultValue) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    const result = object[mappedPath];
-    return result === undefined ? defaultValue : result;
-  }
-
-  let result = object;
-  for (const key of mappedPath) {
-    if (result == null) {
-      return defaultValue;
-    }
-    result = result[key];
-  }
-
-  return result === undefined ? defaultValue : result;
-};
-
-const setAnimationProperty = (object, path, propertyPathMap, value) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
-    return object;
-  }
-
-  let current = object;
-  for (let i = 0; i < mappedPath.length - 1; i++) {
-    const key = mappedPath[i];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-
-  current[mappedPath[mappedPath.length - 1]] = value;
-  return object;
-};
+const hasTranslateProperties = (properties = {}) =>
+  Object.keys(properties).some(isTranslateAnimationProperty);
 
 const resolveAutoTargetValue = (targetState, property, animationId) => {
   if (
@@ -75,6 +36,7 @@ const buildPropertyTimelines = (
   propertyPathMap,
   targetState,
   animationId,
+  subjectState,
 ) =>
   Object.entries(properties)
     .map(([property, config]) => {
@@ -84,12 +46,13 @@ const buildPropertyTimelines = (
         );
       }
 
-      const currentValue = getAnimationProperty(
-        element,
+      const currentValue = getTimelineInitialValue({
+        object: element,
         property,
         propertyPathMap,
-        0,
-      );
+        subjectState,
+        defaultValue: 0,
+      });
 
       if (config.auto) {
         const targetValue = resolveAutoTargetValue(
@@ -215,7 +178,21 @@ export const createAnimationBus = () => {
       onComplete,
       onCancel,
       propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
+      animationBaseState,
     } = payload;
+    let subjectState =
+      animationBaseState ??
+      (hasTranslateProperties(properties)
+        ? createAnimationSubjectState(element)
+        : null);
+
+    const getSubjectState = () => {
+      if (!subjectState) {
+        subjectState = createAnimationSubjectState(element);
+      }
+
+      return subjectState;
+    };
 
     const timelines = buildPropertyTimelines(
       element,
@@ -223,6 +200,7 @@ export const createAnimationBus = () => {
       propertyPathMap,
       targetState,
       id,
+      subjectState,
     );
 
     if (timelines.length === 0) {
@@ -245,7 +223,15 @@ export const createAnimationBus = () => {
         for (const { property, timeline } of timelines) {
           const value = getValueAtTime(timeline, time);
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Element might be mid-destroy or otherwise invalid.
           }
@@ -263,7 +249,15 @@ export const createAnimationBus = () => {
 
         for (const [property, value] of Object.entries(targetState)) {
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Skip properties that fail to apply.
           }

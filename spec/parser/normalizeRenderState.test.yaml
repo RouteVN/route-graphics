@@ -199,6 +199,49 @@ out:
   audio: []
   audioEffects: []
 ---
+case: Normalize transition animation with absolute position tween
+in:
+  - id: state-2-next-transition-position
+    animations:
+      - id: anim-next-transition-position
+        targetId: scene-root
+        type: transition
+        next:
+          tween:
+            x:
+              initialValue: 100
+              keyframes:
+                - duration: 200
+                  value: 240
+            y:
+              initialValue: 80
+              keyframes:
+                - duration: 200
+                  value: 180
+out:
+  id: state-2-next-transition-position
+  elements: []
+  animations:
+    - id: anim-next-transition-position
+      targetId: scene-root
+      type: transition
+      next:
+        tween:
+          x:
+            initialValue: 100
+            keyframes:
+              - duration: 200
+                value: 240
+                easing: linear
+          y:
+            initialValue: 80
+            keyframes:
+              - duration: 200
+                value: 180
+                easing: linear
+  audio: []
+  audioEffects: []
+---
 case: Preserve advanced easing names
 in:
   - id: state-2-easing
@@ -259,6 +302,48 @@ out:
           auto:
             duration: 220
             easing: easeOutQuad
+  audio: []
+  audioEffects: []
+---
+case: Normalize update translate tween
+in:
+  - id: state-2-translate
+    animations:
+      - id: anim-translate
+        targetId: portrait
+        type: update
+        tween:
+          translateX:
+            initialValue: -1
+            keyframes:
+              - duration: 180
+                value: 0
+          translateY:
+            initialValue: 0.5
+            keyframes:
+              - duration: 220
+                value: 0
+                easing: easeOutQuad
+out:
+  id: state-2-translate
+  elements: []
+  animations:
+    - id: anim-translate
+      targetId: portrait
+      type: update
+      tween:
+        translateX:
+          initialValue: -1
+          keyframes:
+            - duration: 180
+              value: 0
+              easing: linear
+        translateY:
+          initialValue: 0.5
+          keyframes:
+            - duration: 220
+              value: 0
+              easing: easeOutQuad
   audio: []
   audioEffects: []
 ---
@@ -498,6 +583,43 @@ in:
               - duration: 100
                 value: 1
 throws: animations[0].tween is not valid for transition animations.
+---
+case: Throw when update tween mixes x and translateX
+in:
+  - id: state-3b-update-mixed-x
+    animations:
+      - id: anim-1
+        targetId: text-1
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+          translateX:
+            keyframes:
+              - duration: 100
+                value: 1
+throws: animations[0].tween cannot define both x and translateX.
+---
+case: Throw when transition tween mixes y and translateY
+in:
+  - id: state-3b-transition-mixed-y
+    animations:
+      - id: anim-1
+        targetId: scene-root
+        type: transition
+        next:
+          tween:
+            y:
+              keyframes:
+                - duration: 100
+                  value: 20
+            translateY:
+              keyframes:
+                - duration: 100
+                  value: 1
+throws: animations[0].next.tween cannot define both y and translateY.
 ---
 case: Throw when easing is unsupported
 in:

@@ -138,6 +138,10 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       y:
         $ref: "#/$defs/tweenProperty"
+      translateX:
+        $ref: "#/$defs/tweenProperty"
+      translateY:
+        $ref: "#/$defs/tweenProperty"
       scaleX:
         $ref: "#/$defs/tweenProperty"
       scaleY:
@@ -148,11 +152,24 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       blurY:
         $ref: "#/$defs/tweenProperty"
+    allOf:
+      - not:
+          required:
+            - x
+            - translateX
+      - not:
+          required:
+            - y
+            - translateY
     additionalProperties: false
     minProperties: 1
   transitionTween:
     type: object
     properties:
+      x:
+        $ref: "#/$defs/tweenProperty"
+      y:
+        $ref: "#/$defs/tweenProperty"
       translateX:
         $ref: "#/$defs/tweenProperty"
       translateY:
@@ -165,6 +182,15 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       rotation:
         $ref: "#/$defs/tweenProperty"
+    allOf:
+      - not:
+          required:
+            - x
+            - translateX
+      - not:
+          required:
+            - y
+            - translateY
     additionalProperties: false
     minProperties: 1
   transitionSide:

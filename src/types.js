@@ -616,6 +616,8 @@ export const WhiteListAnimationProps = {
   alpha: "alpha",
   x: "x",
   y: "y",
+  translateX: "translateX",
+  translateY: "translateY",
   scaleX: "scaleX",
   scaleY: "scaleY",
   rotation: "rotation",
@@ -641,6 +643,8 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
 };
 
 export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
+  x: ["x"],
+  y: ["y"],
   translateX: ["x"],
   translateY: ["y"],
   scaleX: ["scale", "x"],
@@ -650,6 +654,8 @@ export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
 };
 
 export const WhiteListReplaceSubjectProps = {
+  x: "x",
+  y: "y",
   translateX: "translateX",
   translateY: "translateY",
   alpha: "alpha",
