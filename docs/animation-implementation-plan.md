@@ -23,7 +23,8 @@ Current runtime shape:
 - every changed render cancels all active update animations before planning the next state
 - transition supports add, update, and delete lifecycles through diff planning
 - transition supports `prev` and `next` tween composition with optional `mask`
-- shader-backed transition is not supported yet
+- transition supports shader `compositor` with top-level `tween.uProgress`
+- element shader filters are supported through `elements[].filters`
 
 Primary files involved today:
 
@@ -103,14 +104,13 @@ Key rules:
   - `next` only
   - both
   - `mask` with no explicit motion overrides
-  - future `compositor`
+  - `compositor`
 - `update` cannot use `mask`
-- future shader compositor support, if introduced, should be `transition`-only
-- future shader compositor support should be mutually exclusive with `mask` in
-  v1
-- future top-level `transition.tween` should be valid only for `uProgress` when
-  a compositor is present
-- future compositor support should require top-level `tween.uProgress`
+- shader compositor support is `transition`-only
+- shader compositor support is mutually exclusive with `mask` in v1
+- top-level `transition.tween` is valid only for `uProgress` when a compositor
+  is present
+- compositor support requires top-level `tween.uProgress`
 - `update` is update-only and must not be used for add/delete
 - a parent `transition` owns the subtree surface while active
 - descendant animations under that parent `transition` are deferred until finalize
@@ -124,6 +124,8 @@ Already implemented in the current runtime:
 - public `type: update | transition`
 - `tween` instead of `properties`
 - `prev` / `next` / `mask`
+- transition `compositor`
+- element `filters`
 - diff-driven add/update/delete mapping for transition lifecycles
 - next-only and prev-only transitions
 - tween plus mask composition in one transition animation
@@ -240,8 +242,8 @@ Implemented contract:
   renders if `id`, `targetId`, and normalized config are unchanged
 - when present on `transition`, the same in-flight handoff should continue
   across later renders if `id`, `targetId`, and normalized `prev` / `next` /
-  `mask` / future `compositor` / future top-level `tween.uProgress` /
-  `playback` config are unchanged
+  `mask` / `compositor` / top-level `tween.uProgress` / `playback` config are
+  unchanged
 - if a later render omits the animation, it stops
 - if a later render changes the animation config, it restarts
 - a persistent animation should not count toward any render's

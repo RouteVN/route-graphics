@@ -21,6 +21,11 @@ import {
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
 import { degreesToRadians } from "../../elements/util/transform.js";
+import {
+  createShaderFilter,
+  setShaderFilterProgress,
+  setShaderFilterResolution,
+} from "../../elements/util/shaderFilterEffect.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -231,6 +236,14 @@ const createMaskProgressTimeline = (mask) =>
       value: mask?.progress?.initialValue ?? 0,
     },
     ...(mask?.progress?.keyframes ?? []),
+  ]);
+
+const createCompositorProgressTimeline = (animation) =>
+  buildTimeline([
+    {
+      value: animation.tween?.uProgress?.initialValue ?? 0,
+    },
+    ...(animation.tween?.uProgress?.keyframes ?? []),
   ]);
 
 const REPLACE_MASK_FILTER_VERTEX = `
@@ -973,23 +986,19 @@ const resolveOverlaySubjects = ({
   let overlayPrevSubject = prevSubject;
   let overlayNextSubject = nextSubject;
 
-  if (
-    animation.mask !== undefined &&
-    animation.prev === undefined &&
-    animation.next === undefined
-  ) {
+  if (animation.mask !== undefined || animation.compositor !== undefined) {
     return {
       prevSubject: overlayPrevSubject,
       nextSubject: overlayNextSubject,
     };
-  } else {
-    if (animation.prev === undefined) {
-      overlayPrevSubject = null;
-    }
+  }
 
-    if (animation.next === undefined) {
-      overlayNextSubject = null;
-    }
+  if (animation.prev === undefined) {
+    overlayPrevSubject = null;
+  }
+
+  if (animation.next === undefined) {
+    overlayNextSubject = null;
   }
 
   return {
@@ -1036,6 +1045,163 @@ const createPlainOverlay = ({
       overlay.removeFromParent();
       cleanupParticlesInTree({ app, root: overlay });
       overlay.destroy({ children: true });
+      destroySubjectSnapshot(prevSubject, app);
+      destroySubjectSnapshot(nextSubject, app);
+    },
+  };
+};
+
+const createCompositorOverlay = ({
+  app,
+  animation,
+  prevSubject,
+  nextSubject,
+  zIndex,
+}) => {
+  const prevController = createSubjectController(
+    prevSubject,
+    animation.prev?.tween,
+  );
+  const nextController = createSubjectController(
+    nextSubject,
+    animation.next?.tween,
+  );
+  const progressTimeline = createCompositorProgressTimeline(animation);
+  const progressDuration = calculateMaxDuration([
+    {
+      timeline: progressTimeline,
+    },
+  ]);
+  const unionBounds = getAnimatedUnionBounds(
+    [prevSubject, nextSubject],
+    [prevController, nextController],
+  );
+  const prevRoot = new Container();
+  const nextRoot = new Container();
+
+  if (prevSubject?.wrapper) {
+    prevRoot.addChild(prevSubject.wrapper);
+  }
+
+  if (nextSubject?.wrapper) {
+    nextRoot.addChild(nextSubject.wrapper);
+  }
+
+  const prevTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const nextTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+
+  const overlay = new Container();
+  overlay.zIndex = zIndex;
+
+  const sprite = new Sprite(prevTexture);
+  sprite.x = unionBounds.x;
+  sprite.y = unionBounds.y;
+  sprite.filterArea = new Rectangle(
+    0,
+    0,
+    unionBounds.width,
+    unionBounds.height,
+  );
+  overlay.addChild(sprite);
+
+  const compositorFilter = createShaderFilter({
+    shader: animation.compositor,
+    width: unionBounds.width,
+    height: unionBounds.height,
+    progress: getValueAtTime(progressTimeline, 0),
+    nextTextureSource: nextTexture.source,
+    name: `route-graphics-transition-compositor-${animation.id}`,
+  });
+  sprite.filters = [compositorFilter];
+
+  let prevStaticRendered = false;
+  let nextStaticRendered = false;
+
+  if (!prevSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: prevRoot,
+      target: prevTexture,
+      frame: unionBounds,
+    });
+    prevStaticRendered = true;
+  }
+
+  if (!nextSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: nextRoot,
+      target: nextTexture,
+      frame: unionBounds,
+    });
+    nextStaticRendered = true;
+  }
+
+  return {
+    overlay,
+    duration: Math.max(
+      prevController.duration,
+      nextController.duration,
+      progressDuration,
+    ),
+    apply: (time) => {
+      prevController.apply(time);
+      nextController.apply(time);
+
+      if (
+        prevSubject?.wrapper &&
+        (prevController.duration > 0 || !prevStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: prevRoot,
+          target: prevTexture,
+          frame: unionBounds,
+        });
+        prevStaticRendered = true;
+      }
+
+      if (
+        nextSubject?.wrapper &&
+        (nextController.duration > 0 || !nextStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: nextRoot,
+          target: nextTexture,
+          frame: unionBounds,
+        });
+        nextStaticRendered = true;
+      }
+
+      setShaderFilterResolution(
+        compositorFilter,
+        unionBounds.width,
+        unionBounds.height,
+      );
+      setShaderFilterProgress(
+        compositorFilter,
+        getValueAtTime(progressTimeline, time),
+      );
+    },
+    destroy: () => {
+      overlay.removeFromParent();
+      sprite.filters = [];
+      compositorFilter.destroy();
+      cleanupParticlesInTree({ app, root: overlay });
+      cleanupParticlesInTree({ app, root: prevRoot });
+      cleanupParticlesInTree({ app, root: nextRoot });
+      overlay.destroy({ children: true });
+      prevRoot.destroy({ children: true });
+      nextRoot.destroy({ children: true });
+      prevTexture.destroy(true);
+      nextTexture.destroy(true);
       destroySubjectSnapshot(prevSubject, app);
       destroySubjectSnapshot(nextSubject, app);
     },
@@ -1215,6 +1381,16 @@ const createReplaceOverlay = ({
   nextSubject,
   zIndex,
 }) => {
+  if (animation.compositor) {
+    return createCompositorOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  }
+
   if (animation.mask) {
     return createMaskedOverlay({
       app,

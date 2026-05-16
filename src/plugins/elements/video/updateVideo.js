@@ -14,6 +14,11 @@ import {
   hasBlurUpdateAnimation,
   syncBlurEffect,
 } from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Update video element
@@ -41,6 +46,17 @@ export const updateVideo = ({
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(videoElement, prevElement.blur, { force: true });
+  }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(videoElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
   }
 
   let currentSrc = prevElement.src;
@@ -102,6 +118,11 @@ export const updateVideo = ({
       syncBlurEffect(videoElement, nextElement.blur, {
         force: shouldForceBlur,
       });
+      syncShaderFilters(videoElement, nextElement.filters, {
+        width,
+        height,
+        force: shouldForceShaderProgress,
+      });
 
       if (!didSyncResourceBeforeAnimation) {
         syncVideoResource();
@@ -136,6 +157,9 @@ export const updateVideo = ({
       alpha: alpha ?? 1,
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: updateElement,

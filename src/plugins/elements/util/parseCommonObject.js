@@ -1,5 +1,6 @@
 import { calculatePositionAfterAnchor } from "./common.js";
 import { ComputedNodeType } from "../../../types.js";
+import { normalizeElementShaderFilters } from "./shaderConfig.js";
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -73,6 +74,10 @@ export const parseCommonObject = (state) => {
 
   if (state.click) {
     computedObj.click = state.click;
+  }
+
+  if (state.filters !== undefined) {
+    computedObj.filters = normalizeElementShaderFilters(state.filters);
   }
 
   return computedObj;

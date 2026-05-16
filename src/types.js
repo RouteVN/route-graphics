@@ -624,6 +624,7 @@ export const WhiteListAnimationProps = {
   rotation: "rotation",
   blurX: "blurX",
   blurY: "blurY",
+  uProgress: "uProgress",
 };
 
 export const WhiteListTransitionProps = WhiteListAnimationProps;
@@ -641,6 +642,7 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
   rotation: ["rotation"],
   blurX: ["_routeGraphicsBlur", "x"],
   blurY: ["_routeGraphicsBlur", "y"],
+  uProgress: ["uProgress"],
 };
 
 export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {

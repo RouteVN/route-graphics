@@ -4,11 +4,11 @@ Last updated: 2026-05-16
 
 ## Status
 
-This document defines the proposed v1 shader interface.
+This document defines the v1 shader interface implemented by the runtime.
 
-It is not implemented yet. The current runtime supports tween and mask
-transitions, and does not accept element `filters` or transition `compositor`
-fields.
+The current runtime supports element shader `filters`, transition shader
+`compositor`, WebGL/WebGPU inline source validation, and `uProgress` tweening
+through the existing animation model.
 
 ## Goals
 

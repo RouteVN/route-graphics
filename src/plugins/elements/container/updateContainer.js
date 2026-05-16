@@ -20,6 +20,11 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
@@ -57,6 +62,17 @@ export const updateContainer = ({
   if (shouldForceBlur) {
     syncBlurEffect(containerElement, prevElement.blur, { force: true });
   }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(containerElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -67,6 +83,11 @@ export const updateContainer = ({
       applyElementTransform(containerElement, nextElement);
       syncBlurEffect(containerElement, nextElement.blur, {
         force: shouldForceBlur,
+      });
+      syncShaderFilters(containerElement, nextElement.filters, {
+        width: nextElement.width,
+        height: nextElement.height,
+        force: shouldForceShaderProgress,
       });
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
@@ -167,6 +188,9 @@ export const updateContainer = ({
       ...getElementTransformTargetState(nextElement, { alpha }),
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: () => {

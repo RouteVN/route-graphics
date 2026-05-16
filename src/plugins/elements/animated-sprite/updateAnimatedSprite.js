@@ -11,6 +11,11 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
   normalizeAnimatedSpritePlayback,
@@ -45,6 +50,17 @@ export const updateAnimatedSprite = async ({
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(animatedSpriteElement, prevElement.blur, { force: true });
+  }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(animatedSpriteElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
   }
 
   const prevAtlas = normalizeAnimatedSpriteAtlas(prevElement.atlas);
@@ -172,6 +188,11 @@ export const updateAnimatedSprite = async ({
       syncBlurEffect(animatedSpriteElement, nextElement.blur, {
         force: shouldForceBlur,
       });
+      syncShaderFilters(animatedSpriteElement, nextElement.filters, {
+        width: nextElement.width,
+        height: nextElement.height,
+        force: shouldForceShaderProgress,
+      });
 
       await syncFrameResource();
     }
@@ -226,6 +247,9 @@ export const updateAnimatedSprite = async ({
       alpha,
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: () => {

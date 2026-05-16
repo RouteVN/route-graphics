@@ -8,6 +8,11 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   createHoverStateController,
   createPressStateController,
   createRightPressStateController,
@@ -46,6 +51,15 @@ export const addSprite = ({
   applyElementTransform(sprite, element);
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(sprite, element.filters, {
+    width,
+    height,
+    force: shouldForceShaderProgress,
+  });
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
@@ -229,6 +243,9 @@ export const addSprite = ({
       height,
       alpha,
       ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
     },
     renderContext,
   });

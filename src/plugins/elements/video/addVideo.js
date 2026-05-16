@@ -8,6 +8,11 @@ import {
   hasBlurUpdateAnimation,
   syncBlurEffect,
 } from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Add video element to the stage
@@ -46,6 +51,15 @@ export const addVideo = ({
   sprite.alpha = alpha ?? 1;
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(sprite, element.filters, {
+    width,
+    height,
+    force: shouldForceShaderProgress,
+  });
 
   syncVideoPlaybackTracking({
     videoElement: sprite,
@@ -71,6 +85,9 @@ export const addVideo = ({
       height,
       alpha: alpha ?? 1,
       ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
     },
     renderContext,
   });

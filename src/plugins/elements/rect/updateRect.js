@@ -7,6 +7,11 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 const normalizeRectFill = (fill) =>
   fill === undefined || fill === null || fill === "" || fill === "transparent"
@@ -37,6 +42,17 @@ export const updateRect = ({
   rectElement.zIndex = zIndex;
 
   const { width, height, fill, border, alpha, scaleX, scaleY } = nextElement;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(rectElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  }
   const targetState = getElementTransformTargetState(nextElement, { alpha });
 
   if (scaleX !== undefined) {
@@ -69,6 +85,12 @@ export const updateRect = ({
           width: Math.round(border.width),
         });
       }
+
+      syncShaderFilters(rectElement, nextElement.filters, {
+        width,
+        height,
+        force: shouldForceShaderProgress,
+      });
 
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
@@ -233,7 +255,12 @@ export const updateRect = ({
     animationBus,
     completionTracker,
     element: rectElement,
-    targetState,
+    targetState: {
+      ...targetState,
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },
