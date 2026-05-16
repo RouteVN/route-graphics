@@ -1,0 +1,257 @@
+---
+title: Rect Shader Compositor Persistent Continuity
+description: Persistent shader compositors should continue in flight when a later render changes only unrelated sibling content.
+specs:
+  - the shader compositor should be partially progressed before the sibling rerender
+  - the second render should preserve compositor progress instead of restarting uProgress
+  - the compositor should keep advancing after the carried-forward render
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: persistent-compositor-scene
+        type: rect
+        x: 170
+        "y": 120
+        width: 760
+        height: 420
+        fill: "#7A3D2D"
+      - id: persistent-sibling
+        type: rect
+        x: 970
+        "y": 120
+        width: 120
+        height: 420
+        fill: "#4D4D4D"
+  - id: compositor-start
+    elements:
+      - id: persistent-compositor-scene
+        type: rect
+        x: 170
+        "y": 120
+        width: 760
+        height: 420
+        fill: "#2B76C2"
+      - id: persistent-sibling
+        type: rect
+        x: 970
+        "y": 120
+        width: 120
+        height: 420
+        fill: "#4D4D4D"
+    animations:
+      - id: persistent-shader-compositor
+        targetId: persistent-compositor-scene
+        type: transition
+        playback:
+          continuity: persistent
+        tween:
+          uProgress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+        compositor:
+          type: shader
+          uniforms:
+            contrast: 0.18
+          source:
+            webgl:
+              fragment: |
+                precision mediump float;
+
+                in vec2 vTextureCoord;
+                out vec4 finalColor;
+
+                uniform sampler2D uTexture;
+                uniform sampler2D uNextTexture;
+                uniform float uProgress;
+                uniform float uContrast;
+
+                void main(void)
+                {
+                    vec4 prevColor = texture(uTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 mixedColor = mix(prevColor, nextColor, clamp(uProgress, 0.0, 1.0));
+                    finalColor = vec4(mixedColor.rgb + (mixedColor.rgb - 0.5) * uContrast, mixedColor.a);
+                }
+            webgpu:
+              source: |
+                struct GlobalFilterUniforms {
+                  uInputSize: vec4<f32>,
+                  uInputPixel: vec4<f32>,
+                  uInputClamp: vec4<f32>,
+                  uOutputFrame: vec4<f32>,
+                  uGlobalFrame: vec4<f32>,
+                  uOutputTexture: vec4<f32>,
+                };
+
+                struct ShaderUniforms {
+                  uProgress: f32,
+                  uResolution: vec2<f32>,
+                  uContrast: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
+                @group(0) @binding(1) var uTexture: texture_2d<f32>;
+                @group(0) @binding(2) var uSampler: sampler;
+                @group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+                @group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+
+                struct VSOutput {
+                  @builtin(position) position: vec4<f32>,
+                  @location(0) uv: vec2<f32>,
+                };
+
+                fn filterVertexPosition(aPosition: vec2<f32>) -> vec4<f32>
+                {
+                  var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+                  position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;
+                  position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;
+                  return vec4<f32>(position, 0.0, 1.0);
+                }
+
+                fn filterTextureCoord(aPosition: vec2<f32>) -> vec2<f32>
+                {
+                  return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);
+                }
+
+                @vertex
+                fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
+                {
+                  return VSOutput(filterVertexPosition(aPosition), filterTextureCoord(aPosition));
+                }
+
+                @fragment
+                fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
+                {
+                  let prevColor = textureSample(uTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let mixedColor = mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
+                  return vec4<f32>(mixedColor.rgb + (mixedColor.rgb - vec3<f32>(0.5, 0.5, 0.5)) * shaderUniforms.uContrast, mixedColor.a);
+                }
+  - id: compositor-carried-forward
+    elements:
+      - id: persistent-compositor-scene
+        type: rect
+        x: 170
+        "y": 120
+        width: 760
+        height: 420
+        fill: "#2B76C2"
+      - id: persistent-sibling
+        type: rect
+        x: 1020
+        "y": 120
+        width: 70
+        height: 420
+        fill: "#A6A6A6"
+    animations:
+      - id: persistent-shader-compositor
+        targetId: persistent-compositor-scene
+        type: transition
+        playback:
+          continuity: persistent
+        tween:
+          uProgress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+        compositor:
+          type: shader
+          uniforms:
+            contrast: 0.18
+          source:
+            webgl:
+              fragment: |
+                precision mediump float;
+
+                in vec2 vTextureCoord;
+                out vec4 finalColor;
+
+                uniform sampler2D uTexture;
+                uniform sampler2D uNextTexture;
+                uniform float uProgress;
+                uniform float uContrast;
+
+                void main(void)
+                {
+                    vec4 prevColor = texture(uTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 mixedColor = mix(prevColor, nextColor, clamp(uProgress, 0.0, 1.0));
+                    finalColor = vec4(mixedColor.rgb + (mixedColor.rgb - 0.5) * uContrast, mixedColor.a);
+                }
+            webgpu:
+              source: |
+                struct GlobalFilterUniforms {
+                  uInputSize: vec4<f32>,
+                  uInputPixel: vec4<f32>,
+                  uInputClamp: vec4<f32>,
+                  uOutputFrame: vec4<f32>,
+                  uGlobalFrame: vec4<f32>,
+                  uOutputTexture: vec4<f32>,
+                };
+
+                struct ShaderUniforms {
+                  uProgress: f32,
+                  uResolution: vec2<f32>,
+                  uContrast: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
+                @group(0) @binding(1) var uTexture: texture_2d<f32>;
+                @group(0) @binding(2) var uSampler: sampler;
+                @group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+                @group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+
+                struct VSOutput {
+                  @builtin(position) position: vec4<f32>,
+                  @location(0) uv: vec2<f32>,
+                };
+
+                fn filterVertexPosition(aPosition: vec2<f32>) -> vec4<f32>
+                {
+                  var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+                  position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;
+                  position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;
+                  return vec4<f32>(position, 0.0, 1.0);
+                }
+
+                fn filterTextureCoord(aPosition: vec2<f32>) -> vec2<f32>
+                {
+                  return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);
+                }
+
+                @vertex
+                fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
+                {
+                  return VSOutput(filterVertexPosition(aPosition), filterTextureCoord(aPosition));
+                }
+
+                @fragment
+                fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
+                {
+                  let prevColor = textureSample(uTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let mixedColor = mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
+                  return vec4<f32>(mixedColor.rgb + (mixedColor.rgb - vec3<f32>(0.5, 0.5, 0.5)) * shaderUniforms.uContrast, mixedColor.a);
+                }
