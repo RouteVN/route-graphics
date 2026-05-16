@@ -216,6 +216,39 @@ describe("animationBus auto tween shorthand", () => {
     expect(element._routeGraphicsBlur.y).toBeCloseTo(4);
   });
 
+  it("uses degree values for rotation tweens while applying Pixi radians", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      rotation: Math.PI / 2,
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "auto-rotation",
+        element,
+        properties: {
+          rotation: {
+            auto: {
+              duration: 200,
+              easing: "linear",
+            },
+          },
+        },
+        targetState: { rotation: 180 },
+      },
+    });
+
+    animationBus.flush();
+    expect(element.rotation).toBeCloseTo(Math.PI / 2);
+
+    animationBus.tick(100);
+    expect(element.rotation).toBeCloseTo((3 * Math.PI) / 4);
+
+    animationBus.tick(100);
+    expect(element.rotation).toBeCloseTo(Math.PI);
+  });
+
   it("applies translate tweens relative to the subject dimensions", () => {
     const animationBus = createAnimationBus();
     const element = {

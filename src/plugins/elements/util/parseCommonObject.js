@@ -49,6 +49,10 @@ export const parseCommonObject = (state) => {
     anchorX: state.anchorX,
     anchorY: state.anchorY,
   });
+  const transformOriginX =
+    typeof state.originX === "number" ? state.originX : originX;
+  const transformOriginY =
+    typeof state.originY === "number" ? state.originY : originY;
 
   // Round all pixel calculations
   let computedObj = {
@@ -58,8 +62,8 @@ export const parseCommonObject = (state) => {
     height: Math.round(heightAfterScale),
     x: Math.round(adjustedPositionX),
     y: Math.round(adjustedPositionY),
-    originX: Math.round(originX),
-    originY: Math.round(originY),
+    originX: Math.round(transformOriginX),
+    originY: Math.round(transformOriginY),
     alpha: state.alpha ?? 1,
   };
 

@@ -34,6 +34,12 @@ properties:
   anchorY:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
+  originX:
+    type: number
+    description: Horizontal transform origin in pixels from the element's left edge. Defaults to the anchor-derived X origin.
+  originY:
+    type: number
+    description: Vertical transform origin in pixels from the element's top edge. Defaults to the anchor-derived Y origin.
   alpha:
     type: number
     description: Opacity/transparency of the rectangle (0-1)

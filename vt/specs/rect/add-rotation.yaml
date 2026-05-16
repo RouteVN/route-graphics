@@ -1,0 +1,81 @@
+---
+title: Rect Static Rotation
+description: Rects rendered with rotation on initial add, including explicit origin overrides.
+specs:
+  - static rect rotation should apply without an animation
+  - omitted origin should default to the anchor-derived pivot
+  - explicit origin should rotate independently from the anchor layout point
+  - explicit origin 0,0 should rotate around the rect's top-left corner
+---
+states:
+  - elements:
+      - id: center-origin-rect
+        type: rect
+        x: 360
+        "y": 360
+        width: 220
+        height: 72
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
+        rotation: 35
+      - id: explicit-origin-rect
+        type: rect
+        x: 850
+        "y": 360
+        width: 220
+        height: 72
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 72
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
+        rotation: 35
+      - id: origin-zero-rect
+        type: rect
+        x: 1130
+        "y": 360
+        width: 220
+        height: 72
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 0
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
+        rotation: 35
+      - id: center-origin-marker
+        type: rect
+        x: 360
+        "y": 360
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: explicit-origin-marker
+        type: rect
+        x: 740
+        "y": 396
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: origin-zero-marker
+        type: rect
+        x: 1020
+        "y": 324
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"

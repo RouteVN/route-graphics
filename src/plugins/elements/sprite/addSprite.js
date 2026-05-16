@@ -13,6 +13,10 @@ import {
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -29,18 +33,17 @@ export const addSprite = ({
   renderContext,
   zIndex,
 }) => {
-  const { id, x, y, width, height, src, alpha } = element;
+  const { id, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
 
   // Apply initial state
-  sprite.x = Math.round(x);
-  sprite.y = Math.round(y);
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha;
+  applyElementTransform(sprite, element);
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
 
@@ -221,8 +224,7 @@ export const addSprite = ({
     completionTracker,
     element: sprite,
     targetState: {
-      x,
-      y,
+      ...getElementTransformTargetState(element),
       width,
       height,
       alpha,

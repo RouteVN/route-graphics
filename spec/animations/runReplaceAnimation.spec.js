@@ -225,6 +225,73 @@ describe("runReplaceAnimation", () => {
     expect(tracker.complete).toHaveBeenCalledWith(11);
   });
 
+  it("applies transition rotation tween values as degree deltas", () => {
+    const parent = createParent();
+    const nextDisplayObject = createDisplayObject("scene-root");
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        children: [],
+      },
+      animation: {
+        id: "scene-rotate",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            rotation: {
+              keyframes: [{ duration: 300, value: 90, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 0,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children[1];
+    const wrapper = overlay.children[0];
+
+    dispatched.payload.applyFrame(300);
+
+    expect(wrapper.rotation).toBeCloseTo(Math.PI / 2);
+  });
+
   it("runs persistent transitions without tracking render completion", () => {
     const parent = createParent();
     const nextDisplayObject = createDisplayObject("scene-root");

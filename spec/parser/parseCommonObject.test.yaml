@@ -61,6 +61,29 @@ in:
     anchorY: 0.5
 throws: "Input Error: Width or height is missing"
 ---
+case: Explicit origin overrides anchor-derived transform origin without changing anchored position
+in:
+  - id: origin-override
+    type: rect
+    x: 200
+    "y": 120
+    width: 80
+    height: 40
+    anchorX: 0.5
+    anchorY: 0.5
+    originX: 10
+    originY: 30
+out:
+  id: origin-override
+  type: rect
+  width: 80
+  height: 40
+  x: 160
+  "y": 100
+  originX: 10
+  originY: 30
+  alpha: 1
+---
 case: Parsing object with no id
 in:
   - type: text

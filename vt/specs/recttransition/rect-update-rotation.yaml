@@ -1,11 +1,11 @@
 ---
-title: Sprite Update Rotation Transition
-description: Sprites rotating around anchor-derived, explicit, and zero origins during update animations.
+title: Rect Update Rotation Transition
+description: Non-square rects rotating around anchor-derived, explicit, and zero origins during update animations.
 specs:
-  - sprites should rotate from 0 to 90 degrees
+  - rects should rotate from 0 to 90 degrees
   - omitted origin should animate around the anchor-derived pivot
   - explicit origin should animate independently from the anchor layout point
-  - explicit origin 0,0 should animate around the sprite's top-left corner
+  - explicit origin 0,0 should animate around the rect's top-left corner
   - auto rotation tween should use degree values
 steps:
   - action: keypress
@@ -23,39 +23,48 @@ steps:
 ---
 states:
   - elements:
-      - id: center-origin-sprite
-        type: sprite
-        src: slider
+      - id: center-origin-rect
+        type: rect
         x: 360
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 0
-      - id: explicit-origin-sprite
-        type: sprite
-        src: slider
+      - id: explicit-origin-rect
+        type: rect
         x: 850
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
         originX: 0
-        originY: 24
+        originY: 72
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 0
-      - id: origin-zero-sprite
-        type: sprite
-        src: slider
+      - id: origin-zero-rect
+        type: rect
         x: 1130
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
         originX: 0
         originY: 0
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 0
       - id: center-origin-marker
         type: rect
@@ -68,8 +77,8 @@ states:
         fill: "#FF3355"
       - id: explicit-origin-marker
         type: rect
-        x: 730
-        "y": 372
+        x: 740
+        "y": 396
         width: 10
         height: 10
         anchorX: 0.5
@@ -77,47 +86,56 @@ states:
         fill: "#FF3355"
       - id: origin-zero-marker
         type: rect
-        x: 1010
-        "y": 348
+        x: 1020
+        "y": 324
         width: 10
         height: 10
         anchorX: 0.5
         anchorY: 0.5
         fill: "#FF3355"
   - elements:
-      - id: center-origin-sprite
-        type: sprite
-        src: slider
+      - id: center-origin-rect
+        type: rect
         x: 360
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 90
-      - id: explicit-origin-sprite
-        type: sprite
-        src: slider
+      - id: explicit-origin-rect
+        type: rect
         x: 850
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
         originX: 0
-        originY: 24
+        originY: 72
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 90
-      - id: origin-zero-sprite
-        type: sprite
-        src: slider
+      - id: origin-zero-rect
+        type: rect
         x: 1130
         "y": 360
-        width: 240
-        height: 24
+        width: 220
+        height: 72
         anchorX: 0.5
         anchorY: 0.5
         originX: 0
         originY: 0
+        fill: "#FFFFFF"
+        border:
+          width: 6
+          color: "#666666"
         rotation: 90
       - id: center-origin-marker
         type: rect
@@ -130,8 +148,8 @@ states:
         fill: "#FF3355"
       - id: explicit-origin-marker
         type: rect
-        x: 730
-        "y": 372
+        x: 740
+        "y": 396
         width: 10
         height: 10
         anchorX: 0.5
@@ -139,32 +157,32 @@ states:
         fill: "#FF3355"
       - id: origin-zero-marker
         type: rect
-        x: 1010
-        "y": 348
+        x: 1020
+        "y": 324
         width: 10
         height: 10
         anchorX: 0.5
         anchorY: 0.5
         fill: "#FF3355"
     animations:
-      - id: center-origin-sprite-rotate-auto
-        targetId: center-origin-sprite
+      - id: center-origin-rect-rotate-auto
+        targetId: center-origin-rect
         type: update
         tween:
           rotation:
             auto:
               duration: 1000
               easing: linear
-      - id: explicit-origin-sprite-rotate-auto
-        targetId: explicit-origin-sprite
+      - id: explicit-origin-rect-rotate-auto
+        targetId: explicit-origin-rect
         type: update
         tween:
           rotation:
             auto:
               duration: 1000
               easing: linear
-      - id: origin-zero-sprite-rotate-auto
-        targetId: origin-zero-sprite
+      - id: origin-zero-rect-rotate-auto
+        targetId: origin-zero-rect
         type: update
         tween:
           rotation:

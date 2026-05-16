@@ -20,6 +20,10 @@ import {
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 /**
  * Update sprite element (synchronous)
@@ -44,7 +48,7 @@ export const updateSprite = ({
 
   spriteElement.zIndex = zIndex;
 
-  const { x, y, width, height, src, alpha } = nextElement;
+  const { width, height, src, alpha } = nextElement;
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(spriteElement, prevElement.blur, { force: true });
@@ -262,11 +266,10 @@ export const updateSprite = ({
         syncSpriteResource();
       }
 
-      spriteElement.x = Math.round(x);
-      spriteElement.y = Math.round(y);
       spriteElement.width = Math.round(width);
       spriteElement.height = Math.round(height);
       spriteElement.alpha = alpha;
+      applyElementTransform(spriteElement, nextElement);
       syncBlurEffect(spriteElement, nextElement.blur, {
         force: shouldForceBlur,
       });
@@ -288,8 +291,7 @@ export const updateSprite = ({
     completionTracker,
     element: spriteElement,
     targetState: {
-      x,
-      y,
+      ...getElementTransformTargetState(nextElement),
       width,
       height,
       alpha,

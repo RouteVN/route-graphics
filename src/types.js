@@ -73,6 +73,7 @@
  * @typedef {Object} SpriteComputedProps
  * @property {'sprite'} type
  * @property {number} alpha
+ * @property {number} [rotation] - Rotation in degrees
  * @property {string} url
  * @property {BlurConfig} [blur]
  * @property {SpriteHover} hover
