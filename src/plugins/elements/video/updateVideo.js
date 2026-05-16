@@ -17,6 +17,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 
@@ -57,6 +58,8 @@ export const updateVideo = ({
       height: prevElement.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(videoElement);
   }
 
   let currentSrc = prevElement.src;

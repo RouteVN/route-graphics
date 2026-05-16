@@ -10,6 +10,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 
@@ -52,6 +53,8 @@ export const updateRect = ({
       height: prevElement.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(rectElement);
   }
   const targetState = getElementTransformTargetState(nextElement, { alpha });
 

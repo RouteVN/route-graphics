@@ -3,7 +3,7 @@ title: Shader Filter Custom Vertex
 description: Element shader filters should support inline custom vertex source for WebGL and equivalent WGSL vertex logic.
 specs:
   - the filter should render normally at uProgress 0
-  - uProgress should drive the custom vertex displacement
+  - uProgress should drive a custom vertex shear that is visible with the v1 single-quad filter mesh
   - uResolution should remain available while a custom vertex shader is used
 steps:
   - action: keypress
@@ -56,7 +56,8 @@ states:
                   void main(void)
                   {
                       vec2 warped = aPosition;
-                      warped.y += sin(aPosition.x * 3.14159265) * 0.18 * uProgress;
+                      warped.x += (aPosition.y - 0.5) * 0.12 * uProgress;
+                      warped.y += (aPosition.x - 0.5) * 0.32 * uProgress;
                       gl_Position = filterVertexPosition(warped);
                       vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
                   }
@@ -67,6 +68,7 @@ states:
                   out vec4 finalColor;
 
                   uniform sampler2D uTexture;
+                  uniform float uProgress;
                   uniform vec2 uResolution;
                   uniform vec4 uStripeColor;
 
@@ -74,7 +76,7 @@ states:
                   {
                       vec4 color = texture(uTexture, vTextureCoord);
                       float stripe = step(0.55, fract((vTextureCoord.x + vTextureCoord.y) * uResolution.x / 36.0));
-                      finalColor = vec4(mix(color.rgb, uStripeColor.rgb, stripe * 0.35), color.a);
+                      finalColor = vec4(mix(color.rgb, uStripeColor.rgb, stripe * (0.25 + 0.4 * uProgress)), color.a);
                   }
               webgpu:
                 source: |
@@ -115,7 +117,8 @@ states:
                   fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
                   {
                     var warped = aPosition;
-                    warped.y = warped.y + sin(aPosition.x * 3.14159265) * 0.18 * shaderUniforms.uProgress;
+                    warped.x = warped.x + (aPosition.y - 0.5) * 0.12 * shaderUniforms.uProgress;
+                    warped.y = warped.y + (aPosition.x - 0.5) * 0.32 * shaderUniforms.uProgress;
                     return VSOutput(filterVertexPosition(warped), aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw));
                   }
 
@@ -124,7 +127,7 @@ states:
                   {
                     let color = textureSample(uTexture, uSampler, uv);
                     let stripe = step(0.55, fract((uv.x + uv.y) * shaderUniforms.uResolution.x / 36.0));
-                    return vec4<f32>(mix(color.rgb, shaderUniforms.uStripeColor.rgb, stripe * 0.35), color.a);
+                    return vec4<f32>(mix(color.rgb, shaderUniforms.uStripeColor.rgb, stripe * (0.25 + 0.4 * shaderUniforms.uProgress)), color.a);
                   }
   - elements:
       - id: custom-vertex-filter
@@ -162,7 +165,8 @@ states:
                   void main(void)
                   {
                       vec2 warped = aPosition;
-                      warped.y += sin(aPosition.x * 3.14159265) * 0.18 * uProgress;
+                      warped.x += (aPosition.y - 0.5) * 0.12 * uProgress;
+                      warped.y += (aPosition.x - 0.5) * 0.32 * uProgress;
                       gl_Position = filterVertexPosition(warped);
                       vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
                   }
@@ -173,6 +177,7 @@ states:
                   out vec4 finalColor;
 
                   uniform sampler2D uTexture;
+                  uniform float uProgress;
                   uniform vec2 uResolution;
                   uniform vec4 uStripeColor;
 
@@ -180,7 +185,7 @@ states:
                   {
                       vec4 color = texture(uTexture, vTextureCoord);
                       float stripe = step(0.55, fract((vTextureCoord.x + vTextureCoord.y) * uResolution.x / 36.0));
-                      finalColor = vec4(mix(color.rgb, uStripeColor.rgb, stripe * 0.35), color.a);
+                      finalColor = vec4(mix(color.rgb, uStripeColor.rgb, stripe * (0.25 + 0.4 * uProgress)), color.a);
                   }
               webgpu:
                 source: |
@@ -221,7 +226,8 @@ states:
                   fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
                   {
                     var warped = aPosition;
-                    warped.y = warped.y + sin(aPosition.x * 3.14159265) * 0.18 * shaderUniforms.uProgress;
+                    warped.x = warped.x + (aPosition.y - 0.5) * 0.12 * shaderUniforms.uProgress;
+                    warped.y = warped.y + (aPosition.x - 0.5) * 0.32 * shaderUniforms.uProgress;
                     return VSOutput(filterVertexPosition(warped), aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw));
                   }
 
@@ -230,7 +236,7 @@ states:
                   {
                     let color = textureSample(uTexture, uSampler, uv);
                     let stripe = step(0.55, fract((uv.x + uv.y) * shaderUniforms.uResolution.x / 36.0));
-                    return vec4<f32>(mix(color.rgb, shaderUniforms.uStripeColor.rgb, stripe * 0.35), color.a);
+                    return vec4<f32>(mix(color.rgb, shaderUniforms.uStripeColor.rgb, stripe * (0.25 + 0.4 * shaderUniforms.uProgress)), color.a);
                   }
     animations:
       - id: vertex-wave-progress

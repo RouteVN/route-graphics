@@ -19,6 +19,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 
@@ -116,6 +117,8 @@ export const updateText = ({
       height: prevTextComputedNode.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(textElement);
   }
 
   const updateElement = () => {

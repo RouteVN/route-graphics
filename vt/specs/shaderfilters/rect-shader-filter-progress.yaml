@@ -5,6 +5,7 @@ specs:
   - the shader filter should start from the unmodified rect color
   - at 500ms uProgress should partially shift the rect color
   - at 1000ms uProgress should reach the final shader color
+  - returning to the first state should reset uProgress and render the original grey rect
 steps:
   - action: keypress
     key: "n"
@@ -17,6 +18,9 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: b
   - action: screenshot
 ---
 states:

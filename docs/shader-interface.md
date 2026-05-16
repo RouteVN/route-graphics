@@ -211,8 +211,8 @@ The compositor sees side motion already baked into `uTexture` and
 - an active `uProgress` tween writes the sampled value each animation tick
 - when the tween completes, the last sampled value remains until another render
   or animation changes it
-- a later render that recreates or resyncs the filter resets the base value to
-  `0` unless an active `uProgress` animation is continued
+- a later render with no active `uProgress` tween resets the target filter
+  progress to `0`
 - multiple active `uProgress` animations for the same `targetId` in one render
   are invalid
 - persistent playback follows the existing animation continuity rules by stable

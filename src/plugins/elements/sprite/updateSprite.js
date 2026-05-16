@@ -14,6 +14,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 import {
@@ -68,6 +69,8 @@ export const updateSprite = ({
       height: prevElement.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(spriteElement);
   }
 
   let didSyncResourceBeforeAnimation = false;

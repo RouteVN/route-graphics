@@ -22,6 +22,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 import {
@@ -72,6 +73,8 @@ export const updateContainer = ({
       height: prevElement.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(containerElement);
   }
 
   const updateElement = () => {

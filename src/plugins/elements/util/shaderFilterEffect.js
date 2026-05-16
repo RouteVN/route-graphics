@@ -419,6 +419,14 @@ export const installShaderProgressProperty = (displayObject) => {
   });
 };
 
+export const resetShaderFilterProgress = (displayObject) => {
+  if (!displayObject || displayObject[SHADER_PROGRESS_KEY] === undefined) {
+    return;
+  }
+
+  displayObject.uProgress = 0;
+};
+
 const clearShaderFilters = (displayObject) => {
   setManagedFilter(displayObject, "shader", null);
   delete displayObject[SHADER_FILTERS_STATE_KEY];

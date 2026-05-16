@@ -13,6 +13,7 @@ import {
 import {
   getShaderFilterTargetState,
   hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
 import {
@@ -61,6 +62,8 @@ export const updateAnimatedSprite = async ({
       height: prevElement.height,
       force: true,
     });
+  } else {
+    resetShaderFilterProgress(animatedSpriteElement);
   }
 
   const prevAtlas = normalizeAnimatedSpriteAtlas(prevElement.atlas);
