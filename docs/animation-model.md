@@ -6,6 +6,7 @@ See also:
 
 - `docs/animation-type-semantics.md`
 - `docs/animation-implementation-plan.md`
+- `docs/shader-interface.md`
 
 ## Goal
 
@@ -137,7 +138,7 @@ Use it for:
 - `next.tween`
 - `mask`
 - `playback.continuity`
-- future `shader`
+- future `compositor`
 
 `transition` may define:
 
@@ -308,7 +309,8 @@ of these remain true:
 
 - the animation `id` is the same
 - the `targetId` is the same
-- the normalized `prev`, `next`, `mask`, and `playback` config are the same
+- the normalized `prev`, `next`, `mask`, future `compositor`,
+  top-level `tween.uProgress`, and `playback` config are the same
 - the transition still owns the same target subtree handoff
 
 This is continuity of one already-started transition.
@@ -324,7 +326,9 @@ That means:
 
 - if a later render omits that animation, it stops
 - if a later render changes that animation's `tween` or `playback` config, it restarts from the beginning
-- if a later render changes a persistent transition's `prev`, `next`, or `mask` config, it restarts from the beginning
+- if a later render changes a persistent transition's `prev`, `next`, `mask`,
+  future `compositor`, or future top-level `tween.uProgress` config, it restarts
+  from the beginning
 - if the target element or target subtree is deleted, replaced, or otherwise no longer matches the active handoff, it stops or restarts
 
 ### Transition Ownership Rule
@@ -526,11 +530,17 @@ Sequence rules:
 - sequence frame textures should include their own feathering/alpha softness;
   `softness` is not valid on `kind: sequence`.
 
-## Future Shader
+## Future Shader Compositor
 
-If shader support comes back later, it should be `transition`-only.
+If shader compositor support comes back later, it should be `transition`-only.
 
 It should live next to `mask`, not on `update`.
+
+Element shader filters are outside the animation object and live on elements.
+`update` animations may eventually tween `uProgress`, but they should not define
+shader source or shader filter configuration.
+
+The proposed v1 shader interface is tracked in `docs/shader-interface.md`.
 
 ## Validation Rules
 
@@ -542,8 +552,13 @@ It should live next to `mask`, not on `update`.
   - `prev`
   - `next`
   - `mask`
+  - future `compositor`
 - `mask` is transition-only
-- future `shader` would also be transition-only
+- future transition `compositor` would also be transition-only
+- future transition `compositor` would be mutually exclusive with `mask` in v1
+- future top-level `transition.tween` would be valid only for `uProgress` when
+  `compositor` is present
+- future `compositor` would require top-level `tween.uProgress`
 
 ## Summary
 
@@ -553,4 +568,4 @@ It should live next to `mask`, not on `update`.
 - allow optional `playback.continuity: render | persistent`
 - let `transition` define `prev` and/or `next`
 - keep `mask` as a transition-only primitive
-- keep future `shader` transition-only as well
+- keep future transition `compositor` transition-only as well

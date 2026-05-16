@@ -88,6 +88,7 @@ For complete usage details, go to:
 Design notes:
 
 - [Audio Effects](./docs/audio-effects.md)
+- [Shader Interface](./docs/shader-interface.md)
 
 ## Render CLI
 
