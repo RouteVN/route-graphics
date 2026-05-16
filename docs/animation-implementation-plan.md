@@ -93,6 +93,9 @@ animations:
 Key rules:
 
 - `update` uses `tween`
+- `update` and `transition` both support absolute `x` / `y` and subject-relative
+  `translateX` / `translateY`
+- a single tween cannot combine `x` with `translateX`, or `y` with `translateY`
 - `update` and `transition` support optional `playback.continuity: persistent`
 - `transition` uses `prev`, `next`, and optional `mask`
 - `transition` may define:

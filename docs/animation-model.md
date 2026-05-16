@@ -182,6 +182,17 @@ The same payload is reused in two places:
 - manual `update.tween`
 - `prev.tween` / `next.tween`
 
+Position tweens support two addressing modes in both `update` and `transition`:
+
+- `x` / `y` are absolute pixel positions in the parent coordinate space
+- `translateX` / `translateY` are relative offsets in units of the animated
+  subject's own width or height
+
+For example, `translateX: -1` moves the subject left by one subject width, and
+`translateY: 0.5` moves it down by half its height. A single tween cannot define
+both `x` and `translateX`, or both `y` and `translateY`, because that would make
+the final position ambiguous.
+
 `update` also supports a shorthand for the common "animate this property from
 its current live value to the next state's value" case:
 

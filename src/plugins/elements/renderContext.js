@@ -62,6 +62,7 @@ const executeDeferredMountOperation = (operation) => {
         completionTracker: operation.completionTracker,
         element: operation.element,
         targetState: operation.targetState,
+        animationBaseState: operation.animationBaseState,
       });
       return;
   }
@@ -131,7 +132,14 @@ export const queueDeferredTextRevealAutoplay = (
 
 export const queueDeferredUpdateAnimationStart = (
   renderContext,
-  { animations, animationBus, completionTracker, element, targetState },
+  {
+    animations,
+    animationBus,
+    completionTracker,
+    element,
+    targetState,
+    animationBaseState,
+  },
 ) =>
   queueDeferredMountOperation(renderContext, {
     type: "start-update-animations",
@@ -140,6 +148,7 @@ export const queueDeferredUpdateAnimationStart = (
     completionTracker,
     element,
     targetState,
+    animationBaseState,
   });
 
 export const flushDeferredMountOperations = (renderContext) => {

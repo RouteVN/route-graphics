@@ -833,7 +833,7 @@ describe("runReplaceAnimation", () => {
 
     expect(overlay.children).toHaveLength(1);
     dispatched.payload.applyFrame(500);
-    expect(overlay.children[0].x).toBeLessThan(0);
+    expect(overlay.children[0].x).toBeCloseTo(-50);
     expect(nextDisplayObject.visible).toBe(false);
   });
 
@@ -909,8 +909,174 @@ describe("runReplaceAnimation", () => {
 
     expect(overlay.children).toHaveLength(1);
     dispatched.payload.applyFrame(500);
-    expect(overlay.children[0].x).toBeGreaterThan(0);
+    expect(overlay.children[0].x).toBeCloseTo(50);
     expect(nextDisplayObject.visible).toBe(false);
+  });
+
+  it("applies absolute x and y tweens to transition snapshots", () => {
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent();
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-absolute-in",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            x: {
+              initialValue: 20,
+              keyframes: [{ duration: 1000, value: 120, easing: "linear" }],
+            },
+            y: {
+              initialValue: 10,
+              keyframes: [{ duration: 1000, value: 60, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+
+    dispatched.payload.applyFrame(500);
+    expect(overlay.children[0].x).toBeCloseTo(70);
+    expect(overlay.children[0].y).toBeCloseTo(35);
+  });
+
+  it("expands masked transition bounds for absolute position tweens", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const maskTexture = document.createElement("canvas");
+    maskTexture.width = 1;
+    maskTexture.height = 1;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-mask-position",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            x: {
+              initialValue: 200,
+              keyframes: [{ duration: 1000, value: 400, easing: "linear" }],
+            },
+          },
+        },
+        mask: {
+          kind: "single",
+          texture: maskTexture,
+          channel: "red",
+          progress: {
+            initialValue: 0,
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const sprite = overlay.children[0];
+
+    expect(sprite.x).toBe(0);
+    expect(sprite.filterArea.width).toBe(401);
+    expect(sprite.filterArea.height).toBe(1);
   });
 
   it("does not preprocess single masks through CPU extraction", () => {

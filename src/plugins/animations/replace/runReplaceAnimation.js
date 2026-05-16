@@ -79,29 +79,43 @@ const createSnapshotSubject = (app, displayObject) => {
   return {
     wrapper,
     texture,
+    width: frame.width * Math.abs(wrapper.scale.x),
+    height: frame.height * Math.abs(wrapper.scale.y),
   };
 };
 
-const buildSubjectTimelines = (tween = {}) =>
+const getSubjectDefaultValue = (property, base) => {
+  switch (property) {
+    case "x":
+      return base.x;
+    case "y":
+      return base.y;
+    default:
+      return DEFAULT_SUBJECT_VALUES[property] ?? 0;
+  }
+};
+
+const buildSubjectTimelines = (tween = {}, base) =>
   Object.entries(tween).map(([property, config]) => ({
     property,
     timeline: buildTimeline([
       {
-        value: config.initialValue ?? DEFAULT_SUBJECT_VALUES[property] ?? 0,
+        value: config.initialValue ?? getSubjectDefaultValue(property, base),
       },
       ...config.keyframes,
     ]),
   }));
 
-const createSubjectController = (wrapper, tween, app) => {
-  if (!wrapper || !tween) {
+const createSubjectController = (subject, tween) => {
+  if (!subject?.wrapper || !tween) {
     return {
       duration: 0,
+      timelines: [],
       apply: () => {},
     };
   }
 
-  const timelines = buildSubjectTimelines(tween);
+  const wrapper = subject.wrapper;
   const base = {
     x: wrapper.x,
     y: wrapper.y,
@@ -109,10 +123,14 @@ const createSubjectController = (wrapper, tween, app) => {
     scaleX: wrapper.scale.x,
     scaleY: wrapper.scale.y,
     rotation: wrapper.rotation,
+    width: subject.width,
+    height: subject.height,
   };
+  const timelines = buildSubjectTimelines(tween, base);
 
   return {
     duration: calculateMaxDuration(timelines),
+    timelines,
     apply: (time) => {
       wrapper.x = base.x;
       wrapper.y = base.y;
@@ -125,11 +143,17 @@ const createSubjectController = (wrapper, tween, app) => {
         const value = getValueAtTime(timeline, time);
 
         switch (property) {
+          case "x":
+            wrapper.x = value;
+            break;
+          case "y":
+            wrapper.y = value;
+            break;
           case "translateX":
-            wrapper.x = base.x + value * app.renderer.width;
+            wrapper.x = base.x + value * base.width;
             break;
           case "translateY":
-            wrapper.y = base.y + value * app.renderer.height;
+            wrapper.y = base.y + value * base.height;
             break;
           case "alpha":
             wrapper.alpha = base.alpha * value;
@@ -147,6 +171,57 @@ const createSubjectController = (wrapper, tween, app) => {
       }
     },
   };
+};
+
+const collectControllerSampleTimes = (controllers) => {
+  const sampleTimes = new Set([0]);
+
+  for (const controller of controllers) {
+    sampleTimes.add(controller.duration);
+
+    for (const { timeline } of controller.timelines ?? []) {
+      for (let index = 0; index < timeline.length; index++) {
+        const currentTime = timeline[index].time;
+        sampleTimes.add(currentTime);
+
+        if (index === 0) {
+          continue;
+        }
+
+        const previousTime = timeline[index - 1].time;
+        const span = currentTime - previousTime;
+        if (span <= 0) {
+          continue;
+        }
+
+        sampleTimes.add(previousTime + span * 0.25);
+        sampleTimes.add(previousTime + span * 0.5);
+        sampleTimes.add(previousTime + span * 0.75);
+      }
+    }
+  }
+
+  return [...sampleTimes].sort((a, b) => a - b);
+};
+
+const unionRectangles = (rectangles) => {
+  if (rectangles.length === 0) {
+    return new Rectangle(0, 0, 1, 1);
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const rectangle of rectangles) {
+    minX = Math.min(minX, rectangle.x);
+    minY = Math.min(minY, rectangle.y);
+    maxX = Math.max(maxX, rectangle.x + rectangle.width);
+    maxY = Math.max(maxY, rectangle.y + rectangle.height);
+  }
+
+  return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 };
 
 const createMaskProgressTimeline = (mask) =>
@@ -822,6 +897,41 @@ const getUnionBounds = (subjects) => {
   return normalizeFrame(getLocalBoundsRectangle(boundsContainer));
 };
 
+const getAnimatedUnionBounds = (subjects, controllers) => {
+  const activeSubjects = subjects.filter((subject) => subject?.wrapper);
+
+  if (activeSubjects.length === 0) {
+    return getUnionBounds(subjects);
+  }
+
+  const boundsContainer = new Container();
+  for (const subject of activeSubjects) {
+    boundsContainer.addChild(subject.wrapper);
+  }
+
+  const rectangles = [];
+  for (const time of collectControllerSampleTimes(controllers)) {
+    for (const controller of controllers) {
+      controller.apply(time);
+    }
+
+    rectangles.push(getLocalBoundsRectangle(boundsContainer));
+  }
+
+  for (const controller of controllers) {
+    controller.apply(0);
+  }
+
+  for (const subject of activeSubjects) {
+    if (subject.wrapper.parent === boundsContainer) {
+      boundsContainer.removeChild(subject.wrapper);
+    }
+  }
+  boundsContainer.destroy();
+
+  return normalizeFrame(unionRectangles(rectangles));
+};
+
 const renderOffscreenContainer = ({ app, container, target, frame }) => {
   app.renderer.render({
     container,
@@ -906,14 +1016,12 @@ const createPlainOverlay = ({
   }
 
   const prevController = createSubjectController(
-    prevSubject?.wrapper ?? null,
+    prevSubject,
     animation.prev?.tween,
-    app,
   );
   const nextController = createSubjectController(
-    nextSubject?.wrapper ?? null,
+    nextSubject,
     animation.next?.tween,
-    app,
   );
 
   return {
@@ -940,7 +1048,18 @@ const createMaskedOverlay = ({
   nextSubject,
   zIndex,
 }) => {
-  const unionBounds = getUnionBounds([prevSubject, nextSubject]);
+  const prevController = createSubjectController(
+    prevSubject,
+    animation.prev?.tween,
+  );
+  const nextController = createSubjectController(
+    nextSubject,
+    animation.next?.tween,
+  );
+  const unionBounds = getAnimatedUnionBounds(
+    [prevSubject, nextSubject],
+    [prevController, nextController],
+  );
   const prevRoot = new Container();
   const nextRoot = new Container();
 
@@ -1005,16 +1124,6 @@ const createMaskedOverlay = ({
     unionBounds.width,
     unionBounds.height,
     maskFilter,
-  );
-  const prevController = createSubjectController(
-    prevSubject?.wrapper ?? null,
-    animation.prev?.tween,
-    app,
-  );
-  const nextController = createSubjectController(
-    nextSubject?.wrapper ?? null,
-    animation.next?.tween,
-    app,
   );
   let prevStaticRendered = false;
   let nextStaticRendered = false;

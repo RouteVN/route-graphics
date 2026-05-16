@@ -29,6 +29,12 @@ Each `tween` property can use either:
 
 `keyframes` and `auto` are mutually exclusive on the same property.
 
+Position tweens support `x` / `y` and `translateX` / `translateY` in both
+`update` and `transition`. `x` / `y` are absolute parent-space pixels.
+`translateX` / `translateY` are subject-size multipliers, so `translateX: -1`
+moves left by one subject width. A tween cannot define both `x` and
+`translateX`, or both `y` and `translateY`.
+
 Each keyframe's `easing` applies to the segment that reaches that keyframe
 from the previous value. The first authored keyframe controls the segment from
 the current value to that keyframe. `auto.easing` controls the single segment

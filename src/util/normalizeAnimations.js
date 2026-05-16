@@ -6,6 +6,8 @@ const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
   "y",
+  "translateX",
+  "translateY",
   "scaleX",
   "scaleY",
   "rotation",
@@ -13,6 +15,8 @@ const UPDATE_TWEEN_PROPERTIES = new Set([
   "blurY",
 ]);
 const TRANSITION_TWEEN_PROPERTIES = new Set([
+  "x",
+  "y",
   "translateX",
   "translateY",
   "alpha",
@@ -175,6 +179,14 @@ const normalizeTweenMap = (
   propertyNormalizer = normalizeKeyframes,
 ) => {
   assertPlainObject(tween, path);
+
+  if (tween.x !== undefined && tween.translateX !== undefined) {
+    throw new Error(`${path} cannot define both x and translateX.`);
+  }
+
+  if (tween.y !== undefined && tween.translateY !== undefined) {
+    throw new Error(`${path} cannot define both y and translateY.`);
+  }
 
   const normalizedEntries = Object.entries(tween).map(([property, config]) => {
     if (!allowedProperties.has(property)) {
