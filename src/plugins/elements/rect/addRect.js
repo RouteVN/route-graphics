@@ -3,6 +3,10 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 const normalizeRectFill = (fill) =>
   fill === undefined || fill === null || fill === "" || fill === "transparent"
@@ -24,13 +28,12 @@ export const addRect = ({
   completionTracker,
   renderContext,
 }) => {
-  const { id, x, y, width, height, fill, border, alpha, scaleX, scaleY } =
-    element;
+  const { id, width, height, fill, border, alpha, scaleX, scaleY } = element;
 
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
-  const targetState = { x, y, alpha };
+  const targetState = getElementTransformTargetState(element, { alpha });
 
   if (scaleX !== undefined) {
     targetState.scaleX = scaleX;
@@ -45,13 +48,12 @@ export const addRect = ({
     rect
       .rect(0, 0, Math.round(width), Math.round(height))
       .fill(normalizeRectFill(fill));
-    rect.x = Math.round(x);
-    rect.y = Math.round(y);
     rect.alpha = alpha;
     // Rect computed nodes already bake scale into width/height for layout.
     // Reset the live transform so update tweens do not double-apply scale.
     rect.scale.x = 1;
     rect.scale.y = 1;
+    applyElementTransform(rect, element);
 
     if (border) {
       rect.stroke({

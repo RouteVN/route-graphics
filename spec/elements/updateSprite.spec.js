@@ -209,4 +209,165 @@ describe("updateSprite", () => {
     expect(spriteElement.width).toBe(80);
     expect(spriteElement.height).toBe(60);
   });
+
+  it("dispatches auto rotation tweens with degree target values", () => {
+    const spriteElement = {
+      label: "sprite-1",
+      texture: { src: "sprite" },
+      x: 10,
+      y: 20,
+      width: 80,
+      height: 60,
+      alpha: 1,
+      rotation: 0,
+      zIndex: 0,
+      removeAllListeners: vi.fn(),
+      on: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+
+    updateSprite({
+      app: {
+        audioStage: { add: vi.fn() },
+      },
+      parent: {
+        children: [spriteElement],
+      },
+      prevElement: {
+        id: "sprite-1",
+        type: "sprite",
+        src: "sprite",
+        x: 10,
+        y: 20,
+        width: 80,
+        height: 60,
+        alpha: 1,
+        rotation: 0,
+      },
+      nextElement: {
+        id: "sprite-1",
+        type: "sprite",
+        src: "sprite",
+        x: 10,
+        y: 20,
+        width: 80,
+        height: 60,
+        alpha: 1,
+        rotation: 180,
+      },
+      animations: [
+        {
+          id: "sprite-rotation-auto",
+          targetId: "sprite-1",
+          type: "update",
+          tween: {
+            rotation: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus,
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      zIndex: 4,
+    });
+
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "sprite-rotation-auto",
+          targetState: expect.objectContaining({
+            rotation: 180,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it("uses explicit origin independently from anchor when applying rotation", () => {
+    const spriteElement = {
+      label: "sprite-1",
+      texture: { src: "sprite" },
+      x: 10,
+      y: 20,
+      width: 80,
+      height: 60,
+      alpha: 1,
+      rotation: 0,
+      pivot: {
+        x: 0,
+        y: 0,
+        set(x, y) {
+          this.x = x;
+          this.y = y;
+        },
+      },
+      scale: {
+        x: 1,
+        y: 1,
+      },
+      zIndex: 0,
+      removeAllListeners: vi.fn(),
+      on: vi.fn(),
+    };
+
+    updateSprite({
+      app: {
+        audioStage: { add: vi.fn() },
+      },
+      parent: {
+        children: [spriteElement],
+      },
+      prevElement: {
+        id: "sprite-1",
+        type: "sprite",
+        src: "sprite",
+        x: 240,
+        y: 160,
+        width: 120,
+        height: 80,
+        originX: 0,
+        originY: 80,
+        alpha: 1,
+        rotation: 0,
+      },
+      nextElement: {
+        id: "sprite-1",
+        type: "sprite",
+        src: "sprite",
+        x: 260,
+        y: 200,
+        width: 120,
+        height: 80,
+        originX: 0,
+        originY: 80,
+        alpha: 1,
+        rotation: 45,
+      },
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      eventHandler: vi.fn(),
+      zIndex: 4,
+    });
+
+    expect(spriteElement.pivot.x).toBe(0);
+    expect(spriteElement.pivot.y).toBe(80);
+    expect(spriteElement.x).toBe(260);
+    expect(spriteElement.y).toBe(280);
+    expect(spriteElement.rotation).toBeCloseTo(Math.PI / 4);
+  });
 });

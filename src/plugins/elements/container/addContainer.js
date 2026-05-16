@@ -8,6 +8,10 @@ import {
   hasBlurUpdateAnimation,
   syncBlurEffect,
 } from "../util/blurEffect.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 const hasDuplicateChildIds = (children = []) => {
   const seen = new Set();
@@ -78,16 +82,15 @@ export const addContainer = ({
   completionTracker,
   signal,
 }) => {
-  const { id, x, y, children, scroll, alpha } = element;
+  const { id, children, scroll, alpha } = element;
 
   const container = new Container();
   container.label = id;
   container.zIndex = zIndex;
 
   // Apply initial state
-  container.x = Math.round(x);
-  container.y = Math.round(y);
   container.alpha = alpha;
+  applyElementTransform(container, element);
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(container, element.blur, { force: shouldForceBlur });
 
@@ -148,9 +151,7 @@ export const addContainer = ({
     completionTracker,
     element: container,
     targetState: {
-      x,
-      y,
-      alpha,
+      ...getElementTransformTargetState(element, { alpha }),
       ...getBlurTargetState(element, { force: shouldForceBlur }),
     },
     renderContext,

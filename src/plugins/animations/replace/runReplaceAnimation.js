@@ -20,6 +20,7 @@ import {
 } from "../../elements/renderContext.js";
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
+import { degreesToRadians } from "../../elements/util/transform.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -65,8 +66,8 @@ const createSnapshotSubject = (app, displayObject) => {
   });
 
   const sprite = new Sprite(texture);
-  sprite.x = frame.x;
-  sprite.y = frame.y;
+  sprite.x = frame.x - (displayObject.pivot?.x ?? 0);
+  sprite.y = frame.y - (displayObject.pivot?.y ?? 0);
 
   const wrapper = new Container();
   wrapper.x = displayObject.x ?? 0;
@@ -165,7 +166,7 @@ const createSubjectController = (subject, tween) => {
             wrapper.scale.y = base.scaleY * value;
             break;
           case "rotation":
-            wrapper.rotation = base.rotation + value;
+            wrapper.rotation = base.rotation + degreesToRadians(value);
             break;
         }
       }

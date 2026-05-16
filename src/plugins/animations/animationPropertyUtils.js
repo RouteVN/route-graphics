@@ -1,3 +1,8 @@
+import {
+  degreesToRadians,
+  radiansToDegrees,
+} from "../elements/util/transform.js";
+
 export const isTranslateAnimationProperty = (property) =>
   property === "translateX" || property === "translateY";
 
@@ -19,7 +24,8 @@ export const getAnimationProperty = (
 
   if (typeof mappedPath === "string") {
     const result = object[mappedPath];
-    return result === undefined ? defaultValue : result;
+    if (result === undefined) return defaultValue;
+    return path === "rotation" ? radiansToDegrees(result) : result;
   }
 
   let result = object;
@@ -30,14 +36,16 @@ export const getAnimationProperty = (
     result = result[key];
   }
 
-  return result === undefined ? defaultValue : result;
+  if (result === undefined) return defaultValue;
+  return path === "rotation" ? radiansToDegrees(result) : result;
 };
 
 export const setAnimationProperty = (object, path, propertyPathMap, value) => {
   const mappedPath = getMappedPath(propertyPathMap, path);
+  const nextValue = path === "rotation" ? degreesToRadians(value) : value;
 
   if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
+    object[mappedPath] = nextValue;
     return object;
   }
 
@@ -50,7 +58,7 @@ export const setAnimationProperty = (object, path, propertyPathMap, value) => {
     current = current[key];
   }
 
-  current[mappedPath[mappedPath.length - 1]] = value;
+  current[mappedPath[mappedPath.length - 1]] = nextValue;
   return object;
 };
 

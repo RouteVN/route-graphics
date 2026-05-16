@@ -15,30 +15,32 @@ Try it in the [Playground](/playground/?template=container-layout).
 
 ## Field Reference
 
-| Field        | Type                                     | Required            | Default                  | Notes                                                               |
-| ------------ | ---------------------------------------- | ------------------- | ------------------------ | ------------------------------------------------------------------- |
-| `id`         | string                                   | Yes                 | -                        | Element id.                                                         |
-| `type`       | string                                   | Yes                 | -                        | Must be `container`.                                                |
-| `x`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                                   |
-| `y`          | number                                   | Yes (public schema) | `0` at runtime           | Position before anchor transform.                                   |
-| `width`      | number                                   | No                  | auto                     | Derived from children if omitted.                                   |
-| `height`     | number                                   | No                  | auto                     | Derived from children if omitted.                                   |
-| `anchorX`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
-| `anchorY`    | number                                   | No                  | `0`                      | For containers, use `0`, `0.5`, or `1`.                             |
-| `alpha`      | number                                   | No                  | `1`                      | Opacity `0..1`.                                                     |
-| `blur`       | object                                   | No                  | -                        | Directional Gaussian blur applied to the whole subtree.             |
-| `children`   | array                                    | No                  | `[]`                     | Any registered element plugin type can be nested.                   |
-| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`               | Auto-positioning for children in non-absolute modes.                |
-| `gapX`       | number                                   | No                  | `0`                      | Horizontal spacing between children, and between wrapped columns.   |
-| `gapY`       | number                                   | No                  | `0`                      | Vertical spacing between children, and between wrapped rows.        |
-| `rotation`   | number                                   | No                  | `0`                      | Degrees.                                                            |
-| `scroll`     | boolean                                  | No                  | `false`                  | Enables clipping and wheel scrolling for overflow.                  |
-| `scrollbar`  | object                                   | No                  | -                        | Optional custom vertical scrollbar chrome for overflow.             |
-| `hover`      | object                                   | No                  | -                        | Hover event config. Supports `inheritToChildren`.                   |
-| `click`      | object                                   | No                  | -                        | Click event config. Supports `inheritToChildren`.                   |
-| `rightClick` | object                                   | No                  | -                        | Right click event config. Supports `inheritToChildren`.             |
-| `scrollUp`   | object                                   | No                  | -                        | Wheel-up payload hook.                                              |
-| `scrollDown` | object                                   | No                  | -                        | Wheel-down payload hook.                                            |
+| Field        | Type                                     | Required            | Default        | Notes                                                             |
+| ------------ | ---------------------------------------- | ------------------- | -------------- | ----------------------------------------------------------------- |
+| `id`         | string                                   | Yes                 | -              | Element id.                                                       |
+| `type`       | string                                   | Yes                 | -              | Must be `container`.                                              |
+| `x`          | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                 |
+| `y`          | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                 |
+| `width`      | number                                   | No                  | auto           | Derived from children if omitted.                                 |
+| `height`     | number                                   | No                  | auto           | Derived from children if omitted.                                 |
+| `anchorX`    | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                           |
+| `anchorY`    | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                           |
+| `originX`    | number                                   | No                  | anchor         | Transform origin X in pixels.                                     |
+| `originY`    | number                                   | No                  | anchor         | Transform origin Y in pixels.                                     |
+| `alpha`      | number                                   | No                  | `1`            | Opacity `0..1`.                                                   |
+| `blur`       | object                                   | No                  | -              | Directional Gaussian blur applied to the whole subtree.           |
+| `children`   | array                                    | No                  | `[]`           | Any registered element plugin type can be nested.                 |
+| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`     | Auto-positioning for children in non-absolute modes.              |
+| `gapX`       | number                                   | No                  | `0`            | Horizontal spacing between children, and between wrapped columns. |
+| `gapY`       | number                                   | No                  | `0`            | Vertical spacing between children, and between wrapped rows.      |
+| `rotation`   | number                                   | No                  | `0`            | Degrees.                                                          |
+| `scroll`     | boolean                                  | No                  | `false`        | Enables clipping and wheel scrolling for overflow.                |
+| `scrollbar`  | object                                   | No                  | -              | Optional custom vertical scrollbar chrome for overflow.           |
+| `hover`      | object                                   | No                  | -              | Hover event config. Supports `inheritToChildren`.                 |
+| `click`      | object                                   | No                  | -              | Click event config. Supports `inheritToChildren`.                 |
+| `rightClick` | object                                   | No                  | -              | Right click event config. Supports `inheritToChildren`.           |
+| `scrollUp`   | object                                   | No                  | -              | Wheel-up payload hook.                                            |
+| `scrollDown` | object                                   | No                  | -              | Wheel-down payload hook.                                          |
 
 ## Layout Behavior Notes
 
@@ -106,12 +108,12 @@ Each visual object supports:
 
 ## Emitted Events
 
-| Event Name   | Fired When               | Payload Shape                               |
-| ------------ | ------------------------ | ------------------------------------------- |
-| `hover`      | pointer enters container | `{ _event: { id }, ...hover.payload }`      |
-| `click`      | pointer up               | `{ _event: { id }, ...click.payload }`      |
-| `rightClick` | right click              | `{ _event: { id }, ...rightClick.payload }` |
-| `scrollUp`   | wheel up over container  | `{ _event: { id }, ...scrollUp.payload }`   |
+| Event Name   | Fired When                | Payload Shape                               |
+| ------------ | ------------------------- | ------------------------------------------- |
+| `hover`      | pointer enters container  | `{ _event: { id }, ...hover.payload }`      |
+| `click`      | pointer up                | `{ _event: { id }, ...click.payload }`      |
+| `rightClick` | right click               | `{ _event: { id }, ...rightClick.payload }` |
+| `scrollUp`   | wheel up over container   | `{ _event: { id }, ...scrollUp.payload }`   |
 | `scrollDown` | wheel down over container | `{ _event: { id }, ...scrollDown.payload }` |
 
 ## Hover Inheritance

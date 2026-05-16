@@ -46,6 +46,10 @@ properties:
     description: Opacity/transparency of the sprite (0-1)
     minimum: 0
     maximum: 1
+  rotation:
+    type: number
+    description: Rotation in degrees
+    default: 0
   blur:
     type: object
     description: Directional Gaussian blur configuration.

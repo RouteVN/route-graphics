@@ -25,6 +25,8 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | `y`          | number | No       | `0`     | Position before anchor transform.   |
 | `anchorX`    | number | No       | `0`     | Anchor offset ratio.                |
 | `anchorY`    | number | No       | `0`     | Anchor offset ratio.                |
+| `originX`    | number | No       | anchor  | Transform origin X in pixels.       |
+| `originY`    | number | No       | anchor  | Transform origin Y in pixels.       |
 | `alpha`      | number | No       | `1`     | Opacity `0..1`.                     |
 | `fill`       | string | No       | `white` | Fill color.                         |
 | `border`     | object | No       | -       | Border config.                      |
