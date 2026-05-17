@@ -5,6 +5,7 @@ specs:
   - uTexture should show the outgoing image at the start of the flip
   - uNextTexture should show the incoming image as the page turns
   - mesh.grid and custom vertex source should curve the turning page
+  - the near-end frame should settle to the incoming image before overlay teardown
   - the final frame should resolve fully to the incoming image
 steps:
   - action: keypress
@@ -22,7 +23,12 @@ steps:
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 500
+      deltaMS: 460
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 40
   - action: screenshot
 ---
 states:
@@ -50,9 +56,12 @@ states:
           uProgress:
             initialValue: 0
             keyframes:
-              - duration: 1000
+              - duration: 960
                 value: 1
                 easing: easeInOutCubic
+              - duration: 40
+                value: 1
+                easing: linear
         compositor:
           type: shader
           mesh:
@@ -92,7 +101,8 @@ states:
                 void main(void)
                 {
                     float progress = clamp(uProgress, 0.0, 1.0);
-                    float fold = 1.0 - progress;
+                    float foldWidth = 0.018;
+                    float fold = mix(1.0 + foldWidth, -foldWidth, progress);
                     float pageSide = step(fold, aPosition.x);
                     float foldDistance = abs(aPosition.x - fold);
                     float foldBand = 1.0 - smoothstep(0.0, 0.34, foldDistance);
@@ -122,8 +132,9 @@ states:
                 {
                     vec2 uv = clamp(vTextureCoord, vec2(0.0), vec2(1.0));
                     float progress = clamp(uProgress, 0.0, 1.0);
-                    float fold = 1.0 - progress;
-                    float reveal = smoothstep(fold - 0.018, fold + 0.018, uv.x);
+                    float foldWidth = 0.018;
+                    float fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                    float reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
 
                     vec4 prevColor = texture(uTexture, uv);
                     vec4 nextColor = texture(uNextTexture, uv);
@@ -183,7 +194,8 @@ states:
                 fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
                 {
                   let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
-                  let fold = 1.0 - progress;
+                  let foldWidth = 0.018;
+                  let fold = mix(1.0 + foldWidth, -foldWidth, progress);
                   let pageSide = step(fold, aPosition.x);
                   let foldDistance = abs(aPosition.x - fold);
                   let foldBand = 1.0 - smoothstep(0.0, 0.34, foldDistance);
@@ -201,8 +213,9 @@ states:
                 {
                   let uv = clamp(uvIn, vec2<f32>(0.0), vec2<f32>(1.0));
                   let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
-                  let fold = 1.0 - progress;
-                  let reveal = smoothstep(fold - 0.018, fold + 0.018, uv.x);
+                  let foldWidth = 0.018;
+                  let fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                  let reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
 
                   let prevColor = textureSample(uTexture, uSampler, uv);
                   let nextColor = textureSample(uNextTexture, uSampler, uv);

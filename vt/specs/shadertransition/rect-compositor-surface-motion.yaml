@@ -5,6 +5,7 @@ specs:
   - prev.tween should move and fade the outgoing surface before compositor sampling
   - next.tween should move and scale the incoming surface before compositor sampling
   - top-level tween.uProgress should drive only the compositor reveal
+  - the near-end frame should already match the final target closely enough to avoid a handoff jump
 steps:
   - action: keypress
     key: "n"
@@ -16,7 +17,12 @@ steps:
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 400
+      deltaMS: 360
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 40
   - action: screenshot
 ---
 states:
@@ -45,13 +51,13 @@ states:
             translateX:
               initialValue: 0
               keyframes:
-                - duration: 800
+                - duration: 760
                   value: -0.35
                   easing: linear
             alpha:
               initialValue: 1
               keyframes:
-                - duration: 800
+                - duration: 760
                   value: 0.35
                   easing: linear
         next:
@@ -59,20 +65,23 @@ states:
             translateY:
               initialValue: 0.45
               keyframes:
-                - duration: 800
+                - duration: 760
                   value: 0
                   easing: easeOutCubic
             scaleX:
               initialValue: 0.7
               keyframes:
-                - duration: 800
+                - duration: 760
                   value: 1
                   easing: easeOutCubic
         tween:
           uProgress:
             initialValue: 0
             keyframes:
-              - duration: 800
+              - duration: 760
+                value: 1
+                easing: linear
+              - duration: 40
                 value: 1
                 easing: linear
         compositor:
@@ -96,7 +105,9 @@ states:
                 {
                     vec4 prevColor = texture(uTexture, vTextureCoord);
                     vec4 nextColor = texture(uNextTexture, vTextureCoord);
-                    float reveal = smoothstep(-uFeather, uFeather, uProgress - vTextureCoord.x);
+                    float progress = clamp(uProgress / 0.96, 0.0, 1.0);
+                    float edge = mix(-uFeather, 1.0 + uFeather, progress);
+                    float reveal = 1.0 - smoothstep(edge - uFeather, edge + uFeather, vTextureCoord.x);
                     finalColor = mix(prevColor, nextColor, reveal);
                 }
             webgpu:
@@ -151,6 +162,8 @@ states:
                 {
                   let prevColor = textureSample(uTexture, uSampler, uv);
                   let nextColor = textureSample(uNextTexture, uSampler, uv);
-                  let reveal = smoothstep(-shaderUniforms.uFeather, shaderUniforms.uFeather, shaderUniforms.uProgress - uv.x);
+                  let progress = clamp(shaderUniforms.uProgress / 0.96, 0.0, 1.0);
+                  let edge = mix(-shaderUniforms.uFeather, 1.0 + shaderUniforms.uFeather, progress);
+                  let reveal = 1.0 - smoothstep(edge - shaderUniforms.uFeather, edge + shaderUniforms.uFeather, uv.x);
                   return mix(prevColor, nextColor, reveal);
                 }

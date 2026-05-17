@@ -141,6 +141,9 @@ not sufficient.
   matching precision in both stages.
 - For `uProgress` or other stateful animation behavior, include forward and
   backward navigation steps when reset/continuity is part of the contract.
+- For transition compositors, inspect a near-completion frame and the
+  post-completion frame. The compositor should visually settle into the final
+  target before overlay teardown so there is no end-of-transition handoff jump.
 - Run screenshot capture and report after manual browser inspection, then accept
   only the expected reference diffs.
 

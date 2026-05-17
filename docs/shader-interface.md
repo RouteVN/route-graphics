@@ -205,6 +205,12 @@ Transition compositor execution order:
 The compositor sees side motion already baked into `uTexture` and
 `uNextTexture`.
 
+At completion, the runtime reveals the final live target and tears down the
+transition overlay. Compositor shaders should therefore make their near-final
+output visually converge on `uNextTexture`; effects with feathered edges, page
+folds, or mesh deformation should move those edges fully outside the texture by
+the end of `uProgress` to avoid a visible handoff jump.
+
 `uProgress` lifecycle rules:
 
 - the base value is `0`
