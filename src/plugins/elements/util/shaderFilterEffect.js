@@ -13,6 +13,8 @@ const SHADER_FILTERS_STATE_KEY = "__routeGraphicsShaderFilters";
 const SHADER_PROGRESS_KEY = "__routeGraphicsShaderProgress";
 
 export const DEFAULT_SHADER_FILTER_VERTEX = `
+precision mediump float;
+
 in vec2 aPosition;
 
 out vec2 vTextureCoord;

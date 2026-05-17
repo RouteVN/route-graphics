@@ -131,7 +131,7 @@ states:
               fill: "#FFFFFF"
       - id: filtered-sprite
         type: sprite
-        src: fighter
+        src: fighter-spritesheet
         x: 690
         "y": 90
         width: 260

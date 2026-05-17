@@ -392,6 +392,8 @@ If `source.webgl.vertex` is omitted, Route Graphics provides this default
 pass-through vertex shader:
 
 ```glsl
+precision mediump float;
+
 in vec2 aPosition;
 
 out vec2 vTextureCoord;
@@ -466,6 +468,9 @@ void main(void)
 WebGL source uses Pixi v8 filter GLSL syntax with `in` / `out` varyings.
 Custom WebGL vertex shaders must accept `in vec2 aPosition`, write
 `gl_Position`, and output any varyings consumed by the fragment shader.
+When a uniform is declared in both vertex and fragment stages, both stages must
+use matching precision. Route Graphics examples use `precision mediump float;`
+in both WebGL stages.
 
 ### WebGPU Filter Scaffold
 
