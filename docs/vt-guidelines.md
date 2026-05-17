@@ -1,6 +1,6 @@
 # VT Guidelines
 
-Last updated: 2026-02-10
+Last updated: 2026-05-17
 
 ## Purpose
 
@@ -118,6 +118,40 @@ New pattern:
 - Every event spec includes at least one explicit interaction step.
 - Multi-state specs advance across intended states with explicit steps.
 - Screenshot sequence matches intended checkpoints only (no redundant frames).
+
+## Shader And GPU VT Review Checklist
+
+Shader and GPU-facing VT specs need additional review before accepting
+references or updating a PR. A clean screenshot capture/report is necessary, but
+not sufficient.
+
+- Open every new or changed shader VT page in a browser after `vt:generate`.
+- Inspect browser console output for shader compile/link errors, missing asset
+  aliases, texture decode failures, unhandled promises, and unexpected Pixi
+  warnings.
+- Fix all shader and asset warnings before accepting references. Ignore only
+  known environment noise such as favicon 404s or WebGL readback performance
+  warnings.
+- Verify every `src` and shader `textures` alias used by the spec exists in the
+  VT asset manifest or is otherwise provided by the spec.
+- Verify each intended state change is visibly observable in the actual runtime
+  mesh. For custom vertex shaders, account for the real geometry; a deformation
+  that evaluates to zero at the quad vertices is not a valid visual assertion.
+- If a WebGL uniform is declared in both vertex and fragment stages, declare
+  matching precision in both stages.
+- For `uProgress` or other stateful animation behavior, include forward and
+  backward navigation steps when reset/continuity is part of the contract.
+- Run screenshot capture and report after manual browser inspection, then accept
+  only the expected reference diffs.
+
+Recommended command sequence for shader VT changes:
+
+```sh
+bun run vt:generate
+# Open the changed page in a browser and inspect console output.
+bun run vt:screenshot
+docker run --rm --user "$(id -u):$(id -g)" -e RTGL_VT_DEBUG=true -v "$PWD:/workspace" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.1.0 rtgl vt report
+```
 
 ## Examples
 
