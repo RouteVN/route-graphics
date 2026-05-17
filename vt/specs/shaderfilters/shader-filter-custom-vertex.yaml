@@ -5,6 +5,7 @@ specs:
   - the filter should render normally at uProgress 0
   - uProgress should drive a custom vertex shear that is visible with the v1 single-quad filter mesh
   - uResolution should remain available while a custom vertex shader is used
+  - returning to the first state should reset uProgress and render the unwarped filter output
 steps:
   - action: keypress
     key: "n"
@@ -17,6 +18,9 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: b
   - action: screenshot
 ---
 states:

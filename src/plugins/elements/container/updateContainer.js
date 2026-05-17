@@ -21,6 +21,7 @@ import {
 } from "../util/blurEffect.js";
 import {
   getShaderFilterTargetState,
+  hasStaleShaderFilterProgressInTree,
   hasShaderProgressUpdateAnimation,
   resetShaderFilterProgress,
   syncShaderFilters,
@@ -147,14 +148,18 @@ export const updateContainer = ({
     const hasChildAnimation = Array.from(childIds).some(
       (childId) => getTargetAnimations(animations, childId).length > 0,
     );
+    const contentContainer = containerElement.children.find(
+      (child) => child.label === `${nextElement.id}-content`,
+    );
+    const renderParent = contentContainer || containerElement;
+    const hasChildShaderProgressReset = hasStaleShaderFilterProgressInTree({
+      parent: renderParent,
+      elements: nextElement.children,
+      animations,
+    });
 
     // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation) {
-      const contentContainer = containerElement.children.find(
-        (child) => child.label === `${nextElement.id}-content`,
-      );
-      const renderParent = contentContainer || containerElement;
-
+    if (childrenChanged || hasChildAnimation || hasChildShaderProgressReset) {
       renderElements({
         app,
         parent: renderParent,

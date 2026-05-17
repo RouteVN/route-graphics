@@ -429,6 +429,74 @@ export const resetShaderFilterProgress = (displayObject) => {
   displayObject.uProgress = 0;
 };
 
+const hasShaderFilters = (element) =>
+  element?.filters?.some((filter) => filter?.type === "shader") ?? false;
+
+const findDisplayObjectByLabel = (displayObject, label) => {
+  if (!displayObject || !label) {
+    return null;
+  }
+
+  if (displayObject.label === label) {
+    return displayObject;
+  }
+
+  for (const child of displayObject.children ?? []) {
+    const match = findDisplayObjectByLabel(child, label);
+    if (match) {
+      return match;
+    }
+  }
+
+  return null;
+};
+
+const hasStaleShaderFilterProgress = ({ parent, element, animations }) => {
+  if (!element) {
+    return false;
+  }
+
+  if (
+    hasShaderFilters(element) &&
+    !hasShaderProgressUpdateAnimation(animations, element.id)
+  ) {
+    const displayObject = findDisplayObjectByLabel(parent, element.id);
+
+    if (
+      displayObject?.[SHADER_PROGRESS_KEY] !== undefined &&
+      displayObject.uProgress !== 0
+    ) {
+      return true;
+    }
+  }
+
+  return hasStaleShaderFilterProgressInTree({
+    parent,
+    elements: element.children,
+    animations,
+  });
+};
+
+export const hasStaleShaderFilterProgressInTree = ({
+  parent,
+  elements = [],
+  animations,
+}) =>
+  (elements ?? []).some((element) =>
+    hasStaleShaderFilterProgress({ parent, element, animations }),
+  );
+
+export const shouldUpdateUnchangedShaderFilterProgress = ({
+  parent,
+  nextElement,
+  animations,
+}) =>
+  hasStaleShaderFilterProgress({
+    parent,
+    element: nextElement,
+    animations,
+  });
+
 const clearShaderFilters = (displayObject) => {
   setManagedFilter(displayObject, "shader", null);
   delete displayObject[SHADER_FILTERS_STATE_KEY];
