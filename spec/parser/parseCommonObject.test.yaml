@@ -97,6 +97,39 @@ in:
     height: 29
 throws: "Input Error: Id is missing"
 ---
+case: Parsing unsupported input filters throws
+in:
+  - id: typed-name
+    type: input
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on input elements"
+---
+case: Parsing unsupported slider filters throws
+in:
+  - id: volume
+    type: slider
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on slider elements"
+---
+case: Parsing unsupported text-revealing filters throws
+in:
+  - id: line
+    type: text-revealing
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on text-revealing elements"
+---
 case: Parsing object with incorrect type
 in:
   - type: blob

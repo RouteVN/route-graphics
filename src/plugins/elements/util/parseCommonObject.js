@@ -2,6 +2,15 @@ import { calculatePositionAfterAnchor } from "./common.js";
 import { ComputedNodeType } from "../../../types.js";
 import { normalizeElementShaderFilters } from "./shaderConfig.js";
 
+const SHADER_FILTER_ELEMENT_TYPES = new Set([
+  ComputedNodeType.RECT,
+  ComputedNodeType.TEXT,
+  ComputedNodeType.CONTAINER,
+  ComputedNodeType.SPRITE,
+  ComputedNodeType.SPRITESHEET_ANIMATION,
+  ComputedNodeType.VIDEO,
+]);
+
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
  * @typedef {import('../types.js').ParseCommonObjectOption} ParseCommonObjectOption
@@ -77,6 +86,12 @@ export const parseCommonObject = (state) => {
   }
 
   if (state.filters !== undefined) {
+    if (!SHADER_FILTER_ELEMENT_TYPES.has(state.type)) {
+      throw new Error(
+        `Input Error: filters are not supported on ${state.type} elements`,
+      );
+    }
+
     computedObj.filters = normalizeElementShaderFilters(state.filters);
   }
 

@@ -5,6 +5,7 @@ import {
   Point,
   RendererType,
   Texture,
+  TextureSource,
   UniformGroup,
 } from "pixi.js";
 import { setManagedFilter } from "./managedFilters.js";
@@ -109,30 +110,61 @@ const createShaderUniformGroup = (
   return new UniformGroup(uniforms);
 };
 
-const applyTexturePipeline = (textureSource, pipeline) => {
+const getPipelineAddressMode = (pipeline) =>
+  pipeline?.textureWrap === "repeat" ? "repeat" : "clamp-to-edge";
+
+const getPipelineMipmapFilter = (pipeline) =>
+  pipeline?.mipmap === true ? "linear" : "nearest";
+
+const createTexturePipelineSource = (textureSource, pipeline) => {
   if (!textureSource) {
     return textureSource;
   }
 
-  textureSource.addressMode =
-    pipeline?.textureWrap === "repeat" ? "repeat" : "clamp-to-edge";
-  textureSource.autoGenerateMipmaps = pipeline?.mipmap === true;
-  textureSource.mipmapFilter = pipeline?.mipmap === true ? "linear" : "nearest";
+  if (!textureSource.resource || textureSource.uploadMethodId === "video") {
+    return textureSource;
+  }
 
-  return textureSource;
+  return TextureSource.from({
+    ...(textureSource.options ?? {}),
+    resource: textureSource.resource,
+    width: textureSource.width,
+    height: textureSource.height,
+    resolution: textureSource.resolution,
+    format: textureSource.format,
+    dimensions: textureSource.dimension,
+    mipLevelCount: textureSource.mipLevelCount,
+    autoGenerateMipmaps: pipeline?.mipmap === true,
+    sampleCount: textureSource.sampleCount,
+    antialias: textureSource.antialias,
+    alphaMode: textureSource.alphaMode,
+    addressMode: getPipelineAddressMode(pipeline),
+    mipmapFilter: getPipelineMipmapFilter(pipeline),
+  });
 };
 
 const createTextureResources = (shader) => {
   const resources = {};
+  const ownedTextureSources = [];
 
   for (const texture of shader.textures ?? []) {
-    resources[texture.symbol] = applyTexturePipeline(
-      Texture.from(texture.src).source,
+    const textureSource = Texture.from(texture.src).source;
+    const resource = createTexturePipelineSource(
+      textureSource,
       shader.pipeline,
     );
+
+    resources[texture.symbol] = resource;
+
+    if (resource !== textureSource) {
+      ownedTextureSources.push(resource);
+    }
   }
 
-  return resources;
+  return {
+    resources,
+    ownedTextureSources,
+  };
 };
 
 const createShaderFilterGeometry = (grid = [1, 1]) => {
@@ -226,8 +258,7 @@ const applyShaderFilterWithGeometry = ({
 
     while (lastIndex > 0) {
       lastIndex--;
-      const previousFilterData =
-        filterManager._filterStack[filterManager._filterStackIndex - 1];
+      const previousFilterData = filterManager._filterStack[lastIndex];
       if (!previousFilterData.skip) {
         offset.x = previousFilterData.bounds.minX;
         offset.y = previousFilterData.bounds.minY;
@@ -339,10 +370,11 @@ export const createShaderFilter = ({
     progress,
     { includeNextTextureTransform: Boolean(nextTextureSource) },
   );
+  const textureResources = createTextureResources(shader);
   const resources = {
     shaderUniforms,
     ...(nextTextureSource ? { uNextTexture: nextTextureSource } : {}),
-    ...createTextureResources(shader),
+    ...textureResources.resources,
   };
 
   const filter = Filter.from({
@@ -377,11 +409,16 @@ export const createShaderFilter = ({
         clear,
       });
     };
+  }
 
+  if (geometry || textureResources.ownedTextureSources.length > 0) {
     const baseDestroy = filter.destroy.bind(filter);
     filter.destroy = (...args) => {
-      geometry.destroy();
       baseDestroy(...args);
+      geometry?.destroy();
+      for (const textureSource of textureResources.ownedTextureSources) {
+        textureSource.destroy();
+      }
     };
   }
 

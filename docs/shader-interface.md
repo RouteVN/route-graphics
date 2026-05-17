@@ -1177,6 +1177,8 @@ animations:
 ## Validation Rules
 
 - element `filters` is optional
+- element `filters` is valid only on `rect`, `text`, `container`, `sprite`,
+  `spritesheet-animation`, and `video` elements in v1
 - each filter in `filters` must define `id`, `type: shader`, and `source`
 - filter ids must be unique within the element's filter list
 - filter order is the array order
