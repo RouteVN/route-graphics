@@ -24,19 +24,19 @@ states:
   - elements:
       - id: sprite-compositor
         type: sprite
-        src: circle-red
-        x: 310
-        "y": 115
-        width: 460
-        height: 460
+        src: sprite-mask-asym-outgoing
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
   - elements:
       - id: sprite-compositor
         type: sprite
-        src: circle-green
-        x: 310
-        "y": 115
-        width: 460
-        height: 460
+        src: sprite-mask-asym-incoming
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
     animations:
       - id: sprite-textured-compositor
         targetId: sprite-compositor
@@ -63,6 +63,8 @@ states:
           source:
             webgl:
               vertex: |
+                precision mediump float;
+
                 in vec2 aPosition;
 
                 out vec2 vTextureCoord;
@@ -98,15 +100,19 @@ states:
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
                 uniform sampler2D uPaperTexture;
+                uniform vec4 uInputClamp;
                 uniform float uProgress;
 
                 void main(void)
                 {
-                    vec4 prevColor = texture(uTexture, vTextureCoord);
-                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
-                    float grain = texture(uPaperTexture, vTextureCoord * 3.0).r;
-                    float mixedProgress = clamp(uProgress + (grain - 0.5) * 0.35, 0.0, 1.0);
-                    finalColor = mix(prevColor, nextColor, mixedProgress);
+                    vec2 uv = clamp(vTextureCoord, uInputClamp.xy, uInputClamp.zw);
+                    vec4 prevColor = texture(uTexture, uv);
+                    vec4 nextColor = texture(uNextTexture, uv);
+                    float grain = texture(uPaperTexture, uv * 3.0).r;
+                    float grainAmount = sin(clamp(uProgress, 0.0, 1.0) * 3.14159265);
+                    float mixedProgress = clamp(uProgress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                    vec4 color = mix(prevColor, nextColor, mixedProgress);
+                    finalColor = vec4(color.rgb * color.a, color.a);
                 }
             webgpu:
               source: |
@@ -157,9 +163,12 @@ states:
                 @fragment
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
-                  let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
-                  let grain = textureSample(uPaperTexture, uSampler, uv * 3.0).r;
-                  let mixedProgress = clamp(shaderUniforms.uProgress + (grain - 0.5) * 0.35, 0.0, 1.0);
-                  return mix(prevColor, nextColor, mixedProgress);
+                  let clampedUv = clamp(uv, gfu.uInputClamp.xy, gfu.uInputClamp.zw);
+                  let prevColor = textureSample(uTexture, uSampler, clampedUv);
+                  let nextColor = textureSample(uNextTexture, uSampler, clampedUv);
+                  let grain = textureSample(uPaperTexture, uSampler, clampedUv * 3.0).r;
+                  let grainAmount = sin(clamp(shaderUniforms.uProgress, 0.0, 1.0) * 3.14159265);
+                  let mixedProgress = clamp(shaderUniforms.uProgress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                  let color = mix(prevColor, nextColor, mixedProgress);
+                  return vec4<f32>(color.rgb * color.a, color.a);
                 }

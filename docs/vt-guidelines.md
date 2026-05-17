@@ -144,6 +144,12 @@ not sufficient.
 - For transition compositors, inspect a near-completion frame and the
   post-completion frame. The compositor should visually settle into the final
   target before overlay teardown so there is no end-of-transition handoff jump.
+- Do not accept a transition compositor reference if the final compositor frame
+  is black, transparent, alpha-contaminated, or otherwise visually different
+  from the live incoming target.
+- Verify transition compositors through the actual browsed VT page and hash
+  target in auto-play mode, not only by sampling deterministic candidate frames.
+  The auto-play path is the one that exercises ticker-driven overlay teardown.
 - Run screenshot capture and report after manual browser inspection, then accept
   only the expected reference diffs.
 

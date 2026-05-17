@@ -108,7 +108,8 @@ states:
                     float progress = clamp(uProgress / 0.96, 0.0, 1.0);
                     float edge = mix(-uFeather, 1.0 + uFeather, progress);
                     float reveal = 1.0 - smoothstep(edge - uFeather, edge + uFeather, vTextureCoord.x);
-                    finalColor = mix(prevColor, nextColor, reveal);
+                    vec4 color = mix(prevColor, nextColor, reveal);
+                    finalColor = vec4(color.rgb * color.a, color.a);
                 }
             webgpu:
               source: |
@@ -165,5 +166,6 @@ states:
                   let progress = clamp(shaderUniforms.uProgress / 0.96, 0.0, 1.0);
                   let edge = mix(-shaderUniforms.uFeather, 1.0 + shaderUniforms.uFeather, progress);
                   let reveal = 1.0 - smoothstep(edge - shaderUniforms.uFeather, edge + shaderUniforms.uFeather, uv.x);
-                  return mix(prevColor, nextColor, reveal);
+                  let color = mix(prevColor, nextColor, reveal);
+                  return vec4<f32>(color.rgb * color.a, color.a);
                 }

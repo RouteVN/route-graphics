@@ -205,11 +205,12 @@ Transition compositor execution order:
 The compositor sees side motion already baked into `uTexture` and
 `uNextTexture`.
 
-At completion, the runtime reveals the final live target and tears down the
-transition overlay. Compositor shaders should therefore make their near-final
-output visually converge on `uNextTexture`; effects with feathered edges, page
-folds, or mesh deformation should move those edges fully outside the texture by
-the end of `uProgress` to avoid a visible handoff jump.
+At completion, the runtime samples the final compositor frame, presents that
+frame for one render, then reveals the final live target and tears down the
+transition overlay. Compositor shaders should therefore make their final output
+visually converge on `uNextTexture`; effects with feathered edges, page folds,
+or mesh deformation should move those edges fully outside the texture by the end
+of `uProgress` to avoid a visible handoff jump when the overlay is removed.
 
 `uProgress` lifecycle rules:
 
@@ -467,7 +468,8 @@ void main(void)
 {
     vec4 prevColor = texture(uTexture, vTextureCoord);
     vec4 nextColor = texture(uNextTexture, vTextureCoord);
-    finalColor = mix(prevColor, nextColor, uProgress);
+    vec4 color = mix(prevColor, nextColor, uProgress);
+    finalColor = vec4(color.rgb * color.a, color.a);
 }
 ```
 
@@ -606,9 +608,16 @@ fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
 {
   let prevColor = textureSample(uTexture, uSampler, uv);
   let nextColor = textureSample(uNextTexture, uSampler, uv);
-  return mix(prevColor, nextColor, shaderUniforms.uProgress);
+  let color = mix(prevColor, nextColor, shaderUniforms.uProgress);
+  return vec4<f32>(color.rgb * color.a, color.a);
 }
 ```
+
+Shader output uses Pixi filter alpha semantics. If a shader constructs or mixes
+colors from transition surfaces, it should return premultiplied alpha:
+`vec4(color.rgb * color.a, color.a)`. This matters for compositor render
+textures because transparent areas can still contain RGB data while their alpha
+is zero.
 
 ## Built-In Shader Inputs
 

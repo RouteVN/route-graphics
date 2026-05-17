@@ -151,7 +151,7 @@ states:
 
                     float shadow = (1.0 - smoothstep(0.0, 0.26, foldDistance)) * sin(progress * PI) * uShadow;
                     color.rgb *= 1.0 - shadow * step(uv.x, fold);
-                    finalColor = color;
+                    finalColor = vec4(color.rgb * color.a, color.a);
                 }
             webgpu:
               source: |
@@ -231,5 +231,6 @@ states:
                   color = mix(color, curledPage, curlBand * 0.86);
 
                   let shadow = (1.0 - smoothstep(0.0, 0.26, foldDistance)) * sin(progress * 3.14159265) * shaderUniforms.uShadow;
-                  return vec4<f32>(color.rgb * (1.0 - shadow * step(uv.x, fold)), color.a);
+                  let shadedRgb = color.rgb * (1.0 - shadow * step(uv.x, fold));
+                  return vec4<f32>(shadedRgb * color.a, color.a);
                 }

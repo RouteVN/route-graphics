@@ -51,6 +51,89 @@ const createParent = (...children) => ({
   },
 });
 
+const passthroughCompositor = {
+  type: "shader",
+  uniforms: [],
+  textures: [],
+  pipeline: {},
+  mesh: { grid: [1, 1] },
+  source: {
+    webgl: {
+      fragment: `
+precision mediump float;
+
+in vec2 vTextureCoord;
+out vec4 finalColor;
+
+uniform sampler2D uTexture;
+uniform sampler2D uNextTexture;
+uniform float uProgress;
+
+void main(void)
+{
+    finalColor = mix(
+        texture(uTexture, vTextureCoord),
+        texture(uNextTexture, vTextureCoord),
+        clamp(uProgress, 0.0, 1.0)
+    );
+}
+`,
+    },
+    webgpu: {
+      source: `
+struct GlobalFilterUniforms {
+  uInputSize: vec4<f32>,
+  uInputPixel: vec4<f32>,
+  uInputClamp: vec4<f32>,
+  uOutputFrame: vec4<f32>,
+  uGlobalFrame: vec4<f32>,
+  uOutputTexture: vec4<f32>,
+};
+
+struct ShaderUniforms {
+  uProgress: f32,
+  uResolution: vec2<f32>,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4<f32>,
+  @location(0) uv: vec2<f32>,
+};
+
+@group(0) @binding(0) var uTexture: texture_2d<f32>;
+@group(0) @binding(1) var uSampler: sampler;
+@group(0) @binding(2) var<uniform> gfu: GlobalFilterUniforms;
+@group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+@group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+
+@vertex
+fn mainVertex(
+  @location(0) aPosition: vec2<f32>,
+) -> VertexOutput {
+  var output: VertexOutput;
+  let position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+  output.position = vec4<f32>(
+    position.x * (2.0 / gfu.uOutputTexture.x) - 1.0,
+    position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) -
+      gfu.uOutputTexture.z,
+    0.0,
+    1.0,
+  );
+  output.uv = aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);
+  return output;
+}
+
+@fragment
+fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+  let prevColor = textureSample(uTexture, uSampler, uv);
+  let nextColor = textureSample(uNextTexture, uSampler, uv);
+  return mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
+}
+`,
+    },
+  },
+};
+
 describe("runReplaceAnimation", () => {
   it("reveals higher-valued mask pixels earlier by default", () => {
     const highMaskStart = sampleMaskReveal({
@@ -217,12 +300,100 @@ describe("runReplaceAnimation", () => {
     expect(tracker.track).toHaveBeenCalledWith(11);
 
     const dispatched = animationBus.dispatch.mock.calls[0][0];
+    expect(dispatched.payload.deferCompletionUntilNextFrame).toBe(false);
     dispatched.payload.onComplete();
 
     expect(parent.children).toEqual([nextDisplayObject]);
     expect(nextDisplayObject.visible).toBe(true);
     expect(deferredEffect).toHaveBeenCalledTimes(1);
     expect(tracker.complete).toHaveBeenCalledWith(11);
+  });
+
+  it("defers compositor transition completion until the final shader frame is presented", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-compositor",
+        targetId: "scene-root",
+        type: "transition",
+        tween: {
+          uProgress: {
+            initialValue: 0,
+            keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+          },
+        },
+        compositor: passthroughCompositor,
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "scene-compositor",
+          driver: "custom",
+          deferCompletionUntilNextFrame: true,
+        }),
+      }),
+    );
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.applyFrame(150);
+
+    expect(app.renderer.render).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clear: true,
+        clearColor: [0, 0, 0, 0],
+      }),
+    );
   });
 
   it("applies transition rotation tween values as degree deltas", () => {

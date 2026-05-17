@@ -951,6 +951,7 @@ const renderOffscreenContainer = ({ app, container, target, frame }) => {
     container,
     target,
     clear: true,
+    clearColor: [0, 0, 0, 0],
     transform: new Matrix(1, 0, 0, 1, -frame.x, -frame.y),
   });
 };
@@ -1697,6 +1698,7 @@ export const runReplaceAnimation = ({
       continuity: isPersistent ? "persistent" : "render",
       onContinuationUpdate: handleContinuationUpdate,
       duration: replaceOverlay.duration,
+      deferCompletionUntilNextFrame: animation.compositor !== undefined,
       applyFrame: replaceOverlay.apply,
       applyTargetState: () => {
         finalize({ flushDeferredEffects: false });
