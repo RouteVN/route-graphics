@@ -160,6 +160,38 @@ not sufficient.
 - Run screenshot capture and report after manual browser inspection, then accept
   only the expected reference diffs.
 
+### Transition Compositor Handoff Regression
+
+Shader transition compositors have a specific failure mode that is easy to miss:
+the overlay can look correct in deterministic progress screenshots, then jump on
+the frame where the overlay is removed and the live final target is revealed.
+
+The usual root cause is a coordinate-space mismatch between the previous and
+next transition snapshots. `uTexture` uses the primary Pixi filter coordinate,
+but `uNextTexture` must be sampled through `uNextTextureMatrix` and clamped with
+`uNextTextureClamp`. This is the same class of mapping problem the mask
+transition path already solved. Do not sample both transition textures with the
+same raw UV unless the test is deliberately covering the broken case.
+
+Plain sprite snapshots have a related trap: generating a texture from an already
+transformed sprite can bake scale or alpha into the snapshot, then the transition
+wrapper applies the same transform again. VT coverage for compositor sprites
+should include at least one case where the sprite has configured display size,
+scale, or alpha that differs from the source texture.
+
+For every compositor regression page that changes snapshot or coordinate
+handling, include these visual checkpoints:
+
+- first overlay frame compared against the live outgoing target
+- mid-transition frame
+- near-final frame
+- deterministic final overlay frame
+- one post-completion frame after overlay teardown
+
+The final overlay and post-completion frames should be visually identical except
+for expected single-pixel antialiasing noise. If they are not, debug the
+snapshot coordinate mapping before accepting references.
+
 Recommended command sequence for shader VT changes:
 
 ```sh

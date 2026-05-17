@@ -205,6 +205,20 @@ Transition compositor execution order:
 The compositor sees side motion already baked into `uTexture` and
 `uNextTexture`.
 
+Transition compositor texture coordinates have one important invariant:
+`uTexture` and `uNextTexture` must be sampled in their own texture spaces even
+though the shader receives one primary Pixi filter coordinate. The primary
+`vTextureCoord` / fragment UV is valid for `uTexture`. It is not generally valid
+for `uNextTexture` when the previous and next surfaces differ by sprite source
+size, configured `width` / `height`, scale, rotation, alpha, filter area, or
+transition side motion. Compositor shaders must sample `uNextTexture` through
+the runtime-provided `uNextTextureMatrix` and clamp with `uNextTextureClamp`.
+
+This mirrors the existing mask transition coordinate mapping. A compositor that
+samples both textures with the same raw UV can appear correct in isolated
+`uProgress` screenshots but still jump when the transition overlay is torn down
+and the live final target is revealed.
+
 At completion, the runtime samples the final compositor frame, presents that
 frame for one render, then reveals the final live target and tears down the
 transition overlay. Compositor shaders should therefore make their final output
@@ -682,6 +696,12 @@ Transition compositor coordinate helpers:
 uNextTextureMatrix: maps the primary Pixi filter coordinate to uNextTexture
 uNextTextureClamp: min/max safe sampling rectangle for uNextTexture
 ```
+
+Compositor shaders should never sample `uNextTexture` directly with the primary
+filter UV. Always transform and clamp the coordinate first. This is required for
+stable handoff between the final compositor overlay frame and the live final
+target, especially for sprites whose native texture size differs from their
+displayed size.
 
 Built-in generated shader symbols are reserved and cannot be produced by custom
 uniform or texture names:
