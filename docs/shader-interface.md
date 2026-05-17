@@ -451,7 +451,10 @@ void main(void)
 ```
 
 For transition compositor fragments, `uTexture` is the previous surface and
-`uNextTexture` is the next surface:
+`uNextTexture` is the next surface. `uNextTexture` must be sampled through the
+runtime-provided `uNextTextureMatrix` and `uNextTextureClamp`; Pixi filter
+coordinates can be a cropped subregion when transition surfaces are scaled,
+moved, or rendered inside a larger render target.
 
 ```glsl
 precision mediump float;
@@ -461,13 +464,20 @@ out vec4 finalColor;
 
 uniform sampler2D uTexture;
 uniform sampler2D uNextTexture;
+uniform mat3 uNextTextureMatrix;
 uniform float uProgress;
 uniform vec2 uResolution;
+uniform vec4 uNextTextureClamp;
 
 void main(void)
 {
+    vec2 nextUv = clamp(
+        (uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy,
+        uNextTextureClamp.xy,
+        uNextTextureClamp.zw
+    );
     vec4 prevColor = texture(uTexture, vTextureCoord);
-    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+    vec4 nextColor = texture(uNextTexture, nextUv);
     vec4 color = mix(prevColor, nextColor, uProgress);
     finalColor = vec4(color.rgb * color.a, color.a);
 }
@@ -565,6 +575,8 @@ struct GlobalFilterUniforms {
 struct ShaderUniforms {
   uProgress: f32,
   uResolution: vec2<f32>,
+  uNextTextureMatrix: mat3x3<f32>,
+  uNextTextureClamp: vec4<f32>,
   // custom uniforms follow
 };
 
@@ -606,8 +618,13 @@ fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
 @fragment
 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
 {
+  let nextUv = clamp(
+    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+    shaderUniforms.uNextTextureClamp.xy,
+    shaderUniforms.uNextTextureClamp.zw,
+  );
   let prevColor = textureSample(uTexture, uSampler, uv);
-  let nextColor = textureSample(uNextTexture, uSampler, uv);
+  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
   let color = mix(prevColor, nextColor, shaderUniforms.uProgress);
   return vec4<f32>(color.rgb * color.a, color.a);
 }
@@ -645,6 +662,8 @@ uTexture, previous rendered surface
 uNextTexture
 uProgress
 uResolution
+uNextTextureMatrix
+uNextTextureClamp
 custom uniforms
 custom textures
 ```
@@ -657,6 +676,13 @@ uTexture: previous transition surface for compositor shaders
 uNextTexture: next transition surface for compositor shaders
 ```
 
+Transition compositor coordinate helpers:
+
+```txt
+uNextTextureMatrix: maps the primary Pixi filter coordinate to uNextTexture
+uNextTextureClamp: min/max safe sampling rectangle for uNextTexture
+```
+
 Built-in generated shader symbols are reserved and cannot be produced by custom
 uniform or texture names:
 
@@ -664,6 +690,8 @@ uniform or texture names:
 uTexture
 uPrevTexture
 uNextTexture
+uNextTextureMatrix
+uNextTextureClamp
 uProgress
 uResolution
 uSampler

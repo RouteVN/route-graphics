@@ -82,13 +82,16 @@ states:
 
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform float uProgress;
                 uniform float uContrast;
+                uniform vec4 uNextTextureClamp;
 
                 void main(void)
                 {
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     vec4 prevColor = texture(uTexture, vTextureCoord);
-                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
                     vec4 mixedColor = mix(prevColor, nextColor, clamp(uProgress, 0.0, 1.0));
                     finalColor = vec4(mixedColor.rgb + (mixedColor.rgb - 0.5) * uContrast, mixedColor.a);
                 }
@@ -106,6 +109,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uContrast: f32,
                 };
 
@@ -142,8 +147,13 @@ states:
                 @fragment
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
                   let mixedColor = mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
                   return vec4<f32>(mixedColor.rgb + (mixedColor.rgb - vec3<f32>(0.5, 0.5, 0.5)) * shaderUniforms.uContrast, mixedColor.a);
                 }
@@ -190,13 +200,16 @@ states:
 
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform float uProgress;
                 uniform float uContrast;
+                uniform vec4 uNextTextureClamp;
 
                 void main(void)
                 {
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     vec4 prevColor = texture(uTexture, vTextureCoord);
-                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
                     vec4 mixedColor = mix(prevColor, nextColor, clamp(uProgress, 0.0, 1.0));
                     finalColor = vec4(mixedColor.rgb + (mixedColor.rgb - 0.5) * uContrast, mixedColor.a);
                 }
@@ -214,6 +227,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uContrast: f32,
                 };
 
@@ -250,8 +265,13 @@ states:
                 @fragment
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
                   let mixedColor = mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
                   return vec4<f32>(mixedColor.rgb + (mixedColor.rgb - vec3<f32>(0.5, 0.5, 0.5)) * shaderUniforms.uContrast, mixedColor.a);
                 }

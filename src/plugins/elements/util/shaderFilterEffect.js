@@ -1,6 +1,7 @@
 import {
   Filter,
   Geometry,
+  Matrix,
   Point,
   RendererType,
   Texture,
@@ -69,7 +70,13 @@ const toUniformValue = (uniform) => {
   return new Float32Array(uniform.value);
 };
 
-const createShaderUniformGroup = (shader, width, height, progress) => {
+const createShaderUniformGroup = (
+  shader,
+  width,
+  height,
+  progress,
+  { includeNextTextureTransform = false } = {},
+) => {
   const uniforms = {
     uProgress: {
       value: clampFiniteProgress(progress),
@@ -80,6 +87,17 @@ const createShaderUniformGroup = (shader, width, height, progress) => {
       type: "vec2<f32>",
     },
   };
+
+  if (includeNextTextureTransform) {
+    uniforms.uNextTextureMatrix = {
+      value: new Matrix(),
+      type: "mat3x3<f32>",
+    };
+    uniforms.uNextTextureClamp = {
+      value: new Float32Array([0, 0, 1, 1]),
+      type: "vec4<f32>",
+    };
+  }
 
   for (const uniform of shader.uniforms ?? []) {
     uniforms[uniform.symbol] = {
@@ -319,6 +337,7 @@ export const createShaderFilter = ({
     width,
     height,
     progress,
+    { includeNextTextureTransform: Boolean(nextTextureSource) },
   );
   const resources = {
     shaderUniforms,

@@ -6,6 +6,7 @@ specs:
   - next.tween should move and scale the incoming surface before compositor sampling
   - top-level tween.uProgress should drive only the compositor reveal
   - the near-end frame should already match the final target closely enough to avoid a handoff jump
+  - the post-completion frame should match the final compositor frame
 steps:
   - action: keypress
     key: "n"
@@ -23,6 +24,11 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 40
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
   - action: screenshot
 ---
 states:
@@ -98,14 +104,21 @@ states:
 
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform float uProgress;
                 uniform float uFeather;
+                uniform vec4 uNextTextureClamp;
 
                 void main(void)
                 {
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     vec4 prevColor = texture(uTexture, vTextureCoord);
-                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
                     float progress = clamp(uProgress / 0.96, 0.0, 1.0);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
                     float edge = mix(-uFeather, 1.0 + uFeather, progress);
                     float reveal = 1.0 - smoothstep(edge - uFeather, edge + uFeather, vTextureCoord.x);
                     vec4 color = mix(prevColor, nextColor, reveal);
@@ -125,6 +138,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uFeather: f32,
                 };
 
@@ -161,9 +176,17 @@ states:
                 @fragment
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
                   let progress = clamp(shaderUniforms.uProgress / 0.96, 0.0, 1.0);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
                   let edge = mix(-shaderUniforms.uFeather, 1.0 + shaderUniforms.uFeather, progress);
                   let reveal = 1.0 - smoothstep(edge - shaderUniforms.uFeather, edge + shaderUniforms.uFeather, uv.x);
                   let color = mix(prevColor, nextColor, reveal);

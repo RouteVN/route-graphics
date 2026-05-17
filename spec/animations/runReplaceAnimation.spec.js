@@ -1,4 +1,4 @@
-import { Container, Filter, RenderTexture, Texture } from "pixi.js";
+import { Container, Filter, RenderTexture, Sprite, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   runReplaceAnimation,
@@ -67,13 +67,20 @@ out vec4 finalColor;
 
 uniform sampler2D uTexture;
 uniform sampler2D uNextTexture;
+uniform mat3 uNextTextureMatrix;
 uniform float uProgress;
+uniform vec4 uNextTextureClamp;
 
 void main(void)
 {
+    vec2 nextUv = clamp(
+        (uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy,
+        uNextTextureClamp.xy,
+        uNextTextureClamp.zw
+    );
     finalColor = mix(
         texture(uTexture, vTextureCoord),
-        texture(uNextTexture, vTextureCoord),
+        texture(uNextTexture, nextUv),
         clamp(uProgress, 0.0, 1.0)
     );
 }
@@ -93,6 +100,8 @@ struct GlobalFilterUniforms {
 struct ShaderUniforms {
   uProgress: f32,
   uResolution: vec2<f32>,
+  uNextTextureMatrix: mat3x3<f32>,
+  uNextTextureClamp: vec4<f32>,
 };
 
 struct VertexOutput {
@@ -125,8 +134,13 @@ fn mainVertex(
 
 @fragment
 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+  let nextUv = clamp(
+    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+    shaderUniforms.uNextTextureClamp.xy,
+    shaderUniforms.uNextTextureClamp.zw,
+  );
   let prevColor = textureSample(uTexture, uSampler, uv);
-  let nextColor = textureSample(uNextTexture, uSampler, uv);
+  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
   return mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
 }
 `,
@@ -312,6 +326,12 @@ describe("runReplaceAnimation", () => {
   it("defers compositor transition completion until the final shader frame is presented", () => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const nextDisplayObject = createDisplayObject("scene-root");
+    prevDisplayObject.x = 160;
+    prevDisplayObject.y = 90;
+    prevDisplayObject.scale.set(0.75, 0.75);
+    nextDisplayObject.x = 160;
+    nextDisplayObject.y = 90;
+    nextDisplayObject.scale.set(0.75, 0.75);
     const parent = createParent(prevDisplayObject);
     prevDisplayObject.parent = parent;
 
@@ -334,11 +354,21 @@ describe("runReplaceAnimation", () => {
       dispatch: vi.fn(),
     };
 
+    const snapshotCalls = [];
     const app = {
       renderer: {
         width: 1280,
         height: 720,
-        generateTexture: vi.fn(() => Texture.EMPTY),
+        generateTexture: vi.fn(({ target }) => {
+          snapshotCalls.push({
+            x: target.x,
+            y: target.y,
+            scaleX: target.scale.x,
+            scaleY: target.scale.y,
+            alpha: target.alpha,
+          });
+          return Texture.EMPTY;
+        }),
         render: vi.fn(),
       },
     };
@@ -388,12 +418,137 @@ describe("runReplaceAnimation", () => {
     const dispatched = animationBus.dispatch.mock.calls[0][0];
     dispatched.payload.applyFrame(150);
 
+    expect(snapshotCalls).toEqual([
+      { x: 0, y: 0, scaleX: 1, scaleY: 1, alpha: 1 },
+      { x: 0, y: 0, scaleX: 1, scaleY: 1, alpha: 1 },
+    ]);
+    expect(prevDisplayObject).toEqual(
+      expect.objectContaining({
+        x: 160,
+        y: 90,
+        alpha: 1,
+      }),
+    );
+    expect(prevDisplayObject.scale.x).toBe(0.75);
+    expect(prevDisplayObject.scale.y).toBe(0.75);
+
     expect(app.renderer.render).toHaveBeenCalledWith(
       expect.objectContaining({
         clear: true,
         clearColor: [0, 0, 0, 0],
       }),
     );
+
+    const overlay = parent.children.find((child) =>
+      child.children?.some((grandchild) => grandchild.filters?.length > 0),
+    );
+    const compositorSprite = overlay.children.find(
+      (child) => child.filters?.length > 0,
+    );
+    const compositorFilter = compositorSprite.filters[0];
+    const shaderUniforms = compositorFilter.resources.shaderUniforms;
+    const filterManager = {
+      calculateSpriteMatrix: vi.fn(),
+      applyFilter: vi.fn(),
+    };
+
+    compositorFilter.apply(filterManager, Texture.EMPTY, Texture.EMPTY, true);
+
+    expect(filterManager.calculateSpriteMatrix).toHaveBeenCalledWith(
+      shaderUniforms.uniforms.uNextTextureMatrix,
+      compositorSprite,
+    );
+    expect(Array.from(shaderUniforms.uniforms.uNextTextureClamp)).not.toEqual([
+      0, 0, 1, 1,
+    ]);
+    expect(filterManager.applyFilter).toHaveBeenCalledWith(
+      compositorFilter,
+      Texture.EMPTY,
+      Texture.EMPTY,
+      true,
+    );
+  });
+
+  it("reuses plain sprite textures for compositor snapshots instead of baking display scale into the texture", () => {
+    const prevDisplayObject = new Sprite(Texture.WHITE);
+    const nextDisplayObject = new Sprite(Texture.WHITE);
+    prevDisplayObject.label = "scene-root";
+    nextDisplayObject.label = "scene-root";
+    prevDisplayObject.x = 160;
+    prevDisplayObject.y = 90;
+    prevDisplayObject.scale.set(0.75, 0.75);
+    nextDisplayObject.x = 160;
+    nextDisplayObject.y = 90;
+    nextDisplayObject.scale.set(0.75, 0.75);
+
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "sprite" },
+      nextElement: { id: "scene-root", type: "sprite" },
+      animation: {
+        id: "sprite-compositor",
+        targetId: "scene-root",
+        type: "transition",
+        tween: {
+          uProgress: {
+            initialValue: 0,
+            keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+          },
+        },
+        compositor: passthroughCompositor,
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 12,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.applyFrame(150);
+
+    expect(app.renderer.generateTexture).not.toHaveBeenCalled();
+    expect(prevDisplayObject.scale.x).toBe(0.75);
+    expect(prevDisplayObject.scale.y).toBe(0.75);
+    expect(nextDisplayObject.scale.x).toBe(0.75);
+    expect(nextDisplayObject.scale.y).toBe(0.75);
   });
 
   it("applies transition rotation tween values as degree deltas", () => {

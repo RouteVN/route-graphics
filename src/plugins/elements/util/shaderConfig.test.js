@@ -94,6 +94,18 @@ describe("shader config normalization", () => {
     ).toThrow(/reserved shader symbol uNextTexture/);
   });
 
+  it("rejects reserved compositor coordinate uniform symbols", () => {
+    expect(() =>
+      normalizeShaderCompositor({
+        type: "shader",
+        uniforms: {
+          nextTextureMatrix: 1,
+        },
+        source,
+      }),
+    ).toThrow(/reserved shader symbol uNextTextureMatrix/);
+  });
+
   it("rejects unsupported uniform value shapes", () => {
     expect(() =>
       normalizeElementShaderFilters([

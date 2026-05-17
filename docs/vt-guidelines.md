@@ -144,6 +144,13 @@ not sufficient.
 - For transition compositors, inspect a near-completion frame and the
   post-completion frame. The compositor should visually settle into the final
   target before overlay teardown so there is no end-of-transition handoff jump.
+- A deterministic screenshot at `uProgress = 1` is still the compositor overlay,
+  not proof that teardown is smooth. Add one extra tick/screenshot after
+  completion and compare the final overlay against the live incoming frame.
+- Compare the first compositor overlay frame against the live outgoing target
+  when the target uses `width` / `height`, scale, or source textures whose
+  native size differs from display size. This catches double-scaled snapshots
+  before the transition starts moving.
 - Do not accept a transition compositor reference if the final compositor frame
   is black, transparent, alpha-contaminated, or otherwise visually different
   from the live incoming target.

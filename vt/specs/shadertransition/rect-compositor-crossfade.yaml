@@ -5,6 +5,7 @@ specs:
   - compositor should satisfy the transition handoff without prev, next, or mask
   - at 500ms the previous and next rect colors should be mixed by uProgress
   - at 1000ms the transition should complete on the next rect
+  - the post-completion frame should match the final compositor frame
 steps:
   - action: keypress
     key: "n"
@@ -12,6 +13,11 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
@@ -63,16 +69,24 @@ states:
 
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform float uProgress;
                 uniform float uVignette;
+                uniform vec4 uNextTextureClamp;
 
                 void main(void)
                 {
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     vec4 prevColor = texture(uTexture, vTextureCoord);
-                    vec4 nextColor = texture(uNextTexture, vTextureCoord);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
                     float dist = distance(vTextureCoord, vec2(0.5));
                     float edge = smoothstep(0.15, 0.72, dist) * uVignette;
-                    vec4 mixedColor = mix(prevColor, nextColor, clamp(uProgress, 0.0, 1.0));
+                    float progress = clamp(uProgress, 0.0, 1.0);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
+                    vec4 mixedColor = mix(prevColor, nextColor, progress);
                     finalColor = vec4(mixedColor.rgb * (1.0 - edge), mixedColor.a);
                 }
             webgpu:
@@ -89,6 +103,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uVignette: f32,
                 };
 
@@ -125,10 +141,19 @@ states:
                 @fragment
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
                   let dist = distance(uv, vec2<f32>(0.5, 0.5));
                   let edge = smoothstep(0.15, 0.72, dist) * shaderUniforms.uVignette;
-                  let mixedColor = mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
+                  let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
+                  let mixedColor = mix(prevColor, nextColor, progress);
                   return vec4<f32>(mixedColor.rgb * (1.0 - edge), mixedColor.a);
                 }

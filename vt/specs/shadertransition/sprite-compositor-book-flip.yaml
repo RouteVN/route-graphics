@@ -7,9 +7,11 @@ specs:
   - mesh.grid and custom vertex source should curve the turning page
   - the near-end frame should settle to the incoming image before overlay teardown
   - the final frame should resolve fully to the incoming image
+  - the post-completion frame should match the final compositor frame without a handoff jump
 steps:
   - action: keypress
     key: "n"
+  - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
@@ -29,6 +31,11 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 40
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
   - action: screenshot
 ---
 states:
@@ -123,21 +130,28 @@ states:
 
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform float uProgress;
                 uniform float uShadow;
+                uniform vec4 uNextTextureClamp;
 
                 const float PI = 3.14159265;
 
                 void main(void)
                 {
                     vec2 uv = clamp(vTextureCoord, vec2(0.0), vec2(1.0));
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     float progress = clamp(uProgress, 0.0, 1.0);
                     float foldWidth = 0.018;
                     float fold = mix(1.0 + foldWidth, -foldWidth, progress);
                     float reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
 
                     vec4 prevColor = texture(uTexture, uv);
-                    vec4 nextColor = texture(uNextTexture, uv);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
                     vec4 color = mix(prevColor, nextColor, reveal);
 
                     float foldDistance = abs(uv.x - fold);
@@ -167,6 +181,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uCurl: f32,
                   uShadow: f32,
                 };
@@ -205,20 +221,31 @@ states:
                   warped.x = warped.x - pageSide * curlAmount * 0.08;
                   warped.y = warped.y + (aPosition.y - 0.5) * pageSide * curlAmount * 0.18;
 
-                  return VSOutput(filterVertexPosition(warped), aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw));
+                  return VSOutput(
+                    filterVertexPosition(warped),
+                    aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw),
+                  );
                 }
 
                 @fragment
                 fn mainFragment(@location(0) uvIn: vec2<f32>) -> @location(0) vec4<f32>
                 {
                   let uv = clamp(uvIn, vec2<f32>(0.0), vec2<f32>(1.0));
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uvIn, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
                   let foldWidth = 0.018;
                   let fold = mix(1.0 + foldWidth, -foldWidth, progress);
                   let reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
 
                   let prevColor = textureSample(uTexture, uSampler, uv);
-                  let nextColor = textureSample(uNextTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
                   var color = mix(prevColor, nextColor, reveal);
 
                   let foldDistance = abs(uv.x - fold);

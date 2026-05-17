@@ -63,14 +63,60 @@ const normalizeFrame = (frame) => {
   return frame;
 };
 
+const generateLocalSnapshotTexture = ({ app, displayObject, frame }) => {
+  const original = {
+    x: displayObject.x ?? 0,
+    y: displayObject.y ?? 0,
+    scaleX: displayObject.scale?.x ?? 1,
+    scaleY: displayObject.scale?.y ?? 1,
+    rotation: displayObject.rotation ?? 0,
+    alpha: displayObject.alpha ?? 1,
+    skewX: displayObject.skew?.x ?? 0,
+    skewY: displayObject.skew?.y ?? 0,
+  };
+
+  try {
+    displayObject.x = 0;
+    displayObject.y = 0;
+    displayObject.scale?.set?.(1, 1);
+    displayObject.rotation = 0;
+    displayObject.alpha = 1;
+    displayObject.skew?.set?.(0, 0);
+    displayObject.updateLocalTransform?.();
+
+    return app.renderer.generateTexture({
+      target: displayObject,
+      frame,
+    });
+  } finally {
+    displayObject.x = original.x;
+    displayObject.y = original.y;
+    displayObject.scale?.set?.(original.scaleX, original.scaleY);
+    displayObject.rotation = original.rotation;
+    displayObject.alpha = original.alpha;
+    displayObject.skew?.set?.(original.skewX, original.skewY);
+    displayObject.updateLocalTransform?.();
+  }
+};
+
 const createSnapshotSubject = (app, displayObject) => {
   const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
-  const texture = app.renderer.generateTexture({
-    target: displayObject,
-    frame,
-  });
+  const canReuseSpriteTexture =
+    displayObject instanceof Sprite &&
+    (displayObject.filters?.length ?? 0) === 0;
+  const texture = canReuseSpriteTexture
+    ? displayObject.texture
+    : generateLocalSnapshotTexture({
+        app,
+        displayObject,
+        frame,
+      });
 
   const sprite = new Sprite(texture);
+  if (canReuseSpriteTexture) {
+    sprite.tint = displayObject.tint;
+    sprite.blendMode = displayObject.blendMode;
+  }
   sprite.x = frame.x - (displayObject.pivot?.x ?? 0);
   sprite.y = frame.y - (displayObject.pivot?.y ?? 0);
 
@@ -79,12 +125,14 @@ const createSnapshotSubject = (app, displayObject) => {
   wrapper.y = displayObject.y ?? 0;
   wrapper.scale.set(displayObject.scale?.x ?? 1, displayObject.scale?.y ?? 1);
   wrapper.rotation = displayObject.rotation ?? 0;
+  wrapper.skew?.set?.(displayObject.skew?.x ?? 0, displayObject.skew?.y ?? 0);
   wrapper.alpha = displayObject.alpha ?? 1;
   wrapper.addChild(sprite);
 
   return {
     wrapper,
     texture,
+    ownsTexture: !canReuseSpriteTexture,
     width: frame.width * Math.abs(wrapper.scale.x),
     height: frame.height * Math.abs(wrapper.scale.y),
   };
@@ -970,7 +1018,9 @@ const destroySubjectSnapshot = (subject, app) => {
     subject.wrapper.destroy({ children: true });
   }
 
-  subject?.texture?.destroy(true);
+  if (subject?.ownsTexture) {
+    subject.texture?.destroy(true);
+  }
 };
 
 const resolveOverlaySubjects = ({
@@ -1120,6 +1170,28 @@ const createCompositorOverlay = ({
     name: `route-graphics-transition-compositor-${animation.id}`,
   });
   sprite.filters = [compositorFilter];
+  const nextTextureClamp = createFullFrameClamp(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const baseApplyCompositorFilter =
+    typeof compositorFilter.apply === "function"
+      ? compositorFilter.apply.bind(compositorFilter)
+      : (filterManager, input, output, clearMode) => {
+          filterManager.applyFilter(compositorFilter, input, output, clearMode);
+        };
+  compositorFilter.apply = (filterManager, input, output, clearMode) => {
+    const shaderUniforms = compositorFilter.resources.shaderUniforms;
+    if (shaderUniforms?.uniforms?.uNextTextureMatrix) {
+      filterManager.calculateSpriteMatrix(
+        shaderUniforms.uniforms.uNextTextureMatrix,
+        sprite,
+      );
+      shaderUniforms.uniforms.uNextTextureClamp = nextTextureClamp;
+      shaderUniforms.update();
+    }
+    baseApplyCompositorFilter(filterManager, input, output, clearMode);
+  };
 
   let prevStaticRendered = false;
   let nextStaticRendered = false;

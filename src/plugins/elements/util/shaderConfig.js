@@ -11,6 +11,8 @@ const RESERVED_SHADER_SYMBOLS = new Set([
   "uTexture",
   "uPrevTexture",
   "uNextTexture",
+  "uNextTextureMatrix",
+  "uNextTextureClamp",
   "uProgress",
   "uResolution",
   "uSampler",

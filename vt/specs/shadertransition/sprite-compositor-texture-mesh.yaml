@@ -6,6 +6,7 @@ specs:
   - uNextTexture should sample the incoming sprite surface
   - a custom texture should be bound after uNextTexture
   - mesh.grid and custom vertex source should allow a visible wave deformation
+  - the post-completion frame should match the final compositor frame
 steps:
   - action: keypress
     key: "n"
@@ -13,6 +14,11 @@ steps:
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
@@ -100,17 +106,25 @@ states:
                 uniform sampler2D uTexture;
                 uniform sampler2D uNextTexture;
                 uniform sampler2D uPaperTexture;
+                uniform mat3 uNextTextureMatrix;
                 uniform vec4 uInputClamp;
                 uniform float uProgress;
+                uniform vec4 uNextTextureClamp;
 
                 void main(void)
                 {
                     vec2 uv = clamp(vTextureCoord, uInputClamp.xy, uInputClamp.zw);
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
                     vec4 prevColor = texture(uTexture, uv);
-                    vec4 nextColor = texture(uNextTexture, uv);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
                     float grain = texture(uPaperTexture, uv * 3.0).r;
-                    float grainAmount = sin(clamp(uProgress, 0.0, 1.0) * 3.14159265);
-                    float mixedProgress = clamp(uProgress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                    float progress = clamp(uProgress, 0.0, 1.0);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
+                    float grainAmount = sin(progress * 3.14159265);
+                    float mixedProgress = clamp(progress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
                     vec4 color = mix(prevColor, nextColor, mixedProgress);
                     finalColor = vec4(color.rgb * color.a, color.a);
                 }
@@ -128,6 +142,8 @@ states:
                 struct ShaderUniforms {
                   uProgress: f32,
                   uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
                   uWave: f32,
                 };
 
@@ -164,11 +180,20 @@ states:
                 fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
                 {
                   let clampedUv = clamp(uv, gfu.uInputClamp.xy, gfu.uInputClamp.zw);
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
                   let prevColor = textureSample(uTexture, uSampler, clampedUv);
-                  let nextColor = textureSample(uNextTexture, uSampler, clampedUv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
                   let grain = textureSample(uPaperTexture, uSampler, clampedUv * 3.0).r;
-                  let grainAmount = sin(clamp(shaderUniforms.uProgress, 0.0, 1.0) * 3.14159265);
-                  let mixedProgress = clamp(shaderUniforms.uProgress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                  let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
+                  let grainAmount = sin(progress * 3.14159265);
+                  let mixedProgress = clamp(progress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
                   let color = mix(prevColor, nextColor, mixedProgress);
                   return vec4<f32>(color.rgb * color.a, color.a);
                 }
