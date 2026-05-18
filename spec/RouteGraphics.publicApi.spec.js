@@ -122,6 +122,14 @@ const createPixiModuleMock = () => {
 
   class MockFilter {}
 
+  class MockFillGradient {
+    constructor(options = {}) {
+      Object.assign(this, options);
+    }
+
+    destroy() {}
+  }
+
   class MockUniformGroup {
     constructor(uniforms) {
       this.uniforms = Object.fromEntries(
@@ -217,6 +225,7 @@ const createPixiModuleMock = () => {
     Container: MockContainer,
     Sprite: MockSprite,
     Filter: MockFilter,
+    FillGradient: MockFillGradient,
     GlProgram: MockGlProgram,
     UniformGroup: MockUniformGroup,
     defaultFilterVert: "void main() {}",

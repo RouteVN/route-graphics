@@ -3,6 +3,7 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { resolveRectFill } from "./rectFill.js";
 import {
   applyElementTransform,
   getElementTransformTargetState,
@@ -13,11 +14,6 @@ import {
   resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
-
-const normalizeRectFill = (fill) =>
-  fill === undefined || fill === null || fill === "" || fill === "transparent"
-    ? { color: 0x000000, alpha: 0 }
-    : fill;
 
 /**
  * Update rectangle element (synchronous)
@@ -73,7 +69,7 @@ export const updateRect = ({
 
       rectElement
         .rect(0, 0, Math.round(width), Math.round(height))
-        .fill(normalizeRectFill(fill));
+        .fill(resolveRectFill(rectElement, fill, nextElement));
       rectElement.alpha = alpha;
       // Rect computed nodes already bake scale into width/height for layout.
       // Reset the live transform so update tweens do not double-apply scale.

@@ -3,6 +3,7 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import { destroyRectFillResource, resolveRectFill } from "./rectFill.js";
 import {
   applyElementTransform,
   getElementTransformTargetState,
@@ -12,11 +13,6 @@ import {
   hasShaderProgressUpdateAnimation,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
-
-const normalizeRectFill = (fill) =>
-  fill === undefined || fill === null || fill === "" || fill === "transparent"
-    ? { color: 0x000000, alpha: 0 }
-    : fill;
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -42,6 +38,9 @@ export const addRect = ({
   const rect = new Graphics();
   rect.label = id;
   rect.zIndex = zIndex;
+  rect.on("destroyed", () => {
+    destroyRectFillResource(rect);
+  });
   const targetState = getElementTransformTargetState(element, { alpha });
 
   if (scaleX !== undefined) {
@@ -56,7 +55,7 @@ export const addRect = ({
     rect.clear();
     rect
       .rect(0, 0, Math.round(width), Math.round(height))
-      .fill(normalizeRectFill(fill));
+      .fill(resolveRectFill(rect, fill, element));
     rect.alpha = alpha;
     // Rect computed nodes already bake scale into width/height for layout.
     // Reset the live transform so update tweens do not double-apply scale.
