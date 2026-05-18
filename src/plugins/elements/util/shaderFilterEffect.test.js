@@ -5,6 +5,7 @@ import {
   installShaderProgressProperty,
   resetShaderFilterProgress,
   shouldUpdateUnchangedShaderFilterProgress,
+  syncShaderFilters,
 } from "./shaderFilterEffect.js";
 
 const TEST_TEXTURE_ALIAS = "shader-filter-effect-test-texture";
@@ -279,5 +280,47 @@ describe("shader filter resources", () => {
     expect(outputFrame[1]).toBe(50);
 
     filter.destroy();
+  });
+
+  it("destroys managed shader filters when the display object is destroyed", () => {
+    Cache.set(TEST_TEXTURE_ALIAS, Texture.WHITE);
+    const cachedSource = Texture.WHITE.source;
+    const baseDestroy = vi.fn(function destroy(options) {
+      this.destroyOptions = options;
+    });
+    const displayObject = {
+      width: 32,
+      height: 32,
+      destroy: baseDestroy,
+    };
+
+    syncShaderFilters(
+      displayObject,
+      [
+        createTestShader({
+          id: "cleanup",
+          textures: [{ symbol: "uNoiseTexture", src: TEST_TEXTURE_ALIAS }],
+          pipeline: {
+            blend: "normal",
+            textureWrap: "repeat",
+            mipmap: true,
+          },
+        }),
+      ],
+      { width: 32, height: 32 },
+    );
+
+    const filter = displayObject.filters[0];
+    const clonedSource = filter.resources.uNoiseTexture;
+    const destroyFilter = vi.spyOn(filter, "destroy");
+
+    displayObject.destroy({ children: true });
+
+    expect(destroyFilter).toHaveBeenCalledTimes(1);
+    expect(clonedSource.destroyed).toBe(true);
+    expect(cachedSource.destroyed).toBe(false);
+    expect(displayObject.filters).toBe(null);
+    expect(baseDestroy).toHaveBeenCalledWith({ children: true });
+    expect(displayObject.destroyOptions).toEqual({ children: true });
   });
 });

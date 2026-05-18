@@ -13,6 +13,7 @@ import { getShaderConfigSignature } from "./shaderConfig.js";
 
 const SHADER_FILTERS_STATE_KEY = "__routeGraphicsShaderFilters";
 const SHADER_PROGRESS_KEY = "__routeGraphicsShaderProgress";
+const SHADER_DESTROY_CLEANUP_KEY = "__routeGraphicsShaderDestroyCleanup";
 
 export const DEFAULT_SHADER_FILTER_VERTEX = `
 precision mediump float;
@@ -437,6 +438,29 @@ const setShaderFiltersState = (displayObject, state) => {
   });
 };
 
+const installShaderFilterDestroyCleanup = (displayObject) => {
+  if (
+    !displayObject ||
+    typeof displayObject.destroy !== "function" ||
+    displayObject[SHADER_DESTROY_CLEANUP_KEY]
+  ) {
+    return;
+  }
+
+  const baseDestroy = displayObject.destroy;
+
+  Object.defineProperty(displayObject, SHADER_DESTROY_CLEANUP_KEY, {
+    value: true,
+    enumerable: false,
+    configurable: true,
+  });
+
+  displayObject.destroy = function destroyWithShaderFilterCleanup(...args) {
+    clearShaderFilters(this);
+    return baseDestroy.apply(this, args);
+  };
+};
+
 const applyProgressToFilters = (displayObject, progress) => {
   const state = getShaderFiltersState(displayObject);
   for (const filter of state?.filters ?? []) {
@@ -554,6 +578,10 @@ export const shouldUpdateUnchangedShaderFilterProgress = ({
   });
 
 const clearShaderFilters = (displayObject) => {
+  if (!getShaderFiltersState(displayObject)) {
+    return;
+  }
+
   setManagedFilter(displayObject, "shader", null);
   delete displayObject[SHADER_FILTERS_STATE_KEY];
 };
@@ -573,6 +601,7 @@ export const syncShaderFilters = (
   }
 
   installShaderProgressProperty(displayObject);
+  installShaderFilterDestroyCleanup(displayObject);
 
   if (!filters?.length) {
     clearShaderFilters(displayObject);
