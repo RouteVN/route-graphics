@@ -1,0 +1,74 @@
+---
+title: Rect Persistent Update Restart On Target Change
+description: A persistent rect update restarts when the target definition changes between renders.
+specs:
+  - the first state should show an in-flight background move toward the right
+  - changing the background rect target should break continuity on the second render
+  - after the second render, the restarted animation should head toward the new leftward target instead of continuing the previous path
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 100
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: bg
+        type: rect
+        x: 80
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+  - id: update-start
+    elements:
+      - id: bg
+        type: rect
+        x: 520
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+    animations:
+      - id: bg-grow
+        targetId: bg
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+  - id: update-restarted
+    elements:
+      - id: bg
+        type: rect
+        x: 20
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+    animations:
+      - id: bg-grow
+        targetId: bg
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear

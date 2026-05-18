@@ -37,6 +37,12 @@ properties:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). Values can extend beyond 0-1 range.
     default: 0
+  originX:
+    type: number
+    description: Horizontal transform origin in pixels from the element's left edge. Defaults to the anchor-derived X origin.
+  originY:
+    type: number
+    description: Vertical transform origin in pixels from the element's top edge. Defaults to the anchor-derived Y origin.
   src:
     type: string
     description: src of the sprite image. the alias of the pre loaded asset. can be empty
@@ -46,6 +52,39 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
+  rotation:
+    type: number
+    description: Rotation in degrees
+    default: 0
+  blur:
+    type: object
+    description: Optional directional Gaussian blur.
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        description: Horizontal blur strength in pixels.
+        minimum: 0
+      y:
+        type: number
+        description: Vertical blur strength in pixels.
+        minimum: 0
+      quality:
+        type: number
+        description: Number of blur passes. Higher values are smoother but slower.
+        minimum: 1
+        default: 4
+      kernelSize:
+        type: number
+        enum: [5, 7, 9, 11, 13, 15]
+        description: Blur kernel size.
+        default: 5
+      repeatEdgePixels:
+        type: boolean
+        description: Clamp edge pixels instead of padding the blur bounds.
+        default: false
   hover:
     type: object
     properties:
@@ -72,10 +111,10 @@ properties:
         description: source of sound to be played when the sprite is clicked
       soundVolume:
         type: number
-        description: Volume. 0 means muted. 1000 means original full volume.
+        description: Volume. 0 means muted. 100 means original full volume.
         minimum: 0
-        maximum: 1000
-        default: 1000
+        maximum: 100
+        default: 100
       payload:
         type: object
         description: Payload for click action event
@@ -91,3 +130,15 @@ properties:
       payload:
         type: object
         description: Payload for right-click action event
+  scrollUp:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll down action event

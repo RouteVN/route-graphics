@@ -1,0 +1,50 @@
+---
+title: Render Complete Event - Text Revealing None
+description: Asserts renderComplete fires once for text-revealing with revealEffect set to none.
+specs:
+  - renderComplete should fire once with aborted=false for immediate none-effect text reveal
+  - the rendered text should remain visually stable after the immediate completion
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: text-revealing-none
+        aborted: false
+---
+states:
+  - id: baseline
+    elements:
+      - id: baseline-rect
+        type: rect
+        x: 80
+        y: 80
+        width: 220
+        height: 120
+        fill: "#4D4D4D"
+  - id: text-revealing-none
+    elements:
+      - id: revealing-text-none
+        type: text-revealing
+        content:
+          - text: Render complete once
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Helvetica
+        x: 120
+        y: 240
+        width: 700
+        alpha: 1
+        speed: 20
+        revealEffect: none

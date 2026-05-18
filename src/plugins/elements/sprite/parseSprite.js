@@ -1,4 +1,5 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
+import { normalizeBlurConfig } from "../util/blurEffect.js";
 /**
  *  @typedef {import('../../../types.js').BaseElement} BaseElement
  *  @typedef {import('../../../types.js').SpriteComputedNode} SpriteComputedNode
@@ -17,8 +18,14 @@ export const parseSprite = ({ state }) => {
     ...computedObj,
     src: state.src ?? "",
     alpha: state.alpha ?? 1,
+    rotation: state.rotation ?? 0,
+    ...(state.blur !== undefined && {
+      blur: normalizeBlurConfig(state.blur),
+    }),
     ...(state.hover && { hover: state.hover }),
     ...(state.click && { click: state.click }),
     ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.scrollUp && { scrollUp: state.scrollUp }),
+    ...(state.scrollDown && { scrollDown: state.scrollDown }),
   };
 };

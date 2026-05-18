@@ -1,0 +1,53 @@
+---
+title: Container Blur
+specs:
+  - container blur should soften the rendered child subtree as one effect
+  - sibling containers should keep independent blur state
+---
+states:
+  - elements:
+      - id: container-crisp
+        type: container
+        x: 120
+        "y": 150
+        width: 220
+        height: 180
+        children:
+          - id: crisp-base
+            type: rect
+            x: 0
+            "y": 0
+            width: 160
+            height: 110
+            fill: "#FFFFFF"
+          - id: crisp-overlay
+            type: rect
+            x: 70
+            "y": 55
+            width: 130
+            height: 105
+            fill: "#737373"
+      - id: container-blurred
+        type: container
+        x: 450
+        "y": 150
+        width: 220
+        height: 180
+        blur:
+          x: 9
+          "y": 9
+        children:
+          - id: blurred-base
+            type: rect
+            x: 0
+            "y": 0
+            width: 160
+            height: 110
+            fill: "#FFFFFF"
+          - id: blurred-overlay
+            type: rect
+            x: 70
+            "y": 55
+            width: 130
+            height: 105
+            fill: "#737373"

@@ -1,0 +1,55 @@
+---
+title: Rect Update Scale Auto Transition
+description: A rect scaling during update using tween auto shorthand for scaleX and scaleY.
+specs:
+  - rect should scale from 1 to 1.5 on x
+  - rect should scale from 1 to 0.6 on y
+  - scale should be derived from the next state
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: rect1
+        type: rect
+        x: 360
+        "y": 220
+        width: 220
+        height: 180
+        fill: "#737373"
+        scaleX: 1
+        scaleY: 1
+  - elements:
+      - id: rect1
+        type: rect
+        x: 360
+        "y": 220
+        width: 220
+        height: 180
+        fill: "#737373"
+        scaleX: 1.5
+        scaleY: 0.6
+    animations:
+      - id: rect-scale-auto
+        targetId: rect1
+        type: update
+        tween:
+          scaleX:
+            auto:
+              duration: 800
+              easing: linear
+          scaleY:
+            auto:
+              duration: 800
+              easing: linear

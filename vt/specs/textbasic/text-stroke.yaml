@@ -1,0 +1,31 @@
+---
+title: Text Stroke
+description: Text stroke rendering is the subject of this spec, so it uses grayscale contrast to verify outline color and thickness.
+specs:
+  - text should render the configured strokeColor as the outline color
+  - text should render the configured strokeWidth as the outline thickness
+---
+states:
+  - elements:
+      - id: text-thin-stroke
+        type: text
+        x: 40
+        "y": 50
+        content: Thin Stroke
+        textStyle:
+          fontFamily: Arial
+          fontSize: 52
+          fill: "#4D4D4D"
+          strokeColor: "#A6A6A6"
+          strokeWidth: 2
+      - id: text-thick-stroke
+        type: text
+        x: 40
+        "y": 150
+        content: Thick Stroke
+        textStyle:
+          fontFamily: Arial
+          fontSize: 52
+          fill: "#4D4D4D"
+          strokeColor: "#FFFFFF"
+          strokeWidth: 8

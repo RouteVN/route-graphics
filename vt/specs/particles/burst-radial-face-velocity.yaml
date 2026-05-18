@@ -1,0 +1,182 @@
+---
+title: Structured burst with radial motion and face-velocity
+specs:
+  - a continuous preview state should keep radial motion visible in docs
+  - burst emission should create a deterministic one-shot radial field from a circle source
+  - faceVelocity should keep stretched particles aligned with their motion
+  - custom recycle bounds should reduce the field over time
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 80
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 600
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: continuous-preview
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: radial-preview
+        type: particles
+        width: 1280
+        height: 720
+        seed: 9876
+        modules:
+          emission:
+            mode: continuous
+            rate: 96
+            maxActive: 64
+            duration: infinite
+            particleLifetime:
+              min: 1.4
+              max: 1.9
+            source:
+              kind: circle
+              data:
+                x: 640
+                y: 72
+                radius: 12
+                innerRadius: 4
+          movement:
+            velocity:
+              kind: radial
+              speed:
+                min: 90
+                max: 160
+            acceleration:
+              x: 0
+              y: 20
+            maxSpeed: 180
+            faceVelocity: true
+          appearance:
+            texture:
+              shape: rect
+              width: 4
+              height: 18
+              color: "#FFFFFF"
+            scale:
+              mode: curve
+              keys:
+                - value: 1
+                  time: 0
+                - value: 0.6
+                  time: 1
+            alpha:
+              mode: curve
+              keys:
+                - value: 1
+                  time: 0
+                - value: 1
+                  time: 0.6
+                - value: 0
+                  time: 1
+            rotation:
+              mode: none
+  - id: one-shot-burst
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: burst-radial
+        type: particles
+        width: 1280
+        height: 720
+        seed: 9876
+        modules:
+          emission:
+            mode: burst
+            burstCount: 48
+            maxActive: 48
+            duration: 0.1
+            particleLifetime:
+              min: 0.8
+              max: 1.4
+            source:
+              kind: circle
+              data:
+                x: 640
+                y: 360
+                radius: 12
+                innerRadius: 4
+          movement:
+            velocity:
+              kind: radial
+              speed:
+                min: 180
+                max: 320
+            acceleration:
+              x: 0
+              y: 40
+            maxSpeed: 340
+            faceVelocity: true
+          appearance:
+            texture:
+              shape: rect
+              width: 4
+              height: 18
+              color: "#FFFFFF"
+            scale:
+              mode: curve
+              keys:
+                - value: 1
+                  time: 0
+                - value: 0.6
+                  time: 1
+            alpha:
+              mode: curve
+              keys:
+                - value: 1
+                  time: 0
+                - value: 1
+                  time: 0.6
+                - value: 0
+                  time: 1
+            rotation:
+              mode: none
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 260
+              y: 160
+              width: 760
+              height: 400

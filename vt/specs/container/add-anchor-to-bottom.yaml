@@ -27,7 +27,8 @@ states:
         x: 50
         "y": 50
         height: 200
-        gap: 5
+        gapX: 5
+        gapY: 5
         scroll: true
         zIndex: 0
         children:
@@ -57,7 +58,8 @@ states:
         x: 300
         "y": 50
         height: 200
-        gap: 5
+        gapX: 5
+        gapY: 5
         anchorToBottom: true
         zIndex: 0
         children:
@@ -88,7 +90,8 @@ states:
         x: 50
         "y": 50
         height: 200
-        gap: 5
+        gapX: 5
+        gapY: 5
         scroll: true
         zIndex: 0
         children:
@@ -123,7 +126,8 @@ states:
         x: 300
         "y": 50
         height: 200
-        gap: 5
+        gapX: 5
+        gapY: 5
         anchorToBottom: true
         zIndex: 0
         children:

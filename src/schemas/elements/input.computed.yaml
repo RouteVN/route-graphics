@@ -1,0 +1,46 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Input Computed Node
+description: Schema for input computed node after parsing
+type: object
+required:
+  - id
+  - type
+  - width
+  - height
+  - x
+  - y
+  - value
+  - placeholder
+  - multiline
+  - disabled
+  - textStyle
+  - padding
+properties:
+  id:
+    type: string
+  type:
+    const: input
+  width:
+    type: number
+  height:
+    type: number
+  x:
+    type: number
+  y:
+    type: number
+  alpha:
+    type: number
+  value:
+    type: string
+  placeholder:
+    type: string
+  multiline:
+    type: boolean
+  disabled:
+    type: boolean
+  maxLength:
+    type: number
+  textStyle:
+    type: object
+  padding:
+    type: object

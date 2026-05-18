@@ -9,9 +9,13 @@ import { rectPlugin } from "./plugins/elements/rect";
 import { spritePlugin } from "./plugins/elements/sprite";
 import { videoPlugin } from "./plugins/elements/video";
 import { sliderPlugin } from "./plugins/elements/slider";
+import { inputPlugin } from "./plugins/elements/input";
 import { containerPlugin } from "./plugins/elements/container";
 import { textRevealingPlugin } from "./plugins/elements/text-revealing";
-import { animatedSpritePlugin } from "./plugins/elements/animated-sprite";
+import {
+  animatedSpritePlugin,
+  spritesheetAnimationPlugin,
+} from "./plugins/elements/animated-sprite";
 import { tweenPlugin } from "./plugins/animations/tween";
 import { soundPlugin } from "./plugins/audio/sound";
 import { particlesPlugin } from "./plugins/elements/particles/index.js";
@@ -34,8 +38,10 @@ export {
   spritePlugin,
   videoPlugin,
   sliderPlugin,
+  inputPlugin,
   containerPlugin,
   textRevealingPlugin,
+  spritesheetAnimationPlugin,
   animatedSpritePlugin,
   tweenPlugin,
   soundPlugin,

@@ -1,43 +1,80 @@
 ---
 title: Custom sparkle/twinkle effect (Level 3 - Full Custom)
 specs:
-  - custom particle behaviors should render deterministic sparkle frames
+  - structured particle modules should render deterministic sparkle frames
+  - weighted texture selection should remain stable under a seed
   - snapshot keyframe events should capture stable intermediate particle states
+skipInitialScreenshot: true
 steps:
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
       deltaMS: 200
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 200
+  - action: wait
+    ms: 50
   - action: screenshot
 ---
 states:
   - elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#000000"
       - id: sparkles
         type: particles
         width: 1280
         height: 720
-        texture: snowflake
-        behaviors:
-          - type: spawnShape
-            config:
-              type: rect
+        seed: 12345
+        modules:
+          emission:
+            mode: continuous
+            rate: 20
+            maxActive: 30
+            duration: infinite
+            particleLifetime:
+              min: 0.3
+              max: 0.8
+            source:
+              kind: rect
               data:
                 x: 100
                 "y": 100
-                w: 1080
-                h: 520
-          - type: speedStatic
-            config:
-              min: 0
-              max: 0
-          - type: scale
-            config:
-              list:
+                width: 1080
+                height: 520
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: snowflake
+                  weight: 3
+                - shape: circle
+                  radius: 2
+                  color: "#D9D9D9"
+                  weight: 1
+            scale:
+              mode: curve
+              keys:
                 - value: 0
                   time: 0
                 - value: 1.5
@@ -46,9 +83,9 @@ states:
                   time: 0.7
                 - value: 0
                   time: 1
-          - type: alpha
-            config:
-              list:
+            alpha:
+              mode: curve
+              keys:
                 - value: 0
                   time: 0
                 - value: 1
@@ -57,19 +94,11 @@ states:
                   time: 0.8
                 - value: 0
                   time: 1
-          - type: rotation
-            config:
-              minStart: 0
-              maxStart: 360
-              minSpeed: 45
-              maxSpeed: 90
-              accel: 0
-        emitter:
-          lifetime:
-            min: 0.3
-            max: 0.8
-          frequency: 0.05
-          particlesPerWave: 1
-          maxParticles: 30
-          emitterLifetime: -1
-          seed: 12345
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: 45
+                max: 90

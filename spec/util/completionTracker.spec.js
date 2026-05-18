@@ -41,6 +41,7 @@ describe("completionTracker", () => {
     const version = tracker.getVersion();
     tracker.track(version);
     tracker.track(version);
+    tracker.completeIfEmpty();
 
     tracker.complete(version);
     expect(eventHandler).not.toHaveBeenCalled();
@@ -64,6 +65,7 @@ describe("completionTracker", () => {
     tracker.reset("state-2");
     const currentVersion = tracker.getVersion();
     tracker.track(currentVersion);
+    tracker.completeIfEmpty();
 
     tracker.complete(staleVersion);
     expect(eventHandler).toHaveBeenCalledTimes(1);
@@ -76,6 +78,26 @@ describe("completionTracker", () => {
     expect(eventHandler).toHaveBeenCalledTimes(2);
     expect(eventHandler).toHaveBeenLastCalledWith("renderComplete", {
       id: "state-2",
+      aborted: false,
+    });
+  });
+
+  it("defers synchronous completion until the render finishes and emits only once", () => {
+    const eventHandler = vi.fn();
+    const tracker = createCompletionTracker(eventHandler);
+
+    tracker.reset("state-1");
+    const version = tracker.getVersion();
+    tracker.track(version);
+    tracker.complete(version);
+
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    tracker.completeIfEmpty();
+
+    expect(eventHandler).toHaveBeenCalledTimes(1);
+    expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+      id: "state-1",
       aborted: false,
     });
   });

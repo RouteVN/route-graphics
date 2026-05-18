@@ -28,6 +28,7 @@ export const updateParticles = ({
   animations,
   animationBus,
   completionTracker,
+  renderContext,
   zIndex,
 }) => {
   // Find the existing container
@@ -44,6 +45,7 @@ export const updateParticles = ({
       animations,
       animationBus,
       completionTracker,
+      renderContext,
       zIndex,
     });
     return;
@@ -73,6 +75,7 @@ export const updateParticles = ({
       animations,
       animationBus,
       completionTracker,
+      renderContext,
       zIndex,
     });
   } else {

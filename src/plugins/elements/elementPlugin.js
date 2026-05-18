@@ -9,6 +9,8 @@
  * @property {Function} add - Function to add the element
  * @property {Function} update - Function to update the element
  * @property {Function} delete - Function to delete the element
+ * @property {Function} [shouldUpdateUnchanged] - Optional hook to force an
+ * update even when prev/next element definitions are deep-equal
  */
 
 /**
@@ -19,6 +21,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {import('./renderContext.js').createRenderContext} [renderContext] - Render context flags for nested mounts
  * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
@@ -31,6 +34,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {import('./renderContext.js').createRenderContext} [renderContext] - Render context flags for nested mounts
  * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
@@ -42,6 +46,7 @@
  * @property {Object[]} animations - Animation configurations for the element
  * @property {Function} eventHandler - Event handler function
  * @property {Object} animationBus - Animation bus for dispatching animations
+ * @property {import('./renderContext.js').createRenderContext} [renderContext] - Render context flags for nested mounts
  * @property {AbortSignal} [signal] - Optional cancellation signal
  */
 
@@ -53,6 +58,7 @@
  * @param {Function} options.update - Update function
  * @param {Function} options.delete - Delete function
  * @param {import('./parserPlugin.js').ParseOption} options.parse
+ * @param {Function} [options.shouldUpdateUnchanged]
  * @returns {ElementPlugin} Element plugin
  */
 export const createElementPlugin = ({
@@ -61,10 +67,12 @@ export const createElementPlugin = ({
   update,
   delete: deleteFn,
   parse,
+  shouldUpdateUnchanged,
 }) => ({
   type,
   add,
   update,
   delete: deleteFn,
   parse,
+  shouldUpdateUnchanged,
 });

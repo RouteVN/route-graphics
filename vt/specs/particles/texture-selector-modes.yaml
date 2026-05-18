@@ -1,0 +1,251 @@
+---
+title: Structured texture selector modes
+specs:
+  - a continuous preview state should keep both selector modes readable in docs
+  - per-particle texture cycling should render mixed shapes within one wave
+  - per-wave texture cycling should render one shared texture for the whole wave
+  - the second state should preserve the current one-shot burst comparison
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 350
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 80
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: continuous-preview
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: selector-per-particle-preview
+        type: particles
+        width: 1280
+        height: 720
+        seed: 12345
+        modules:
+          emission:
+            mode: continuous
+            rate: 18
+            maxActive: 18
+            duration: infinite
+            particleLifetime: 3
+            source:
+              kind: line
+              data:
+                x1: 120
+                y1: 96
+                x2: 560
+                y2: 96
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 86
+                max: 94
+              speed:
+                min: 160
+                max: 220
+            maxSpeed: 260
+          appearance:
+            texture:
+              mode: cycle
+              pick: perParticle
+              items:
+                - shape: circle
+                  radius: 12
+                  color: "#FFFFFF"
+                - shape: rect
+                  width: 8
+                  height: 18
+                  color: "#737373"
+            scale:
+              mode: single
+              value: 1
+            alpha:
+              mode: single
+              value: 1
+            rotation:
+              mode: none
+      - id: selector-per-wave-preview
+        type: particles
+        width: 1280
+        height: 720
+        seed: 54321
+        modules:
+          emission:
+            mode: continuous
+            rate: 18
+            maxActive: 18
+            duration: infinite
+            particleLifetime: 3
+            source:
+              kind: line
+              data:
+                x1: 720
+                y1: 96
+                x2: 1160
+                y2: 96
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 86
+                max: 94
+              speed:
+                min: 160
+                max: 220
+            maxSpeed: 260
+          appearance:
+            texture:
+              mode: cycle
+              pick: perWave
+              items:
+                - shape: circle
+                  radius: 12
+                  color: "#FFFFFF"
+                - shape: rect
+                  width: 8
+                  height: 18
+                  color: "#737373"
+            scale:
+              mode: single
+              value: 1
+            alpha:
+              mode: single
+              value: 1
+            rotation:
+              mode: none
+  - id: one-shot-burst
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: selector-per-particle
+        type: particles
+        width: 1280
+        height: 720
+        seed: 12345
+        modules:
+          emission:
+            mode: burst
+            burstCount: 18
+            maxActive: 18
+            duration: 0.1
+            particleLifetime: 3
+            source:
+              kind: line
+              data:
+                x1: 120
+                y1: 210
+                x2: 560
+                y2: 210
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 86
+                max: 94
+              speed:
+                min: 160
+                max: 220
+            maxSpeed: 260
+          appearance:
+            texture:
+              mode: cycle
+              pick: perParticle
+              items:
+                - shape: circle
+                  radius: 12
+                  color: "#FFFFFF"
+                - shape: rect
+                  width: 8
+                  height: 18
+                  color: "#737373"
+            scale:
+              mode: single
+              value: 1
+            alpha:
+              mode: single
+              value: 1
+            rotation:
+              mode: none
+      - id: selector-per-wave
+        type: particles
+        width: 1280
+        height: 720
+        seed: 54321
+        modules:
+          emission:
+            mode: burst
+            burstCount: 18
+            maxActive: 18
+            duration: 0.1
+            particleLifetime: 3
+            source:
+              kind: line
+              data:
+                x1: 720
+                y1: 210
+                x2: 1160
+                y2: 210
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 86
+                max: 94
+              speed:
+                min: 160
+                max: 220
+            maxSpeed: 260
+          appearance:
+            texture:
+              mode: cycle
+              pick: perWave
+              items:
+                - shape: circle
+                  radius: 12
+                  color: "#FFFFFF"
+                - shape: rect
+                  width: 8
+                  height: 18
+                  color: "#737373"
+            scale:
+              mode: single
+              value: 1
+            alpha:
+              mode: single
+              value: 1
+            rotation:
+              mode: none

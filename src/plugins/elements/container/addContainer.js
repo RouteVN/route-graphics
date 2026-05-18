@@ -1,7 +1,74 @@
 import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
+import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
+import { renderElements } from "../renderElements.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
+
+const hasDuplicateChildIds = (children = []) => {
+  const seen = new Set();
+
+  for (const child of children) {
+    if (!child?.id) {
+      continue;
+    }
+
+    if (seen.has(child.id)) {
+      return true;
+    }
+
+    seen.add(child.id);
+  }
+
+  return false;
+};
+
+const addChildrenDirectly = ({
+  app,
+  container,
+  children,
+  eventHandler,
+  animationBus,
+  elementPlugins,
+  renderContext,
+  completionTracker,
+  signal,
+}) => {
+  for (const child of children) {
+    const childPlugin = elementPlugins.find(
+      (plugin) => plugin.type === child.type,
+    );
+    if (!childPlugin) {
+      throw new Error(`No plugin found for child element type: ${child.type}`);
+    }
+
+    childPlugin.add({
+      app,
+      parent: container,
+      element: child,
+      animations: [],
+      eventHandler,
+      animationBus,
+      elementPlugins,
+      renderContext,
+      completionTracker,
+      signal,
+    });
+  }
+};
 
 /**
  * Add container element to the stage (synchronous)
@@ -15,42 +82,60 @@ export const addContainer = ({
   eventHandler,
   animationBus,
   elementPlugins,
+  renderContext,
   zIndex,
   completionTracker,
   signal,
 }) => {
-  const { id, x, y, children, scroll, alpha } = element;
+  const { id, children, scroll, alpha } = element;
 
   const container = new Container();
   container.label = id;
   container.zIndex = zIndex;
 
   // Apply initial state
-  container.x = Math.round(x);
-  container.y = Math.round(y);
   container.alpha = alpha;
+  applyElementTransform(container, element);
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(container, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(container, element.filters, {
+    width: element.width,
+    height: element.height,
+    force: shouldForceShaderProgress,
+  });
 
   parent.addChild(container);
 
-  // Add children recursively
   if (children && children.length > 0) {
-    for (const child of children) {
-      const childPlugin = elementPlugins.find((p) => p.type === child.type);
-      if (!childPlugin) {
-        throw new Error(
-          `No plugin found for child element type: ${child.type}`,
-        );
-      }
-
-      childPlugin.add({
+    if (hasDuplicateChildIds(children)) {
+      addChildrenDirectly({
         app,
-        parent: container,
-        element: child,
-        animations,
+        container,
+        children,
         eventHandler,
         animationBus,
         elementPlugins,
+        renderContext,
         completionTracker,
+        signal,
+      });
+    } else {
+      // Route unique fresh mounts through the planner so child transitions can run.
+      renderElements({
+        app,
+        parent: container,
+        prevComputedTree: [],
+        nextComputedTree: children,
+        animations,
+        animationBus,
+        completionTracker,
+        eventHandler,
+        elementPlugins,
+        renderContext,
         signal,
       });
     }
@@ -66,89 +151,12 @@ export const addContainer = ({
     });
   }
 
-  const hoverEvents = element?.hover;
-  const clickEvents = element?.click;
-  const rightClickEvents = element?.rightClick;
-
-  if (hoverEvents) {
-    const { cursor, soundSrc, payload } = hoverEvents;
-    container.eventMode = "static";
-
-    const overListener = () => {
-      if (payload && eventHandler)
-        eventHandler(`hover`, {
-          _event: {
-            id: container.label,
-          },
-          ...payload,
-        });
-      if (cursor) container.cursor = cursor;
-      if (soundSrc)
-        app.audioStage.add({
-          id: `hover-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-        });
-    };
-
-    const outListener = () => {
-      container.cursor = "auto";
-    };
-
-    container.on("pointerover", overListener);
-    container.on("pointerout", outListener);
-  }
-
-  if (clickEvents) {
-    const { soundSrc, soundVolume, payload } = clickEvents;
-    container.eventMode = "static";
-
-    const releaseListener = (event) => {
-      if (!isPrimaryPointerEvent(event)) {
-        return;
-      }
-
-      if (payload && eventHandler)
-        eventHandler(`click`, {
-          _event: {
-            id: container.label,
-          },
-          ...payload,
-        });
-      if (soundSrc)
-        app.audioStage.add({
-          id: `click-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-          volume: (soundVolume ?? 1000) / 1000,
-        });
-    };
-
-    container.on("pointerup", releaseListener);
-  }
-
-  if (rightClickEvents) {
-    const { soundSrc, payload } = rightClickEvents;
-    container.eventMode = "static";
-
-    const rightClickListener = () => {
-      if (payload && eventHandler)
-        eventHandler(`rightClick`, {
-          _event: {
-            id: container.label,
-          },
-          ...payload,
-        });
-      if (soundSrc)
-        app.audioStage.add({
-          id: `rightClick-${Date.now()}`,
-          url: soundSrc,
-          loop: false,
-        });
-    };
-
-    container.on("rightclick", rightClickListener);
-  }
+  bindContainerInteractions({
+    app,
+    container,
+    element,
+    eventHandler,
+  });
 
   dispatchLiveAnimations({
     animations,
@@ -156,6 +164,13 @@ export const addContainer = ({
     animationBus,
     completionTracker,
     element: container,
-    targetState: { x, y, alpha },
+    targetState: {
+      ...getElementTransformTargetState(element, { alpha }),
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
+    },
+    renderContext,
   });
 };

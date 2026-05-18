@@ -25,6 +25,8 @@ Try it in the [Playground](/playground/?template=basic-shapes).
 | `y`          | number | No       | `0`     | Position before anchor transform.   |
 | `anchorX`    | number | No       | `0`     | Anchor offset ratio.                |
 | `anchorY`    | number | No       | `0`     | Anchor offset ratio.                |
+| `originX`    | number | No       | anchor  | Transform origin X in pixels.       |
+| `originY`    | number | No       | anchor  | Transform origin Y in pixels.       |
 | `alpha`      | number | No       | `1`     | Opacity `0..1`.                     |
 | `fill`       | string \| object | No | transparent | Fill color or structured gradient fill. |
 | `border`     | object | No       | -       | Border config.                      |
@@ -140,7 +142,7 @@ elements:
         action: panelHover
     click:
       soundSrc: click-sfx
-      soundVolume: 900
+      soundVolume: 90
       payload:
         action: panelClick
     rightClick:

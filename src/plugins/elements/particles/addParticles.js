@@ -1,12 +1,23 @@
 import { Container, Texture, Graphics } from "pixi.js";
 import { Emitter } from "./emitter/index.js";
 import { getTexture } from "./util/registries.js";
+import { queueDeferredParticlesStart } from "../renderContext.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
  * @typedef {import('pixi.js').Application} Application
  * @typedef {import('../../../types.js').ParticleTextureShape} ParticleTextureShape
  */
+
+function isTextureSelector(texture) {
+  return (
+    typeof texture === "object" &&
+    texture !== null &&
+    !Array.isArray(texture) &&
+    typeof texture.mode === "string" &&
+    Array.isArray(texture.items)
+  );
+}
 
 /**
  * Create a texture from inline shape definition.
@@ -48,6 +59,49 @@ function createCustomTexture(app, shapeConfig) {
   return app.renderer.generateTexture(g);
 }
 
+function resolveTextureDefinition(app, textureDefinition) {
+  if (typeof textureDefinition === "object" && textureDefinition?.shape) {
+    return createCustomTexture(app, textureDefinition);
+  }
+
+  const textureName = textureDefinition ?? "circle";
+  let texture = getTexture(textureName, app);
+  if (!texture) {
+    try {
+      texture = Texture.from(textureName);
+    } catch (e) {
+      console.warn(`Failed to load particle texture: ${textureName}`);
+      return null;
+    }
+  }
+
+  return texture;
+}
+
+function resolveTextureSelector(app, selector) {
+  const items = [];
+
+  for (const item of selector.items) {
+    const definition = item.src ? item.src : item;
+    const texture = resolveTextureDefinition(app, definition);
+    if (!texture) {
+      return null;
+    }
+
+    items.push(
+      item.weight === undefined
+        ? { texture }
+        : { texture, weight: item.weight },
+    );
+  }
+
+  return {
+    mode: selector.mode,
+    pick: selector.pick ?? "perParticle",
+    items,
+  };
+}
+
 /**
  * Add a particle effect to the stage using custom behavior configs.
  * @param {import("../elementPlugin.js").AddElementOptions} params
@@ -59,6 +113,7 @@ export const addParticle = ({
   animations,
   animationBus,
   completionTracker,
+  renderContext,
   zIndex,
 }) => {
   const container = new Container();
@@ -85,28 +140,49 @@ export const addParticle = ({
   };
 
   // Resolve texture: custom shape > named texture > circle
-  let texture;
-  if (typeof element.texture === "object" && element.texture.shape) {
-    texture = createCustomTexture(app, element.texture);
-  } else {
-    const textureName = element.texture ?? "circle";
-    texture = getTexture(textureName, app);
-    if (!texture) {
-      try {
-        texture = Texture.from(textureName);
-      } catch (e) {
-        console.warn(`Failed to load particle texture: ${textureName}`);
-        return;
-      }
-    }
-  }
+  const texture = isTextureSelector(element.texture)
+    ? resolveTextureSelector(app, element.texture)
+    : resolveTextureDefinition(app, element.texture);
+  if (!texture) return;
   emitterConfig.texture = texture;
 
   const emitter = new Emitter(container, emitterConfig);
   container.emitter = emitter;
 
-  // Pre-fill weather effects so they don't start empty
-  if (emitterConfig.recycleOnBounds) {
+  const isBurstEmitter = emitterConfig.frequency <= 0;
+
+  // Fire burst emitters immediately, then retry across the first few browser
+  // frames if the mount/update pipeline still leaves the emitter empty.
+  if (isBurstEmitter) {
+    emitter.emitNow();
+    emitter.emit = false;
+
+    const retryBurstMount = (delays) => {
+      if (!delays.length) {
+        return;
+      }
+
+      const [delay, ...rest] = delays;
+      const schedule =
+        delay === 0 && typeof requestAnimationFrame === "function"
+          ? requestAnimationFrame
+          : (callback) => setTimeout(callback, delay);
+
+      schedule(() => {
+        if (emitter.destroyed || emitter.particleCount > 0) {
+          return;
+        }
+
+        emitter.emitNow();
+        retryBurstMount(rest);
+      });
+    };
+
+    retryBurstMount([0, 50, 150]);
+  }
+
+  // Pre-fill continuous recycled effects so they do not start empty.
+  if (emitterConfig.recycleOnBounds && !isBurstEmitter) {
     const initialCount = Math.min(
       element.count ?? 100,
       emitterConfig.maxParticles,
@@ -127,26 +203,24 @@ export const addParticle = ({
       app.ticker.remove(tickerCallback);
       return;
     }
-    emitter.update(ticker.deltaTime / 60);
+
+    const deltaSec = Math.min(
+      typeof ticker.deltaMS === "number"
+        ? ticker.deltaMS / 1000
+        : ticker.deltaTime / 60,
+      0.1,
+    );
+
+    emitter.update(deltaSec);
   };
   container.tickerCallback = tickerCallback;
 
-  if (app?.debug) {
-    // VT mode: use snapShotKeyFrame events for deterministic testing
-    const customTickerHandler = (event) => {
-      if (emitter.destroyed) {
-        window.removeEventListener("snapShotKeyFrame", customTickerHandler);
-        return;
-      }
-      if (event?.detail?.deltaMS) {
-        emitter.update(Number(event.detail.deltaMS) / 1000);
-      }
-    };
-    window.addEventListener("snapShotKeyFrame", customTickerHandler);
-    container.customTickerHandler = customTickerHandler;
-  } else {
-    app.ticker.add(tickerCallback);
-  }
+  queueDeferredParticlesStart(renderContext, {
+    app,
+    emitter,
+    container,
+    tickerCallback,
+  });
 
   if (element.alpha !== undefined) {
     container.alpha = element.alpha;
@@ -161,7 +235,8 @@ export const addParticle = ({
     targetState: {
       x: element.x ?? 0,
       y: element.y ?? 0,
-      alpha: element.alpha,
+      alpha: element.alpha ?? container.alpha,
     },
+    renderContext,
   });
 };

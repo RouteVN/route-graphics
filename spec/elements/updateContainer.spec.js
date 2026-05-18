@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Container, Rectangle } from "pixi.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { setupScrolling } from "../../src/plugins/elements/container/util/scrollingUtils.js";
 
@@ -116,6 +116,64 @@ describe("updateContainer", () => {
     });
 
     expect(containerElement.eventMode).toBe("static");
+    expect(containerElement.hitArea).toBeInstanceOf(Rectangle);
+    expect(containerElement.hitArea.width).toBe(200);
+    expect(containerElement.hitArea.height).toBe(200);
+  });
+
+  it("applies updated rotation around the computed anchor origin", () => {
+    const parent = new Container();
+    const containerElement = new Container();
+    containerElement.label = "container-1";
+    parent.addChild(containerElement);
+
+    updateContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      prevElement: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        width: 240,
+        height: 120,
+        originX: 120,
+        originY: 60,
+        rotation: 0,
+        alpha: 1,
+        children: [],
+      },
+      nextElement: {
+        id: "container-1",
+        type: "container",
+        x: 200,
+        y: 150,
+        width: 240,
+        height: 120,
+        originX: 120,
+        originY: 60,
+        rotation: 45,
+        alpha: 1,
+        children: [],
+      },
+      eventHandler: vi.fn(),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(containerElement.pivot.x).toBe(120);
+    expect(containerElement.pivot.y).toBe(60);
+    expect(containerElement.x).toBe(320);
+    expect(containerElement.y).toBe(210);
+    expect(containerElement.rotation).toBeCloseTo(Math.PI / 4);
   });
 
   it("rebuilds scrolling and anchors to bottom when messages are appended", () => {

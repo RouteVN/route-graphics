@@ -1,0 +1,71 @@
+---
+title: Slider Update Position Auto Transition
+description: A slider animating its position when updated using tween auto shorthand.
+specs:
+  - slider should move from (100, 100) to (420, 220)
+  - x and y should both be derived from the next state
+  - thumb should maintain relative position on the bar
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: slider1
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
+        width: 180
+        height: 20
+        x: 100
+        "y": 100
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+  - elements:
+      - id: slider1
+        type: slider
+        direction: horizontal
+        thumbSrc: horizontal-idle-thumb
+        barSrc: horizontal-idle-bar
+        width: 180
+        height: 20
+        x: 420
+        "y": 220
+        alpha: 1
+        anchorX: 0
+        anchorY: 0
+        zIndex: 1
+        min: 0
+        max: 50
+        step: 5
+        initialValue: 25
+    animations:
+      - id: slider-move-auto
+        targetId: slider1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear

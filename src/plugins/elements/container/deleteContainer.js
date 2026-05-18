@@ -1,4 +1,6 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { cleanupParticlesInTree } from "../particles/particleRuntime.js";
+import { cleanupScrollInteractionsInTree } from "../util/setupScrollInteraction.js";
 
 /**
  * Delete container element (synchronous)
@@ -19,11 +21,11 @@ export const deleteContainer = ({
 
   const deleteElement = () => {
     if (containerElement && !containerElement.destroyed) {
+      cleanupScrollInteractionsInTree({ root: containerElement });
+      cleanupParticlesInTree({ app, root: containerElement });
       parent.removeChild(containerElement);
       containerElement.destroy({
         children: true,
-        texture: true,
-        baseTexture: true,
       });
     }
   };

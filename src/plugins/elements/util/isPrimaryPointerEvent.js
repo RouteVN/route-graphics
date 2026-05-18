@@ -22,3 +22,8 @@ export const isPrimaryPointerEvent = (event) => {
   const button = readButton(event);
   return button === undefined || button === 0;
 };
+
+export const isSecondaryPointerEvent = (event) => {
+  const button = readButton(event);
+  return button === 2;
+};

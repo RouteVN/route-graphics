@@ -3,90 +3,114 @@ import {
   WhiteListAnimationProps,
 } from "../../types.js";
 import {
+  applyAnimationProperty,
+  createAnimationSubjectState,
+  getTimelineInitialValue,
+  isTranslateAnimationProperty,
+} from "./animationPropertyUtils.js";
+import {
   buildTimeline,
   calculateMaxDuration,
   getValueAtTime,
 } from "../../util/animationTimeline.js";
 
-const getMappedPath = (propertyPathMap, path) => {
-  if (typeof path !== "string") {
-    return path;
-  }
+const hasTranslateProperties = (properties = {}) =>
+  Object.keys(properties).some(isTranslateAnimationProperty);
 
-  return propertyPathMap[path] ?? path;
-};
-
-const getAnimationProperty = (object, path, propertyPathMap, defaultValue) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    const result = object[mappedPath];
-    return result === undefined ? defaultValue : result;
-  }
-
-  let result = object;
-  for (const key of mappedPath) {
-    if (result == null) {
-      return defaultValue;
-    }
-    result = result[key];
-  }
-
-  return result === undefined ? defaultValue : result;
-};
-
-const setAnimationProperty = (object, path, propertyPathMap, value) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
-    return object;
-  }
-
-  let current = object;
-  for (let i = 0; i < mappedPath.length - 1; i++) {
-    const key = mappedPath[i];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-
-  current[mappedPath[mappedPath.length - 1]] = value;
-  return object;
-};
-
-const buildPropertyTimelines = (element, properties, propertyPathMap) =>
-  Object.entries(properties).map(([property, config]) => {
-    if (!WhiteListAnimationProps[property]) {
-      throw new Error(`${property} is not a supported property for animation.`);
-    }
-
-    const currentValue = getAnimationProperty(
-      element,
-      property,
-      propertyPathMap,
-      0,
+const resolveAutoTargetValue = (targetState, property, animationId) => {
+  if (
+    !targetState ||
+    !Object.prototype.hasOwnProperty.call(targetState, property)
+  ) {
+    throw new Error(
+      `Animation "${animationId}" cannot auto-resolve property "${property}" from targetState.`,
     );
-    const initialValue = config.initialValue ?? currentValue;
-    const timeline = buildTimeline([
-      { value: initialValue },
-      ...config.keyframes,
-    ]);
+  }
 
-    return { property, timeline };
-  });
+  return targetState[property];
+};
+
+const buildPropertyTimelines = (
+  element,
+  properties,
+  propertyPathMap,
+  targetState,
+  animationId,
+  subjectState,
+) =>
+  Object.entries(properties)
+    .map(([property, config]) => {
+      if (!WhiteListAnimationProps[property]) {
+        throw new Error(
+          `${property} is not a supported property for animation.`,
+        );
+      }
+
+      const currentValue = getTimelineInitialValue({
+        object: element,
+        property,
+        propertyPathMap,
+        subjectState,
+        defaultValue: 0,
+      });
+
+      if (config.auto) {
+        const targetValue = resolveAutoTargetValue(
+          targetState,
+          property,
+          animationId,
+        );
+
+        if (currentValue === targetValue) {
+          return null;
+        }
+
+        const timeline = buildTimeline([
+          { value: currentValue },
+          {
+            duration: config.auto.duration,
+            value: targetValue,
+            easing: config.auto.easing,
+          },
+        ]);
+
+        return { property, timeline };
+      }
+
+      const initialValue = config.initialValue ?? currentValue;
+      const timeline = buildTimeline([
+        { value: initialValue },
+        ...config.keyframes,
+      ]);
+
+      return { property, timeline };
+    })
+    .filter(Boolean);
 
 /**
  * Creates an animation bus that manages all active animations centrally.
- * It supports both live property animations and custom replace runners.
+ * It supports both update property animations and custom transition runners.
  * @returns {AnimationBus}
  */
 export const createAnimationBus = () => {
   const commandQueue = [];
   const activeAnimations = new Map();
+  const pendingAnimations = new Map();
   const listeners = new Map();
   let stateVersion = 0;
+  let sampledTime = null;
+  let hasDeferredQueueProcessing = false;
+
+  const clampAnimationTime = (time, duration) => {
+    return Math.min(Math.max(time, 0), Math.max(duration ?? 0, 0));
+  };
+
+  const applyTimeToContext = (context, timeMS) => {
+    const nextTime = clampAnimationTime(timeMS, context.duration);
+    context.currentTime = nextTime;
+    context.applyFrame(nextTime);
+    return nextTime >= context.duration;
+  };
 
   const emit = (event, data) => {
     listeners.get(event)?.forEach((cb) => {
@@ -110,6 +134,41 @@ export const createAnimationBus = () => {
     }
   };
 
+  const attachAnimationMetadata = (context, metadata = {}) => {
+    context.animationType = metadata.animationType ?? context.animationType;
+    context.targetId = metadata.targetId ?? context.targetId;
+    context.signature = metadata.signature ?? context.signature;
+    context.continuity = metadata.continuity ?? context.continuity ?? "render";
+    context.onContinuationUpdate =
+      metadata.onContinuationUpdate ?? context.onContinuationUpdate;
+    return context;
+  };
+
+  const toContinuableDescriptor = (context) => ({
+    id: context.id,
+    type: context.animationType ?? null,
+    targetId: context.targetId ?? null,
+    signature: context.signature ?? null,
+    continuity: context.continuity ?? "render",
+    pending: context.pending === true,
+  });
+
+  const registerAnimation = (context) => {
+    context.applyFrame(0);
+    pendingAnimations.delete(context.id);
+    activeAnimations.set(context.id, context);
+
+    const completed =
+      sampledTime !== null && applyTimeToContext(context, sampledTime);
+
+    emit("started", { id: context.id });
+
+    if (completed) {
+      fireCompleteEvent(context);
+      activeAnimations.delete(context.id);
+    }
+  };
+
   const startPropertyAnimation = (payload) => {
     const {
       id,
@@ -119,13 +178,35 @@ export const createAnimationBus = () => {
       onComplete,
       onCancel,
       propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
+      animationBaseState,
     } = payload;
+    let subjectState =
+      animationBaseState ??
+      (hasTranslateProperties(properties)
+        ? createAnimationSubjectState(element)
+        : null);
+
+    const getSubjectState = () => {
+      if (!subjectState) {
+        subjectState = createAnimationSubjectState(element);
+      }
+
+      return subjectState;
+    };
 
     const timelines = buildPropertyTimelines(
       element,
       properties,
       propertyPathMap,
+      targetState,
+      id,
+      subjectState,
     );
+
+    if (timelines.length === 0) {
+      fireCompleteEvent({ id, onComplete });
+      return;
+    }
 
     const context = {
       id,
@@ -142,7 +223,15 @@ export const createAnimationBus = () => {
         for (const { property, timeline } of timelines) {
           const value = getValueAtTime(timeline, time);
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Element might be mid-destroy or otherwise invalid.
           }
@@ -160,7 +249,15 @@ export const createAnimationBus = () => {
 
         for (const [property, value] of Object.entries(targetState)) {
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Skip properties that fail to apply.
           }
@@ -169,9 +266,7 @@ export const createAnimationBus = () => {
       isValid: () => Boolean(element) && !element.destroyed,
     };
 
-    context.applyFrame(0);
-    activeAnimations.set(id, context);
-    emit("started", { id });
+    registerAnimation(attachAnimationMetadata(context, payload));
   };
 
   const startCustomAnimation = (payload) => {
@@ -180,6 +275,9 @@ export const createAnimationBus = () => {
       kind: "custom",
       duration: payload.duration ?? 0,
       currentTime: 0,
+      deferCompletionUntilNextFrame:
+        payload.deferCompletionUntilNextFrame === true,
+      pendingCompletion: false,
       stateVersion,
       onComplete: payload.onComplete,
       onCancel: payload.onCancel,
@@ -188,9 +286,7 @@ export const createAnimationBus = () => {
       isValid: payload.isValid ?? (() => true),
     };
 
-    context.applyFrame(0);
-    activeAnimations.set(context.id, context);
-    emit("started", { id: context.id });
+    registerAnimation(attachAnimationMetadata(context, payload));
   };
 
   const startAnimation = (payload) => {
@@ -218,6 +314,15 @@ export const createAnimationBus = () => {
     }
   };
 
+  const cancelPendingAnimation = (id) => {
+    const context = pendingAnimations.get(id);
+    if (!context) return;
+
+    applyCancellation(context);
+    pendingAnimations.delete(id);
+    emit("cancelled", { id });
+  };
+
   const executeCommand = (cmd) => {
     switch (cmd.type) {
       case "START":
@@ -236,9 +341,29 @@ export const createAnimationBus = () => {
     }
   };
 
+  const scheduleDeferredQueueProcessing = () => {
+    if (sampledTime === null || hasDeferredQueueProcessing) {
+      return;
+    }
+
+    hasDeferredQueueProcessing = true;
+    queueMicrotask(() => {
+      hasDeferredQueueProcessing = false;
+
+      if (sampledTime === null) {
+        return;
+      }
+
+      processQueue();
+    });
+  };
+
   const cancelAnimation = (id) => {
     const context = activeAnimations.get(id);
-    if (!context) return;
+    if (!context) {
+      cancelPendingAnimation(id);
+      return;
+    }
 
     applyCancellation(context);
     activeAnimations.delete(id);
@@ -247,6 +372,7 @@ export const createAnimationBus = () => {
 
   const dispatch = (command) => {
     commandQueue.push(command);
+    scheduleDeferredQueueProcessing();
   };
 
   const cancelAll = () => {
@@ -255,8 +381,39 @@ export const createAnimationBus = () => {
       emit("cancelled", { id });
     }
 
+    for (const [id, context] of pendingAnimations) {
+      applyCancellation(context);
+      emit("cancelled", { id });
+    }
+
     activeAnimations.clear();
+    pendingAnimations.clear();
     stateVersion++;
+  };
+
+  const cancelAllExcept = (idsToKeep = new Set()) => {
+    const keepIds =
+      idsToKeep instanceof Set ? idsToKeep : new Set(idsToKeep ?? []);
+
+    for (const [id, context] of activeAnimations) {
+      if (keepIds.has(id)) {
+        continue;
+      }
+
+      applyCancellation(context);
+      activeAnimations.delete(id);
+      emit("cancelled", { id });
+    }
+
+    for (const [id, context] of pendingAnimations) {
+      if (keepIds.has(id)) {
+        continue;
+      }
+
+      applyCancellation(context);
+      pendingAnimations.delete(id);
+      emit("cancelled", { id });
+    }
   };
 
   const tick = (deltaMS) => {
@@ -275,10 +432,28 @@ export const createAnimationBus = () => {
         continue;
       }
 
-      context.currentTime += deltaMS;
+      if (context.pendingCompletion) {
+        fireCompleteEvent(context);
+        toRemove.push(id);
+        continue;
+      }
+
+      context.currentTime = clampAnimationTime(
+        context.currentTime + deltaMS,
+        context.duration,
+      );
 
       if (context.currentTime >= context.duration) {
         context.applyFrame(context.duration);
+
+        if (
+          context.deferCompletionUntilNextFrame === true &&
+          context.duration > 0
+        ) {
+          context.pendingCompletion = true;
+          continue;
+        }
+
         fireCompleteEvent(context);
         toRemove.push(id);
         continue;
@@ -290,6 +465,38 @@ export const createAnimationBus = () => {
     for (const id of toRemove) {
       activeAnimations.delete(id);
     }
+  };
+
+  const setTime = (timeMS) => {
+    sampledTime = timeMS;
+    processQueue();
+
+    const toRemove = [];
+
+    for (const [id, context] of activeAnimations) {
+      if (context.stateVersion !== stateVersion) {
+        toRemove.push(id);
+        continue;
+      }
+
+      if (!context.isValid()) {
+        toRemove.push(id);
+        continue;
+      }
+
+      if (applyTimeToContext(context, timeMS)) {
+        fireCompleteEvent(context);
+        toRemove.push(id);
+      }
+    }
+
+    for (const id of toRemove) {
+      activeAnimations.delete(id);
+    }
+  };
+
+  const clearTime = () => {
+    sampledTime = null;
   };
 
   const flush = () => {
@@ -309,9 +516,85 @@ export const createAnimationBus = () => {
     listeners.get(event)?.delete(callback);
   };
 
+  const registerPending = (payload) => {
+    const context = attachAnimationMetadata(
+      {
+        id: payload.id,
+        kind: "pending",
+        pending: true,
+        applyTargetState: payload.applyTargetState ?? (() => {}),
+        onCancel: payload.onCancel,
+      },
+      payload,
+    );
+
+    pendingAnimations.set(context.id, context);
+  };
+
+  const activatePending = (id, payload) => {
+    const pendingContext = pendingAnimations.get(id);
+    if (!pendingContext) {
+      return false;
+    }
+
+    pendingAnimations.delete(id);
+    startAnimation({
+      ...payload,
+      id,
+      animationType: pendingContext.animationType,
+      targetId: pendingContext.targetId,
+      signature: pendingContext.signature,
+      continuity: pendingContext.continuity,
+      onContinuationUpdate:
+        payload.onContinuationUpdate ?? pendingContext.onContinuationUpdate,
+    });
+
+    return true;
+  };
+
+  const removePending = (id) => {
+    pendingAnimations.delete(id);
+  };
+
+  const getContinuableAnimations = () => {
+    const descriptors = new Map();
+
+    for (const [id, context] of pendingAnimations) {
+      if (context.continuity === "persistent") {
+        descriptors.set(id, toContinuableDescriptor(context));
+      }
+    }
+
+    for (const [id, context] of activeAnimations) {
+      if (context.continuity === "persistent") {
+        descriptors.set(id, toContinuableDescriptor(context));
+      }
+    }
+
+    return descriptors;
+  };
+
+  const hasContext = (id) =>
+    activeAnimations.has(id) || pendingAnimations.has(id);
+
+  const updateContinuation = (id, payload) => {
+    const context = activeAnimations.get(id) ?? pendingAnimations.get(id);
+
+    if (!context?.onContinuationUpdate) {
+      return;
+    }
+
+    try {
+      context.onContinuationUpdate(payload);
+    } catch (_error) {
+      // Continuation updates are best-effort.
+    }
+  };
+
   const getState = () => ({
     stateVersion,
     activeCount: activeAnimations.size,
+    pendingCount: pendingAnimations.size,
     animations: Array.from(activeAnimations.entries()).map(([id, ctx]) => ({
       id,
       currentTime: ctx.currentTime,
@@ -330,12 +613,21 @@ export const createAnimationBus = () => {
   return {
     dispatch,
     cancelAll,
+    cancelAllExcept,
     flush,
     tick,
+    setTime,
+    clearTime,
     on,
     off,
+    registerPending,
+    activatePending,
+    removePending,
+    getContinuableAnimations,
     getState,
     isAnimating,
+    hasContext,
+    updateContinuation,
     destroy,
   };
 };

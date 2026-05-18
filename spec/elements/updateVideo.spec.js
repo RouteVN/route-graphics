@@ -1,10 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { textureFrom } = vi.hoisted(() => ({
-  textureFrom: vi.fn(),
-}));
+const { MockBlurFilter, textureFrom } = vi.hoisted(() => {
+  class HoistedMockBlurFilter {
+    constructor(options = {}) {
+      this.strengthX = options.strengthX ?? options.strength ?? 0;
+      this.strengthY = options.strengthY ?? options.strength ?? 0;
+      this.quality = options.quality ?? 4;
+      this.kernelSize = options.kernelSize ?? 5;
+      this.repeatEdgePixels = false;
+      this.destroy = vi.fn();
+    }
+  }
+
+  return {
+    MockBlurFilter: HoistedMockBlurFilter,
+    textureFrom: vi.fn(),
+  };
+});
 
 vi.mock("pixi.js", () => ({
+  BlurFilter: MockBlurFilter,
   Texture: {
     from: textureFrom,
   },
@@ -65,7 +80,7 @@ describe("updateVideo", () => {
         id: "video-1",
         src: "video.mp4",
         loop: true,
-        volume: 500,
+        volume: 50,
         x: 0,
         y: 0,
         width: 100,
@@ -76,7 +91,7 @@ describe("updateVideo", () => {
         id: "video-1",
         src: "video.mp4",
         loop: false,
-        volume: 500,
+        volume: 50,
         x: 0,
         y: 0,
         width: 100,
@@ -104,5 +119,303 @@ describe("updateVideo", () => {
       expect.any(Function),
     );
     expect(currentVideo.loop).toBe(false);
+  });
+
+  it("swaps changed video resources before dispatching update animations", () => {
+    const order = [];
+    const currentVideo = createMockVideo();
+    const nextVideo = createMockVideo();
+    textureFrom.mockImplementation((src) => {
+      order.push(`texture:${src}`);
+      return {
+        source: {
+          resource: nextVideo,
+        },
+      };
+    });
+
+    const videoElement = {
+      label: "video-1",
+      texture: {
+        source: {
+          resource: currentVideo,
+        },
+      },
+      zIndex: 0,
+      x: 10,
+      y: 20,
+      width: 100,
+      height: 100,
+      alpha: 1,
+    };
+    const animationBus = {
+      dispatch: vi.fn(() => {
+        order.push("dispatch");
+      }),
+    };
+
+    updateVideo({
+      app: {},
+      parent: {
+        children: [videoElement],
+      },
+      prevElement: {
+        id: "video-1",
+        src: "old-video.mp4",
+        loop: true,
+        volume: 50,
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 100,
+        alpha: 1,
+      },
+      nextElement: {
+        id: "video-1",
+        src: "new-video.mp4",
+        loop: true,
+        volume: 50,
+        x: 200,
+        y: 120,
+        width: 160,
+        height: 90,
+        alpha: 1,
+      },
+      animations: [
+        {
+          id: "video-update",
+          targetId: "video-1",
+          type: "update",
+          tween: {
+            x: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus,
+      eventHandler: vi.fn(),
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      zIndex: 3,
+    });
+
+    expect(order).toEqual(["texture:new-video.mp4", "dispatch"]);
+    expect(videoElement.texture.source.resource).toBe(nextVideo);
+    expect(currentVideo.pause).toHaveBeenCalled();
+    expect(nextVideo.play).toHaveBeenCalled();
+    expect(videoElement.x).toBe(10);
+    expect(videoElement.y).toBe(20);
+    expect(videoElement.width).toBe(160);
+    expect(videoElement.height).toBe(90);
+  });
+
+  it("keeps animated dimensions at their current values before dispatch", () => {
+    const order = [];
+    const currentVideo = createMockVideo();
+    const nextVideo = createMockVideo();
+    textureFrom.mockImplementation((src) => {
+      order.push(`texture:${src}`);
+      return {
+        source: {
+          resource: nextVideo,
+        },
+      };
+    });
+
+    const videoElement = {
+      label: "video-1",
+      texture: {
+        source: {
+          resource: currentVideo,
+        },
+      },
+      zIndex: 0,
+      x: 10,
+      y: 20,
+      width: 100,
+      height: 80,
+      alpha: 1,
+    };
+    const animationBus = {
+      dispatch: vi.fn((command) => {
+        const { element } = command.payload;
+        order.push(`dispatch:${element.width}x${element.height}`);
+      }),
+    };
+
+    updateVideo({
+      app: {},
+      parent: {
+        children: [videoElement],
+      },
+      prevElement: {
+        id: "video-1",
+        src: "old-video.mp4",
+        loop: true,
+        volume: 50,
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 80,
+        alpha: 1,
+      },
+      nextElement: {
+        id: "video-1",
+        src: "new-video.mp4",
+        loop: true,
+        volume: 50,
+        x: 10,
+        y: 20,
+        width: 160,
+        height: 90,
+        alpha: 1,
+      },
+      animations: [
+        {
+          id: "video-update",
+          targetId: "video-1",
+          type: "update",
+          tween: {
+            width: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+            height: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus,
+      eventHandler: vi.fn(),
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      zIndex: 3,
+    });
+
+    expect(order).toEqual(["texture:new-video.mp4", "dispatch:100x80"]);
+    expect(videoElement.texture.source.resource).toBe(nextVideo);
+    expect(videoElement.width).toBe(100);
+    expect(videoElement.height).toBe(80);
+  });
+
+  it("does not re-track pre-synced non-looping video playback on animation completion", () => {
+    const currentVideo = createMockVideo();
+    const nextVideo = createMockVideo();
+    let animationComplete;
+    let endedListener;
+    textureFrom.mockReturnValue({
+      source: {
+        resource: nextVideo,
+      },
+    });
+    nextVideo.addEventListener.mockImplementation((eventName, listener) => {
+      if (eventName === "ended") {
+        endedListener = listener;
+      }
+    });
+
+    const videoElement = {
+      label: "video-1",
+      texture: {
+        source: {
+          resource: currentVideo,
+        },
+      },
+      zIndex: 0,
+      x: 10,
+      y: 20,
+      width: 100,
+      height: 80,
+      alpha: 1,
+    };
+    const animationBus = {
+      dispatch: vi.fn((command) => {
+        animationComplete = command.payload.onComplete;
+      }),
+    };
+    const completionTracker = {
+      getVersion: vi.fn().mockReturnValue(1),
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+
+    updateVideo({
+      app: {},
+      parent: {
+        children: [videoElement],
+      },
+      prevElement: {
+        id: "video-1",
+        src: "old-video.mp4",
+        loop: true,
+        volume: 50,
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 80,
+        alpha: 1,
+      },
+      nextElement: {
+        id: "video-1",
+        src: "new-video.mp4",
+        loop: false,
+        volume: 50,
+        x: 160,
+        y: 90,
+        width: 120,
+        height: 90,
+        alpha: 1,
+      },
+      animations: [
+        {
+          id: "video-update",
+          targetId: "video-1",
+          type: "update",
+          tween: {
+            x: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus,
+      eventHandler: vi.fn(),
+      completionTracker,
+      zIndex: 3,
+    });
+
+    expect(completionTracker.track).toHaveBeenCalledTimes(2);
+    expect(nextVideo.addEventListener).toHaveBeenCalledWith(
+      "ended",
+      expect.any(Function),
+    );
+
+    animationComplete();
+
+    expect(nextVideo.removeEventListener).not.toHaveBeenCalled();
+    expect(completionTracker.track).toHaveBeenCalledTimes(2);
+
+    endedListener();
+
+    expect(completionTracker.complete).toHaveBeenCalledTimes(2);
   });
 });

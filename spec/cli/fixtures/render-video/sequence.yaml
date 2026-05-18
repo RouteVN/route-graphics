@@ -1,0 +1,32 @@
+width: 160
+height: 90
+backgroundColor: "#101820"
+states:
+  - id: first
+    elements:
+      - id: panel
+        type: rect
+        x: 0
+        y: 0
+        width: 160
+        height: 90
+        fill: "#ff0000"
+  - id: second
+    elements:
+      - id: panel
+        type: rect
+        x: 20
+        y: 10
+        width: 120
+        height: 70
+        fill: "#00ff00"
+    animations:
+      - id: panel-move
+        targetId: panel
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 200
+                value: 20
+                easing: linear

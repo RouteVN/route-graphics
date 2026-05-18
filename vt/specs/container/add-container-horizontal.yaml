@@ -9,7 +9,8 @@ states:
       - id: container-1
         type: container
         direction: horizontal
-        gap: 5
+        gapX: 5
+        gapY: 5
         zIndex: 0
         children:
           - id: rect-1

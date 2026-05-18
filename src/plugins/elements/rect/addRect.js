@@ -1,8 +1,18 @@
 import { Graphics } from "pixi.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
-import { setupScrollInteraction } from "./setupScrollInteraction.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
 import { destroyRectFillResource, resolveRectFill } from "./rectFill.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -17,9 +27,13 @@ export const addRect = ({
   eventHandler,
   zIndex,
   completionTracker,
+  renderContext,
 }) => {
-  const { id, x, y, width, height, fill, border, alpha, scaleX, scaleY } =
-    element;
+  const { id, width, height, fill, border, alpha, scaleX, scaleY } = element;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
 
   const rect = new Graphics();
   rect.label = id;
@@ -27,7 +41,7 @@ export const addRect = ({
   rect.on("destroyed", () => {
     destroyRectFillResource(rect);
   });
-  const targetState = { x, y, alpha };
+  const targetState = getElementTransformTargetState(element, { alpha });
 
   if (scaleX !== undefined) {
     targetState.scaleX = scaleX;
@@ -42,11 +56,12 @@ export const addRect = ({
     rect
       .rect(0, 0, Math.round(width), Math.round(height))
       .fill(resolveRectFill(rect, fill));
-    rect.x = Math.round(x);
-    rect.y = Math.round(y);
     rect.alpha = alpha;
-    rect.scale.x = scaleX ?? 1;
-    rect.scale.y = scaleY ?? 1;
+    // Rect computed nodes already bake scale into width/height for layout.
+    // Reset the live transform so update tweens do not double-apply scale.
+    rect.scale.x = 1;
+    rect.scale.y = 1;
+    applyElementTransform(rect, element);
 
     if (border) {
       rect.stroke({
@@ -55,6 +70,12 @@ export const addRect = ({
         width: Math.round(border.width),
       });
     }
+
+    syncShaderFilters(rect, element.filters, {
+      width,
+      height,
+      force: shouldForceShaderProgress,
+    });
   };
 
   drawRect();
@@ -116,7 +137,7 @@ export const addRect = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
-          volume: (soundVolume ?? 1000) / 1000,
+          volume: normalizeVolume(soundVolume),
         });
     };
 
@@ -149,7 +170,7 @@ export const addRect = ({
   if (scrollUpEvent || scrollDownEvent) {
     setupScrollInteraction({
       canvas: app.canvas,
-      rect,
+      displayObject: rect,
       width,
       height,
       scrollUpEvent,
@@ -213,6 +234,12 @@ export const addRect = ({
     animationBus,
     completionTracker,
     element: rect,
-    targetState,
+    targetState: {
+      ...targetState,
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
+    },
+    renderContext,
   });
 };

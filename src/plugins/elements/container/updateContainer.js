@@ -1,10 +1,35 @@
 import { renderElements } from "../renderElements.js";
-import { setupScrolling, removeScrolling } from "./util/scrollingUtils.js";
+import {
+  getScrollingState,
+  setupScrolling,
+  removeScrolling,
+} from "./util/scrollingUtils.js";
+import {
+  bindContainerInteractions,
+  reapplyContainerInheritedHover,
+  reapplyContainerInheritedPress,
+  reapplyContainerInheritedRightPress,
+} from "./util/bindContainerInteractions.js";
 import { collectAllElementIds } from "../../../util/collectElementIds.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { getTargetAnimations } from "../../animations/planAnimations.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasStaleShaderFilterProgressInTree,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 /**
  * Update container element (synchronous)
@@ -21,6 +46,7 @@ export const updateContainer = ({
   animations,
   animationBus,
   elementPlugins,
+  renderContext,
   zIndex,
   completionTracker,
   signal,
@@ -33,113 +59,48 @@ export const updateContainer = ({
 
   containerElement.zIndex = zIndex;
 
-  const { x, y, alpha } = nextElement;
+  const { alpha } = nextElement;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(containerElement, prevElement.blur, { force: true });
+  }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(containerElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(containerElement);
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
-      containerElement.x = Math.round(x);
-      containerElement.y = Math.round(y);
       containerElement.label = nextElement.id;
       containerElement.alpha = alpha;
       containerElement.scale.x = 1;
       containerElement.scale.y = 1;
-
-      containerElement.removeAllListeners("pointerover");
-      containerElement.removeAllListeners("pointerout");
-      containerElement.removeAllListeners("pointerup");
-      containerElement.removeAllListeners("rightclick");
-      containerElement.eventMode = "auto";
-      containerElement.cursor = "auto";
-
-      const hoverEvents = nextElement?.hover;
-      const clickEvents = nextElement?.click;
-      const rightClickEvents = nextElement?.rightClick;
-      const hasPointerInteraction = Boolean(
-        hoverEvents || clickEvents || rightClickEvents,
-      );
-
-      if (hoverEvents) {
-        const { cursor, soundSrc, payload } = hoverEvents;
-        containerElement.eventMode = "static";
-
-        const overListener = () => {
-          if (payload && eventHandler)
-            eventHandler(`hover`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (cursor) containerElement.cursor = cursor;
-          if (soundSrc)
-            app.audioStage.add({
-              id: `hover-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-        };
-
-        const outListener = () => {
-          containerElement.cursor = "auto";
-        };
-
-        containerElement.on("pointerover", overListener);
-        containerElement.on("pointerout", outListener);
-      }
-
-      if (clickEvents) {
-        const { soundSrc, soundVolume, payload } = clickEvents;
-        containerElement.eventMode = "static";
-
-        const releaseListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          if (payload && eventHandler)
-            eventHandler(`click`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `click-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-              volume: (soundVolume ?? 1000) / 1000,
-            });
-        };
-
-        containerElement.on("pointerup", releaseListener);
-      }
-
-      if (rightClickEvents) {
-        const { soundSrc, payload } = rightClickEvents;
-        containerElement.eventMode = "static";
-
-        const rightClickListener = () => {
-          if (payload && eventHandler)
-            eventHandler(`rightClick`, {
-              _event: {
-                id: containerElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `rightClick-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-        };
-
-        containerElement.on("rightclick", rightClickListener);
-      }
+      applyElementTransform(containerElement, nextElement);
+      syncBlurEffect(containerElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
+      syncShaderFilters(containerElement, nextElement.filters, {
+        width: nextElement.width,
+        height: nextElement.height,
+        force: shouldForceShaderProgress,
+      });
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
       const nextUsesViewport = nextElement.scroll || nextElement.anchorToBottom;
+      const previousScrollState = nextUsesViewport
+        ? getScrollingState({
+            container: containerElement,
+          })
+        : null;
 
       if (prevUsesViewport !== nextUsesViewport) {
         if (nextUsesViewport) {
@@ -148,6 +109,7 @@ export const updateContainer = ({
             element: nextElement,
             interactive: !!nextElement.scroll,
             allowViewportWithoutScroll: !!nextElement.anchorToBottom,
+            previousState: previousScrollState,
           });
         } else {
           removeScrolling({
@@ -163,12 +125,16 @@ export const updateContainer = ({
           element: nextElement,
           interactive: !!nextElement.scroll,
           allowViewportWithoutScroll: !!nextElement.anchorToBottom,
+          previousState: previousScrollState,
         });
       }
 
-      if (!nextElement.scroll && hasPointerInteraction) {
-        containerElement.eventMode = "static";
-      }
+      bindContainerInteractions({
+        app,
+        container: containerElement,
+        element: nextElement,
+        eventHandler,
+      });
     }
 
     // Check if children definition changed
@@ -182,14 +148,18 @@ export const updateContainer = ({
     const hasChildAnimation = Array.from(childIds).some(
       (childId) => getTargetAnimations(animations, childId).length > 0,
     );
+    const contentContainer = containerElement.children.find(
+      (child) => child.label === `${nextElement.id}-content`,
+    );
+    const renderParent = contentContainer || containerElement;
+    const hasChildShaderProgressReset = hasStaleShaderFilterProgressInTree({
+      parent: renderParent,
+      elements: nextElement.children,
+      animations,
+    });
 
     // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation) {
-      const contentContainer = containerElement.children.find(
-        (child) => child.label === `${nextElement.id}-content`,
-      );
-      const renderParent = contentContainer || containerElement;
-
+    if (childrenChanged || hasChildAnimation || hasChildShaderProgressReset) {
       renderElements({
         app,
         parent: renderParent,
@@ -200,7 +170,18 @@ export const updateContainer = ({
         animations,
         animationBus,
         completionTracker,
+        renderContext,
         signal,
+      });
+
+      reapplyContainerInheritedHover({
+        container: containerElement,
+      });
+      reapplyContainerInheritedPress({
+        container: containerElement,
+      });
+      reapplyContainerInheritedRightPress({
+        container: containerElement,
       });
     }
   };
@@ -211,7 +192,15 @@ export const updateContainer = ({
     animationBus,
     completionTracker,
     element: containerElement,
-    targetState: { x, y, alpha },
+    targetState: {
+      ...getElementTransformTargetState(nextElement, { alpha }),
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },

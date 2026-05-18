@@ -1,4 +1,5 @@
 import { normalizeAnimations } from "./normalizeAnimations.js";
+import { normalizeAudioRenderState } from "./normalizeAudio.js";
 
 /**
  * Normalize render state and enforce public state contract.
@@ -23,6 +24,7 @@ export const normalizeRenderState = (state = {}) => {
     elements: state.elements ?? [],
     animations: state.animations ?? [],
     audio: state.audio ?? [],
+    audioEffects: state.audioEffects ?? [],
   };
 
   if (!Array.isArray(normalizedState.elements)) {
@@ -37,7 +39,15 @@ export const normalizeRenderState = (state = {}) => {
     throw new Error("Input error: `audio` must be an array.");
   }
 
+  if (!Array.isArray(normalizedState.audioEffects)) {
+    throw new Error("Input error: `audioEffects` must be an array.");
+  }
+
   normalizedState.animations = normalizeAnimations(normalizedState.animations);
+  normalizeAudioRenderState({
+    audio: normalizedState.audio,
+    audioEffects: normalizedState.audioEffects,
+  });
 
   return normalizedState;
 };

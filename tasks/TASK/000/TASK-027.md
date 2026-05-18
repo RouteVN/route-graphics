@@ -27,7 +27,8 @@ elements:
           - id: container
             type: container
             direction: horizontal
-            gap: 20
+            gapX: 20
+            gapY: 20
             x: 160
             'y': 540
             children:

@@ -42,6 +42,11 @@
  */
 
 /**
+ * @typedef {Object} ScrollProps
+ * @property {Object} [payload]
+ */
+
+/**
  * @typedef {Object} ComputedNode
  * @property {string} type - Type of the computed node
  * @property {string} id - ID of the computed node
@@ -56,12 +61,26 @@
  */
 
 /**
+ * @typedef {Object} BlurConfig
+ * @property {number} x
+ * @property {number} y
+ * @property {number} quality
+ * @property {5 | 7 | 9 | 11 | 13 | 15} kernelSize
+ * @property {boolean} repeatEdgePixels
+ */
+
+/**
  * @typedef {Object} SpriteComputedProps
  * @property {'sprite'} type
  * @property {number} alpha
+ * @property {number} [rotation] - Rotation in degrees
  * @property {string} url
+ * @property {BlurConfig} [blur]
  * @property {SpriteHover} hover
  * @property {SpriteClick} click
+ * @property {SpriteClick} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & SpriteComputedProps } SpriteComputedNode
  */
 
@@ -84,6 +103,7 @@
  * @property {string} direction
  * @property {string} thumbSrc
  * @property {string} barSrc
+ * @property {string} [inactiveBarSrc]
  * @property {number} min
  * @property {number} max
  * @property {number} step
@@ -99,6 +119,7 @@
  * @typedef {Object} SliderHover
  * @property {string} thumbSrc
  * @property {string} barSrc
+ * @property {string} [inactiveBarSrc]
  * @property {string} cursor
  * @property {string} soundSrc
  */
@@ -120,14 +141,18 @@
 
 /**
  * @typedef {Object} AnimatedSpriteComputedProps
- * @property {'animated-sprite'} type
- * @property {string} spritesheetSrc
- * @property {Object} spritesheetData - Direct spritesheet metadata JSON data
+ * @property {'spritesheet-animation'} type
+ * @property {string} src
+ * @property {Object} atlas - Direct atlas frame metadata
+ * @property {Object<string, string[]>} clips - Named playback clips
  * @property {number} alpha
- * @property {Object} animation
- * @property {number[]} animation.frames - Array of frame indexes for the animation sequence
- * @property {number} animation.animationSpeed - Animation speed multiplier
- * @property {boolean} [animation.loop=true] - Whether the animation should loop
+ * @property {BlurConfig} [blur]
+ * @property {Object} playback
+ * @property {string[]} playback.frames - Frame names for the playback sequence
+ * @property {string} [playback.clip] - Clip name resolved through `clips`
+ * @property {number} playback.fps - Playback rate in frames per second
+ * @property {boolean} [playback.loop=true] - Whether the animation should loop
+ * @property {boolean} [playback.autoplay=true] - Whether playback starts on mount/update
  * @typedef {ComputedNode & AnimatedSpriteComputedProps} AnimatedSpriteComputedNode
  */
 
@@ -141,19 +166,47 @@
  */
 
 /**
- * @typedef {string | ParticleTextureShape} ParticleTexture
+ * @typedef {Object} ParticleDistribution
+ * @property {'uniform' | 'normal' | 'bias'} kind
+ * @property {'min' | 'max' | 'center'} [toward]
+ * @property {number} [strength]
+ * @property {number} [mean]
+ * @property {number} [deviation]
+ */
+
+/**
+ * @typedef {Object} ParticleRangeValue
+ * @property {number} min
+ * @property {number} [max]
+ * @property {ParticleDistribution} [distribution]
+ */
+
+/**
+ * @typedef {Object} ParticleTextureItem
+ * @property {string} [src]
+ * @property {'circle' | 'ellipse' | 'rect'} [shape]
+ * @property {number} [radius]
+ * @property {number} [width]
+ * @property {number} [height]
+ * @property {string} [color]
+ * @property {number} [weight]
+ */
+
+/**
+ * @typedef {Object} ParticleTextureSelector
+ * @property {'single' | 'random' | 'cycle'} mode
+ * @property {'perParticle' | 'perWave'} [pick]
+ * @property {ParticleTextureItem[]} items
+ */
+
+/**
+ * @typedef {string | ParticleTextureShape | ParticleTextureSelector} ParticleTexture
  */
 
 /**
  * @typedef {Object} ParticleBehavior
  * @property {string} type - Behavior type name
  * @property {Object} [config] - Behavior-specific configuration
- */
-
-/**
- * @typedef {Object} ParticleEmitterLifetime
- * @property {number} min - Minimum particle lifespan in seconds
- * @property {number} max - Maximum particle lifespan in seconds
  */
 
 /**
@@ -166,7 +219,7 @@
 
 /**
  * @typedef {Object} ParticleEmitter
- * @property {ParticleEmitterLifetime} lifetime - Particle lifespan in seconds
+ * @property {ParticleRangeValue} lifetime - Particle lifespan in seconds
  * @property {number} frequency - Seconds between spawns (0 = burst all at once)
  * @property {number} particlesPerWave - Particles spawned per wave
  * @property {number} [maxParticles] - Maximum active particles
@@ -188,17 +241,104 @@
  */
 
 /**
+ * @typedef {Object} ParticleSource
+ * @property {'point' | 'rect' | 'circle' | 'line'} kind
+ * @property {Object} data
+ */
+
+/**
+ * @typedef {Object} ParticleEmissionModule
+ * @property {'continuous' | 'burst'} mode
+ * @property {number} [rate]
+ * @property {number} [burstCount]
+ * @property {number} [maxActive]
+ * @property {number | 'infinite'} [duration]
+ * @property {number | ParticleRangeValue} particleLifetime
+ * @property {ParticleSource} source
+ */
+
+/**
+ * @typedef {Object} ParticleVelocityModule
+ * @property {'directional' | 'radial'} kind
+ * @property {number | ParticleRangeValue} speed
+ * @property {number | ParticleRangeValue} [direction]
+ * @property {number | ParticleRangeValue} [angle]
+ */
+
+/**
+ * @typedef {Object} ParticleMovementModule
+ * @property {ParticleVelocityModule} [velocity]
+ * @property {{x: number, y: number}} [acceleration]
+ * @property {number} [maxSpeed]
+ * @property {boolean} [faceVelocity]
+ */
+
+/**
+ * @typedef {Object} ParticleAppearanceModule
+ * @property {ParticleTexture} texture
+ * @property {Object} [scale]
+ * @property {Object} [alpha]
+ * @property {Object} [color]
+ * @property {Object} [rotation]
+ */
+
+/**
+ * @typedef {Object} ParticleBoundsModule
+ * @property {'none' | 'recycle'} mode
+ * @property {'area' | 'custom'} [source]
+ * @property {number | {top: number, right: number, bottom: number, left: number}} [padding]
+ * @property {ParticleSpawnBounds} [custom]
+ */
+
+/**
+ * @typedef {Object} ParticleModules
+ * @property {ParticleEmissionModule} emission
+ * @property {ParticleMovementModule} [movement]
+ * @property {ParticleAppearanceModule} appearance
+ * @property {ParticleBoundsModule} [bounds]
+ */
+
+/**
+ * @typedef {Object} ScrollbarVisualState
+ * @property {string} src
+ * @property {string} [hoverSrc]
+ * @property {string} [pressSrc]
+ */
+
+/**
+ * @typedef {ScrollbarVisualState & { length?: number }} ScrollbarThumbConfig
+ */
+
+/**
+ * @typedef {ScrollbarVisualState & { size?: number, step?: number }} ScrollbarButtonConfig
+ */
+
+/**
+ * @typedef {Object} VerticalScrollbarConfig
+ * @property {number} thickness
+ * @property {ScrollbarVisualState} track
+ * @property {ScrollbarThumbConfig} thumb
+ * @property {ScrollbarButtonConfig} [startButton]
+ * @property {ScrollbarButtonConfig} [endButton]
+ */
+
+/**
  * @typedef {Object} ContainerComputedProps
  * @property {'container'} type
- * @property {'horizontal' | 'vertical'} direction
+ * @property {'absolute' | 'horizontal' | 'vertical'} direction
  * @property {SpriteComputedNode | TextComputedNode | RectComputedNode | ContainerComputedNode} children
- * @property {number} gap
+ * @property {number} gapX
+ * @property {number} gapY
  * @property {number} rotation
  * @property {boolean} scroll
+ * @property {BlurConfig} [blur]
  * @property {boolean} [anchorToBottom]
+ * @property {{ vertical?: VerticalScrollbarConfig }} [scrollbar]
  * @property {HoverProps} hover
  * @property {ClickProps} click
  * @property {ClickProps} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & ContainerComputedProps } ContainerComputedNode
  */
 
@@ -208,6 +348,7 @@
  * @property {ContainerContainerElement} element - The container element
  * @property {boolean} [interactive] - Enable wheel interaction when viewport is active
  * @property {boolean} [allowViewportWithoutScroll] - Allow masked viewport without scroll=true
+ * @property {{ scrollXOffset?: number, scrollYOffset?: number, wasAtHorizontalEnd?: boolean, wasAtVerticalEnd?: boolean } | null} [previousState]
  */
 
 /**
@@ -301,6 +442,9 @@
  * @property {number} rotation - Rotation in degrees
  * @property {HoverProps} hover
  * @property {ClickProps} click
+ * @property {ClickProps} rightClick
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {(ComputedNode & RectComputedProps)} RectComputedNode
  */
 
@@ -317,6 +461,15 @@
  */
 
 /**
+ * @typedef {Object} TextShadow
+ * @property {string} [color] - Shadow color
+ * @property {number} [alpha] - Shadow opacity from 0 to 1
+ * @property {number} [blur] - Shadow blur radius in pixels
+ * @property {number} [offsetX] - Horizontal shadow offset in pixels
+ * @property {number} [offsetY] - Vertical shadow offset in pixels
+ */
+
+/**
  * @typedef {Object} TextStyle
  * @property {string} fill - Text color
  * @property {string} fontFamily - Font family
@@ -328,16 +481,57 @@
  * @property {number} wordWrapWidth - Word wrap width
  * @property {string} [strokeColor] - Text stroke/outline color
  * @property {number} [strokeWidth] - Text stroke/outline width
+ * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
 /**
  * @typedef {Object} TextComputedProps
- * @property {string} content - The text content to display
+ * @property {string | Array<TextChunk>} content - The text content to display. Arrays contain static rich text lines.
  * @property {number} measuredWidth - The rendered text width before fixed-width layout is applied
  * @property {Object} textStyle - Text style object
  * @property {TextHover} [hover]
  * @property {TextClick} [click]
+ * @property {TextClick} [rightClick]
+ * @property {ScrollProps} [scrollUp]
+ * @property {ScrollProps} [scrollDown]
  * @typedef {ComputedNode & TextComputedProps} TextComputedNode
+ */
+
+/**
+ * @typedef {Object} InputPadding
+ * @property {number} top
+ * @property {number} right
+ * @property {number} bottom
+ * @property {number} left
+ */
+
+/**
+ * @typedef {Object} InputComputedProps
+ * @property {'input'} type
+ * @property {string} value
+ * @property {string} placeholder
+ * @property {boolean} multiline
+ * @property {boolean} disabled
+ * @property {number} [maxLength]
+ * @property {Object} textStyle
+ * @property {InputPadding} padding
+ * @property {Object} [change]
+ * @property {Object} [submit]
+ * @property {Object} [focusEvent]
+ * @property {Object} [blurEvent]
+ * @property {Object} [selectionChange]
+ * @property {Object} [compositionStart]
+ * @property {Object} [compositionUpdate]
+ * @property {Object} [compositionEnd]
+ * @typedef {ComputedNode & InputComputedProps} InputComputedNode
+ */
+
+/**
+ * @typedef {Object} SoftWipeConfig
+ * @property {number} [softness=1.25] - Multiplier applied to line height to determine feathered edge width
+ * @property {'linear' | 'easeOutCubic'} [easing='linear'] - Easing curve applied to each line wipe
+ * @property {number} [lineOverlap=0] - Fraction of a line's duration that the next line may overlap
+ * @property {number} [lineDelay=0] - Delay in milliseconds before the next line starts after overlap is applied
  */
 
 /**
@@ -346,7 +540,8 @@
  * @property {number} [width] - Width constraint for text wrapping
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
- * @property {number} [speed=50] - Animation speed (default: 50)
+ * @property {number} [speed=50] - Animation speed on a curved 0-100 scale; 100 renders instantly
+ * @property {number} [initialRevealedCharacters=0] - Number of leading text characters rendered as already revealed before the reveal animation starts
  * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
  * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
@@ -358,6 +553,7 @@
  * @property {number} [indicator.complete.width] - Width of the indicator image when complete
  * @property {number} [indicator.complete.height] - Height of the indicator image when complete
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
+ * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 
@@ -381,8 +577,8 @@
  * @typedef {Object} FuriganaPart
  * @property {string} text - Furigana text
  * @property {Object} textStyle - Furigana text style
- * @property {number} x - Horizontal position (centered above parent)
- * @property {number} y - Vertical position (negative, above parent text)
+ * @property {number} x - Horizontal position relative to the parent text part
+ * @property {number} y - Vertical position relative to the parent text part
  */
 
 /**
@@ -419,9 +615,32 @@
  * @property {string} id - Unique identifier
  * @property {string} type - Should be "sound"
  * @property {string} src - Source of the sound
- * @property {number} [volume=800] - Volume (0-1000+, 800 default)
+ * @property {number} [volume=100] - Volume (0-100, 100 default)
+ * @property {boolean} [muted=false] - Whether the sound is muted
+ * @property {number} [pan=0] - Stereo pan from -1 to 1
  * @property {boolean} [loop=false] - Whether to loop the sound
- * @property {number} [delay=0] - Delay in milliseconds before playing
+ * @property {number} [startDelayMs=0] - Delay in milliseconds before playing
+ * @property {number} [playbackRate=1] - Playback speed multiplier
+ * @property {number} [startAt=0] - Start offset in seconds
+ * @property {number|null} [endAt=null] - Optional end time in seconds
+ */
+
+/**
+ * @typedef {Object} AudioChannelElement
+ * @property {string} id - Unique identifier
+ * @property {string} type - Should be "audio-channel"
+ * @property {number} [volume=100] - Volume (0-100, 100 default)
+ * @property {boolean} [muted=false] - Whether the channel is muted
+ * @property {number} [pan=0] - Stereo pan from -1 to 1
+ * @property {SoundElement[]} [children=[]] - Sound nodes owned by the channel
+ */
+
+/**
+ * @typedef {Object} AudioTransition
+ * @property {string} id - Unique identifier
+ * @property {string} type - Should be "audioTransition"
+ * @property {string} targetId - Target sound or audio-channel id
+ * @property {Object} properties - Transition properties
  */
 
 /**
@@ -434,6 +653,7 @@
  * @property {number} [ya] - Y Anchor
  * @property {number} [width] - Width
  * @property {number} [height] - Height
+ * @property {{ vertical?: VerticalScrollbarConfig }} [scrollbar] - Optional custom scrollbar chrome
  *
  * @typedef {BaseElement & ContainerElementOptions} ContainerElement
  */
@@ -445,9 +665,14 @@ export const WhiteListAnimationProps = {
   alpha: "alpha",
   x: "x",
   y: "y",
+  translateX: "translateX",
+  translateY: "translateY",
   scaleX: "scaleX",
   scaleY: "scaleY",
   rotation: "rotation",
+  blurX: "blurX",
+  blurY: "blurY",
+  uProgress: "uProgress",
 };
 
 export const WhiteListTransitionProps = WhiteListAnimationProps;
@@ -463,9 +688,14 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
   y: ["y"],
   alpha: ["alpha"],
   rotation: ["rotation"],
+  blurX: ["_routeGraphicsBlur", "x"],
+  blurY: ["_routeGraphicsBlur", "y"],
+  uProgress: ["uProgress"],
 };
 
 export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
+  x: ["x"],
+  y: ["y"],
   translateX: ["x"],
   translateY: ["y"],
   scaleX: ["scale", "x"],
@@ -475,6 +705,8 @@ export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
 };
 
 export const WhiteListReplaceSubjectProps = {
+  x: "x",
+  y: "y",
   translateX: "translateX",
   translateY: "translateY",
   alpha: "alpha",
@@ -484,8 +716,8 @@ export const WhiteListReplaceSubjectProps = {
 };
 
 export const AnimationType = {
-  LIVE: "live",
-  REPLACE: "replace",
+  UPDATE: "update",
+  TRANSITION: "transition",
 };
 
 /**
@@ -495,12 +727,13 @@ export const AnimationType = {
 export const ComputedNodeType = {
   RECT: "rect",
   TEXT: "text",
+  INPUT: "input",
   CONTAINER: "container",
   SPRITE: "sprite",
   TEXT_REVEALING: "text-revealing",
   SLIDER: "slider",
   PARTICLES: "particles",
-  ANIMATED_SPRITE: "animated-sprite",
+  SPRITESHEET_ANIMATION: "spritesheet-animation",
   VIDEO: "video",
 };
 
@@ -538,13 +771,24 @@ export const DEFAULT_TEXT_STYLE = {
  */
 
 /**
+ * @typedef {Object} KeyboardEventConfig
+ * @property {Object} [payload] - App-defined payload merged into the emitted keyboard event
+ */
+
+/**
+ * @typedef {Object} KeyboardBindingConfig
+ * @property {KeyboardEventConfig} [keydown] - Keydown event configuration for the binding
+ * @property {KeyboardEventConfig} [keyup] - Keyup event configuration for the binding
+ */
+
+/**
  * @typedef {Object} GlobalConfiguration
  * @property {Object} [cursorStyles] - Global cursor styles configuration
  * @property {string} [cursorStyles.default] - Default cursor style
  * @property {string} [cursorStyles.hover] - Hover cursor style
  * @property {string} [cursorStyles.disabled] - Disabled cursor style
  * @property {string} [cursorStyles.loading] - Loading cursor style
- * @property {Object<string, {payload?: Object}>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
+ * @property {Object<string, KeyboardBindingConfig>} [keyboard] - Global hotkey mappings keyed by the hotkeys-js combo string
  */
 
 /**
@@ -554,6 +798,8 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} id - ID
  * @property {E[]} elements - Array of elements
  * @property {T[]} animations - Array of animations
+ * @property {(SoundElement|AudioChannelElement)[]} audio - Array of audio nodes
+ * @property {AudioTransition[]} audioEffects - Array of audio effects
  * @property {GlobalConfiguration} [global] - Global configuration options
  */
 
@@ -566,6 +812,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {RouteGraphicsPlugins} [plugins] - Plugin groups to register
  * @property {boolean} [debug] - Whether debug mode is enabled
  * @property {Function} [onFirstRender] - Callback fired after the first render completes
+ * @property {"auto" | "manual"} [animationPlaybackMode] - Initial animation playback mode
  */
 
 /**
@@ -587,6 +834,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fontFamily - The font family of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
+ * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
 /**

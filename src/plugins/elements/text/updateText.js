@@ -1,13 +1,89 @@
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { positionTextInLayoutBox, syncTextAnchorRatios } from "./textLayout.js";
 import {
-  getTextLayoutPosition,
-  applyInteractiveTextStyle,
-  positionTextInLayoutBox,
-  syncTextAnchorRatios,
-} from "./textLayout.js";
-import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+  applyTextDisplayStyle,
+  createTextDisplayObject,
+  getTextAnimationTargetState,
+} from "./addText.js";
+import {
+  isRichTextComputedNode,
+  isRichTextDisplayObject,
+  renderRichTextDisplayObject,
+} from "./richTextDisplay.js";
+import {
+  bindTextInteractions,
+  clearTextInteractions,
+} from "./textInteractions.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+
+const displayKindChanged = (displayObject, textComputedNode) =>
+  isRichTextDisplayObject(displayObject) !==
+  isRichTextComputedNode(textComputedNode);
+
+const replaceTextDisplayObject = ({
+  app,
+  parent,
+  displayObject,
+  textComputedNode,
+  eventHandler,
+  zIndex,
+}) => {
+  clearTextInteractions(displayObject);
+
+  const replacement = createTextDisplayObject(textComputedNode, zIndex);
+
+  bindTextInteractions({
+    app,
+    displayObject: replacement,
+    textComputedNode,
+    eventHandler,
+    applyStyle: (overrideStyle) =>
+      applyTextDisplayStyle(replacement, textComputedNode, overrideStyle),
+  });
+
+  parent.addChild(replacement);
+  displayObject.destroy({ children: true });
+
+  return replacement;
+};
+
+const updatePlainTextDisplayObject = (displayObject, textComputedNode) => {
+  displayObject.text = textComputedNode.content;
+  applyTextStyle(displayObject, textComputedNode.textStyle);
+  syncTextAnchorRatios(displayObject, textComputedNode);
+  positionTextInLayoutBox(displayObject, textComputedNode);
+  displayObject.alpha = textComputedNode.alpha;
+};
+
+const updateTextDisplayObject = ({
+  displayObject,
+  textComputedNode,
+  app,
+  eventHandler,
+}) => {
+  if (isRichTextComputedNode(textComputedNode)) {
+    renderRichTextDisplayObject(displayObject, textComputedNode);
+  } else {
+    updatePlainTextDisplayObject(displayObject, textComputedNode);
+  }
+
+  clearTextInteractions(displayObject);
+  bindTextInteractions({
+    app,
+    displayObject,
+    textComputedNode,
+    eventHandler,
+    applyStyle: (overrideStyle) =>
+      applyTextDisplayStyle(displayObject, textComputedNode, overrideStyle),
+  });
+};
 
 /**
  * Update text element (synchronous)
@@ -24,198 +100,60 @@ export const updateText = ({
   completionTracker,
   zIndex,
 }) => {
-  const textElement = parent.children.find(
+  let textElement = parent.children.find(
     (child) => child.label === prevTextComputedNode.id,
   );
 
   if (!textElement) return;
 
   textElement.zIndex = zIndex;
-
-  const { alpha } = nextTextComputedNode;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevTextComputedNode.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(textElement, prevTextComputedNode.filters, {
+      width: prevTextComputedNode.width,
+      height: prevTextComputedNode.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(textElement);
+  }
 
   const updateElement = () => {
-    if (!isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
-      textElement.text = nextTextComputedNode.content;
-      applyTextStyle(textElement, nextTextComputedNode.textStyle);
-      syncTextAnchorRatios(textElement, nextTextComputedNode);
-
-      positionTextInLayoutBox(textElement, nextTextComputedNode);
-      textElement.alpha = alpha;
-
-      textElement.removeAllListeners("pointerover");
-      textElement.removeAllListeners("pointerout");
-      textElement.removeAllListeners("pointerdown");
-      textElement.removeAllListeners("pointerupoutside");
-      textElement.removeAllListeners("pointerup");
-      textElement.removeAllListeners("rightdown");
-      textElement.removeAllListeners("rightclick");
-      textElement.removeAllListeners("rightup");
-      textElement.removeAllListeners("rightupoutside");
-
-      const hoverEvents = nextTextComputedNode?.hover;
-      const clickEvents = nextTextComputedNode?.click;
-      const rightClickEvents = nextTextComputedNode?.rightClick;
-
-      let events = {
-        isHovering: false,
-        isPressed: false,
-        isRightPressed: false,
-      };
-
-      const updateTextStyle = ({ isHovering, isPressed, isRightPressed }) => {
-        if (isRightPressed && rightClickEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            rightClickEvents.textStyle,
-          );
-        } else if (isPressed && clickEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            clickEvents.textStyle,
-          );
-        } else if (isHovering && hoverEvents?.textStyle) {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-            hoverEvents.textStyle,
-          );
-        } else {
-          applyInteractiveTextStyle(
-            textElement,
-            nextTextComputedNode.textStyle,
-          );
-        }
-      };
-
-      if (hoverEvents) {
-        const { cursor, soundSrc, payload } = hoverEvents;
-        textElement.eventMode = "static";
-
-        const overListener = () => {
-          events.isHovering = true;
-          if (payload && eventHandler)
-            eventHandler(`hover`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          if (cursor) textElement.cursor = cursor;
-          if (soundSrc)
-            app.audioStage.add({
-              id: `hover-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-          updateTextStyle(events);
-        };
-
-        const outListener = () => {
-          events.isHovering = false;
-          textElement.cursor = "auto";
-          updateTextStyle(events);
-        };
-
-        textElement.on("pointerover", overListener);
-        textElement.on("pointerout", outListener);
-      }
-
-      if (clickEvents) {
-        const { soundSrc, soundVolume, payload } = clickEvents;
-        textElement.eventMode = "static";
-
-        const clickListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          events.isPressed = true;
-          updateTextStyle(events);
-        };
-
-        const releaseListener = (event) => {
-          if (!isPrimaryPointerEvent(event)) {
-            return;
-          }
-
-          events.isPressed = false;
-          updateTextStyle(events);
-
-          if (payload && eventHandler)
-            eventHandler(`click`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          if (soundSrc)
-            app.audioStage.add({
-              id: `click-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-              volume: (soundVolume ?? 1000) / 1000,
-            });
-        };
-
-        const outListener = () => {
-          events.isPressed = false;
-          updateTextStyle(events);
-        };
-
-        textElement.on("pointerdown", clickListener);
-        textElement.on("pointerup", releaseListener);
-        textElement.on("pointerupoutside", outListener);
-      }
-
-      if (rightClickEvents) {
-        const { soundSrc, payload } = rightClickEvents;
-        textElement.eventMode = "static";
-
-        const rightPressListener = () => {
-          events.isRightPressed = true;
-          updateTextStyle(events);
-        };
-
-        const rightReleaseListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle(events);
-        };
-
-        const rightClickListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle(events);
-
-          if (payload && eventHandler) {
-            eventHandler(`rightClick`, {
-              _event: {
-                id: textElement.label,
-              },
-              ...payload,
-            });
-          }
-          if (soundSrc) {
-            app.audioStage.add({
-              id: `rightClick-${Date.now()}`,
-              url: soundSrc,
-              loop: false,
-            });
-          }
-        };
-
-        const rightOutListener = () => {
-          events.isRightPressed = false;
-          updateTextStyle(events);
-        };
-
-        textElement.on("rightdown", rightPressListener);
-        textElement.on("rightup", rightReleaseListener);
-        textElement.on("rightclick", rightClickListener);
-        textElement.on("rightupoutside", rightOutListener);
-      }
+    if (isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
+      return;
     }
+
+    if (displayKindChanged(textElement, nextTextComputedNode)) {
+      textElement = replaceTextDisplayObject({
+        app,
+        parent,
+        displayObject: textElement,
+        textComputedNode: nextTextComputedNode,
+        eventHandler,
+        zIndex,
+      });
+      syncShaderFilters(textElement, nextTextComputedNode.filters, {
+        width: nextTextComputedNode.width,
+        height: nextTextComputedNode.height,
+        force: shouldForceShaderProgress,
+      });
+      return;
+    }
+
+    updateTextDisplayObject({
+      displayObject: textElement,
+      textComputedNode: nextTextComputedNode,
+      app,
+      eventHandler,
+    });
+    syncShaderFilters(textElement, nextTextComputedNode.filters, {
+      width: nextTextComputedNode.width,
+      height: nextTextComputedNode.height,
+      force: shouldForceShaderProgress,
+    });
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -225,8 +163,10 @@ export const updateText = ({
     completionTracker,
     element: textElement,
     targetState: {
-      ...getTextLayoutPosition(nextTextComputedNode),
-      alpha,
+      ...getTextAnimationTargetState(nextTextComputedNode),
+      ...getShaderFilterTargetState(nextTextComputedNode, {
+        force: shouldForceShaderProgress,
+      }),
     },
     onComplete: () => {
       updateElement();
@@ -234,7 +174,6 @@ export const updateText = ({
   });
 
   if (!dispatched) {
-    // No animations, update immediately
     updateElement();
   }
 };

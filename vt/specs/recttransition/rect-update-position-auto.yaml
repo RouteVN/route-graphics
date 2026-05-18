@@ -1,0 +1,51 @@
+---
+title: Rect Update Position Auto Transition
+description: A rect animating position during update using tween auto shorthand.
+specs:
+  - rect should move from (120, 140) to (760, 360)
+  - x and y should both be derived from the next state
+  - animation should take 1 second
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: rect1
+        type: rect
+        x: 120
+        "y": 140
+        width: 220
+        height: 180
+        fill: "#A6A6A6"
+  - elements:
+      - id: rect1
+        type: rect
+        x: 760
+        "y": 360
+        width: 220
+        height: 180
+        fill: "#A6A6A6"
+    animations:
+      - id: rect-move-auto
+        targetId: rect1
+        type: update
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+          "y":
+            auto:
+              duration: 1000
+              easing: linear

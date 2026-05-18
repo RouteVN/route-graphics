@@ -1,4 +1,5 @@
 import { DEFAULT_TEXT_STYLE } from "../types.js";
+import { toPixiTextStyle } from "./toPixiTextStyle.js";
 
 export default (element, style) => {
   const appliedStyle = {
@@ -12,7 +13,10 @@ export default (element, style) => {
     strokeColor: style?.strokeColor ?? DEFAULT_TEXT_STYLE.strokeColor,
     strokeWidth: style?.strokeWidth ?? DEFAULT_TEXT_STYLE.strokeWidth,
     wordWrapWidth: style?.wordWrapWidth ?? DEFAULT_TEXT_STYLE.wordWrapWidth,
+    ...(Object.prototype.hasOwnProperty.call(style ?? {}, "shadow")
+      ? { shadow: style.shadow }
+      : {}),
   };
 
-  element.style = appliedStyle;
+  element.style = toPixiTextStyle(appliedStyle);
 };

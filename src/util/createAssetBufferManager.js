@@ -3,6 +3,15 @@
  */
 const createAssetBufferManager = () => {
   const cache = new Map();
+  const isBlobUrl = (url) => typeof url === "string" && url.startsWith("blob:");
+  const shouldCacheByUrl = (value) => {
+    return (
+      typeof value?.type === "string" &&
+      (value.type.startsWith("image/") || value.type.startsWith("video/")) &&
+      typeof value?.url === "string" &&
+      !isBlobUrl(value.url)
+    );
+  };
 
   /**
    * Load assets from URLs with caching
@@ -23,11 +32,21 @@ const createAssetBufferManager = () => {
     if (toFetch.length > 0) {
       await Promise.all(
         toFetch.map(async ([key, value]) => {
+          if (shouldCacheByUrl(value)) {
+            cache.set(key, {
+              url: value.url,
+              type: value.type,
+              source: "url",
+            });
+            return;
+          }
+
           const resp = await fetch(value.url);
           const buffer = await resp.arrayBuffer();
           const bufferData = {
             buffer,
             type: value.type,
+            source: "buffer",
           };
 
           // Cache the result

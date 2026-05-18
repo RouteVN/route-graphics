@@ -1,9 +1,27 @@
 import { AnimatedSprite, Spritesheet, Texture } from "pixi.js";
 import { setupDebugMode } from "./util/debugUtils.js";
+import { queueDeferredAnimatedSpritePlay } from "../renderContext.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+  playbackFpsToAnimationSpeed,
+  resolveAnimatedSpriteFrameTextures,
+} from "./animatedSpriteConfig.js";
 
 /**
- * Add animated sprite element to the stage
+ * Add spritesheet animation element to the stage
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addAnimatedSprite = async ({
@@ -12,59 +30,105 @@ export const addAnimatedSprite = async ({
   element,
   animations,
   animationBus,
+  renderContext,
   completionTracker,
   zIndex,
   signal,
 }) => {
   if (signal?.aborted) return;
 
-  const {
-    id,
-    x,
-    y,
-    width,
-    height,
-    spritesheetSrc,
-    spritesheetData,
-    animation,
-    alpha,
-  } = element;
+  const { id, x, y, width, height, src, atlas, clips, playback, alpha } =
+    element;
 
-  const metadata = spritesheetData;
-  const frameNames = Object.keys(metadata.frames);
-
-  const spriteSheet = new Spritesheet(Texture.from(spritesheetSrc), metadata);
-  await spriteSheet.parse();
-  if (signal?.aborted || parent.destroyed) return;
-
-  const frameTextures = animation.frames.map(
-    (index) => spriteSheet.textures[frameNames[index]],
+  const normalizedAtlas = normalizeAnimatedSpriteAtlas(atlas);
+  const normalizedClips = normalizeAnimatedSpriteClips(
+    clips,
+    atlas?.animations,
+    atlas?.meta,
+    Object.keys(normalizedAtlas.frames ?? {}),
   );
-
-  const animatedSprite = new AnimatedSprite(frameTextures);
-  animatedSprite.label = id;
-  animatedSprite.zIndex = zIndex;
-
-  animatedSprite.animationSpeed = animation.animationSpeed ?? 0.5;
-  animatedSprite.loop = animation.loop ?? true;
-
-  if (!app.debug) animatedSprite.play();
-  else setupDebugMode(animatedSprite, id, app.debug);
-
-  animatedSprite.x = Math.round(x);
-  animatedSprite.y = Math.round(y);
-  animatedSprite.width = Math.round(width);
-  animatedSprite.height = Math.round(height);
-  animatedSprite.alpha = alpha;
-
-  parent.addChild(animatedSprite);
-
-  dispatchLiveAnimations({
-    animations,
-    targetId: id,
-    animationBus,
-    completionTracker,
-    element: animatedSprite,
-    targetState: { x, y, width, height, alpha },
+  const normalizedPlayback = normalizeAnimatedSpritePlayback({
+    atlas: normalizedAtlas,
+    clips: normalizedClips,
+    playback,
   });
+  const completionVersion = completionTracker?.getVersion?.();
+  completionTracker?.track?.(completionVersion);
+
+  try {
+    const spriteSheet = new Spritesheet(Texture.from(src), normalizedAtlas);
+    await spriteSheet.parse();
+    if (signal?.aborted || parent.destroyed) return;
+
+    const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+      spritesheet: spriteSheet,
+      atlas: normalizedAtlas,
+      clips: normalizedClips,
+      playback: normalizedPlayback,
+    });
+
+    const animatedSprite = new AnimatedSprite(frameTextures);
+    animatedSprite.label = id;
+    animatedSprite.zIndex = zIndex;
+
+    animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(
+      normalizedPlayback.fps,
+    );
+    animatedSprite.loop = normalizedPlayback.loop;
+
+    if (app.debug) {
+      setupDebugMode(animatedSprite, id, app.debug, () => {
+        if (typeof app.render === "function") {
+          app.render();
+        }
+      });
+    } else if (normalizedPlayback.autoplay) {
+      queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+    }
+
+    animatedSprite.x = Math.round(x);
+    animatedSprite.y = Math.round(y);
+    animatedSprite.width = Math.round(width);
+    animatedSprite.height = Math.round(height);
+    animatedSprite.alpha = alpha;
+    const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+    syncBlurEffect(animatedSprite, element.blur, { force: shouldForceBlur });
+    const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+      animations,
+      id,
+    );
+    syncShaderFilters(animatedSprite, element.filters, {
+      width,
+      height,
+      force: shouldForceShaderProgress,
+    });
+
+    parent.addChild(animatedSprite);
+
+    dispatchLiveAnimations({
+      animations,
+      targetId: id,
+      animationBus,
+      completionTracker,
+      element: animatedSprite,
+      targetState: {
+        x,
+        y,
+        width,
+        height,
+        alpha,
+        ...getBlurTargetState(element, { force: shouldForceBlur }),
+        ...getShaderFilterTargetState(element, {
+          force: shouldForceShaderProgress,
+        }),
+      },
+      renderContext,
+    });
+
+    if (typeof app.render === "function") {
+      app.render();
+    }
+  } finally {
+    completionTracker?.complete?.(completionVersion);
+  }
 };

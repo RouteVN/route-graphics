@@ -1,0 +1,74 @@
+---
+title: Text Revealing Update Enter Exit
+description: A text-revealing element using update animations when it is first added and before it is removed.
+specs:
+  - newly added text-revealing elements should fade in through an update animation
+  - removed text-revealing elements should fade out through an update animation before being destroyed
+  - final state should contain no text-revealing element
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements: []
+  - id: text-revealing-entered
+    elements:
+      - id: text-revealing1
+        type: text-revealing
+        content:
+          - text: Update lifecycle text
+            textStyle:
+              fontSize: 44
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 260
+        "y": 220
+        width: 720
+        alpha: 1
+        revealEffect: none
+    animations:
+      - id: text-revealing-update-enter
+        targetId: text-revealing1
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: text-revealing-removed
+    elements: []
+    animations:
+      - id: text-revealing-update-exit
+        targetId: text-revealing1
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

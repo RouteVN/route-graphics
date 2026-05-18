@@ -60,6 +60,10 @@ $defs:
         default: false
     additionalProperties: false
   tweenProperty:
+    oneOf:
+      - $ref: "#/$defs/manualTweenProperty"
+      - $ref: "#/$defs/autoTweenProperty"
+  manualTweenProperty:
     type: object
     properties:
       initialValue:
@@ -73,7 +77,59 @@ $defs:
     required:
       - keyframes
     additionalProperties: false
-  liveTween:
+  autoTweenConfig:
+    type: object
+    properties:
+      duration:
+        type: number
+        description: Duration in milliseconds for the generated tween.
+      easing:
+        type: string
+        description: Easing function to use.
+        enum:
+          - linear
+          - easeInQuad
+          - easeOutQuad
+          - easeInOutQuad
+          - easeInCubic
+          - easeOutCubic
+          - easeInOutCubic
+          - easeInQuart
+          - easeOutQuart
+          - easeInOutQuart
+          - easeInQuint
+          - easeOutQuint
+          - easeInOutQuint
+          - easeInSine
+          - easeOutSine
+          - easeInOutSine
+          - easeInExpo
+          - easeOutExpo
+          - easeInOutExpo
+          - easeInCirc
+          - easeOutCirc
+          - easeInOutCirc
+          - easeInBack
+          - easeOutBack
+          - easeInOutBack
+          - easeInBounce
+          - easeOutBounce
+          - easeInOutBounce
+          - easeInElastic
+          - easeOutElastic
+          - easeInOutElastic
+    required:
+      - duration
+    additionalProperties: false
+  autoTweenProperty:
+    type: object
+    properties:
+      auto:
+        $ref: "#/$defs/autoTweenConfig"
+    required:
+      - auto
+    additionalProperties: false
+  updateTween:
     type: object
     properties:
       alpha:
@@ -82,17 +138,38 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       y:
         $ref: "#/$defs/tweenProperty"
+      translateX:
+        $ref: "#/$defs/tweenProperty"
+      translateY:
+        $ref: "#/$defs/tweenProperty"
       scaleX:
         $ref: "#/$defs/tweenProperty"
       scaleY:
         $ref: "#/$defs/tweenProperty"
       rotation:
         $ref: "#/$defs/tweenProperty"
+      blurX:
+        $ref: "#/$defs/tweenProperty"
+      blurY:
+        $ref: "#/$defs/tweenProperty"
+    allOf:
+      - not:
+          required:
+            - x
+            - translateX
+      - not:
+          required:
+            - y
+            - translateY
     additionalProperties: false
     minProperties: 1
-  replaceTween:
+  transitionTween:
     type: object
     properties:
+      x:
+        $ref: "#/$defs/tweenProperty"
+      y:
+        $ref: "#/$defs/tweenProperty"
       translateX:
         $ref: "#/$defs/tweenProperty"
       translateY:
@@ -105,30 +182,40 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       rotation:
         $ref: "#/$defs/tweenProperty"
+    allOf:
+      - not:
+          required:
+            - x
+            - translateX
+      - not:
+          required:
+            - y
+            - translateY
     additionalProperties: false
     minProperties: 1
-  replaceSide:
+  transitionSide:
     type: object
     required:
       - tween
     properties:
       tween:
-        $ref: "#/$defs/replaceTween"
+        $ref: "#/$defs/transitionTween"
     additionalProperties: false
   maskProgress:
     $ref: "#/$defs/tweenProperty"
-  compositeMaskItem:
+  sequenceMaskFrame:
     type: object
     required:
+      - at
       - texture
     properties:
+      at:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Normalized progress point where this sequence frame is sampled.
       texture:
         type: string
-      channel:
-        type: string
-        enum: [red, green, blue, alpha]
-      invert:
-        type: boolean
     additionalProperties: false
   mask:
     type: object
@@ -137,22 +224,14 @@ $defs:
     properties:
       kind:
         type: string
-        enum: [single, sequence, composite]
+        enum: [single, sequence]
       texture:
         type: string
-      textures:
+      frames:
         type: array
-        minItems: 1
+        minItems: 2
         items:
-          type: string
-      items:
-        type: array
-        minItems: 1
-        items:
-          $ref: "#/$defs/compositeMaskItem"
-      combine:
-        type: string
-        enum: [max, min, multiply, add]
+          $ref: "#/$defs/sequenceMaskFrame"
       channel:
         type: string
         enum: [red, green, blue, alpha]
@@ -162,6 +241,7 @@ $defs:
         type: boolean
       sample:
         type: string
+        enum: [hold, linear]
       progress:
         $ref: "#/$defs/maskProgress"
     additionalProperties: false
@@ -173,20 +253,30 @@ $defs:
         then:
           required:
             - texture
+          not:
+            anyOf:
+              - required: [frames]
+              - required: [sample]
       - if:
           properties:
             kind:
               const: sequence
         then:
           required:
-            - textures
-      - if:
-          properties:
-            kind:
-              const: composite
-        then:
-          required:
-            - items
+            - frames
+          not:
+            anyOf:
+              - required: [texture]
+              - required: [softness]
+  playback:
+    type: object
+    required:
+      - continuity
+    properties:
+      continuity:
+        type: string
+        enum: [render, persistent]
+    additionalProperties: false
 properties:
   id:
     type: string
@@ -196,7 +286,7 @@ properties:
     description: Element id this animation applies to.
   type:
     type: string
-    enum: [live, replace]
+    enum: [update, transition]
     description: Animation structure.
   complete:
     type: object
@@ -204,19 +294,21 @@ properties:
       payload:
         type: object
     additionalProperties: true
+  playback:
+    $ref: "#/$defs/playback"
   tween:
-    $ref: "#/$defs/liveTween"
+    $ref: "#/$defs/updateTween"
   prev:
-    $ref: "#/$defs/replaceSide"
+    $ref: "#/$defs/transitionSide"
   next:
-    $ref: "#/$defs/replaceSide"
+    $ref: "#/$defs/transitionSide"
   mask:
     $ref: "#/$defs/mask"
 allOf:
   - if:
       properties:
         type:
-          const: live
+          const: update
     then:
       required:
         - tween
@@ -228,7 +320,7 @@ allOf:
   - if:
       properties:
         type:
-          const: replace
+          const: transition
     then:
       not:
         required: [tween]

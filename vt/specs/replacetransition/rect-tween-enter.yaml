@@ -1,0 +1,54 @@
+---
+title: Rect Tween Enter
+description: A next-only rect transition using subject tweens while tolerating an unused prev side.
+specs:
+  - next-only transitions should ignore prev tween config when there is no previous subject
+  - the rect should be partially onscreen at 500ms
+  - the rect should fully settle onscreen by 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: tween-enter-start
+    elements: []
+  - id: tween-enter-end
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#D9D9D9"
+        alpha: 1
+    animations:
+      - id: rect-tween-enter
+        targetId: rect1
+        type: transition
+        prev:
+          tween:
+            alpha:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear
+        next:
+          tween:
+            translateX:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear

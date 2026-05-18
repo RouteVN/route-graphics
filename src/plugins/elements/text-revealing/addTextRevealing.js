@@ -1,6 +1,10 @@
 import { Container } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
-import { runTextReveal } from "./textRevealingRuntime.js";
+import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
+import {
+  runTextReveal,
+  shouldRenderTextRevealImmediately,
+} from "./textRevealingRuntime.js";
 
 /**
  * Add text-revealing element to the stage
@@ -11,6 +15,7 @@ export const addTextRevealing = async ({
   element,
   animations,
   animationBus,
+  renderContext,
   completionTracker,
   zIndex,
   signal,
@@ -33,11 +38,37 @@ export const addTextRevealing = async ({
     completionTracker,
     element: container,
     targetState: {
-      x: element.x ?? 0,
-      y: element.y ?? 0,
-      alpha: element.alpha ?? 1,
+      x: element.x ?? container.x,
+      y: element.y ?? container.y,
+      alpha: element.alpha ?? container.alpha,
     },
+    renderContext,
   });
+
+  if (
+    renderContext?.suppressAnimations &&
+    !shouldRenderTextRevealImmediately(element)
+  ) {
+    await runTextReveal({
+      container,
+      element,
+      completionTracker,
+      animationBus,
+      zIndex,
+      signal,
+      playback: "paused-initial",
+    });
+
+    queueDeferredTextRevealAutoplay(renderContext, {
+      container,
+      element,
+      completionTracker,
+      animationBus,
+      zIndex,
+      signal,
+    });
+    return;
+  }
 
   await runTextReveal({
     container,
@@ -46,5 +77,6 @@ export const addTextRevealing = async ({
     animationBus,
     zIndex,
     signal,
+    playback: "autoplay",
   });
 };

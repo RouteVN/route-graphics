@@ -1,0 +1,134 @@
+---
+title: Text Shadow
+description: Text shadow rendering is the subject of this spec, so grayscale shadows are used to verify hard offsets, soft blur, and shadow removal on update.
+specs:
+  - text should render a hard offset shadow from textStyle.shadow
+  - text should render a blurred shadow without clipping the blur edge
+  - text should render an all-direction shadow when blur is set and both offsets are zero
+  - updating textStyle.shadow to null should remove an existing shadow
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: hard-shadow
+        type: text
+        x: 56
+        "y": 56
+        content: Hard Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 56
+          fill: "#FFFFFF"
+          shadow:
+            color: "#737373"
+            alpha: 1
+            blur: 0
+            offsetX: 8
+            offsetY: 8
+      - id: soft-shadow
+        type: text
+        x: 56
+        "y": 156
+        content: Soft Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 56
+          fill: "#D9D9D9"
+          shadow:
+            color: "#FFFFFF"
+            alpha: 0.5
+            blur: 8
+            offsetX: 0
+            offsetY: 8
+      - id: removable-shadow
+        type: text
+        x: 56
+        "y": 256
+        content: Shadow Removed On Next State
+        textStyle:
+          fontFamily: Arial
+          fontSize: 44
+          fill: "#FFFFFF"
+          shadow:
+            color: "#737373"
+            alpha: 1
+            blur: 0
+            offsetX: 7
+            offsetY: 7
+      - id: all-direction-shadow
+        type: text
+        x: 56
+        "y": 356
+        content: All Direction Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 50
+          fill: "#D9D9D9"
+          shadow:
+            color: "#FFFFFF"
+            alpha: 0.45
+            blur: 10
+            offsetX: 0
+            offsetY: 0
+  - elements:
+      - id: hard-shadow
+        type: text
+        x: 56
+        "y": 56
+        content: Hard Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 56
+          fill: "#FFFFFF"
+          shadow:
+            color: "#A6A6A6"
+            alpha: 1
+            blur: 0
+            offsetX: -8
+            offsetY: 8
+      - id: soft-shadow
+        type: text
+        x: 56
+        "y": 156
+        content: Soft Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 56
+          fill: "#D9D9D9"
+          shadow:
+            color: "#FFFFFF"
+            alpha: 0.5
+            blur: 10
+            offsetX: 6
+            offsetY: 0
+      - id: removable-shadow
+        type: text
+        x: 56
+        "y": 256
+        content: Shadow Removed On Next State
+        textStyle:
+          fontFamily: Arial
+          fontSize: 44
+          fill: "#FFFFFF"
+          shadow: null
+      - id: all-direction-shadow
+        type: text
+        x: 56
+        "y": 356
+        content: All Direction Shadow
+        textStyle:
+          fontFamily: Arial
+          fontSize: 50
+          fill: "#D9D9D9"
+          shadow:
+            color: "#FFFFFF"
+            alpha: 0.45
+            blur: 10
+            offsetX: 0
+            offsetY: 0

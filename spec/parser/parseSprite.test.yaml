@@ -13,6 +13,12 @@ in:
       type: sprite
       src: file:circle-red
       alpha: 0.8
+      blur:
+        x: 4
+        "y": 8
+        quality: 2
+        kernelSize: 7
+        repeatEdgePixels: true
       width: 80
       height: 100
       scaleX: 1.2
@@ -21,6 +27,7 @@ in:
       "y": 240
       anchorX: 0.5
       anchorY: 0.5
+      rotation: 45
       hover:
         soundSrc: sound-1
         cursor: cursor-1
@@ -44,6 +51,13 @@ out:
   originX: 48
   originY: 40
   alpha: 0.8
+  rotation: 45
+  blur:
+    x: 4
+    "y": 8
+    quality: 2
+    kernelSize: 7
+    repeatEdgePixels: true
   src: file:circle-red
   hover:
     soundSrc: sound-1
@@ -58,6 +72,34 @@ out:
       prop3: "00"
       prop4: "22"
     src: click-src
+---
+case: Test parsing sprite with explicit origin independent of anchor
+in:
+  - state:
+      id: circle-red
+      type: sprite
+      src: file:circle-red
+      width: 80
+      height: 100
+      x: 240
+      "y": 240
+      anchorX: 0.5
+      anchorY: 0.5
+      originX: 0
+      originY: 100
+      rotation: 45
+out:
+  id: circle-red
+  type: sprite
+  width: 80
+  height: 100
+  x: 200
+  "y": 190
+  originX: 0
+  originY: 100
+  alpha: 1
+  rotation: 45
+  src: file:circle-red
 ---
 case: Test parsing sprite to see the default value of url, alpha, and interactive props
 in:
@@ -82,4 +124,5 @@ out:
   originX: 48
   originY: 40
   alpha: 1
+  rotation: 0
   src: ""

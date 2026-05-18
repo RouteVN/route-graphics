@@ -1,0 +1,349 @@
+---
+title: Structured smoke variations with custom texture aliases
+specs:
+  - custom smoke texture aliases should render multiple distinct smoke variants in one spec
+  - moving between smoke states should preserve deterministic seeded particle layouts per variation
+  - each smoke variation should remain visually distinct in density, drift, and ring usage
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 180
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 320
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 220
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 380
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 220
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 360
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: soft-plume
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#0b0b0b"
+      - id: vent
+        type: rect
+        x: 570
+        y: 568
+        width: 140
+        height: 24
+        fill: "#1d1d1d"
+      - id: smoke
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260407
+        modules:
+          emission:
+            mode: continuous
+            rate: 28
+            maxActive: 56
+            duration: infinite
+            particleLifetime:
+              min: 1.6
+              max: 2.5
+            source:
+              kind: rect
+              data:
+                x: 600
+                y: 560
+                width: 80
+                height: 18
+          movement:
+            velocity:
+              kind: directional
+              direction: -95
+              speed:
+                min: 20
+                max: 46
+            acceleration:
+              x: 8
+              y: -28
+            maxSpeed: 90
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-smoke-soft
+                  weight: 4
+                - src: particle-smoke-ring
+                  weight: 1
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.32
+                - time: 0.35
+                  value: 1.05
+                - time: 1
+                  value: 1.72
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.2
+                  value: 0.34
+                - time: 0.75
+                  value: 0.2
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -16
+                max: 16
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 120
+              right: 60
+              bottom: 60
+              left: 60
+  - id: dense-stack
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#100d0c"
+      - id: chimney
+        type: rect
+        x: 594
+        y: 560
+        width: 92
+        height: 44
+        fill: "#24201f"
+      - id: smoke
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260412
+        modules:
+          emission:
+            mode: continuous
+            rate: 40
+            maxActive: 88
+            duration: infinite
+            particleLifetime:
+              min: 2.3
+              max: 3.4
+            source:
+              kind: rect
+              data:
+                x: 612
+                y: 550
+                width: 56
+                height: 14
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: -100
+                max: -84
+              speed:
+                min: 10
+                max: 26
+            acceleration:
+              x: 0
+              y: -14
+            maxSpeed: 52
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-smoke-soft
+                  weight: 2
+                - src: particle-smoke-ring
+                  weight: 3
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.24
+                - time: 0.3
+                  value: 0.92
+                - time: 1
+                  value: 2.24
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.16
+                  value: 0.42
+                - time: 0.7
+                  value: 0.24
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -10
+                max: 10
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 140
+              right: 80
+              bottom: 70
+              left: 80
+  - id: windblown-haze
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#090909"
+      - id: duct
+        type: rect
+        x: 470
+        y: 566
+        width: 210
+        height: 20
+        fill: "#1d1d1d"
+      - id: smoke
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260413
+        modules:
+          emission:
+            mode: continuous
+            rate: 34
+            maxActive: 60
+            duration: infinite
+            particleLifetime:
+              min: 1.4
+              max: 2.1
+            source:
+              kind: rect
+              data:
+                x: 500
+                y: 554
+                width: 150
+                height: 18
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: -78
+                max: -54
+              speed:
+                min: 28
+                max: 58
+            acceleration:
+              x: 24
+              y: -10
+            maxSpeed: 96
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-smoke-soft
+                  weight: 5
+                - src: particle-smoke-ring
+                  weight: 1
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.28
+                - time: 0.26
+                  value: 0.86
+                - time: 1
+                  value: 1.84
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.14
+                  value: 0.28
+                - time: 0.74
+                  value: 0.14
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -14
+                max: 14
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 120
+              right: 140
+              bottom: 60
+              left: 80

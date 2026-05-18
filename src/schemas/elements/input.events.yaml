@@ -1,0 +1,85 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Input Element Events
+description: Events emitted by input elements
+type: object
+properties:
+  focus:
+    type: object
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+          value:
+            type: string
+          selectionStart:
+            type: number
+          selectionEnd:
+            type: number
+          composing:
+            type: boolean
+  blur:
+    type: object
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+          value:
+            type: string
+          selectionStart:
+            type: number
+          selectionEnd:
+            type: number
+          composing:
+            type: boolean
+  change:
+    type: object
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+          value:
+            type: string
+          selectionStart:
+            type: number
+          selectionEnd:
+            type: number
+          composing:
+            type: boolean
+  submit:
+    type: object
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+          value:
+            type: string
+          selectionStart:
+            type: number
+          selectionEnd:
+            type: number
+          composing:
+            type: boolean
+  selectionChange:
+    type: object
+    properties:
+      _event:
+        type: object
+        properties:
+          id:
+            type: string
+          value:
+            type: string
+          selectionStart:
+            type: number
+          selectionEnd:
+            type: number
+          composing:
+            type: boolean

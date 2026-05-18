@@ -1,0 +1,159 @@
+---
+title: Particles Update Enter Exit
+description: A particle field using update animations when it is first added and before it is removed.
+specs:
+  - newly added particles should fade in through an update animation
+  - removed particles should fade out through an update animation before being destroyed
+  - final state should contain no particle field
+skipInitialScreenshot: true
+useBrowserScreenshot: true
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+  - id: particles-entered
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: sparkles
+        type: particles
+        width: 1280
+        height: 720
+        alpha: 1
+        seed: 12345
+        modules:
+          emission:
+            mode: continuous
+            rate: 20
+            maxActive: 30
+            duration: infinite
+            particleLifetime:
+              min: 0.3
+              max: 0.8
+            source:
+              kind: rect
+              data:
+                x: 100
+                "y": 100
+                width: 1080
+                height: 520
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: snowflake
+                  weight: 3
+                - shape: circle
+                  radius: 2
+                  color: "#D9D9D9"
+                  weight: 1
+            scale:
+              mode: curve
+              keys:
+                - value: 0
+                  time: 0
+                - value: 1.5
+                  time: 0.3
+                - value: 1.5
+                  time: 0.7
+                - value: 0
+                  time: 1
+            alpha:
+              mode: curve
+              keys:
+                - value: 0
+                  time: 0
+                - value: 1
+                  time: 0.2
+                - value: 1
+                  time: 0.8
+                - value: 0
+                  time: 1
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: 45
+                max: 90
+    animations:
+      - id: particles-update-enter
+        targetId: sparkles
+        type: update
+        tween:
+          alpha:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: particles-removed
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+    animations:
+      - id: particles-update-exit
+        targetId: sparkles
+        type: update
+        tween:
+          alpha:
+            keyframes:
+              - duration: 1000
+                value: 0
+                easing: linear

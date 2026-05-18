@@ -24,6 +24,7 @@ import {
   SpawnShapeBehavior,
   BurstSpawnBehavior,
 } from "../behaviors/spawnShape.js";
+import { MovementBehavior } from "../behaviors/movement.js";
 
 const textureRegistry = new Map();
 const behaviorRegistry = new Map();
@@ -94,3 +95,4 @@ registerParticleBehavior(ColorBehavior);
 registerParticleBehavior(StaticColorBehavior);
 registerParticleBehavior(SpawnShapeBehavior);
 registerParticleBehavior(BurstSpawnBehavior);
+registerParticleBehavior(MovementBehavior);

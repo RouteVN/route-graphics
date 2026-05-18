@@ -1,15 +1,13 @@
 $schema: http://json-schema.org/draft-07/schema#
 title: Particles Element
-description: Schema for particles element raw input
+description: Schema for structured particles element input
 type: object
 required:
   - id
   - type
   - width
   - height
-  - texture
-  - behaviors
-  - emitter
+  - modules
 properties:
   id:
     type: string
@@ -18,107 +16,6 @@ properties:
   type:
     const: particles
     description: Element type
-
-  count:
-    type: number
-    description: Shorthand for emitter.maxParticles
-    default: 100
-
-  texture:
-    oneOf:
-      - type: string
-        description: Built-in texture name or asset alias
-      - type: object
-        description: Custom texture configuration
-        required:
-          - shape
-        properties:
-          shape:
-            type: string
-            enum: [circle, ellipse, rect]
-            description: Shape type
-          radius:
-            type: number
-            description: Radius for circle shape
-            default: 3
-          width:
-            type: number
-            description: Width for ellipse/rect shapes
-          height:
-            type: number
-            description: Height for ellipse/rect shapes
-          color:
-            type: string
-            description: Fill color (hex)
-            default: "#ffffff"
-
-  behaviors:
-    type: array
-    description: Behavior configurations (non-empty array)
-    minItems: 1
-    items:
-      type: object
-      required:
-        - type
-      properties:
-        type:
-          type: string
-          description: Behavior type name
-        config:
-          type: object
-          description: Behavior-specific configuration
-
-  emitter:
-    type: object
-    description: Emitter configuration
-    required:
-      - lifetime
-      - frequency
-      - particlesPerWave
-    properties:
-      lifetime:
-        type: object
-        description: Particle lifespan in seconds
-        required:
-          - min
-          - max
-        properties:
-          min:
-            type: number
-          max:
-            type: number
-      frequency:
-        type: number
-        description: Seconds between spawns (0 = burst all at once)
-      particlesPerWave:
-        type: number
-        description: Particles spawned per wave
-      maxParticles:
-        type: number
-        description: Maximum active particles
-      emitterLifetime:
-        type: number
-        description: How long emitter runs in seconds (-1 = infinite)
-        default: -1
-      spawnBounds:
-        type: object
-        description: Recycle boundary
-        properties:
-          x:
-            type: number
-          y:
-            type: number
-          width:
-            type: number
-          height:
-            type: number
-      recycleOnBounds:
-        type: boolean
-        description: Recycle particles leaving bounds
-        default: false
-      seed:
-        type: number
-        description: Seed for deterministic randomness (for visual testing)
 
   x:
     type: number
@@ -132,11 +29,13 @@ properties:
 
   width:
     type: number
-    description: Effect area width (required)
+    exclusiveMinimum: 0
+    description: Effect area width
 
   height:
     type: number
-    description: Effect area height (required)
+    exclusiveMinimum: 0
+    description: Effect area height
 
   alpha:
     type: number
@@ -144,3 +43,735 @@ properties:
     minimum: 0
     maximum: 1
     default: 1
+
+  seed:
+    type: number
+    description: Seed for deterministic randomness
+
+  modules:
+    type: object
+    required:
+      - emission
+      - appearance
+    properties:
+      emission:
+        $ref: "#/definitions/emissionModule"
+      movement:
+        $ref: "#/definitions/movementModule"
+      appearance:
+        $ref: "#/definitions/appearanceModule"
+      bounds:
+        $ref: "#/definitions/boundsModule"
+
+definitions:
+  numberOrRangeValue:
+    oneOf:
+      - type: number
+      - $ref: "#/definitions/rangeValue"
+
+  nonNegativeNumberOrRangeValue:
+    oneOf:
+      - type: number
+        minimum: 0
+      - $ref: "#/definitions/nonNegativeRangeValue"
+
+  durationValue:
+    oneOf:
+      - type: number
+        minimum: 0
+      - const: infinite
+
+  colorValue:
+    oneOf:
+      - type: string
+      - type: number
+
+  distribution:
+    type: object
+    required:
+      - kind
+    properties:
+      kind:
+        type: string
+        enum: [uniform, normal, bias]
+      toward:
+        type: string
+        enum: [min, max, center]
+      strength:
+        type: number
+      mean:
+        type: number
+      deviation:
+        type: number
+
+  rangeValue:
+    type: object
+    required:
+      - min
+    properties:
+      min:
+        type: number
+      max:
+        type: number
+      distribution:
+        $ref: "#/definitions/distribution"
+
+  nonNegativeRangeValue:
+    type: object
+    required:
+      - min
+    properties:
+      min:
+        type: number
+        minimum: 0
+      max:
+        type: number
+        minimum: 0
+      distribution:
+        $ref: "#/definitions/distribution"
+
+  nonNegativeCurveKey:
+    type: object
+    required:
+      - time
+      - value
+    properties:
+      time:
+        type: number
+        minimum: 0
+        maximum: 1
+      value:
+        type: number
+        minimum: 0
+
+  alphaCurveKey:
+    type: object
+    required:
+      - time
+      - value
+    properties:
+      time:
+        type: number
+        minimum: 0
+        maximum: 1
+      value:
+        type: number
+        minimum: 0
+        maximum: 1
+
+  colorCurveKey:
+    type: object
+    required:
+      - time
+      - value
+    properties:
+      time:
+        type: number
+        minimum: 0
+        maximum: 1
+      value:
+        $ref: "#/definitions/colorValue"
+
+  textureShape:
+    type: object
+    required:
+      - shape
+    properties:
+      shape:
+        type: string
+        enum: [circle, ellipse, rect]
+      radius:
+        type: number
+      width:
+        type: number
+      height:
+        type: number
+      color:
+        $ref: "#/definitions/colorValue"
+
+  textureSrcItem:
+    type: object
+    required:
+      - src
+    properties:
+      src:
+        type: string
+      weight:
+        type: number
+        exclusiveMinimum: 0
+
+  textureShapeItem:
+    type: object
+    required:
+      - shape
+    properties:
+      shape:
+        type: string
+        enum: [circle, ellipse, rect]
+      radius:
+        type: number
+      width:
+        type: number
+      height:
+        type: number
+      color:
+        $ref: "#/definitions/colorValue"
+      weight:
+        type: number
+        exclusiveMinimum: 0
+
+  textureItem:
+    oneOf:
+      - $ref: "#/definitions/textureSrcItem"
+      - $ref: "#/definitions/textureShapeItem"
+
+  singleTextureSelector:
+    type: object
+    required:
+      - mode
+      - items
+    properties:
+      mode:
+        const: single
+      pick:
+        type: string
+        enum: [perParticle, perWave]
+      items:
+        type: array
+        minItems: 1
+        maxItems: 1
+        items:
+          $ref: "#/definitions/textureItem"
+
+  randomTextureSelector:
+    type: object
+    required:
+      - mode
+      - items
+    properties:
+      mode:
+        const: random
+      pick:
+        type: string
+        enum: [perParticle, perWave]
+      items:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/textureItem"
+
+  cycleTextureSelector:
+    type: object
+    required:
+      - mode
+      - items
+    properties:
+      mode:
+        const: cycle
+      pick:
+        type: string
+        enum: [perParticle, perWave]
+      items:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/textureItem"
+
+  textureSelector:
+    oneOf:
+      - $ref: "#/definitions/singleTextureSelector"
+      - $ref: "#/definitions/randomTextureSelector"
+      - $ref: "#/definitions/cycleTextureSelector"
+
+  pointSourceData:
+    type: object
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+
+  rectSourceData:
+    type: object
+    required:
+      - x
+      - y
+      - width
+      - height
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+      width:
+        type: number
+        exclusiveMinimum: 0
+      height:
+        type: number
+        exclusiveMinimum: 0
+
+  circleSourceData:
+    type: object
+    required:
+      - x
+      - y
+      - radius
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+      radius:
+        type: number
+        exclusiveMinimum: 0
+      innerRadius:
+        type: number
+        minimum: 0
+      affectRotation:
+        type: boolean
+
+  lineSourceData:
+    type: object
+    required:
+      - x1
+      - y1
+      - x2
+      - y2
+    properties:
+      x1:
+        type: number
+      y1:
+        type: number
+      x2:
+        type: number
+      y2:
+        type: number
+
+  pointSource:
+    type: object
+    required:
+      - kind
+      - data
+    properties:
+      kind:
+        const: point
+      data:
+        $ref: "#/definitions/pointSourceData"
+
+  rectSource:
+    type: object
+    required:
+      - kind
+      - data
+    properties:
+      kind:
+        const: rect
+      data:
+        $ref: "#/definitions/rectSourceData"
+
+  circleSource:
+    type: object
+    required:
+      - kind
+      - data
+    properties:
+      kind:
+        const: circle
+      data:
+        $ref: "#/definitions/circleSourceData"
+
+  lineSource:
+    type: object
+    required:
+      - kind
+      - data
+    properties:
+      kind:
+        const: line
+      data:
+        $ref: "#/definitions/lineSourceData"
+
+  source:
+    oneOf:
+      - $ref: "#/definitions/pointSource"
+      - $ref: "#/definitions/rectSource"
+      - $ref: "#/definitions/circleSource"
+      - $ref: "#/definitions/lineSource"
+
+  continuousEmissionModule:
+    type: object
+    required:
+      - mode
+      - rate
+      - particleLifetime
+      - source
+    properties:
+      mode:
+        const: continuous
+      rate:
+        type: number
+        exclusiveMinimum: 0
+      maxActive:
+        type: integer
+        minimum: 1
+      duration:
+        $ref: "#/definitions/durationValue"
+      particleLifetime:
+        $ref: "#/definitions/nonNegativeNumberOrRangeValue"
+      source:
+        $ref: "#/definitions/source"
+
+  burstEmissionModule:
+    type: object
+    required:
+      - mode
+      - burstCount
+      - particleLifetime
+      - source
+    properties:
+      mode:
+        const: burst
+      burstCount:
+        type: integer
+        minimum: 1
+      maxActive:
+        type: integer
+        minimum: 1
+      duration:
+        $ref: "#/definitions/durationValue"
+      particleLifetime:
+        $ref: "#/definitions/nonNegativeNumberOrRangeValue"
+      source:
+        $ref: "#/definitions/source"
+
+  emissionModule:
+    oneOf:
+      - $ref: "#/definitions/continuousEmissionModule"
+      - $ref: "#/definitions/burstEmissionModule"
+
+  directionalVelocity:
+    type: object
+    required:
+      - kind
+      - speed
+      - direction
+    properties:
+      kind:
+        const: directional
+      speed:
+        $ref: "#/definitions/nonNegativeNumberOrRangeValue"
+      direction:
+        $ref: "#/definitions/numberOrRangeValue"
+
+  radialVelocity:
+    type: object
+    required:
+      - kind
+      - speed
+    properties:
+      kind:
+        const: radial
+      speed:
+        $ref: "#/definitions/nonNegativeNumberOrRangeValue"
+      angle:
+        $ref: "#/definitions/numberOrRangeValue"
+
+  velocityModule:
+    oneOf:
+      - $ref: "#/definitions/directionalVelocity"
+      - $ref: "#/definitions/radialVelocity"
+
+  accelerationVector:
+    type: object
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+      y:
+        type: number
+
+  movementModule:
+    type: object
+    properties:
+      velocity:
+        $ref: "#/definitions/velocityModule"
+      acceleration:
+        $ref: "#/definitions/accelerationVector"
+      maxSpeed:
+        type: number
+        minimum: 0
+      faceVelocity:
+        type: boolean
+    anyOf:
+      - required:
+          - velocity
+      - required:
+          - acceleration
+
+  scaleSingle:
+    type: object
+    required:
+      - mode
+      - value
+    properties:
+      mode:
+        const: single
+      value:
+        type: number
+        minimum: 0
+
+  scaleRange:
+    type: object
+    required:
+      - mode
+      - min
+    properties:
+      mode:
+        const: range
+      min:
+        type: number
+        minimum: 0
+      max:
+        type: number
+        minimum: 0
+      distribution:
+        $ref: "#/definitions/distribution"
+
+  scaleCurve:
+    type: object
+    required:
+      - mode
+      - keys
+    properties:
+      mode:
+        const: curve
+      keys:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/nonNegativeCurveKey"
+
+  scaleChannel:
+    oneOf:
+      - $ref: "#/definitions/scaleSingle"
+      - $ref: "#/definitions/scaleRange"
+      - $ref: "#/definitions/scaleCurve"
+
+  alphaSingle:
+    type: object
+    required:
+      - mode
+      - value
+    properties:
+      mode:
+        const: single
+      value:
+        type: number
+        minimum: 0
+        maximum: 1
+
+  alphaCurve:
+    type: object
+    required:
+      - mode
+      - keys
+    properties:
+      mode:
+        const: curve
+      keys:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/alphaCurveKey"
+
+  alphaChannel:
+    oneOf:
+      - $ref: "#/definitions/alphaSingle"
+      - $ref: "#/definitions/alphaCurve"
+
+  colorSingle:
+    type: object
+    required:
+      - mode
+      - value
+    properties:
+      mode:
+        const: single
+      value:
+        $ref: "#/definitions/colorValue"
+
+  colorGradient:
+    type: object
+    required:
+      - mode
+      - keys
+    properties:
+      mode:
+        const: gradient
+      keys:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/colorCurveKey"
+
+  colorChannel:
+    oneOf:
+      - $ref: "#/definitions/colorSingle"
+      - $ref: "#/definitions/colorGradient"
+
+  rotationNone:
+    type: object
+    required:
+      - mode
+    properties:
+      mode:
+        const: none
+
+  rotationFixed:
+    type: object
+    required:
+      - mode
+      - value
+    properties:
+      mode:
+        const: fixed
+      value:
+        type: number
+
+  rotationRandom:
+    type: object
+    required:
+      - mode
+      - min
+    properties:
+      mode:
+        const: random
+      min:
+        type: number
+      max:
+        type: number
+      distribution:
+        $ref: "#/definitions/distribution"
+
+  rotationSpin:
+    type: object
+    required:
+      - mode
+      - start
+      - speed
+    properties:
+      mode:
+        const: spin
+      start:
+        $ref: "#/definitions/numberOrRangeValue"
+      speed:
+        $ref: "#/definitions/numberOrRangeValue"
+
+  rotationChannel:
+    oneOf:
+      - $ref: "#/definitions/rotationNone"
+      - $ref: "#/definitions/rotationFixed"
+      - $ref: "#/definitions/rotationRandom"
+      - $ref: "#/definitions/rotationSpin"
+
+  appearanceModule:
+    type: object
+    required:
+      - texture
+    properties:
+      texture:
+        oneOf:
+          - type: string
+          - $ref: "#/definitions/textureShape"
+          - $ref: "#/definitions/textureSelector"
+      scale:
+        $ref: "#/definitions/scaleChannel"
+      alpha:
+        $ref: "#/definitions/alphaChannel"
+      color:
+        $ref: "#/definitions/colorChannel"
+      rotation:
+        $ref: "#/definitions/rotationChannel"
+
+  paddingBox:
+    type: object
+    required:
+      - top
+      - right
+      - bottom
+      - left
+    properties:
+      top:
+        type: number
+      right:
+        type: number
+      bottom:
+        type: number
+      left:
+        type: number
+
+  boundsNone:
+    type: object
+    required:
+      - mode
+    properties:
+      mode:
+        const: none
+
+  boundsArea:
+    type: object
+    required:
+      - mode
+      - source
+    properties:
+      mode:
+        const: recycle
+      source:
+        const: area
+      padding:
+        oneOf:
+          - type: number
+          - $ref: "#/definitions/paddingBox"
+
+  boundsCustom:
+    type: object
+    required:
+      - mode
+      - source
+      - custom
+    properties:
+      mode:
+        const: recycle
+      source:
+        const: custom
+      padding:
+        oneOf:
+          - type: number
+          - $ref: "#/definitions/paddingBox"
+      custom:
+        type: object
+        required:
+          - x
+          - y
+          - width
+          - height
+        properties:
+          x:
+            type: number
+          y:
+            type: number
+          width:
+            type: number
+          height:
+            type: number
+
+  boundsModule:
+    oneOf:
+      - $ref: "#/definitions/boundsNone"
+      - $ref: "#/definitions/boundsArea"
+      - $ref: "#/definitions/boundsCustom"

@@ -34,12 +34,47 @@ properties:
     type: number
     description: Vertical anchor point where 0 is top edge, 1 is bottom edge (100% height). For containers, must be 0, 0.5, or 1.
     default: 0
+  originX:
+    type: number
+    description: Horizontal transform origin in pixels from the container's left edge. Defaults to the anchor-derived X origin.
+  originY:
+    type: number
+    description: Vertical transform origin in pixels from the container's top edge. Defaults to the anchor-derived Y origin.
   alpha:
     type: number
     description: Opacity/transparency of the container (0-1)
     minimum: 0
     maximum: 1
     default: 1
+  blur:
+    type: object
+    description: Optional directional Gaussian blur applied to the whole container subtree.
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        description: Horizontal blur strength in pixels.
+        minimum: 0
+      y:
+        type: number
+        description: Vertical blur strength in pixels.
+        minimum: 0
+      quality:
+        type: number
+        description: Number of blur passes. Higher values are smoother but slower.
+        minimum: 1
+        default: 4
+      kernelSize:
+        type: number
+        enum: [5, 7, 9, 11, 13, 15]
+        description: Blur kernel size.
+        default: 5
+      repeatEdgePixels:
+        type: boolean
+        description: Clamp edge pixels instead of padding the blur bounds.
+        default: false
   children:
     type: array
     description: Child elements contained within this container
@@ -55,9 +90,13 @@ properties:
     enum: [absolute, horizontal, vertical]
     description: Layout direction for children. Horizontal arranges left-to-right, vertical arranges top-to-bottom.
     default: absolute
-  gap:
+  gapX:
     type: number
-    description: Spacing between child elements in pixels
+    description: Horizontal spacing between child elements in pixels, and between wrapped columns.
+    default: 0
+  gapY:
+    type: number
+    description: Vertical spacing between child elements in pixels, and between wrapped rows.
     default: 0
   rotation:
     type: number
@@ -71,9 +110,104 @@ properties:
     type: boolean
     description: When true, automatically scrolls to show bottom/right content instead of top/left. Only applies when scroll is enabled.
     default: false
+  scrollbar:
+    type: object
+    description: Optional custom scrollbar chrome. Currently supports a vertical scrollbar for scroll-enabled containers with vertical overflow.
+    properties:
+      vertical:
+        type: object
+        required:
+          - thickness
+          - track
+          - thumb
+        properties:
+          thickness:
+            type: number
+            description: Width of the vertical scrollbar lane in pixels.
+            minimum: 0
+          track:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the base track image.
+              hoverSrc:
+                type: string
+                description: Source of the track image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the track image while pressed.
+          thumb:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the base thumb image.
+              hoverSrc:
+                type: string
+                description: Source of the thumb image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the thumb image while pressed or dragged.
+              length:
+                type: number
+                description: Fixed thumb height in pixels. When omitted, the thumb height is computed from viewport/content ratio.
+                minimum: 0
+          startButton:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the top arrow/button image.
+              hoverSrc:
+                type: string
+                description: Source of the top arrow/button image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the top arrow/button image while pressed.
+              size:
+                type: number
+                description: Height of the top arrow/button in pixels.
+                minimum: 0
+              step:
+                type: number
+                description: Scroll step applied when the top arrow/button is pressed.
+                minimum: 0
+          endButton:
+            type: object
+            required:
+              - src
+            properties:
+              src:
+                type: string
+                description: Source of the bottom arrow/button image.
+              hoverSrc:
+                type: string
+                description: Source of the bottom arrow/button image when hovered.
+              pressSrc:
+                type: string
+                description: Source of the bottom arrow/button image while pressed.
+              size:
+                type: number
+                description: Height of the bottom arrow/button in pixels.
+                minimum: 0
+              step:
+                type: number
+                description: Scroll step applied when the bottom arrow/button is pressed.
+                minimum: 0
   hover:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with hover visuals inherit the container hover state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when hovering over the container
@@ -86,24 +220,44 @@ properties:
   click:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with click visuals inherit the container pressed state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when the container is clicked
       soundVolume:
         type: number
-        description: Volume. 0 means muted. 1000 means original full volume.
+        description: Volume. 0 means muted. 100 means original full volume.
         minimum: 0
-        maximum: 1000
-        default: 1000
+        maximum: 100
+        default: 100
       payload:
         type: object
         description: Payload for click action event
   rightClick:
     type: object
     properties:
+      inheritToChildren:
+        type: boolean
+        description: When true, descendants with right-click visuals inherit the container right-pressed state.
+        default: false
       soundSrc:
         type: string
         description: source of sound to be played when the container is right-clicked
       payload:
         type: object
         description: Payload for right-click action event
+  scrollUp:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll down action event

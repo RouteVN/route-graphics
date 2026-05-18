@@ -1,0 +1,355 @@
+---
+title: Structured fire variations with custom texture aliases
+specs:
+  - custom fire texture aliases should render multiple distinct flame variants in one spec
+  - moving between fire states should preserve deterministic seeded particle layouts per variation
+  - each fire variation should remain visually distinct in shape, density, and spread
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 140
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 220
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 160
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 260
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 140
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 240
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: ember-plume
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#050505"
+      - id: hearth
+        type: rect
+        x: 560
+        y: 586
+        width: 160
+        height: 20
+        fill: "#22140d"
+      - id: fire
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260406
+        modules:
+          emission:
+            mode: continuous
+            rate: 96
+            maxActive: 120
+            duration: infinite
+            particleLifetime:
+              min: 0.45
+              max: 0.95
+            source:
+              kind: rect
+              data:
+                x: 592
+                y: 580
+                width: 96
+                height: 12
+          movement:
+            velocity:
+              kind: directional
+              direction: -90
+              speed:
+                min: 60
+                max: 145
+            acceleration:
+              x: 0
+              y: -210
+            maxSpeed: 250
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-ember-core
+                  weight: 4
+                - src: particle-ember-glow
+                  weight: 2
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.45
+                - time: 0.2
+                  value: 1.1
+                - time: 0.7
+                  value: 0.78
+                - time: 1
+                  value: 0.18
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.1
+                  value: 0.96
+                - time: 0.7
+                  value: 0.62
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -35
+                max: 35
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 140
+              right: 40
+              bottom: 80
+              left: 40
+  - id: wide-hearth
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#080607"
+      - id: hearth
+        type: rect
+        x: 470
+        y: 592
+        width: 340
+        height: 18
+        fill: "#2a160d"
+      - id: fire
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260410
+        modules:
+          emission:
+            mode: continuous
+            rate: 140
+            maxActive: 180
+            duration: infinite
+            particleLifetime:
+              min: 0.55
+              max: 1.2
+            source:
+              kind: rect
+              data:
+                x: 520
+                y: 584
+                width: 240
+                height: 14
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: -100
+                max: -80
+              speed:
+                min: 38
+                max: 110
+            acceleration:
+              x: 0
+              y: -155
+            maxSpeed: 210
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-ember-core
+                  weight: 3
+                - src: particle-ember-glow
+                  weight: 3
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.52
+                - time: 0.24
+                  value: 1.34
+                - time: 0.78
+                  value: 0.82
+                - time: 1
+                  value: 0.24
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.14
+                  value: 0.88
+                - time: 0.72
+                  value: 0.54
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -18
+                max: 18
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 160
+              right: 60
+              bottom: 90
+              left: 60
+  - id: forge-jet
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#030304"
+      - id: vent
+        type: rect
+        x: 594
+        y: 594
+        width: 92
+        height: 14
+        fill: "#24110c"
+      - id: fire
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260411
+        modules:
+          emission:
+            mode: continuous
+            rate: 60
+            maxActive: 80
+            duration: infinite
+            particleLifetime:
+              min: 0.28
+              max: 0.6
+            source:
+              kind: rect
+              data:
+                x: 616
+                y: 586
+                width: 48
+                height: 10
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: -102
+                max: -78
+              speed:
+                min: 120
+                max: 220
+            acceleration:
+              x: 18
+              y: -260
+            maxSpeed: 320
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-ember-core
+                  weight: 5
+                - src: particle-ember-glow
+                  weight: 1
+            scale:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0.24
+                - time: 0.18
+                  value: 0.82
+                - time: 0.7
+                  value: 0.46
+                - time: 1
+                  value: 0.14
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.08
+                  value: 1
+                - time: 0.62
+                  value: 0.58
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -48
+                max: 48
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 160
+              right: 50
+              bottom: 70
+              left: 50

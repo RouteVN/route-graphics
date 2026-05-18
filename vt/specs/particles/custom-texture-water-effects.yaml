@@ -1,0 +1,531 @@
+---
+title: Structured water-drop, splash, and wave variations with custom texture aliases
+specs:
+  - custom water texture aliases should cover drips, splash crowns, fountain spray, and surface wave ripples
+  - moving between water states should preserve deterministic seeded particle layouts per variation
+  - each water variation should remain visually distinct in source shape, motion, and texture usage
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 160
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 260
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 160
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 240
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 120
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 200
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "vtNextState"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 180
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 260
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: ceiling-drip
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#06111a"
+      - id: ledge
+        type: rect
+        x: 420
+        y: 86
+        width: 440
+        height: 20
+        fill: "#183042"
+      - id: pool
+        type: rect
+        x: 0
+        y: 628
+        width: 1280
+        height: 92
+        fill: "#0a2940"
+      - id: drip
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260416
+        modules:
+          emission:
+            mode: continuous
+            rate: 12
+            maxActive: 24
+            duration: infinite
+            particleLifetime:
+              min: 1.1
+              max: 1.55
+            source:
+              kind: point
+              data:
+                x: 640
+                y: 104
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 88
+                max: 92
+              speed:
+                min: 140
+                max: 220
+            acceleration:
+              x: 0
+              y: 540
+            maxSpeed: 900
+            faceVelocity: false
+          appearance:
+            texture: particle-water-drop
+            scale:
+              mode: range
+              min: 0.18
+              max: 0.28
+            alpha:
+              mode: curve
+              keys:
+                - { time: 0, value: 0 }
+                - { time: 0.14, value: 0.92 }
+                - { time: 0.82, value: 0.82 }
+                - { time: 1, value: 0 }
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 360
+              y: 60
+              width: 560
+              height: 680
+  - id: splash-crown
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#07131f"
+      - id: pool
+        type: rect
+        x: 0
+        y: 578
+        width: 1280
+        height: 142
+        fill: "#0f3352"
+      - id: falling-drops
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260417
+        modules:
+          emission:
+            mode: continuous
+            rate: 30
+            maxActive: 30
+            duration: infinite
+            particleLifetime:
+              min: 0.6
+              max: 0.9
+            source:
+              kind: rect
+              data:
+                x: 380
+                y: 84
+                width: 520
+                height: 18
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 88
+                max: 92
+              speed:
+                min: 420
+                max: 610
+            acceleration:
+              x: 0
+              y: 360
+            maxSpeed: 980
+            faceVelocity: false
+          appearance:
+            texture: particle-water-drop
+            scale:
+              mode: range
+              min: 0.14
+              max: 0.22
+            alpha:
+              mode: single
+              value: 0.88
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 340
+              y: 40
+              width: 600
+              height: 700
+      - id: splash
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260418
+        modules:
+          emission:
+            mode: continuous
+            rate: 34
+            maxActive: 28
+            duration: infinite
+            particleLifetime:
+              min: 0.3
+              max: 0.55
+            source:
+              kind: rect
+              data:
+                x: 470
+                y: 572
+                width: 340
+                height: 10
+          movement:
+            velocity:
+              kind: radial
+              angle:
+                min: -140
+                max: -40
+              speed:
+                min: 140
+                max: 260
+            acceleration:
+              x: 0
+              y: 320
+            maxSpeed: 480
+            faceVelocity: false
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-water-splash
+                  weight: 3
+                - src: particle-water-drop
+                  weight: 2
+            scale:
+              mode: range
+              min: 0.12
+              max: 0.22
+            alpha:
+              mode: curve
+              keys:
+                - { time: 0, value: 0 }
+                - { time: 0.18, value: 0.84 }
+                - { time: 0.82, value: 0.42 }
+                - { time: 1, value: 0 }
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 390
+              y: 470
+              width: 500
+              height: 260
+  - id: fountain-spray
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#09192a"
+      - id: basin
+        type: rect
+        x: 474
+        y: 604
+        width: 332
+        height: 44
+        fill: "#153a57"
+      - id: spray
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260419
+        modules:
+          emission:
+            mode: continuous
+            rate: 120
+            maxActive: 110
+            duration: infinite
+            particleLifetime:
+              min: 0.9
+              max: 1.25
+            source:
+              kind: point
+              data:
+                x: 640
+                y: 598
+          movement:
+            velocity:
+              kind: radial
+              angle:
+                min: -124
+                max: -56
+              speed:
+                min: 250
+                max: 430
+            acceleration:
+              x: 0
+              y: 310
+            maxSpeed: 540
+            faceVelocity: false
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-water-drop
+                  weight: 5
+                - src: particle-water-splash
+                  weight: 1
+            scale:
+              mode: range
+              min: 0.12
+              max: 0.2
+            alpha:
+              mode: curve
+              keys:
+                - { time: 0, value: 0 }
+                - { time: 0.12, value: 0.74 }
+                - { time: 0.76, value: 0.5 }
+                - { time: 1, value: 0 }
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 360
+              y: 260
+              width: 560
+              height: 460
+  - id: surface-wave
+    elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#0a1927"
+      - id: far-water
+        type: rect
+        x: 0
+        y: 330
+        width: 1280
+        height: 390
+        fill: "#10304a"
+      - id: near-water
+        type: rect
+        x: 0
+        y: 520
+        width: 1280
+        height: 200
+        fill: "#174261"
+      - id: ripple-field
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260420
+        modules:
+          emission:
+            mode: continuous
+            rate: 22
+            maxActive: 16
+            duration: infinite
+            particleLifetime:
+              min: 1.2
+              max: 1.8
+            source:
+              kind: line
+              data:
+                x1: 220
+                y1: 520
+                x2: 1060
+                y2: 560
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: -6
+                max: 8
+              speed:
+                min: 6
+                max: 24
+            acceleration:
+              x: 8
+              y: 0
+            maxSpeed: 28
+            faceVelocity: false
+          appearance:
+            texture: particle-water-ripple
+            scale:
+              mode: curve
+              keys:
+                - { time: 0, value: 0.42 }
+                - { time: 0.45, value: 0.86 }
+                - { time: 1, value: 1.38 }
+            alpha:
+              mode: curve
+              keys:
+                - { time: 0, value: 0 }
+                - { time: 0.18, value: 0.48 }
+                - { time: 0.76, value: 0.34 }
+                - { time: 1, value: 0 }
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 160
+              y: 440
+              width: 960
+              height: 180
+      - id: crest-spray
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260421
+        modules:
+          emission:
+            mode: continuous
+            rate: 30
+            maxActive: 24
+            duration: infinite
+            particleLifetime:
+              min: 0.42
+              max: 0.7
+            source:
+              kind: line
+              data:
+                x1: 250
+                y1: 518
+                x2: 1030
+                y2: 548
+          movement:
+            velocity:
+              kind: radial
+              angle:
+                min: -120
+                max: -60
+              speed:
+                min: 30
+                max: 90
+            acceleration:
+              x: 0
+              y: 120
+            maxSpeed: 150
+            faceVelocity: false
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-water-splash
+                  weight: 2
+                - src: particle-water-drop
+                  weight: 2
+                - src: particle-water-ripple
+                  weight: 1
+            scale:
+              mode: range
+              min: 0.1
+              max: 0.2
+            alpha:
+              mode: curve
+              keys:
+                - { time: 0, value: 0 }
+                - { time: 0.2, value: 0.72 }
+                - { time: 0.8, value: 0.3 }
+                - { time: 1, value: 0 }
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: 180
+              y: 430
+              width: 940
+              height: 220

@@ -1,13 +1,4 @@
-import {
-  Application,
-  Assets,
-  Graphics,
-  LoaderParserPriority,
-  extensions,
-  ExtensionType,
-  Texture,
-  Rectangle,
-} from "pixi.js";
+import { Application, Assets, Graphics, Texture, Rectangle } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
 import parseElements from "./plugins/elements/parseElements.js";
@@ -21,6 +12,9 @@ import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
+import { createInputDomBridge } from "./util/inputDomBridge.js";
+import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
+import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRuntime.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -29,64 +23,22 @@ import { isDeepEqual } from "./util/isDeepEqual.js";
  * @typedef {import('./types.js').BaseElement} BaseElement
  */
 
-const getPathName = (url) => {
-  return url.split("/").pop();
-};
-
-const createAdvancedBufferLoader = (bufferMap) => ({
-  name: "advancedBufferLoader",
-  priority: 2,
-  bufferMap,
-
-  load: async (_url) => {
-    // For file: URLs, use the full URL as key, otherwise use just the filename
-    let url = _url.startsWith("file:") ? _url : getPathName(_url);
-    const blob = bufferMap[url];
-
-    if (!blob) {
-      throw new Error(`Buffer not found for key: ${url}`);
-    }
-
-    const output = {
-      data: blob.buffer,
-      type: blob.type,
-      metadata: null,
-      alias: url,
-    };
-
-    return output;
-  },
-
-  test: async (url) => !url.startsWith("blob:"),
-
-  testParse: async (_) => true,
-
-  parse: async (asset) => {
-    // If asset is already a Texture, return it directly
-    if (asset instanceof Texture) {
-      return asset;
-    }
-
-    // Convert ArrayBuffer to Blob
-    const blob = new Blob([asset.data], { type: asset.type });
-
-    // Convert Blob to ImageBitmap for images
-    const imageBitmap = await createImageBitmap(blob);
-
-    // Create and return Texture
-    return Texture.from(imageBitmap);
-  },
-
-  unload: async (texture) => texture.destroy(true),
-});
-
 /**
  * @typedef {Object} ApplicationWithAudioStageOptions
  * @property {AudioStage} audioStage
+ * @property {ReturnType<typeof createInputDomBridge>} [inputDomBridge]
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
 
 const createRouteGraphics = () => {
+  const assertAnimationPlaybackMode = (mode) => {
+    if (mode !== "auto" && mode !== "manual") {
+      throw new Error(
+        `Invalid animation playback mode "${mode}". Expected "auto" or "manual".`,
+      );
+    }
+  };
+
   /**
    * @type {ApplicationWithAudioStage}
    */
@@ -104,6 +56,7 @@ const createRouteGraphics = () => {
     elements: [],
     animations: [],
     audio: [],
+    audioEffects: [],
   };
 
   /**
@@ -147,11 +100,6 @@ const createRouteGraphics = () => {
   let hasRenderedOnce = false;
 
   /**
-   * @type {ReturnType<ReturnType<typeof createAdvancedBufferLoader>>}
-   */
-  let advancedLoader;
-
-  /**
    * @type {AbortController|undefined}
    */
   let renderAbortController;
@@ -162,15 +110,37 @@ const createRouteGraphics = () => {
   let debugAnimationListener;
 
   /**
+   * Drives animation updates and presents the current frame.
+   * @type {Function|undefined}
+   */
+  let frameTickerListener;
+
+  /**
+   * @type {"auto" | "manual"}
+   */
+  let animationPlaybackMode = "auto";
+
+  /**
+   * @type {number | null}
+   */
+  let animationPlaybackTimeMS = null;
+
+  /**
+   * @type {Function[]}
+   */
+  let animationBusListenerCleanup = [];
+
+  /**
    * @type {(event: MouseEvent) => void | undefined}
    */
   let canvasContextMenuListener;
 
   /**
-   * Video blob URLs created in loadAssets; revoked on destroy.
-   * @type {Set<string>}
+   * Video source URLs created or attached in loadAssets; revokable blob URLs
+   * are cleaned up on destroy.
+   * @type {Map<string, { url: string, revokable: boolean }>}
    */
-  const videoBlobUrls = new Set();
+  const videoSourceUrls = new Map();
 
   /**
    * Visible stage background graphic.
@@ -211,15 +181,94 @@ const createRouteGraphics = () => {
     return "texture";
   };
 
-  const trackVideoBlobUrl = (url) => {
-    videoBlobUrls.add(url);
+  const trackVideoSourceUrl = (key, url, { revokable = false } = {}) => {
+    videoSourceUrls.set(key, {
+      url,
+      revokable,
+    });
   };
 
   const revokeVideoBlobUrls = () => {
-    for (const url of videoBlobUrls) {
-      URL.revokeObjectURL(url);
+    for (const value of videoSourceUrls.values()) {
+      if (value?.revokable === true && typeof value?.url === "string") {
+        URL.revokeObjectURL(value.url);
+      }
     }
-    videoBlobUrls.clear();
+    videoSourceUrls.clear();
+  };
+
+  const waitForVideoReady = (video, key) =>
+    new Promise((resolve, reject) => {
+      const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
+
+      if (video.readyState >= haveCurrentData) {
+        resolve();
+        return;
+      }
+
+      let timeoutId;
+      const cleanup = () => {
+        window.clearTimeout(timeoutId);
+        video.removeEventListener("loadeddata", onReady);
+        video.removeEventListener("canplay", onReady);
+        video.removeEventListener("error", onError);
+      };
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        const details = [
+          video.error?.code ? `code=${video.error.code}` : null,
+          video.error?.message ? `message=${video.error.message}` : null,
+          `networkState=${video.networkState}`,
+          `readyState=${video.readyState}`,
+          video.currentSrc ? `src=${video.currentSrc}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        reject(
+          new Error(
+            `Failed to load video asset "${key}"${details ? ` (${details})` : ""}.`,
+          ),
+        );
+      };
+
+      timeoutId = window.setTimeout(() => {
+        cleanup();
+        reject(new Error(`Timed out loading video asset "${key}".`));
+      }, 5000);
+
+      video.addEventListener("loadeddata", onReady, { once: true });
+      video.addEventListener("canplay", onReady, { once: true });
+      video.addEventListener("error", onError, { once: true });
+    });
+
+  const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
+    if (Assets.cache.has(key)) {
+      return Assets.cache.get(key);
+    }
+
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.preload = "auto";
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    if (typeof mimeType === "string" && mimeType.length > 0) {
+      video.type = mimeType;
+    }
+    const ready = waitForVideoReady(video, key);
+    video.src = sourceUrl;
+    video.load();
+
+    await ready;
+
+    const texture = Texture.from(video);
+    Assets.cache.set(key, texture);
+
+    return texture;
   };
 
   /**
@@ -276,6 +325,20 @@ const createRouteGraphics = () => {
    * @param {Function} handler
    */
   const renderInternal = (appInstance, parent, nextState, handler) => {
+    if (isDeepEqual(state, nextState)) {
+      if (typeof appInstance.render === "function") {
+        appInstance.render();
+      }
+
+      return;
+    }
+
+    const continuityPlan = buildAnimationContinuityPlan({
+      prevState: state,
+      nextState,
+      activeAnimations: animationBus.getContinuableAnimations(),
+    });
+
     if (renderAbortController) {
       renderAbortController.abort();
     }
@@ -287,8 +350,8 @@ const createRouteGraphics = () => {
 
     applyGlobalObjects(appInstance, state.global, nextState.global);
 
-    // Cancel all running animations synchronously
-    animationBus.cancelAll();
+    // Cancel any running animation that is not explicitly continuing.
+    animationBus.cancelAllExcept(continuityPlan.continuedAnimationIds);
 
     // Render elements (now synchronous)
     renderElements({
@@ -307,15 +370,30 @@ const createRouteGraphics = () => {
     // Flush animation commands to apply initial values immediately
     animationBus.flush();
 
+    if (
+      animationPlaybackMode === "manual" &&
+      animationPlaybackTimeMS !== null
+    ) {
+      animationBus.setTime(animationPlaybackTimeMS);
+    }
+
     // Render audio
     renderAudio({
       app: appInstance,
       prevAudioTree: state.audio,
       nextAudioTree: nextState.audio,
+      prevAudioEffects: state.audioEffects,
+      nextAudioEffects: nextState.audioEffects,
       audioPlugins: plugins.audio,
     });
 
     state = nextState;
+
+    // Present the updated stage immediately instead of relying on Pixi's
+    // implicit auto-render loop, which can fail in VT/manual browser runs.
+    if (typeof appInstance.render === "function") {
+      appInstance.render();
+    }
 
     // Fire stateComplete immediately if no animations/reveals to track
     completionTracker.completeIfEmpty();
@@ -340,6 +418,10 @@ const createRouteGraphics = () => {
     },
 
     extractBase64: async (label) => {
+      if (typeof app.render === "function") {
+        app.render();
+      }
+
       const frame = new Rectangle(
         0,
         0,
@@ -361,6 +443,40 @@ const createRouteGraphics = () => {
       app.stage.on(eventType, callback);
     },
 
+    setAnimationPlaybackMode: (mode) => {
+      assertAnimationPlaybackMode(mode);
+
+      animationPlaybackMode = mode;
+
+      if (animationPlaybackMode !== "manual") {
+        animationPlaybackTimeMS = null;
+        animationBus?.clearTime?.();
+      }
+    },
+
+    setAnimationTime: (timeMS) => {
+      const nextTime = Number(timeMS);
+      if (!Number.isFinite(nextTime)) {
+        throw new Error("Animation time must be a finite number.");
+      }
+
+      if (animationPlaybackMode === "manual") {
+        animationPlaybackTimeMS = nextTime;
+      }
+
+      animationBus.flush();
+      animationBus.setTime(nextTime);
+
+      if (animationPlaybackMode !== "manual") {
+        animationPlaybackTimeMS = null;
+        animationBus.clearTime();
+      }
+
+      if (typeof app.render === "function") {
+        app.render();
+      }
+    },
+
     /**
      *
      * @param {RouteGraphicsInitOptions} options
@@ -375,9 +491,15 @@ const createRouteGraphics = () => {
         backgroundColor,
         debug = false,
         onFirstRender,
+        animationPlaybackMode: nextAnimationPlaybackMode = "auto",
       } = options;
 
       onFirstRenderCallback = onFirstRender;
+      assertAnimationPlaybackMode(nextAnimationPlaybackMode);
+      animationPlaybackMode = nextAnimationPlaybackMode;
+      animationPlaybackTimeMS = null;
+      animationBusListenerCleanup.forEach((cleanup) => cleanup());
+      animationBusListenerCleanup = [];
 
       const parserPlugins = [];
 
@@ -409,8 +531,13 @@ const createRouteGraphics = () => {
         height,
         backgroundColor,
         preference: "webgl",
+        preserveDrawingBuffer: debug === true,
       });
+      if (typeof app.ticker?.remove === "function") {
+        app.ticker.remove(app.render, app);
+      }
       app.debug = debug;
+      app.inputDomBridge = createInputDomBridge({ app });
       canvasContextMenuListener = (event) => {
         event.preventDefault();
       };
@@ -426,12 +553,42 @@ const createRouteGraphics = () => {
 
       // Create animation bus and attach to ticker
       animationBus = createAnimationBus();
+      const renderManualFrame = () => {
+        if (
+          animationPlaybackMode === "manual" &&
+          typeof app.render === "function"
+        ) {
+          app.render();
+        }
+      };
+      animationBusListenerCleanup = [
+        animationBus.on("started", renderManualFrame),
+        animationBus.on("completed", renderManualFrame),
+        animationBus.on("cancelled", renderManualFrame),
+      ];
       if (!debug) {
-        app.ticker.add((time) => animationBus.tick(time.deltaMS));
+        frameTickerListener = (time) => {
+          if (animationPlaybackMode !== "auto") {
+            return;
+          }
+
+          animationBus.tick(time.deltaMS);
+          if (typeof app.render === "function") {
+            app.render();
+          }
+        };
+        app.ticker.add(frameTickerListener);
       } else {
         debugAnimationListener = (event) => {
+          if (animationPlaybackMode !== "auto") {
+            return;
+          }
+
           if (event?.detail?.deltaMS) {
             animationBus.tick(Number(event.detail.deltaMS));
+            if (typeof app.render === "function") {
+              app.render();
+            }
           }
         };
         window.addEventListener("snapShotKeyFrame", debugAnimationListener);
@@ -449,6 +606,10 @@ const createRouteGraphics = () => {
         window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
         debugAnimationListener = undefined;
       }
+      if (frameTickerListener && typeof app?.ticker?.remove === "function") {
+        app.ticker.remove(frameTickerListener);
+        frameTickerListener = undefined;
+      }
       if (canvasContextMenuListener && app?.canvas) {
         app.canvas.removeEventListener(
           "contextmenu",
@@ -456,8 +617,11 @@ const createRouteGraphics = () => {
         );
         canvasContextMenuListener = undefined;
       }
+      app?.inputDomBridge?.destroy?.();
       keyboardManager?.destroy();
       clearPendingSounds();
+      animationBusListenerCleanup.forEach((cleanup) => cleanup());
+      animationBusListenerCleanup = [];
       if (animationBus) animationBus.destroy();
       if (app?.audioStage) app.audioStage.destroy();
 
@@ -476,20 +640,19 @@ const createRouteGraphics = () => {
 
       if (app?.stage) {
         pauseVideosRecursively(app.stage);
+        cleanupParticlesInTree({ app, root: app.stage });
       }
 
       if (app) app.destroy();
+      animationPlaybackMode = "auto";
+      animationPlaybackTimeMS = null;
       backgroundGraphic = undefined;
-      if (advancedLoader) {
-        extensions.remove(advancedLoader);
-        advancedLoader = undefined;
-      }
       revokeVideoBlobUrls();
     },
 
     /**
-     * Load assets using buffer data stored in memory
-     * @param {Object<string, {buffer: ArrayBuffer, type: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
+     * Load assets from either raw buffers or direct source URLs.
+     * @param {Object<string, {buffer?: ArrayBuffer, url?: string, type: string, source?: string}>} assetBufferMap - Result from assetBufferManager.getBufferMap()
      * @returns {Promise<Array>} Promise that resolves to an array of loaded assets
      */
     loadAssets: async (assetBufferMap) => {
@@ -535,44 +698,66 @@ const createRouteGraphics = () => {
         }),
       );
 
-      if (!advancedLoader) {
-        advancedLoader = createAdvancedBufferLoader(assetsByType.texture);
+      const texturePromises = Object.entries(assetsByType.texture).map(
+        async ([key, asset]) => {
+          if (Assets.cache.has(key)) {
+            return Assets.cache.get(key);
+          }
 
-        extensions.add({
-          name: "advanced-buffer-loader",
-          extension: ExtensionType.Asset,
-          priority: LoaderParserPriority.High,
-          loader: advancedLoader,
-        });
+          if (asset?.source === "url" && typeof asset?.url === "string") {
+            return Assets.load({
+              alias: key,
+              src: asset.url,
+            });
+          }
 
-        if (typeof Assets.registerPlugin === "function") {
-          Assets.registerPlugin(advancedLoader);
-        }
-      } else {
-        // Merge new texture assets into existing buffer map
-        Object.assign(advancedLoader.bufferMap, assetsByType.texture);
-      }
-
-      // Load video assets - create blob URLs and load via PixiJS default video loader
-      const videoPromises = Object.entries(assetsByType.video).map(
-        ([key, asset]) => {
           const blob = new Blob([asset.buffer], { type: asset.type });
-          const blobUrl = URL.createObjectURL(blob);
-          trackVideoBlobUrl(blobUrl);
-          return Assets.load({
-            alias: key,
-            src: blobUrl,
-            loadParser: "loadVideo",
-          }).catch((error) => {
-            videoBlobUrls.delete(blobUrl);
-            URL.revokeObjectURL(blobUrl);
-            throw error;
-          });
+          const imageBitmap = await createImageBitmap(blob);
+          const texture = Texture.from(imageBitmap);
+
+          // Alias the logical asset key so Texture.from("key") resolves
+          // directly from the cache instead of attempting a relative URL fetch.
+          Assets.cache.set(key, texture);
+
+          return texture;
         },
       );
 
-      const textureUrls = Object.keys(assetsByType.texture);
-      const texturePromises = textureUrls.map((url) => Assets.load(url));
+      // Load video assets via direct URL when possible, otherwise fall back
+      // to a revokable blob URL for buffer-backed inputs.
+      const videoPromises = Object.entries(assetsByType.video).map(
+        async ([key, asset]) => {
+          if (Assets.cache.has(key)) {
+            return Assets.cache.get(key);
+          }
+
+          const sourceUrl =
+            asset?.source === "url" && typeof asset?.url === "string"
+              ? asset.url
+              : URL.createObjectURL(
+                  new Blob([asset.buffer], { type: asset.type }),
+                );
+          const isRevokableBlobUrl = asset?.source !== "url";
+
+          trackVideoSourceUrl(key, sourceUrl, {
+            revokable: isRevokableBlobUrl,
+          });
+
+          try {
+            return await loadVideoTexture({
+              key,
+              sourceUrl,
+              mimeType: asset?.type,
+            });
+          } catch (error) {
+            videoSourceUrls.delete(key);
+            if (isRevokableBlobUrl) {
+              URL.revokeObjectURL(sourceUrl);
+            }
+            throw error;
+          }
+        },
+      );
 
       return Promise.all([...texturePromises, ...videoPromises]);
     },
@@ -600,6 +785,9 @@ const createRouteGraphics = () => {
           app.renderer.height,
           color,
         );
+      }
+      if (typeof app.render === "function") {
+        app.render();
       }
     },
 

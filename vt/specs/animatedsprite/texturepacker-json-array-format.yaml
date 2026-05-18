@@ -1,0 +1,183 @@
+---
+title: TexturePacker JSON Array Format
+specs:
+  - spritesheet animation should accept TexturePacker-style JSON Array atlases
+  - snapshot events should step through a 12-frame TexturePacker array deterministically
+steps:
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 1
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 2
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 3
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 4
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 5
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 6
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 7
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 8
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 9
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 10
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 11
+      elementId: "texturepacker-spritesheet-animation"
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: texturepacker-spritesheet-animation
+        type: spritesheet-animation
+        x: 200
+        "y": 150
+        width: 100
+        height: 100
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            - filename: rollSequence0000.png
+              frame: { x: 483, y: 692, w: 169, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 3, y: 4, w: 169, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0001.png
+              frame: { x: 468, y: 2, w: 169, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 3, y: 4, w: 169, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0002.png
+              frame: { x: 639, y: 2, w: 167, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 3, y: 5, w: 167, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0003.png
+              frame: { x: 808, y: 2, w: 165, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 3, y: 5, w: 165, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0004.png
+              frame: { x: 654, y: 688, w: 161, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 3, y: 5, w: 161, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0005.png
+              frame: { x: 817, y: 458, w: 151, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 6, y: 5, w: 151, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0006.png
+              frame: { x: 817, y: 686, w: 137, h: 226 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 11, y: 5, w: 137, h: 226 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0007.png
+              frame: { x: 290, y: 2, w: 113, h: 228 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 22, y: 3, w: 113, h: 228 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0008.png
+              frame: { x: 284, y: 692, w: 79, h: 228 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 40, y: 3, w: 79, h: 228 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0009.png
+              frame: { x: 405, y: 2, w: 61, h: 228 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 53, y: 3, w: 61, h: 228 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0010.png
+              frame: { x: 444, y: 462, w: 49, h: 228 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 64, y: 3, w: 49, h: 228 }
+              sourceSize: { w: 175, h: 240 }
+            - filename: rollSequence0011.png
+              frame: { x: 377, y: 462, w: 65, h: 228 }
+              rotated: false
+              trimmed: true
+              spriteSourceSize: { x: 52, y: 3, w: 65, h: 228 }
+              sourceSize: { w: 175, h: 240 }
+          animations:
+            pulse:
+              - rollSequence0000.png
+              - rollSequence0001.png
+              - rollSequence0002.png
+              - rollSequence0003.png
+              - rollSequence0004.png
+              - rollSequence0005.png
+              - rollSequence0006.png
+              - rollSequence0007.png
+              - rollSequence0008.png
+              - rollSequence0009.png
+              - rollSequence0010.png
+              - rollSequence0011.png
+          meta:
+            app: https://www.codeandweb.com/texturepacker
+            scale: "1"
+        playback:
+          clip: pulse
+          fps: 12
+          loop: true

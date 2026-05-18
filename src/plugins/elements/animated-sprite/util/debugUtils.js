@@ -1,10 +1,11 @@
 /**
- * Setup debug mode for animated sprite
+ * Setup debug mode for spritesheet animation
  * @param {import("pixi.js").AnimatedSprite} animatedSprite
  * @param {string} elementId
  * @param {boolean} isDebug
+ * @param {() => void} [render]
  */
-export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
+export const setupDebugMode = (animatedSprite, elementId, isDebug, render) => {
   if (!isDebug) return;
 
   const handler = (event) => {
@@ -13,6 +14,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
       typeof event?.detail?.frameIndex === "number"
     ) {
       animatedSprite.gotoAndStop(event?.detail?.frameIndex);
+      render?.();
     }
   };
 
@@ -21,7 +23,7 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug) => {
 };
 
 /**
- * Cleanup debug mode for animated sprite
+ * Cleanup debug mode for spritesheet animation
  * @param {import("pixi.js").AnimatedSprite} animatedSprite
  */
 export const cleanupDebugMode = (animatedSprite) => {

@@ -1,0 +1,19 @@
+width: 1280
+height: 720
+backgroundColor: "#101820"
+elements:
+  - id: title
+    type: text
+    x: 80
+    y: 80
+    content: "Hello PNG"
+    textStyle:
+      fill: "#ffffff"
+      fontSize: 48
+  - id: bar
+    type: rect
+    x: 80
+    y: 160
+    width: 320
+    height: 24
+    fill: "#4fd1c5"

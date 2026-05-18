@@ -35,7 +35,8 @@ states:
             src: circle-green
             width: 8
             height: 8
-          gap: 15
+          gapX: 15
+          gapY: 15
   - elements:
       - id: no-animation-text
         type: text-revealing
@@ -57,4 +58,5 @@ states:
             src: circle-green
             width: 8
             height: 8
-          gap: 15
+          gapX: 15
+          gapY: 15

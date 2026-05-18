@@ -7,14 +7,14 @@ specs:
   - text content should be visible after animation
 steps:
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 500
   - action: screenshot
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 500
   - action: screenshot
@@ -26,19 +26,20 @@ states:
         type: text
         content: Hello World!
         x: 250
-        "y": 200
+        'y': 200
         textStyle:
           fontSize: 48
-          fill: "#737373"
+          fill: '#737373'
           fontFamily: Arial
     animations:
       - id: text-fade-in
         targetId: text1
-        type: live
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 1000
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

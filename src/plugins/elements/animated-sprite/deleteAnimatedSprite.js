@@ -2,7 +2,7 @@ import { cleanupDebugMode } from "./util/debugUtils.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 
 /**
- * Delete animated sprite element
+ * Delete spritesheet animation element
  * @param {import("../elementPlugin.js").DeleteElementOptions} params
  */
 export const deleteAnimatedSprite = ({

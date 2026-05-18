@@ -8,6 +8,35 @@ required:
   - x
   - y
 $def:
+  textShadow:
+    description: Optional text shadow. Use null in an interaction style to remove a base shadow.
+    oneOf:
+      - type: "null"
+      - type: object
+        properties:
+          color:
+            type: string
+            description: Shadow color
+            default: black
+          alpha:
+            type: number
+            description: Shadow opacity (0-1)
+            minimum: 0
+            maximum: 1
+            default: 1
+          blur:
+            type: number
+            description: Shadow blur radius in pixels
+            minimum: 0
+            default: 0
+          offsetX:
+            type: number
+            description: Horizontal shadow offset in pixels
+            default: 2
+          offsetY:
+            type: number
+            description: Vertical shadow offset in pixels
+            default: 2
   textStyle:
     type: object
     properties:
@@ -46,6 +75,34 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+      shadow:
+        "$ref": "#/$def/textShadow"
+  contentSegment:
+    type: object
+    required:
+      - text
+    properties:
+      text:
+        type: string
+      textStyle:
+        "$ref": "#/$def/textStyle"
+      furigana:
+        type: object
+        properties:
+          text:
+            type: string
+          textStyle:
+            "$ref": "#/$def/textStyle"
+          placement:
+            type: string
+            enum: [top, bottom]
+            default: top
+            description: Side of the base text where furigana is placed.
+          gap:
+            type: number
+            minimum: 0
+            default: 0
+            description: Additional distance in pixels between the furigana and base text.
 properties:
   id:
     type: string
@@ -54,8 +111,12 @@ properties:
     const: text
     description: Element type, must be 'text'
   content:
-    type: string
-    description: The text content to display
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          "$ref": "#/$def/contentSegment"
+    description: The text content to display. Strings render as one Pixi text object; arrays render static rich text segments.
     default: ""
   width:
     type: number
@@ -106,10 +167,10 @@ properties:
         description: URL to sound file to play on click
       soundVolume:
         type: number
-        description: Volume. 0 means muted. 1000 means original full volume.
+        description: Volume. 0 means muted. 100 means original full volume.
         minimum: 0
-        maximum: 1000
-        default: 1000
+        maximum: 100
+        default: 100
       payload:
         type: object
         description: Payload for click action event
@@ -124,3 +185,15 @@ properties:
       payload:
         type: object
         description: Payload for right-click action event
+  scrollUp:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll up action event
+  scrollDown:
+    type: object
+    properties:
+      payload:
+        type: object
+        description: Payload for scroll down action event

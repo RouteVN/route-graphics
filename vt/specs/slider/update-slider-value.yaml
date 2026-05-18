@@ -1,10 +1,10 @@
 ---
 title: Update Slider Value
-description: Test updating slider initial value and position
+description: Test updating slider initial value and split-track reveal
 specs:
   - slider should update its thumb position when initialValue changes
-  - slider should maintain the same bar properties
-  - slider should recalculate normalized value correctly
+  - slider should preserve the inactive track while resizing the active reveal
+  - slider should recalculate the split-track mask correctly
 steps:
   - action: keypress
     key: "n"
@@ -19,7 +19,8 @@ states:
         type: slider
         direction: horizontal
         thumbSrc: horizontal-idle-thumb
-        barSrc: horizontal-idle-bar
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
         width: 200
         height: 20
         x: 50
@@ -37,7 +38,8 @@ states:
         type: slider
         direction: horizontal
         thumbSrc: horizontal-idle-thumb
-        barSrc: horizontal-idle-bar
+        barSrc: slider-split-active-bar
+        inactiveBarSrc: slider-split-inactive-bar
         width: 200
         height: 20
         x: 50

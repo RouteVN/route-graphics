@@ -1,0 +1,95 @@
+---
+title: Rect Persistent Update Continuity
+description: A persistent rect update keeps its in-flight horizontal motion across an unrelated sibling rerender.
+specs:
+  - the background rect should keep its carried-over horizontal position when the second render only changes a sibling
+  - the foreground rect should move in the second state without restarting the background update
+  - the background rect should continue advancing from the carried-over time after the second render
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 100
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: bg
+        type: rect
+        x: 80
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+      - id: front
+        type: rect
+        x: 900
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+  - id: update-start
+    elements:
+      - id: bg
+        type: rect
+        x: 520
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+      - id: front
+        type: rect
+        x: 900
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    animations:
+      - id: bg-grow
+        targetId: bg
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear
+  - id: update-carried-forward
+    elements:
+      - id: bg
+        type: rect
+        x: 520
+        y: 120
+        width: 320
+        height: 220
+        fill: "#FFFFFF"
+      - id: front
+        type: rect
+        x: 700
+        y: 160
+        width: 180
+        height: 180
+        fill: "#4D4D4D"
+    animations:
+      - id: bg-grow
+        targetId: bg
+        type: update
+        playback:
+          continuity: persistent
+        tween:
+          x:
+            auto:
+              duration: 1000
+              easing: linear

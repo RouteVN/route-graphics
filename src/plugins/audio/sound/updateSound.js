@@ -3,6 +3,7 @@ import {
   hasPendingSound,
   scheduleSound,
 } from "./addSound.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 
 /**
  * Update sound element on the audio stage
@@ -13,7 +14,7 @@ import {
  */
 export const updateSound = ({ app, prevElement, nextElement }) => {
   const id = prevElement.id;
-  const nextDelay = nextElement.delay ?? 0;
+  const nextDelay = nextElement.startDelayMs ?? 0;
 
   // Delayed sound updates are rescheduled from scratch.
   if (nextDelay > 0) {
@@ -29,7 +30,7 @@ export const updateSound = ({ app, prevElement, nextElement }) => {
       id,
       url: nextElement.src,
       loop: nextElement.loop ?? false,
-      volume: (nextElement.volume ?? 800) / 1000,
+      volume: normalizeVolume(nextElement.volume, 100),
     });
     return;
   }
@@ -40,12 +41,12 @@ export const updateSound = ({ app, prevElement, nextElement }) => {
       id,
       url: nextElement.src,
       loop: nextElement.loop ?? false,
-      volume: (nextElement.volume ?? 800) / 1000,
+      volume: normalizeVolume(nextElement.volume, 100),
     });
     return;
   }
 
   audioElement.url = nextElement.src;
   audioElement.loop = nextElement.loop ?? false;
-  audioElement.volume = (nextElement.volume ?? 800) / 1000;
+  audioElement.volume = normalizeVolume(nextElement.volume, 100);
 };

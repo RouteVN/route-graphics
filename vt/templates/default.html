@@ -42,7 +42,11 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(24, 28, 33, 0.92), rgba(11, 14, 18, 0.92)),
+          linear-gradient(
+            180deg,
+            rgba(24, 28, 33, 0.92),
+            rgba(11, 14, 18, 0.92)
+          ),
           rgba(8, 10, 12, 0.92);
         backdrop-filter: blur(10px);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
@@ -154,7 +158,9 @@
         }
       }
     </style>
-    <script id="vt-state" type="text/plain">{{ content }}</script>
+    <script id="vt-state" type="text/plain">
+      {{ content }}
+    </script>
     <script type="module">
       import createRouteGraphics, {
         Assets,
@@ -164,6 +170,7 @@
         spritePlugin,
         videoPlugin,
         sliderPlugin,
+        inputPlugin,
         containerPlugin,
         textRevealingPlugin,
         animatedSpritePlugin,
@@ -182,6 +189,66 @@
         "circle-blue": { url: "/public/circle-blue.png", type: "image/png" },
         "circle-red": { url: "/public/circle-red.png", type: "image/png" },
         "circle-green": { url: "/public/circle-green.png", type: "image/png" },
+        "sprite-mask-asym-outgoing": {
+          url: "/public/sprite-mask-asym-outgoing.png",
+          type: "image/png",
+        },
+        "sprite-mask-asym-incoming": {
+          url: "/public/sprite-mask-asym-incoming.png",
+          type: "image/png",
+        },
+        "sprite-mask-asym-red": {
+          url: "/public/sprite-mask-asym-red.png",
+          type: "image/png",
+        },
+        "sprite-mask-asym-alpha": {
+          url: "/public/sprite-mask-asym-alpha.png",
+          type: "image/png",
+        },
+        "particle-ember-core": {
+          url: "/public/particle-ember-core.svg",
+          type: "image/svg+xml",
+        },
+        "particle-ember-glow": {
+          url: "/public/particle-ember-glow.svg",
+          type: "image/svg+xml",
+        },
+        "particle-smoke-soft": {
+          url: "/public/particle-smoke-soft.svg",
+          type: "image/svg+xml",
+        },
+        "particle-smoke-ring": {
+          url: "/public/particle-smoke-ring.svg",
+          type: "image/svg+xml",
+        },
+        "particle-snow-crystal": {
+          url: "/public/particle-snow-crystal.svg",
+          type: "image/svg+xml",
+        },
+        "particle-snow-soft": {
+          url: "/public/particle-snow-soft.svg",
+          type: "image/svg+xml",
+        },
+        "particle-rain-streak": {
+          url: "/public/particle-rain-streak.svg",
+          type: "image/svg+xml",
+        },
+        "particle-rain-drop": {
+          url: "/public/particle-rain-drop.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-drop": {
+          url: "/public/particle-water-drop.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-splash": {
+          url: "/public/particle-water-splash.svg",
+          type: "image/svg+xml",
+        },
+        "particle-water-ripple": {
+          url: "/public/particle-water-ripple.svg",
+          type: "image/svg+xml",
+        },
         slider: { url: "/public/slider.png", type: "image/png" },
         "horizontal-idle-bar": {
           url: "/public/horizontal_idle_bar.png",
@@ -189,6 +256,22 @@
         },
         "horizontal-hover-bar": {
           url: "/public/horizontal_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-active-bar": {
+          url: "/public/slider_split_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-bar": {
+          url: "/public/slider_split_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-active-hover-bar": {
+          url: "/public/slider_split_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-inactive-hover-bar": {
+          url: "/public/slider_split_inactive_hover_bar.png",
           type: "image/png",
         },
         "horizontal-idle-thumb": {
@@ -205,6 +288,22 @@
         },
         "vertical-hover-bar": {
           url: "/public/vertical_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-bar": {
+          url: "/public/slider_split_vertical_active_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-bar": {
+          url: "/public/slider_split_vertical_inactive_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-active-hover-bar": {
+          url: "/public/slider_split_vertical_active_hover_bar.png",
+          type: "image/png",
+        },
+        "slider-split-vertical-inactive-hover-bar": {
+          url: "/public/slider_split_vertical_inactive_hover_bar.png",
           type: "image/png",
         },
         "vertical-idle-thumb": {
@@ -227,6 +326,14 @@
           url: "/public/mask_left_band.png",
           type: "image/png",
         },
+        "mask-empty": {
+          url: "/public/mask_empty.svg",
+          type: "image/svg+xml",
+        },
+        "mask-full": {
+          url: "/public/mask_full.svg",
+          type: "image/svg+xml",
+        },
         "mask-center-band": {
           url: "/public/mask_center_band.png",
           type: "image/png",
@@ -235,16 +342,30 @@
           url: "/public/mask_right_band.png",
           type: "image/png",
         },
+        "mask-rgba-channels": {
+          url: "/public/mask_rgba_channels.png",
+          type: "image/png",
+        },
+        "mask-clockwipe": {
+          url: "/public/mask_clockwipe.png",
+          type: "image/png",
+        },
         "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+        "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
+        "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
+        "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
       };
 
-      // Keep video/audio opt-in for non-debug/manual browser runs.
-      if (!window?.RTGL_VT_DEBUG) {
+      const shouldLoadOptionalVideo =
+        !window?.RTGL_VT_DEBUG &&
+        (window?.RTGL_VT_INCLUDE_MEDIA === true ||
+          new URLSearchParams(window.location.search).get("media") === "1");
+
+      // Keep video opt-in for manual browser runs so pages that do not use
+      // video do not block on video preload.
+      if (shouldLoadOptionalVideo) {
         Object.assign(assetsObject, {
-          "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
-          "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
-          "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
           "video-sample": {
             url: "/public/video_sample.mp4",
             type: "video/mp4",
@@ -260,7 +381,7 @@
       await assetBufferManager.load(assetsObject);
 
       const app = createRouteGraphics();
-      window.takeVtScreenshotBase64 = async () => await app.extractBase64();
+      window.__VT_ROUTE_GRAPHICS__ = app;
       const plugins = {
         elements: [
           textPlugin,
@@ -268,6 +389,7 @@
           spritePlugin,
           videoPlugin,
           sliderPlugin,
+          inputPlugin,
           containerPlugin,
           textRevealingPlugin,
           animatedSpritePlugin,
@@ -277,13 +399,48 @@
         audio: [soundPlugin],
       };
       let index = 0;
+      let advanceToNextStateOnRenderComplete = false;
       const vtStateSource =
-        document.getElementById("vt-state")?.textContent ?? "";
+        document.getElementById("vt-state")?.textContent?.trim() ?? "";
       const vtDocuments = parseAllDocuments(vtStateSource).map(
         (doc) => doc.toJSON() ?? {},
       );
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
+      const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      const stateHasAudio = (state) =>
+        (Array.isArray(state?.audio) && state.audio.length > 0) ||
+        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0);
+      const hasAudioStates = states.some(stateHasAudio);
+      if (!useBrowserScreenshot) {
+        let vtScreenshotHookPrimed = false;
+        const waitForStableScreenshotFrame = async () => {
+          await new Promise((resolve) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(resolve);
+            });
+          });
+        };
+        window.takeVtScreenshotBase64 = async () => {
+          await waitForStableScreenshotFrame();
+
+          // Pixi extraction can return an empty first frame immediately after mount.
+          // Warm the hook once and return the second capture for the first caller.
+          if (!vtScreenshotHookPrimed) {
+            vtScreenshotHookPrimed = true;
+            try {
+              await app.extractBase64();
+            } catch {}
+            await waitForStableScreenshotFrame();
+          }
+
+          return await app.extractBase64();
+        };
+      } else {
+        document.documentElement.classList.add("vt-browser-screenshot");
+      }
+      window.__VT_STATE_DATA__ = vtState;
+      window.__VT_STATES__ = states;
       const pager = document.createElement("nav");
       pager.className = "vt-state-pager";
       pager.setAttribute("aria-label", "State navigation");
@@ -334,10 +491,23 @@
             .filter((event) => event.name === eventName)
             .map((event) => event.payload),
       };
+      let vtReadySignaled = false;
+      const signalVtReady = async () => {
+        if (vtReadySignaled) {
+          return;
+        }
+
+        vtReadySignaled = true;
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("vt:ready"));
+          }, 0);
+        });
+      };
 
       const updatePager = () => {
         const hasMultipleStates = states.length > 1;
-        pager.hidden = !hasMultipleStates;
+        pager.hidden = useBrowserScreenshot || !hasMultipleStates;
         if (!hasMultipleStates) {
           return;
         }
@@ -377,6 +547,7 @@
           elements: state.elements ?? [],
           animations: state.animations ?? [],
           audio: state.audio ?? [],
+          audioEffects: state.audioEffects ?? [],
           global: state.global ?? {},
         };
 
@@ -386,6 +557,33 @@
         }
         updatePager();
       };
+
+      let hasStartedAudioFixtureFromPointer = false;
+      const startAudioFixtureFromPointer = (event) => {
+        if (!hasAudioStates || hasStartedAudioFixtureFromPointer) {
+          return;
+        }
+        if (event.target?.closest?.(".vt-state-pager")) {
+          return;
+        }
+        if (stateHasAudio(states[index])) {
+          return;
+        }
+
+        const nextAudioStateIndex = states.findIndex(
+          (state, stateIndex) => stateIndex > index && stateHasAudio(state),
+        );
+        if (nextAudioStateIndex === -1) {
+          return;
+        }
+
+        hasStartedAudioFixtureFromPointer = true;
+        renderState(nextAudioStateIndex);
+      };
+
+      document.addEventListener("pointerdown", startAudioFixtureFromPointer, {
+        capture: true,
+      });
 
       await app.init({
         width: 1280,
@@ -401,22 +599,31 @@
           }
           window.__VT_ALL_EVENTS__.push(eventData);
           if (eventName === "renderComplete") {
+            if (
+              advanceToNextStateOnRenderComplete &&
+              payload?.aborted !== true
+            ) {
+              advanceToNextStateOnRenderComplete = false;
+              renderState(index + 1);
+            }
             return;
           }
           window.__VT_EVENTS__.push(eventData);
         },
         onFirstRender: () => {
-          window.dispatchEvent(new CustomEvent("vt:ready"));
+          void signalVtReady();
         },
         debug: window?.RTGL_VT_DEBUG ?? false,
       });
+      window.__VT_ROUTE_GRAPHICS__ = app;
       await app.loadAssets(assetBufferManager.getBufferMap());
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
       if (states.length > 0) {
-        renderState(index);
+        renderState(index, { doubleRender: true });
       } else {
         updatePager();
+        signalVtReady();
       }
 
       prevButton.addEventListener("click", () => {
@@ -428,6 +635,16 @@
       });
 
       const listenEvents = () => {
+        const dispatchVtKeyboardEvent = (type, options) => {
+          document.dispatchEvent(
+            new KeyboardEvent(type, {
+              bubbles: true,
+              cancelable: true,
+              ...options,
+            }),
+          );
+        };
+
         document.addEventListener("keydown", async (e) => {
           if (e.shiftKey && e.key !== "Shift") {
             if (states.length > index + 1) {
@@ -446,6 +663,75 @@
 
         window.addEventListener("clearEvents", () => {
           clearEvents();
+        });
+
+        window.addEventListener("vtKeyboardShiftCReleaseShiftFirst", () => {
+          dispatchVtKeyboardEvent("keydown", {
+            key: "Shift",
+            code: "ShiftLeft",
+            keyCode: 16,
+            which: 16,
+            shiftKey: true,
+          });
+          dispatchVtKeyboardEvent("keydown", {
+            key: "c",
+            code: "KeyC",
+            keyCode: 67,
+            which: 67,
+            shiftKey: true,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "Shift",
+            code: "ShiftLeft",
+            keyCode: 16,
+            which: 16,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "c",
+            code: "KeyC",
+            keyCode: 67,
+            which: 67,
+          });
+        });
+
+        window.addEventListener("vtKeyboardNumpad0", () => {
+          dispatchVtKeyboardEvent("keydown", {
+            key: "0",
+            code: "Numpad0",
+            keyCode: 96,
+            which: 96,
+          });
+          dispatchVtKeyboardEvent("keyup", {
+            key: "0",
+            code: "Numpad0",
+            keyCode: 96,
+            which: 96,
+          });
+        });
+
+        window.addEventListener("primeVtScreenshot", async () => {
+          if (typeof window.takeVtScreenshotBase64 !== "function") {
+            return;
+          }
+          try {
+            await window.takeVtScreenshotBase64();
+          } catch {}
+        });
+
+        window.addEventListener("vtNextState", () => {
+          if (states.length > index + 1) {
+            renderState(index + 1);
+          }
+        });
+
+        window.addEventListener("vtNextStateOnRenderComplete", () => {
+          advanceToNextStateOnRenderComplete = true;
+        });
+
+        window.addEventListener("vtPrevState", () => {
+          if (index - 1 >= 0) {
+            renderState(index - 1);
+          }
         });
       };
       listenEvents();

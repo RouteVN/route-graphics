@@ -7,9 +7,9 @@ steps:
   - action: customEvent
     name: clearEvents
   - action: keypress
-    key: "n"
+    key: 'n'
   - action: customEvent
-    name: "snapShotKeyFrame"
+    name: snapShotKeyFrame
     detail:
       deltaMS: 700
   - action: screenshot
@@ -29,28 +29,29 @@ states:
       - id: baseline-rect
         type: rect
         x: 80
-        "y": 80
+        'y': 80
         width: 220
         height: 120
-        fill: "#4D4D4D"
+        fill: '#4D4D4D'
   - id: animation-only
     elements:
       - id: fade-rect
         type: rect
         x: 320
-        "y": 180
+        'y': 180
         width: 280
         height: 180
-        fill: "#FFFFFF"
+        fill: '#FFFFFF'
         alpha: 1
     animations:
       - id: fade-in
         targetId: fade-rect
-        type: live
-        tween:
-          alpha:
-            initialValue: 0
-            keyframes:
-              - duration: 600
-                value: 1
-                easing: linear
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 600
+                  value: 1
+                  easing: linear

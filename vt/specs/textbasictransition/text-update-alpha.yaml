@@ -45,7 +45,7 @@ states:
     animations:
       - id: text-fade
         targetId: text1
-        type: live
+        type: update
         tween:
           alpha:
             keyframes:

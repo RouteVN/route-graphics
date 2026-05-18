@@ -1,18 +1,29 @@
 import { Texture, Sprite } from "pixi.js";
 import { syncVideoPlaybackTracking } from "./playbackTracking.js";
+import { queueDeferredVideoPlay } from "../renderContext.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Add video element to the stage
  * @param {import("../elementPlugin.js").AddElementOptions} params
  */
 export const addVideo = ({
-  app,
   parent,
   element,
   animations,
-  eventHandler,
   animationBus,
+  renderContext,
   completionTracker,
   zIndex,
 }) => {
@@ -24,7 +35,7 @@ export const addVideo = ({
   video.pause();
   video.currentTime = 0;
   video.loop = loop ?? false;
-  video.volume = volume / 1000;
+  video.volume = normalizeVolume(volume);
   video.muted = false;
 
   const sprite = new Sprite(texture);
@@ -38,6 +49,17 @@ export const addVideo = ({
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha ?? 1;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(sprite, element.filters, {
+    width,
+    height,
+    force: shouldForceShaderProgress,
+  });
 
   syncVideoPlaybackTracking({
     videoElement: sprite,
@@ -46,7 +68,7 @@ export const addVideo = ({
     completionTracker,
   });
 
-  video.play();
+  queueDeferredVideoPlay(renderContext, video);
 
   parent.addChild(sprite);
 
@@ -56,6 +78,17 @@ export const addVideo = ({
     animationBus,
     completionTracker,
     element: sprite,
-    targetState: { x, y, width, height, alpha: alpha ?? 1 },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha: alpha ?? 1,
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
+    },
+    renderContext,
   });
 };

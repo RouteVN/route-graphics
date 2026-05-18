@@ -1,0 +1,66 @@
+---
+title: Update Text Revealing Continue From Offset Soft Wipe
+description: |
+  Same text-revealing element id can append content and start softWipe from the
+  already-visible prefix rather than wiping the whole line again.
+specs:
+  - first state renders the completed prefix
+  - second state starts with the prefix already revealed through the softWipe mask
+  - softWipe continues across the appended suffix
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 900
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-prefix-complete
+    elements:
+      - id: text-revealing-continue-soft-wipe
+        type: text-revealing
+        content:
+          - text: "Held prefix: "
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 70
+        y: 130
+        width: 980
+        alpha: 1
+        speed: 100
+        revealEffect: softWipe
+  - id: soft-wipe-continue-from-prefix
+    elements:
+      - id: text-revealing-continue-soft-wipe
+        type: text-revealing
+        content:
+          - text: "Held prefix: "
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+          - text: "continuing soft wipe text from the same dialogue line."
+            textStyle:
+              fontSize: 30
+              fill: "#8BD3FF"
+              fontFamily: Arial
+        x: 70
+        y: 130
+        width: 980
+        alpha: 1
+        speed: 18
+        initialRevealedCharacters: 13
+        revealEffect: softWipe
+        softWipe:
+          easing: linear
+          softness: 0.75

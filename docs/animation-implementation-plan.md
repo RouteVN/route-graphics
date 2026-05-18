@@ -1,13 +1,13 @@
 # Animation Implementation Plan
 
-Last updated: 2026-03-12
+Last updated: 2026-04-23
 
 ## Goal
 
-Track the remaining implementation work after the public animation cutover to:
+Track the remaining implementation work for the semantic cutover to:
 
 - top-level `animations`
-- required `type: live | replace`
+- required `type: update | transition`
 - `tween` as the motion payload
 - `prev` / `next` for handoff surfaces
 - `mask` for reveal-driven transitions
@@ -18,11 +18,13 @@ The old public `operation`-based shape has been removed.
 
 Current runtime shape:
 
-- public normalization expects `type: live | replace`
-- live element animation is driven through one central animation bus
-- replace supports add, update, and delete lifecycles through diff planning
-- replace supports `prev` and `next` tween composition with optional `mask`
-- shader-backed replace has been removed for now
+- public normalization expects `type: update | transition`
+- update animation is driven through one central animation bus
+- every changed render cancels all active update animations before planning the next state
+- transition supports add, update, and delete lifecycles through diff planning
+- transition supports `prev` and `next` tween composition with optional `mask`
+- transition supports shader `compositor` with top-level `tween.uProgress`
+- element shader filters are supported through `elements[].filters`
 
 Primary files involved today:
 
@@ -37,13 +39,13 @@ Primary files involved today:
 
 ## Target Public Model
 
-### Live
+### Update
 
 ```yaml
 animations:
   - id: "move-makkuro"
     targetId: "makkuro"
-    type: "live"
+    type: "update"
     tween:
       x:
         initialValue: 640
@@ -53,13 +55,13 @@ animations:
             easing: "linear"
 ```
 
-### Replace
+### Transition
 
 ```yaml
 animations:
   - id: "scene-handoff"
     targetId: "scene-root"
-    type: "replace"
+    type: "transition"
     prev:
       tween:
         translateX:
@@ -91,58 +93,71 @@ animations:
 
 Key rules:
 
-- `live` uses `tween`
-- `replace` uses `prev`, `next`, and optional `mask`
-- `replace` may define:
+- `update` uses `tween`
+- `update` and `transition` both support absolute `x` / `y` and subject-relative
+  `translateX` / `translateY`
+- a single tween cannot combine `x` with `translateX`, or `y` with `translateY`
+- `update` and `transition` support optional `playback.continuity: persistent`
+- `transition` uses `prev`, `next`, and optional `mask`
+- `transition` may define:
   - `prev` only
   - `next` only
   - both
   - `mask` with no explicit motion overrides
-- `live` cannot use `mask`
-- future shader support, if reintroduced, should be `replace`-only
+  - `compositor`
+- `update` cannot use `mask`
+- shader compositor support is `transition`-only
+- shader compositor support is mutually exclusive with `mask` in v1
+- top-level `transition.tween` is valid only for `uProgress` when a compositor
+  is present
+- compositor support requires top-level `tween.uProgress`
+- `update` is update-only and must not be used for add/delete
+- a parent `transition` owns the subtree surface while active
+- descendant animations under that parent `transition` are deferred until finalize
 
 ## Completed Migration
 
-The following are now implemented:
+The public type rename is complete.
 
-- public `type: live | replace`
+Already implemented in the current runtime:
+
+- public `type: update | transition`
 - `tween` instead of `properties`
 - `prev` / `next` / `mask`
-- diff-driven add/update/delete mapping for both live and replace
-- next-only and prev-only replace
-- tween plus mask composition in one replace animation
+- transition `compositor`
+- element `filters`
+- diff-driven add/update/delete mapping for transition lifecycles
+- next-only and prev-only transitions
+- tween plus mask composition in one transition animation
+
+## Historical Step 1: Rename The Public Types
+
+Status:
+
+- complete
+
+Completed work:
+
+- renamed public `live` to `update`
+- renamed public `replace` to `transition`
+- updated schema, normalization, docs, tests, and examples together
+- did not keep a compatibility alias layer
 
 ## Remaining Work
 
-## Step 1: Keep The Public Schema Stable
+## Step 2: Tighten Lifecycle Semantics
 
 Goal:
 
-- keep the cutover contract stable and documented
+- make lifecycle behavior match `update` and `transition`
 
 Work:
 
-- reject legacy `operation`, `properties`, `subjects`, and top-level `mask`
-- keep `live` validation strict
-- keep `replace` validation strict
-
-## Step 2: Keep Lifecycle In The Planner
-
-Goal:
-
-- make add/update/delete lifecycle internal again
-
-Work:
-
-- let the diff decide whether a target is add, update, or delete
-- keep `type` focused on animation structure, not lifecycle naming
-- planner decides:
-  - `live` on add => enter behavior
-  - `live` on update => update behavior
-  - `live` on delete => exit behavior
-  - `replace` on add => next-only replace
-  - `replace` on delete => prev-only replace
-  - `replace` on update => normal prev/next handoff
+- `update` should dispatch only in update paths
+- add/delete paths should never dispatch `update`
+- `transition` should own all enter, exit, and swap behavior
+- keep the diff deciding add/update/delete
+- keep `renderElements()` as the central transition entrypoint for those lifecycles
 
 Files likely touched:
 
@@ -150,51 +165,117 @@ Files likely touched:
 - `src/plugins/elements/renderElements.js`
 - `src/util/diffElements.js`
 
-## Step 3: Keep The Live Payload Converged
+## Step 3: Route Fresh Child Mounts Through The Planner
 
 Goal:
 
-- converge code and docs on `tween`
+- preserve child transitions on first mount without relying on add-time update animation
 
 Work:
 
-- replace all runtime references to `properties` with `tween`
-- replace `subjects.prev.properties` / `subjects.next.properties` with:
-  - `prev.tween`
-  - `next.tween`
+- for newly mounted containers, render children through `renderElements()`
+- use `prevComputedTree: []` for fresh subtree mounts
+- stop recursive raw child `add()` from being the only first-mount path
+- keep child `transition` support working for brand-new subtrees when no ancestor transition is active
 
-This is now part of normal maintenance rather than migration.
-
-## Step 4: Keep The Live Path Cheap
+## Step 4: Make Parent Transition Own The Subtree Surface
 
 Goal:
 
-- preserve the current live-object animation path
+- keep the transition runner snapshot-based instead of becoming a live subtree compositor
 
 Work:
 
-- continue using the existing animation bus for `type: live`
-- keep add/update/delete on one live display object
-- do not route simple fade-in / fade-out / move operations through replace
+- keep the current snapshot-style prev/next surface handoff
+- when a parent `transition` is active, defer descendant animations for that same state change until finalize
+- mount the hidden next subtree in a suppressed animation state
+- on finalize, reveal the live subtree and start or resume descendant animations
 
-## Step 5: Expand Replace To Add And Delete
+## Step 5: Keep Update Cheap
 
 Goal:
 
-- let `replace` handle scene open and scene close directly
+- preserve the cheap live-object property animation path for persistent elements
 
 Work:
 
-- support next-only replace for add
-- support prev-only replace for delete
-- keep normal prev+next replace for update
+- continue using the animation bus for `type: update`
+- keep update-time motion on one live display object
+- use `transition` for enter/exit/swap even when the effect is a simple fade
+- use `update` only for elements that persist across the state change
 
-This unlocks:
+## Step 5A: Add Persistent Playback Continuity
 
-- first scene opening with `next` only
-- scene close to empty with `prev` only
+Goal:
 
-## Step 6: Keep Mask Replace As The Reveal Primitive
+- allow selected `update` and `transition` animations to continue across later
+  renders without adding a third top-level animation type
+
+Specified public interface:
+
+```yaml
+animations:
+  - id: "bg-breathe"
+    targetId: "bg"
+    type: "update"
+    playback:
+      continuity: "persistent"
+    tween:
+      scaleX:
+        keyframes:
+          - duration: 3000
+            value: 1.05
+            easing: "easeInOutSine"
+          - duration: 3000
+            value: 1
+            easing: "easeInOutSine"
+```
+
+Implemented contract:
+
+- `playback` is optional on `update` and `transition`
+- `playback.continuity` currently supports one value:
+  - `persistent`
+- when omitted, `update` keeps current render-scoped behavior
+- when omitted, `transition` keeps current render-scoped behavior
+- when present on `update`, the same animation should continue across later
+  renders if `id`, `targetId`, and normalized config are unchanged
+- when present on `transition`, the same in-flight handoff should continue
+  across later renders if `id`, `targetId`, and normalized `prev` / `next` /
+  `mask` / `compositor` / top-level `tween.uProgress` / `playback` config are
+  unchanged
+- if a later render omits the animation, it stops
+- if a later render changes the animation config, it restarts
+- a persistent animation should not count toward any render's
+  `renderComplete`; renders complete independently of persistent playback
+- persistent transition continuity keeps the same active handoff alive; it does
+  not retarget the transition mid-flight
+
+Implemented work:
+
+- extend normalization and schema for optional `playback.continuity`
+- reconcile persistent update animations by stable animation `id` instead of
+  cancelling them unconditionally on every changed render
+- reconcile persistent transitions by stable animation `id` and keep the
+  existing overlay / hidden-next handoff alive across unrelated later renders
+- keep render-scoped animations on current reset behavior when continuity is not
+  requested
+- skip completion tracking for persistent animations, so their eventual finish
+  never emits `renderComplete`
+- keep the restart rules simple: changed config or changed owned target/subtree
+  breaks continuity and starts a new animation instance
+
+Primary runtime files:
+
+- `src/util/normalizeAnimations.js`
+- `src/schemas/animations/animation.yaml`
+- `src/RouteGraphics.js`
+- `src/plugins/animations/animationBus.js`
+- `src/plugins/animations/planAnimations.js`
+- `src/plugins/animations/updateAnimationDispatch.js`
+- `src/util/diffElements.js`
+
+## Step 6: Keep Mask Transition As The Reveal Primitive
 
 Goal:
 
@@ -202,24 +283,25 @@ Goal:
 
 Work:
 
-- keep `mask.kind: single | sequence | composite`
+- keep `mask.kind: single | sequence`
 - keep `channel`, `softness`, `invert`, and `progress`
-- keep mask replace-only
+- keep sequence masks on explicit `frames[].at` positions with `sample: hold | linear`
+- keep mask transition-only
 
 No new public primitive is needed here.
 
-## Step 7: Support Replace Composition
+## Step 7: Support Transition Composition
 
 Goal:
 
-- allow richer replace transitions without multiplying top-level concepts
+- allow richer transitions without multiplying top-level concepts
 
 Work:
 
 - allow `prev.tween`
 - allow `next.tween`
 - allow `mask`
-- make those composable inside one replace animation
+- make those composable inside one transition
 
 This is the shape needed for:
 
@@ -233,12 +315,13 @@ This is implemented. Keep VT coverage around it so it stays working.
 
 Goal:
 
-- make replace behavior consistent across the library
+- make transition behavior consistent across the library
 
 Work:
 
-- add async-tolerant replace setup for `animated-sprite`
-- add a pure fully-resolved builder for `text-revealing`
+- let `animated-sprite` mount paused for transition snapshotting and post-finalize start
+- add a resolved or paused build path for `text-revealing`
+- keep both suppressed while an ancestor transition owns the subtree surface
 - then evaluate:
   - `video`
   - `slider`
@@ -252,42 +335,35 @@ Goal:
 
 Current decision:
 
-- do not support shader-backed replace for now
+- do not support shader-backed transition for now
 
 Future rule:
 
-- if shader support returns, it should live under `replace`
-- it should not change the `live | replace` split
+- if shader compositor support returns, it should live under `transition`
+- it should not change the `update | transition` split
+- element shader filters should live on elements, outside animation objects
 
-## Testing Plan
+## Future Cleanup: Completion Leases
 
-Minimum coverage:
+The current completion tracker still uses paired:
 
-- normalization of `type: live | replace`
-- planner lifecycle mapping from diff results
-- live add/update/delete regressions
-- replace add/update/delete coverage
-- replace cancellation on fast state changes
-- visual tests for:
-  - next-only open
-  - prev-only close
-  - push
-  - single-mask dissolve
-  - sequence mask
-  - composite mask
-  - tween plus mask once composition is implemented
+- `track(version)`
+- `complete(version)`
 
-VT should remain the main validation path for visual correctness.
+That is workable, but it spreads version capture and release logic through many code paths.
 
-Relevant commands:
+A later cleanup should move this to an acquired lease/token model such as:
 
-- `bun run test`
-- `bun run build`
-- `bun run vt:report`
+```js
+const completion = completionTracker.acquire();
+completion.complete();
+```
 
-## Immediate Next Steps
+Benefits:
 
-1. Add async-tolerant replace setup for `animated-sprite`.
-2. Add a fully resolved replace snapshot path for `text-revealing`.
-3. Keep extending VT coverage for add/update/delete replace cases.
-4. Revisit shader support only if a concrete use case returns.
+- idempotent completion semantics
+- fewer version-plumbing bugs in async and deferred flows
+- clearer ownership for cancellation and finalize paths
+- less callback coupling around `getVersion()` / `track()` / `complete()`
+
+This should be done as a dedicated follow-up, not mixed into the current animation semantic migration.

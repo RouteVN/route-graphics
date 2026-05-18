@@ -27,20 +27,27 @@ If you remove `global.cursorStyles` in a later render, the runtime resets the de
 
 ## Keyboard Bindings
 
-`global.keyboard` registers global hotkeys through `hotkeys-js`. Each key emits a `keydown` event through the shared `eventHandler`.
+`global.keyboard` registers global hotkeys through `hotkeys-js`. Each binding can emit `keydown` and `keyup` events through the shared `eventHandler`.
 
 ```yaml
 global:
   keyboard:
     r:
-      payload:
-        action: reset-demo
+      keydown:
+        payload:
+          action: reset-demo
+      keyup:
+        payload:
+          action: reset-demo-finished
     shift+s:
-      payload:
-        action: save-demo
+      keydown:
+        payload:
+          action: save-demo
 ```
 
-The payload shape is:
+The public keyboard phases are `keydown` and `keyup`. Route Graphics does not expose browser `keypress` as a public event.
+
+The emitted payload shape is:
 
 ```js
 {
@@ -52,7 +59,7 @@ The payload shape is:
 ## Render Semantics
 
 - Keyboard bindings are re-registered on every render from the latest `state.global.keyboard`.
-- Removed keys are unbound automatically.
+- Removed keys and removed phases are unbound automatically.
 - Cursor styles and keyboard mappings are independent from element-level hover/click handlers.
 
-Use the [Global Config Demo](/playground/?template=global-config-demo) to see cursor changes and `keydown` payloads in the playground event log.
+Use the [Global Config Demo](/playground/?template=global-config-demo) to see cursor changes and keyboard payloads in the playground event log.

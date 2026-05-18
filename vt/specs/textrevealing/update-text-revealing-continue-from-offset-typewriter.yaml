@@ -1,0 +1,63 @@
+---
+title: Update Text Revealing Continue From Offset Typewriter
+description: |
+  Same text-revealing element id can append content and reveal only the new suffix
+  when initialRevealedCharacters marks the already-visible prefix.
+specs:
+  - first state renders the completed prefix
+  - second state keeps the prefix visible immediately after the content update
+  - typewriter reveal continues into the appended suffix instead of restarting at the beginning
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 560
+  - action: screenshot
+---
+states:
+  - id: typewriter-prefix-complete
+    elements:
+      - id: text-revealing-continue
+        type: text-revealing
+        content:
+          - text: "Held prefix: "
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+        x: 70
+        y: 80
+        width: 980
+        alpha: 1
+        speed: 100
+        revealEffect: typewriter
+  - id: typewriter-continue-from-prefix
+    elements:
+      - id: text-revealing-continue
+        type: text-revealing
+        content:
+          - text: "Held prefix: "
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+          - text: "continuing typewriter text from the same dialogue line."
+            textStyle:
+              fontSize: 30
+              fill: "#FFD166"
+              fontFamily: Arial
+        x: 70
+        y: 80
+        width: 980
+        alpha: 1
+        speed: 16
+        initialRevealedCharacters: 13
+        revealEffect: typewriter

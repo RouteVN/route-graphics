@@ -1,0 +1,201 @@
+---
+title: Rect Mask Channel Showcase
+description: A multi-state showcase for single-mask channel selection and invert using one RGBA mask texture
+specs:
+  - single masks should honor red, green, blue, and alpha channel selection
+  - invert should reverse the chosen channel reveal field
+  - each transition should still settle on the next rect fill after 1000ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+---
+states:
+  - id: channel-base
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+  - id: channel-red
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-mask-channel-red
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-rgba-channels
+          channel: red
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: channel-green
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+    animations:
+      - id: rect-mask-channel-green
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-rgba-channels
+          channel: green
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: channel-blue
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-mask-channel-blue
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-rgba-channels
+          channel: blue
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: channel-alpha
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#F2F2F2"
+        alpha: 1
+    animations:
+      - id: rect-mask-channel-alpha
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-rgba-channels
+          channel: alpha
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear
+  - id: channel-red-invert
+    elements:
+      - id: rect1
+        type: rect
+        x: 160
+        "y": 120
+        width: 960
+        height: 480
+        fill: "#4D4D4D"
+        alpha: 1
+    animations:
+      - id: rect-mask-channel-red-invert
+        targetId: rect1
+        type: transition
+        mask:
+          kind: single
+          texture: mask-rgba-channels
+          channel: red
+          invert: true
+          softness: 0.02
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

@@ -1,0 +1,67 @@
+---
+title: Sprite Replace Mask With Alpha-Only Mask
+description: A same-id fullscreen sprite replace that uses an alpha-authored mask texture with constant RGB, guarding the alpha channel path directly.
+specs:
+  - same-id sprite replace should honor alpha-authored mask data instead of relying on RGB channels
+  - multiple intermediate frames should partially reveal the incoming asymmetric sprite through the alpha mask pattern
+  - the final frame should settle on the incoming sprite at the authored 1280x720 layout after a slower wipe
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1000
+  - action: screenshot
+---
+states:
+  - id: sprite-mask-alpha-start
+    elements:
+      - id: sample-bg
+        type: sprite
+        src: sprite-mask-asym-outgoing
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        alpha: 1
+  - id: sprite-mask-alpha-end
+    elements:
+      - id: sample-bg
+        type: sprite
+        src: sprite-mask-asym-incoming
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        alpha: 1
+    animations:
+      - id: sample-mask-alpha-replace
+        targetId: sample-bg
+        type: transition
+        mask:
+          kind: single
+          texture: sprite-mask-asym-alpha
+          channel: alpha
+          softness: 0.08
+          progress:
+            initialValue: 0
+            keyframes:
+              - duration: 4000
+                value: 1
+                easing: linear

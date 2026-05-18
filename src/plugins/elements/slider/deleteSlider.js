@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { destroySliderRuntime } from "./sliderRuntime.js";
 
 /**
  * Delete slider element
@@ -18,6 +19,9 @@ export const deleteSlider = ({
 
   const deleteElement = () => {
     if (sliderContainer && !sliderContainer.destroyed) {
+      destroySliderRuntime({
+        sliderContainer,
+      });
       sliderContainer.destroy({ children: true });
     }
   };

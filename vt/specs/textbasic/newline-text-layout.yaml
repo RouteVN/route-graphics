@@ -1,0 +1,67 @@
+---
+title: Text Newline Layout
+description: |
+  Tests escaped \n handling for text elements. Visible text is intentional because text rendering,
+  measured multiline dimensions, and anchored coordinates are the behavior under test.
+specs:
+  - text content should render escaped \n as an explicit second line
+  - multiline text measurement should drive computed width, height, and anchor-adjusted coordinates
+  - runtime Pixi text coordinates and dimensions should match the computed text layout
+  - fixed-width aligned text should still center newline-separated lines inside its layout box
+steps:
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: anchor-guide-x
+        type: rect
+        x: 360
+        "y": 58
+        width: 2
+        height: 164
+        fill: "#737373"
+      - id: anchor-guide-y
+        type: rect
+        x: 248
+        "y": 140
+        width: 224
+        height: 2
+        fill: "#737373"
+      - id: anchor-box
+        type: rect
+        x: 292
+        "y": 100
+        width: 136
+        height: 80
+        fill: "#4D4D4D"
+      - id: text-newline-anchor
+        type: text
+        content: "TOP\nBOTTOM"
+        x: 360
+        "y": 140
+        anchorX: 0.5
+        anchorY: 0.5
+        textStyle:
+          fontSize: 32
+          lineHeight: 1.25
+          fill: "#FFFFFF"
+          fontFamily: Arial
+      - id: fixed-box
+        type: rect
+        x: 560
+        "y": 100
+        width: 260
+        height: 96
+        fill: "#4D4D4D"
+      - id: text-newline-fixed-center
+        type: text
+        content: "LEFT\nRIGHT"
+        x: 560
+        "y": 108
+        width: 260
+        textStyle:
+          fontSize: 30
+          lineHeight: 1.25
+          fill: "#FFFFFF"
+          fontFamily: Arial
+          align: center

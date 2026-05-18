@@ -8,6 +8,35 @@ required:
   - x
   - y
 $def:
+  textShadow:
+    description: Optional text shadow. Use null in a segment style to remove a base shadow.
+    oneOf:
+      - type: "null"
+      - type: object
+        properties:
+          color:
+            type: string
+            description: Shadow color
+            default: black
+          alpha:
+            type: number
+            description: Shadow opacity (0-1)
+            minimum: 0
+            maximum: 1
+            default: 1
+          blur:
+            type: number
+            description: Shadow blur radius in pixels
+            minimum: 0
+            default: 0
+          offsetX:
+            type: number
+            description: Horizontal shadow offset in pixels
+            default: 2
+          offsetY:
+            type: number
+            description: Vertical shadow offset in pixels
+            default: 2
   textStyle:
     type: object
     properties:
@@ -45,6 +74,33 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+      shadow:
+        "$ref": "#/$def/textShadow"
+  softWipe:
+    type: object
+    description: Parameters for the softWipe reveal effect.
+    properties:
+      softness:
+        type: number
+        minimum: 0
+        description: Multiplier applied to line height to determine the feathered edge width.
+        default: 1.25
+      easing:
+        type: string
+        enum: [linear,easeOutCubic]
+        description: Easing curve applied to each line wipe.
+        default: linear
+      lineOverlap:
+        type: number
+        minimum: 0
+        maximum: 0.95
+        description: Fraction of a line's duration that the next line may overlap.
+        default: 0
+      lineDelay:
+        type: number
+        minimum: 0
+        description: Delay in milliseconds before the next line starts after overlap is applied.
+        default: 0
 properties:
   id:
     type: string
@@ -72,6 +128,16 @@ properties:
               type: string
             textStyle:
               "$ref": "#/$def/textStyle"
+            placement:
+              type: string
+              enum: [top, bottom]
+              default: top
+              description: Side of the base text where furigana is placed. Currently supports top and bottom; the side-based name leaves room for future left/right support without changing the spacing API.
+            gap:
+              type: number
+              minimum: 0
+              default: 0
+              description: Additional distance in pixels between the furigana and base text along the placement axis. Positive values move furigana farther from the base text.
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.
@@ -125,14 +191,22 @@ properties:
         default: 12
   speed:
     type: number
-    description: Animation speed for text revealing
+    description: Animation speed on a curved 0-100 scale; 100 renders instantly
     default: 50
+  initialRevealedCharacters:
+    type: number
+    minimum: 0
+    description: Number of leading text characters to render as already revealed before the reveal animation starts.
+    default: 0
   revealEffect:
     type: string
     enum: [typewriter,softWipe,none]
     description: Text animation.
     default: typewriter
+  softWipe:
+    "$ref": "#/$def/softWipe"
   textStyle:
+    "$ref": "#/$def/textStyle"
   complete:
     type: object
     properties:

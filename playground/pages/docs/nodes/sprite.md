@@ -26,18 +26,38 @@ Try it in the [Playground](/playground/?template=sprite-demo).
 | `src`        | string | No                  | `""`           | Asset alias or URL.                         |
 | `anchorX`    | number | No                  | `0`            | Anchor offset ratio.                        |
 | `anchorY`    | number | No                  | `0`            | Anchor offset ratio.                        |
+| `originX`    | number | No                  | anchor         | Transform origin X in pixels.               |
+| `originY`    | number | No                  | anchor         | Transform origin Y in pixels.               |
 | `alpha`      | number | No                  | `1`            | Opacity `0..1`.                             |
+| `rotation`   | number | No                  | `0`            | Degrees.                                    |
+| `blur`       | object | No                  | -              | Directional Gaussian blur.                  |
 | `hover`      | object | No                  | -              | Optional hover image/sound/cursor/payload.  |
 | `click`      | object | No                  | -              | Optional pressed image/sound/payload.       |
 | `rightClick` | object | No                  | -              | Optional right-pressed image/sound/payload. |
+| `scrollUp`   | object | No                  | -              | Wheel-up payload hook.                      |
+| `scrollDown` | object | No                  | -              | Wheel-down payload hook.                    |
+
+## Blur
+
+`blur` requires explicit horizontal and vertical axes. There is no scalar shorthand.
+
+| Field              | Type    | Required | Default | Notes                                             |
+| ------------------ | ------- | -------- | ------- | ------------------------------------------------- |
+| `x`                | number  | Yes      | -       | Horizontal blur strength in pixels.               |
+| `y`                | number  | Yes      | -       | Vertical blur strength in pixels.                 |
+| `quality`          | number  | No       | `4`     | Number of blur passes. Higher is smoother/slower. |
+| `kernelSize`       | number  | No       | `5`     | One of `5`, `7`, `9`, `11`, `13`, `15`.           |
+| `repeatEdgePixels` | boolean | No       | `false` | Clamp edge pixels instead of padding blur bounds. |
 
 ## Emitted Events
 
-| Event Name   | Fired When            | Payload Shape                               |
-| ------------ | --------------------- | ------------------------------------------- |
-| `hover`      | pointer enters sprite | `{ _event: { id }, ...hover.payload }`      |
-| `click`      | pointer up            | `{ _event: { id }, ...click.payload }`      |
-| `rightClick` | right pointer up      | `{ _event: { id }, ...rightClick.payload }` |
+| Event Name   | Fired When             | Payload Shape                               |
+| ------------ | ---------------------- | ------------------------------------------- |
+| `hover`      | pointer enters sprite  | `{ _event: { id }, ...hover.payload }`      |
+| `click`      | pointer up             | `{ _event: { id }, ...click.payload }`      |
+| `rightClick` | right pointer up       | `{ _event: { id }, ...rightClick.payload }` |
+| `scrollUp`   | wheel up over sprite   | `{ _event: { id }, ...scrollUp.payload }`   |
+| `scrollDown` | wheel down over sprite | `{ _event: { id }, ...scrollDown.payload }` |
 
 ## Example: Minimal
 
@@ -72,7 +92,7 @@ elements:
     click:
       src: fighter-pressed
       soundSrc: click-sfx
-      soundVolume: 900
+      soundVolume: 90
       payload:
         action: selectHero
     rightClick:
@@ -80,6 +100,12 @@ elements:
       soundSrc: rightclick-sfx
       payload:
         action: openHeroMenu
+    scrollUp:
+      payload:
+        action: previousHero
+    scrollDown:
+      payload:
+        action: nextHero
 ```
 
 ## Example: Sprite With Enter Motion

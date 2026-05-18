@@ -21,6 +21,7 @@ The authoritative contract for event naming and payload shape is in [`docs/api-n
 - `dragEnd`
 - `change`
 - `keydown`
+- `keyup`
 - `renderComplete`
 
 ## Naming Convention
@@ -51,6 +52,8 @@ It fires after the current render finishes all tracked asynchronous work:
 - tweens
 - `text-revealing`
 - non-looping video playback
+
+Animations with `playback.continuity: persistent` are not tracked by `renderComplete`, so renders do not wait for them to finish.
 
 Payload shape:
 

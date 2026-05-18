@@ -1,5 +1,7 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
 
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').SliderComputedNode} SliderComputedNode
@@ -31,22 +33,21 @@ export const parseSlider = ({ state }) => {
     throw new Error("Input error: slider initialValue must be a valid number");
   }
 
-  if (state.initialValue < defaultMin || state.initialValue > defaultMax) {
-    throw new Error(
-      "Input error: slider initialValue must be between min and max",
-    );
-  }
+  const initialValue = clamp(state.initialValue, defaultMin, defaultMax);
 
   return {
     ...computedObj,
     direction: state.direction ?? "horizontal",
     thumbSrc: state.thumbSrc ?? "",
     barSrc: state.barSrc ?? "",
+    ...(state.inactiveBarSrc !== undefined && {
+      inactiveBarSrc: state.inactiveBarSrc ?? "",
+    }),
     alpha: state.alpha ?? 1,
     min: defaultMin,
     max: defaultMax,
     step: state.step ?? 1,
-    initialValue: state.initialValue,
+    initialValue,
     ...(state.hover && { hover: state.hover }),
     ...(state.change && { change: state.change }),
   };

@@ -1,6 +1,27 @@
 import { Sprite, Texture } from "pixi.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
+  createHoverStateController,
+  createPressStateController,
+  createRightPressStateController,
+} from "../util/hoverInheritance.js";
+import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -14,32 +35,47 @@ export const addSprite = ({
   eventHandler,
   animationBus,
   completionTracker,
+  renderContext,
   zIndex,
 }) => {
-  const { id, x, y, width, height, src, alpha } = element;
+  const { id, width, height, src, alpha } = element;
   const texture = src ? Texture.from(src) : Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
 
   // Apply initial state
-  sprite.x = Math.round(x);
-  sprite.y = Math.round(y);
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
   sprite.alpha = alpha;
+  applyElementTransform(sprite, element);
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
+  syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(sprite, element.filters, {
+    width,
+    height,
+    force: shouldForceShaderProgress,
+  });
 
   const hoverEvents = element?.hover;
   const clickEvents = element?.click;
   const rightClickEvents = element?.rightClick;
+  const scrollUpEvent = element?.scrollUp;
+  const scrollDownEvent = element?.scrollDown;
 
-  let events = {
-    isHovering: false,
-    isPressed: false,
-    isRightPressed: false,
-  };
+  let hoverController = null;
+  let pressController = null;
+  let rightPressController = null;
 
-  const updateTexture = ({ isHovering, isPressed, isRightPressed }) => {
+  const updateTexture = () => {
+    const isHovering = hoverController?.isHovering() ?? false;
+    const isPressed = pressController?.isPressed() ?? false;
+    const isRightPressed = rightPressController?.isPressed() ?? false;
+
     if (isRightPressed && rightClickEvents?.src) {
       const rightClickTexture = Texture.from(rightClickEvents.src);
       sprite.texture = rightClickTexture;
@@ -57,9 +93,13 @@ export const addSprite = ({
   if (hoverEvents) {
     const { cursor, soundSrc, payload } = hoverEvents;
     sprite.eventMode = "static";
+    hoverController = createHoverStateController({
+      displayObject: sprite,
+      onHoverChange: updateTexture,
+    });
 
     const overListener = () => {
-      events.isHovering = true;
+      hoverController.setDirectHover(true);
       if (payload && eventHandler)
         eventHandler(`hover`, {
           _event: {
@@ -74,13 +114,11 @@ export const addSprite = ({
           url: soundSrc,
           loop: false,
         });
-      updateTexture(events);
     };
 
     const outListener = () => {
-      events.isHovering = false;
+      hoverController.setDirectHover(false);
       sprite.cursor = "auto";
-      updateTexture(events);
     };
 
     sprite.on("pointerover", overListener);
@@ -90,14 +128,17 @@ export const addSprite = ({
   if (clickEvents) {
     const { soundSrc, soundVolume, payload } = clickEvents;
     sprite.eventMode = "static";
+    pressController = createPressStateController({
+      displayObject: sprite,
+      onPressChange: updateTexture,
+    });
 
     const clickListener = (event) => {
       if (!isPrimaryPointerEvent(event)) {
         return;
       }
 
-      events.isPressed = true;
-      updateTexture(events);
+      pressController.setDirectPress(true);
     };
 
     const releaseListener = (event) => {
@@ -105,8 +146,7 @@ export const addSprite = ({
         return;
       }
 
-      events.isPressed = false;
-      updateTexture(events);
+      pressController.setDirectPress(false);
 
       if (payload && eventHandler)
         eventHandler(`click`, {
@@ -120,13 +160,12 @@ export const addSprite = ({
           id: `click-${Date.now()}`,
           url: soundSrc,
           loop: false,
-          volume: (soundVolume ?? 1000) / 1000,
+          volume: normalizeVolume(soundVolume),
         });
     };
 
     const outListener = () => {
-      events.isPressed = false;
-      updateTexture(events);
+      pressController.setDirectPress(false);
     };
 
     sprite.on("pointerdown", clickListener);
@@ -137,20 +176,21 @@ export const addSprite = ({
   if (rightClickEvents) {
     const { soundSrc, payload } = rightClickEvents;
     sprite.eventMode = "static";
+    rightPressController = createRightPressStateController({
+      displayObject: sprite,
+      onPressChange: updateTexture,
+    });
 
     const rightPressListener = () => {
-      events.isRightPressed = true;
-      updateTexture(events);
+      rightPressController.setDirectPress(true);
     };
 
     const rightReleaseListener = () => {
-      events.isRightPressed = false;
-      updateTexture(events);
+      rightPressController.setDirectPress(false);
     };
 
     const rightClickListener = () => {
-      events.isRightPressed = false;
-      updateTexture(events);
+      rightPressController.setDirectPress(false);
 
       if (payload && eventHandler) {
         eventHandler(`rightClick`, {
@@ -170,14 +210,23 @@ export const addSprite = ({
     };
 
     const rightOutListener = () => {
-      events.isRightPressed = false;
-      updateTexture(events);
+      rightPressController.setDirectPress(false);
     };
 
     sprite.on("rightdown", rightPressListener);
     sprite.on("rightup", rightReleaseListener);
     sprite.on("rightclick", rightClickListener);
     sprite.on("rightupoutside", rightOutListener);
+  }
+
+  if (scrollUpEvent || scrollDownEvent) {
+    setupScrollInteraction({
+      canvas: app.canvas,
+      displayObject: sprite,
+      scrollUpEvent,
+      scrollDownEvent,
+      eventHandler,
+    });
   }
 
   parent.addChild(sprite);
@@ -188,6 +237,16 @@ export const addSprite = ({
     animationBus,
     completionTracker,
     element: sprite,
-    targetState: { x, y, width, height, alpha },
+    targetState: {
+      ...getElementTransformTargetState(element),
+      width,
+      height,
+      alpha,
+      ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
+    },
+    renderContext,
   });
 };

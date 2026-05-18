@@ -15,10 +15,10 @@ labels: [bug]
 - width being 419 vs 420 and x being 451 vs 450 I supsect is due to font size different. my system is using a different font therefore having different font sizes. font usually fallback to system when specified font is not found
 - wordWrapWidth should be rounded to pixel
 
-Got the below errors when running test:
+Got the below errors when running parser tests:
 
 ```diff
- FAIL  puty.test.js > parser > parseText > Test parsing simple text o
+ FAIL  spec/parser/parseText.test.yaml > parser > parseText > Test parsing simple text o
 bject
 AssertionError: expected { id: 'tl', type: 'text', …(11) } to deeply 
 equal { id: 'tl', type: 'text', …(11) }
@@ -43,7 +43,7 @@ equal { id: 'tl', type: 'text', …(11) }
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
 
- FAIL  puty.test.js > parser > parseTextRevealing > Test parsing text
+ FAIL  spec/parser/parseTextRevealing.test.yaml > parser > parseTextRevealing > Test parsing text
 -revealing with multiple styled content segments
 AssertionError: expected { id: 'tr4', …(12) } to deeply equal { id: '
 tr4', …(12) }

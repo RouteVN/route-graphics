@@ -1,0 +1,44 @@
+file: ../../src/plugins/elements/video/parseVideo.js
+group: parser
+suites:
+  - parseVideo
+---
+suite: parseVideo
+exportName: parseVideo
+---
+case: Test parsing video blur
+in:
+  - state:
+      id: video-1
+      type: video
+      x: 40
+      "y": 50
+      width: 320
+      height: 180
+      src: video-sample
+      volume: 0
+      loop: true
+      alpha: 0.75
+      blur:
+        x: 2
+        "y": 4
+        repeatEdgePixels: true
+out:
+  id: video-1
+  type: video
+  width: 320
+  height: 180
+  x: 40
+  "y": 50
+  originX: 0
+  originY: 0
+  alpha: 0.75
+  src: video-sample
+  volume: 0
+  loop: true
+  blur:
+    x: 2
+    "y": 4
+    quality: 4
+    kernelSize: 5
+    repeatEdgePixels: true

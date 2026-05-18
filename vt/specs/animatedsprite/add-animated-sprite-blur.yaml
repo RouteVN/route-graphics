@@ -1,0 +1,122 @@
+---
+title: Animated Sprite Blur
+description: Uses the existing fighter spritesheet asset intentionally to verify blur on animated sprite textures.
+specs:
+  - animated sprite blur should apply to the selected frame texture
+  - sharp and blurred animated sprites should render independently
+steps:
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-crisp"
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      frameIndex: 0
+      elementId: "animated-blurred"
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: animated-crisp
+        type: spritesheet-animation
+        x: 180
+        "y": 150
+        width: 140
+        height: 140
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0001.png:
+              frame:
+                x: 468
+                "y": 2
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            scale: "1"
+        playback:
+          frames:
+            - rollSequence0000.png
+            - rollSequence0001.png
+          fps: 12
+          loop: true
+      - id: animated-blurred
+        type: spritesheet-animation
+        x: 460
+        "y": 150
+        width: 140
+        height: 140
+        src: fighter-spritesheet
+        atlas:
+          frames:
+            rollSequence0000.png:
+              frame:
+                x: 483
+                "y": 692
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+            rollSequence0001.png:
+              frame:
+                x: 468
+                "y": 2
+                w: 169
+                h: 226
+              rotated: false
+              trimmed: true
+              spriteSourceSize:
+                x: 3
+                "y": 4
+                w: 169
+                h: 226
+              sourceSize:
+                w: 175
+                h: 240
+          meta:
+            scale: "1"
+        playback:
+          frames:
+            - rollSequence0000.png
+            - rollSequence0001.png
+          fps: 12
+          loop: true
+        blur:
+          x: 10
+          "y": 10

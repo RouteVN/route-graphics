@@ -169,8 +169,8 @@ export const getValueAtTime = (timeline, currentTime) => {
   }
 
   for (let i = 0; i < timeline.length - 1; i++) {
-    const { time: startTime, value: startValue, easing } = timeline[i];
-    const { time: endTime, value: endValue } = timeline[i + 1];
+    const { time: startTime, value: startValue } = timeline[i];
+    const { time: endTime, value: endValue, easing } = timeline[i + 1];
 
     if (currentTime >= startTime && currentTime <= endTime) {
       const t = (currentTime - startTime) / (endTime - startTime);

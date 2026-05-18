@@ -3,6 +3,7 @@ import { addRect } from "./addRect.js";
 import { updateRect } from "./updateRect.js";
 import { deleteRect } from "./deleteRect.js";
 import { parseRect } from "./parseRect.js";
+import { shouldUpdateUnchangedShaderFilterProgress } from "../util/shaderFilterEffect.js";
 
 // Export the rect plugin
 export const rectPlugin = createElementPlugin({
@@ -11,4 +12,5 @@ export const rectPlugin = createElementPlugin({
   update: updateRect,
   delete: deleteRect,
   parse: parseRect,
+  shouldUpdateUnchanged: shouldUpdateUnchangedShaderFilterProgress,
 });

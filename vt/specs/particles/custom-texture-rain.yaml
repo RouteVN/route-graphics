@@ -1,0 +1,118 @@
+---
+title: Structured rain effect with custom texture aliases
+specs:
+  - custom rain texture aliases should render a dense slanted storm field
+  - weighted per-particle rain selectors should mix streak and drop assets deterministically
+  - seeded snapshots should preserve the rain pattern across runs
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 90
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 180
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 260
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#04080e"
+      - id: rain-haze
+        type: rect
+        x: 0
+        y: 440
+        width: 1280
+        height: 280
+        fill: "#0b1826"
+      - id: rain-custom
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260409
+        modules:
+          emission:
+            mode: continuous
+            rate: 520
+            maxActive: 260
+            duration: infinite
+            particleLifetime:
+              min: 0.7
+              max: 1.05
+            source:
+              kind: rect
+              data:
+                x: -160
+                y: -100
+                width: 1600
+                height: 56
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 100
+                max: 106
+              speed:
+                min: 760
+                max: 1120
+            acceleration:
+              x: 30
+              y: 50
+            maxSpeed: 1240
+            faceVelocity: false
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-rain-streak
+                  weight: 5
+                - src: particle-rain-drop
+                  weight: 1
+            scale:
+              mode: range
+              min: 0.2
+              max: 0.38
+            alpha:
+              mode: single
+              value: 0.68
+            rotation:
+              mode: fixed
+              value: 0
+          bounds:
+            mode: recycle
+            source: custom
+            custom:
+              x: -220
+              y: -160
+              width: 1760
+              height: 1040

@@ -41,7 +41,7 @@ states:
     animations:
       - id: sprite-move
         targetId: sprite1
-        type: live
+        type: update
         tween:
           x:
             keyframes:

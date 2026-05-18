@@ -75,7 +75,7 @@ states:
     animations:
       - id: blue-move
         targetId: circle-blue
-        type: live
+        type: update
         tween:
           x:
             initialValue: 150

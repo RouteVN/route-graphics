@@ -34,6 +34,9 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
+      - name: Install Chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+
       - name: Run unit tests
         run: bun run test
 

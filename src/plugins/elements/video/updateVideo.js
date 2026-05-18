@@ -4,14 +4,28 @@ import {
   clearVideoPlaybackTracking,
   syncVideoPlaybackTracking,
 } from "./playbackTracking.js";
-import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import {
+  dispatchLiveAnimations,
+  getLiveAnimations,
+} from "../../animations/planAnimations.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
+import {
+  getBlurTargetState,
+  hasBlurUpdateAnimation,
+  syncBlurEffect,
+} from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Update video element
  * @param {import("../elementPlugin.js").UpdateElementOptions} params
  */
 export const updateVideo = ({
-  app,
   parent,
   prevElement,
   nextElement,
@@ -30,6 +44,72 @@ export const updateVideo = ({
   videoElement.zIndex = zIndex;
 
   const { x, y, width, height, alpha } = nextElement;
+  const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
+  if (shouldForceBlur) {
+    syncBlurEffect(videoElement, prevElement.blur, { force: true });
+  }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(videoElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(videoElement);
+  }
+
+  let currentSrc = prevElement.src;
+  let didSyncResourceBeforeAnimation = false;
+  const liveAnimations = getLiveAnimations(animations, prevElement.id);
+  const hasLiveAnimation = liveAnimations.length > 0;
+  const hasLiveAnimationTween = (property) =>
+    liveAnimations.some((animation) =>
+      Object.prototype.hasOwnProperty.call(animation.tween ?? {}, property),
+    );
+
+  const syncVideoResource = () => {
+    let activeVideo = videoElement.texture.source.resource;
+    const srcChanged = currentSrc !== nextElement.src;
+
+    if (srcChanged) {
+      const oldVideo = activeVideo;
+      clearVideoPlaybackTracking({
+        videoElement,
+        video: oldVideo,
+      });
+
+      if (oldVideo) {
+        oldVideo.pause();
+      }
+
+      const newTexture = Texture.from(nextElement.src);
+      videoElement.texture = newTexture;
+      activeVideo = newTexture.source.resource;
+
+      activeVideo.muted = false;
+      activeVideo.pause();
+      activeVideo.currentTime = 0;
+      currentSrc = nextElement.src;
+    }
+
+    syncVideoPlaybackTracking({
+      videoElement,
+      video: activeVideo,
+      loop: nextElement.loop,
+      completionTracker,
+    });
+
+    activeVideo.volume = normalizeVolume(nextElement.volume);
+    activeVideo.loop = nextElement.loop ?? false;
+
+    if (srcChanged) {
+      activeVideo.play();
+    }
+  };
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -38,44 +118,33 @@ export const updateVideo = ({
       videoElement.width = Math.round(width);
       videoElement.height = Math.round(height);
       videoElement.alpha = alpha ?? 1;
-
-      let activeVideo = videoElement.texture.source.resource;
-
-      if (prevElement.src !== nextElement.src) {
-        const oldVideo = activeVideo;
-        clearVideoPlaybackTracking({
-          videoElement,
-          video: oldVideo,
-        });
-
-        if (oldVideo) {
-          oldVideo.pause();
-        }
-
-        const newTexture = Texture.from(nextElement.src);
-        videoElement.texture = newTexture;
-        activeVideo = newTexture.source.resource;
-
-        activeVideo.muted = false;
-        activeVideo.pause();
-        activeVideo.currentTime = 0;
-      }
-
-      syncVideoPlaybackTracking({
-        videoElement,
-        video: activeVideo,
-        loop: nextElement.loop,
-        completionTracker,
+      syncBlurEffect(videoElement, nextElement.blur, {
+        force: shouldForceBlur,
+      });
+      syncShaderFilters(videoElement, nextElement.filters, {
+        width,
+        height,
+        force: shouldForceShaderProgress,
       });
 
-      activeVideo.volume = nextElement.volume / 1000;
-      activeVideo.loop = nextElement.loop ?? false;
-
-      if (prevElement.src !== nextElement.src) {
-        activeVideo.play();
+      if (!didSyncResourceBeforeAnimation) {
+        syncVideoResource();
       }
     }
   };
+
+  if (prevElement.src !== nextElement.src && hasLiveAnimation) {
+    const currentWidth = videoElement.width;
+    const currentHeight = videoElement.height;
+    syncVideoResource();
+    videoElement.width = Math.round(
+      hasLiveAnimationTween("width") ? currentWidth : width,
+    );
+    videoElement.height = Math.round(
+      hasLiveAnimationTween("height") ? currentHeight : height,
+    );
+    didSyncResourceBeforeAnimation = true;
+  }
 
   const dispatched = dispatchLiveAnimations({
     animations,
@@ -83,7 +152,19 @@ export const updateVideo = ({
     animationBus,
     completionTracker,
     element: videoElement,
-    targetState: { x, y, width, height, alpha: alpha ?? 1 },
+    targetState: {
+      x,
+      y,
+      width,
+      height,
+      alpha: alpha ?? 1,
+      ...getBlurTargetState(nextElement, {
+        force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     onComplete: updateElement,
   });
 

@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { cleanupParticlesRuntime } from "./particleRuntime.js";
 
 export const deleteParticles = ({
   app,
@@ -14,24 +15,7 @@ export const deleteParticles = ({
 
   const deleteElement = () => {
     if (particleElement && !particleElement.destroyed) {
-      // Clean up emitter if present
-      if (particleElement.emitter) {
-        particleElement.emitter.destroy();
-      }
-
-      // Remove ticker callback if present
-      if (particleElement.tickerCallback) {
-        app.ticker.remove(particleElement.tickerCallback);
-      }
-
-      // Remove custom ticker handler if present (used in testing mode)
-      if (particleElement.customTickerHandler) {
-        window.removeEventListener(
-          "snapShotKeyFrame",
-          particleElement.customTickerHandler,
-        );
-      }
-
+      cleanupParticlesRuntime({ app, particleElement });
       particleElement.destroy({ children: true });
     }
   };

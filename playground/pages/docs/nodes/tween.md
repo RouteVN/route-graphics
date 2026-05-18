@@ -5,9 +5,12 @@ tags: documentation
 sidebarId: node-tween
 ---
 
-`animations[]` is the built-in state animation surface. Every animation now declares a required `type` so the renderer knows whether it is animating one live element or a same-id replace handoff.
+`animations[]` is the built-in state animation surface. Every animation declares a required `type` so the renderer knows whether it is animating one persistent element or a prev/next transition handoff.
 
 Try it in the [Playground](/playground/?template=animations-showcase).
+
+`playback.continuity` controls whether an animation is render-scoped or can
+continue across later renders on `update` and `transition`.
 
 ## Used In
 
@@ -15,25 +18,26 @@ Try it in the [Playground](/playground/?template=animations-showcase).
 
 ## Field Reference
 
-| Field      | Type   | Required | Default | Notes                                                              |
-| ---------- | ------ | -------- | ------- | ------------------------------------------------------------------ |
-| `id`       | string | Yes      | -       | Animation id.                                                      |
-| `targetId` | string | Yes      | -       | Must match an element id in the same render state.                 |
-| `type`     | string | Yes      | -       | One of `live` or `replace`.                                        |
-| `tween`    | object | Live     | -       | Required for `type: live`.                                         |
-| `prev`     | object | Replace  | -       | Optional for `type: replace`; drives the previous captured visual. |
-| `next`     | object | Replace  | -       | Optional for `type: replace`; drives the next captured visual.     |
-| `mask`     | object | Replace  | -       | Optional for `type: replace`; image-driven reveal field.           |
-| `complete` | object | No       | -       | Schema supports it, runtime completion is still tracked globally.  |
+| Field      | Type   | Required   | Default | Notes                                                                    |
+| ---------- | ------ | ---------- | ------- | ------------------------------------------------------------------------ |
+| `id`       | string | Yes        | -       | Animation id.                                                            |
+| `targetId` | string | Yes        | -       | Must match an element id in the same render state.                       |
+| `type`     | string | Yes        | -       | One of `update` or `transition`.                                         |
+| `tween`    | object | Update     | -       | Required for `type: update`.                                             |
+| `playback` | object | No         | -       | Optional cross-render continuity contract for `update` and `transition`. |
+| `prev`     | object | Transition | -       | Optional for `type: transition`; drives the previous captured visual.    |
+| `next`     | object | Transition | -       | Optional for `type: transition`; drives the next captured visual.        |
+| `mask`     | object | Transition | -       | Optional for `type: transition`; image-driven reveal field.              |
+| `complete` | object | No         | -       | Schema supports it, runtime completion is still tracked globally.        |
 
 ## Types
 
-- `live`: target stays a single live display object.
-- `replace`: target is animated as a handoff between captured `prev` and `next` visuals.
+- `update`: target stays a single continuing display object.
+- `transition`: target is animated as a handoff between captured `prev` and `next` visuals.
 
-## Live Tween
+## Update Tween
 
-These properties are valid on `type: live`:
+These properties are valid on `type: update`:
 
 - `alpha`
 - `x`
@@ -41,8 +45,12 @@ These properties are valid on `type: live`:
 - `scaleX`
 - `scaleY`
 - `rotation`
+- `blurX`
+- `blurY`
 
 Each property accepts:
+
+1. Manual keyframes:
 
 | Field          | Type   | Required | Default               | Notes                                 |
 | -------------- | ------ | -------- | --------------------- | ------------------------------------- |
@@ -51,18 +59,59 @@ Each property accepts:
 
 Each keyframe accepts:
 
-| Field      | Type    | Required | Default | Notes                                                                                                                                                                   |
-| ---------- | ------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`    | number  | Yes      | -       | Target value.                                                                                                                                                           |
-| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                                                                    |
+| Field      | Type    | Required | Default | Notes                                                                                                                  |
+| ---------- | ------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `value`    | number  | Yes      | -       | Target value.                                                                                                          |
+| `duration` | number  | Yes      | -       | Milliseconds to reach this keyframe.                                                                                   |
 | `easing`   | string  | Yes      | -       | Supports `linear` and the Quad/Cubic/Quart/Quint/Sine/Expo/Circ/Back/Bounce/Elastic `In`, `Out`, and `InOut` variants. |
-| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                                                                     |
+| `relative` | boolean | No       | `false` | Applies `value` as delta when true.                                                                                    |
 
-## Replace Prev/Next
+2. Automatic end-value shorthand:
 
-`replace` animations can drive `prev` and `next` separately.
+| Field  | Type   | Required | Default | Notes                                                             |
+| ------ | ------ | -------- | ------- | ----------------------------------------------------------------- |
+| `auto` | object | Yes      | -       | Generates one tween segment from the current value to next state. |
 
-Supported replace tween properties:
+`auto` accepts:
+
+| Field      | Type   | Required | Default  | Notes                                 |
+| ---------- | ------ | -------- | -------- | ------------------------------------- |
+| `duration` | number | Yes      | -        | Milliseconds for the generated tween. |
+| `easing`   | string | No       | `linear` | Same easing list as manual keyframes. |
+
+`keyframes` and `auto` are mutually exclusive for the same property.
+
+`blurX` and `blurY` animate element `blur.x` and `blur.y`. Static blur options
+such as `quality`, `kernelSize`, and `repeatEdgePixels` are not tween targets.
+
+`update` is update-only. Do not use it for enter, exit, or replace lifecycles.
+Higher-level adapters should reject that and require `transition` instead.
+
+## Playback Continuity
+
+Specified interface:
+
+```yaml
+playback:
+  continuity: persistent
+```
+
+Rules:
+
+- `playback` is valid on `type: update` and `type: transition`
+- `continuity` supports two values: `render` and `persistent`
+- `render` is explicit render-scoped behavior and is equivalent to omitting `playback`
+- when omitted, `update` and `transition` keep current render-scoped behavior
+- on `update`, the same animation should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized config stay the same
+- on `transition`, the same in-flight prev/next handoff should continue across later renders instead of restarting, as long as `id`, `targetId`, and normalized `prev`/`next`/`mask`/`playback` config stay the same
+- if a later render omits the animation, or changes its config, it stops or restarts
+- persistent `transition` continuity keeps the same active handoff alive; it does not retarget the transition mid-flight
+
+## Transition Prev/Next
+
+`transition` animations can drive `prev` and `next` separately.
+
+Supported transition tween properties:
 
 - `translateX`
 - `translateY`
@@ -73,7 +122,7 @@ Supported replace tween properties:
 
 `translateX` and `translateY` use screen-relative units, so `1` means one full screen width or height.
 
-Each side uses the same payload shape as `live.tween`:
+Each side uses the same payload shape as `update.tween`:
 
 ```yaml
 prev:
@@ -86,13 +135,12 @@ prev:
           easing: linear
 ```
 
-## Replace Mask
+## Transition Mask
 
-`mask` is only valid for `replace`. Supported kinds:
+`mask` is only valid for `transition`. Supported kinds:
 
 - `single`
 - `sequence`
-- `composite`
 
 Supported mask channels:
 
@@ -101,13 +149,48 @@ Supported mask channels:
 - `blue`
 - `alpha`
 
+Sequence masks use explicit frame positions:
+
+```yaml
+mask:
+  kind: sequence
+  progress:
+    initialValue: 0
+    keyframes:
+      - value: 1
+        duration: 1000
+        easing: linear
+  sample: linear
+  frames:
+    - at: 0
+      texture: masks/a.png
+    - at: 0.5
+      texture: masks/b.png
+    - at: 1
+      texture: masks/c.png
+  channel: alpha
+```
+
+`progress` controls frame selection. The sampled frame value directly controls
+the reveal amount. `frames[].at` marks where each frame sits on that `0..1`
+progress ruler. `sample: hold` holds each frame until the next `at`;
+`sample: linear` blends between adjacent frames.
+
+Sequence masks require at least two frames, sorted by unique `at` values, with
+the first frame at `0` and the last frame at `1`. `sample` defaults to `hold`.
+Feathering belongs in the frame alpha; `softness` is not valid for sequence
+masks.
+
 ## Behavior Notes
 
-- Live-object animations are driven by the central animation bus.
-- `replace` animations snapshot the previous and next visuals for the same `targetId`.
-- `replace` may define `prev` only, `next` only, or both.
+- Update animations are driven by the central animation bus.
+- `playback.continuity: render` keeps the default render-scoped behavior and is equivalent to omitting `playback`.
+- `playback.continuity: persistent` keeps qualifying `update` and `transition` animations alive across later renders instead of restarting them.
+- `transition` animations snapshot the previous and next visuals for the same `targetId`.
+- `transition` may define `prev` only, `next` only, or both.
 - Missing `prev` or `next` is treated as transparent.
 - On render interruption, pending animations are canceled and the current render is marked aborted through `renderComplete`.
+- Persistent animations do not contribute to `renderComplete`; renders do not wait for them, and their eventual finish does not emit render completion.
 - Per-animation callbacks are not exposed through `eventHandler`; use the global `renderComplete` event to know when tracked animations and reveals settle.
 
 ## Example: Enter Fade
@@ -116,14 +199,15 @@ Supported mask channels:
 animations:
   - id: title-fade
     targetId: title
-    type: live
-    tween:
-      alpha:
-        initialValue: 0
-        keyframes:
-          - value: 1
-            duration: 300
-            easing: linear
+    type: transition
+    next:
+      tween:
+        alpha:
+          initialValue: 0
+          keyframes:
+            - value: 1
+              duration: 300
+              easing: linear
 ```
 
 ## Example: Update Motion
@@ -132,7 +216,7 @@ animations:
 animations:
   - id: card-shift
     targetId: card-1
-    type: live
+    type: update
     tween:
       x:
         keyframes:
@@ -151,13 +235,78 @@ animations:
             easing: linear
 ```
 
+## Example: Update Motion With `auto`
+
+```yaml
+animations:
+  - id: card-shift
+    targetId: card-1
+    type: update
+    tween:
+      x:
+        auto:
+          duration: 450
+          easing: easeOutQuad
+      y:
+        auto:
+          duration: 450
+          easing: easeOutQuad
+```
+
+## Example: Planned Persistent Update
+
+```yaml
+animations:
+  - id: bg-breathe
+    targetId: bg
+    type: update
+    playback:
+      continuity: persistent
+    tween:
+      scaleX:
+        keyframes:
+          - value: 1.05
+            duration: 3000
+            easing: easeInOutSine
+          - value: 1
+            duration: 3000
+            easing: easeInOutSine
+      scaleY:
+        keyframes:
+          - value: 1.05
+            duration: 3000
+            easing: easeInOutSine
+          - value: 1
+            duration: 3000
+            easing: easeInOutSine
+```
+
+## Example: Planned Persistent Transition
+
+```yaml
+animations:
+  - id: bg-fade-in
+    targetId: bg
+    type: transition
+    playback:
+      continuity: persistent
+    next:
+      tween:
+        alpha:
+          initialValue: 0
+          keyframes:
+            - value: 1
+              duration: 900
+              easing: linear
+```
+
 ## Example: Relative Keyframes
 
 ```yaml
 animations:
   - id: pulse-x
     targetId: chip
-    type: live
+    type: update
     tween:
       x:
         keyframes:
@@ -175,13 +324,13 @@ animations:
             relative: true
 ```
 
-## Example: Replace Push
+## Example: Transition Push
 
 ```yaml
 animations:
   - id: scene-push-left
     targetId: scene-root
-    type: replace
+    type: transition
     prev:
       tween:
         translateX:
@@ -199,13 +348,13 @@ animations:
               easing: linear
 ```
 
-## Example: Replace Dissolve
+## Example: Transition Dissolve
 
 ```yaml
 animations:
   - id: portrait-dissolve
     targetId: makkuro
-    type: replace
+    type: transition
     mask:
       kind: single
       texture: masks/spiral-07.png

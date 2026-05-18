@@ -1,0 +1,130 @@
+---
+title: Structured snow effect with custom texture aliases
+specs:
+  - custom snow texture aliases should render a stable falling field
+  - weighted per-particle snow selectors should mix crystal and soft flake assets deterministically
+  - seeded snapshots should preserve the snowfall layout across runs
+skipInitialScreenshot: true
+steps:
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 32
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 280
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 520
+  - action: wait
+    ms: 50
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 700
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: stage-bg
+        type: rect
+        x: 0
+        y: 0
+        width: 1280
+        height: 720
+        fill: "#06111f"
+      - id: snow-bank
+        type: rect
+        x: 0
+        y: 560
+        width: 1280
+        height: 160
+        fill: "#102234"
+      - id: snow-custom
+        type: particles
+        width: 1280
+        height: 720
+        seed: 20260408
+        modules:
+          emission:
+            mode: continuous
+            rate: 72
+            maxActive: 180
+            duration: infinite
+            particleLifetime:
+              min: 4.2
+              max: 7.4
+            source:
+              kind: rect
+              data:
+                x: -40
+                y: -36
+                width: 1360
+                height: 24
+          movement:
+            velocity:
+              kind: directional
+              direction:
+                min: 84
+                max: 102
+              speed:
+                min: 34
+                max: 88
+            acceleration:
+              x: 4
+              y: 10
+            maxSpeed: 120
+          appearance:
+            texture:
+              mode: random
+              pick: perParticle
+              items:
+                - src: particle-snow-crystal
+                  weight: 3
+                - src: particle-snow-soft
+                  weight: 2
+            scale:
+              mode: range
+              min: 0.16
+              max: 0.42
+            alpha:
+              mode: curve
+              keys:
+                - time: 0
+                  value: 0
+                - time: 0.12
+                  value: 0.94
+                - time: 0.82
+                  value: 0.78
+                - time: 1
+                  value: 0
+            rotation:
+              mode: spin
+              start:
+                min: 0
+                max: 360
+              speed:
+                min: -18
+                max: 18
+          bounds:
+            mode: recycle
+            source: area
+            padding:
+              top: 90
+              right: 80
+              bottom: 120
+              left: 80
