@@ -12,6 +12,12 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   clearInheritedHoverTarget,
   clearInheritedPressTarget,
   clearInheritedRightPressTarget,
@@ -52,6 +58,19 @@ export const updateSprite = ({
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(spriteElement, prevElement.blur, { force: true });
+  }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(spriteElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(spriteElement);
   }
 
   let didSyncResourceBeforeAnimation = false;
@@ -273,6 +292,11 @@ export const updateSprite = ({
       syncBlurEffect(spriteElement, nextElement.blur, {
         force: shouldForceBlur,
       });
+      syncShaderFilters(spriteElement, nextElement.filters, {
+        width,
+        height,
+        force: shouldForceShaderProgress,
+      });
     }
   };
 
@@ -297,6 +321,9 @@ export const updateSprite = ({
       alpha,
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: () => {

@@ -119,6 +119,8 @@ export const getAnimationContinuitySignature = (animation = {}) => {
     prev: animation.prev ?? null,
     next: animation.next ?? null,
     mask: animation.mask ?? null,
+    compositor: animation.compositor ?? null,
+    tween: animation.tween ?? null,
     playback: animation.playback ?? null,
   });
 };

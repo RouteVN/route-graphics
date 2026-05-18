@@ -275,6 +275,9 @@ export const createAnimationBus = () => {
       kind: "custom",
       duration: payload.duration ?? 0,
       currentTime: 0,
+      deferCompletionUntilNextFrame:
+        payload.deferCompletionUntilNextFrame === true,
+      pendingCompletion: false,
       stateVersion,
       onComplete: payload.onComplete,
       onCancel: payload.onCancel,
@@ -429,10 +432,28 @@ export const createAnimationBus = () => {
         continue;
       }
 
-      context.currentTime += deltaMS;
+      if (context.pendingCompletion) {
+        fireCompleteEvent(context);
+        toRemove.push(id);
+        continue;
+      }
+
+      context.currentTime = clampAnimationTime(
+        context.currentTime + deltaMS,
+        context.duration,
+      );
 
       if (context.currentTime >= context.duration) {
         context.applyFrame(context.duration);
+
+        if (
+          context.deferCompletionUntilNextFrame === true &&
+          context.duration > 0
+        ) {
+          context.pendingCompletion = true;
+          continue;
+        }
+
         fireCompleteEvent(context);
         toRemove.push(id);
         continue;

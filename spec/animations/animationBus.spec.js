@@ -394,6 +394,107 @@ describe("animationBus auto tween shorthand", () => {
     expect(animationBus.getState().activeCount).toBe(0);
   });
 
+  it("completes custom animations immediately by default during playback", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-playback-complete",
+        driver: "custom",
+        duration: 100,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.tick(120);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
+  it("keeps deferred custom animations active for one final playback frame", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-transition-final-frame",
+        driver: "custom",
+        duration: 100,
+        deferCompletionUntilNextFrame: true,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.tick(120);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(animationBus.getState()).toEqual(
+      expect.objectContaining({
+        activeCount: 1,
+        animations: [
+          expect.objectContaining({
+            id: "custom-transition-final-frame",
+            currentTime: 100,
+            duration: 100,
+            progress: 1,
+          }),
+        ],
+      }),
+    );
+
+    animationBus.tick(16);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
+  it("does not defer custom animation completion in sampled-time mode", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-sampled-final-frame",
+        driver: "custom",
+        duration: 100,
+        deferCompletionUntilNextFrame: true,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.setTime(100);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
   it("keeps explicitly preserved persistent animations active across selective cancellation", () => {
     const animationBus = createAnimationBus();
     const onCancel = vi.fn();

@@ -20,6 +20,13 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasStaleShaderFilterProgressInTree,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
@@ -57,6 +64,19 @@ export const updateContainer = ({
   if (shouldForceBlur) {
     syncBlurEffect(containerElement, prevElement.blur, { force: true });
   }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(containerElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(containerElement);
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
@@ -67,6 +87,11 @@ export const updateContainer = ({
       applyElementTransform(containerElement, nextElement);
       syncBlurEffect(containerElement, nextElement.blur, {
         force: shouldForceBlur,
+      });
+      syncShaderFilters(containerElement, nextElement.filters, {
+        width: nextElement.width,
+        height: nextElement.height,
+        force: shouldForceShaderProgress,
       });
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
@@ -123,14 +148,18 @@ export const updateContainer = ({
     const hasChildAnimation = Array.from(childIds).some(
       (childId) => getTargetAnimations(animations, childId).length > 0,
     );
+    const contentContainer = containerElement.children.find(
+      (child) => child.label === `${nextElement.id}-content`,
+    );
+    const renderParent = contentContainer || containerElement;
+    const hasChildShaderProgressReset = hasStaleShaderFilterProgressInTree({
+      parent: renderParent,
+      elements: nextElement.children,
+      animations,
+    });
 
     // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation) {
-      const contentContainer = containerElement.children.find(
-        (child) => child.label === `${nextElement.id}-content`,
-      );
-      const renderParent = contentContainer || containerElement;
-
+    if (childrenChanged || hasChildAnimation || hasChildShaderProgressReset) {
       renderElements({
         app,
         parent: renderParent,
@@ -167,6 +196,9 @@ export const updateContainer = ({
       ...getElementTransformTargetState(nextElement, { alpha }),
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: () => {

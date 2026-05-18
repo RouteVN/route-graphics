@@ -8,6 +8,11 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   normalizeAnimatedSpriteAtlas,
   normalizeAnimatedSpriteClips,
   normalizeAnimatedSpritePlayback,
@@ -88,6 +93,15 @@ export const addAnimatedSprite = async ({
     animatedSprite.alpha = alpha;
     const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
     syncBlurEffect(animatedSprite, element.blur, { force: shouldForceBlur });
+    const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+      animations,
+      id,
+    );
+    syncShaderFilters(animatedSprite, element.filters, {
+      width,
+      height,
+      force: shouldForceShaderProgress,
+    });
 
     parent.addChild(animatedSprite);
 
@@ -104,6 +118,9 @@ export const addAnimatedSprite = async ({
         height,
         alpha,
         ...getBlurTargetState(element, { force: shouldForceBlur }),
+        ...getShaderFilterTargetState(element, {
+          force: shouldForceShaderProgress,
+        }),
       },
       renderContext,
     });

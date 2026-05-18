@@ -7,6 +7,11 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 const normalizeRectFill = (fill) =>
   fill === undefined || fill === null || fill === "" || fill === "transparent"
@@ -29,6 +34,10 @@ export const addRect = ({
   renderContext,
 }) => {
   const { id, width, height, fill, border, alpha, scaleX, scaleY } = element;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
 
   const rect = new Graphics();
   rect.label = id;
@@ -62,6 +71,12 @@ export const addRect = ({
         width: Math.round(border.width),
       });
     }
+
+    syncShaderFilters(rect, element.filters, {
+      width,
+      height,
+      force: shouldForceShaderProgress,
+    });
   };
 
   drawRect();
@@ -220,7 +235,12 @@ export const addRect = ({
     animationBus,
     completionTracker,
     element: rect,
-    targetState,
+    targetState: {
+      ...targetState,
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     renderContext,
   });
 };

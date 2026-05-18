@@ -9,6 +9,11 @@ import {
   syncBlurEffect,
 } from "../util/blurEffect.js";
 import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
@@ -93,6 +98,15 @@ export const addContainer = ({
   applyElementTransform(container, element);
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(container, element.blur, { force: shouldForceBlur });
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    id,
+  );
+  syncShaderFilters(container, element.filters, {
+    width: element.width,
+    height: element.height,
+    force: shouldForceShaderProgress,
+  });
 
   parent.addChild(container);
 
@@ -153,6 +167,9 @@ export const addContainer = ({
     targetState: {
       ...getElementTransformTargetState(element, { alpha }),
       ...getBlurTargetState(element, { force: shouldForceBlur }),
+      ...getShaderFilterTargetState(element, {
+        force: shouldForceShaderProgress,
+      }),
     },
     renderContext,
   });

@@ -18,12 +18,13 @@ The old public `operation`-based shape has been removed.
 
 Current runtime shape:
 
-- public normalization still expects `type: live | replace`
-- live element animation is driven through one central animation bus
+- public normalization expects `type: update | transition`
+- update animation is driven through one central animation bus
 - every changed render cancels all active update animations before planning the next state
-- replace supports add, update, and delete lifecycles through diff planning
-- replace supports `prev` and `next` tween composition with optional `mask`
-- shader-backed replace has been removed for now
+- transition supports add, update, and delete lifecycles through diff planning
+- transition supports `prev` and `next` tween composition with optional `mask`
+- transition supports shader `compositor` with top-level `tween.uProgress`
+- element shader filters are supported through `elements[].filters`
 
 Primary files involved today:
 
@@ -103,37 +104,46 @@ Key rules:
   - `next` only
   - both
   - `mask` with no explicit motion overrides
+  - `compositor`
 - `update` cannot use `mask`
-- future shader support, if reintroduced, should be `transition`-only
+- shader compositor support is `transition`-only
+- shader compositor support is mutually exclusive with `mask` in v1
+- top-level `transition.tween` is valid only for `uProgress` when a compositor
+  is present
+- compositor support requires top-level `tween.uProgress`
 - `update` is update-only and must not be used for add/delete
 - a parent `transition` owns the subtree surface while active
 - descendant animations under that parent `transition` are deferred until finalize
 
 ## Completed Migration
 
-The following are already implemented in the current runtime, before the rename:
+The public type rename is complete.
 
-- public `type: live | replace`
+Already implemented in the current runtime:
+
+- public `type: update | transition`
 - `tween` instead of `properties`
 - `prev` / `next` / `mask`
-- diff-driven add/update/delete mapping for both live and replace
-- next-only and prev-only replace
-- tween plus mask composition in one replace animation
+- transition `compositor`
+- element `filters`
+- diff-driven add/update/delete mapping for transition lifecycles
+- next-only and prev-only transitions
+- tween plus mask composition in one transition animation
+
+## Historical Step 1: Rename The Public Types
+
+Status:
+
+- complete
+
+Completed work:
+
+- renamed public `live` to `update`
+- renamed public `replace` to `transition`
+- updated schema, normalization, docs, tests, and examples together
+- did not keep a compatibility alias layer
 
 ## Remaining Work
-
-## Step 1: Rename The Public Types
-
-Goal:
-
-- make the public contract match the intended semantics directly
-
-Work:
-
-- rename public `live` to `update`
-- rename public `replace` to `transition`
-- update schema, normalization, docs, tests, and examples together
-- do not keep a compatibility alias layer
 
 ## Step 2: Tighten Lifecycle Semantics
 
@@ -159,7 +169,7 @@ Files likely touched:
 
 Goal:
 
-- preserve child transitions on first mount without relying on add-time live animation
+- preserve child transitions on first mount without relying on add-time update animation
 
 Work:
 
@@ -232,7 +242,8 @@ Implemented contract:
   renders if `id`, `targetId`, and normalized config are unchanged
 - when present on `transition`, the same in-flight handoff should continue
   across later renders if `id`, `targetId`, and normalized `prev` / `next` /
-  `mask` / `playback` config are unchanged
+  `mask` / `compositor` / top-level `tween.uProgress` / `playback` config are
+  unchanged
 - if a later render omits the animation, it stops
 - if a later render changes the animation config, it restarts
 - a persistent animation should not count toward any render's
@@ -328,8 +339,9 @@ Current decision:
 
 Future rule:
 
-- if shader support returns, it should live under `transition`
+- if shader compositor support returns, it should live under `transition`
 - it should not change the `update | transition` split
+- element shader filters should live on elements, outside animation objects
 
 ## Future Cleanup: Completion Leases
 

@@ -21,6 +21,11 @@ import {
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
 import { degreesToRadians } from "../../elements/util/transform.js";
+import {
+  createShaderFilter,
+  setShaderFilterProgress,
+  setShaderFilterResolution,
+} from "../../elements/util/shaderFilterEffect.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -58,14 +63,60 @@ const normalizeFrame = (frame) => {
   return frame;
 };
 
+const generateLocalSnapshotTexture = ({ app, displayObject, frame }) => {
+  const original = {
+    x: displayObject.x ?? 0,
+    y: displayObject.y ?? 0,
+    scaleX: displayObject.scale?.x ?? 1,
+    scaleY: displayObject.scale?.y ?? 1,
+    rotation: displayObject.rotation ?? 0,
+    alpha: displayObject.alpha ?? 1,
+    skewX: displayObject.skew?.x ?? 0,
+    skewY: displayObject.skew?.y ?? 0,
+  };
+
+  try {
+    displayObject.x = 0;
+    displayObject.y = 0;
+    displayObject.scale?.set?.(1, 1);
+    displayObject.rotation = 0;
+    displayObject.alpha = 1;
+    displayObject.skew?.set?.(0, 0);
+    displayObject.updateLocalTransform?.();
+
+    return app.renderer.generateTexture({
+      target: displayObject,
+      frame,
+    });
+  } finally {
+    displayObject.x = original.x;
+    displayObject.y = original.y;
+    displayObject.scale?.set?.(original.scaleX, original.scaleY);
+    displayObject.rotation = original.rotation;
+    displayObject.alpha = original.alpha;
+    displayObject.skew?.set?.(original.skewX, original.skewY);
+    displayObject.updateLocalTransform?.();
+  }
+};
+
 const createSnapshotSubject = (app, displayObject) => {
   const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
-  const texture = app.renderer.generateTexture({
-    target: displayObject,
-    frame,
-  });
+  const canReuseSpriteTexture =
+    displayObject instanceof Sprite &&
+    (displayObject.filters?.length ?? 0) === 0;
+  const texture = canReuseSpriteTexture
+    ? displayObject.texture
+    : generateLocalSnapshotTexture({
+        app,
+        displayObject,
+        frame,
+      });
 
   const sprite = new Sprite(texture);
+  if (canReuseSpriteTexture) {
+    sprite.tint = displayObject.tint;
+    sprite.blendMode = displayObject.blendMode;
+  }
   sprite.x = frame.x - (displayObject.pivot?.x ?? 0);
   sprite.y = frame.y - (displayObject.pivot?.y ?? 0);
 
@@ -74,12 +125,14 @@ const createSnapshotSubject = (app, displayObject) => {
   wrapper.y = displayObject.y ?? 0;
   wrapper.scale.set(displayObject.scale?.x ?? 1, displayObject.scale?.y ?? 1);
   wrapper.rotation = displayObject.rotation ?? 0;
+  wrapper.skew?.set?.(displayObject.skew?.x ?? 0, displayObject.skew?.y ?? 0);
   wrapper.alpha = displayObject.alpha ?? 1;
   wrapper.addChild(sprite);
 
   return {
     wrapper,
     texture,
+    ownsTexture: !canReuseSpriteTexture,
     width: frame.width * Math.abs(wrapper.scale.x),
     height: frame.height * Math.abs(wrapper.scale.y),
   };
@@ -231,6 +284,14 @@ const createMaskProgressTimeline = (mask) =>
       value: mask?.progress?.initialValue ?? 0,
     },
     ...(mask?.progress?.keyframes ?? []),
+  ]);
+
+const createCompositorProgressTimeline = (animation) =>
+  buildTimeline([
+    {
+      value: animation.tween?.uProgress?.initialValue ?? 0,
+    },
+    ...(animation.tween?.uProgress?.keyframes ?? []),
   ]);
 
 const REPLACE_MASK_FILTER_VERTEX = `
@@ -938,6 +999,7 @@ const renderOffscreenContainer = ({ app, container, target, frame }) => {
     container,
     target,
     clear: true,
+    clearColor: [0, 0, 0, 0],
     transform: new Matrix(1, 0, 0, 1, -frame.x, -frame.y),
   });
 };
@@ -956,7 +1018,9 @@ const destroySubjectSnapshot = (subject, app) => {
     subject.wrapper.destroy({ children: true });
   }
 
-  subject?.texture?.destroy(true);
+  if (subject?.ownsTexture) {
+    subject.texture?.destroy(true);
+  }
 };
 
 const resolveOverlaySubjects = ({
@@ -973,23 +1037,19 @@ const resolveOverlaySubjects = ({
   let overlayPrevSubject = prevSubject;
   let overlayNextSubject = nextSubject;
 
-  if (
-    animation.mask !== undefined &&
-    animation.prev === undefined &&
-    animation.next === undefined
-  ) {
+  if (animation.mask !== undefined || animation.compositor !== undefined) {
     return {
       prevSubject: overlayPrevSubject,
       nextSubject: overlayNextSubject,
     };
-  } else {
-    if (animation.prev === undefined) {
-      overlayPrevSubject = null;
-    }
+  }
 
-    if (animation.next === undefined) {
-      overlayNextSubject = null;
-    }
+  if (animation.prev === undefined) {
+    overlayPrevSubject = null;
+  }
+
+  if (animation.next === undefined) {
+    overlayNextSubject = null;
   }
 
   return {
@@ -1036,6 +1096,185 @@ const createPlainOverlay = ({
       overlay.removeFromParent();
       cleanupParticlesInTree({ app, root: overlay });
       overlay.destroy({ children: true });
+      destroySubjectSnapshot(prevSubject, app);
+      destroySubjectSnapshot(nextSubject, app);
+    },
+  };
+};
+
+const createCompositorOverlay = ({
+  app,
+  animation,
+  prevSubject,
+  nextSubject,
+  zIndex,
+}) => {
+  const prevController = createSubjectController(
+    prevSubject,
+    animation.prev?.tween,
+  );
+  const nextController = createSubjectController(
+    nextSubject,
+    animation.next?.tween,
+  );
+  const progressTimeline = createCompositorProgressTimeline(animation);
+  const progressDuration = calculateMaxDuration([
+    {
+      timeline: progressTimeline,
+    },
+  ]);
+  const unionBounds = getAnimatedUnionBounds(
+    [prevSubject, nextSubject],
+    [prevController, nextController],
+  );
+  const prevRoot = new Container();
+  const nextRoot = new Container();
+
+  if (prevSubject?.wrapper) {
+    prevRoot.addChild(prevSubject.wrapper);
+  }
+
+  if (nextSubject?.wrapper) {
+    nextRoot.addChild(nextSubject.wrapper);
+  }
+
+  const prevTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const nextTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+
+  const overlay = new Container();
+  overlay.zIndex = zIndex;
+
+  const sprite = new Sprite(prevTexture);
+  sprite.x = unionBounds.x;
+  sprite.y = unionBounds.y;
+  sprite.filterArea = new Rectangle(
+    0,
+    0,
+    unionBounds.width,
+    unionBounds.height,
+  );
+  overlay.addChild(sprite);
+
+  const compositorFilter = createShaderFilter({
+    shader: animation.compositor,
+    width: unionBounds.width,
+    height: unionBounds.height,
+    progress: getValueAtTime(progressTimeline, 0),
+    nextTextureSource: nextTexture.source,
+    name: `route-graphics-transition-compositor-${animation.id}`,
+  });
+  sprite.filters = [compositorFilter];
+  const nextTextureClamp = createFullFrameClamp(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const baseApplyCompositorFilter =
+    typeof compositorFilter.apply === "function"
+      ? compositorFilter.apply.bind(compositorFilter)
+      : (filterManager, input, output, clearMode) => {
+          filterManager.applyFilter(compositorFilter, input, output, clearMode);
+        };
+  compositorFilter.apply = (filterManager, input, output, clearMode) => {
+    const shaderUniforms = compositorFilter.resources.shaderUniforms;
+    if (shaderUniforms?.uniforms?.uNextTextureMatrix) {
+      filterManager.calculateSpriteMatrix(
+        shaderUniforms.uniforms.uNextTextureMatrix,
+        sprite,
+      );
+      shaderUniforms.uniforms.uNextTextureClamp = nextTextureClamp;
+      shaderUniforms.update();
+    }
+    baseApplyCompositorFilter(filterManager, input, output, clearMode);
+  };
+
+  let prevStaticRendered = false;
+  let nextStaticRendered = false;
+
+  if (!prevSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: prevRoot,
+      target: prevTexture,
+      frame: unionBounds,
+    });
+    prevStaticRendered = true;
+  }
+
+  if (!nextSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: nextRoot,
+      target: nextTexture,
+      frame: unionBounds,
+    });
+    nextStaticRendered = true;
+  }
+
+  return {
+    overlay,
+    duration: Math.max(
+      prevController.duration,
+      nextController.duration,
+      progressDuration,
+    ),
+    apply: (time) => {
+      prevController.apply(time);
+      nextController.apply(time);
+
+      if (
+        prevSubject?.wrapper &&
+        (prevController.duration > 0 || !prevStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: prevRoot,
+          target: prevTexture,
+          frame: unionBounds,
+        });
+        prevStaticRendered = true;
+      }
+
+      if (
+        nextSubject?.wrapper &&
+        (nextController.duration > 0 || !nextStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: nextRoot,
+          target: nextTexture,
+          frame: unionBounds,
+        });
+        nextStaticRendered = true;
+      }
+
+      setShaderFilterResolution(
+        compositorFilter,
+        unionBounds.width,
+        unionBounds.height,
+      );
+      setShaderFilterProgress(
+        compositorFilter,
+        getValueAtTime(progressTimeline, time),
+      );
+    },
+    destroy: () => {
+      overlay.removeFromParent();
+      sprite.filters = [];
+      compositorFilter.destroy();
+      cleanupParticlesInTree({ app, root: overlay });
+      cleanupParticlesInTree({ app, root: prevRoot });
+      cleanupParticlesInTree({ app, root: nextRoot });
+      overlay.destroy({ children: true });
+      prevRoot.destroy({ children: true });
+      nextRoot.destroy({ children: true });
+      prevTexture.destroy(true);
+      nextTexture.destroy(true);
       destroySubjectSnapshot(prevSubject, app);
       destroySubjectSnapshot(nextSubject, app);
     },
@@ -1215,6 +1454,16 @@ const createReplaceOverlay = ({
   nextSubject,
   zIndex,
 }) => {
+  if (animation.compositor) {
+    return createCompositorOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  }
+
   if (animation.mask) {
     return createMaskedOverlay({
       app,
@@ -1521,6 +1770,7 @@ export const runReplaceAnimation = ({
       continuity: isPersistent ? "persistent" : "render",
       onContinuationUpdate: handleContinuationUpdate,
       duration: replaceOverlay.duration,
+      deferCompletionUntilNextFrame: animation.compositor !== undefined,
       applyFrame: replaceOverlay.apply,
       applyTargetState: () => {
         finalize({ flushDeferredEffects: false });
