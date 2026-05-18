@@ -69,7 +69,7 @@ export const updateRect = ({
 
       rectElement
         .rect(0, 0, Math.round(width), Math.round(height))
-        .fill(resolveRectFill(rectElement, fill));
+        .fill(resolveRectFill(rectElement, fill, nextElement));
       rectElement.alpha = alpha;
       // Rect computed nodes already bake scale into width/height for layout.
       // Reset the live transform so update tweens do not double-apply scale.
