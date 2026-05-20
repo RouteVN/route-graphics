@@ -354,8 +354,13 @@ export const createInputDomBridge = ({ app }) => {
     element.addEventListener("input", syncFromDom);
     element.addEventListener("select", syncFromDom);
     element.addEventListener("click", () => queueMicrotask(syncFromDom));
-    element.addEventListener("keyup", () => queueMicrotask(syncFromDom));
+    element.addEventListener("keyup", (event) => {
+      event.stopPropagation();
+      queueMicrotask(syncFromDom);
+    });
     element.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+
       const shouldSubmitSingleLine =
         event.key === "Enter" &&
         entry.options.multiline !== true &&

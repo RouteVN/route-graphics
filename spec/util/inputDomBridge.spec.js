@@ -246,6 +246,68 @@ describe("inputDomBridge", () => {
     bridge.destroy();
   });
 
+  it("keeps focused input keyboard events from bubbling to document shortcuts", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+    const onDocumentKeydown = vi.fn();
+    const onDocumentKeyup = vi.fn();
+    const callbacks = {
+      onSubmit: vi.fn(),
+    };
+
+    document.addEventListener("keydown", onDocumentKeydown);
+    document.addEventListener("keyup", onDocumentKeyup);
+
+    const input = bridge.mount("name", {
+      value: "abc",
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks,
+    });
+
+    input.focus();
+
+    const spaceDown = new KeyboardEvent("keydown", {
+      key: " ",
+      code: "Space",
+      bubbles: true,
+      cancelable: true,
+    });
+    const spaceUp = new KeyboardEvent("keyup", {
+      key: " ",
+      code: "Space",
+      bubbles: true,
+      cancelable: true,
+    });
+    const enterDown = new KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    });
+
+    input.dispatchEvent(spaceDown);
+    input.dispatchEvent(spaceUp);
+    input.dispatchEvent(enterDown);
+
+    expect(spaceDown.defaultPrevented).toBe(false);
+    expect(spaceUp.defaultPrevented).toBe(false);
+    expect(enterDown.defaultPrevented).toBe(true);
+    expect(callbacks.onSubmit).toHaveBeenCalledTimes(1);
+    expect(onDocumentKeydown).not.toHaveBeenCalled();
+    expect(onDocumentKeyup).not.toHaveBeenCalled();
+
+    document.removeEventListener("keydown", onDocumentKeydown);
+    document.removeEventListener("keyup", onDocumentKeyup);
+    bridge.destroy();
+  });
+
   it("blurs when the pointer lands inside the unclipped box but outside the visible clipped region", () => {
     vi.useFakeTimers();
 
