@@ -1,0 +1,124 @@
+---
+title: Input Keyboard Isolation
+description: Focused input typing should not emit global keyboard shortcuts.
+skipInitialScreenshot: true
+specs:
+  - pressing Space while an input is focused should edit the field only
+  - the same global Space shortcut should work after the input loses focus
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: click
+    x: 180
+    "y": 88
+  - action: wait
+    ms: 100
+  - action: keypress
+    key: A
+  - action: keypress
+    key: Space
+  - action: keypress
+    key: B
+  - action: wait
+    ms: 120
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - change
+    value:
+      - _event:
+          id: input-name
+          value: A
+          selectionStart: 1
+          selectionEnd: 1
+          composing: false
+        action: inputChange
+      - _event:
+          id: input-name
+          value: "A "
+          selectionStart: 2
+          selectionEnd: 2
+          composing: false
+        action: inputChange
+      - _event:
+          id: input-name
+          value: A B
+          selectionStart: 3
+          selectionEnd: 3
+          composing: false
+        action: inputChange
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keydown
+    value: []
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keyup
+    value: []
+  - action: customEvent
+    name: clearEvents
+  - action: click
+    x: 20
+    "y": 20
+  - action: wait
+    ms: 100
+  - action: keypress
+    key: Space
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keydown
+    value:
+      - _event:
+          key: space
+        action: globalSpaceDown
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - keyup
+    value:
+      - _event:
+          key: space
+        action: globalSpaceUp
+---
+states:
+  - elements:
+      - id: input-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+      - id: input-name
+        type: input
+        x: 60
+        "y": 60
+        width: 240
+        height: 56
+        placeholder: Your name
+        textStyle:
+          fill: "#FFFFFF"
+          fontSize: 22
+        focusEvent:
+          payload:
+            action: inputFocus
+        change:
+          payload:
+            action: inputChange
+    global:
+      keyboard:
+        space:
+          keydown:
+            payload:
+              action: globalSpaceDown
+          keyup:
+            payload:
+              action: globalSpaceUp

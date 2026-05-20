@@ -130,8 +130,94 @@ const getShortcutActivationKey = (binding, shortcut) => {
   return `${binding}${SHORTCUT_ACTIVATION_KEY_DELIMITER}${shortcut.shortcut}`;
 };
 
+const isEditableKeyboardTarget = (target) => {
+  if (!target || typeof target !== "object") {
+    return false;
+  }
+
+  const tagName =
+    typeof target.tagName === "string" ? target.tagName.toLowerCase() : "";
+
+  if (["input", "textarea", "select"].includes(tagName)) {
+    return true;
+  }
+
+  if (
+    (typeof HTMLInputElement !== "undefined" &&
+      target instanceof HTMLInputElement) ||
+    (typeof HTMLTextAreaElement !== "undefined" &&
+      target instanceof HTMLTextAreaElement) ||
+    (typeof HTMLSelectElement !== "undefined" &&
+      target instanceof HTMLSelectElement)
+  ) {
+    return true;
+  }
+
+  if (
+    target.isContentEditable === true ||
+    target.contentEditable === "true" ||
+    target.contentEditable === "plaintext-only"
+  ) {
+    return true;
+  }
+
+  if (typeof target.getAttribute === "function") {
+    const contentEditable = target.getAttribute("contenteditable");
+
+    if (contentEditable !== null && contentEditable.toLowerCase() !== "false") {
+      return true;
+    }
+
+    if (target.getAttribute("data-route-graphics-input-id") !== null) {
+      return true;
+    }
+  }
+
+  const closest =
+    typeof target.closest === "function"
+      ? target.closest.bind(target)
+      : typeof target.parentElement?.closest === "function"
+        ? target.parentElement.closest.bind(target.parentElement)
+        : null;
+
+  if (!closest) {
+    return false;
+  }
+
+  return Boolean(
+    closest(
+      '[data-route-graphics-input-id], [contenteditable]:not([contenteditable="false"])',
+    ),
+  );
+};
+
 const shouldHandleKeydown = (event) => {
+  if (isEditableKeyboardTarget(event?.target)) {
+    return false;
+  }
+
   return typeof hotkeys.filter !== "function" || hotkeys.filter(event);
+};
+
+const clearReleasedKeyState = ({
+  activeKeyupShortcuts,
+  activeModifierShortcuts,
+  pressedKeyCodes,
+  releasedKeyCode,
+}) => {
+  for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+    if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
+      activeKeyupShortcuts.delete(activationKey);
+    }
+  }
+
+  for (const [activationKey, activeShortcut] of [...activeModifierShortcuts]) {
+    if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
+      activeModifierShortcuts.delete(activationKey);
+    }
+  }
+
+  pressedKeyCodes.delete(releasedKeyCode);
 };
 
 const normalizeBindingConfig = (config) => {
@@ -246,6 +332,7 @@ export const createKeyboardManager = (eventHandler) => {
 
   const onDocumentKeydown = (event) => {
     if (!shouldHandleKeydown(event)) {
+      clearActiveKeyupBindings();
       return;
     }
 
@@ -281,6 +368,16 @@ export const createKeyboardManager = (eventHandler) => {
     const releasedKeyCode = getEventKeyCode(event);
 
     if (typeof releasedKeyCode !== "number") {
+      return;
+    }
+
+    if (isEditableKeyboardTarget(event?.target)) {
+      clearReleasedKeyState({
+        activeKeyupShortcuts,
+        activeModifierShortcuts,
+        pressedKeyCodes,
+        releasedKeyCode,
+      });
       return;
     }
 
@@ -369,6 +466,11 @@ export const createKeyboardManager = (eventHandler) => {
       // hotkeys-js is reliable for combo activation, but not for combo release
       // when modifiers are released before the final non-modifier key.
       hotkeys(binding, (_event, handler) => {
+        if (isEditableKeyboardTarget(_event?.target)) {
+          clearActiveKeyupBindings();
+          return;
+        }
+
         const shortcut = getHandlerShortcut(binding, handler);
 
         if (shortcut?.isModifierOnly) {

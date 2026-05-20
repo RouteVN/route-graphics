@@ -27,15 +27,17 @@ const createSharedParams = () => ({
 
 const createPointerEvent = (button) => ({ button });
 const dispatchKeyboardEvent = (type, key, options = {}) => {
-  document.dispatchEvent(
+  const { target = document, ...eventOptions } = options;
+
+  target.dispatchEvent(
     new KeyboardEvent(type, {
       key,
       code:
-        options.code ??
+        eventOptions.code ??
         (key.length === 1 ? `Key${key.toUpperCase()}` : undefined),
       bubbles: true,
       cancelable: true,
-      ...options,
+      ...eventOptions,
     }),
   );
 };
@@ -774,6 +776,137 @@ describe("event semantics", () => {
       ],
     ]);
 
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager ignores key events from editable targets", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+    const input = document.createElement("input");
+    const editable = document.createElement("div");
+    editable.contentEditable = "true";
+    document.body.append(input, editable);
+
+    keyboardManager.registerHotkeys({
+      space: {
+        keydown: { payload: { source: "SpaceDown" } },
+        keyup: { payload: { source: "SpaceUp" } },
+      },
+      shift: {
+        keydown: { payload: { source: "ShiftDown" } },
+        keyup: { payload: { source: "ShiftUp" } },
+      },
+    });
+
+    dispatchKeyboardEvent("keydown", " ", {
+      target: input,
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keyup", " ", {
+      target: input,
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keydown", "Shift", {
+      target: input,
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keyup", "Shift", {
+      target: input,
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keydown", "Shift", {
+      target: editable,
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keyup", "Shift", {
+      target: editable,
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    input.remove();
+    editable.remove();
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager drops active keyup bindings when release moves into an input", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+
+    keyboardManager.registerHotkeys({
+      shift: {
+        keydown: { payload: { source: "ShiftDown" } },
+        keyup: { payload: { source: "ShiftUp" } },
+      },
+    });
+
+    dispatchKeyboardEvent("keydown", "Shift", {
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keyup", "Shift", {
+      target: input,
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keyup", "Shift", {
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keydown", "Shift", {
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+    dispatchKeyboardEvent("keyup", "Shift", {
+      code: "ShiftLeft",
+      keyCode: 16,
+      which: 16,
+    });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keydown",
+        {
+          _event: { key: "shift" },
+          source: "ShiftDown",
+        },
+      ],
+      [
+        "keydown",
+        {
+          _event: { key: "shift" },
+          source: "ShiftDown",
+        },
+      ],
+      [
+        "keyup",
+        {
+          _event: { key: "shift" },
+          source: "ShiftUp",
+        },
+      ],
+    ]);
+
+    input.remove();
     keyboardManager.destroy();
   });
 });
