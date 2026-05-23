@@ -4,7 +4,7 @@ description: Compares typewriter reveal progress across low, mid, high, and inst
 diffThreshold: 0.5
 specs:
   - lower speeds should reveal fewer characters after the same elapsed time
-  - upper-range speeds should progress much faster than the low half of the scale
+  - speed 99 should finish ordinary typewriter copy quickly without using the instant speed 100 path
   - speed 100 should render complete text immediately without any reveal animation
 steps:
   - action: screenshot

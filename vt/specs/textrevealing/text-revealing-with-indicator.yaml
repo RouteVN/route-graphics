@@ -91,4 +91,5 @@ states:
             src: circle-green
             width: 14
             height: 14
-          offset: 14
+          offsetX: 14
+          offsetY: -6

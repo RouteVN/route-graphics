@@ -3,6 +3,11 @@ import { parseCommonObject } from "../util/parseCommonObject.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+} from "../animated-sprite/animatedSpriteConfig.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
 
 const normalizeInitialRevealedCharacters = (value) => {
@@ -17,6 +22,10 @@ const DEFAULT_FURIGANA_PLACEMENT = "top";
 const LEGACY_TOP_FURIGANA_OFFSET = 2;
 const FURIGANA_PLACEMENTS = ["top", "bottom"];
 const FURIGANA_PLACEMENT_SET = new Set(FURIGANA_PLACEMENTS);
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X = 16;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y = 0;
+const INDICATOR_VISUAL_KINDS = ["image", "spritesheet"];
+const INDICATOR_VISUAL_KIND_SET = new Set(INDICATOR_VISUAL_KINDS);
 
 export const normalizeFuriganaPlacement = (placement, path) => {
   if (placement === undefined) {
@@ -44,6 +53,58 @@ export const normalizeFuriganaGap = (gap, path) => {
   }
 
   throw new Error(`Input Error: ${path}.gap must be a finite number >= 0.`);
+};
+
+const getIndicatorVisualKind = (visual = {}) =>
+  visual.kind ??
+  (visual.atlas !== undefined ||
+  visual.clips !== undefined ||
+  visual.playback !== undefined
+    ? "spritesheet"
+    : "image");
+
+export const normalizeIndicatorVisual = (visual = {}, path) => {
+  const kind = getIndicatorVisualKind(visual);
+
+  if (!INDICATOR_VISUAL_KIND_SET.has(kind)) {
+    throw new Error(
+      `Input Error: ${path}.kind must be one of ${INDICATOR_VISUAL_KINDS.join(
+        ", ",
+      )}.`,
+    );
+  }
+
+  const baseVisual = {
+    kind,
+    src: visual.src ?? "",
+    width: visual.width ?? 12,
+    height: visual.height ?? 12,
+  };
+
+  if (kind === "image") {
+    return baseVisual;
+  }
+
+  const atlasInput = visual.atlas;
+  const atlas = normalizeAnimatedSpriteAtlas(atlasInput);
+  const clips = normalizeAnimatedSpriteClips(
+    visual.clips,
+    atlasInput?.animations,
+    atlasInput?.meta,
+    Object.keys(atlas.frames ?? {}),
+  );
+  const playback = normalizeAnimatedSpritePlayback({
+    atlas,
+    clips,
+    playback: visual.playback,
+  });
+
+  return {
+    ...baseVisual,
+    atlas,
+    clips,
+    playback,
+  };
 };
 
 const getFuriganaPosition = ({
@@ -508,18 +569,24 @@ export const parseTextRevealing = ({ state }) => {
 
   if (state.indicator) {
     const indicator = state.indicator;
+
+    if (indicator.offset !== undefined) {
+      throw new Error(
+        "Input Error: indicator.offset is no longer supported. Use offsetX and offsetY.",
+      );
+    }
+
     computedObj.indicator = {
-      revealing: {
-        src: indicator.revealing?.src ?? "",
-        width: indicator.revealing?.width ?? 12,
-        height: indicator.revealing?.height ?? 12,
-      },
-      complete: {
-        src: indicator.complete?.src ?? "",
-        width: indicator.complete?.width ?? 12,
-        height: indicator.complete?.height ?? 12,
-      },
-      offset: indicator.offset ?? 12,
+      revealing: normalizeIndicatorVisual(
+        indicator.revealing,
+        "indicator.revealing",
+      ),
+      complete: normalizeIndicatorVisual(
+        indicator.complete,
+        "indicator.complete",
+      ),
+      offsetX: indicator.offsetX ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X,
+      offsetY: indicator.offsetY ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
     };
   }
 

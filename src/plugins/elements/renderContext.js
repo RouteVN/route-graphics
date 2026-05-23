@@ -48,6 +48,7 @@ const executeDeferredMountOperation = (operation) => {
         animationBus: operation.animationBus,
         zIndex: operation.zIndex,
         signal: operation.signal,
+        app: operation.app,
         playback: "autoplay",
       });
       return;
@@ -118,10 +119,11 @@ export const queueDeferredParticlesStart = (
 
 export const queueDeferredTextRevealAutoplay = (
   renderContext,
-  { container, element, completionTracker, animationBus, zIndex, signal },
+  { app, container, element, completionTracker, animationBus, zIndex, signal },
 ) =>
   queueDeferredMountOperation(renderContext, {
     type: "autoplay-text-reveal",
+    app,
     container,
     element,
     completionTracker,

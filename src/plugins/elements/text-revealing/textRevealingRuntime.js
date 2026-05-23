@@ -1,6 +1,8 @@
 import {
+  AnimatedSprite,
   Container,
   Sprite,
+  Spritesheet,
   Text,
   TextStyle,
   Texture,
@@ -14,9 +16,22 @@ import {
   getSoftWipeEasing,
   normalizeSoftWipeConfig,
 } from "./softWipeConfig.js";
+import {
+  setupDebugMode,
+  cleanupDebugMode,
+} from "../animated-sprite/util/debugUtils.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+  playbackFpsToAnimationSpeed,
+  resolveAnimatedSpriteFrameTextures,
+} from "../animated-sprite/animatedSpriteConfig.js";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
+const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
+const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
@@ -24,6 +39,11 @@ const MAX_ANIMATED_TEXT_REVEAL_SPEED = MAX_TEXT_REVEAL_SPEED - 1;
 const MIN_TEXT_REVEAL_RATE = 10;
 const MAX_TEXT_REVEAL_RATE = 120;
 const TEXT_REVEAL_RATE_CURVE = 0.9;
+const TYPEWRITER_MAX_TEXT_REVEAL_RATE = 360;
+const TYPEWRITER_TEXT_REVEAL_RATE_CURVE = 1.2;
+const TYPEWRITER_TARGET_STEP_MS = 20;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X = 16;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y = 0;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -41,7 +61,10 @@ const clampTextRevealSpeed = (speed = DEFAULT_TEXT_REVEAL_SPEED) => {
 export const isInstantTextRevealSpeed = (speed) =>
   clampTextRevealSpeed(speed) >= MAX_TEXT_REVEAL_SPEED;
 
-const getEffectiveSpeed = (speed) => {
+const getEffectiveSpeed = (
+  speed,
+  { maxRate = MAX_TEXT_REVEAL_RATE, curve = TEXT_REVEAL_RATE_CURVE } = {},
+) => {
   const clampedSpeed = Math.min(
     clampTextRevealSpeed(speed),
     MAX_ANIMATED_TEXT_REVEAL_SPEED,
@@ -50,12 +73,37 @@ const getEffectiveSpeed = (speed) => {
     MAX_ANIMATED_TEXT_REVEAL_SPEED > 0
       ? clampedSpeed / MAX_ANIMATED_TEXT_REVEAL_SPEED
       : 0;
-  const curvedSpeed = normalizedSpeed ** TEXT_REVEAL_RATE_CURVE;
+  const curvedSpeed = normalizedSpeed ** curve;
 
-  return (
-    MIN_TEXT_REVEAL_RATE *
-    (MAX_TEXT_REVEAL_RATE / MIN_TEXT_REVEAL_RATE) ** curvedSpeed
-  );
+  return MIN_TEXT_REVEAL_RATE * (maxRate / MIN_TEXT_REVEAL_RATE) ** curvedSpeed;
+};
+
+const getTypewriterEffectiveSpeed = (speed) =>
+  getEffectiveSpeed(speed, {
+    maxRate: TYPEWRITER_MAX_TEXT_REVEAL_RATE,
+    curve: TYPEWRITER_TEXT_REVEAL_RATE_CURVE,
+  });
+
+const getTypewriterRevealStep = (effectiveSpeed) => {
+  const singleCharacterDelay = 1000 / effectiveSpeed;
+
+  if (
+    singleCharacterDelay >= TYPEWRITER_TARGET_STEP_MS ||
+    effectiveSpeed <= MAX_TEXT_REVEAL_RATE
+  ) {
+    return {
+      stepDelay: Math.max(1, Math.floor(singleCharacterDelay)),
+      charactersPerStep: 1,
+    };
+  }
+
+  return {
+    stepDelay: TYPEWRITER_TARGET_STEP_MS,
+    charactersPerStep: Math.max(
+      2,
+      Math.round((effectiveSpeed * TYPEWRITER_TARGET_STEP_MS) / 1000),
+    ),
+  };
 };
 
 const getTextRevealSnapshotMode = (element) =>
@@ -86,50 +134,277 @@ export const shouldRenderTextRevealImmediately = (element) =>
   element?.revealEffect === "none" ||
   isInstantTextRevealSpeed(element?.speed ?? DEFAULT_TEXT_REVEAL_SPEED);
 
-const createIndicatorSprite = (element) => {
-  let indicatorSprite = new Sprite(Texture.EMPTY);
+const isPromiseLike = (value) =>
+  value !== null &&
+  typeof value === "object" &&
+  typeof value.then === "function";
 
-  if (element?.indicator?.revealing?.src) {
-    const revealingTexture = Texture.from(element.indicator.revealing.src);
+const getIndicatorVisualKind = (visual = {}) =>
+  visual.kind ??
+  (visual.atlas !== undefined ||
+  visual.clips !== undefined ||
+  visual.playback !== undefined
+    ? "spritesheet"
+    : "image");
 
-    indicatorSprite = new Sprite(revealingTexture);
-    indicatorSprite.width =
-      element.indicator.revealing.width ?? revealingTexture.width;
-    indicatorSprite.height =
-      element.indicator.revealing.height ?? revealingTexture.height;
+const hasSpritesheetIndicatorVisual = (element) =>
+  ["revealing", "complete"].some(
+    (stateName) =>
+      getIndicatorVisualKind(element?.indicator?.[stateName]) ===
+        "spritesheet" && Boolean(element?.indicator?.[stateName]?.src),
+  );
+
+const getIndicatorDebugElementId = (element) => `${element.id}-indicator`;
+
+const applyIndicatorSize = (displayObject, visual, fallbackTexture) => {
+  if (typeof visual?.width === "number") {
+    displayObject.width = visual.width;
+  } else if (fallbackTexture?.width) {
+    displayObject.width = fallbackTexture.width;
   }
 
-  return indicatorSprite;
+  if (typeof visual?.height === "number") {
+    displayObject.height = visual.height;
+  } else if (fallbackTexture?.height) {
+    displayObject.height = fallbackTexture.height;
+  }
 };
 
-const applyCompleteIndicator = (indicatorSprite, element) => {
-  if (!element?.indicator?.complete?.src) {
+const createImageIndicatorDisplay = (visual = {}) => {
+  const texture = visual?.src ? Texture.from(visual.src) : Texture.EMPTY;
+  const sprite = new Sprite(texture);
+
+  applyIndicatorSize(sprite, visual, texture);
+
+  return sprite;
+};
+
+const createSpritesheetIndicatorDisplay = (visual = {}, { app, element }) => {
+  if (!visual?.src) {
+    return createImageIndicatorDisplay(visual);
+  }
+
+  const atlas = normalizeAnimatedSpriteAtlas(visual.atlas);
+  const clips = normalizeAnimatedSpriteClips(
+    visual.clips,
+    visual.atlas?.animations,
+    visual.atlas?.meta,
+    Object.keys(atlas.frames ?? {}),
+  );
+  const playback = normalizeAnimatedSpritePlayback({
+    atlas,
+    clips,
+    playback: visual.playback,
+  });
+
+  return (async () => {
+    const spriteSheet = new Spritesheet(Texture.from(visual.src), atlas);
+
+    await spriteSheet.parse();
+
+    const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+      spritesheet: spriteSheet,
+      atlas,
+      clips,
+      playback,
+    });
+    const animatedSprite = new AnimatedSprite(
+      frameTextures.length > 0 ? frameTextures : [Texture.EMPTY],
+    );
+
+    animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(playback.fps);
+    animatedSprite.loop = playback.loop;
+    animatedSprite[TEXT_REVEAL_INDICATOR_PLAYBACK] = playback;
+    applyIndicatorSize(animatedSprite, visual, frameTextures[0]);
+
+    if (app?.debug) {
+      setupDebugMode(
+        animatedSprite,
+        getIndicatorDebugElementId(element),
+        app.debug,
+        () => {
+          if (typeof app.render === "function") {
+            app.render();
+          }
+        },
+      );
+    }
+
+    return animatedSprite;
+  })();
+};
+
+const createIndicatorDisplay = (visual, options) => {
+  if (getIndicatorVisualKind(visual) === "spritesheet") {
+    return createSpritesheetIndicatorDisplay(visual, options);
+  }
+
+  return createImageIndicatorDisplay(visual);
+};
+
+const startIndicatorPlayback = (displayObject, app) => {
+  if (
+    displayObject instanceof AnimatedSprite &&
+    !app?.debug &&
+    displayObject[TEXT_REVEAL_INDICATOR_PLAYBACK]?.autoplay !== false
+  ) {
+    displayObject.play();
+  }
+};
+
+const destroyIndicatorDisplay = (displayObject) => {
+  if (!displayObject || displayObject.destroyed) {
     return;
   }
 
-  const completeTexture = Texture.from(element.indicator.complete.src);
+  cleanupDebugMode(displayObject);
 
-  indicatorSprite.texture = completeTexture;
-  indicatorSprite.width =
-    element.indicator.complete.width ?? completeTexture.width;
-  indicatorSprite.height =
-    element.indicator.complete.height ?? completeTexture.height;
+  if (typeof displayObject.stop === "function") {
+    displayObject.stop();
+  }
+
+  displayObject.destroy({ children: true });
 };
 
-const positionIndicatorForChunk = (indicatorSprite, chunk, indicatorOffset) => {
-  indicatorSprite.x = indicatorOffset;
-  indicatorSprite.y = chunk
-    ? chunk.y + (chunk.lineMaxHeight - indicatorSprite.height)
-    : 0;
+const destroyIndicatorContainer = (indicatorContainer) => {
+  const controller = indicatorContainer?.[TEXT_REVEAL_INDICATOR];
+
+  if (controller) {
+    for (const displayObject of controller.displays) {
+      cleanupDebugMode(displayObject);
+    }
+
+    for (const displayObject of controller.displays) {
+      if (displayObject?.parent !== indicatorContainer) {
+        destroyIndicatorDisplay(displayObject);
+      }
+    }
+
+    delete indicatorContainer[TEXT_REVEAL_INDICATOR];
+  }
+
+  indicatorContainer.destroy({ children: true });
+};
+
+const createIndicatorContainer = ({
+  element,
+  app,
+  revealingDisplay,
+  completeDisplay,
+}) => {
+  const indicatorContainer = new Container({
+    label: getIndicatorDebugElementId(element),
+  });
+  const displays = new Set([revealingDisplay]);
+
+  if (completeDisplay) {
+    displays.add(completeDisplay);
+  }
+
+  indicatorContainer.addChild(revealingDisplay);
+  indicatorContainer[TEXT_REVEAL_INDICATOR] = {
+    displays,
+    currentDisplay: revealingDisplay,
+    completeDisplay,
+    start() {
+      startIndicatorPlayback(this.currentDisplay, app);
+    },
+    showComplete() {
+      if (
+        !this.completeDisplay ||
+        this.currentDisplay === this.completeDisplay
+      ) {
+        return;
+      }
+
+      const previousDisplay = this.currentDisplay;
+
+      if (previousDisplay?.parent === indicatorContainer) {
+        indicatorContainer.removeChild(previousDisplay);
+      }
+
+      destroyIndicatorDisplay(previousDisplay);
+      displays.delete(previousDisplay);
+
+      this.currentDisplay = this.completeDisplay;
+      indicatorContainer.addChild(this.completeDisplay);
+      startIndicatorPlayback(this.completeDisplay, app);
+    },
+  };
+
+  return indicatorContainer;
+};
+
+const createIndicatorSprite = (element, { app } = {}) => {
+  const revealingVisual = element?.indicator?.revealing ?? {};
+  const completeVisual = element?.indicator?.complete;
+  const revealingDisplayResult = createIndicatorDisplay(revealingVisual, {
+    app,
+    element,
+  });
+  const completeDisplayResult =
+    completeVisual?.src ||
+    getIndicatorVisualKind(completeVisual) === "spritesheet"
+      ? createIndicatorDisplay(completeVisual, { app, element })
+      : null;
+  const assemble = (revealingDisplay, completeDisplay) =>
+    createIndicatorContainer({
+      element,
+      app,
+      revealingDisplay,
+      completeDisplay,
+    });
+
+  if (
+    isPromiseLike(revealingDisplayResult) ||
+    isPromiseLike(completeDisplayResult)
+  ) {
+    return Promise.all([revealingDisplayResult, completeDisplayResult]).then(
+      ([revealingDisplay, completeDisplay]) =>
+        assemble(revealingDisplay, completeDisplay),
+    );
+  }
+
+  return assemble(revealingDisplayResult, completeDisplayResult);
+};
+
+const applyCompleteIndicator = (indicatorSprite) => {
+  indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.showComplete();
+};
+
+const getIndicatorOffsets = (element) => ({
+  x: element?.indicator?.offsetX ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X,
+  y: element?.indicator?.offsetY ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
+});
+
+const getIndicatorLineY = (indicatorSprite, chunk) => {
+  if (!chunk) {
+    return 0;
+  }
+
+  const lineHeight = Math.max(0, chunk.lineMaxHeight ?? 0);
+  const indicatorHeight = Math.max(0, indicatorSprite?.height ?? 0);
+
+  return chunk.y + Math.max(0, lineHeight - indicatorHeight);
+};
+
+const positionIndicatorForChunk = (
+  indicatorSprite,
+  chunk,
+  indicatorOffsets,
+) => {
+  indicatorSprite.x = indicatorOffsets.x;
+  indicatorSprite.y =
+    getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
 };
 
 const positionIndicatorAtTextEnd = (
   indicatorSprite,
   lastTextObject,
-  indicatorOffset,
+  indicatorOffsets,
 ) => {
   if (!lastTextObject || lastTextObject.text.length === 0) {
-    indicatorSprite.x = indicatorOffset;
+    indicatorSprite.x = indicatorOffsets.x;
     return;
   }
 
@@ -137,7 +412,18 @@ const positionIndicatorAtTextEnd = (
     getCharacterXPositionInATextObject(
       lastTextObject,
       lastTextObject.text.length - 1,
-    ) + indicatorOffset;
+    ) + indicatorOffsets.x;
+};
+
+const completeIndicatorAtTextEnd = (
+  indicatorSprite,
+  chunk,
+  lastTextObject,
+  indicatorOffsets,
+) => {
+  applyCompleteIndicator(indicatorSprite);
+  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
+  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
 };
 
 const registerTextRevealRuntime = (container, cleanup) => {
@@ -200,6 +486,11 @@ export const clearTextRevealingContainer = (container) => {
   const children = container.removeChildren();
 
   children.forEach((child) => {
+    if (child?.[TEXT_REVEAL_INDICATOR]) {
+      destroyIndicatorContainer(child);
+      return;
+    }
+
     child.destroy({ children: true });
   });
 };
@@ -304,15 +595,18 @@ const buildFullTextContent = (contentContainer, element) => {
 };
 
 const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const { lastTextObject, lastChunk } = buildFullTextContent(
     contentContainer,
     element,
   );
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
-  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffset);
-  applyCompleteIndicator(indicatorSprite, element);
+  completeIndicatorAtTextEnd(
+    indicatorSprite,
+    lastChunk,
+    lastTextObject,
+    indicatorOffsets,
+  );
 };
 
 const runTypewriterPrefixReveal = ({
@@ -321,7 +615,7 @@ const runTypewriterPrefixReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const firstChunk = element.content[0] ?? null;
   const totalCharacters = getTextRevealCharacterCount(element);
   let remainingCharacters = Math.min(
@@ -332,7 +626,7 @@ const runTypewriterPrefixReveal = ({
   let lastVisibleChunk = null;
 
   if (remainingCharacters <= 0) {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
     return;
   }
 
@@ -387,19 +681,24 @@ const runTypewriterPrefixReveal = ({
     positionIndicatorForChunk(
       indicatorSprite,
       lastVisibleChunk,
-      indicatorOffset,
+      indicatorOffsets,
     );
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastVisibleTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
   } else {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
   }
 
   if (revealedCharacters >= totalCharacters) {
-    applyCompleteIndicator(indicatorSprite, element);
+    completeIndicatorAtTextEnd(
+      indicatorSprite,
+      lastVisibleChunk ?? firstChunk,
+      lastVisibleTextObject,
+      indicatorOffsets,
+    );
   }
 };
 
@@ -411,10 +710,10 @@ const runPausedInitialReveal = ({
   const revealedCharacters = getInitialRevealedCharacters(element);
 
   if (revealedCharacters <= 0) {
-    const indicatorOffset = element?.indicator?.offset ?? 12;
+    const indicatorOffsets = getIndicatorOffsets(element);
     const firstChunk = element.content[0] ?? null;
 
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
     return;
   }
 
@@ -443,11 +742,15 @@ const runTypewriterReveal = async ({
   startAtCharacter = 0,
   snapshot = null,
 }) => {
-  const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
-  const indicatorOffset = element?.indicator?.offset ?? 12;
-  const charDelay = Math.max(1, Math.floor(1000 / effectiveSpeed));
-  const chunkDelay = Math.max(1, Math.floor(4000 / effectiveSpeed));
+  const effectiveSpeed = getTypewriterEffectiveSpeed(element.speed ?? 50);
+  const indicatorOffsets = getIndicatorOffsets(element);
+  const { stepDelay, charactersPerStep } =
+    getTypewriterRevealStep(effectiveSpeed);
+  const chunkDelay = Math.max(stepDelay, Math.floor(4000 / effectiveSpeed));
   let remainingStartCharacters = Math.max(0, Math.floor(startAtCharacter));
+  let revealedAnyNewCharacters = false;
+  let lastVisibleTextObject = null;
+  let lastVisibleChunk = null;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -460,7 +763,7 @@ const runTypewriterReveal = async ({
     const chunk = element.content[chunkIndex];
     let revealedNewCharactersInChunk = false;
 
-    positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
 
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
       if (signal?.aborted || contentContainer.destroyed) return false;
@@ -476,6 +779,11 @@ const runTypewriterReveal = async ({
 
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
+
+      if (fullText.length > 0) {
+        lastVisibleTextObject = text;
+        lastVisibleChunk = chunk;
+      }
       const furiganaLength = fullFurigana.length;
       const prefilledCharacters = Math.min(
         fullText.length,
@@ -496,35 +804,43 @@ const runTypewriterReveal = async ({
       if (prefilledCharacters > 0) {
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, prefilledCharacters - 1) +
-          indicatorOffset;
+          indicatorOffsets.x;
       }
 
-      for (
-        let charIndex = prefilledCharacters;
-        charIndex < fullText.length;
-        charIndex++
-      ) {
+      let charIndex = prefilledCharacters;
+
+      while (charIndex < fullText.length) {
         if (signal?.aborted || contentContainer.destroyed) return false;
 
-        text.text = fullText.substring(0, charIndex + 1);
+        const nextCharIndex = Math.min(
+          fullText.length,
+          charIndex + charactersPerStep,
+        );
+        const lastRevealedCharIndex = nextCharIndex - 1;
+
+        text.text = fullText.substring(0, nextCharIndex);
         indicatorSprite.x =
-          getCharacterXPositionInATextObject(text, charIndex) + indicatorOffset;
+          getCharacterXPositionInATextObject(text, lastRevealedCharIndex) +
+          indicatorOffsets.x;
         revealedNewCharactersInChunk = true;
+        revealedAnyNewCharacters = true;
 
         if (snapshot) {
-          snapshot.revealedCharacters += 1;
+          snapshot.revealedCharacters += nextCharIndex - charIndex;
         }
 
         if (furiganaText) {
           const furiganaProgress = Math.round(
-            ((charIndex + 1) / fullText.length) * furiganaLength,
+            (nextCharIndex / fullText.length) * furiganaLength,
           );
 
           furiganaText.text = fullFurigana.substring(0, furiganaProgress);
         }
 
-        if (charIndex < fullText.length - 1) {
-          await abortableSleep(charDelay, signal);
+        charIndex = nextCharIndex;
+
+        if (charIndex < fullText.length) {
+          await abortableSleep(stepDelay, signal);
         }
       }
     }
@@ -537,7 +853,18 @@ const runTypewriterReveal = async ({
     }
   }
 
-  applyCompleteIndicator(indicatorSprite, element);
+  if (revealedAnyNewCharacters) {
+    await abortableSleep(stepDelay, signal);
+
+    if (signal?.aborted || contentContainer.destroyed) return false;
+  }
+
+  completeIndicatorAtTextEnd(
+    indicatorSprite,
+    lastVisibleChunk,
+    lastVisibleTextObject,
+    indicatorOffsets,
+  );
 
   if (snapshot) {
     snapshot.completed = true;
@@ -740,7 +1067,7 @@ const applySoftWipeFrame = ({
   lineMasks,
   easing,
   indicatorSprite,
-  indicatorOffset,
+  indicatorOffsets,
   currentTime,
 }) => {
   let activeLine = timedLines[0];
@@ -811,11 +1138,15 @@ const applySoftWipeFrame = ({
     activeLine = line;
     activeLineLeadingEdgeX =
       line.bounds.x +
-      Math.min(line.bounds.width, Math.max(0, lineLeadingEdge - lineStart));
+      Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
   }
 
-  positionIndicatorForChunk(indicatorSprite, activeLine.chunk, indicatorOffset);
-  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
+  positionIndicatorForChunk(
+    indicatorSprite,
+    activeLine.chunk,
+    indicatorOffsets,
+  );
+  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffsets.x;
 };
 
 const runSoftWipePausedInitialReveal = ({
@@ -824,11 +1155,11 @@ const runSoftWipePausedInitialReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
 
   if (
     lines.length === 0 ||
@@ -837,12 +1168,12 @@ const runSoftWipePausedInitialReveal = ({
     !lines.some((line) => line.bounds.width > 0 && line.bounds.height > 0) ||
     !globalThis.document
   ) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return;
   }
 
@@ -874,12 +1205,12 @@ const runSoftWipePausedInitialReveal = ({
   });
 
   if (!lineMasks) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return;
   }
 
@@ -888,7 +1219,7 @@ const runSoftWipePausedInitialReveal = ({
     lineMasks,
     easing,
     indicatorSprite,
-    indicatorOffset,
+    indicatorOffsets,
     currentTime: 0,
   });
 };
@@ -901,14 +1232,14 @@ const runSoftWipeReveal = ({
   animationBus,
   completionTracker,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
   const initialRevealedCharacters = getInitialRevealedCharacters(element);
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
 
   if (
     lines.length === 0 ||
@@ -918,12 +1249,12 @@ const runSoftWipeReveal = ({
     !globalThis.document ||
     !animationBus
   ) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return false;
   }
 
@@ -956,12 +1287,12 @@ const runSoftWipeReveal = ({
   });
 
   if (!lineMasks) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return false;
   }
 
@@ -992,12 +1323,12 @@ const runSoftWipeReveal = ({
     });
 
     if (completed) {
-      positionIndicatorAtTextEnd(
+      completeIndicatorAtTextEnd(
         indicatorSprite,
+        lastChunk,
         lastTextObject,
-        indicatorOffset,
+        indicatorOffsets,
       );
-      applyCompleteIndicator(indicatorSprite, element);
     }
   };
 
@@ -1024,7 +1355,7 @@ const runSoftWipeReveal = ({
           lineMasks,
           easing,
           indicatorSprite,
-          indicatorOffset,
+          indicatorOffsets,
           currentTime: Math.min(duration, currentTime),
         });
       },
@@ -1057,6 +1388,7 @@ export const runTextReveal = async ({
   animationBus,
   zIndex,
   signal,
+  app,
   playback = "autoplay",
 }) => {
   if (signal?.aborted || container.destroyed) {
@@ -1072,16 +1404,48 @@ export const runTextReveal = async ({
     return;
   }
 
+  const indicatorSetupVersion = completionTracker?.getVersion?.();
+  const shouldTrackIndicatorSetup = hasSpritesheetIndicatorVisual(element);
+  let indicatorSetupTracked = false;
+  const trackIndicatorSetup = () => {
+    if (!shouldTrackIndicatorSetup || indicatorSetupTracked) {
+      return;
+    }
+
+    completionTracker?.track?.(indicatorSetupVersion);
+    indicatorSetupTracked = true;
+  };
+  const completeIndicatorSetup = () => {
+    if (!indicatorSetupTracked) {
+      return;
+    }
+
+    indicatorSetupTracked = false;
+    completionTracker?.complete?.(indicatorSetupVersion);
+  };
+
+  trackIndicatorSetup();
   clearTextRevealingContainer(container);
   container.zIndex = zIndex;
 
   const contentContainer = new Container({ label: `${element.id}-content` });
-  const indicatorSprite = createIndicatorSprite(element);
-
-  container.addChild(contentContainer);
-  container.addChild(indicatorSprite);
+  let indicatorSprite;
 
   try {
+    const indicatorSpriteResult = createIndicatorSprite(element, { app });
+    indicatorSprite = isPromiseLike(indicatorSpriteResult)
+      ? await indicatorSpriteResult
+      : indicatorSpriteResult;
+
+    if (signal?.aborted || container.destroyed) {
+      destroyIndicatorContainer(indicatorSprite);
+      completeIndicatorSetup();
+      return;
+    }
+
+    container.addChild(contentContainer);
+    container.addChild(indicatorSprite);
+    indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.start();
     if (playback === "paused-initial") {
       if (!renderImmediately) {
         setTextRevealSnapshot(container, {
@@ -1100,6 +1464,7 @@ export const runTextReveal = async ({
       } else {
         runPausedInitialReveal({ contentContainer, indicatorSprite, element });
       }
+      completeIndicatorSetup();
       return;
     }
 
@@ -1108,6 +1473,7 @@ export const runTextReveal = async ({
 
     if (renderImmediately) {
       completionTracker.track(stateVersion);
+      completeIndicatorSetup();
       setTextRevealSnapshot(container, {
         mode: "none",
         completed: true,
@@ -1132,12 +1498,15 @@ export const runTextReveal = async ({
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
         completionTracker.track(stateVersion);
+        completeIndicatorSetup();
         completed = true;
       } else {
+        completeIndicatorSetup();
         return;
       }
     } else {
       completionTracker.track(stateVersion);
+      completeIndicatorSetup();
       const startAtCharacter =
         resumableSnapshot?.revealedCharacters ?? initialRevealedCharacters;
       const nextSnapshot = setTextRevealSnapshot(container, {
@@ -1160,6 +1529,16 @@ export const runTextReveal = async ({
       completionTracker.complete(stateVersion);
     }
   } catch (error) {
+    completeIndicatorSetup();
+
+    if (
+      indicatorSprite &&
+      !indicatorSprite.destroyed &&
+      !indicatorSprite.parent
+    ) {
+      destroyIndicatorContainer(indicatorSprite);
+    }
+
     if (error?.name !== "AbortError" && !signal?.aborted) {
       throw error;
     }

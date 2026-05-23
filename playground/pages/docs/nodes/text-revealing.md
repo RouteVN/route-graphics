@@ -31,7 +31,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 | `initialRevealedCharacters` | number                               | No                  | `0`            | Leading characters to paint as already revealed before the animation starts.                                                    |
 | `revealEffect`              | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.     |
 | `softWipe`                  | object                               | No                  | see below      | Parameters used when `revealEffect: softWipe`.                                                                                  |
-| `indicator`                 | object                               | No                  | -              | Revealing/complete icon config + offset.                                                                                        |
+| `indicator`                 | object                               | No                  | -              | Revealing/complete visual config + offset. Supports static images and spritesheets.                                             |
 | `complete`                  | object                               | No                  | -              | Parsed and kept in computed node.                                                                                               |
 
 ### `content[]` item shape
@@ -74,15 +74,27 @@ furigana:
 
 ### `indicator`
 
-| Field              | Type   | Default |
-| ------------------ | ------ | ------- |
-| `revealing.src`    | string | `""`    |
-| `revealing.width`  | number | `12`    |
-| `revealing.height` | number | `12`    |
-| `complete.src`     | string | `""`    |
-| `complete.width`   | number | `12`    |
-| `complete.height`  | number | `12`    |
-| `offset`           | number | `12`    |
+`revealing` and `complete` share the same visual shape. `kind` defaults to `image`; if spritesheet fields such as `atlas`, `clips`, or `playback` are present, the parser treats the visual as `spritesheet`.
+
+| Field                | Type                     | Default |
+| -------------------- | ------------------------ | ------- |
+| `revealing.kind`     | `image` \| `spritesheet` | `image` |
+| `revealing.src`      | string                   | `""`    |
+| `revealing.width`    | number                   | `12`    |
+| `revealing.height`   | number                   | `12`    |
+| `revealing.atlas`    | object                   | -       |
+| `revealing.clips`    | object                   | -       |
+| `revealing.playback` | object                   | -       |
+| `complete.kind`      | `image` \| `spritesheet` | `image` |
+| `complete.src`       | string                   | `""`    |
+| `complete.width`     | number                   | `12`    |
+| `complete.height`    | number                   | `12`    |
+| `complete.atlas`     | object                   | -       |
+| `complete.clips`     | object                   | -       |
+| `complete.playback`  | object                   | -       |
+| `offset`             | number                   | `12`    |
+
+Spritesheet indicator visuals use the same `src`, `atlas`, `clips`, and `playback` vocabulary as `spritesheet-animation`.
 
 ### `softWipe`
 
@@ -163,10 +175,12 @@ elements:
     revealEffect: typewriter
     indicator:
       revealing:
+        kind: image
         src: circle-red
         width: 12
         height: 12
       complete:
+        kind: image
         src: circle-green
         width: 12
         height: 12
@@ -219,16 +233,54 @@ elements:
     revealEffect: none
     indicator:
       revealing:
+        kind: image
         src: circle-blue
         width: 16
         height: 16
       complete:
+        kind: image
         src: circle-green
         width: 16
         height: 16
       offset: 20
     content:
       - text: "Mission updated."
+```
+
+## Example: Spritesheet Indicator
+
+```yaml
+elements:
+  - id: dialog-animated-indicator
+    type: text-revealing
+    x: 80
+    y: 420
+    width: 720
+    speed: 45
+    indicator:
+      revealing:
+        kind: spritesheet
+        src: cursor-sheet
+        width: 18
+        height: 18
+        atlas:
+          frames:
+            blink-0: { x: 0, y: 0, width: 16, height: 16 }
+            blink-1: { x: 16, y: 0, width: 16, height: 16 }
+          animations:
+            blink: [blink-0, blink-1]
+        playback:
+          clip: blink
+          fps: 8
+          loop: true
+      complete:
+        kind: image
+        src: circle-green
+        width: 18
+        height: 18
+      offset: 12
+    content:
+      - text: "Animated indicators can track the reveal cursor."
 ```
 
 ## Example: Soft Wipe Multi-Line Dialogue
@@ -249,10 +301,12 @@ elements:
       lineDelay: 0
     indicator:
       revealing:
+        kind: image
         src: circle-red
         width: 12
         height: 12
       complete:
+        kind: image
         src: circle-green
         width: 12
         height: 12
