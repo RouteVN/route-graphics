@@ -40,6 +40,10 @@ properties:
     type: boolean
     description: Use a native textarea and render explicit line breaks
     default: false
+  submitOnEnter:
+    type: boolean
+    description: Emit the input submit event when Enter is pressed; when false, Enter is consumed and will not insert multiline line breaks
+    default: true
   disabled:
     type: boolean
     description: Disable focus and editing

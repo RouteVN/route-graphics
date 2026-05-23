@@ -15,6 +15,9 @@ export const parseInput = ({ state }) => {
     placeholder,
     multiline: state.multiline === true,
     disabled: state.disabled === true,
+    ...(typeof state.submitOnEnter === "boolean" && {
+      submitOnEnter: state.submitOnEnter,
+    }),
     ...(typeof state.maxLength === "number" && {
       maxLength: Math.round(state.maxLength),
     }),

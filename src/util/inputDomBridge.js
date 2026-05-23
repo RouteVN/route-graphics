@@ -268,7 +268,6 @@ export const createInputDomBridge = ({ app }) => {
     if (isPointerWithinEntryGeometry({ app, entry: activeEntry, event })) {
       return;
     }
-
     activeEntry.element.blur();
   };
 
@@ -344,7 +343,6 @@ export const createInputDomBridge = ({ app }) => {
           entry.lastSnapshot = snapshot;
           return;
         }
-
         entry.lastSnapshot = snapshot;
         entry.callbacks.onBlur?.(snapshot);
         entry.callbacks.onSelectionChange?.(snapshot);
@@ -354,20 +352,41 @@ export const createInputDomBridge = ({ app }) => {
     element.addEventListener("input", syncFromDom);
     element.addEventListener("select", syncFromDom);
     element.addEventListener("click", () => queueMicrotask(syncFromDom));
-    element.addEventListener("keyup", () => queueMicrotask(syncFromDom));
+    element.addEventListener("keyup", (event) => {
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      queueMicrotask(syncFromDom);
+    });
     element.addEventListener("keydown", (event) => {
-      const shouldSubmitSingleLine =
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+
+      const submitOnEnter = entry.options.submitOnEnter !== false;
+      const shouldConsumeEnter = entry.options.submitOnEnter === false;
+      const hasSubmitCallback = typeof entry.callbacks.onSubmit === "function";
+      const isSingleLineEnter =
         event.key === "Enter" &&
         entry.options.multiline !== true &&
         !event.shiftKey;
+      const shouldSubmitSingleLine =
+        isSingleLineEnter && submitOnEnter && hasSubmitCallback;
       const shouldSubmitMultiline =
         event.key === "Enter" &&
         entry.options.multiline === true &&
-        (event.ctrlKey || event.metaKey);
+        (event.ctrlKey || event.metaKey) &&
+        submitOnEnter &&
+        hasSubmitCallback;
+
+      if (
+        isSingleLineEnter ||
+        shouldSubmitMultiline ||
+        (event.key === "Enter" && shouldConsumeEnter)
+      ) {
+        event.preventDefault();
+      }
 
       if (shouldSubmitSingleLine || shouldSubmitMultiline) {
-        event.preventDefault();
-        entry.callbacks.onSubmit?.(getSnapshot(entry), event);
+        entry.callbacks.onSubmit(getSnapshot(entry), event);
       }
 
       if (event.key === "Escape") {
@@ -440,7 +459,6 @@ export const createInputDomBridge = ({ app }) => {
     entries.set(id, entry);
     syncGeometry(entry);
     entry.lastSnapshot = getSnapshot(entry);
-
     return entry.element;
   };
 
@@ -519,13 +537,11 @@ export const createInputDomBridge = ({ app }) => {
     if (!entry || entry.element.disabled) return;
 
     const isAlreadyFocused = document.activeElement === entry.element;
-
     activeId = id;
     applyPointerInteractivity(entry, activeId);
     if (!isAlreadyFocused) {
       entry.element.focus();
     }
-
     if (selectAll) {
       entry.element.select?.();
       notifySnapshot(entry, entry.lastSnapshot);
@@ -574,7 +590,6 @@ export const createInputDomBridge = ({ app }) => {
 
   const blur = (id) => {
     const entry = entries.get(id);
-
     entry?.element.blur();
   };
 
@@ -582,7 +597,6 @@ export const createInputDomBridge = ({ app }) => {
     const entry = entries.get(id);
 
     if (!entry) return;
-
     if (activeId === id) {
       activeId = null;
     }
