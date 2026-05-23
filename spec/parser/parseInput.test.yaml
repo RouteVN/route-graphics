@@ -57,6 +57,7 @@ in:
       value: hunter2
       placeholder: Password
       multiline: true
+      submitOnEnter: false
       secure: true
       readOnly: true
       disabled: true
@@ -98,6 +99,7 @@ out:
   value: hunter2
   placeholder: Password
   multiline: true
+  submitOnEnter: false
   disabled: true
   maxLength: 32
   textStyle:

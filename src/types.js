@@ -511,6 +511,7 @@
  * @property {string} value
  * @property {string} placeholder
  * @property {boolean} multiline
+ * @property {boolean} [submitOnEnter]
  * @property {boolean} disabled
  * @property {number} [maxLength]
  * @property {Object} textStyle

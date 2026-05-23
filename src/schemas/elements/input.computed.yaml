@@ -36,6 +36,8 @@ properties:
     type: string
   multiline:
     type: boolean
+  submitOnEnter:
+    type: boolean
   disabled:
     type: boolean
   maxLength:
