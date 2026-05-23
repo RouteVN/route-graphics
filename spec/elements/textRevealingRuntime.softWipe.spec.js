@@ -120,6 +120,29 @@ describe("runTextReveal softWipe parameters", () => {
     eased.payload.onCancel();
   });
 
+  it("keeps the indicator moving through the final soft edge", async () => {
+    const result = await runSoftWipe({
+      content: [{ text: "I" }],
+      softWipe: {
+        easing: "linear",
+        softness: 3,
+      },
+    });
+    const indicator = result.container.getChildByLabel(
+      `${result.element.id}-indicator`,
+    );
+
+    result.payload.applyFrame(result.payload.duration * 0.5);
+    const middleTailX = indicator.x;
+
+    result.payload.applyFrame(result.payload.duration * 0.9);
+    const finalTailX = indicator.x;
+
+    expect(finalTailX).toBeGreaterThan(middleTailX);
+
+    result.payload.onCancel();
+  });
+
   it("accounts for line delay and line overlap in total duration", async () => {
     const content = [{ text: "First soft wipe line\nSecond soft wipe line" }];
     const baseline = await runSoftWipe({ content });

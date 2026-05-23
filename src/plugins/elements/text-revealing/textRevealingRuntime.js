@@ -1091,7 +1091,7 @@ const applySoftWipeFrame = ({
     activeLine = line;
     activeLineLeadingEdgeX =
       line.bounds.x +
-      Math.min(line.bounds.width, Math.max(0, lineLeadingEdge - lineStart));
+      Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
   }
 
   positionIndicatorForChunk(indicatorSprite, activeLine.chunk, indicatorOffset);
