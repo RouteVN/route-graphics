@@ -561,7 +561,7 @@
  * @property {Object} [indicator.complete.clips] - Named spritesheet clips when kind is spritesheet
  * @property {Object} [indicator.complete.playback] - Spritesheet playback settings when kind is spritesheet
  * @property {number} [indicator.offsetX=16] - Horizontal offset between the text and the indicator
- * @property {number} [indicator.offsetY=0] - Vertical adjustment from the indicator's automatic line-bottom alignment; positive values move down
+ * @property {number} [indicator.offsetY=0] - Vertical adjustment from the indicator's automatic line placement; positive values move down
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode

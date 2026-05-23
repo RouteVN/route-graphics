@@ -241,7 +241,7 @@ properties:
         default: 16
       offsetY:
         type: number
-        description: Vertical adjustment from the indicator's automatic line-bottom alignment; positive values move down
+        description: Vertical adjustment from the indicator's automatic line placement; positive values move down
         default: 0
   textStyle:
     "$ref": "#/$def/textStyle"

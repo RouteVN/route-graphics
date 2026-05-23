@@ -97,6 +97,9 @@ const runReveal = async (element, playback = "paused-initial") => {
   return { container, completionTracker, animationBus };
 };
 
+const getExpectedIndicatorY = (chunk, indicator, offsetY = 0) =>
+  chunk.y + Math.max(0, chunk.lineMaxHeight - indicator.height) + offsetY;
+
 describe("runTextReveal indicator visuals", () => {
   it("mounts a spritesheet revealing indicator as an AnimatedSprite", async () => {
     const sheetSrc = createTextureId("revealing-indicator-sheet");
@@ -149,8 +152,82 @@ describe("runTextReveal indicator visuals", () => {
 
     expect(indicator.x).toBe(23);
     expect(indicator.y).toBeCloseTo(
-      firstLine.y + (firstLine.lineMaxHeight - indicator.height) - 5,
+      getExpectedIndicatorY(firstLine, indicator, -5),
     );
+  });
+
+  it("keeps a tall revealing indicator inside the active line by default", async () => {
+    const element = createElement({
+      revealing: {
+        width: 10,
+        height: 60,
+      },
+    });
+
+    const { container } = await runReveal(element, "paused-initial");
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const firstLine = element.content[0];
+
+    expect(indicator.height).toBe(60);
+    expect(indicator.y).toBeCloseTo(firstLine.y);
+  });
+
+  it("repositions a smaller complete indicator after a tall revealing visual", async () => {
+    const completeSrc = createTextureId("complete-small-after-tall-revealing");
+    const element = createElement(
+      {
+        revealing: {
+          width: 10,
+          height: 60,
+        },
+        complete: {
+          kind: "image",
+          src: completeSrc,
+          width: 10,
+          height: 10,
+        },
+      },
+      {
+        revealEffect: "none",
+      },
+    );
+
+    const { container } = await runReveal(element, "autoplay");
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const firstLine = element.content[0];
+
+    expect(indicator.height).toBe(10);
+    expect(indicator.y).toBeCloseTo(
+      getExpectedIndicatorY(firstLine, indicator),
+    );
+  });
+
+  it("keeps a taller complete indicator inside the final line after swapping visuals", async () => {
+    const completeSrc = createTextureId("complete-tall-after-small-revealing");
+    const element = createElement(
+      {
+        revealing: {
+          width: 10,
+          height: 10,
+        },
+        complete: {
+          kind: "image",
+          src: completeSrc,
+          width: 10,
+          height: 60,
+        },
+      },
+      {
+        revealEffect: "none",
+      },
+    );
+
+    const { container } = await runReveal(element, "autoplay");
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const firstLine = element.content[0];
+
+    expect(indicator.height).toBe(60);
+    expect(indicator.y).toBeCloseTo(firstLine.y);
   });
 
   it("mounts a spritesheet revealing indicator during softWipe playback", async () => {

@@ -377,17 +377,25 @@ const getIndicatorOffsets = (element) => ({
   y: element?.indicator?.offsetY ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
 });
 
+const getIndicatorLineY = (indicatorSprite, chunk) => {
+  if (!chunk) {
+    return 0;
+  }
+
+  const lineHeight = Math.max(0, chunk.lineMaxHeight ?? 0);
+  const indicatorHeight = Math.max(0, indicatorSprite?.height ?? 0);
+
+  return chunk.y + Math.max(0, lineHeight - indicatorHeight);
+};
+
 const positionIndicatorForChunk = (
   indicatorSprite,
   chunk,
   indicatorOffsets,
 ) => {
   indicatorSprite.x = indicatorOffsets.x;
-  indicatorSprite.y = chunk
-    ? chunk.y +
-      (chunk.lineMaxHeight - indicatorSprite.height) +
-      indicatorOffsets.y
-    : indicatorOffsets.y;
+  indicatorSprite.y =
+    getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
 };
 
 const positionIndicatorAtTextEnd = (
@@ -405,6 +413,17 @@ const positionIndicatorAtTextEnd = (
       lastTextObject,
       lastTextObject.text.length - 1,
     ) + indicatorOffsets.x;
+};
+
+const completeIndicatorAtTextEnd = (
+  indicatorSprite,
+  chunk,
+  lastTextObject,
+  indicatorOffsets,
+) => {
+  applyCompleteIndicator(indicatorSprite);
+  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
+  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
 };
 
 const registerTextRevealRuntime = (container, cleanup) => {
@@ -582,9 +601,12 @@ const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
     element,
   );
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
-  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
-  applyCompleteIndicator(indicatorSprite, element);
+  completeIndicatorAtTextEnd(
+    indicatorSprite,
+    lastChunk,
+    lastTextObject,
+    indicatorOffsets,
+  );
 };
 
 const runTypewriterPrefixReveal = ({
@@ -671,7 +693,12 @@ const runTypewriterPrefixReveal = ({
   }
 
   if (revealedCharacters >= totalCharacters) {
-    applyCompleteIndicator(indicatorSprite, element);
+    completeIndicatorAtTextEnd(
+      indicatorSprite,
+      lastVisibleChunk ?? firstChunk,
+      lastVisibleTextObject,
+      indicatorOffsets,
+    );
   }
 };
 
@@ -722,6 +749,8 @@ const runTypewriterReveal = async ({
   const chunkDelay = Math.max(stepDelay, Math.floor(4000 / effectiveSpeed));
   let remainingStartCharacters = Math.max(0, Math.floor(startAtCharacter));
   let revealedAnyNewCharacters = false;
+  let lastVisibleTextObject = null;
+  let lastVisibleChunk = null;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -750,6 +779,11 @@ const runTypewriterReveal = async ({
 
       const fullText = part.text;
       const fullFurigana = part.furigana?.text || "";
+
+      if (fullText.length > 0) {
+        lastVisibleTextObject = text;
+        lastVisibleChunk = chunk;
+      }
       const furiganaLength = fullFurigana.length;
       const prefilledCharacters = Math.min(
         fullText.length,
@@ -825,7 +859,12 @@ const runTypewriterReveal = async ({
     if (signal?.aborted || contentContainer.destroyed) return false;
   }
 
-  applyCompleteIndicator(indicatorSprite, element);
+  completeIndicatorAtTextEnd(
+    indicatorSprite,
+    lastVisibleChunk,
+    lastVisibleTextObject,
+    indicatorOffsets,
+  );
 
   if (snapshot) {
     snapshot.completed = true;
@@ -1129,12 +1168,12 @@ const runSoftWipePausedInitialReveal = ({
     !lines.some((line) => line.bounds.width > 0 && line.bounds.height > 0) ||
     !globalThis.document
   ) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
       indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return;
   }
 
@@ -1166,12 +1205,12 @@ const runSoftWipePausedInitialReveal = ({
   });
 
   if (!lineMasks) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
       indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return;
   }
 
@@ -1210,12 +1249,12 @@ const runSoftWipeReveal = ({
     !globalThis.document ||
     !animationBus
   ) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
       indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return false;
   }
 
@@ -1248,12 +1287,12 @@ const runSoftWipeReveal = ({
   });
 
   if (!lineMasks) {
-    positionIndicatorAtTextEnd(
+    completeIndicatorAtTextEnd(
       indicatorSprite,
+      lastChunk,
       lastTextObject,
       indicatorOffsets,
     );
-    applyCompleteIndicator(indicatorSprite, element);
     return false;
   }
 
@@ -1284,12 +1323,12 @@ const runSoftWipeReveal = ({
     });
 
     if (completed) {
-      positionIndicatorAtTextEnd(
+      completeIndicatorAtTextEnd(
         indicatorSprite,
+        lastChunk,
         lastTextObject,
         indicatorOffsets,
       );
-      applyCompleteIndicator(indicatorSprite, element);
     }
   };
 
