@@ -7,6 +7,8 @@ specs:
   - both indicator visuals should use the same atlas/playback vocabulary as spritesheet-animation
 skipInitialScreenshot: true
 steps:
+  - action: keypress
+    key: "n"
   - action: wait
     ms: 120
   - action: customEvent
@@ -24,6 +26,8 @@ steps:
   - action: screenshot
 ---
 states:
+  - id: empty
+    elements: []
   - id: spritesheet-indicator
     elements:
       - id: animated-revealing

@@ -10,6 +10,23 @@ const createCompletionTracker = () => ({
   complete: vi.fn(),
 });
 
+const getRenderedText = (container) => {
+  const textParts = [];
+  const visit = (node) => {
+    if (typeof node?.text === "string") {
+      textParts.push(node.text);
+    }
+
+    if (Array.isArray(node?.children)) {
+      node.children.forEach(visit);
+    }
+  };
+
+  visit(container);
+
+  return textParts.join("");
+};
+
 let textureIndex = 0;
 const createTextureId = (prefix) => {
   textureIndex += 1;
@@ -161,5 +178,84 @@ describe("runTextReveal indicator visuals", () => {
     expect(visual.height).toBe(16);
     expect(completionTracker.track).toHaveBeenCalledTimes(2);
     expect(completionTracker.complete).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the revealing indicator active for the final typewriter frame", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const sheetSrc = createTextureId("revealing-final-frame-sheet");
+      const completeSrc = createTextureId("complete-final-frame-image");
+      const element = createElement(
+        {
+          revealing: {
+            kind: "spritesheet",
+            src: sheetSrc,
+            width: 18,
+            height: 18,
+            atlas: createAtlas(),
+            playback: {
+              frames: ["indicator-0", "indicator-1"],
+              fps: 9,
+              loop: true,
+              autoplay: false,
+            },
+          },
+          complete: {
+            kind: "image",
+            src: completeSrc,
+            width: 12,
+            height: 12,
+          },
+        },
+        {
+          speed: 0,
+          content: [
+            {
+              text: "AB",
+              textStyle: {
+                fontSize: 20,
+                fontFamily: "Arial",
+                breakWords: false,
+              },
+            },
+          ],
+        },
+      );
+      const container = new Container();
+      const completionTracker = createCompletionTracker();
+      const reveal = runTextReveal({
+        container,
+        element,
+        completionTracker,
+        animationBus: { dispatch: vi.fn() },
+        zIndex: 0,
+        signal: new AbortController().signal,
+        playback: "autoplay",
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      const indicator = container.getChildByLabel("line-1-indicator");
+
+      expect(indicator.children[0]).toBeInstanceOf(AnimatedSprite);
+
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(getRenderedText(container)).toBe("AB");
+      expect(indicator.children[0]).toBeInstanceOf(AnimatedSprite);
+
+      await vi.advanceTimersByTimeAsync(99);
+
+      expect(indicator.children[0]).toBeInstanceOf(AnimatedSprite);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await reveal;
+
+      expect(indicator.children[0]).not.toBeInstanceOf(AnimatedSprite);
+      expect(indicator.children[0].width).toBe(12);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

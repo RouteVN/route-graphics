@@ -676,6 +676,7 @@ const runTypewriterReveal = async ({
   const charDelay = Math.max(1, Math.floor(1000 / effectiveSpeed));
   const chunkDelay = Math.max(1, Math.floor(4000 / effectiveSpeed));
   let remainingStartCharacters = Math.max(0, Math.floor(startAtCharacter));
+  let revealedAnyNewCharacters = false;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -738,6 +739,7 @@ const runTypewriterReveal = async ({
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, charIndex) + indicatorOffset;
         revealedNewCharactersInChunk = true;
+        revealedAnyNewCharacters = true;
 
         if (snapshot) {
           snapshot.revealedCharacters += 1;
@@ -763,6 +765,12 @@ const runTypewriterReveal = async ({
     ) {
       await abortableSleep(chunkDelay, signal);
     }
+  }
+
+  if (revealedAnyNewCharacters) {
+    await abortableSleep(charDelay, signal);
+
+    if (signal?.aborted || contentContainer.destroyed) return false;
   }
 
   applyCompleteIndicator(indicatorSprite, element);
