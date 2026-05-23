@@ -83,7 +83,6 @@ states:
               clip: cursor
               fps: 8
               loop: true
-              autoplay: false
           complete:
             kind: image
             src: circle-green
@@ -155,7 +154,6 @@ states:
               clip: cursor
               fps: 8
               loop: false
-              autoplay: false
           offset: 14
         content:
           - text: "Complete state can replace the indicator with a spritesheet visual."

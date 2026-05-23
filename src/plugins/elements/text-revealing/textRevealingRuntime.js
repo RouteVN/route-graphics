@@ -39,6 +39,10 @@ const MAX_ANIMATED_TEXT_REVEAL_SPEED = MAX_TEXT_REVEAL_SPEED - 1;
 const MIN_TEXT_REVEAL_RATE = 10;
 const MAX_TEXT_REVEAL_RATE = 120;
 const TEXT_REVEAL_RATE_CURVE = 0.9;
+const TYPEWRITER_MAX_TEXT_REVEAL_RATE = 720;
+const TYPEWRITER_TEXT_REVEAL_RATE_CURVE = 1.35;
+const TYPEWRITER_TARGET_STEP_MS = 16;
+const TYPEWRITER_FAST_BATCH_WINDOW_MS = 100;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -56,7 +60,10 @@ const clampTextRevealSpeed = (speed = DEFAULT_TEXT_REVEAL_SPEED) => {
 export const isInstantTextRevealSpeed = (speed) =>
   clampTextRevealSpeed(speed) >= MAX_TEXT_REVEAL_SPEED;
 
-const getEffectiveSpeed = (speed) => {
+const getEffectiveSpeed = (
+  speed,
+  { maxRate = MAX_TEXT_REVEAL_RATE, curve = TEXT_REVEAL_RATE_CURVE } = {},
+) => {
   const clampedSpeed = Math.min(
     clampTextRevealSpeed(speed),
     MAX_ANIMATED_TEXT_REVEAL_SPEED,
@@ -65,12 +72,42 @@ const getEffectiveSpeed = (speed) => {
     MAX_ANIMATED_TEXT_REVEAL_SPEED > 0
       ? clampedSpeed / MAX_ANIMATED_TEXT_REVEAL_SPEED
       : 0;
-  const curvedSpeed = normalizedSpeed ** TEXT_REVEAL_RATE_CURVE;
+  const curvedSpeed = normalizedSpeed ** curve;
 
-  return (
-    MIN_TEXT_REVEAL_RATE *
-    (MAX_TEXT_REVEAL_RATE / MIN_TEXT_REVEAL_RATE) ** curvedSpeed
-  );
+  return MIN_TEXT_REVEAL_RATE * (maxRate / MIN_TEXT_REVEAL_RATE) ** curvedSpeed;
+};
+
+const getTypewriterEffectiveSpeed = (speed) =>
+  getEffectiveSpeed(speed, {
+    maxRate: TYPEWRITER_MAX_TEXT_REVEAL_RATE,
+    curve: TYPEWRITER_TEXT_REVEAL_RATE_CURVE,
+  });
+
+const getTypewriterRevealStep = (effectiveSpeed) => {
+  const singleCharacterDelay = 1000 / effectiveSpeed;
+
+  if (
+    singleCharacterDelay >= TYPEWRITER_TARGET_STEP_MS ||
+    effectiveSpeed <= MAX_TEXT_REVEAL_RATE
+  ) {
+    return {
+      stepDelay: Math.max(1, Math.floor(singleCharacterDelay)),
+      charactersPerStep: 1,
+    };
+  }
+
+  return {
+    stepDelay: TYPEWRITER_TARGET_STEP_MS,
+    charactersPerStep: Math.max(
+      2,
+      1 +
+        Math.round(
+          ((effectiveSpeed - MAX_TEXT_REVEAL_RATE) *
+            TYPEWRITER_FAST_BATCH_WINDOW_MS) /
+            1000,
+        ),
+    ),
+  };
 };
 
 const getTextRevealSnapshotMode = (element) =>
@@ -671,10 +708,11 @@ const runTypewriterReveal = async ({
   startAtCharacter = 0,
   snapshot = null,
 }) => {
-  const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
+  const effectiveSpeed = getTypewriterEffectiveSpeed(element.speed ?? 50);
   const indicatorOffset = element?.indicator?.offset ?? 12;
-  const charDelay = Math.max(1, Math.floor(1000 / effectiveSpeed));
-  const chunkDelay = Math.max(1, Math.floor(4000 / effectiveSpeed));
+  const { stepDelay, charactersPerStep } =
+    getTypewriterRevealStep(effectiveSpeed);
+  const chunkDelay = Math.max(stepDelay, Math.floor(4000 / effectiveSpeed));
   let remainingStartCharacters = Math.max(0, Math.floor(startAtCharacter));
   let revealedAnyNewCharacters = false;
 
@@ -728,33 +766,40 @@ const runTypewriterReveal = async ({
           indicatorOffset;
       }
 
-      for (
-        let charIndex = prefilledCharacters;
-        charIndex < fullText.length;
-        charIndex++
-      ) {
+      let charIndex = prefilledCharacters;
+
+      while (charIndex < fullText.length) {
         if (signal?.aborted || contentContainer.destroyed) return false;
 
-        text.text = fullText.substring(0, charIndex + 1);
+        const nextCharIndex = Math.min(
+          fullText.length,
+          charIndex + charactersPerStep,
+        );
+        const lastRevealedCharIndex = nextCharIndex - 1;
+
+        text.text = fullText.substring(0, nextCharIndex);
         indicatorSprite.x =
-          getCharacterXPositionInATextObject(text, charIndex) + indicatorOffset;
+          getCharacterXPositionInATextObject(text, lastRevealedCharIndex) +
+          indicatorOffset;
         revealedNewCharactersInChunk = true;
         revealedAnyNewCharacters = true;
 
         if (snapshot) {
-          snapshot.revealedCharacters += 1;
+          snapshot.revealedCharacters += nextCharIndex - charIndex;
         }
 
         if (furiganaText) {
           const furiganaProgress = Math.round(
-            ((charIndex + 1) / fullText.length) * furiganaLength,
+            (nextCharIndex / fullText.length) * furiganaLength,
           );
 
           furiganaText.text = fullFurigana.substring(0, furiganaProgress);
         }
 
-        if (charIndex < fullText.length - 1) {
-          await abortableSleep(charDelay, signal);
+        charIndex = nextCharIndex;
+
+        if (charIndex < fullText.length) {
+          await abortableSleep(stepDelay, signal);
         }
       }
     }
@@ -768,7 +813,7 @@ const runTypewriterReveal = async ({
   }
 
   if (revealedAnyNewCharacters) {
-    await abortableSleep(charDelay, signal);
+    await abortableSleep(stepDelay, signal);
 
     if (signal?.aborted || contentContainer.destroyed) return false;
   }
