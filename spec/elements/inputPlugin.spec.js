@@ -303,10 +303,15 @@ describe("input plugin", () => {
 
     const inputContainer = parent.getChildByLabel("name");
 
-    inputContainer.emit("pointerdown", {
+    const pointerDownEvent = {
       global: { x: 24, y: 52 },
       shiftKey: false,
-    });
+      stopPropagation: vi.fn(),
+    };
+
+    inputContainer.emit("pointerdown", pointerDownEvent);
+
+    expect(pointerDownEvent.stopPropagation).toHaveBeenCalledTimes(1);
 
     expect(app.inputDomBridge.focus).toHaveBeenCalledWith(
       "name",
@@ -317,9 +322,14 @@ describe("input plugin", () => {
     );
     expect(app.inputDomBridge.focus).toHaveBeenCalledTimes(1);
 
-    inputContainer.emit("globalpointermove", {
+    const pointerMoveEvent = {
       global: { x: 120, y: 52 },
-    });
+      stopPropagation: vi.fn(),
+    };
+
+    inputContainer.emit("globalpointermove", pointerMoveEvent);
+
+    expect(pointerMoveEvent.stopPropagation).toHaveBeenCalledTimes(1);
 
     expect(app.inputDomBridge.setSelection).toHaveBeenCalledWith(
       "name",
@@ -327,9 +337,20 @@ describe("input plugin", () => {
       expect.any(Number),
     );
 
-    inputContainer.emit("pointerup", {
+    const pointerUpEvent = {
       global: { x: 120, y: 52 },
-    });
+      stopPropagation: vi.fn(),
+    };
+
+    inputContainer.emit("pointerup", pointerUpEvent);
+
+    expect(pointerUpEvent.stopPropagation).toHaveBeenCalledTimes(1);
+
+    const rightClickEvent = { stopPropagation: vi.fn() };
+
+    inputContainer.emit("rightclick", rightClickEvent);
+
+    expect(rightClickEvent.stopPropagation).toHaveBeenCalledTimes(1);
   });
 
   it("runs update animations before unmounting a deleted input", () => {

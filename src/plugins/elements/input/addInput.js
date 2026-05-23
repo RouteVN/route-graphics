@@ -235,6 +235,10 @@ export const addInput = ({
     app.inputDomBridge.setSelection(element.id, start, end);
   };
 
+  const stopInputPointerPropagation = (event) => {
+    event?.stopPropagation?.();
+  };
+
   const updateRuntimeSelection = ({
     start,
     end,
@@ -252,6 +256,8 @@ export const addInput = ({
   };
 
   const dragStartListener = (event) => {
+    stopInputPointerPropagation(event);
+
     if (runtime.element.disabled === true) return;
 
     const localPoint = container.toLocal(event.global);
@@ -279,6 +285,8 @@ export const addInput = ({
   const dragMoveListener = (event) => {
     if (!runtime.draggingSelection || runtime.element.disabled === true) return;
 
+    stopInputPointerPropagation(event);
+
     const localPoint = container.toLocal(event.global);
     const index = getInputIndexFromLocalPoint(runtime, localPoint);
     const anchor = runtime.selectionAnchor ?? index;
@@ -292,21 +300,27 @@ export const addInput = ({
     });
   };
 
-  const dragEndListener = () => {
+  const dragEndListener = (event) => {
+    stopInputPointerPropagation(event);
     runtime.draggingSelection = false;
   };
 
-  container.on("pointerdown", dragStartListener);
-  container.on("globalpointermove", dragMoveListener);
-  container.on("pointerup", dragEndListener);
-  container.on("pointerupoutside", dragEndListener);
-  container.on("pointerup", () => {
+  const releaseListener = (event) => {
+    stopInputPointerPropagation(event);
+    runtime.draggingSelection = false;
+
     if (runtime.element.disabled === true) return;
     app.inputDomBridge.focus(element.id, {
       selectionStart: runtime.selectionStart,
       selectionEnd: runtime.selectionEnd,
     });
-  });
+  };
+
+  container.on("pointerdown", dragStartListener);
+  container.on("globalpointermove", dragMoveListener);
+  container.on("pointerup", releaseListener);
+  container.on("pointerupoutside", dragEndListener);
+  container.on("rightclick", stopInputPointerPropagation);
 
   container[INPUT_RUNTIME] = runtime;
 

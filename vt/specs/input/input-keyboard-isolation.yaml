@@ -3,6 +3,7 @@ title: Input Keyboard Isolation
 description: Focused input typing should not emit global keyboard shortcuts.
 skipInitialScreenshot: true
 specs:
+  - clicking an input inside a clickable container should not emit the container click
   - pressing Space while an input is focused should edit the field only
   - pressing Enter while an input is focused should not emit global keyboard shortcuts
   - the same global Space and Enter shortcuts should work after the input loses focus
@@ -63,6 +64,12 @@ steps:
     args:
       - keyup
     value: []
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - click
+    value: []
   - action: customEvent
     name: clearEvents
   - action: click
@@ -108,22 +115,32 @@ states:
         width: 1280
         height: 720
         fill: "#000000"
-      - id: input-name
-        type: input
+      - id: input-wrapper
+        type: container
         x: 60
         "y": 60
         width: 240
         height: 56
-        placeholder: Your name
-        textStyle:
-          fill: "#FFFFFF"
-          fontSize: 22
-        focusEvent:
+        click:
           payload:
-            action: inputFocus
-        change:
-          payload:
-            action: inputChange
+            action: parentClick
+        children:
+          - id: input-name
+            type: input
+            x: 0
+            "y": 0
+            width: 240
+            height: 56
+            placeholder: Your name
+            textStyle:
+              fill: "#FFFFFF"
+              fontSize: 22
+            focusEvent:
+              payload:
+                action: inputFocus
+            change:
+              payload:
+                action: inputChange
     global:
       keyboard:
         space:
