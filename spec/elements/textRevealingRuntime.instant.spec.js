@@ -97,6 +97,57 @@ describe("runTextReveal instant speed", () => {
     expect(animationBus.dispatch).not.toHaveBeenCalled();
   });
 
+  it("keeps speed 75 responsive without completing instantly", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const content = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".repeat(4);
+      const container = new Container();
+      const completionTracker = createCompletionTracker();
+      const animationBus = { dispatch: vi.fn() };
+      const element = createElement({
+        width: 4000,
+        speed: 75,
+        revealEffect: "typewriter",
+        content: [{ text: content }],
+      });
+      let settled = false;
+      const reveal = runTextReveal({
+        container,
+        element,
+        completionTracker,
+        animationBus,
+        zIndex: 0,
+        signal: new AbortController().signal,
+        playback: "autoplay",
+      }).then((result) => {
+        settled = true;
+        return result;
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getRenderedText(container).length).toBeGreaterThanOrEqual(3);
+      expect(settled).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(getRenderedText(container).length).toBeGreaterThanOrEqual(18);
+      expect(getRenderedText(container).length).toBeLessThan(content.length);
+      expect(settled).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(800);
+      await reveal;
+
+      expect(getRenderedText(container)).toBe(content);
+      expect(completionTracker.track).toHaveBeenCalledTimes(1);
+      expect(completionTracker.complete).toHaveBeenCalledTimes(1);
+      expect(animationBus.dispatch).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("batches upper-end typewriter speed so 99 completes quickly without instant rendering", async () => {
     vi.useFakeTimers();
 
