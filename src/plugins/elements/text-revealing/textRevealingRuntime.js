@@ -39,10 +39,10 @@ const MAX_ANIMATED_TEXT_REVEAL_SPEED = MAX_TEXT_REVEAL_SPEED - 1;
 const MIN_TEXT_REVEAL_RATE = 10;
 const MAX_TEXT_REVEAL_RATE = 120;
 const TEXT_REVEAL_RATE_CURVE = 0.9;
-const TYPEWRITER_MAX_TEXT_REVEAL_RATE = 720;
+const TYPEWRITER_MAX_TEXT_REVEAL_RATE = 360;
 const TYPEWRITER_TEXT_REVEAL_RATE_CURVE = 1.35;
 const TYPEWRITER_TARGET_STEP_MS = 16;
-const TYPEWRITER_FAST_BATCH_WINDOW_MS = 100;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET = 16;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -100,12 +100,7 @@ const getTypewriterRevealStep = (effectiveSpeed) => {
     stepDelay: TYPEWRITER_TARGET_STEP_MS,
     charactersPerStep: Math.max(
       2,
-      1 +
-        Math.round(
-          ((effectiveSpeed - MAX_TEXT_REVEAL_RATE) *
-            TYPEWRITER_FAST_BATCH_WINDOW_MS) /
-            1000,
-        ),
+      Math.round((effectiveSpeed * TYPEWRITER_TARGET_STEP_MS) / 1000),
     ),
   };
 };
@@ -569,7 +564,8 @@ const buildFullTextContent = (contentContainer, element) => {
 };
 
 const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffset =
+    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
   const { lastTextObject, lastChunk } = buildFullTextContent(
     contentContainer,
     element,
@@ -586,7 +582,8 @@ const runTypewriterPrefixReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffset =
+    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
   const firstChunk = element.content[0] ?? null;
   const totalCharacters = getTextRevealCharacterCount(element);
   let remainingCharacters = Math.min(
@@ -676,7 +673,8 @@ const runPausedInitialReveal = ({
   const revealedCharacters = getInitialRevealedCharacters(element);
 
   if (revealedCharacters <= 0) {
-    const indicatorOffset = element?.indicator?.offset ?? 12;
+    const indicatorOffset =
+      element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
     const firstChunk = element.content[0] ?? null;
 
     positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
@@ -709,7 +707,8 @@ const runTypewriterReveal = async ({
   snapshot = null,
 }) => {
   const effectiveSpeed = getTypewriterEffectiveSpeed(element.speed ?? 50);
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffset =
+    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
   const { stepDelay, charactersPerStep } =
     getTypewriterRevealStep(effectiveSpeed);
   const chunkDelay = Math.max(stepDelay, Math.floor(4000 / effectiveSpeed));
@@ -1105,7 +1104,8 @@ const runSoftWipePausedInitialReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffset =
+    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
@@ -1182,7 +1182,8 @@ const runSoftWipeReveal = ({
   animationBus,
   completionTracker,
 }) => {
-  const indicatorOffset = element?.indicator?.offset ?? 12;
+  const indicatorOffset =
+    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);

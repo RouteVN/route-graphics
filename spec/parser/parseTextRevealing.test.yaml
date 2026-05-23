@@ -330,7 +330,7 @@ out:
       src: circle-green
       width: 12
       height: 12
-    offset: 12
+    offset: 16
   content:
     - lineParts:
         - text: Text with indicator defaults

@@ -224,7 +224,7 @@ properties:
       offset:
         type: number
         description: Offset between the text and the indicator
-        default: 12
+        default: 16
   speed:
     type: number
     description: Animation speed on a curved 0-100 scale; 100 renders instantly

@@ -127,11 +127,11 @@ describe("runTextReveal instant speed", () => {
 
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getRenderedText(container).length).toBeGreaterThan(40);
-      expect(getRenderedText(container).length).toBeLessThan(content.length);
+      expect(getRenderedText(container).length).toBeGreaterThanOrEqual(4);
+      expect(getRenderedText(container).length).toBeLessThan(20);
       expect(settled).toBe(false);
 
-      await vi.advanceTimersByTimeAsync(300);
+      await vi.advanceTimersByTimeAsync(520);
       await reveal;
 
       expect(getRenderedText(container)).toBe(content);

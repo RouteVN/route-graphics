@@ -133,6 +133,62 @@ describe("runTextReveal indicator visuals", () => {
     expect(completionTracker.complete).toHaveBeenCalledTimes(1);
   });
 
+  it("mounts a spritesheet revealing indicator during softWipe playback", async () => {
+    const sheetSrc = createTextureId("soft-wipe-revealing-indicator-sheet");
+    const completeSrc = createTextureId("soft-wipe-complete-indicator-image");
+    const element = createElement(
+      {
+        revealing: {
+          kind: "spritesheet",
+          src: sheetSrc,
+          width: 18,
+          height: 18,
+          atlas: createAtlas(),
+          playback: {
+            frames: ["indicator-0", "indicator-1"],
+            fps: 9,
+            loop: true,
+            autoplay: false,
+          },
+        },
+        complete: {
+          kind: "image",
+          src: completeSrc,
+          width: 12,
+          height: 12,
+        },
+      },
+      {
+        revealEffect: "softWipe",
+      },
+    );
+    const container = new Container();
+    const completionTracker = createCompletionTracker();
+    const animationBus = { dispatch: vi.fn() };
+
+    await runTextReveal({
+      container,
+      element,
+      completionTracker,
+      animationBus,
+      zIndex: 0,
+      signal: new AbortController().signal,
+      playback: "autoplay",
+    });
+
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const visual = indicator.children[0];
+    const startAction = animationBus.dispatch.mock.calls.find(
+      ([action]) => action.type === "START",
+    )?.[0];
+
+    expect(visual).toBeInstanceOf(AnimatedSprite);
+    expect(visual.textures).toHaveLength(2);
+    expect(startAction?.payload).toBeDefined();
+
+    startAction.payload.onCancel();
+  });
+
   it("swaps an image revealing indicator to a spritesheet complete indicator", async () => {
     const revealingSrc = createTextureId("revealing-indicator-image");
     const completeSrc = createTextureId("complete-indicator-sheet");

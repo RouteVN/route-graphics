@@ -22,6 +22,7 @@ const DEFAULT_FURIGANA_PLACEMENT = "top";
 const LEGACY_TOP_FURIGANA_OFFSET = 2;
 const FURIGANA_PLACEMENTS = ["top", "bottom"];
 const FURIGANA_PLACEMENT_SET = new Set(FURIGANA_PLACEMENTS);
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET = 16;
 const INDICATOR_VISUAL_KINDS = ["image", "spritesheet"];
 const INDICATOR_VISUAL_KIND_SET = new Set(INDICATOR_VISUAL_KINDS);
 
@@ -576,7 +577,7 @@ export const parseTextRevealing = ({ state }) => {
         indicator.complete,
         "indicator.complete",
       ),
-      offset: indicator.offset ?? 12,
+      offset: indicator.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET,
     };
   }
 

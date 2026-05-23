@@ -238,7 +238,7 @@ properties:
       offset:
         type: number
         description: Offset between the text and the indicator
-        default: 12
+        default: 16
   textStyle:
     "$ref": "#/$def/textStyle"
   speed:
