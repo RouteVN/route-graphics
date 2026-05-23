@@ -253,10 +253,12 @@ out:
   alpha: 1
   indicator:
     revealing:
+      kind: image
       src: arrow-right
       width: 12
       height: 12
     complete:
+      kind: image
       src: checkmark
       width: 14
       height: 14
@@ -319,10 +321,12 @@ out:
   alpha: 1
   indicator:
     revealing:
+      kind: image
       src: circle-blue
       width: 12
       height: 12
     complete:
+      kind: image
       src: circle-green
       width: 12
       height: 12

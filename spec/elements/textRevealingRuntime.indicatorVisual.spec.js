@@ -1,0 +1,165 @@
+import { AnimatedSprite, Cache, Container, Texture } from "pixi.js";
+import { describe, expect, it, vi } from "vitest";
+
+import { parseTextRevealing } from "../../src/plugins/elements/text-revealing/parseTextRevealing.js";
+import { runTextReveal } from "../../src/plugins/elements/text-revealing/textRevealingRuntime.js";
+
+const createCompletionTracker = () => ({
+  getVersion: () => 0,
+  track: vi.fn(),
+  complete: vi.fn(),
+});
+
+let textureIndex = 0;
+const createTextureId = (prefix) => {
+  textureIndex += 1;
+  const id = `${prefix}-${textureIndex}`;
+  const texture = new Texture({
+    source: Texture.WHITE.source,
+    label: id,
+  });
+
+  Cache.set(id, texture);
+
+  return id;
+};
+
+const createAtlas = () => ({
+  frames: {
+    "indicator-0": {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+    "indicator-1": {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+    },
+  },
+});
+
+const createElement = (indicator, overrides = {}) =>
+  parseTextRevealing({
+    state: {
+      id: "line-1",
+      type: "text-revealing",
+      x: 0,
+      y: 0,
+      width: 500,
+      speed: 25,
+      revealEffect: "typewriter",
+      content: [{ text: "Indicator visuals can be animated." }],
+      textStyle: {
+        fontSize: 20,
+        fontFamily: "Arial",
+        breakWords: false,
+      },
+      indicator,
+      ...overrides,
+    },
+  });
+
+const runReveal = async (element, playback = "paused-initial") => {
+  const container = new Container();
+  const completionTracker = createCompletionTracker();
+  const animationBus = { dispatch: vi.fn() };
+
+  await runTextReveal({
+    container,
+    element,
+    completionTracker,
+    animationBus,
+    zIndex: 0,
+    signal: new AbortController().signal,
+    playback,
+  });
+
+  return { container, completionTracker, animationBus };
+};
+
+describe("runTextReveal indicator visuals", () => {
+  it("mounts a spritesheet revealing indicator as an AnimatedSprite", async () => {
+    const sheetSrc = createTextureId("revealing-indicator-sheet");
+    const element = createElement({
+      revealing: {
+        kind: "spritesheet",
+        src: sheetSrc,
+        width: 18,
+        height: 18,
+        atlas: createAtlas(),
+        playback: {
+          frames: ["indicator-0", "indicator-1"],
+          fps: 9,
+          loop: true,
+          autoplay: false,
+        },
+      },
+    });
+
+    const { container, completionTracker } = await runReveal(
+      element,
+      "paused-initial",
+    );
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const visual = indicator.children[0];
+
+    expect(visual).toBeInstanceOf(AnimatedSprite);
+    expect(visual.textures).toHaveLength(2);
+    expect(visual.animationSpeed).toBe(9 / 60);
+    expect(visual.loop).toBe(true);
+    expect(visual.width).toBe(18);
+    expect(visual.height).toBe(18);
+    expect(completionTracker.track).toHaveBeenCalledTimes(1);
+    expect(completionTracker.complete).toHaveBeenCalledTimes(1);
+  });
+
+  it("swaps an image revealing indicator to a spritesheet complete indicator", async () => {
+    const revealingSrc = createTextureId("revealing-indicator-image");
+    const completeSrc = createTextureId("complete-indicator-sheet");
+    const element = createElement(
+      {
+        revealing: {
+          kind: "image",
+          src: revealingSrc,
+          width: 12,
+          height: 12,
+        },
+        complete: {
+          kind: "spritesheet",
+          src: completeSrc,
+          width: 16,
+          height: 16,
+          atlas: createAtlas(),
+          playback: {
+            frames: ["indicator-1"],
+            fps: 15,
+            loop: false,
+            autoplay: false,
+          },
+        },
+      },
+      {
+        revealEffect: "none",
+      },
+    );
+
+    const { container, completionTracker } = await runReveal(
+      element,
+      "autoplay",
+    );
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const visual = indicator.children[0];
+
+    expect(visual).toBeInstanceOf(AnimatedSprite);
+    expect(visual.textures).toHaveLength(1);
+    expect(visual.animationSpeed).toBe(15 / 60);
+    expect(visual.loop).toBe(false);
+    expect(visual.width).toBe(16);
+    expect(visual.height).toBe(16);
+    expect(completionTracker.track).toHaveBeenCalledTimes(2);
+    expect(completionTracker.complete).toHaveBeenCalledTimes(2);
+  });
+});

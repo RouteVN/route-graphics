@@ -544,14 +544,22 @@
  * @property {number} [initialRevealedCharacters=0] - Number of leading text characters rendered as already revealed before the reveal animation starts
  * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
- * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
- * @property {string} [indicator.revealing.src] - Source of the indicator image while text is revealing
- * @property {number} [indicator.revealing.width] - Width of the indicator image while revealing
- * @property {number} [indicator.revealing.height] - Height of the indicator image while revealing
- * @property {Object} [indicator.complete] - Settings for the complete state indicator
- * @property {string} [indicator.complete.src] - Source of the indicator image when text revealing is finished
- * @property {number} [indicator.complete.width] - Width of the indicator image when complete
- * @property {number} [indicator.complete.height] - Height of the indicator image when complete
+ * @property {Object} [indicator.revealing] - Visual shown while text is revealing
+ * @property {'image' | 'spritesheet'} [indicator.revealing.kind='image'] - Revealing indicator visual kind
+ * @property {string} [indicator.revealing.src] - Source of the revealing indicator image or spritesheet
+ * @property {number} [indicator.revealing.width] - Width of the revealing indicator visual
+ * @property {number} [indicator.revealing.height] - Height of the revealing indicator visual
+ * @property {Object} [indicator.revealing.atlas] - Spritesheet atlas metadata when kind is spritesheet
+ * @property {Object} [indicator.revealing.clips] - Named spritesheet clips when kind is spritesheet
+ * @property {Object} [indicator.revealing.playback] - Spritesheet playback settings when kind is spritesheet
+ * @property {Object} [indicator.complete] - Visual shown when text revealing is finished
+ * @property {'image' | 'spritesheet'} [indicator.complete.kind='image'] - Complete indicator visual kind
+ * @property {string} [indicator.complete.src] - Source of the complete indicator image or spritesheet
+ * @property {number} [indicator.complete.width] - Width of the complete indicator visual
+ * @property {number} [indicator.complete.height] - Height of the complete indicator visual
+ * @property {Object} [indicator.complete.atlas] - Spritesheet atlas metadata when kind is spritesheet
+ * @property {Object} [indicator.complete.clips] - Named spritesheet clips when kind is spritesheet
+ * @property {Object} [indicator.complete.playback] - Spritesheet playback settings when kind is spritesheet
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode

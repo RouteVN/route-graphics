@@ -31,6 +31,7 @@ const shouldRestartReveal = (prevElement, nextElement) =>
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async ({
+  app,
   parent,
   prevElement,
   nextElement: element,
@@ -67,6 +68,7 @@ export const updateTextRevealing = async ({
           animationBus,
           zIndex,
           signal,
+          app,
           playback: "resume",
         });
       }
@@ -85,6 +87,7 @@ export const updateTextRevealing = async ({
         animationBus,
         zIndex,
         signal,
+        app,
         playback: "paused-initial",
       });
 
@@ -95,6 +98,7 @@ export const updateTextRevealing = async ({
         animationBus,
         zIndex,
         signal,
+        app,
       });
       return;
     }
@@ -106,6 +110,7 @@ export const updateTextRevealing = async ({
       animationBus,
       zIndex,
       signal,
+      app,
       playback: "autoplay",
     });
   };

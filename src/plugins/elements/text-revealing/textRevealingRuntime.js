@@ -1,6 +1,8 @@
 import {
+  AnimatedSprite,
   Container,
   Sprite,
+  Spritesheet,
   Text,
   TextStyle,
   Texture,
@@ -14,9 +16,22 @@ import {
   getSoftWipeEasing,
   normalizeSoftWipeConfig,
 } from "./softWipeConfig.js";
+import {
+  setupDebugMode,
+  cleanupDebugMode,
+} from "../animated-sprite/util/debugUtils.js";
+import {
+  normalizeAnimatedSpriteAtlas,
+  normalizeAnimatedSpriteClips,
+  normalizeAnimatedSpritePlayback,
+  playbackFpsToAnimationSpeed,
+  resolveAnimatedSpriteFrameTextures,
+} from "../animated-sprite/animatedSpriteConfig.js";
 
 const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
+const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
+const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
@@ -86,34 +101,242 @@ export const shouldRenderTextRevealImmediately = (element) =>
   element?.revealEffect === "none" ||
   isInstantTextRevealSpeed(element?.speed ?? DEFAULT_TEXT_REVEAL_SPEED);
 
-const createIndicatorSprite = (element) => {
-  let indicatorSprite = new Sprite(Texture.EMPTY);
+const isPromiseLike = (value) =>
+  value !== null &&
+  typeof value === "object" &&
+  typeof value.then === "function";
 
-  if (element?.indicator?.revealing?.src) {
-    const revealingTexture = Texture.from(element.indicator.revealing.src);
+const getIndicatorVisualKind = (visual = {}) =>
+  visual.kind ??
+  (visual.atlas !== undefined ||
+  visual.clips !== undefined ||
+  visual.playback !== undefined
+    ? "spritesheet"
+    : "image");
 
-    indicatorSprite = new Sprite(revealingTexture);
-    indicatorSprite.width =
-      element.indicator.revealing.width ?? revealingTexture.width;
-    indicatorSprite.height =
-      element.indicator.revealing.height ?? revealingTexture.height;
+const hasSpritesheetIndicatorVisual = (element) =>
+  ["revealing", "complete"].some(
+    (stateName) =>
+      getIndicatorVisualKind(element?.indicator?.[stateName]) ===
+        "spritesheet" && Boolean(element?.indicator?.[stateName]?.src),
+  );
+
+const getIndicatorDebugElementId = (element) => `${element.id}-indicator`;
+
+const applyIndicatorSize = (displayObject, visual, fallbackTexture) => {
+  if (typeof visual?.width === "number") {
+    displayObject.width = visual.width;
+  } else if (fallbackTexture?.width) {
+    displayObject.width = fallbackTexture.width;
   }
 
-  return indicatorSprite;
+  if (typeof visual?.height === "number") {
+    displayObject.height = visual.height;
+  } else if (fallbackTexture?.height) {
+    displayObject.height = fallbackTexture.height;
+  }
 };
 
-const applyCompleteIndicator = (indicatorSprite, element) => {
-  if (!element?.indicator?.complete?.src) {
+const createImageIndicatorDisplay = (visual = {}) => {
+  const texture = visual?.src ? Texture.from(visual.src) : Texture.EMPTY;
+  const sprite = new Sprite(texture);
+
+  applyIndicatorSize(sprite, visual, texture);
+
+  return sprite;
+};
+
+const createSpritesheetIndicatorDisplay = (visual = {}, { app, element }) => {
+  if (!visual?.src) {
+    return createImageIndicatorDisplay(visual);
+  }
+
+  const atlas = normalizeAnimatedSpriteAtlas(visual.atlas);
+  const clips = normalizeAnimatedSpriteClips(
+    visual.clips,
+    visual.atlas?.animations,
+    visual.atlas?.meta,
+    Object.keys(atlas.frames ?? {}),
+  );
+  const playback = normalizeAnimatedSpritePlayback({
+    atlas,
+    clips,
+    playback: visual.playback,
+  });
+
+  return (async () => {
+    const spriteSheet = new Spritesheet(Texture.from(visual.src), atlas);
+
+    await spriteSheet.parse();
+
+    const { frameTextures } = resolveAnimatedSpriteFrameTextures({
+      spritesheet: spriteSheet,
+      atlas,
+      clips,
+      playback,
+    });
+    const animatedSprite = new AnimatedSprite(
+      frameTextures.length > 0 ? frameTextures : [Texture.EMPTY],
+    );
+
+    animatedSprite.animationSpeed = playbackFpsToAnimationSpeed(playback.fps);
+    animatedSprite.loop = playback.loop;
+    animatedSprite[TEXT_REVEAL_INDICATOR_PLAYBACK] = playback;
+    applyIndicatorSize(animatedSprite, visual, frameTextures[0]);
+
+    if (app?.debug) {
+      setupDebugMode(
+        animatedSprite,
+        getIndicatorDebugElementId(element),
+        app.debug,
+        () => {
+          if (typeof app.render === "function") {
+            app.render();
+          }
+        },
+      );
+    }
+
+    return animatedSprite;
+  })();
+};
+
+const createIndicatorDisplay = (visual, options) => {
+  if (getIndicatorVisualKind(visual) === "spritesheet") {
+    return createSpritesheetIndicatorDisplay(visual, options);
+  }
+
+  return createImageIndicatorDisplay(visual);
+};
+
+const startIndicatorPlayback = (displayObject, app) => {
+  if (
+    displayObject instanceof AnimatedSprite &&
+    !app?.debug &&
+    displayObject[TEXT_REVEAL_INDICATOR_PLAYBACK]?.autoplay !== false
+  ) {
+    displayObject.play();
+  }
+};
+
+const destroyIndicatorDisplay = (displayObject) => {
+  if (!displayObject || displayObject.destroyed) {
     return;
   }
 
-  const completeTexture = Texture.from(element.indicator.complete.src);
+  cleanupDebugMode(displayObject);
 
-  indicatorSprite.texture = completeTexture;
-  indicatorSprite.width =
-    element.indicator.complete.width ?? completeTexture.width;
-  indicatorSprite.height =
-    element.indicator.complete.height ?? completeTexture.height;
+  if (typeof displayObject.stop === "function") {
+    displayObject.stop();
+  }
+
+  displayObject.destroy({ children: true });
+};
+
+const destroyIndicatorContainer = (indicatorContainer) => {
+  const controller = indicatorContainer?.[TEXT_REVEAL_INDICATOR];
+
+  if (controller) {
+    for (const displayObject of controller.displays) {
+      cleanupDebugMode(displayObject);
+    }
+
+    for (const displayObject of controller.displays) {
+      if (displayObject?.parent !== indicatorContainer) {
+        destroyIndicatorDisplay(displayObject);
+      }
+    }
+
+    delete indicatorContainer[TEXT_REVEAL_INDICATOR];
+  }
+
+  indicatorContainer.destroy({ children: true });
+};
+
+const createIndicatorContainer = ({
+  element,
+  app,
+  revealingDisplay,
+  completeDisplay,
+}) => {
+  const indicatorContainer = new Container({
+    label: getIndicatorDebugElementId(element),
+  });
+  const displays = new Set([revealingDisplay]);
+
+  if (completeDisplay) {
+    displays.add(completeDisplay);
+  }
+
+  indicatorContainer.addChild(revealingDisplay);
+  indicatorContainer[TEXT_REVEAL_INDICATOR] = {
+    displays,
+    currentDisplay: revealingDisplay,
+    completeDisplay,
+    start() {
+      startIndicatorPlayback(this.currentDisplay, app);
+    },
+    showComplete() {
+      if (
+        !this.completeDisplay ||
+        this.currentDisplay === this.completeDisplay
+      ) {
+        return;
+      }
+
+      const previousDisplay = this.currentDisplay;
+
+      if (previousDisplay?.parent === indicatorContainer) {
+        indicatorContainer.removeChild(previousDisplay);
+      }
+
+      destroyIndicatorDisplay(previousDisplay);
+      displays.delete(previousDisplay);
+
+      this.currentDisplay = this.completeDisplay;
+      indicatorContainer.addChild(this.completeDisplay);
+      startIndicatorPlayback(this.completeDisplay, app);
+    },
+  };
+
+  return indicatorContainer;
+};
+
+const createIndicatorSprite = (element, { app } = {}) => {
+  const revealingVisual = element?.indicator?.revealing ?? {};
+  const completeVisual = element?.indicator?.complete;
+  const revealingDisplayResult = createIndicatorDisplay(revealingVisual, {
+    app,
+    element,
+  });
+  const completeDisplayResult =
+    completeVisual?.src ||
+    getIndicatorVisualKind(completeVisual) === "spritesheet"
+      ? createIndicatorDisplay(completeVisual, { app, element })
+      : null;
+  const assemble = (revealingDisplay, completeDisplay) =>
+    createIndicatorContainer({
+      element,
+      app,
+      revealingDisplay,
+      completeDisplay,
+    });
+
+  if (
+    isPromiseLike(revealingDisplayResult) ||
+    isPromiseLike(completeDisplayResult)
+  ) {
+    return Promise.all([revealingDisplayResult, completeDisplayResult]).then(
+      ([revealingDisplay, completeDisplay]) =>
+        assemble(revealingDisplay, completeDisplay),
+    );
+  }
+
+  return assemble(revealingDisplayResult, completeDisplayResult);
+};
+
+const applyCompleteIndicator = (indicatorSprite) => {
+  indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.showComplete();
 };
 
 const positionIndicatorForChunk = (indicatorSprite, chunk, indicatorOffset) => {
@@ -200,6 +423,11 @@ export const clearTextRevealingContainer = (container) => {
   const children = container.removeChildren();
 
   children.forEach((child) => {
+    if (child?.[TEXT_REVEAL_INDICATOR]) {
+      destroyIndicatorContainer(child);
+      return;
+    }
+
     child.destroy({ children: true });
   });
 };
@@ -1057,6 +1285,7 @@ export const runTextReveal = async ({
   animationBus,
   zIndex,
   signal,
+  app,
   playback = "autoplay",
 }) => {
   if (signal?.aborted || container.destroyed) {
@@ -1072,16 +1301,48 @@ export const runTextReveal = async ({
     return;
   }
 
+  const indicatorSetupVersion = completionTracker?.getVersion?.();
+  const shouldTrackIndicatorSetup = hasSpritesheetIndicatorVisual(element);
+  let indicatorSetupTracked = false;
+  const trackIndicatorSetup = () => {
+    if (!shouldTrackIndicatorSetup || indicatorSetupTracked) {
+      return;
+    }
+
+    completionTracker?.track?.(indicatorSetupVersion);
+    indicatorSetupTracked = true;
+  };
+  const completeIndicatorSetup = () => {
+    if (!indicatorSetupTracked) {
+      return;
+    }
+
+    indicatorSetupTracked = false;
+    completionTracker?.complete?.(indicatorSetupVersion);
+  };
+
+  trackIndicatorSetup();
   clearTextRevealingContainer(container);
   container.zIndex = zIndex;
 
   const contentContainer = new Container({ label: `${element.id}-content` });
-  const indicatorSprite = createIndicatorSprite(element);
-
-  container.addChild(contentContainer);
-  container.addChild(indicatorSprite);
+  let indicatorSprite;
 
   try {
+    const indicatorSpriteResult = createIndicatorSprite(element, { app });
+    indicatorSprite = isPromiseLike(indicatorSpriteResult)
+      ? await indicatorSpriteResult
+      : indicatorSpriteResult;
+
+    if (signal?.aborted || container.destroyed) {
+      destroyIndicatorContainer(indicatorSprite);
+      completeIndicatorSetup();
+      return;
+    }
+
+    container.addChild(contentContainer);
+    container.addChild(indicatorSprite);
+    indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.start();
     if (playback === "paused-initial") {
       if (!renderImmediately) {
         setTextRevealSnapshot(container, {
@@ -1100,6 +1361,7 @@ export const runTextReveal = async ({
       } else {
         runPausedInitialReveal({ contentContainer, indicatorSprite, element });
       }
+      completeIndicatorSetup();
       return;
     }
 
@@ -1108,6 +1370,7 @@ export const runTextReveal = async ({
 
     if (renderImmediately) {
       completionTracker.track(stateVersion);
+      completeIndicatorSetup();
       setTextRevealSnapshot(container, {
         mode: "none",
         completed: true,
@@ -1132,12 +1395,15 @@ export const runTextReveal = async ({
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
         completionTracker.track(stateVersion);
+        completeIndicatorSetup();
         completed = true;
       } else {
+        completeIndicatorSetup();
         return;
       }
     } else {
       completionTracker.track(stateVersion);
+      completeIndicatorSetup();
       const startAtCharacter =
         resumableSnapshot?.revealedCharacters ?? initialRevealedCharacters;
       const nextSnapshot = setTextRevealSnapshot(container, {
@@ -1160,6 +1426,16 @@ export const runTextReveal = async ({
       completionTracker.complete(stateVersion);
     }
   } catch (error) {
+    completeIndicatorSetup();
+
+    if (
+      indicatorSprite &&
+      !indicatorSprite.destroyed &&
+      !indicatorSprite.parent
+    ) {
+      destroyIndicatorContainer(indicatorSprite);
+    }
+
     if (error?.name !== "AbortError" && !signal?.aborted) {
       throw error;
     }

@@ -101,6 +101,58 @@ $def:
         minimum: 0
         description: Delay in milliseconds before the next line starts after overlap is applied.
         default: 0
+  indicatorVisual:
+    type: object
+    description: Indicator visual. Use `kind: image` for a static texture or `kind: spritesheet` for frame animation.
+    properties:
+      kind:
+        type: string
+        enum: [image, spritesheet]
+        default: image
+        description: Visual kind. If omitted, image is used unless spritesheet fields are present.
+      src:
+        type: string
+        description: Source alias or URL for the image or spritesheet texture
+      width:
+        type: number
+        description: Display width of the indicator visual
+        default: 12
+      height:
+        type: number
+        description: Display height of the indicator visual
+        default: 12
+      atlas:
+        type: object
+        description: Spritesheet atlas metadata when `kind` is `spritesheet`; uses the same shape as `spritesheet-animation.atlas`.
+      clips:
+        type: object
+        description: Named frame sequences when `kind` is `spritesheet`.
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      playback:
+        type: object
+        description: Playback configuration when `kind` is `spritesheet`.
+        properties:
+          clip:
+            type: string
+            description: Named clip to play from `clips` or `atlas.animations`
+          frames:
+            type: array
+            items:
+              type: string
+            description: Ordered frame names for playback
+          fps:
+            type: number
+            minimum: 0.1
+            default: 30
+          loop:
+            type: boolean
+            default: true
+          autoplay:
+            type: boolean
+            default: true
 properties:
   id:
     type: string
@@ -166,25 +218,9 @@ properties:
     description: Settings for the text continuation indicator
     properties:
       revealing:
-        src:
-          type: string
-          description: Source of the indicator image while text is revealing
-        width:
-          type: number
-          description: Width of the indicator image
-        height:
-          type: number
-        description: Height of the indicator image
+        "$ref": "#/$def/indicatorVisual"
       complete:
-        src:
-          type: string
-          description: Source of the indicator image when text revealing is finished
-        width:
-          type: number
-          description: Width of the indicator image
-        height:
-          type: number
-          description: Height of the indicator image
+        "$ref": "#/$def/indicatorVisual"
       offset:
         type: number
         description: Offset between the text and the indicator

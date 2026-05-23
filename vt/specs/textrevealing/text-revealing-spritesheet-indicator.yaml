@@ -1,0 +1,162 @@
+---
+title: Text Revealing - Spritesheet Indicator
+description: Exercises text-revealing indicators backed by spritesheet animation; fighter-sheet colors are intentional asset-based visual cues.
+specs:
+  - revealing indicator should render a configured spritesheet frame at the live reveal cursor
+  - complete indicator should be able to swap from a static image to a spritesheet visual
+  - both indicator visuals should use the same atlas/playback vocabulary as spritesheet-animation
+skipInitialScreenshot: true
+steps:
+  - action: wait
+    ms: 120
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      elementId: "animated-revealing-indicator"
+      frameIndex: 1
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      elementId: "animated-complete-indicator"
+      frameIndex: 1
+  - action: wait
+    ms: 50
+  - action: screenshot
+---
+states:
+  - id: spritesheet-indicator
+    elements:
+      - id: animated-revealing
+        type: text-revealing
+        x: 80
+        "y": 120
+        width: 760
+        speed: 0
+        revealEffect: typewriter
+        indicator:
+          revealing:
+            kind: spritesheet
+            src: fighter-spritesheet
+            width: 34
+            height: 46
+            atlas:
+              frames:
+                rollSequence0000.png:
+                  frame:
+                    x: 483
+                    "y": 692
+                    w: 169
+                    h: 226
+                  rotated: false
+                  trimmed: true
+                  spriteSourceSize:
+                    x: 3
+                    "y": 4
+                    w: 169
+                    h: 226
+                  sourceSize:
+                    w: 175
+                    h: 240
+                rollSequence0001.png:
+                  frame:
+                    x: 468
+                    "y": 2
+                    w: 169
+                    h: 226
+                  rotated: false
+                  trimmed: true
+                  spriteSourceSize:
+                    x: 3
+                    "y": 4
+                    w: 169
+                    h: 226
+                  sourceSize:
+                    w: 175
+                    h: 240
+              animations:
+                cursor: [rollSequence0000.png, rollSequence0001.png]
+            playback:
+              clip: cursor
+              fps: 8
+              loop: true
+              autoplay: false
+          complete:
+            kind: image
+            src: circle-green
+            width: 18
+            height: 18
+          offset: 14
+        content:
+          - text: "Spritesheet revealing indicators follow the live cursor while the sentence is still typing."
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+      - id: animated-complete
+        type: text-revealing
+        x: 80
+        "y": 250
+        width: 760
+        speed: 100
+        revealEffect: none
+        indicator:
+          revealing:
+            kind: image
+            src: circle-red
+            width: 18
+            height: 18
+          complete:
+            kind: spritesheet
+            src: fighter-spritesheet
+            width: 34
+            height: 46
+            atlas:
+              frames:
+                rollSequence0000.png:
+                  frame:
+                    x: 483
+                    "y": 692
+                    w: 169
+                    h: 226
+                  rotated: false
+                  trimmed: true
+                  spriteSourceSize:
+                    x: 3
+                    "y": 4
+                    w: 169
+                    h: 226
+                  sourceSize:
+                    w: 175
+                    h: 240
+                rollSequence0001.png:
+                  frame:
+                    x: 468
+                    "y": 2
+                    w: 169
+                    h: 226
+                  rotated: false
+                  trimmed: true
+                  spriteSourceSize:
+                    x: 3
+                    "y": 4
+                    w: 169
+                    h: 226
+                  sourceSize:
+                    w: 175
+                    h: 240
+              animations:
+                cursor: [rollSequence0000.png, rollSequence0001.png]
+            playback:
+              clip: cursor
+              fps: 8
+              loop: false
+              autoplay: false
+          offset: 14
+        content:
+          - text: "Complete state can replace the indicator with a spritesheet visual."
+            textStyle:
+              fontSize: 30
+              fill: "#D9D9D9"
+              fontFamily: Arial
+              lineHeight: 1.35
