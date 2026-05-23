@@ -235,10 +235,14 @@ properties:
         "$ref": "#/$def/indicatorVisual"
       complete:
         "$ref": "#/$def/indicatorVisual"
-      offset:
+      offsetX:
         type: number
-        description: Offset between the text and the indicator
+        description: Horizontal offset between the text and the indicator
         default: 16
+      offsetY:
+        type: number
+        description: Vertical adjustment from the indicator's automatic line-bottom alignment; positive values move down
+        default: 0
   textStyle:
     "$ref": "#/$def/textStyle"
   speed:

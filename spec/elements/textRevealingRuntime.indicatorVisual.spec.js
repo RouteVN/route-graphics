@@ -133,6 +133,26 @@ describe("runTextReveal indicator visuals", () => {
     expect(completionTracker.complete).toHaveBeenCalledTimes(1);
   });
 
+  it("applies indicator offsetX and offsetY", async () => {
+    const element = createElement({
+      revealing: {
+        width: 10,
+        height: 6,
+      },
+      offsetX: 23,
+      offsetY: -5,
+    });
+
+    const { container } = await runReveal(element, "paused-initial");
+    const indicator = container.getChildByLabel("line-1-indicator");
+    const firstLine = element.content[0];
+
+    expect(indicator.x).toBe(23);
+    expect(indicator.y).toBeCloseTo(
+      firstLine.y + (firstLine.lineMaxHeight - indicator.height) - 5,
+    );
+  });
+
   it("mounts a spritesheet revealing indicator during softWipe playback", async () => {
     const sheetSrc = createTextureId("soft-wipe-revealing-indicator-sheet");
     const completeSrc = createTextureId("soft-wipe-complete-indicator-image");

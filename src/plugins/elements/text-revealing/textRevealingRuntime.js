@@ -42,7 +42,8 @@ const TEXT_REVEAL_RATE_CURVE = 0.9;
 const TYPEWRITER_MAX_TEXT_REVEAL_RATE = 360;
 const TYPEWRITER_TEXT_REVEAL_RATE_CURVE = 1.35;
 const TYPEWRITER_TARGET_STEP_MS = 16;
-const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET = 16;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X = 16;
+const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y = 0;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -371,20 +372,31 @@ const applyCompleteIndicator = (indicatorSprite) => {
   indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.showComplete();
 };
 
-const positionIndicatorForChunk = (indicatorSprite, chunk, indicatorOffset) => {
-  indicatorSprite.x = indicatorOffset;
+const getIndicatorOffsets = (element) => ({
+  x: element?.indicator?.offsetX ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X,
+  y: element?.indicator?.offsetY ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
+});
+
+const positionIndicatorForChunk = (
+  indicatorSprite,
+  chunk,
+  indicatorOffsets,
+) => {
+  indicatorSprite.x = indicatorOffsets.x;
   indicatorSprite.y = chunk
-    ? chunk.y + (chunk.lineMaxHeight - indicatorSprite.height)
-    : 0;
+    ? chunk.y +
+      (chunk.lineMaxHeight - indicatorSprite.height) +
+      indicatorOffsets.y
+    : indicatorOffsets.y;
 };
 
 const positionIndicatorAtTextEnd = (
   indicatorSprite,
   lastTextObject,
-  indicatorOffset,
+  indicatorOffsets,
 ) => {
   if (!lastTextObject || lastTextObject.text.length === 0) {
-    indicatorSprite.x = indicatorOffset;
+    indicatorSprite.x = indicatorOffsets.x;
     return;
   }
 
@@ -392,7 +404,7 @@ const positionIndicatorAtTextEnd = (
     getCharacterXPositionInATextObject(
       lastTextObject,
       lastTextObject.text.length - 1,
-    ) + indicatorOffset;
+    ) + indicatorOffsets.x;
 };
 
 const registerTextRevealRuntime = (container, cleanup) => {
@@ -564,15 +576,14 @@ const buildFullTextContent = (contentContainer, element) => {
 };
 
 const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
-  const indicatorOffset =
-    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const { lastTextObject, lastChunk } = buildFullTextContent(
     contentContainer,
     element,
   );
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
-  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffset);
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
+  positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
   applyCompleteIndicator(indicatorSprite, element);
 };
 
@@ -582,8 +593,7 @@ const runTypewriterPrefixReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset =
-    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const firstChunk = element.content[0] ?? null;
   const totalCharacters = getTextRevealCharacterCount(element);
   let remainingCharacters = Math.min(
@@ -594,7 +604,7 @@ const runTypewriterPrefixReveal = ({
   let lastVisibleChunk = null;
 
   if (remainingCharacters <= 0) {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
     return;
   }
 
@@ -649,15 +659,15 @@ const runTypewriterPrefixReveal = ({
     positionIndicatorForChunk(
       indicatorSprite,
       lastVisibleChunk,
-      indicatorOffset,
+      indicatorOffsets,
     );
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastVisibleTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
   } else {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
   }
 
   if (revealedCharacters >= totalCharacters) {
@@ -673,11 +683,10 @@ const runPausedInitialReveal = ({
   const revealedCharacters = getInitialRevealedCharacters(element);
 
   if (revealedCharacters <= 0) {
-    const indicatorOffset =
-      element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+    const indicatorOffsets = getIndicatorOffsets(element);
     const firstChunk = element.content[0] ?? null;
 
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
     return;
   }
 
@@ -707,8 +716,7 @@ const runTypewriterReveal = async ({
   snapshot = null,
 }) => {
   const effectiveSpeed = getTypewriterEffectiveSpeed(element.speed ?? 50);
-  const indicatorOffset =
-    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const { stepDelay, charactersPerStep } =
     getTypewriterRevealStep(effectiveSpeed);
   const chunkDelay = Math.max(stepDelay, Math.floor(4000 / effectiveSpeed));
@@ -726,7 +734,7 @@ const runTypewriterReveal = async ({
     const chunk = element.content[chunkIndex];
     let revealedNewCharactersInChunk = false;
 
-    positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffset);
+    positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
 
     for (let partIndex = 0; partIndex < chunk.lineParts.length; partIndex++) {
       if (signal?.aborted || contentContainer.destroyed) return false;
@@ -762,7 +770,7 @@ const runTypewriterReveal = async ({
       if (prefilledCharacters > 0) {
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, prefilledCharacters - 1) +
-          indicatorOffset;
+          indicatorOffsets.x;
       }
 
       let charIndex = prefilledCharacters;
@@ -779,7 +787,7 @@ const runTypewriterReveal = async ({
         text.text = fullText.substring(0, nextCharIndex);
         indicatorSprite.x =
           getCharacterXPositionInATextObject(text, lastRevealedCharIndex) +
-          indicatorOffset;
+          indicatorOffsets.x;
         revealedNewCharactersInChunk = true;
         revealedAnyNewCharacters = true;
 
@@ -1020,7 +1028,7 @@ const applySoftWipeFrame = ({
   lineMasks,
   easing,
   indicatorSprite,
-  indicatorOffset,
+  indicatorOffsets,
   currentTime,
 }) => {
   let activeLine = timedLines[0];
@@ -1094,8 +1102,12 @@ const applySoftWipeFrame = ({
       Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
   }
 
-  positionIndicatorForChunk(indicatorSprite, activeLine.chunk, indicatorOffset);
-  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffset;
+  positionIndicatorForChunk(
+    indicatorSprite,
+    activeLine.chunk,
+    indicatorOffsets,
+  );
+  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffsets.x;
 };
 
 const runSoftWipePausedInitialReveal = ({
@@ -1104,12 +1116,11 @@ const runSoftWipePausedInitialReveal = ({
   element,
   revealedCharacters,
 }) => {
-  const indicatorOffset =
-    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
 
   if (
     lines.length === 0 ||
@@ -1121,7 +1132,7 @@ const runSoftWipePausedInitialReveal = ({
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
     applyCompleteIndicator(indicatorSprite, element);
     return;
@@ -1158,7 +1169,7 @@ const runSoftWipePausedInitialReveal = ({
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
     applyCompleteIndicator(indicatorSprite, element);
     return;
@@ -1169,7 +1180,7 @@ const runSoftWipePausedInitialReveal = ({
     lineMasks,
     easing,
     indicatorSprite,
-    indicatorOffset,
+    indicatorOffsets,
     currentTime: 0,
   });
 };
@@ -1182,15 +1193,14 @@ const runSoftWipeReveal = ({
   animationBus,
   completionTracker,
 }) => {
-  const indicatorOffset =
-    element?.indicator?.offset ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET;
+  const indicatorOffsets = getIndicatorOffsets(element);
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
   const { lines, lastTextObject, lastChunk, totalCharacters, maxLineHeight } =
     buildFullTextContent(contentContainer, element);
 
   const initialRevealedCharacters = getInitialRevealedCharacters(element);
 
-  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffset);
+  positionIndicatorForChunk(indicatorSprite, lastChunk, indicatorOffsets);
 
   if (
     lines.length === 0 ||
@@ -1203,7 +1213,7 @@ const runSoftWipeReveal = ({
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
     applyCompleteIndicator(indicatorSprite, element);
     return false;
@@ -1241,7 +1251,7 @@ const runSoftWipeReveal = ({
     positionIndicatorAtTextEnd(
       indicatorSprite,
       lastTextObject,
-      indicatorOffset,
+      indicatorOffsets,
     );
     applyCompleteIndicator(indicatorSprite, element);
     return false;
@@ -1277,7 +1287,7 @@ const runSoftWipeReveal = ({
       positionIndicatorAtTextEnd(
         indicatorSprite,
         lastTextObject,
-        indicatorOffset,
+        indicatorOffsets,
       );
       applyCompleteIndicator(indicatorSprite, element);
     }
@@ -1306,7 +1316,7 @@ const runSoftWipeReveal = ({
           lineMasks,
           easing,
           indicatorSprite,
-          indicatorOffset,
+          indicatorOffsets,
           currentTime: Math.min(duration, currentTime),
         });
       },

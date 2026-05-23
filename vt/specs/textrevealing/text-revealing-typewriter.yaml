@@ -42,7 +42,7 @@ states:
             src: circle-green
             width: 12
             height: 12
-          offset: 12
+          offsetX: 12
         content:
           - text: "The typewriter reveal advances one character at a time,"
             textStyle:
