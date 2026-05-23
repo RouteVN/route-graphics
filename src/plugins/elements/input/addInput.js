@@ -26,17 +26,11 @@ const emitInputEvent = ({
       selectionEnd: snapshot.selectionEnd,
       composing: snapshot.composing,
     },
-    ...(eventConfig.payload ?? {}),
+    ...eventConfig.payload,
   });
 };
 
-const createCallbacks = ({
-  app,
-  container,
-  element,
-  runtime,
-  eventHandler,
-}) => ({
+const createCallbacks = ({ element, runtime, eventHandler }) => ({
   onValueChange: (snapshot) => {
     runtime.value = snapshot.value;
     runtime.selectionStart = snapshot.selectionStart;
@@ -109,15 +103,17 @@ const createCallbacks = ({
       snapshot,
     });
   },
-  onSubmit: (snapshot) => {
-    emitInputEvent({
-      eventHandler,
-      eventName: "submit",
-      element,
-      eventConfig: element.submit,
-      snapshot,
-    });
-  },
+  ...(element.submit && {
+    onSubmit: (snapshot) => {
+      emitInputEvent({
+        eventHandler,
+        eventName: "submit",
+        element,
+        eventConfig: element.submit,
+        snapshot,
+      });
+    },
+  }),
   onCompositionStart: (snapshot) => {
     runtime.composing = true;
     syncInputView(runtime, element);
@@ -320,8 +316,6 @@ export const addInput = ({
     ...element,
     value: runtime.value,
     callbacks: createCallbacks({
-      app,
-      container,
       element,
       runtime,
       eventHandler,

@@ -246,6 +246,90 @@ describe("inputDomBridge", () => {
     bridge.destroy();
   });
 
+  it("prevents single-line Enter without submitting when submitOnEnter is false", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+    const callbacks = {
+      onSubmit: vi.fn(),
+    };
+
+    const input = bridge.mount("name", {
+      value: "abc",
+      submitOnEnter: false,
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks,
+    });
+    const onLaterInputKeydown = vi.fn();
+    input.addEventListener("keydown", onLaterInputKeydown);
+    input.focus();
+
+    const event = new KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    });
+
+    input.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(callbacks.onSubmit).not.toHaveBeenCalled();
+    expect(onLaterInputKeydown).not.toHaveBeenCalled();
+
+    bridge.destroy();
+  });
+
+  it("prevents multiline Enter from inserting a line break when submitOnEnter is false", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+    const callbacks = {
+      onSubmit: vi.fn(),
+      onValueChange: vi.fn(),
+    };
+
+    const input = bridge.mount("bio", {
+      value: "abc",
+      multiline: true,
+      submitOnEnter: false,
+      padding: { top: 1, right: 1, bottom: 1, left: 1 },
+      textStyle: { fontSize: 18, fill: "#ffffff", align: "left" },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks,
+    });
+    const onLaterInputKeydown = vi.fn();
+    input.addEventListener("keydown", onLaterInputKeydown);
+    input.focus();
+
+    const event = new KeyboardEvent("keydown", {
+      key: "Enter",
+      bubbles: true,
+      cancelable: true,
+    });
+
+    input.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(input.value).toBe("abc");
+    expect(callbacks.onSubmit).not.toHaveBeenCalled();
+    expect(callbacks.onValueChange).not.toHaveBeenCalled();
+    expect(onLaterInputKeydown).not.toHaveBeenCalled();
+
+    bridge.destroy();
+  });
+
   it("keeps focused input keyboard events from bubbling to document shortcuts", () => {
     const { app } = createApp();
     const bridge = createInputDomBridge({ app });

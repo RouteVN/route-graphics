@@ -191,12 +191,32 @@ const isEditableKeyboardTarget = (target) => {
   );
 };
 
-const shouldHandleKeydown = (event) => {
-  if (isEditableKeyboardTarget(event?.target)) {
-    return false;
+const getActiveKeyboardTarget = () => {
+  if (typeof document === "undefined") {
+    return null;
   }
 
-  return typeof hotkeys.filter !== "function" || hotkeys.filter(event);
+  return document.activeElement ?? null;
+};
+
+const isEditableKeyboardEvent = (event) => {
+  if (isEditableKeyboardTarget(event?.target)) {
+    return true;
+  }
+
+  return isEditableKeyboardTarget(getActiveKeyboardTarget());
+};
+
+const getKeydownBlockReason = (event) => {
+  if (isEditableKeyboardEvent(event)) {
+    return "editable-context";
+  }
+
+  if (typeof hotkeys.filter === "function" && !hotkeys.filter(event)) {
+    return "hotkeys-filter";
+  }
+
+  return null;
 };
 
 const clearReleasedKeyState = ({
@@ -205,13 +225,17 @@ const clearReleasedKeyState = ({
   pressedKeyCodes,
   releasedKeyCode,
 }) => {
-  for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+  for (const [activationKey, activeShortcut] of Array.from(
+    activeKeyupShortcuts,
+  )) {
     if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
       activeKeyupShortcuts.delete(activationKey);
     }
   }
 
-  for (const [activationKey, activeShortcut] of [...activeModifierShortcuts]) {
+  for (const [activationKey, activeShortcut] of Array.from(
+    activeModifierShortcuts,
+  )) {
     if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
       activeModifierShortcuts.delete(activationKey);
     }
@@ -272,15 +296,17 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const clearBindingState = (binding) => {
-    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeKeyupShortcuts,
+    )) {
       if (activeShortcut.binding === binding) {
         activeKeyupShortcuts.delete(activationKey);
       }
     }
 
-    for (const [activationKey, activeShortcut] of [
-      ...activeModifierShortcuts,
-    ]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeModifierShortcuts,
+    )) {
       if (activeShortcut.binding === binding) {
         activeModifierShortcuts.delete(activationKey);
       }
@@ -331,7 +357,9 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const onDocumentKeydown = (event) => {
-    if (!shouldHandleKeydown(event)) {
+    const blockReason = getKeydownBlockReason(event);
+
+    if (blockReason) {
       clearActiveKeyupBindings();
       return;
     }
@@ -341,7 +369,6 @@ export const createKeyboardManager = (eventHandler) => {
     if (typeof pressedKeyCode !== "number") {
       return;
     }
-
     pressedKeyCodes.add(pressedKeyCode);
 
     for (const [binding, config] of registeredBindings) {
@@ -365,23 +392,29 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const onDocumentKeyup = (event) => {
+    const isEditableEvent = isEditableKeyboardEvent(event);
     const releasedKeyCode = getEventKeyCode(event);
+
+    if (isEditableEvent) {
+      if (typeof releasedKeyCode === "number") {
+        clearReleasedKeyState({
+          activeKeyupShortcuts,
+          activeModifierShortcuts,
+          pressedKeyCodes,
+          releasedKeyCode,
+        });
+      } else {
+        clearActiveKeyupBindings();
+      }
+      return;
+    }
 
     if (typeof releasedKeyCode !== "number") {
       return;
     }
-
-    if (isEditableKeyboardTarget(event?.target)) {
-      clearReleasedKeyState({
-        activeKeyupShortcuts,
-        activeModifierShortcuts,
-        pressedKeyCodes,
-        releasedKeyCode,
-      });
-      return;
-    }
-
-    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeKeyupShortcuts,
+    )) {
       const config = registeredBindings.get(activeShortcut.binding);
 
       if (!activeShortcut.releaseCodes.has(releasedKeyCode) || !config?.keyup) {
@@ -392,9 +425,9 @@ export const createKeyboardManager = (eventHandler) => {
       emitKeyboardEvent("keyup", activeShortcut.binding, config.keyup.payload);
     }
 
-    for (const [activationKey, activeShortcut] of [
-      ...activeModifierShortcuts,
-    ]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeModifierShortcuts,
+    )) {
       if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
         activeModifierShortcuts.delete(activationKey);
       }
@@ -466,7 +499,7 @@ export const createKeyboardManager = (eventHandler) => {
       // hotkeys-js is reliable for combo activation, but not for combo release
       // when modifiers are released before the final non-modifier key.
       hotkeys(binding, (_event, handler) => {
-        if (isEditableKeyboardTarget(_event?.target)) {
+        if (isEditableKeyboardEvent(_event)) {
           clearActiveKeyupBindings();
           return;
         }

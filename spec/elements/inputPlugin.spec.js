@@ -70,6 +70,7 @@ describe("input plugin", () => {
     expect(inputContainer.alpha).toBe(1);
 
     const mountOptions = bridgeState.mountArgs[1];
+    expect(mountOptions.callbacks.onSubmit).toBeUndefined();
     mountOptions.callbacks.onFocus({
       value: "",
       selectionStart: 0,
@@ -117,6 +118,7 @@ describe("input plugin", () => {
 
     expect(app.inputDomBridge.update).toHaveBeenCalledTimes(1);
     expect(bridgeState.updateArgs[1].value).toBe("native text");
+    expect(bridgeState.updateArgs[1].callbacks.onSubmit).toBeUndefined();
   });
 
   it("emits focus only once while the field stays focused across repeated native focus callbacks", () => {
@@ -167,6 +169,56 @@ describe("input plugin", () => {
     expect(
       eventHandler.mock.calls.filter(([eventName]) => eventName === "focus"),
     ).toHaveLength(1);
+  });
+
+  it("emits submit payload when configured", () => {
+    const parent = new Container();
+    const eventHandler = vi.fn();
+    const { app, bridgeState } = createApp();
+    const element = parseInput({
+      state: {
+        id: "name",
+        type: "input",
+        x: 20,
+        y: 40,
+        width: 200,
+        height: 44,
+        submit: {
+          payload: {
+            action: "nextLine",
+          },
+        },
+      },
+    });
+
+    addInput({
+      app,
+      parent,
+      element,
+      eventHandler,
+      zIndex: 0,
+    });
+
+    const { callbacks } = bridgeState.mountArgs[1];
+
+    callbacks.onSubmit({
+      value: "Jane",
+      selectionStart: 4,
+      selectionEnd: 4,
+      focused: true,
+      composing: false,
+    });
+
+    expect(eventHandler).toHaveBeenCalledWith("submit", {
+      _event: {
+        id: "name",
+        value: "Jane",
+        selectionStart: 4,
+        selectionEnd: 4,
+        composing: false,
+      },
+      action: "nextLine",
+    });
   });
 
   it("passes multiline fields through to the DOM bridge and updates their transform", () => {

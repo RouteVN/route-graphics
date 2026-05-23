@@ -22,7 +22,7 @@ const emitInputEvent = ({
       selectionEnd: snapshot.selectionEnd,
       composing: snapshot.composing,
     },
-    ...(eventConfig.payload ?? {}),
+    ...eventConfig.payload,
   });
 };
 
@@ -99,15 +99,17 @@ const createCallbacks = ({ element, runtime, eventHandler }) => ({
       snapshot,
     });
   },
-  onSubmit: (snapshot) => {
-    emitInputEvent({
-      eventHandler,
-      eventName: "submit",
-      element,
-      eventConfig: element.submit,
-      snapshot,
-    });
-  },
+  ...(element.submit && {
+    onSubmit: (snapshot) => {
+      emitInputEvent({
+        eventHandler,
+        eventName: "submit",
+        element,
+        eventConfig: element.submit,
+        snapshot,
+      });
+    },
+  }),
   onCompositionStart: (snapshot) => {
     runtime.composing = true;
     syncInputView(runtime, element);

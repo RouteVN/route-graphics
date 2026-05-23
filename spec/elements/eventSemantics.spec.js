@@ -792,6 +792,10 @@ describe("event semantics", () => {
         keydown: { payload: { source: "SpaceDown" } },
         keyup: { payload: { source: "SpaceUp" } },
       },
+      enter: {
+        keydown: { payload: { source: "EnterDown" } },
+        keyup: { payload: { source: "EnterUp" } },
+      },
       shift: {
         keydown: { payload: { source: "ShiftDown" } },
         keyup: { payload: { source: "ShiftUp" } },
@@ -839,6 +843,108 @@ describe("event semantics", () => {
 
     input.remove();
     editable.remove();
+    keyboardManager.destroy();
+  });
+
+  it("keyboard manager ignores document-level shortcuts while an editable element is focused", () => {
+    const eventHandler = vi.fn();
+    const keyboardManager = createKeyboardManager(eventHandler);
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+
+    keyboardManager.registerHotkeys({
+      space: {
+        keydown: { payload: { source: "SpaceDown" } },
+        keyup: { payload: { source: "SpaceUp" } },
+      },
+      enter: {
+        keydown: { payload: { source: "EnterDown" } },
+        keyup: { payload: { source: "EnterUp" } },
+      },
+    });
+
+    input.focus();
+
+    dispatchKeyboardEvent("keydown", " ", {
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keyup", " ", {
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keydown", "Enter", {
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+    });
+    dispatchKeyboardEvent("keyup", "Enter", {
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+    });
+    hotkeys.trigger("space");
+    hotkeys.trigger("enter");
+
+    expect(eventHandler).not.toHaveBeenCalled();
+
+    input.blur();
+
+    dispatchKeyboardEvent("keydown", " ", {
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keyup", " ", {
+      code: "Space",
+      keyCode: 32,
+      which: 32,
+    });
+    dispatchKeyboardEvent("keydown", "Enter", {
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+    });
+    dispatchKeyboardEvent("keyup", "Enter", {
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+    });
+
+    expect(eventHandler.mock.calls).toEqual([
+      [
+        "keydown",
+        {
+          _event: { key: "space" },
+          source: "SpaceDown",
+        },
+      ],
+      [
+        "keyup",
+        {
+          _event: { key: "space" },
+          source: "SpaceUp",
+        },
+      ],
+      [
+        "keydown",
+        {
+          _event: { key: "enter" },
+          source: "EnterDown",
+        },
+      ],
+      [
+        "keyup",
+        {
+          _event: { key: "enter" },
+          source: "EnterUp",
+        },
+      ],
+    ]);
+
+    input.remove();
     keyboardManager.destroy();
   });
 

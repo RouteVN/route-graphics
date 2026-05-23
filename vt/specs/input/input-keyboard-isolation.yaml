@@ -4,7 +4,8 @@ description: Focused input typing should not emit global keyboard shortcuts.
 skipInitialScreenshot: true
 specs:
   - pressing Space while an input is focused should edit the field only
-  - the same global Space shortcut should work after the input loses focus
+  - pressing Enter while an input is focused should not emit global keyboard shortcuts
+  - the same global Space and Enter shortcuts should work after the input loses focus
 steps:
   - action: customEvent
     name: clearEvents
@@ -19,6 +20,8 @@ steps:
     key: Space
   - action: keypress
     key: B
+  - action: keypress
+    key: Enter
   - action: wait
     ms: 120
   - action: assert
@@ -69,6 +72,8 @@ steps:
     ms: 100
   - action: keypress
     key: Space
+  - action: keypress
+    key: Enter
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
@@ -78,6 +83,9 @@ steps:
       - _event:
           key: space
         action: globalSpaceDown
+      - _event:
+          key: enter
+        action: globalEnterDown
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
@@ -87,6 +95,9 @@ steps:
       - _event:
           key: space
         action: globalSpaceUp
+      - _event:
+          key: enter
+        action: globalEnterUp
 ---
 states:
   - elements:
@@ -122,3 +133,10 @@ states:
           keyup:
             payload:
               action: globalSpaceUp
+        enter:
+          keydown:
+            payload:
+              action: globalEnterDown
+          keyup:
+            payload:
+              action: globalEnterUp
