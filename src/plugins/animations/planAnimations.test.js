@@ -44,4 +44,31 @@ describe("getAnimationContinuitySignature", () => {
       }),
     );
   });
+
+  it("includes playback speed in persistent signatures", () => {
+    const base = {
+      id: "slide",
+      targetId: "portrait",
+      type: "update",
+      playback: {
+        continuity: "persistent",
+        speed: 1,
+      },
+      tween: {
+        x: {
+          keyframes: [{ duration: 1000, value: 400, easing: "linear" }],
+        },
+      },
+    };
+
+    expect(getAnimationContinuitySignature(base)).not.toBe(
+      getAnimationContinuitySignature({
+        ...base,
+        playback: {
+          continuity: "persistent",
+          speed: 2,
+        },
+      }),
+    );
+  });
 });

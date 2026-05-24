@@ -449,6 +449,71 @@ out:
   audio: []
   audioEffects: []
 ---
+case: Normalize update animation with playback speed
+in:
+  - id: state-2-speed-update
+    animations:
+      - id: anim-speed-update
+        targetId: portrait
+        type: update
+        playback:
+          speed: 2
+        tween:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 320
+out:
+  id: state-2-speed-update
+  elements: []
+  animations:
+    - id: anim-speed-update
+      targetId: portrait
+      type: update
+      playback:
+        continuity: render
+        speed: 2
+      tween:
+        x:
+          keyframes:
+            - duration: 1000
+              value: 320
+              easing: linear
+  audio: []
+  audioEffects: []
+---
+case: Normalize default playback speed away
+in:
+  - id: state-2-default-speed-update
+    animations:
+      - id: anim-default-speed-update
+        targetId: portrait
+        type: update
+        playback:
+          speed: 1
+        tween:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 320
+out:
+  id: state-2-default-speed-update
+  elements: []
+  animations:
+    - id: anim-default-speed-update
+      targetId: portrait
+      type: update
+      playback:
+        continuity: render
+      tween:
+        x:
+          keyframes:
+            - duration: 1000
+              value: 320
+              easing: linear
+  audio: []
+  audioEffects: []
+---
 case: Normalize transition animation with persistent playback continuity
 in:
   - id: state-2-persistent-transition
@@ -708,6 +773,40 @@ in:
               - duration: 100
                 value: 20
 throws: "animations[0].playback.continuity must be one of: render, persistent."
+---
+case: Throw when playback speed is zero
+in:
+  - id: state-3c-playback-speed-zero
+    animations:
+      - id: anim-playback-speed-zero
+        targetId: text-1
+        type: update
+        playback:
+          continuity: render
+          speed: 0
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+throws: animations[0].playback.speed must be a finite number greater than 0.
+---
+case: Throw when playback speed is not a number
+in:
+  - id: state-3c-playback-speed-type
+    animations:
+      - id: anim-playback-speed-type
+        targetId: text-1
+        type: update
+        playback:
+          continuity: render
+          speed: fast
+        tween:
+          x:
+            keyframes:
+              - duration: 100
+                value: 20
+throws: animations[0].playback.speed must be a finite number greater than 0.
 ---
 case: Throw when sequence mask uses legacy textures
 in:

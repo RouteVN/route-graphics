@@ -134,6 +134,98 @@ describe("animationBus auto tween shorthand", () => {
     expect(element.alpha).toBeCloseTo(0.625);
   });
 
+  it("scales ticked elapsed time by playback speed", () => {
+    const animationBus = createAnimationBus();
+    const onComplete = vi.fn();
+    const element = {
+      x: 0,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "fast-x",
+        playbackSpeed: 2,
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(250);
+
+    expect(element.x).toBeCloseTo(50);
+    expect(onComplete).not.toHaveBeenCalled();
+
+    animationBus.tick(250);
+
+    expect(element.x).toBeCloseTo(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("scales manually sampled time by playback speed", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      x: 0,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-fast-x",
+        playbackSpeed: 2,
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    animationBus.setTime(250);
+
+    expect(element.x).toBeCloseTo(50);
+    expect(animationBus.getState().animations[0]).toMatchObject({
+      id: "manual-fast-x",
+      currentTime: 500,
+      playbackSpeed: 2,
+      progress: 0.5,
+    });
+  });
+
+  it("rejects invalid playback speeds", () => {
+    const animationBus = createAnimationBus();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "bad-speed",
+        playbackSpeed: 0,
+        element: {
+          x: 0,
+          scale: { x: 1, y: 1 },
+        },
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    expect(() => animationBus.flush()).toThrow(
+      'Animation "bad-speed" playback speed must be a finite number greater than 0.',
+    );
+  });
+
   it("applies property path mapping for auto scale tweens", () => {
     const animationBus = createAnimationBus();
     const onComplete = vi.fn();

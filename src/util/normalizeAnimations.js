@@ -3,6 +3,8 @@ import { normalizeShaderCompositor } from "../plugins/elements/util/shaderConfig
 
 const ANIMATION_TYPES = new Set(["update", "transition"]);
 const CONTINUITY_MODES = new Set(["render", "persistent"]);
+const DEFAULT_PLAYBACK_CONTINUITY = "render";
+const DEFAULT_PLAYBACK_SPEED = 1;
 const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
@@ -50,18 +52,32 @@ const assertNumber = (value, path) => {
   }
 };
 
+const assertPositiveFiniteNumber = (value, path) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`${path} must be a finite number greater than 0.`);
+  }
+};
+
 const normalizePlayback = (playback, path) => {
   assertPlainObject(playback, path);
 
-  if (!CONTINUITY_MODES.has(playback.continuity)) {
+  const continuity = playback.continuity ?? DEFAULT_PLAYBACK_CONTINUITY;
+  if (!CONTINUITY_MODES.has(continuity)) {
     throw new Error(
       `${path}.continuity must be one of: ${Array.from(CONTINUITY_MODES).join(", ")}.`,
     );
   }
 
-  return {
-    continuity: playback.continuity,
-  };
+  const normalized = { continuity };
+
+  if (playback.speed !== undefined) {
+    assertPositiveFiniteNumber(playback.speed, `${path}.speed`);
+    if (playback.speed !== DEFAULT_PLAYBACK_SPEED) {
+      normalized.speed = playback.speed;
+    }
+  }
+
+  return normalized;
 };
 
 const normalizeAutoTween = (autoConfig, path) => {

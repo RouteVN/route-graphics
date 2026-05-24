@@ -270,12 +270,15 @@ $defs:
               - required: [softness]
   playback:
     type: object
-    required:
-      - continuity
     properties:
       continuity:
         type: string
         enum: [render, persistent]
+        default: render
+      speed:
+        type: number
+        exclusiveMinimum: 0
+        description: Playback speed multiplier. 1 is authored speed, 2 is twice as fast, 0.5 is half speed.
     additionalProperties: false
 properties:
   id:
