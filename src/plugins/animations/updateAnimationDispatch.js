@@ -88,6 +88,7 @@ export const dispatchUpdateAnimationsNow = ({
         animationType: animation.type,
         targetId: animation.targetId,
         continuity: animation.playback?.continuity ?? "render",
+        playbackSpeed: animation.playback?.speed,
         signature:
           animation.signature ??
           JSON.stringify({

@@ -14,6 +14,8 @@ import {
   getValueAtTime,
 } from "../../util/animationTimeline.js";
 
+const DEFAULT_PLAYBACK_SPEED = 1;
+
 const hasTranslateProperties = (properties = {}) =>
   Object.keys(properties).some(isTranslateAnimationProperty);
 
@@ -106,10 +108,27 @@ export const createAnimationBus = () => {
   };
 
   const applyTimeToContext = (context, timeMS) => {
-    const nextTime = clampAnimationTime(timeMS, context.duration);
+    const nextTime = clampAnimationTime(
+      timeMS * context.playbackSpeed,
+      context.duration,
+    );
     context.currentTime = nextTime;
     context.applyFrame(nextTime);
     return nextTime >= context.duration;
+  };
+
+  const normalizePlaybackSpeed = (value, animationId) => {
+    if (value === undefined || value === null) {
+      return DEFAULT_PLAYBACK_SPEED;
+    }
+
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      throw new Error(
+        `Animation "${animationId}" playback speed must be a finite number greater than 0.`,
+      );
+    }
+
+    return value;
   };
 
   const emit = (event, data) => {
@@ -139,6 +158,10 @@ export const createAnimationBus = () => {
     context.targetId = metadata.targetId ?? context.targetId;
     context.signature = metadata.signature ?? context.signature;
     context.continuity = metadata.continuity ?? context.continuity ?? "render";
+    context.playbackSpeed = normalizePlaybackSpeed(
+      metadata.playbackSpeed ?? context.playbackSpeed,
+      context.id,
+    );
     context.onContinuationUpdate =
       metadata.onContinuationUpdate ?? context.onContinuationUpdate;
     return context;
@@ -215,6 +238,7 @@ export const createAnimationBus = () => {
       timelines,
       duration: calculateMaxDuration(timelines),
       currentTime: 0,
+      playbackSpeed: DEFAULT_PLAYBACK_SPEED,
       stateVersion,
       targetState,
       onComplete,
@@ -275,6 +299,7 @@ export const createAnimationBus = () => {
       kind: "custom",
       duration: payload.duration ?? 0,
       currentTime: 0,
+      playbackSpeed: DEFAULT_PLAYBACK_SPEED,
       deferCompletionUntilNextFrame:
         payload.deferCompletionUntilNextFrame === true,
       pendingCompletion: false,
@@ -439,7 +464,7 @@ export const createAnimationBus = () => {
       }
 
       context.currentTime = clampAnimationTime(
-        context.currentTime + deltaMS,
+        context.currentTime + deltaMS * context.playbackSpeed,
         context.duration,
       );
 
@@ -545,6 +570,7 @@ export const createAnimationBus = () => {
       targetId: pendingContext.targetId,
       signature: pendingContext.signature,
       continuity: pendingContext.continuity,
+      playbackSpeed: pendingContext.playbackSpeed,
       onContinuationUpdate:
         payload.onContinuationUpdate ?? pendingContext.onContinuationUpdate,
     });
@@ -599,6 +625,7 @@ export const createAnimationBus = () => {
       id,
       currentTime: ctx.currentTime,
       duration: ctx.duration,
+      playbackSpeed: ctx.playbackSpeed,
       progress: ctx.duration > 0 ? ctx.currentTime / ctx.duration : 0,
     })),
   });

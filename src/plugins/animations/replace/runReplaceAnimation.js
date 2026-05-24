@@ -1671,6 +1671,7 @@ export const runReplaceAnimation = ({
       targetId: animation.targetId,
       signature: continuitySignature,
       continuity: "persistent",
+      playbackSpeed: animation.playback?.speed,
       onCancel: () => {
         transitionSignalController?.abort();
         clearDeferredMountOperations(hiddenMountContext);
@@ -1768,6 +1769,7 @@ export const runReplaceAnimation = ({
       targetId: animation.targetId,
       signature: continuitySignature,
       continuity: isPersistent ? "persistent" : "render",
+      playbackSpeed: animation.playback?.speed,
       onContinuationUpdate: handleContinuationUpdate,
       duration: replaceOverlay.duration,
       deferCompletionUntilNextFrame: animation.compositor !== undefined,
