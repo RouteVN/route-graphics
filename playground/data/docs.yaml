@@ -47,6 +47,9 @@ items:
       - id: node-slider
         title: "Slider"
         href: "/docs/nodes/slider/"
+      - id: node-input
+        title: "Input"
+        href: "/docs/nodes/input/"
       - id: node-container
         title: "Container"
         href: "/docs/nodes/container/"

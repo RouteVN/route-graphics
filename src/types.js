@@ -506,6 +506,13 @@
  */
 
 /**
+ * @typedef {Object} InputStrokeStyle
+ * @property {number} width
+ * @property {string} color
+ * @property {number} alpha
+ */
+
+/**
  * @typedef {Object} InputComputedProps
  * @property {'input'} type
  * @property {string} value
@@ -514,6 +521,9 @@
  * @property {boolean} [submitOnEnter]
  * @property {boolean} disabled
  * @property {number} [maxLength]
+ * @property {RectFill} fill
+ * @property {InputStrokeStyle} border
+ * @property {InputStrokeStyle} focusRing
  * @property {Object} textStyle
  * @property {InputPadding} padding
  * @property {Object} [change]

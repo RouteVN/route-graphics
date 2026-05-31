@@ -8,6 +8,7 @@ import {
 import applyTextStyle from "../../../util/applyTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { destroyRectFillResource, resolveRectFill } from "../rect/rectFill.js";
 
 export const INPUT_RUNTIME = Symbol("routeGraphicsInputRuntime");
 
@@ -18,18 +19,18 @@ export const DEFAULT_INPUT_PADDING = {
   left: 12,
 };
 
-export const DEFAULT_INPUT_BACKGROUND = {
-  fill: "#FFFFFF",
-  fillAlpha: 1,
-  strokeColor: "#2E2E2E",
-  strokeWidth: 1,
-  strokeAlpha: 1,
+export const DEFAULT_INPUT_FILL = "#FFFFFF";
+
+export const DEFAULT_INPUT_BORDER = {
+  color: "#2E2E2E",
+  width: 1,
+  alpha: 1,
 };
 
 export const DEFAULT_INPUT_FOCUS_RING = {
-  strokeColor: "#4A89FF",
-  strokeWidth: 2,
-  strokeAlpha: 1,
+  color: "#4A89FF",
+  width: 2,
+  alpha: 1,
 };
 
 export const DEFAULT_INPUT_SELECTION_STYLE = {
@@ -94,6 +95,23 @@ export const resolvePadding = (padding) => {
     left: padding?.left ?? DEFAULT_INPUT_PADDING.left,
   };
 };
+
+const resolveStrokeWidth = (width, fallback) => {
+  if (typeof width !== "number" || !Number.isFinite(width)) {
+    return fallback;
+  }
+
+  return Math.max(0, Math.round(width));
+};
+
+const resolveStrokeAlpha = (alpha, fallback) =>
+  typeof alpha === "number" && Number.isFinite(alpha) ? alpha : fallback;
+
+export const resolveInputStrokeStyle = (style, defaults) => ({
+  color: style?.color ?? defaults.color,
+  width: resolveStrokeWidth(style?.width, defaults.width),
+  alpha: resolveStrokeAlpha(style?.alpha, defaults.alpha),
+});
 
 const normalizeInputValue = (value) =>
   String(value ?? "")
@@ -417,6 +435,9 @@ const getMultilineLineOriginX = ({
 export const createInputDisplay = (element) => {
   const background = new Graphics();
   background.label = `${element.id}-background`;
+  background.on("destroyed", () => {
+    destroyRectFillResource(background);
+  });
 
   const selection = new Graphics();
   selection.label = `${element.id}-selection`;
@@ -706,30 +727,31 @@ export const syncInputView = (runtime, element) => {
   runtime.placeholder.visible =
     runtime.value.length === 0 && runtime.composing !== true;
 
-  runtime.background.clear();
-  runtime.background.rect(0, 0, element.width, element.height);
-  runtime.background.fill({
-    color: DEFAULT_INPUT_BACKGROUND.fill,
-    alpha: DEFAULT_INPUT_BACKGROUND.fillAlpha,
-  });
+  const drawBackgroundRect = () => {
+    runtime.background.rect(0, 0, element.width, element.height);
+  };
+  const fill = element.fill !== undefined ? element.fill : DEFAULT_INPUT_FILL;
+  const border = element.border ?? DEFAULT_INPUT_BORDER;
+  const focusRing = element.focusRing ?? DEFAULT_INPUT_FOCUS_RING;
 
-  if (DEFAULT_INPUT_BACKGROUND.strokeWidth > 0) {
+  runtime.background.clear();
+  drawBackgroundRect();
+  runtime.background.fill(resolveRectFill(runtime.background, fill, element));
+
+  if (border.width > 0) {
     runtime.background.stroke({
-      color: DEFAULT_INPUT_BACKGROUND.strokeColor,
-      alpha: DEFAULT_INPUT_BACKGROUND.strokeAlpha,
-      width: DEFAULT_INPUT_BACKGROUND.strokeWidth,
+      color: border.color,
+      alpha: border.alpha,
+      width: border.width,
     });
   }
 
-  if (
-    runtime.focused &&
-    DEFAULT_INPUT_FOCUS_RING.strokeWidth > 0 &&
-    element.disabled !== true
-  ) {
+  if (runtime.focused && focusRing.width > 0 && element.disabled !== true) {
+    drawBackgroundRect();
     runtime.background.stroke({
-      color: DEFAULT_INPUT_FOCUS_RING.strokeColor,
-      alpha: DEFAULT_INPUT_FOCUS_RING.strokeAlpha,
-      width: DEFAULT_INPUT_FOCUS_RING.strokeWidth,
+      color: focusRing.color,
+      alpha: focusRing.alpha,
+      width: focusRing.width,
     });
   }
 
