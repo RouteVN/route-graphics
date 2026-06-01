@@ -404,6 +404,28 @@ const getServedAssetPath = (assetId, assetPath) => {
   return `${toBrowserPath(assetId)}${extension}`;
 };
 
+const getDistFilePath = (pathname) => {
+  if (!pathname.startsWith("/dist/")) return null;
+
+  const relativePath = decodeURIComponent(pathname.slice("/dist/".length));
+  const normalizedPath = path.normalize(relativePath);
+  if (
+    normalizedPath.startsWith("..") ||
+    path.isAbsolute(normalizedPath) ||
+    normalizedPath.length === 0
+  ) {
+    return null;
+  }
+
+  return path.join(path.dirname(bundlePath), normalizedPath);
+};
+
+const getJavaScriptContentType = (filePath) => {
+  return filePath.endsWith(".map")
+    ? "application/json; charset=utf-8"
+    : "text/javascript; charset=utf-8";
+};
+
 const createRequestHandler = ({ assetRoutes }) => {
   return async (request, response) => {
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
@@ -414,11 +436,25 @@ const createRequestHandler = ({ assetRoutes }) => {
       return;
     }
 
-    if (url.pathname === "/dist/RouteGraphics.js") {
-      response.writeHead(200, {
-        "content-type": "text/javascript; charset=utf-8",
-      });
-      fs.createReadStream(bundlePath).pipe(response);
+    const distFilePath = getDistFilePath(url.pathname);
+    if (distFilePath) {
+      try {
+        const stat = await fsPromises.stat(distFilePath);
+        if (!stat.isFile()) {
+          response.writeHead(404);
+          response.end("Not Found");
+          return;
+        }
+
+        response.writeHead(200, {
+          "content-length": stat.size,
+          "content-type": getJavaScriptContentType(distFilePath),
+        });
+        fs.createReadStream(distFilePath).pipe(response);
+      } catch {
+        response.writeHead(404);
+        response.end("Not Found");
+      }
       return;
     }
 

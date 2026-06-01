@@ -3,8 +3,10 @@ _site
 node_modules
 coverage
 playground/static/RouteGraphics.js
+playground/static/chunks
 vt/static/RouteGraphics.js
 vt/static/RouteGraphics.js.map
+vt/static/chunks
 vt_old/static/RouteGraphics.js
 vt_old/static/RouteGraphics.js.map
 .claude

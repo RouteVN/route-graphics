@@ -181,6 +181,24 @@ const createRouteGraphics = () => {
     return "texture";
   };
 
+  const inferAudioTypeFromUrl = (url) => {
+    if (typeof url !== "string") return "audio/mpeg";
+
+    const pathWithoutQuery = url.split("?")[0].split("#")[0].toLowerCase();
+    if (
+      pathWithoutQuery.endsWith(".ogg") ||
+      pathWithoutQuery.endsWith(".oga")
+    ) {
+      return "audio/ogg";
+    }
+    if (pathWithoutQuery.endsWith(".m4a")) return "audio/mp4";
+    if (pathWithoutQuery.endsWith(".aac")) return "audio/aac";
+    if (pathWithoutQuery.endsWith(".wav")) return "audio/wav";
+    if (pathWithoutQuery.endsWith(".flac")) return "audio/flac";
+
+    return "audio/mpeg";
+  };
+
   const trackVideoSourceUrl = (key, url, { revokable = false } = {}) => {
     videoSourceUrls.set(key, {
       url,
@@ -674,9 +692,10 @@ const createRouteGraphics = () => {
       }
 
       // Load audio assets using AudioAsset.load in parallel
+      await AudioAsset.prepareDecoders?.(assetsByType.audio);
       await Promise.all(
         Object.entries(assetsByType.audio).map(([key, asset]) =>
-          AudioAsset.load(key, asset.buffer),
+          AudioAsset.load(key, asset.buffer, asset.type),
         ),
       );
 
@@ -763,12 +782,34 @@ const createRouteGraphics = () => {
     },
 
     loadAudioAssets: async (urls) => {
-      return Promise.all(
+      const assets = await Promise.all(
         urls.map(async (url) => {
           const response = await fetch(url);
           const arrayBuffer = await response.arrayBuffer();
-          return AudioAsset.load(url, arrayBuffer);
+          return {
+            buffer: arrayBuffer,
+            key: url,
+            type: inferAudioTypeFromUrl(url),
+          };
         }),
+      );
+
+      const assetMap = Object.fromEntries(
+        assets.map((asset) => [
+          asset.key,
+          {
+            buffer: asset.buffer,
+            type: asset.type,
+          },
+        ]),
+      );
+
+      await AudioAsset.prepareDecoders?.(assetMap);
+
+      return Promise.all(
+        assets.map((asset) =>
+          AudioAsset.load(asset.key, asset.buffer, asset.type),
+        ),
       );
     },
 
