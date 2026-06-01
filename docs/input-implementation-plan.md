@@ -30,7 +30,7 @@ Visible behavior:
 - custom selection highlight rendering
 - clipping inside the input content area
 
-Field chrome should be composed with surrounding Route Graphics elements such as `rect`, `sprite`, or `container`. The input element itself is primarily the editable text layer.
+Basic field chrome is part of the input element through `fill`, `border`, and `focusRing`. More elaborate chrome can still be composed with surrounding Route Graphics elements such as `rect`, `sprite`, or `container`.
 
 Native editing behavior:
 
@@ -161,6 +161,17 @@ Current element shape:
   multiline: false,
   disabled: false,
   maxLength: 80,
+  fill: "#ffffff",
+  border: {
+    width: 1,
+    color: "#2E2E2E",
+    alpha: 1
+  },
+  focusRing: {
+    width: 2,
+    color: "#4A89FF",
+    alpha: 1
+  },
   textStyle: {},
   padding: {
     top: 10,
@@ -189,8 +200,6 @@ Intentionally omitted from the public product surface:
 - browser hint props such as `inputMode` and `enterKeyHint`
 - debug-only visibility controls
 - read-only and autofocus controls
-- built-in field background and border configuration
-- built-in focus ring configuration
 - browser-centric tab-order configuration
 - low-level composition event customization
 

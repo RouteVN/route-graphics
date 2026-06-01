@@ -1,5 +1,12 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
-import { resolveInputTextStyle, resolvePadding } from "./inputShared.js";
+import {
+  DEFAULT_INPUT_BORDER,
+  DEFAULT_INPUT_FILL,
+  DEFAULT_INPUT_FOCUS_RING,
+  resolveInputStrokeStyle,
+  resolveInputTextStyle,
+  resolvePadding,
+} from "./inputShared.js";
 
 export const parseInput = ({ state }) => {
   const computedObj = parseCommonObject(state);
@@ -23,6 +30,12 @@ export const parseInput = ({ state }) => {
     }),
     textStyle: resolveInputTextStyle(state.textStyle),
     padding: resolvePadding(state.padding),
+    fill: state.fill !== undefined ? state.fill : DEFAULT_INPUT_FILL,
+    border: resolveInputStrokeStyle(state.border, DEFAULT_INPUT_BORDER),
+    focusRing: resolveInputStrokeStyle(
+      state.focusRing,
+      DEFAULT_INPUT_FOCUS_RING,
+    ),
     ...(state.change && { change: state.change }),
     ...(state.submit && { submit: state.submit }),
     ...(state.focusEvent && { focusEvent: state.focusEvent }),
