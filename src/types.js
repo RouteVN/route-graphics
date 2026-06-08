@@ -560,6 +560,8 @@
  * @property {string} [indicator.revealing.src] - Source of the revealing indicator image or spritesheet
  * @property {number} [indicator.revealing.width] - Width of the revealing indicator visual
  * @property {number} [indicator.revealing.height] - Height of the revealing indicator visual
+ * @property {number} [indicator.revealing.offsetX] - Revealing visual horizontal offset; falls back to indicator.offsetX
+ * @property {number} [indicator.revealing.offsetY] - Revealing visual vertical offset; falls back to indicator.offsetY
  * @property {Object} [indicator.revealing.atlas] - Spritesheet atlas metadata when kind is spritesheet
  * @property {Object} [indicator.revealing.clips] - Named spritesheet clips when kind is spritesheet
  * @property {Object} [indicator.revealing.playback] - Spritesheet playback settings when kind is spritesheet
@@ -568,6 +570,8 @@
  * @property {string} [indicator.complete.src] - Source of the complete indicator image or spritesheet
  * @property {number} [indicator.complete.width] - Width of the complete indicator visual
  * @property {number} [indicator.complete.height] - Height of the complete indicator visual
+ * @property {number} [indicator.complete.offsetX] - Complete visual horizontal offset; falls back to indicator.offsetX
+ * @property {number} [indicator.complete.offsetY] - Complete visual vertical offset; falls back to indicator.offsetY
  * @property {Object} [indicator.complete.atlas] - Spritesheet atlas metadata when kind is spritesheet
  * @property {Object} [indicator.complete.clips] - Named spritesheet clips when kind is spritesheet
  * @property {Object} [indicator.complete.playback] - Spritesheet playback settings when kind is spritesheet

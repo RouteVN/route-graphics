@@ -372,10 +372,20 @@ const applyCompleteIndicator = (indicatorSprite) => {
   indicatorSprite?.[TEXT_REVEAL_INDICATOR]?.showComplete();
 };
 
-const getIndicatorOffsets = (element) => ({
-  x: element?.indicator?.offsetX ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X,
-  y: element?.indicator?.offsetY ?? DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
-});
+const getIndicatorOffsets = (element, stateName = "revealing") => {
+  const visual = element?.indicator?.[stateName] ?? {};
+
+  return {
+    x:
+      visual.offsetX ??
+      element?.indicator?.offsetX ??
+      DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X,
+    y:
+      visual.offsetY ??
+      element?.indicator?.offsetY ??
+      DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y,
+  };
+};
 
 const getIndicatorLineY = (indicatorSprite, chunk) => {
   if (!chunk) {
@@ -419,9 +429,10 @@ const completeIndicatorAtTextEnd = (
   indicatorSprite,
   chunk,
   lastTextObject,
-  indicatorOffsets,
+  element,
 ) => {
   applyCompleteIndicator(indicatorSprite);
+  const indicatorOffsets = getIndicatorOffsets(element, "complete");
   positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
   positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
 };
@@ -595,7 +606,6 @@ const buildFullTextContent = (contentContainer, element) => {
 };
 
 const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
-  const indicatorOffsets = getIndicatorOffsets(element);
   const { lastTextObject, lastChunk } = buildFullTextContent(
     contentContainer,
     element,
@@ -605,7 +615,7 @@ const runNoneReveal = ({ contentContainer, indicatorSprite, element }) => {
     indicatorSprite,
     lastChunk,
     lastTextObject,
-    indicatorOffsets,
+    element,
   );
 };
 
@@ -697,7 +707,7 @@ const runTypewriterPrefixReveal = ({
       indicatorSprite,
       lastVisibleChunk ?? firstChunk,
       lastVisibleTextObject,
-      indicatorOffsets,
+      element,
     );
   }
 };
@@ -863,7 +873,7 @@ const runTypewriterReveal = async ({
     indicatorSprite,
     lastVisibleChunk,
     lastVisibleTextObject,
-    indicatorOffsets,
+    element,
   );
 
   if (snapshot) {
@@ -1172,7 +1182,7 @@ const runSoftWipePausedInitialReveal = ({
       indicatorSprite,
       lastChunk,
       lastTextObject,
-      indicatorOffsets,
+      element,
     );
     return;
   }
@@ -1209,7 +1219,7 @@ const runSoftWipePausedInitialReveal = ({
       indicatorSprite,
       lastChunk,
       lastTextObject,
-      indicatorOffsets,
+      element,
     );
     return;
   }
@@ -1253,7 +1263,7 @@ const runSoftWipeReveal = ({
       indicatorSprite,
       lastChunk,
       lastTextObject,
-      indicatorOffsets,
+      element,
     );
     return false;
   }
@@ -1291,7 +1301,7 @@ const runSoftWipeReveal = ({
       indicatorSprite,
       lastChunk,
       lastTextObject,
-      indicatorOffsets,
+      element,
     );
     return false;
   }
@@ -1327,7 +1337,7 @@ const runSoftWipeReveal = ({
         indicatorSprite,
         lastChunk,
         lastTextObject,
-        indicatorOffsets,
+        element,
       );
     }
   };
