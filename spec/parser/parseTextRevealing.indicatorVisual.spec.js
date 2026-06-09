@@ -37,6 +37,8 @@ describe("parseTextRevealing indicator visuals", () => {
           src: "cursor-sheet",
           width: 18,
           height: 18,
+          offsetX: 20,
+          offsetY: -2,
           atlas,
           clips: {
             blink: ["idle-0", "idle-1"],
@@ -51,6 +53,8 @@ describe("parseTextRevealing indicator visuals", () => {
         complete: {
           kind: "image",
           src: "cursor-complete",
+          offsetX: 24,
+          offsetY: 3,
         },
       }),
     });
@@ -60,6 +64,8 @@ describe("parseTextRevealing indicator visuals", () => {
       src: "cursor-sheet",
       width: 18,
       height: 18,
+      offsetX: 20,
+      offsetY: -2,
       atlas: {
         frames: {
           "idle-0": {
@@ -97,6 +103,8 @@ describe("parseTextRevealing indicator visuals", () => {
       src: "cursor-complete",
       width: 12,
       height: 12,
+      offsetX: 24,
+      offsetY: 3,
     });
   });
 

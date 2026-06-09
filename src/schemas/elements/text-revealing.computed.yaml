@@ -116,6 +116,12 @@ $def:
         type: number
         description: Display height of the indicator visual
         default: 12
+      offsetX:
+        type: number
+        description: Horizontal offset for this indicator visual. Falls back to indicator.offsetX, then 16.
+      offsetY:
+        type: number
+        description: Vertical offset for this indicator visual. Falls back to indicator.offsetY, then 0.
       atlas:
         type: object
         description: Spritesheet atlas metadata when `kind` is `spritesheet`; uses the same shape as `spritesheet-animation.atlas`.
@@ -237,11 +243,11 @@ properties:
         "$ref": "#/$def/indicatorVisual"
       offsetX:
         type: number
-        description: Horizontal offset between the text and the indicator
+        description: Default horizontal offset between the text and the indicator when a visual does not provide offsetX
         default: 16
       offsetY:
         type: number
-        description: Vertical adjustment from the indicator's automatic line placement; positive values move down
+        description: Default vertical adjustment from the indicator's automatic line placement when a visual does not provide offsetY; positive values move down
         default: 0
   textStyle:
     "$ref": "#/$def/textStyle"

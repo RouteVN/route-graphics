@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { parseTextRevealing } from "../../src/plugins/elements/text-revealing/parseTextRevealing.js";
 import { runTextReveal } from "../../src/plugins/elements/text-revealing/textRevealingRuntime.js";
+import { getCharacterXPositionInATextObject } from "../../src/util/getCharacterXPositionInATextObject.js";
 
 const createCompletionTracker = () => ({
   getVersion: () => 0,
@@ -25,6 +26,22 @@ const getRenderedText = (container) => {
   visit(container);
 
   return textParts.join("");
+};
+
+const getLastRenderedTextObject = (container) => {
+  let lastTextObject;
+  const visit = (node) => {
+    if (typeof node?.text === "string") {
+      lastTextObject = node;
+    }
+
+    if (Array.isArray(node?.children)) {
+      node.children.forEach(visit);
+    }
+  };
+
+  visit(container);
+  return lastTextObject;
 };
 
 let textureIndex = 0;
@@ -153,6 +170,81 @@ describe("runTextReveal indicator visuals", () => {
     expect(indicator.x).toBe(23);
     expect(indicator.y).toBeCloseTo(
       getExpectedIndicatorY(firstLine, indicator, -5),
+    );
+  });
+
+  it("applies visual-specific offsets for revealing and complete indicators", async () => {
+    const completeSrc = createTextureId("complete-offset-visual");
+    const revealingElement = createElement({
+      revealing: {
+        width: 10,
+        height: 6,
+        offsetX: 7,
+        offsetY: 3,
+      },
+      complete: {
+        kind: "image",
+        src: completeSrc,
+        width: 10,
+        height: 6,
+        offsetX: 31,
+        offsetY: -8,
+      },
+      offsetX: 99,
+      offsetY: 99,
+    });
+
+    const revealingResult = await runReveal(revealingElement, "paused-initial");
+    const revealingIndicator =
+      revealingResult.container.getChildByLabel("line-1-indicator");
+    const firstLine = revealingElement.content[0];
+
+    expect(revealingIndicator.x).toBe(7);
+    expect(revealingIndicator.y).toBeCloseTo(
+      getExpectedIndicatorY(firstLine, revealingIndicator, 3),
+    );
+
+    const completeElement = createElement(
+      {
+        revealing: {
+          width: 10,
+          height: 6,
+          offsetX: 7,
+          offsetY: 3,
+        },
+        complete: {
+          kind: "image",
+          src: completeSrc,
+          width: 10,
+          height: 6,
+          offsetX: 31,
+          offsetY: -8,
+        },
+        offsetX: 99,
+        offsetY: 99,
+      },
+      {
+        content: [{ text: "Complete" }],
+        revealEffect: "none",
+      },
+    );
+
+    const completeResult = await runReveal(completeElement, "autoplay");
+    const completeIndicator =
+      completeResult.container.getChildByLabel("line-1-indicator");
+    const completeLine = completeElement.content[0];
+    const completeTextObject = getLastRenderedTextObject(
+      completeResult.container,
+    );
+
+    expect(completeIndicator.x).toBeCloseTo(
+      getCharacterXPositionInATextObject(
+        completeTextObject,
+        completeTextObject.text.length - 1,
+      ) + 31,
+    );
+    expect(completeIndicator.y).toBeCloseTo(
+      getExpectedIndicatorY(completeLine, completeIndicator, -8),
     );
   });
 

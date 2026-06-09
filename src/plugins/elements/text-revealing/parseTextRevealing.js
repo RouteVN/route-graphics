@@ -81,6 +81,14 @@ export const normalizeIndicatorVisual = (visual = {}, path) => {
     height: visual.height ?? 12,
   };
 
+  if (visual.offsetX !== undefined) {
+    baseVisual.offsetX = visual.offsetX;
+  }
+
+  if (visual.offsetY !== undefined) {
+    baseVisual.offsetY = visual.offsetY;
+  }
+
   if (kind === "image") {
     return baseVisual;
   }
