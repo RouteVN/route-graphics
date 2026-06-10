@@ -18,7 +18,7 @@ describe("renderAudio", () => {
     const nextAudioEffects = [
       {
         id: "music-fade",
-        type: "audioTransition",
+        type: "audio-transition",
         targetId: "music",
         properties: {
           volume: {

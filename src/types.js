@@ -663,7 +663,7 @@
 /**
  * @typedef {Object} AudioTransition
  * @property {string} id - Unique identifier
- * @property {string} type - Should be "audioTransition"
+ * @property {string} type - Should be "audio-transition"
  * @property {string} targetId - Target sound or audio-channel id
  * @property {Object} properties - Transition properties
  */

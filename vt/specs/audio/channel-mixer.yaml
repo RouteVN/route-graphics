@@ -37,7 +37,7 @@ states:
             volume: 80
     audioEffects:
       - id: music-volume-update
-        type: audioTransition
+        type: audio-transition
         targetId: music
         properties:
           volume:

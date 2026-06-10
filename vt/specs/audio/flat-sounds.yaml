@@ -21,7 +21,7 @@ states:
         volume: 60
     audioEffects:
       - id: flat-bgm-enter
-        type: audioTransition
+        type: audio-transition
         targetId: flat-bgm
         properties:
           volume:
@@ -38,7 +38,7 @@ states:
         volume: 25
     audioEffects:
       - id: flat-bgm-update
-        type: audioTransition
+        type: audio-transition
         targetId: flat-bgm
         properties:
           volume:
@@ -58,7 +58,7 @@ states:
         volume: 55
     audioEffects:
       - id: flat-bgm-replace-enter
-        type: audioTransition
+        type: audio-transition
         targetId: flat-bgm
         properties:
           volume:
