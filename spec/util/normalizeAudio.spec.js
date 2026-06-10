@@ -115,7 +115,7 @@ describe("normalizeAudioRenderState", () => {
         audioEffects: [
           {
             id: "music",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "music",
             properties: {
               volume: {
@@ -195,6 +195,26 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow("audio[0].delay is not supported");
   });
 
+  it("accepts legacy audioTransition effect type as an alias", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [{ id: "music", type: "audio-channel" }],
+        audioEffects: [
+          {
+            id: "fade",
+            type: "audioTransition",
+            targetId: "music",
+            properties: {
+              volume: {
+                update: { duration: 100, easing: "linear" },
+              },
+            },
+          },
+        ],
+      }),
+    ).not.toThrow();
+  });
+
   it("validates volume transitions strictly", () => {
     const audio = [{ id: "music", type: "audio-channel" }];
 
@@ -204,7 +224,7 @@ describe("normalizeAudioRenderState", () => {
         audioEffects: [
           {
             id: "fade",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "missing",
             properties: {
               volume: {
@@ -222,7 +242,7 @@ describe("normalizeAudioRenderState", () => {
         audioEffects: [
           {
             id: "fade",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "music",
             properties: {
               volume: {
@@ -240,7 +260,7 @@ describe("normalizeAudioRenderState", () => {
         audioEffects: [
           {
             id: "fade",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "music",
             properties: {
               pan: {
@@ -258,7 +278,7 @@ describe("normalizeAudioRenderState", () => {
         audioEffects: [
           {
             id: "fade",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "music",
             properties: {
               volume: {

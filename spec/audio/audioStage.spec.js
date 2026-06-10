@@ -208,7 +208,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -241,7 +241,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-update",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -264,7 +264,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "music-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -298,7 +298,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -308,7 +308,7 @@ describe("AudioStage graph rendering", () => {
         },
         {
           id: "bgm-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -366,7 +366,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "music-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -383,7 +383,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -419,7 +419,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "bgm-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -431,7 +431,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "bgm-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -584,7 +584,7 @@ describe("AudioStage graph rendering", () => {
         nextAudioEffects: [
           {
             id: "bad",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "missing",
             properties: {
               volume: {
