@@ -73,4 +73,40 @@ describe("AudioAsset", () => {
     await expect(firstLoad).resolves.toBe(decodedBuffer);
     expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
   });
+
+  it("rejects decode failures with asset context and root cause", async () => {
+    vi.resetModules();
+
+    const context = {
+      decodeAudioData: vi.fn(() =>
+        Promise.reject(new Error("unsupported codec")),
+      ),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    let thrownError;
+    try {
+      await AudioAsset.load("voice-line", arrayBuffer);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError?.message).toBe(
+      'Could not load audio "voice-line". Unsupported or damaged audio file.',
+    );
+    expect(thrownError?.details).toEqual(
+      expect.objectContaining({
+        assetKey: "voice-line",
+        assetKind: "audio",
+        phase: "decode",
+        cause: "unsupported codec",
+      }),
+    );
+  });
 });
