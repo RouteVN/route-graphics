@@ -181,6 +181,213 @@ const createRouteGraphics = () => {
     return "texture";
   };
 
+  const getErrorMessage = (error) => {
+    if (!error) return "Unknown error";
+    if (typeof error === "string") return error;
+    return error.message || String(error);
+  };
+
+  const truncateErrorValue = (value, maxLength = 180) => {
+    if (typeof value !== "string") return undefined;
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength - 1)}...`;
+  };
+
+  const getBufferByteLength = (buffer) => {
+    if (!buffer) return 0;
+    if (typeof buffer.byteLength === "number") return buffer.byteLength;
+    return 0;
+  };
+
+  const getAssetKindLabel = (category, asset = {}) => {
+    if (category === "texture") {
+      return asset.type?.startsWith("image/") ? "image" : "visual asset";
+    }
+
+    return category || "asset";
+  };
+
+  const getHttpStatusCode = (message) => {
+    const match = message.match(/HTTP\s+(\d{3})/);
+    return match?.[1];
+  };
+
+  const getFriendlyCauseMessage = ({ category, phase, error }) => {
+    if (error?.rootCauseMessage) {
+      return error.rootCauseMessage;
+    }
+
+    const causeMessage = getErrorMessage(error);
+    const httpStatusCode = getHttpStatusCode(causeMessage);
+
+    if (httpStatusCode === "404") {
+      return "File not found.";
+    }
+
+    if (httpStatusCode === "401" || httpStatusCode === "403") {
+      return "Access denied.";
+    }
+
+    if (httpStatusCode?.startsWith("5")) {
+      return "File server error.";
+    }
+
+    if (/URL is missing/i.test(causeMessage)) {
+      return "Missing file URL.";
+    }
+
+    if (/missing or empty/i.test(causeMessage)) {
+      return "Missing file data.";
+    }
+
+    if (category === "audio" || /decode/i.test(causeMessage)) {
+      return "Unsupported or damaged audio file.";
+    }
+
+    if (category === "font") {
+      return "Unsupported or damaged font file.";
+    }
+
+    if (category === "video") {
+      return "Unsupported, damaged, or inaccessible video file.";
+    }
+
+    if (category === "texture" && phase === "image bitmap creation") {
+      return "Unsupported or damaged image file.";
+    }
+
+    if (category === "texture") {
+      return "Missing, inaccessible, or unsupported image file.";
+    }
+
+    return "File could not be loaded.";
+  };
+
+  const getAssetErrorDetails = ({
+    key,
+    kind,
+    category,
+    phase,
+    asset,
+    error,
+  }) => {
+    const details = {
+      assetKey: key,
+      assetKind: kind,
+      assetCategory: category,
+      phase,
+      cause: getErrorMessage(error),
+    };
+
+    if (asset?.type) details.type = asset.type;
+    if (asset?.source) details.source = asset.source;
+    if (asset?.url) details.url = truncateErrorValue(asset.url);
+    if (asset?.buffer) details.bufferBytes = getBufferByteLength(asset.buffer);
+
+    return details;
+  };
+
+  const createAssetLoadError = ({ key, category, phase, asset, error }) => {
+    const kind = getAssetKindLabel(category, asset);
+    const rootCauseMessage = getFriendlyCauseMessage({
+      category,
+      phase,
+      error,
+    });
+    const message = `Could not load ${kind} "${key}". ${rootCauseMessage}`;
+    const assetError = new Error(message, { cause: error });
+
+    assetError.userMessage = message;
+    assetError.rootCauseMessage = rootCauseMessage;
+    assetError.details = getAssetErrorDetails({
+      key,
+      kind,
+      category,
+      phase,
+      asset,
+      error,
+    });
+
+    return assetError;
+  };
+
+  const loadAssetWithContext = async (
+    { key, category, phase, asset },
+    load,
+  ) => {
+    try {
+      return await load();
+    } catch (error) {
+      throw createAssetLoadError({
+        key,
+        category,
+        phase,
+        asset,
+        error,
+      });
+    }
+  };
+
+  const assertAssetBuffer = (asset, category) => {
+    if (getBufferByteLength(asset?.buffer) === 0) {
+      throw new Error(`${category} asset data is missing or empty.`);
+    }
+  };
+
+  const quoteAssetName = (value) => {
+    if (!value) return "unknown";
+    return `"${String(value).replaceAll('"', '\\"')}"`;
+  };
+
+  const formatAssetFailureName = (failure) => {
+    const { assetKind, assetKey } = failure?.details || {};
+    if (!assetKey) return "unknown asset";
+    if (!assetKind) return quoteAssetName(assetKey);
+    return `${assetKind} ${quoteAssetName(assetKey)}`;
+  };
+
+  const formatAssetFailureNames = (failures) => {
+    const maxVisibleFailures = 3;
+    const visibleNames = failures
+      .slice(0, maxVisibleFailures)
+      .map(formatAssetFailureName);
+    const hiddenCount = failures.length - visibleNames.length;
+    const suffix = hiddenCount > 0 ? `, and ${hiddenCount} more` : "";
+
+    return `${visibleNames.join(", ")}${suffix}`;
+  };
+
+  const throwAssetLoadFailures = (settledResults) => {
+    const failures = settledResults
+      .filter((result) => result.status === "rejected")
+      .map((result) => result.reason);
+
+    if (failures.length === 0) {
+      return;
+    }
+
+    if (failures.length === 1) {
+      throw failures[0];
+    }
+
+    const rootCauseMessage = "Check that the files exist and are supported.";
+    const message = `Could not load ${failures.length} assets: ${formatAssetFailureNames(failures)}. ${rootCauseMessage}`;
+    const aggregateError = new AggregateError(failures, message);
+
+    aggregateError.userMessage = message;
+    aggregateError.rootCauseMessage = rootCauseMessage;
+    aggregateError.details = {
+      failures: failures.map(
+        (failure) =>
+          failure?.details || {
+            cause: getErrorMessage(failure),
+          },
+      ),
+    };
+
+    throw aggregateError;
+  };
+
   const trackVideoSourceUrl = (key, url, { revokable = false } = {}) => {
     videoSourceUrls.set(key, {
       url,
@@ -673,93 +880,156 @@ const createRouteGraphics = () => {
         assetsByType[assetType][key] = asset;
       }
 
-      // Load audio assets using AudioAsset.load in parallel
-      await Promise.all(
-        Object.entries(assetsByType.audio).map(([key, asset]) =>
-          AudioAsset.load(key, asset.buffer),
-        ),
-      );
+      const loadJobs = [];
 
-      // Load font assets
-      await Promise.all(
-        Object.entries(assetsByType.font).map(async ([key, asset]) => {
-          const blob = new Blob([asset.buffer], { type: asset.type });
-          const url = URL.createObjectURL(blob);
-          // Use the key as font family name - this should match the fontFamily in text styles
-          const fontFace = new FontFace(key, `url(${url})`);
-          try {
-            await fontFace.load();
-            document.fonts.add(fontFace);
-          } catch (error) {
-            console.error(`Failed to load font ${key}:`, error);
-          } finally {
-            URL.revokeObjectURL(url);
-          }
+      Object.entries(assetsByType.audio).forEach(([key, asset]) => {
+        loadJobs.push({
+          includeInReturn: false,
+          promise: loadAssetWithContext(
+            {
+              key,
+              category: "audio",
+              phase: "decode",
+              asset,
+            },
+            async () => {
+              assertAssetBuffer(asset, "Audio");
+              return AudioAsset.load(key, asset.buffer);
+            },
+          ),
+        });
+      });
+
+      Object.entries(assetsByType.font).forEach(([key, asset]) => {
+        loadJobs.push({
+          includeInReturn: false,
+          promise: loadAssetWithContext(
+            {
+              key,
+              category: "font",
+              phase: "font face load",
+              asset,
+            },
+            async () => {
+              assertAssetBuffer(asset, "Font");
+              const blob = new Blob([asset.buffer], { type: asset.type });
+              const url = URL.createObjectURL(blob);
+              // Use the key as font family name - this should match the fontFamily in text styles
+              const fontFace = new FontFace(key, `url(${url})`);
+              try {
+                await fontFace.load();
+                document.fonts.add(fontFace);
+              } finally {
+                URL.revokeObjectURL(url);
+              }
+            },
+          ),
+        });
+      });
+
+      Object.entries(assetsByType.texture).forEach(([key, asset]) =>
+        loadJobs.push({
+          includeInReturn: true,
+          promise: loadAssetWithContext(
+            {
+              key,
+              category: "texture",
+              phase:
+                asset?.source === "url" && typeof asset?.url === "string"
+                  ? "Pixi URL load"
+                  : "image bitmap creation",
+              asset,
+            },
+            async () => {
+              if (Assets.cache.has(key)) {
+                return Assets.cache.get(key);
+              }
+
+              if (asset?.source === "url" && typeof asset?.url === "string") {
+                return Assets.load({
+                  alias: key,
+                  src: asset.url,
+                });
+              }
+
+              assertAssetBuffer(asset, "Texture");
+              const blob = new Blob([asset.buffer], { type: asset.type });
+              const imageBitmap = await createImageBitmap(blob);
+              const texture = Texture.from(imageBitmap);
+
+              // Alias the logical asset key so Texture.from("key") resolves
+              // directly from the cache instead of attempting a relative URL fetch.
+              Assets.cache.set(key, texture);
+
+              return texture;
+            },
+          ),
         }),
-      );
-
-      const texturePromises = Object.entries(assetsByType.texture).map(
-        async ([key, asset]) => {
-          if (Assets.cache.has(key)) {
-            return Assets.cache.get(key);
-          }
-
-          if (asset?.source === "url" && typeof asset?.url === "string") {
-            return Assets.load({
-              alias: key,
-              src: asset.url,
-            });
-          }
-
-          const blob = new Blob([asset.buffer], { type: asset.type });
-          const imageBitmap = await createImageBitmap(blob);
-          const texture = Texture.from(imageBitmap);
-
-          // Alias the logical asset key so Texture.from("key") resolves
-          // directly from the cache instead of attempting a relative URL fetch.
-          Assets.cache.set(key, texture);
-
-          return texture;
-        },
       );
 
       // Load video assets via direct URL when possible, otherwise fall back
       // to a revokable blob URL for buffer-backed inputs.
-      const videoPromises = Object.entries(assetsByType.video).map(
-        async ([key, asset]) => {
-          if (Assets.cache.has(key)) {
-            return Assets.cache.get(key);
-          }
-
-          const sourceUrl =
-            asset?.source === "url" && typeof asset?.url === "string"
-              ? asset.url
-              : URL.createObjectURL(
-                  new Blob([asset.buffer], { type: asset.type }),
-                );
-          const isRevokableBlobUrl = asset?.source !== "url";
-
-          trackVideoSourceUrl(key, sourceUrl, {
-            revokable: isRevokableBlobUrl,
-          });
-
-          try {
-            return await loadVideoTexture({
+      Object.entries(assetsByType.video).forEach(([key, asset]) => {
+        loadJobs.push({
+          includeInReturn: true,
+          promise: loadAssetWithContext(
+            {
               key,
-              sourceUrl,
-              mimeType: asset?.type,
-            });
-          } catch (error) {
-            videoSourceUrls.delete(key);
-            if (isRevokableBlobUrl) {
-              URL.revokeObjectURL(sourceUrl);
-            }
-            throw error;
-          }
-        },
-      );
+              category: "video",
+              phase: "video texture load",
+              asset,
+            },
+            async () => {
+              if (Assets.cache.has(key)) {
+                return Assets.cache.get(key);
+              }
 
-      return Promise.all([...texturePromises, ...videoPromises]);
+              if (asset?.source !== "url") {
+                assertAssetBuffer(asset, "Video");
+              }
+
+              const sourceUrl =
+                asset?.source === "url" && typeof asset?.url === "string"
+                  ? asset.url
+                  : URL.createObjectURL(
+                      new Blob([asset.buffer], { type: asset.type }),
+                    );
+              const isRevokableBlobUrl = asset?.source !== "url";
+
+              trackVideoSourceUrl(key, sourceUrl, {
+                revokable: isRevokableBlobUrl,
+              });
+
+              try {
+                return await loadVideoTexture({
+                  key,
+                  sourceUrl,
+                  mimeType: asset?.type,
+                });
+              } catch (error) {
+                videoSourceUrls.delete(key);
+                if (isRevokableBlobUrl) {
+                  URL.revokeObjectURL(sourceUrl);
+                }
+                throw error;
+              }
+            },
+          ),
+        });
+      });
+
+      const settledResults = await Promise.allSettled(
+        loadJobs.map((job) => job.promise),
+      );
+      throwAssetLoadFailures(settledResults);
+
+      return settledResults
+        .map((result, index) =>
+          loadJobs[index].includeInReturn && result.status === "fulfilled"
+            ? result.value
+            : undefined,
+        )
+        .filter(Boolean);
     },
 
     loadAudioAssets: async (urls) => {

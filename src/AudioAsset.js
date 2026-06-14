@@ -3,6 +3,31 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const loadedAssets = {};
 const loadingAssets = {};
 
+const getErrorMessage = (error) => {
+  if (!error) return "Unknown error";
+  if (typeof error === "string") return error;
+  return error.message || String(error);
+};
+
+const createAudioDecodeError = (key, error) => {
+  const rootCauseMessage = "Unsupported or damaged audio file.";
+  const message = `Could not load audio "${key}". ${rootCauseMessage}`;
+  const audioError = new Error(message, {
+    cause: error,
+  });
+
+  audioError.userMessage = message;
+  audioError.rootCauseMessage = rootCauseMessage;
+  audioError.details = {
+    assetKey: key,
+    assetKind: "audio",
+    phase: "decode",
+    cause: getErrorMessage(error),
+  };
+
+  return audioError;
+};
+
 const load = (key, arrayBuffer) => {
   if (loadedAssets[key]) {
     return loadedAssets[key];
@@ -21,7 +46,7 @@ const load = (key, arrayBuffer) => {
       return audioBuffer;
     })
     .catch((error) => {
-      console.error(`AudioAsset.load: Failed to decode ${key}:`, error);
+      throw createAudioDecodeError(key, error);
     })
     .finally(() => {
       delete loadingAssets[key];

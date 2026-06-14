@@ -425,6 +425,82 @@ describe("RouteGraphics public API", () => {
     expect(loadAssetsResolved).toBe(true);
   });
 
+  it("adds asset key, type, phase, and cause to Pixi texture load failures", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    pixiMock.Assets.load.mockRejectedValue(new Error("Pixi could not load"));
+
+    let thrownError;
+    try {
+      await app.loadAssets({
+        cityBackground: {
+          source: "url",
+          url: "https://cdn.example.test/city.png",
+          type: "image/png",
+        },
+      });
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError?.message).toBe(
+      'Could not load image "cityBackground". Missing, inaccessible, or unsupported image file.',
+    );
+    expect(thrownError?.details).toEqual(
+      expect.objectContaining({
+        assetKey: "cityBackground",
+        assetKind: "image",
+        assetCategory: "texture",
+        phase: "Pixi URL load",
+        type: "image/png",
+        source: "url",
+        url: "https://cdn.example.test/city.png",
+        cause: "Pixi could not load",
+      }),
+    );
+  });
+
+  it("aggregates multiple asset load failures with their root causes", async () => {
+    const audioAsset = {
+      load: vi.fn(() => Promise.reject(new Error("audio decode failed"))),
+      getAsset: vi.fn(),
+    };
+    const { app, pixiMock } = await setupRouteGraphics({ audioAsset });
+    pixiMock.Assets.load.mockRejectedValue(new Error("texture fetch failed"));
+
+    let thrownError;
+    try {
+      await app.loadAssets({
+        click: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "audio/mpeg",
+        },
+        background: {
+          source: "url",
+          url: "https://cdn.example.test/background.png",
+          type: "image/png",
+        },
+      });
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError?.message).toBe(
+      'Could not load 2 assets: audio "click", image "background". Check that the files exist and are supported.',
+    );
+    expect(thrownError?.details?.failures).toEqual([
+      expect.objectContaining({
+        assetKey: "click",
+        assetKind: "audio",
+        cause: "audio decode failed",
+      }),
+      expect.objectContaining({
+        assetKey: "background",
+        assetKind: "image",
+        cause: "texture fetch failed",
+      }),
+    ]);
+  });
+
   it("updates the visible stage background graphic color", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const appInstance = pixiMock.__getLastApplication();
