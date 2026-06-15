@@ -33,8 +33,17 @@ const disconnect = (node) => {
   }
 };
 
+const toFiniteParamValue = (value, fallback = 0) => {
+  const parsed = Number(value);
+  if (Number.isFinite(parsed)) {
+    return parsed;
+  }
+
+  return fallback;
+};
+
 const getParamValue = (param, fallback = 0) =>
-  typeof param?.value === "number" ? param.value : fallback;
+  toFiniteParamValue(param?.value, fallback);
 
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
@@ -44,13 +53,16 @@ const resumeAudioContext = (context = getAudioContext()) => {
 
 const setParamNow = (param, value, context = getAudioContext()) => {
   if (!param) return;
+
+  const nextValue = toFiniteParamValue(value, getParamValue(param));
+
   if (typeof param.cancelScheduledValues === "function") {
     param.cancelScheduledValues(context.currentTime);
   }
   if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(value, context.currentTime);
+    param.setValueAtTime(nextValue, context.currentTime);
   } else {
-    param.value = value;
+    param.value = nextValue;
   }
 };
 
@@ -58,8 +70,9 @@ const rampParam = (param, value, durationMs, context = getAudioContext()) => {
   if (!param) return;
 
   const now = context.currentTime;
-  const seconds = durationMs / 1000;
+  const seconds = Math.max(0, toFiniteParamValue(durationMs, 0)) / 1000;
   const currentValue = getParamValue(param);
+  const nextValue = toFiniteParamValue(value, currentValue);
 
   if (typeof param.cancelScheduledValues === "function") {
     param.cancelScheduledValues(now);
@@ -71,11 +84,11 @@ const rampParam = (param, value, durationMs, context = getAudioContext()) => {
   }
 
   if (seconds > 0 && typeof param.linearRampToValueAtTime === "function") {
-    param.linearRampToValueAtTime(value, now + seconds);
+    param.linearRampToValueAtTime(nextValue, now + seconds);
   } else if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(value, now + seconds);
+    param.setValueAtTime(nextValue, now + seconds);
   } else {
-    param.value = value;
+    param.value = nextValue;
   }
 };
 
@@ -100,6 +113,21 @@ const createPannerNode = (pan = 0) => {
 const getVolumeValue = ({ volume, muted }) =>
   muted ? 0 : normalizeVolume(volume, 100);
 
+const normalizeDirectVolume = (volume, fallback = 1) => {
+  const parsedFallback = Number(fallback);
+  const normalizedFallback = Number.isFinite(parsedFallback)
+    ? parsedFallback
+    : 1;
+  const parsedVolume = Number(volume ?? normalizedFallback);
+  const normalizedVolume = Number.isFinite(parsedVolume)
+    ? parsedVolume
+    : normalizedFallback;
+
+  return (
+    normalizeVolume(normalizedVolume * 100, normalizedFallback * 100) * 100
+  );
+};
+
 const getTransitionPhase = (effects = [], targetId, property, phase) => {
   const transition = effects.find(
     (effect) =>
@@ -110,9 +138,6 @@ const getTransitionPhase = (effects = [], targetId, property, phase) => {
 
   return transition?.properties?.[property]?.[phase] ?? null;
 };
-
-const getTransitionDuration = (transition) =>
-  typeof transition?.duration === "number" ? transition.duration : 0;
 
 const applyVolume = ({ gainNode, targetValue, transition }) => {
   if (!transition) {
@@ -309,7 +334,7 @@ export const createAudioPlayer = (id, options) => {
     id,
     src: options.url,
     loop: options.loop ?? false,
-    volume: (options.volume ?? 1) * 100,
+    volume: normalizeDirectVolume(options.volume),
   };
   const channel = createChannelInstance(
     { id: `${id}:channel`, volume: 100, muted: false, pan: 0 },
@@ -328,8 +353,9 @@ export const createAudioPlayer = (id, options) => {
     instance.url = instance.src;
     instance.loop = newState.loop ?? instance.loop;
     if (newState.volume !== undefined) {
-      instance.volume = newState.volume * 100;
-      setParamNow(instance.gainNode.gain, newState.volume);
+      const nextVolume = normalizeDirectVolume(newState.volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     }
   };
 
@@ -350,8 +376,9 @@ export const createAudioPlayer = (id, options) => {
       if (instance.source) instance.source.loop = loop;
     },
     setVolume: (volume) => {
-      instance.volume = volume * 100;
-      setParamNow(instance.gainNode.gain, volume);
+      const nextVolume = normalizeDirectVolume(volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     },
     get id() {
       return instance.id;
@@ -636,7 +663,7 @@ export const createAudioStage = () => {
     const removedChannels = new Map();
     const channelCleanupDurations = new Map();
 
-    for (const [id, prevChannel] of prevChannelById) {
+    for (const [id] of prevChannelById) {
       if (!nextChannelById.has(id)) {
         const duration = removeChannel(channels.get(id), prevAudioEffects);
         removedChannels.set(id, channels.get(id));
@@ -748,7 +775,7 @@ export const createAudioStage = () => {
       type: "sound",
       src: element.url ?? element.src,
       loop: element.loop ?? false,
-      volume: (element.volume ?? 1) * 100,
+      volume: normalizeDirectVolume(element.volume),
       startDelayMs: element.startDelayMs ?? 0,
     };
 
