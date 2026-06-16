@@ -579,6 +579,10 @@
  * @property {number} [indicator.offsetY=0] - Vertical adjustment from the indicator's automatic line placement; positive values move down
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
+ * @property {Object} [revealSound] - Sound to play while text is actively revealing
+ * @property {string} revealSound.src - Source alias or URL for the reveal sound
+ * @property {number} [revealSound.volume=100] - Reveal sound volume where 0 is muted and 100 is full volume
+ * @property {boolean} [revealSound.loop=true] - Whether the reveal sound loops until revealing finishes
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 

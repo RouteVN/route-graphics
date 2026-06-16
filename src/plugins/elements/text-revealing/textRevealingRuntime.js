@@ -11,6 +11,7 @@ import {
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import {
   getSoftWipeEdgeWidth,
   getSoftWipeEasing,
@@ -32,6 +33,7 @@ const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
 const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
+const TEXT_REVEAL_SOUND_ID_PREFIX = "__route_graphics_text_reveal_sound__";
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
 const MAX_TEXT_REVEAL_SPEED = 100;
@@ -129,6 +131,44 @@ const getTextRevealCharacterCount = (element) =>
       ),
     0,
   );
+
+const getTextRevealSoundId = (element) =>
+  `${TEXT_REVEAL_SOUND_ID_PREFIX}:${element.id}`;
+
+const startTextRevealSound = ({ app, element }) => {
+  const revealSound = element?.revealSound;
+
+  if (!revealSound?.src || !app?.audioStage) {
+    return () => {};
+  }
+
+  const soundId = getTextRevealSoundId(element);
+  let stopped = false;
+
+  app.audioStage.add({
+    id: soundId,
+    url: revealSound.src,
+    loop: revealSound.loop ?? true,
+    volume: normalizeVolume(revealSound.volume, 100),
+  });
+  app.audioStage.tick?.();
+
+  return () => {
+    if (stopped) {
+      return;
+    }
+
+    stopped = true;
+    app.audioStage.remove(soundId);
+    app.audioStage.tick?.();
+  };
+};
+
+const unregisterTextRevealRuntime = (container, cleanup) => {
+  if (container?.[TEXT_REVEAL_RUNTIME] === cleanup) {
+    delete container[TEXT_REVEAL_RUNTIME];
+  }
+};
 
 export const shouldRenderTextRevealImmediately = (element) =>
   element?.revealEffect === "none" ||
@@ -1241,6 +1281,7 @@ const runSoftWipeReveal = ({
   element,
   animationBus,
   completionTracker,
+  app,
 }) => {
   const indicatorOffsets = getIndicatorOffsets(element);
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
@@ -1307,6 +1348,7 @@ const runSoftWipeReveal = ({
   }
 
   let finalized = false;
+  const stopRevealSound = startTextRevealSound({ app, element });
 
   const finalize = (completed) => {
     if (finalized) {
@@ -1315,9 +1357,8 @@ const runSoftWipeReveal = ({
 
     finalized = true;
 
-    if (container[TEXT_REVEAL_RUNTIME] === finalizeCleanup) {
-      delete container[TEXT_REVEAL_RUNTIME];
-    }
+    unregisterTextRevealRuntime(container, finalizeCleanup);
+    stopRevealSound();
 
     lineMasks.forEach((lineMask) => {
       if (lineMask.line.container.mask === lineMask.sprite) {
@@ -1504,6 +1545,7 @@ export const runTextReveal = async ({
         element,
         animationBus,
         completionTracker,
+        app,
       });
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
@@ -1519,20 +1561,37 @@ export const runTextReveal = async ({
       completeIndicatorSetup();
       const startAtCharacter =
         resumableSnapshot?.revealedCharacters ?? initialRevealedCharacters;
+      const totalCharacters = getTextRevealCharacterCount(element);
       const nextSnapshot = setTextRevealSnapshot(container, {
         mode: "typewriter",
         revealedCharacters: startAtCharacter,
         completed: false,
       });
+      const shouldPlayRevealSound = startAtCharacter < totalCharacters;
+      const stopRevealSound = shouldPlayRevealSound
+        ? startTextRevealSound({ app, element })
+        : () => {};
+      const cleanupRevealSound = () => {
+        stopRevealSound();
+      };
 
-      completed = await runTypewriterReveal({
-        contentContainer,
-        indicatorSprite,
-        element,
-        signal,
-        startAtCharacter,
-        snapshot: nextSnapshot,
-      });
+      if (shouldPlayRevealSound) {
+        registerTextRevealRuntime(container, cleanupRevealSound);
+      }
+
+      try {
+        completed = await runTypewriterReveal({
+          contentContainer,
+          indicatorSprite,
+          element,
+          signal,
+          startAtCharacter,
+          snapshot: nextSnapshot,
+        });
+      } finally {
+        cleanupRevealSound();
+        unregisterTextRevealRuntime(container, cleanupRevealSound);
+      }
     }
 
     if (completed && !signal?.aborted && !container.destroyed) {
