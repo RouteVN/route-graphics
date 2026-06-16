@@ -47,8 +47,10 @@ const getParamValue = (param, fallback = 0) =>
 
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
-    void context.resume().catch(() => {});
+    return context.resume().catch(() => {});
   }
+
+  return Promise.resolve();
 };
 
 const setParamNow = (param, value, context = getAudioContext()) => {
@@ -803,6 +805,8 @@ export const createAudioStage = () => {
 
   const getById = (id) => directAudios.get(id);
 
+  const resume = () => resumeAudioContext(getAudioContext());
+
   const tick = () => {
     const channel = ensureRootChannel(DIRECT_CHANNEL_ID);
     for (const audio of directAudios.values()) {
@@ -866,6 +870,7 @@ export const createAudioStage = () => {
     add,
     remove,
     getById,
+    resume,
     tick,
     renderGraph,
     destroy,

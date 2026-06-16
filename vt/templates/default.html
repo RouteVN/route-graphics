@@ -412,9 +412,16 @@
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
       const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      const elementHasRevealSound = (element) =>
+        Boolean(element?.revealSound) ||
+        (Array.isArray(element?.children) &&
+          element.children.some(elementHasRevealSound));
       const stateHasAudio = (state) =>
         (Array.isArray(state?.audio) && state.audio.length > 0) ||
-        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0);
+        (Array.isArray(state?.audioEffects) &&
+          state.audioEffects.length > 0) ||
+        (Array.isArray(state?.elements) &&
+          state.elements.some(elementHasRevealSound));
       const hasAudioStates = states.some(stateHasAudio);
       if (!useBrowserScreenshot) {
         let vtScreenshotHookPrimed = false;
@@ -564,6 +571,8 @@
 
       let hasStartedAudioFixtureFromPointer = false;
       const startAudioFixtureFromPointer = (event) => {
+        void app.resumeAudio?.();
+
         if (!hasAudioStates || hasStartedAudioFixtureFromPointer) {
           return;
         }
@@ -588,6 +597,13 @@
       document.addEventListener("pointerdown", startAudioFixtureFromPointer, {
         capture: true,
       });
+      document.addEventListener(
+        "keydown",
+        () => {
+          void app.resumeAudio?.();
+        },
+        { capture: true },
+      );
 
       await app.init({
         width: 1280,

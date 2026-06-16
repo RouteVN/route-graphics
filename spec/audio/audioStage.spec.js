@@ -184,6 +184,15 @@ describe("AudioStage graph rendering", () => {
     expect(context.resume).toHaveBeenCalled();
   });
 
+  it("exposes an explicit resume hook for user input unlocks", async () => {
+    const { stage, context } = await setupAudioStage();
+    context.state = "suspended";
+
+    await stage.resume();
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+  });
+
   it("resumes a suspended audio context before scheduling delayed playback", async () => {
     const { stage, context, getAsset } = await setupAudioStage();
     context.state = "suspended";
