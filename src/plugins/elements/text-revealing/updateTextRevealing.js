@@ -18,6 +18,7 @@ const getRevealIdentity = (element = {}) =>
     initialRevealedCharacters: element.initialRevealedCharacters ?? 0,
     width: element.width ?? null,
     indicator: element.indicator ?? null,
+    revealSound: element.revealSound ?? null,
     x: element.x ?? null,
     y: element.y ?? null,
     alpha: element.alpha ?? 1,

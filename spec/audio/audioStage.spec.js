@@ -5,10 +5,16 @@ const createAudioParam = (initialValue = 0) => {
     value: initialValue,
     cancelScheduledValues: vi.fn(),
     setValueAtTime: vi.fn((value) => {
+      if (!Number.isFinite(value)) {
+        throw new TypeError("AudioParam value must be finite");
+      }
       param.value = value;
       return param;
     }),
     linearRampToValueAtTime: vi.fn((value) => {
+      if (!Number.isFinite(value)) {
+        throw new TypeError("AudioParam value must be finite");
+      }
       param.value = value;
       return param;
     }),
@@ -151,6 +157,20 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources).toHaveLength(2);
     expect(context.sources[0].loop).toBe(true);
     expect(context.sources[0].start).toHaveBeenCalledWith(0, 0);
+  });
+
+  it("sanitizes direct audio defaults across repeated ticks", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.add({ id: "blip", url: "message-display1", volume: Number.NaN });
+
+    expect(() => stage.tick()).not.toThrow();
+    expect(() => stage.tick()).not.toThrow();
+
+    const blip = findCurrentSound(stage, "blip");
+    expect(blip.gainNode.gain.value).toBe(1);
+    expect(blip.pannerNode.pan.value).toBe(0);
+    expect(blip.source.playbackRate.value).toBe(1);
   });
 
   it("resumes a suspended audio context before playback starts", async () => {
