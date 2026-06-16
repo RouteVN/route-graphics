@@ -33,7 +33,7 @@ states:
         speed: 18
         revealEffect: typewriter
         revealSound:
-          src: sfx-1
+          src: message-display1
           volume: 70
           loop: true
         indicator:
