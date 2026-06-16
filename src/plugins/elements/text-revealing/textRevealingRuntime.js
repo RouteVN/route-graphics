@@ -135,23 +135,58 @@ const getTextRevealCharacterCount = (element) =>
 const getTextRevealSoundId = (element) =>
   `${TEXT_REVEAL_SOUND_ID_PREFIX}:${element.id}`;
 
+const isRevealSoundDebugEnabled = () =>
+  globalThis.window?.RTGL_AUDIO_DEBUG === true ||
+  globalThis.window?.RTGL_VT_DEBUG === true;
+
+const debugRevealSound = (message, details = {}) => {
+  if (!isRevealSoundDebugEnabled()) {
+    return;
+  }
+
+  console.log(`[TextRevealSound] ${message}`, details);
+};
+
 const startTextRevealSound = ({ app, element }) => {
   const revealSound = element?.revealSound;
 
-  if (!revealSound?.src || !app?.audioStage) {
+  if (!revealSound?.src) {
+    return () => {};
+  }
+
+  if (!app?.audioStage) {
+    debugRevealSound("skipped: audioStage unavailable", {
+      elementId: element?.id,
+      src: revealSound.src,
+    });
     return () => {};
   }
 
   const soundId = getTextRevealSoundId(element);
+  const volume = normalizeVolume(revealSound.volume, 100);
   let stopped = false;
+
+  debugRevealSound("start", {
+    elementId: element.id,
+    soundId,
+    src: revealSound.src,
+    loop: revealSound.loop ?? true,
+    configuredVolume: revealSound.volume,
+    normalizedVolume: volume,
+  });
 
   app.audioStage.add({
     id: soundId,
     url: revealSound.src,
     loop: revealSound.loop ?? true,
-    volume: normalizeVolume(revealSound.volume, 100),
+    volume,
   });
   app.audioStage.tick?.();
+  debugRevealSound("registered", {
+    elementId: element.id,
+    soundId,
+    directAudio: app.audioStage.getById?.(soundId) ?? null,
+  });
 
   return () => {
     if (stopped) {
@@ -159,6 +194,11 @@ const startTextRevealSound = ({ app, element }) => {
     }
 
     stopped = true;
+    debugRevealSound("stop", {
+      elementId: element.id,
+      soundId,
+      src: revealSound.src,
+    });
     app.audioStage.remove(soundId);
     app.audioStage.tick?.();
   };

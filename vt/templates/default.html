@@ -423,6 +423,18 @@
         (Array.isArray(state?.elements) &&
           state.elements.some(elementHasRevealSound));
       const hasAudioStates = states.some(stateHasAudio);
+      const audioAssetKeys = Object.entries(assetsObject)
+        .filter(([, asset]) => asset?.type?.startsWith?.("audio/"))
+        .map(([key]) => key);
+      if (hasAudioStates) {
+        window.RTGL_AUDIO_DEBUG = true;
+        console.log("[VT audio] debug enabled", {
+          audioAssetKeys,
+          audioStateIds: states
+            .filter(stateHasAudio)
+            .map((state, stateIndex) => state?.id ?? `state-${stateIndex}`),
+        });
+      }
       if (!useBrowserScreenshot) {
         let vtScreenshotHookPrimed = false;
         const waitForStableScreenshotFrame = async () => {
@@ -637,6 +649,9 @@
       });
       window.__VT_ROUTE_GRAPHICS__ = app;
       await app.loadAssets(assetBufferManager.getBufferMap());
+      if (hasAudioStates) {
+        console.log("[VT audio] assets decoded", { audioAssetKeys });
+      }
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
       if (states.length > 0) {

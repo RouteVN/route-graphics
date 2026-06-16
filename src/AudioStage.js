@@ -7,6 +7,18 @@ const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
 
 let audioContext;
 
+const isAudioDebugEnabled = () =>
+  globalThis.window?.RTGL_AUDIO_DEBUG === true ||
+  globalThis.window?.RTGL_VT_DEBUG === true;
+
+const debugAudio = (message, details = {}) => {
+  if (!isAudioDebugEnabled()) {
+    return;
+  }
+
+  console.log(`[AudioStage] ${message}`, details);
+};
+
 const getAudioContext = () => {
   if (audioContext) return audioContext;
 
@@ -18,6 +30,7 @@ const getAudioContext = () => {
   }
 
   audioContext = new AudioContextCtor();
+  debugAudio("context created", { state: audioContext.state });
   return audioContext;
 };
 
@@ -47,9 +60,32 @@ const getParamValue = (param, fallback = 0) =>
 
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
-    return context.resume().catch(() => {});
+    const previousState = context.state;
+    debugAudio("resume requested", { state: previousState });
+
+    return context
+      .resume()
+      .then(() => {
+        debugAudio("resume resolved", {
+          previousState,
+          state: context.state,
+        });
+      })
+      .catch((error) => {
+        if (isAudioDebugEnabled()) {
+          console.warn("[AudioStage] resume failed", {
+            previousState,
+            state: context.state,
+            error,
+          });
+        }
+      });
   }
 
+  debugAudio("resume skipped", {
+    state: context.state,
+    canResume: typeof context.resume === "function",
+  });
   return Promise.resolve();
 };
 
@@ -219,6 +255,13 @@ const createSourceForSound = (sound) => {
   const context = getAudioContext();
   resumeAudioContext(context);
   const audioBuffer = AudioAsset.getAsset(sound.src);
+  debugAudio("asset lookup", {
+    id: sound.id,
+    src: sound.src,
+    found: Boolean(audioBuffer),
+    duration: audioBuffer?.duration ?? null,
+    contextState: context.state,
+  });
   if (!audioBuffer) {
     console.warn("AudioStage: asset not found", sound.src);
     return null;
@@ -249,6 +292,16 @@ const createSourceForSound = (sound) => {
   } else {
     source.start(0, offset);
   }
+  debugAudio("source started", {
+    id: sound.id,
+    src: sound.src,
+    loop: source.loop,
+    offset,
+    duration: duration ?? null,
+    playbackRate: sound.playbackRate,
+    gain: getParamValue(sound.gainNode?.gain, null),
+    contextState: context.state,
+  });
 
   return source;
 };
@@ -259,7 +312,17 @@ const playSound = (sound) => {
     sound.pendingTimeoutId = null;
   }
 
-  resumeAudioContext(getAudioContext());
+  const context = getAudioContext();
+  debugAudio("play requested", {
+    id: sound.id,
+    src: sound.src,
+    loop: sound.loop,
+    volume: sound.volume,
+    muted: sound.muted,
+    startDelayMs: sound.startDelayMs,
+    contextState: context.state,
+  });
+  resumeAudioContext(context);
 
   const start = () => {
     sound.pendingTimeoutId = null;
@@ -791,13 +854,26 @@ export const createAudioStage = () => {
     };
 
     directAudios.set(element.id, audio);
+    debugAudio("direct add", {
+      id: audio.id,
+      src: audio.src,
+      loop: audio.loop,
+      volume: audio.volume,
+      muted: audio.muted,
+      pan: audio.pan,
+    });
   };
 
   const remove = (id) => {
-    directAudios.delete(id);
-    currentSoundKeyById.delete(id);
     const internalId = `direct:${id}`;
     const instance = sounds.get(internalId);
+    debugAudio("direct remove", {
+      id,
+      hadAudio: directAudios.has(id),
+      hadInstance: Boolean(instance),
+    });
+    directAudios.delete(id);
+    currentSoundKeyById.delete(id);
     if (instance) {
       removeSoundInstance(instance, [], 0);
     }
