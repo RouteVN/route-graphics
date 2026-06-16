@@ -282,20 +282,22 @@ const createSourceForSound = (sound) => {
     sound.endAt !== null && sound.endAt !== undefined
       ? Math.max(sound.endAt - offset, 0)
       : undefined;
+  const startTime = Math.max(0, toFiniteParamValue(context.currentTime, 0));
 
   if (source.loop && sound.endAt !== null && sound.endAt !== undefined) {
     source.loopStart = offset;
     source.loopEnd = sound.endAt;
-    source.start(0, offset);
+    source.start(startTime, offset);
   } else if (duration !== undefined) {
-    source.start(0, offset, duration);
+    source.start(startTime, offset, duration);
   } else {
-    source.start(0, offset);
+    source.start(startTime, offset);
   }
   debugAudio("source started", {
     id: sound.id,
     src: sound.src,
     loop: source.loop,
+    startTime,
     offset,
     duration: duration ?? null,
     playbackRate: sound.playbackRate,

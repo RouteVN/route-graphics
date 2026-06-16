@@ -156,7 +156,10 @@ describe("AudioStage graph rendering", () => {
     expect(getAsset).toHaveBeenCalledWith("click-sfx");
     expect(context.sources).toHaveLength(2);
     expect(context.sources[0].loop).toBe(true);
-    expect(context.sources[0].start).toHaveBeenCalledWith(0, 0);
+    expect(context.sources[0].start).toHaveBeenCalledWith(
+      context.currentTime,
+      0,
+    );
   });
 
   it("sanitizes direct audio defaults across repeated ticks", async () => {
@@ -600,7 +603,7 @@ describe("AudioStage graph rendering", () => {
     expect(source.loop).toBe(true);
     expect(source.loopStart).toBe(1);
     expect(source.loopEnd).toBe(4);
-    expect(source.start).toHaveBeenCalledWith(0, 1);
+    expect(source.start).toHaveBeenCalledWith(context.currentTime, 1);
     expect(source.start.mock.calls[0]).toHaveLength(2);
   });
 
