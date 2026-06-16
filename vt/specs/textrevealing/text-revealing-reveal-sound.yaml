@@ -1,0 +1,61 @@
+---
+title: Text Revealing - Reveal Sound
+description: Manual fixture for text-revealing revealSound playback. The configured sound should loop while text is actively revealing and stop when the reveal completes.
+specs:
+  - revealSound should use object config with src, volume, and loop
+  - sound should start when the typewriter reveal begins
+  - sound should stop after the text finishes revealing
+steps:
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 1200
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 4200
+  - action: screenshot
+---
+states:
+  - id: reveal-sound-blank
+    elements: []
+  - id: reveal-sound-typewriter
+    elements:
+      - id: reveal-sound-line
+        type: text-revealing
+        x: 80
+        "y": 120
+        width: 620
+        speed: 18
+        revealEffect: typewriter
+        revealSound:
+          src: sfx-1
+          volume: 70
+          loop: true
+        indicator:
+          revealing:
+            src: circle-red
+            width: 12
+            height: 12
+          complete:
+            src: circle-green
+            width: 12
+            height: 12
+          offsetX: 12
+        content:
+          - text: "This line has revealSound enabled. The audio should loop only while these characters are typing,"
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+          - text: " then stop once the final word appears."
+            textStyle:
+              fontSize: 30
+              fill: "#D9D9D9"
+              fontFamily: Arial
+              lineHeight: 1.35
