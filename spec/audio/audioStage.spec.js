@@ -22,7 +22,7 @@ const createAudioParam = (initialValue = 0) => {
   return param;
 };
 
-const createAudioContextMock = () => {
+const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
   const context = {
     currentTime: 10,
     state: "running",
@@ -30,6 +30,7 @@ const createAudioContextMock = () => {
     gainNodes: [],
     pannerNodes: [],
     sources: [],
+    decodeAudioData: vi.fn(() => Promise.resolve(decodedBuffer)),
     resume: vi.fn(() => Promise.resolve()),
     createGain: vi.fn(() => {
       const node = {
@@ -107,6 +108,11 @@ const findCurrentSound = (stage, id) => {
   return inspect.sounds.get(key);
 };
 
+const flushPromises = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
 describe("AudioStage graph rendering", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -115,6 +121,7 @@ describe("AudioStage graph rendering", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.doUnmock("../../src/AudioAsset.js");
     vi.resetModules();
   });
 
@@ -185,6 +192,69 @@ describe("AudioStage graph rendering", () => {
     });
 
     expect(context.resume).toHaveBeenCalled();
+    expect(context.sources).toHaveLength(0);
+
+    context.state = "running";
+    await flushPromises();
+
+    expect(context.sources).toHaveLength(1);
+  });
+
+  it("cancels suspended-context playback before resume resolves", async () => {
+    const { stage, context, getAsset } = await setupAudioStage();
+    let resolveResume;
+    context.state = "suspended";
+    context.resume.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveResume = () => {
+            context.state = "running";
+            resolve();
+          };
+        }),
+    );
+    const audio = [{ id: "sfx", type: "sound", src: "click" }];
+
+    stage.renderGraph({ nextAudio: audio });
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+    expect(context.sources).toHaveLength(0);
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+    resolveResume();
+    await flushPromises();
+
+    expect(getAsset).not.toHaveBeenCalled();
+    expect(context.sources).toHaveLength(0);
+  });
+
+  it("uses one audio context for asset decode and playback", async () => {
+    vi.resetModules();
+    vi.doUnmock("../../src/AudioAsset.js");
+
+    const decodedBuffer = { duration: 1.25 };
+    const context = createAudioContextMock({ decodedBuffer });
+    const AudioContextMock = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.AudioContext = AudioContextMock;
+    window.webkitAudioContext = undefined;
+
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const { createAudioStage } = await import("../../src/AudioStage.js");
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("theme", arrayBuffer);
+
+    const stage = createAudioStage();
+    stage.renderGraph({
+      nextAudio: [{ id: "theme-sound", type: "sound", src: "theme" }],
+    });
+
+    expect(AudioContextMock).toHaveBeenCalledTimes(1);
+    expect(context.decodeAudioData).toHaveBeenCalledWith(arrayBuffer);
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0].buffer).toBe(decodedBuffer);
   });
 
   it("exposes an explicit resume hook for user input unlocks", async () => {
@@ -218,6 +288,7 @@ describe("AudioStage graph rendering", () => {
     expect(context.resume).toHaveBeenCalledTimes(1);
     expect(getAsset).not.toHaveBeenCalled();
 
+    await flushPromises();
     vi.advanceTimersByTime(100);
 
     expect(context.resume).toHaveBeenCalledTimes(1);

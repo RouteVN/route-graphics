@@ -1,4 +1,4 @@
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+import { getAudioContext } from "./audioContext.js";
 
 const loadedAssets = {};
 const loadingAssets = {};
@@ -39,7 +39,7 @@ const load = (key, arrayBuffer) => {
     return;
   }
 
-  loadingAssets[key] = audioContext
+  loadingAssets[key] = getAudioContext()
     .decodeAudioData(arrayBuffer)
     .then((audioBuffer) => {
       loadedAssets[key] = audioBuffer;

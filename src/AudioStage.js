@@ -1,11 +1,10 @@
 import { AudioAsset } from "./AudioAsset.js";
 import { normalizeVolume } from "./util/normalizeVolume.js";
 import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
+import { getAudioContext } from "./audioContext.js";
 
 const ROOT_CHANNEL_ID = "__route_graphics_audio_root__";
 const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
-
-let audioContext;
 
 const isAudioDebugEnabled = () =>
   globalThis.window?.RTGL_AUDIO_DEBUG === true ||
@@ -17,21 +16,6 @@ const debugAudio = (message, details = {}) => {
   }
 
   console.log(`[AudioStage] ${message}`, details);
-};
-
-const getAudioContext = () => {
-  if (audioContext) return audioContext;
-
-  const AudioContextCtor =
-    globalThis.window?.AudioContext ?? globalThis.window?.webkitAudioContext;
-
-  if (!AudioContextCtor) {
-    throw new Error("AudioContext is not available in this environment.");
-  }
-
-  audioContext = new AudioContextCtor();
-  debugAudio("context created", { state: audioContext.state });
-  return audioContext;
 };
 
 const connect = (from, to) => {
@@ -248,12 +232,12 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     source: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
+    playRequestId: 0,
   };
 };
 
 const createSourceForSound = (sound) => {
   const context = getAudioContext();
-  resumeAudioContext(context);
   const audioBuffer = AudioAsset.getAsset(sound.src);
   debugAudio("asset lookup", {
     id: sound.id,
@@ -315,6 +299,8 @@ const playSound = (sound) => {
   }
 
   const context = getAudioContext();
+  const playRequestId = (sound.playRequestId ?? 0) + 1;
+  sound.playRequestId = playRequestId;
   debugAudio("play requested", {
     id: sound.id,
     src: sound.src,
@@ -324,22 +310,43 @@ const playSound = (sound) => {
     startDelayMs: sound.startDelayMs,
     contextState: context.state,
   });
-  resumeAudioContext(context);
+  const needsResume =
+    context.state === "suspended" && typeof context.resume === "function";
 
   const start = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
     sound.pendingTimeoutId = null;
     sound.source = createSourceForSound(sound);
   };
 
-  if (sound.startDelayMs > 0) {
-    sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+  const scheduleStart = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
+    if (sound.startDelayMs > 0) {
+      sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+      return;
+    }
+
+    start();
+  };
+
+  const resumePromise = resumeAudioContext(context);
+  if (needsResume) {
+    void resumePromise.then(scheduleStart);
     return;
   }
 
-  start();
+  scheduleStart();
 };
 
 const stopSource = (sound, delayMs = 0) => {
+  sound.playRequestId = (sound.playRequestId ?? 0) + 1;
+
   if (sound.pendingTimeoutId !== null) {
     clearTimeout(sound.pendingTimeoutId);
     sound.pendingTimeoutId = null;
