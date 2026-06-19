@@ -74,6 +74,10 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+      padding:
+        type: number
+        minimum: 0
+        description: Extra texture padding around rendered glyphs, useful for fonts with overhanging glyph bounds.
       shadow:
         "$ref": "#/$def/textShadow"
   softWipe:
