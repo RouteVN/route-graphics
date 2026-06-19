@@ -268,7 +268,7 @@ describe("text hover layout", () => {
       distance: 5,
     });
     expect(text.style.dropShadow.angle).toBeCloseTo(Math.atan2(4, 3), 8);
-    expect(text.style.padding).toBe(9);
+    expect(text.style.padding).toBe(10);
   });
 
   it("deep-merges and removes shadow in interactive textStyle states", () => {
