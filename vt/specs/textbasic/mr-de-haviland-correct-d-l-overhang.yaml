@@ -1,0 +1,44 @@
+---
+title: Mr De Haviland Correct D L Overhang
+specs:
+  - D and L samples should keep their left swashes visible without caller-provided texture padding
+  - D and L should render correctly without comparison samples or guide marks
+---
+states:
+  - elements:
+      - id: correct-d
+        type: text
+        content: D
+        x: 240
+        "y": 82
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 160
+          fill: "#FFFFFF"
+      - id: correct-l
+        type: text
+        content: L
+        x: 540
+        "y": 82
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 160
+          fill: "#FFFFFF"
+      - id: correct-dl
+        type: text
+        content: DL
+        x: 240
+        "y": 342
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 150
+          fill: "#FFFFFF"
+      - id: correct-ld
+        type: text
+        content: LD
+        x: 620
+        "y": 342
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 150
+          fill: "#FFFFFF"

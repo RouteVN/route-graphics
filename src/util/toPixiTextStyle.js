@@ -8,6 +8,32 @@ export const DEFAULT_TEXT_SHADOW = {
   offsetY: 2,
 };
 
+export const AUTOMATIC_TEXT_TEXTURE_PADDING_RATIO = 0.4;
+
+const getNumericFontSize = (fontSize) => {
+  if (typeof fontSize === "number" && Number.isFinite(fontSize)) {
+    return Math.max(0, fontSize);
+  }
+
+  if (typeof fontSize === "string") {
+    const parsedFontSize = Number.parseFloat(fontSize);
+
+    if (Number.isFinite(parsedFontSize)) {
+      return Math.max(0, parsedFontSize);
+    }
+  }
+
+  return DEFAULT_TEXT_STYLE.fontSize;
+};
+
+const getNumericPadding = (padding) =>
+  typeof padding === "number" && Number.isFinite(padding) ? padding : 0;
+
+const getAutomaticTextTexturePadding = (style = {}) =>
+  Math.ceil(
+    getNumericFontSize(style.fontSize) * AUTOMATIC_TEXT_TEXTURE_PADDING_RATIO,
+  );
+
 const getStrokeStyle = (style = {}) => {
   const baseStroke =
     typeof style.stroke === "object" && style.stroke !== null
@@ -66,7 +92,11 @@ export const toPixiTextStyle = (style = {}, options = {}) => {
   if (includeShadow) {
     const pixiDropShadow = toPixiDropShadow(shadow);
     const shadowPadding = getShadowPadding(pixiDropShadow);
-    const padding = Math.max(rest.padding ?? 0, shadowPadding);
+    const padding = Math.max(
+      getNumericPadding(rest.padding),
+      shadowPadding,
+      getAutomaticTextTexturePadding(rest),
+    );
 
     if (shadow !== undefined) {
       pixiStyle.dropShadow = pixiDropShadow;
