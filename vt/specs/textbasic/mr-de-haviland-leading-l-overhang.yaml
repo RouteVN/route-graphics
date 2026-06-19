@@ -1,0 +1,73 @@
+---
+title: Mr De Haviland Leading L Overhang
+specs:
+  - an OFL-licensed script font should render a leading L without clipping the left swash
+  - an unpadded leading L is compared with padded and multi-character samples
+---
+states:
+  - elements:
+      - id: guide-single
+        type: rect
+        x: 96
+        "y": 30
+        width: 2
+        height: 140
+        fill: "#737373"
+      - id: unpadded-single
+        type: text
+        content: L
+        x: 96
+        "y": 34
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 128
+          fill: "#FFFFFF"
+      - id: guide-padded
+        type: rect
+        x: 260
+        "y": 30
+        width: 2
+        height: 140
+        fill: "#737373"
+      - id: padded-single
+        type: text
+        content: L
+        x: 260
+        "y": 34
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 128
+          fill: "#FFFFFF"
+          padding: 48
+      - id: guide-word
+        type: rect
+        x: 96
+        "y": 208
+        width: 2
+        height: 110
+        fill: "#737373"
+      - id: leading-word
+        type: text
+        content: LEFT
+        x: 96
+        "y": 214
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 96
+          fill: "#FFFFFF"
+      - id: guide-repeated
+        type: rect
+        x: 96
+        "y": 342
+        width: 2
+        height: 100
+        fill: "#737373"
+      - id: repeated-leading
+        type: text
+        content: LLLL
+        x: 96
+        "y": 348
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 88
+          fill: "#FFFFFF"

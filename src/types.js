@@ -481,6 +481,7 @@
  * @property {number} wordWrapWidth - Word wrap width
  * @property {string} [strokeColor] - Text stroke/outline color
  * @property {number} [strokeWidth] - Text stroke/outline width
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
@@ -859,6 +860,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fontFamily - The font family of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
