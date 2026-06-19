@@ -1,0 +1,76 @@
+---
+title: Mr De Haviland Correct D L Overhang
+specs:
+  - padded D and L samples should keep their left swashes visible
+  - D and L should render correctly without comparison samples
+---
+states:
+  - elements:
+      - id: guide-d
+        type: rect
+        x: 240
+        "y": 68
+        width: 2
+        height: 180
+        fill: "#737373"
+      - id: correct-d
+        type: text
+        content: D
+        x: 240
+        "y": 82
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 160
+          fill: "#FFFFFF"
+          padding: 64
+      - id: guide-l
+        type: rect
+        x: 540
+        "y": 68
+        width: 2
+        height: 180
+        fill: "#737373"
+      - id: correct-l
+        type: text
+        content: L
+        x: 540
+        "y": 82
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 160
+          fill: "#FFFFFF"
+          padding: 64
+      - id: guide-dl
+        type: rect
+        x: 240
+        "y": 332
+        width: 2
+        height: 170
+        fill: "#737373"
+      - id: correct-dl
+        type: text
+        content: DL
+        x: 240
+        "y": 342
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 150
+          fill: "#FFFFFF"
+          padding: 64
+      - id: guide-ld
+        type: rect
+        x: 620
+        "y": 332
+        width: 2
+        height: 170
+        fill: "#737373"
+      - id: correct-ld
+        type: text
+        content: LD
+        x: 620
+        "y": 342
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 150
+          fill: "#FFFFFF"
+          padding: 64
