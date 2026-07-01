@@ -183,6 +183,15 @@ describe("AudioStage graph rendering", () => {
     expect(blip.source.playbackRate.value).toBe(1);
   });
 
+  it("sanitizes invalid direct audio volume before scheduling playback", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.add({ id: "sfx", url: "click", volume: Number.NaN });
+
+    expect(() => stage.tick()).not.toThrow();
+    expect(findCurrentSound(stage, "sfx").gainNode.gain.value).toBe(1);
+  });
+
   it("resumes a suspended audio context before playback starts", async () => {
     const { stage, context } = await setupAudioStage();
     context.state = "suspended";

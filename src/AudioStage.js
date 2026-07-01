@@ -161,9 +161,6 @@ const getTransitionPhase = (effects = [], targetId, property, phase) => {
   return transition?.properties?.[property]?.[phase] ?? null;
 };
 
-const getTransitionDuration = (transition) =>
-  typeof transition?.duration === "number" ? transition.duration : 0;
-
 const applyVolume = ({ gainNode, targetValue, transition }) => {
   if (!transition) {
     setParamNow(gainNode.gain, targetValue);
@@ -411,7 +408,7 @@ export const createAudioPlayer = (id, options) => {
     id,
     src: options.url,
     loop: options.loop ?? false,
-    volume: (options.volume ?? 1) * 100,
+    volume: normalizeDirectVolume(options.volume),
   };
   const channel = createChannelInstance(
     { id: `${id}:channel`, volume: 100, muted: false, pan: 0 },
@@ -430,8 +427,9 @@ export const createAudioPlayer = (id, options) => {
     instance.url = instance.src;
     instance.loop = newState.loop ?? instance.loop;
     if (newState.volume !== undefined) {
-      instance.volume = newState.volume * 100;
-      setParamNow(instance.gainNode.gain, newState.volume);
+      const nextVolume = normalizeDirectVolume(newState.volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     }
   };
 
@@ -452,8 +450,9 @@ export const createAudioPlayer = (id, options) => {
       if (instance.source) instance.source.loop = loop;
     },
     setVolume: (volume) => {
-      instance.volume = volume * 100;
-      setParamNow(instance.gainNode.gain, volume);
+      const nextVolume = normalizeDirectVolume(volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     },
     get id() {
       return instance.id;
@@ -738,7 +737,7 @@ export const createAudioStage = () => {
     const removedChannels = new Map();
     const channelCleanupDurations = new Map();
 
-    for (const [id, prevChannel] of prevChannelById) {
+    for (const [id] of prevChannelById) {
       if (!nextChannelById.has(id)) {
         const duration = removeChannel(channels.get(id), prevAudioEffects);
         removedChannels.set(id, channels.get(id));
