@@ -352,6 +352,10 @@
         },
         "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+        "message-display1": {
+          url: "/public/message-display1.mp3?v=2",
+          type: "audio/mpeg",
+        },
         "bgm-1": { url: "/public/bgm-1.mp3", type: "audio/mpeg" },
         "bgm-2": { url: "/public/bgm-2.mp3", type: "audio/mpeg" },
         "bgm-3": { url: "/public/bgm-3.mp3", type: "audio/mpeg" },
@@ -412,10 +416,29 @@
       const vtState = Object.assign({}, ...vtDocuments);
       const states = vtState.states ?? [];
       const useBrowserScreenshot = vtState.useBrowserScreenshot === true;
+      const elementHasRevealSound = (element) =>
+        Boolean(element?.revealSound) ||
+        (Array.isArray(element?.children) &&
+          element.children.some(elementHasRevealSound));
       const stateHasAudio = (state) =>
         (Array.isArray(state?.audio) && state.audio.length > 0) ||
-        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0);
+        (Array.isArray(state?.audioEffects) &&
+          state.audioEffects.length > 0) ||
+        (Array.isArray(state?.elements) &&
+          state.elements.some(elementHasRevealSound));
       const hasAudioStates = states.some(stateHasAudio);
+      const audioAssetKeys = Object.entries(assetsObject)
+        .filter(([, asset]) => asset?.type?.startsWith?.("audio/"))
+        .map(([key]) => key);
+      if (hasAudioStates) {
+        window.RTGL_AUDIO_DEBUG = true;
+        console.log("[VT audio] debug enabled", {
+          audioAssetKeys,
+          audioStateIds: states
+            .filter(stateHasAudio)
+            .map((state, stateIndex) => state?.id ?? `state-${stateIndex}`),
+        });
+      }
       if (!useBrowserScreenshot) {
         let vtScreenshotHookPrimed = false;
         const waitForStableScreenshotFrame = async () => {
@@ -564,6 +587,8 @@
 
       let hasStartedAudioFixtureFromPointer = false;
       const startAudioFixtureFromPointer = (event) => {
+        void app.resumeAudio?.();
+
         if (!hasAudioStates || hasStartedAudioFixtureFromPointer) {
           return;
         }
@@ -588,6 +613,13 @@
       document.addEventListener("pointerdown", startAudioFixtureFromPointer, {
         capture: true,
       });
+      document.addEventListener(
+        "keydown",
+        () => {
+          void app.resumeAudio?.();
+        },
+        { capture: true },
+      );
 
       await app.init({
         width: 1280,
@@ -621,6 +653,9 @@
       });
       window.__VT_ROUTE_GRAPHICS__ = app;
       await app.loadAssets(assetBufferManager.getBufferMap());
+      if (hasAudioStates) {
+        console.log("[VT audio] assets decoded", { audioAssetKeys });
+      }
       document.body.appendChild(app.canvas);
       document.body.appendChild(pager);
       if (states.length > 0) {

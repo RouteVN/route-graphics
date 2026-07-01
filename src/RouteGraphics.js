@@ -650,6 +650,8 @@ const createRouteGraphics = () => {
       app.stage.on(eventType, callback);
     },
 
+    resumeAudio: () => audioStage.resume(),
+
     setAnimationPlaybackMode: (mode) => {
       assertAnimationPlaybackMode(mode);
 

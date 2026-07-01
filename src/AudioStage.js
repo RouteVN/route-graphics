@@ -1,24 +1,21 @@
 import { AudioAsset } from "./AudioAsset.js";
 import { normalizeVolume } from "./util/normalizeVolume.js";
 import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
+import { getAudioContext } from "./audioContext.js";
 
 const ROOT_CHANNEL_ID = "__route_graphics_audio_root__";
 const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
 
-let audioContext;
+const isAudioDebugEnabled = () =>
+  globalThis.window?.RTGL_AUDIO_DEBUG === true ||
+  globalThis.window?.RTGL_VT_DEBUG === true;
 
-const getAudioContext = () => {
-  if (audioContext) return audioContext;
-
-  const AudioContextCtor =
-    globalThis.window?.AudioContext ?? globalThis.window?.webkitAudioContext;
-
-  if (!AudioContextCtor) {
-    throw new Error("AudioContext is not available in this environment.");
+const debugAudio = (message, details = {}) => {
+  if (!isAudioDebugEnabled()) {
+    return;
   }
 
-  audioContext = new AudioContextCtor();
-  return audioContext;
+  console.log(`[AudioStage] ${message}`, details);
 };
 
 const connect = (from, to) => {
@@ -47,8 +44,33 @@ const getParamValue = (param, fallback = 0) =>
 
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
-    void context.resume().catch(() => {});
+    const previousState = context.state;
+    debugAudio("resume requested", { state: previousState });
+
+    return context
+      .resume()
+      .then(() => {
+        debugAudio("resume resolved", {
+          previousState,
+          state: context.state,
+        });
+      })
+      .catch((error) => {
+        if (isAudioDebugEnabled()) {
+          console.warn("[AudioStage] resume failed", {
+            previousState,
+            state: context.state,
+            error,
+          });
+        }
+      });
   }
+
+  debugAudio("resume skipped", {
+    state: context.state,
+    canResume: typeof context.resume === "function",
+  });
+  return Promise.resolve();
 };
 
 const setParamNow = (param, value, context = getAudioContext()) => {
@@ -207,13 +229,20 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     source: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
+    playRequestId: 0,
   };
 };
 
 const createSourceForSound = (sound) => {
   const context = getAudioContext();
-  resumeAudioContext(context);
   const audioBuffer = AudioAsset.getAsset(sound.src);
+  debugAudio("asset lookup", {
+    id: sound.id,
+    src: sound.src,
+    found: Boolean(audioBuffer),
+    duration: audioBuffer?.duration ?? null,
+    contextState: context.state,
+  });
   if (!audioBuffer) {
     console.warn("AudioStage: asset not found", sound.src);
     return null;
@@ -234,16 +263,28 @@ const createSourceForSound = (sound) => {
     sound.endAt !== null && sound.endAt !== undefined
       ? Math.max(sound.endAt - offset, 0)
       : undefined;
+  const startTime = Math.max(0, toFiniteParamValue(context.currentTime, 0));
 
   if (source.loop && sound.endAt !== null && sound.endAt !== undefined) {
     source.loopStart = offset;
     source.loopEnd = sound.endAt;
-    source.start(0, offset);
+    source.start(startTime, offset);
   } else if (duration !== undefined) {
-    source.start(0, offset, duration);
+    source.start(startTime, offset, duration);
   } else {
-    source.start(0, offset);
+    source.start(startTime, offset);
   }
+  debugAudio("source started", {
+    id: sound.id,
+    src: sound.src,
+    loop: source.loop,
+    startTime,
+    offset,
+    duration: duration ?? null,
+    playbackRate: sound.playbackRate,
+    gain: getParamValue(sound.gainNode?.gain, null),
+    contextState: context.state,
+  });
 
   return source;
 };
@@ -254,22 +295,55 @@ const playSound = (sound) => {
     sound.pendingTimeoutId = null;
   }
 
-  resumeAudioContext(getAudioContext());
+  const context = getAudioContext();
+  const playRequestId = (sound.playRequestId ?? 0) + 1;
+  sound.playRequestId = playRequestId;
+  debugAudio("play requested", {
+    id: sound.id,
+    src: sound.src,
+    loop: sound.loop,
+    volume: sound.volume,
+    muted: sound.muted,
+    startDelayMs: sound.startDelayMs,
+    contextState: context.state,
+  });
+  const needsResume =
+    context.state === "suspended" && typeof context.resume === "function";
 
   const start = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
     sound.pendingTimeoutId = null;
     sound.source = createSourceForSound(sound);
   };
 
-  if (sound.startDelayMs > 0) {
-    sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+  const scheduleStart = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
+    if (sound.startDelayMs > 0) {
+      sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+      return;
+    }
+
+    start();
+  };
+
+  const resumePromise = resumeAudioContext(context);
+  if (needsResume) {
+    void resumePromise.then(scheduleStart);
     return;
   }
 
-  start();
+  scheduleStart();
 };
 
 const stopSource = (sound, delayMs = 0) => {
+  sound.playRequestId = (sound.playRequestId ?? 0) + 1;
+
   if (sound.pendingTimeoutId !== null) {
     clearTimeout(sound.pendingTimeoutId);
     sound.pendingTimeoutId = null;
@@ -776,23 +850,46 @@ export const createAudioStage = () => {
       src: element.url ?? element.src,
       loop: element.loop ?? false,
       volume: normalizeDirectVolume(element.volume),
-      startDelayMs: element.startDelayMs ?? 0,
+      muted: element.muted ?? false,
+      pan: toFiniteParamValue(element.pan, 0),
+      startDelayMs: Math.max(0, toFiniteParamValue(element.startDelayMs, 0)),
+      playbackRate: toFiniteParamValue(element.playbackRate, 1),
+      startAt: Math.max(0, toFiniteParamValue(element.startAt, 0)),
+      endAt:
+        element.endAt !== undefined && element.endAt !== null
+          ? Math.max(0, toFiniteParamValue(element.endAt, 0))
+          : null,
     };
 
     directAudios.set(element.id, audio);
+    debugAudio("direct add", {
+      id: audio.id,
+      src: audio.src,
+      loop: audio.loop,
+      volume: audio.volume,
+      muted: audio.muted,
+      pan: audio.pan,
+    });
   };
 
   const remove = (id) => {
-    directAudios.delete(id);
-    currentSoundKeyById.delete(id);
     const internalId = `direct:${id}`;
     const instance = sounds.get(internalId);
+    debugAudio("direct remove", {
+      id,
+      hadAudio: directAudios.has(id),
+      hadInstance: Boolean(instance),
+    });
+    directAudios.delete(id);
+    currentSoundKeyById.delete(id);
     if (instance) {
       removeSoundInstance(instance, [], 0);
     }
   };
 
   const getById = (id) => directAudios.get(id);
+
+  const resume = () => resumeAudioContext(getAudioContext());
 
   const tick = () => {
     const channel = ensureRootChannel(DIRECT_CHANNEL_ID);
@@ -857,6 +954,7 @@ export const createAudioStage = () => {
     add,
     remove,
     getById,
+    resume,
     tick,
     renderGraph,
     destroy,

@@ -26,6 +26,8 @@ const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_X = 16;
 const DEFAULT_TEXT_REVEAL_INDICATOR_OFFSET_Y = 0;
 const INDICATOR_VISUAL_KINDS = ["image", "spritesheet"];
 const INDICATOR_VISUAL_KIND_SET = new Set(INDICATOR_VISUAL_KINDS);
+const DEFAULT_REVEAL_SOUND_VOLUME = 100;
+const DEFAULT_REVEAL_SOUND_LOOP = true;
 
 export const normalizeFuriganaPlacement = (placement, path) => {
   if (placement === undefined) {
@@ -112,6 +114,57 @@ export const normalizeIndicatorVisual = (visual = {}, path) => {
     atlas,
     clips,
     playback,
+  };
+};
+
+const normalizeRevealSoundVolume = (volume, path) => {
+  if (volume === undefined) {
+    return DEFAULT_REVEAL_SOUND_VOLUME;
+  }
+
+  if (
+    typeof volume === "number" &&
+    Number.isFinite(volume) &&
+    volume >= 0 &&
+    volume <= 100
+  ) {
+    return volume;
+  }
+
+  throw new Error(
+    `Input Error: ${path}.volume must be a finite number between 0 and 100.`,
+  );
+};
+
+const normalizeRevealSoundLoop = (loop, path) => {
+  if (loop === undefined) {
+    return DEFAULT_REVEAL_SOUND_LOOP;
+  }
+
+  if (typeof loop === "boolean") {
+    return loop;
+  }
+
+  throw new Error(`Input Error: ${path}.loop must be a boolean.`);
+};
+
+export const normalizeRevealSound = (revealSound, path = "revealSound") => {
+  if (revealSound === undefined || revealSound === null) {
+    return null;
+  }
+
+  if (typeof revealSound !== "object" || Array.isArray(revealSound)) {
+    throw new Error(`Input Error: ${path} must be an object.`);
+  }
+
+  if (typeof revealSound.src !== "string" || revealSound.src.length === 0) {
+    throw new Error(`Input Error: ${path}.src must be a non-empty string.`);
+  }
+
+  return {
+    src: revealSound.src,
+    volume: normalizeRevealSoundVolume(revealSound.volume, path),
+    loop: normalizeRevealSoundLoop(revealSound.loop, path),
   };
 };
 
@@ -542,6 +595,7 @@ export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
  * @returns {TextRevealingComputedNode}
  */
 export const parseTextRevealing = ({ state }) => {
+  const revealSound = normalizeRevealSound(state.revealSound);
   const defaultTextStyle = mergeTextStyle(
     {
       ...DEFAULT_TEXT_STYLE,
@@ -614,6 +668,7 @@ export const parseTextRevealing = ({ state }) => {
         state.initialRevealedCharacters,
       ),
     }),
+    ...(revealSound && { revealSound }),
     ...(state.width !== undefined && { width: state.width }),
     ...(state.complete && { complete: state.complete }),
   };

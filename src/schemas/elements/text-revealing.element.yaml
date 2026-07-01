@@ -255,6 +255,25 @@ properties:
     default: typewriter
   softWipe:
     "$ref": "#/$def/softWipe"
+  revealSound:
+    type: object
+    description: Sound to play while text is actively revealing.
+    required:
+      - src
+    properties:
+      src:
+        type: string
+        description: Source alias or URL for the reveal sound
+      volume:
+        type: number
+        description: Volume. 0 means muted. 100 means original full volume.
+        default: 100
+        minimum: 0
+        maximum: 100
+      loop:
+        type: boolean
+        description: Whether the reveal sound loops until the reveal finishes
+        default: true
   textStyle:
     "$ref": "#/$def/textStyle"
   complete:
