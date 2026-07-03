@@ -41,11 +41,32 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
 
+  const isRenderableVideoFrameReady = (video) => {
+    const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
+
+    return (
+      video.readyState >= haveCurrentData &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    );
+  };
+
+  const syncVideoTextureSourceSize = (source, video) => {
+    if (
+      source.width === video.videoWidth &&
+      source.height === video.videoHeight
+    ) {
+      return;
+    }
+
+    source.resize?.(video.videoWidth, video.videoHeight);
+  };
+
   const createVideoTextureSource = (video, alphaMode) =>
     new VideoSource({
       resource: video,
-      width: video.videoWidth || undefined,
-      height: video.videoHeight || undefined,
+      width: video.videoWidth,
+      height: video.videoHeight,
       autoLoad: false,
       autoPlay: false,
       alphaMode,
@@ -71,16 +92,24 @@ const createRouteGraphics = () => {
     const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
 
     const updateSource = () => {
-      if (!source.destroyed) {
-        source.update();
+      if (source.destroyed || !isRenderableVideoFrameReady(video)) {
+        return false;
       }
+
+      syncVideoTextureSourceSize(source, video);
+      source.update();
+      return true;
     };
 
-    const stop = () => {
+    const cancelFrame = () => {
       if (frameId !== undefined) {
         window.cancelAnimationFrame(frameId);
         frameId = undefined;
       }
+    };
+
+    const stop = () => {
+      cancelFrame();
       updateSource();
     };
 
@@ -108,11 +137,13 @@ const createRouteGraphics = () => {
     };
 
     const cleanup = () => {
-      stop();
+      cancelFrame();
       video.removeEventListener("play", start);
       video.removeEventListener("playing", start);
       video.removeEventListener("pause", stop);
       video.removeEventListener("ended", stop);
+      video.removeEventListener("loadeddata", updateSource);
+      video.removeEventListener("canplay", updateSource);
       video.removeEventListener("seeked", updateSource);
       source.__routeGraphicsVideoTextureRuntime = undefined;
     };
@@ -121,6 +152,8 @@ const createRouteGraphics = () => {
     video.addEventListener("playing", start);
     video.addEventListener("pause", stop);
     video.addEventListener("ended", stop);
+    video.addEventListener("loadeddata", updateSource);
+    video.addEventListener("canplay", updateSource);
     video.addEventListener("seeked", updateSource);
     source.once("destroy", cleanup);
     texture.once("destroy", cleanup);
@@ -506,9 +539,7 @@ const createRouteGraphics = () => {
 
   const waitForVideoReady = (video, key) =>
     new Promise((resolve, reject) => {
-      const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
-
-      if (video.readyState >= haveCurrentData) {
+      if (isRenderableVideoFrameReady(video)) {
         resolve();
         return;
       }
@@ -516,11 +547,17 @@ const createRouteGraphics = () => {
       let timeoutId;
       const cleanup = () => {
         window.clearTimeout(timeoutId);
+        video.removeEventListener("loadedmetadata", onReady);
         video.removeEventListener("loadeddata", onReady);
         video.removeEventListener("canplay", onReady);
+        video.removeEventListener("canplaythrough", onReady);
         video.removeEventListener("error", onError);
       };
       const onReady = () => {
+        if (!isRenderableVideoFrameReady(video)) {
+          return;
+        }
+
         cleanup();
         resolve();
       };
@@ -548,8 +585,10 @@ const createRouteGraphics = () => {
         reject(new Error(`Timed out loading video asset "${key}".`));
       }, 5000);
 
-      video.addEventListener("loadeddata", onReady, { once: true });
-      video.addEventListener("canplay", onReady, { once: true });
+      video.addEventListener("loadedmetadata", onReady);
+      video.addEventListener("loadeddata", onReady);
+      video.addEventListener("canplay", onReady);
+      video.addEventListener("canplaythrough", onReady);
       video.addEventListener("error", onError, { once: true });
     });
 

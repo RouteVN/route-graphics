@@ -356,6 +356,14 @@ describe("RouteGraphics public API", () => {
             value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
             configurable: true,
           });
+          Object.defineProperty(element, "videoWidth", {
+            value: 1280,
+            configurable: true,
+          });
+          Object.defineProperty(element, "videoHeight", {
+            value: 720,
+            configurable: true,
+          });
           element.load = vi.fn();
         }
 
