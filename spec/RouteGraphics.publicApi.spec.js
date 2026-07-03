@@ -211,6 +211,7 @@ const createPixiModuleMock = () => {
         set: vi.fn((key, value) => assetCache.set(key, value)),
       },
     },
+    detectVideoAlphaMode: vi.fn().mockResolvedValue("premultiplied-alpha"),
     Graphics: MockGraphics,
     LoaderParserPriority: {
       High: 1,
@@ -402,6 +403,11 @@ describe("RouteGraphics public API", () => {
         source: expect.any(Object),
       }),
     );
+    const bufferVideoTexture = pixiMock.Assets.cache.set.mock.calls.find(
+      ([key]) => key === "bufferVideo",
+    )?.[1];
+    expect(bufferVideoTexture.source.alphaMode).toBe("premultiplied-alpha");
+    expect(pixiMock.detectVideoAlphaMode).toHaveBeenCalled();
     expect(createdVideos).toHaveLength(2);
     expect(
       createdVideos.every((video) => video.crossOrigin === "anonymous"),

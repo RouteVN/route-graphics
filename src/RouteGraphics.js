@@ -5,6 +5,7 @@ import {
   Texture,
   Rectangle,
   VideoSource,
+  detectVideoAlphaMode,
 } from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
@@ -40,14 +41,14 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
 
-  const createVideoTextureSource = (video) =>
+  const createVideoTextureSource = (video, alphaMode) =>
     new VideoSource({
       resource: video,
       width: video.videoWidth || undefined,
       height: video.videoHeight || undefined,
       autoLoad: false,
       autoPlay: false,
-      alphaMode: "premultiply-alpha-on-upload",
+      alphaMode,
       crossorigin: "anonymous",
       muted: false,
       playsinline: true,
@@ -571,8 +572,9 @@ const createRouteGraphics = () => {
 
     await ready;
 
+    const alphaMode = await detectVideoAlphaMode();
     const texture = new Texture({
-      source: createVideoTextureSource(video),
+      source: createVideoTextureSource(video, alphaMode),
     });
     configureManagedVideoTextureUpdates(texture);
     Assets.cache.set(key, texture);
