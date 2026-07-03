@@ -29,6 +29,12 @@ export const registerManagedVideoSprite = (sprite) => {
   }
 };
 
+export const requestManagedVideoTextureUpdate = (sprite) => {
+  const runtime = sprite?.texture?.source?.__routeGraphicsVideoTextureRuntime;
+
+  runtime?.requestUpdate?.();
+};
+
 export const unregisterManagedVideoSprite = (
   sprite,
   source = sprite?.texture?.source,

@@ -22,6 +22,7 @@ import {
 } from "../util/shaderFilterEffect.js";
 import {
   registerManagedVideoSprite,
+  requestManagedVideoTextureUpdate,
   unregisterManagedVideoSprite,
 } from "./managedVideoTextureSizing.js";
 
@@ -101,6 +102,7 @@ export const updateVideo = ({
       activeVideo.pause();
       activeVideo.currentTime = 0;
       currentSrc = nextElement.src;
+      requestManagedVideoTextureUpdate(videoElement);
     }
 
     syncVideoPlaybackTracking({

@@ -13,7 +13,10 @@ import {
   hasShaderProgressUpdateAnimation,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
-import { registerManagedVideoSprite } from "./managedVideoTextureSizing.js";
+import {
+  registerManagedVideoSprite,
+  requestManagedVideoTextureUpdate,
+} from "./managedVideoTextureSizing.js";
 
 /**
  * Add video element to the stage
@@ -70,9 +73,9 @@ export const addVideo = ({
     completionTracker,
   });
 
-  queueDeferredVideoPlay(renderContext, video);
-
   parent.addChild(sprite);
+  requestManagedVideoTextureUpdate(sprite);
+  queueDeferredVideoPlay(renderContext, video);
 
   dispatchLiveAnimations({
     animations,

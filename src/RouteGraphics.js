@@ -59,6 +59,9 @@ const createRouteGraphics = () => {
   const getVideoTextureDimension = (value) =>
     Number.isFinite(value) && value > 0 ? value : 1;
 
+  const hasVideoDimensions = (video) =>
+    video.videoWidth > 0 && video.videoHeight > 0;
+
   const syncVideoTextureSourceSize = (source, video) => {
     if (
       source.width === video.videoWidth &&
@@ -99,11 +102,17 @@ const createRouteGraphics = () => {
     }
 
     let frameId;
+    let videoFrameCallbackId;
     let lastUpdateTime = 0;
     const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
 
-    const updateSource = () => {
-      if (source.destroyed || !isRenderableVideoFrameReady(video)) {
+    const updateSource = ({ force = false } = {}) => {
+      if (
+        source.destroyed ||
+        (force
+          ? !hasVideoDimensions(video)
+          : !isRenderableVideoFrameReady(video))
+      ) {
         return false;
       }
 
@@ -119,8 +128,48 @@ const createRouteGraphics = () => {
       }
     };
 
+    const cancelVideoFrameCallback = () => {
+      if (
+        videoFrameCallbackId !== undefined &&
+        typeof video.cancelVideoFrameCallback === "function"
+      ) {
+        video.cancelVideoFrameCallback(videoFrameCallbackId);
+      }
+
+      videoFrameCallbackId = undefined;
+    };
+
+    const updateSourceFromVideoFrame = () => {
+      updateSource({ force: true });
+    };
+
+    const scheduleVideoFrameCallback = () => {
+      if (
+        videoFrameCallbackId !== undefined ||
+        typeof video.requestVideoFrameCallback !== "function"
+      ) {
+        return false;
+      }
+
+      videoFrameCallbackId = video.requestVideoFrameCallback(() => {
+        videoFrameCallbackId = undefined;
+        updateSourceFromVideoFrame();
+
+        if (!video.paused && !video.ended && !source.destroyed) {
+          scheduleVideoFrameCallback();
+        }
+      });
+
+      return true;
+    };
+
+    const updateSourceFromMediaEvent = () => {
+      updateSource();
+    };
+
     const stop = () => {
       cancelFrame();
+      cancelVideoFrameCallback();
       updateSource();
     };
 
@@ -141,6 +190,10 @@ const createRouteGraphics = () => {
     const start = () => {
       updateSource();
 
+      if (scheduleVideoFrameCallback()) {
+        return;
+      }
+
       if (frameId === undefined) {
         lastUpdateTime = 0;
         frameId = window.requestAnimationFrame(tick);
@@ -149,13 +202,16 @@ const createRouteGraphics = () => {
 
     const cleanup = () => {
       cancelFrame();
+      cancelVideoFrameCallback();
       video.removeEventListener("play", start);
       video.removeEventListener("playing", start);
       video.removeEventListener("pause", stop);
       video.removeEventListener("ended", stop);
-      video.removeEventListener("loadeddata", updateSource);
-      video.removeEventListener("canplay", updateSource);
-      video.removeEventListener("seeked", updateSource);
+      video.removeEventListener("loadeddata", updateSourceFromMediaEvent);
+      video.removeEventListener("canplay", updateSourceFromMediaEvent);
+      video.removeEventListener("canplaythrough", updateSourceFromMediaEvent);
+      video.removeEventListener("seeked", updateSourceFromMediaEvent);
+      video.removeEventListener("timeupdate", updateSourceFromMediaEvent);
       clearManagedVideoSprites(source);
       source.__routeGraphicsVideoTextureRuntime = undefined;
     };
@@ -164,14 +220,17 @@ const createRouteGraphics = () => {
     video.addEventListener("playing", start);
     video.addEventListener("pause", stop);
     video.addEventListener("ended", stop);
-    video.addEventListener("loadeddata", updateSource);
-    video.addEventListener("canplay", updateSource);
-    video.addEventListener("seeked", updateSource);
+    video.addEventListener("loadeddata", updateSourceFromMediaEvent);
+    video.addEventListener("canplay", updateSourceFromMediaEvent);
+    video.addEventListener("canplaythrough", updateSourceFromMediaEvent);
+    video.addEventListener("seeked", updateSourceFromMediaEvent);
+    video.addEventListener("timeupdate", updateSourceFromMediaEvent);
     source.once("destroy", cleanup);
     texture.once("destroy", cleanup);
 
     source.__routeGraphicsVideoTextureRuntime = {
       cleanup,
+      requestUpdate: updateSource,
     };
     updateSource();
   };
