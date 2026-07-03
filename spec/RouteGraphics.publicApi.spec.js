@@ -338,7 +338,7 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
 
-  it("loads video assets through an early-ready HTML video texture", async () => {
+  it("loads video assets through metadata-ready HTML video textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const createdVideos = [];
     const createObjectURL = vi
@@ -353,7 +353,7 @@ describe("RouteGraphics public API", () => {
         if (tagName === "video") {
           createdVideos.push(element);
           Object.defineProperty(element, "readyState", {
-            value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
+            value: window.HTMLMediaElement.HAVE_METADATA,
             configurable: true,
           });
           Object.defineProperty(element, "videoWidth", {
@@ -414,7 +414,10 @@ describe("RouteGraphics public API", () => {
     const bufferVideoTexture = pixiMock.Assets.cache.set.mock.calls.find(
       ([key]) => key === "bufferVideo",
     )?.[1];
+    expect(bufferVideoTexture.source.width).toBe(1280);
+    expect(bufferVideoTexture.source.height).toBe(720);
     expect(bufferVideoTexture.source.alphaMode).toBe("premultiplied-alpha");
+    expect(bufferVideoTexture.source.update).not.toHaveBeenCalled();
     expect(pixiMock.detectVideoAlphaMode).toHaveBeenCalled();
     expect(createdVideos).toHaveLength(2);
     expect(

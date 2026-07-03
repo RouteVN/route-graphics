@@ -41,6 +41,16 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
 
+  const hasVideoMetadata = (video) => {
+    const haveMetadata = window.HTMLMediaElement?.HAVE_METADATA ?? 1;
+
+    return (
+      video.readyState >= haveMetadata &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    );
+  };
+
   const isRenderableVideoFrameReady = (video) => {
     const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
 
@@ -539,7 +549,7 @@ const createRouteGraphics = () => {
 
   const waitForVideoReady = (video, key) =>
     new Promise((resolve, reject) => {
-      if (isRenderableVideoFrameReady(video)) {
+      if (hasVideoMetadata(video)) {
         resolve();
         return;
       }
@@ -554,7 +564,7 @@ const createRouteGraphics = () => {
         video.removeEventListener("error", onError);
       };
       const onReady = () => {
-        if (!isRenderableVideoFrameReady(video)) {
+        if (!hasVideoMetadata(video)) {
           return;
         }
 
