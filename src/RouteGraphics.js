@@ -1,4 +1,11 @@
-import { Application, Assets, Graphics, Texture, Rectangle } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Graphics,
+  Texture,
+  Rectangle,
+  VideoSource,
+} from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
 import parseElements from "./plugins/elements/parseElements.js";
@@ -31,6 +38,98 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
  */
 
 const createRouteGraphics = () => {
+  const VIDEO_TEXTURE_UPDATE_FPS = 30;
+
+  const createVideoTextureSource = (video) =>
+    new VideoSource({
+      resource: video,
+      width: video.videoWidth || undefined,
+      height: video.videoHeight || undefined,
+      autoLoad: false,
+      autoPlay: false,
+      alphaMode: "premultiply-alpha-on-upload",
+      crossorigin: "anonymous",
+      muted: false,
+      playsinline: true,
+    });
+
+  const configureManagedVideoTextureUpdates = (texture) => {
+    const source = texture?.source;
+    const video = source?.resource;
+
+    if (!(video instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    if (source.__routeGraphicsVideoTextureRuntime) {
+      return;
+    }
+
+    let frameId;
+    let lastUpdateTime = 0;
+    const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
+
+    const updateSource = () => {
+      if (!source.destroyed) {
+        source.update();
+      }
+    };
+
+    const stop = () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+        frameId = undefined;
+      }
+      updateSource();
+    };
+
+    const tick = (time) => {
+      frameId = undefined;
+      if (video.paused || video.ended || source.destroyed) {
+        return;
+      }
+
+      if (time - lastUpdateTime >= frameIntervalMS) {
+        lastUpdateTime = time;
+        updateSource();
+      }
+
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      updateSource();
+
+      if (frameId === undefined) {
+        lastUpdateTime = 0;
+        frameId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const cleanup = () => {
+      stop();
+      video.removeEventListener("play", start);
+      video.removeEventListener("playing", start);
+      video.removeEventListener("pause", stop);
+      video.removeEventListener("ended", stop);
+      video.removeEventListener("seeked", updateSource);
+      source.__routeGraphicsVideoTextureRuntime = undefined;
+    };
+
+    video.addEventListener("play", start);
+    video.addEventListener("playing", start);
+    video.addEventListener("pause", stop);
+    video.addEventListener("ended", stop);
+    video.addEventListener("seeked", updateSource);
+    source.once("destroy", cleanup);
+    texture.once("destroy", cleanup);
+
+    source.__routeGraphicsVideoTextureRuntime = {
+      cleanup,
+    };
+    updateSource();
+  };
+
   const assertAnimationPlaybackMode = (mode) => {
     if (mode !== "auto" && mode !== "manual") {
       throw new Error(
@@ -472,7 +571,10 @@ const createRouteGraphics = () => {
 
     await ready;
 
-    const texture = Texture.from(video);
+    const texture = new Texture({
+      source: createVideoTextureSource(video),
+    });
+    configureManagedVideoTextureUpdates(texture);
     Assets.cache.set(key, texture);
 
     return texture;

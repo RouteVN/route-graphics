@@ -231,11 +231,31 @@ const createPixiModuleMock = () => {
     defaultFilterVert: "void main() {}",
     Texture: class MockTexture {
       static EMPTY = {};
+
+      constructor(options = {}) {
+        this.source = options.source;
+      }
+
       static from() {
         return {
           source: { resource: { width: 1, height: 1 } },
           destroy: vi.fn(),
         };
+      }
+
+      once() {
+        return this;
+      }
+    },
+    VideoSource: class MockVideoSource {
+      constructor(options = {}) {
+        Object.assign(this, options);
+        this.destroyed = false;
+        this.update = vi.fn();
+      }
+
+      once() {
+        return this;
       }
     },
     Rectangle: class MockRectangle {},
