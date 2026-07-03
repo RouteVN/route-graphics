@@ -1,4 +1,12 @@
-import { Application, Assets, Graphics, Texture, Rectangle } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Graphics,
+  Texture,
+  Rectangle,
+  VideoSource,
+  detectVideoAlphaMode,
+} from "pixi.js";
 import "@pixi/unsafe-eval";
 import { createAudioStage } from "./AudioStage.js";
 import parseElements from "./plugins/elements/parseElements.js";
@@ -15,6 +23,11 @@ import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
 import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
 import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRuntime.js";
+import {
+  captureManagedVideoSpriteSizes,
+  clearManagedVideoSprites,
+  restoreManagedVideoSpriteSizes,
+} from "./plugins/elements/video/managedVideoTextureSizing.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -31,6 +44,197 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
  */
 
 const createRouteGraphics = () => {
+  const VIDEO_TEXTURE_UPDATE_FPS = 30;
+
+  const isRenderableVideoFrameReady = (video) => {
+    const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
+
+    return (
+      video.readyState >= haveCurrentData &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    );
+  };
+
+  const getVideoTextureDimension = (value) =>
+    Number.isFinite(value) && value > 0 ? value : 1;
+
+  const hasVideoDimensions = (video) =>
+    video.videoWidth > 0 && video.videoHeight > 0;
+
+  const syncVideoTextureSourceSize = (source, video) => {
+    if (
+      source.width === video.videoWidth &&
+      source.height === video.videoHeight
+    ) {
+      return;
+    }
+
+    const spriteSizes = captureManagedVideoSpriteSizes(source);
+
+    source.resize?.(video.videoWidth, video.videoHeight);
+    restoreManagedVideoSpriteSizes(spriteSizes);
+  };
+
+  const createVideoTextureSource = (video, alphaMode) =>
+    new VideoSource({
+      resource: video,
+      width: getVideoTextureDimension(video.videoWidth),
+      height: getVideoTextureDimension(video.videoHeight),
+      autoLoad: false,
+      autoPlay: false,
+      alphaMode,
+      crossorigin: "anonymous",
+      muted: false,
+      playsinline: true,
+    });
+
+  const configureManagedVideoTextureUpdates = (texture) => {
+    const source = texture?.source;
+    const video = source?.resource;
+
+    if (!(video instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    if (source.__routeGraphicsVideoTextureRuntime) {
+      return;
+    }
+
+    let frameId;
+    let videoFrameCallbackId;
+    let lastUpdateTime = 0;
+    const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
+
+    const updateSource = ({ force = false } = {}) => {
+      if (
+        source.destroyed ||
+        (force
+          ? !hasVideoDimensions(video)
+          : !isRenderableVideoFrameReady(video))
+      ) {
+        return false;
+      }
+
+      syncVideoTextureSourceSize(source, video);
+      source.update();
+      return true;
+    };
+
+    const cancelFrame = () => {
+      if (frameId !== undefined) {
+        window.cancelAnimationFrame(frameId);
+        frameId = undefined;
+      }
+    };
+
+    const cancelVideoFrameCallback = () => {
+      if (
+        videoFrameCallbackId !== undefined &&
+        typeof video.cancelVideoFrameCallback === "function"
+      ) {
+        video.cancelVideoFrameCallback(videoFrameCallbackId);
+      }
+
+      videoFrameCallbackId = undefined;
+    };
+
+    const updateSourceFromVideoFrame = () => {
+      updateSource({ force: true });
+    };
+
+    const scheduleVideoFrameCallback = () => {
+      if (
+        videoFrameCallbackId !== undefined ||
+        typeof video.requestVideoFrameCallback !== "function"
+      ) {
+        return false;
+      }
+
+      videoFrameCallbackId = video.requestVideoFrameCallback(() => {
+        videoFrameCallbackId = undefined;
+        updateSourceFromVideoFrame();
+
+        if (!video.paused && !video.ended && !source.destroyed) {
+          scheduleVideoFrameCallback();
+        }
+      });
+
+      return true;
+    };
+
+    const updateSourceFromMediaEvent = () => {
+      updateSource();
+    };
+
+    const stop = () => {
+      cancelFrame();
+      cancelVideoFrameCallback();
+      updateSource();
+    };
+
+    const tick = (time) => {
+      frameId = undefined;
+      if (video.paused || video.ended || source.destroyed) {
+        return;
+      }
+
+      if (time - lastUpdateTime >= frameIntervalMS) {
+        lastUpdateTime = time;
+        updateSource();
+      }
+
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      updateSource();
+
+      if (scheduleVideoFrameCallback()) {
+        return;
+      }
+
+      if (frameId === undefined) {
+        lastUpdateTime = 0;
+        frameId = window.requestAnimationFrame(tick);
+      }
+    };
+
+    const cleanup = () => {
+      cancelFrame();
+      cancelVideoFrameCallback();
+      video.removeEventListener("play", start);
+      video.removeEventListener("playing", start);
+      video.removeEventListener("pause", stop);
+      video.removeEventListener("ended", stop);
+      video.removeEventListener("loadeddata", updateSourceFromMediaEvent);
+      video.removeEventListener("canplay", updateSourceFromMediaEvent);
+      video.removeEventListener("canplaythrough", updateSourceFromMediaEvent);
+      video.removeEventListener("seeked", updateSourceFromMediaEvent);
+      video.removeEventListener("timeupdate", updateSourceFromMediaEvent);
+      clearManagedVideoSprites(source);
+      source.__routeGraphicsVideoTextureRuntime = undefined;
+    };
+
+    video.addEventListener("play", start);
+    video.addEventListener("playing", start);
+    video.addEventListener("pause", stop);
+    video.addEventListener("ended", stop);
+    video.addEventListener("loadeddata", updateSourceFromMediaEvent);
+    video.addEventListener("canplay", updateSourceFromMediaEvent);
+    video.addEventListener("canplaythrough", updateSourceFromMediaEvent);
+    video.addEventListener("seeked", updateSourceFromMediaEvent);
+    video.addEventListener("timeupdate", updateSourceFromMediaEvent);
+    source.once("destroy", cleanup);
+    texture.once("destroy", cleanup);
+
+    source.__routeGraphicsVideoTextureRuntime = {
+      cleanup,
+      requestUpdate: updateSource,
+    };
+    updateSource();
+  };
+
   const assertAnimationPlaybackMode = (mode) => {
     if (mode !== "auto" && mode !== "manual") {
       throw new Error(
@@ -212,6 +416,21 @@ const createRouteGraphics = () => {
     return match?.[1];
   };
 
+  const getVideoElementCauseMessage = (causeMessage) => {
+    if (/Timed out loading video asset/i.test(causeMessage)) {
+      return "Timed out while loading video metadata.";
+    }
+
+    if (!/Failed to load video asset/i.test(causeMessage)) {
+      return undefined;
+    }
+
+    const details = causeMessage.match(/\((.*)\)\.?$/)?.[1];
+    return details
+      ? `Video element failed to load (${details}).`
+      : "Video element failed to load.";
+  };
+
   const getFriendlyCauseMessage = ({ category, phase, error }) => {
     if (error?.rootCauseMessage) {
       return error.rootCauseMessage;
@@ -249,7 +468,10 @@ const createRouteGraphics = () => {
     }
 
     if (category === "video") {
-      return "Unsupported, damaged, or inaccessible video file.";
+      return (
+        getVideoElementCauseMessage(causeMessage) ??
+        "Unsupported, damaged, or inaccessible video file."
+      );
     }
 
     if (category === "texture" && phase === "image bitmap creation") {
@@ -357,6 +579,25 @@ const createRouteGraphics = () => {
     return `${visibleNames.join(", ")}${suffix}`;
   };
 
+  const formatAssetFailureCauses = (failures) => {
+    const maxVisibleFailures = 3;
+    const visibleCauses = failures
+      .slice(0, maxVisibleFailures)
+      .map((failure) => {
+        const name = formatAssetFailureName(failure);
+        const cause =
+          failure?.rootCauseMessage ||
+          failure?.details?.cause ||
+          getErrorMessage(failure);
+
+        return `${name}: ${truncateErrorValue(cause)}`;
+      });
+    const hiddenCount = failures.length - visibleCauses.length;
+    const suffix = hiddenCount > 0 ? `, and ${hiddenCount} more` : "";
+
+    return `${visibleCauses.join("; ")}${suffix}`;
+  };
+
   const throwAssetLoadFailures = (settledResults) => {
     const failures = settledResults
       .filter((result) => result.status === "rejected")
@@ -370,7 +611,7 @@ const createRouteGraphics = () => {
       throw failures[0];
     }
 
-    const rootCauseMessage = "Check that the files exist and are supported.";
+    const rootCauseMessage = formatAssetFailureCauses(failures);
     const message = `Could not load ${failures.length} assets: ${formatAssetFailureNames(failures)}. ${rootCauseMessage}`;
     const aggregateError = new AggregateError(failures, message);
 
@@ -404,55 +645,6 @@ const createRouteGraphics = () => {
     videoSourceUrls.clear();
   };
 
-  const waitForVideoReady = (video, key) =>
-    new Promise((resolve, reject) => {
-      const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
-
-      if (video.readyState >= haveCurrentData) {
-        resolve();
-        return;
-      }
-
-      let timeoutId;
-      const cleanup = () => {
-        window.clearTimeout(timeoutId);
-        video.removeEventListener("loadeddata", onReady);
-        video.removeEventListener("canplay", onReady);
-        video.removeEventListener("error", onError);
-      };
-      const onReady = () => {
-        cleanup();
-        resolve();
-      };
-      const onError = () => {
-        cleanup();
-        const details = [
-          video.error?.code ? `code=${video.error.code}` : null,
-          video.error?.message ? `message=${video.error.message}` : null,
-          `networkState=${video.networkState}`,
-          `readyState=${video.readyState}`,
-          video.currentSrc ? `src=${video.currentSrc}` : null,
-        ]
-          .filter(Boolean)
-          .join(", ");
-
-        reject(
-          new Error(
-            `Failed to load video asset "${key}"${details ? ` (${details})` : ""}.`,
-          ),
-        );
-      };
-
-      timeoutId = window.setTimeout(() => {
-        cleanup();
-        reject(new Error(`Timed out loading video asset "${key}".`));
-      }, 5000);
-
-      video.addEventListener("loadeddata", onReady, { once: true });
-      video.addEventListener("canplay", onReady, { once: true });
-      video.addEventListener("error", onError, { once: true });
-    });
-
   const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
     if (Assets.cache.has(key)) {
       return Assets.cache.get(key);
@@ -460,19 +652,23 @@ const createRouteGraphics = () => {
 
     const video = document.createElement("video");
     video.crossOrigin = "anonymous";
-    video.preload = "auto";
+    video.preload = "metadata";
     video.playsInline = true;
     video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    const sourceElement = document.createElement("source");
+    sourceElement.src = sourceUrl;
     if (typeof mimeType === "string" && mimeType.length > 0) {
-      video.type = mimeType;
+      sourceElement.type = mimeType;
     }
-    const ready = waitForVideoReady(video, key);
-    video.src = sourceUrl;
+    video.appendChild(sourceElement);
     video.load();
 
-    await ready;
-
-    const texture = Texture.from(video);
+    const alphaMode = await detectVideoAlphaMode();
+    const texture = new Texture({
+      source: createVideoTextureSource(video, alphaMode),
+    });
+    configureManagedVideoTextureUpdates(texture);
     Assets.cache.set(key, texture);
 
     return texture;
