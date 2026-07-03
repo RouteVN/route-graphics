@@ -46,6 +46,7 @@ export const addVideo = ({
   sprite.label = id;
   sprite.zIndex = zIndex;
   sprite._videoEndedListener = undefined;
+  sprite._videoErrorListener = undefined;
   sprite._playbackStateVersion = null;
 
   sprite.x = Math.round(x);

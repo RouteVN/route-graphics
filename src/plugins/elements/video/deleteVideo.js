@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { clearVideoPlaybackTracking } from "./playbackTracking.js";
 import { unregisterManagedVideoSprite } from "./managedVideoTextureSizing.js";
 
 /**
@@ -25,9 +26,7 @@ export const deleteVideo = ({
       }
       const video = videoElement.texture.source.resource;
       if (video) {
-        if (videoElement._videoEndedListener) {
-          video.removeEventListener("ended", videoElement._videoEndedListener);
-        }
+        clearVideoPlaybackTracking({ videoElement, video });
         video.pause();
       }
       unregisterManagedVideoSprite(videoElement);

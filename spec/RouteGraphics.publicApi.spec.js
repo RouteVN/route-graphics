@@ -707,6 +707,104 @@ describe("RouteGraphics public API", () => {
     );
   });
 
+  it("completes render when a lazy video fails after being tracked", async () => {
+    const eventHandler = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler,
+      },
+      pluginsFactory: async () => {
+        const { videoPlugin } =
+          await import("../src/plugins/elements/video/index.js");
+
+        return {
+          elements: [videoPlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+    const createdVideos = [];
+    const originalHTMLVideoElement = globalThis.HTMLVideoElement;
+    Object.defineProperty(globalThis, "HTMLVideoElement", {
+      value: window.HTMLVideoElement,
+      configurable: true,
+    });
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:http://route-graphics/video");
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+
+        if (tagName === "video") {
+          createdVideos.push(element);
+          Object.defineProperty(element, "readyState", {
+            value: 0,
+            configurable: true,
+          });
+          Object.defineProperty(element, "videoWidth", {
+            value: 0,
+            configurable: true,
+          });
+          Object.defineProperty(element, "videoHeight", {
+            value: 0,
+            configurable: true,
+          });
+          element.load = vi.fn();
+          element.pause = vi.fn();
+          element.play = vi.fn();
+        }
+
+        return element;
+      });
+
+    try {
+      await app.loadAssets({
+        introVideo: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "video/mp4",
+        },
+      });
+
+      app.render({
+        id: "failed-video-state",
+        elements: [
+          {
+            id: "intro",
+            type: "video",
+            x: 0,
+            y: 0,
+            width: 320,
+            height: 180,
+            src: "introVideo",
+          },
+        ],
+      });
+
+      expect(eventHandler).not.toHaveBeenCalledWith("renderComplete", {
+        id: "failed-video-state",
+        aborted: false,
+      });
+
+      createdVideos[0].dispatchEvent(new window.Event("error"));
+
+      expect(eventHandler).toHaveBeenCalledWith("renderComplete", {
+        id: "failed-video-state",
+        aborted: false,
+      });
+    } finally {
+      Object.defineProperty(globalThis, "HTMLVideoElement", {
+        value: originalHTMLVideoElement,
+        configurable: true,
+      });
+      createElement.mockRestore();
+      createObjectURL.mockRestore();
+    }
+  });
+
   it("updates lazy video texture when first mounted after frame data is ready", async () => {
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => {
