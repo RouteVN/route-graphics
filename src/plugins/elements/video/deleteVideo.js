@@ -1,4 +1,5 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { unregisterManagedVideoSprite } from "./managedVideoTextureSizing.js";
 
 /**
  * Delete video element
@@ -29,6 +30,7 @@ export const deleteVideo = ({
         }
         video.pause();
       }
+      unregisterManagedVideoSprite(videoElement);
       parent.removeChild(videoElement);
       videoElement.destroy();
     }

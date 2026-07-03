@@ -23,6 +23,11 @@ import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
 import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
 import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRuntime.js";
+import {
+  captureManagedVideoSpriteSizes,
+  clearManagedVideoSprites,
+  restoreManagedVideoSpriteSizes,
+} from "./plugins/elements/video/managedVideoTextureSizing.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -62,7 +67,10 @@ const createRouteGraphics = () => {
       return;
     }
 
+    const spriteSizes = captureManagedVideoSpriteSizes(source);
+
     source.resize?.(video.videoWidth, video.videoHeight);
+    restoreManagedVideoSpriteSizes(spriteSizes);
   };
 
   const createVideoTextureSource = (video, alphaMode) =>
@@ -148,6 +156,7 @@ const createRouteGraphics = () => {
       video.removeEventListener("loadeddata", updateSource);
       video.removeEventListener("canplay", updateSource);
       video.removeEventListener("seeked", updateSource);
+      clearManagedVideoSprites(source);
       source.__routeGraphicsVideoTextureRuntime = undefined;
     };
 

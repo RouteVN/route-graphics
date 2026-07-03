@@ -13,6 +13,7 @@ import {
   hasShaderProgressUpdateAnimation,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
+import { registerManagedVideoSprite } from "./managedVideoTextureSizing.js";
 
 /**
  * Add video element to the stage
@@ -48,6 +49,7 @@ export const addVideo = ({
   sprite.y = Math.round(y);
   sprite.width = Math.round(width);
   sprite.height = Math.round(height);
+  registerManagedVideoSprite(sprite);
   sprite.alpha = alpha ?? 1;
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
