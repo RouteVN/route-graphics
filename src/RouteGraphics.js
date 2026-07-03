@@ -41,16 +41,6 @@ import { cleanupParticlesInTree } from "./plugins/elements/particles/particleRun
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
 
-  const hasVideoMetadata = (video) => {
-    const haveMetadata = window.HTMLMediaElement?.HAVE_METADATA ?? 1;
-
-    return (
-      video.readyState >= haveMetadata &&
-      video.videoWidth > 0 &&
-      video.videoHeight > 0
-    );
-  };
-
   const isRenderableVideoFrameReady = (video) => {
     const haveCurrentData = window.HTMLMediaElement?.HAVE_CURRENT_DATA ?? 2;
 
@@ -60,6 +50,9 @@ const createRouteGraphics = () => {
       video.videoHeight > 0
     );
   };
+
+  const getVideoTextureDimension = (value) =>
+    Number.isFinite(value) && value > 0 ? value : 1;
 
   const syncVideoTextureSourceSize = (source, video) => {
     if (
@@ -75,8 +68,8 @@ const createRouteGraphics = () => {
   const createVideoTextureSource = (video, alphaMode) =>
     new VideoSource({
       resource: video,
-      width: video.videoWidth,
-      height: video.videoHeight,
+      width: getVideoTextureDimension(video.videoWidth),
+      height: getVideoTextureDimension(video.videoHeight),
       autoLoad: false,
       autoPlay: false,
       alphaMode,
@@ -584,61 +577,6 @@ const createRouteGraphics = () => {
     videoSourceUrls.clear();
   };
 
-  const waitForVideoReady = (video, key) =>
-    new Promise((resolve, reject) => {
-      if (hasVideoMetadata(video)) {
-        resolve();
-        return;
-      }
-
-      let timeoutId;
-      const cleanup = () => {
-        window.clearTimeout(timeoutId);
-        video.removeEventListener("loadedmetadata", onReady);
-        video.removeEventListener("loadeddata", onReady);
-        video.removeEventListener("canplay", onReady);
-        video.removeEventListener("canplaythrough", onReady);
-        video.removeEventListener("error", onError);
-      };
-      const onReady = () => {
-        if (!hasVideoMetadata(video)) {
-          return;
-        }
-
-        cleanup();
-        resolve();
-      };
-      const onError = () => {
-        cleanup();
-        const details = [
-          video.error?.code ? `code=${video.error.code}` : null,
-          video.error?.message ? `message=${video.error.message}` : null,
-          `networkState=${video.networkState}`,
-          `readyState=${video.readyState}`,
-          video.currentSrc ? `src=${video.currentSrc}` : null,
-        ]
-          .filter(Boolean)
-          .join(", ");
-
-        reject(
-          new Error(
-            `Failed to load video asset "${key}"${details ? ` (${details})` : ""}.`,
-          ),
-        );
-      };
-
-      timeoutId = window.setTimeout(() => {
-        cleanup();
-        reject(new Error(`Timed out loading video asset "${key}".`));
-      }, 5000);
-
-      video.addEventListener("loadedmetadata", onReady);
-      video.addEventListener("loadeddata", onReady);
-      video.addEventListener("canplay", onReady);
-      video.addEventListener("canplaythrough", onReady);
-      video.addEventListener("error", onError, { once: true });
-    });
-
   const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
     if (Assets.cache.has(key)) {
       return Assets.cache.get(key);
@@ -646,7 +584,7 @@ const createRouteGraphics = () => {
 
     const video = document.createElement("video");
     video.crossOrigin = "anonymous";
-    video.preload = "auto";
+    video.preload = "metadata";
     video.playsInline = true;
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
@@ -655,11 +593,8 @@ const createRouteGraphics = () => {
     if (typeof mimeType === "string" && mimeType.length > 0) {
       sourceElement.type = mimeType;
     }
-    const ready = waitForVideoReady(video, key);
     video.appendChild(sourceElement);
     video.load();
-
-    await ready;
 
     const alphaMode = await detectVideoAlphaMode();
     const texture = new Texture({

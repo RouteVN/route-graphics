@@ -338,7 +338,7 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
 
-  it("loads video assets through metadata-ready HTML video textures", async () => {
+  it("loads video assets through lazy HTML video textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const createdVideos = [];
     const createObjectURL = vi
@@ -353,15 +353,15 @@ describe("RouteGraphics public API", () => {
         if (tagName === "video") {
           createdVideos.push(element);
           Object.defineProperty(element, "readyState", {
-            value: window.HTMLMediaElement.HAVE_METADATA,
+            value: 0,
             configurable: true,
           });
           Object.defineProperty(element, "videoWidth", {
-            value: 1280,
+            value: 0,
             configurable: true,
           });
           Object.defineProperty(element, "videoHeight", {
-            value: 720,
+            value: 0,
             configurable: true,
           });
           element.load = vi.fn();
@@ -414,14 +414,20 @@ describe("RouteGraphics public API", () => {
     const bufferVideoTexture = pixiMock.Assets.cache.set.mock.calls.find(
       ([key]) => key === "bufferVideo",
     )?.[1];
-    expect(bufferVideoTexture.source.width).toBe(1280);
-    expect(bufferVideoTexture.source.height).toBe(720);
+    expect(bufferVideoTexture.source.width).toBe(1);
+    expect(bufferVideoTexture.source.height).toBe(1);
     expect(bufferVideoTexture.source.alphaMode).toBe("premultiplied-alpha");
     expect(bufferVideoTexture.source.update).not.toHaveBeenCalled();
     expect(pixiMock.detectVideoAlphaMode).toHaveBeenCalled();
     expect(createdVideos).toHaveLength(2);
     expect(
       createdVideos.every((video) => video.crossOrigin === "anonymous"),
+    ).toBe(true);
+    expect(createdVideos.every((video) => video.preload === "metadata")).toBe(
+      true,
+    );
+    expect(
+      createdVideos.every((video) => video.load.mock.calls.length === 1),
     ).toBe(true);
     expect(
       createdVideos.every((video) => {
@@ -549,8 +555,8 @@ describe("RouteGraphics public API", () => {
     ]);
   });
 
-  it("surfaces media element diagnostics for multiple video load failures", async () => {
-    const { app } = await setupRouteGraphics();
+  it("does not reject video asset preload when browser defers media readiness", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
     const createdVideos = [];
     const createObjectURL = vi
       .spyOn(URL, "createObjectURL")
@@ -592,7 +598,6 @@ describe("RouteGraphics public API", () => {
         return element;
       });
 
-    let thrownError;
     try {
       await app.loadAssets({
         introVideo: {
@@ -604,34 +609,24 @@ describe("RouteGraphics public API", () => {
           type: "video/mp4",
         },
       });
-    } catch (error) {
-      thrownError = error;
     } finally {
       createElement.mockRestore();
       createObjectURL.mockRestore();
     }
 
     expect(createdVideos).toHaveLength(2);
-    expect(thrownError?.message).toContain(
-      'Could not load 2 assets: video "introVideo", video "outroVideo".',
-    );
-    expect(thrownError?.message).toContain(
-      'video "introVideo": Video element failed to load (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
-    );
-    expect(thrownError?.details?.failures).toEqual([
+    expect(pixiMock.Assets.cache.set).toHaveBeenCalledWith(
+      "introVideo",
       expect.objectContaining({
-        assetKey: "introVideo",
-        assetKind: "video",
-        cause:
-          'Failed to load video asset "introVideo" (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
+        source: expect.any(Object),
       }),
+    );
+    expect(pixiMock.Assets.cache.set).toHaveBeenCalledWith(
+      "outroVideo",
       expect.objectContaining({
-        assetKey: "outroVideo",
-        assetKind: "video",
-        cause:
-          'Failed to load video asset "outroVideo" (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
+        source: expect.any(Object),
       }),
-    ]);
+    );
   });
 
   it("updates the visible stage background graphic color", async () => {
