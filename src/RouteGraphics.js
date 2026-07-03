@@ -355,6 +355,21 @@ const createRouteGraphics = () => {
     return match?.[1];
   };
 
+  const getVideoElementCauseMessage = (causeMessage) => {
+    if (/Timed out loading video asset/i.test(causeMessage)) {
+      return "Timed out while loading video metadata.";
+    }
+
+    if (!/Failed to load video asset/i.test(causeMessage)) {
+      return undefined;
+    }
+
+    const details = causeMessage.match(/\((.*)\)\.?$/)?.[1];
+    return details
+      ? `Video element failed to load (${details}).`
+      : "Video element failed to load.";
+  };
+
   const getFriendlyCauseMessage = ({ category, phase, error }) => {
     if (error?.rootCauseMessage) {
       return error.rootCauseMessage;
@@ -392,7 +407,10 @@ const createRouteGraphics = () => {
     }
 
     if (category === "video") {
-      return "Unsupported, damaged, or inaccessible video file.";
+      return (
+        getVideoElementCauseMessage(causeMessage) ??
+        "Unsupported, damaged, or inaccessible video file."
+      );
     }
 
     if (category === "texture" && phase === "image bitmap creation") {
@@ -500,6 +518,25 @@ const createRouteGraphics = () => {
     return `${visibleNames.join(", ")}${suffix}`;
   };
 
+  const formatAssetFailureCauses = (failures) => {
+    const maxVisibleFailures = 3;
+    const visibleCauses = failures
+      .slice(0, maxVisibleFailures)
+      .map((failure) => {
+        const name = formatAssetFailureName(failure);
+        const cause =
+          failure?.rootCauseMessage ||
+          failure?.details?.cause ||
+          getErrorMessage(failure);
+
+        return `${name}: ${truncateErrorValue(cause)}`;
+      });
+    const hiddenCount = failures.length - visibleCauses.length;
+    const suffix = hiddenCount > 0 ? `, and ${hiddenCount} more` : "";
+
+    return `${visibleCauses.join("; ")}${suffix}`;
+  };
+
   const throwAssetLoadFailures = (settledResults) => {
     const failures = settledResults
       .filter((result) => result.status === "rejected")
@@ -513,7 +550,7 @@ const createRouteGraphics = () => {
       throw failures[0];
     }
 
-    const rootCauseMessage = "Check that the files exist and are supported.";
+    const rootCauseMessage = formatAssetFailureCauses(failures);
     const message = `Could not load ${failures.length} assets: ${formatAssetFailureNames(failures)}. ${rootCauseMessage}`;
     const aggregateError = new AggregateError(failures, message);
 

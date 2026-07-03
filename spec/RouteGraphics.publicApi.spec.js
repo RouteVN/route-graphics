@@ -533,7 +533,7 @@ describe("RouteGraphics public API", () => {
     }
 
     expect(thrownError?.message).toBe(
-      'Could not load 2 assets: audio "click", image "background". Check that the files exist and are supported.',
+      'Could not load 2 assets: audio "click", image "background". audio "click": Unsupported or damaged audio file.; image "background": Missing, inaccessible, or unsupported image file.',
     );
     expect(thrownError?.details?.failures).toEqual([
       expect.objectContaining({
@@ -545,6 +545,91 @@ describe("RouteGraphics public API", () => {
         assetKey: "background",
         assetKind: "image",
         cause: "texture fetch failed",
+      }),
+    ]);
+  });
+
+  it("surfaces media element diagnostics for multiple video load failures", async () => {
+    const { app } = await setupRouteGraphics();
+    const createdVideos = [];
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:http://route-graphics/video");
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+
+        if (tagName === "video") {
+          createdVideos.push(element);
+          Object.defineProperty(element, "readyState", {
+            value: 0,
+            configurable: true,
+          });
+          Object.defineProperty(element, "networkState", {
+            value: 3,
+            configurable: true,
+          });
+          Object.defineProperty(element, "error", {
+            value: {
+              code: 4,
+              message: "No supported source was found",
+            },
+            configurable: true,
+          });
+          Object.defineProperty(element, "currentSrc", {
+            value: "blob:http://route-graphics/video",
+            configurable: true,
+          });
+          element.load = vi.fn(() => {
+            queueMicrotask(() => {
+              element.dispatchEvent(new Event("error"));
+            });
+          });
+        }
+
+        return element;
+      });
+
+    let thrownError;
+    try {
+      await app.loadAssets({
+        introVideo: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "video/mp4",
+        },
+        outroVideo: {
+          buffer: new Uint8Array([4, 5, 6]).buffer,
+          type: "video/mp4",
+        },
+      });
+    } catch (error) {
+      thrownError = error;
+    } finally {
+      createElement.mockRestore();
+      createObjectURL.mockRestore();
+    }
+
+    expect(createdVideos).toHaveLength(2);
+    expect(thrownError?.message).toContain(
+      'Could not load 2 assets: video "introVideo", video "outroVideo".',
+    );
+    expect(thrownError?.message).toContain(
+      'video "introVideo": Video element failed to load (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
+    );
+    expect(thrownError?.details?.failures).toEqual([
+      expect.objectContaining({
+        assetKey: "introVideo",
+        assetKind: "video",
+        cause:
+          'Failed to load video asset "introVideo" (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
+      }),
+      expect.objectContaining({
+        assetKey: "outroVideo",
+        assetKind: "video",
+        cause:
+          'Failed to load video asset "outroVideo" (code=4, message=No supported source was found, networkState=3, readyState=0, src=blob:http://route-graphics/video).',
       }),
     ]);
   });
