@@ -420,6 +420,17 @@ describe("RouteGraphics public API", () => {
     expect(
       createdVideos.every((video) => video.crossOrigin === "anonymous"),
     ).toBe(true);
+    expect(
+      createdVideos.every((video) => {
+        const sourceElement = video.querySelector("source");
+
+        return (
+          sourceElement?.src &&
+          sourceElement.type === "video/mp4" &&
+          video.getAttribute("webkit-playsinline") === ""
+        );
+      }),
+    ).toBe(true);
   });
 
   it("awaits audio asset decoding during loadAssets", async () => {

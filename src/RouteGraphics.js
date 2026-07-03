@@ -602,11 +602,14 @@ const createRouteGraphics = () => {
     video.preload = "auto";
     video.playsInline = true;
     video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    const sourceElement = document.createElement("source");
+    sourceElement.src = sourceUrl;
     if (typeof mimeType === "string" && mimeType.length > 0) {
-      video.type = mimeType;
+      sourceElement.type = mimeType;
     }
     const ready = waitForVideoReady(video, key);
-    video.src = sourceUrl;
+    video.appendChild(sourceElement);
     video.load();
 
     await ready;
