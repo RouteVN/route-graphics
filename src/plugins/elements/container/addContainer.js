@@ -47,6 +47,8 @@ const addChildrenDirectly = ({
   completionTracker,
   signal,
 }) => {
+  const pendingOperations = [];
+
   for (const child of children) {
     const childPlugin = elementPlugins.find(
       (plugin) => plugin.type === child.type,
@@ -55,7 +57,7 @@ const addChildrenDirectly = ({
       throw new Error(`No plugin found for child element type: ${child.type}`);
     }
 
-    childPlugin.add({
+    const operation = childPlugin.add({
       app,
       parent: container,
       element: child,
@@ -67,11 +69,21 @@ const addChildrenDirectly = ({
       completionTracker,
       signal,
     });
+
+    if (operation && typeof operation.then === "function") {
+      pendingOperations.push(operation);
+    }
   }
+
+  if (pendingOperations.length === 0) {
+    return undefined;
+  }
+
+  return Promise.all(pendingOperations).then(() => undefined);
 };
 
 /**
- * Add container element to the stage (synchronous)
+ * Add container element to the stage.
  * @param {import("../elementPlugin").AddElementOptions} params
  */
 export const addContainer = ({
@@ -109,10 +121,11 @@ export const addContainer = ({
   });
 
   parent.addChild(container);
+  let childMountOperation;
 
   if (children && children.length > 0) {
     if (hasDuplicateChildIds(children)) {
-      addChildrenDirectly({
+      childMountOperation = addChildrenDirectly({
         app,
         container,
         children,
@@ -125,7 +138,7 @@ export const addContainer = ({
       });
     } else {
       // Route unique fresh mounts through the planner so child transitions can run.
-      renderElements({
+      childMountOperation = renderElements({
         app,
         parent: container,
         prevComputedTree: [],
@@ -173,4 +186,6 @@ export const addContainer = ({
     },
     renderContext,
   });
+
+  return childMountOperation;
 };

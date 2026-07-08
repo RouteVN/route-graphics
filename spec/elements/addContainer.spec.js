@@ -68,6 +68,49 @@ describe("addContainer", () => {
     );
   });
 
+  it("returns the fresh child mount operation", () => {
+    const parent = new Container();
+    const renderContext = createRenderContext();
+    const childMountOperation = Promise.resolve();
+    renderElements.mockReturnValueOnce(childMountOperation);
+
+    const result = addContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      element: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        children: [
+          {
+            id: "child-1",
+            type: "rect",
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 20,
+          },
+        ],
+      },
+      animations: [],
+      eventHandler: vi.fn(),
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      renderContext,
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toBe(childMountOperation);
+  });
+
   it("dispatches update animations when the container is newly added", () => {
     const parent = new Container();
     const animationBus = { dispatch: vi.fn() };

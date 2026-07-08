@@ -9,11 +9,12 @@ export const setupDebugMode = (animatedSprite, elementId, isDebug, render) => {
   if (!isDebug) return;
 
   const handler = (event) => {
+    const frameIndex = Number(event?.detail?.frameIndex);
     if (
       event?.detail?.elementId === elementId &&
-      typeof event?.detail?.frameIndex === "number"
+      Number.isInteger(frameIndex)
     ) {
-      animatedSprite.gotoAndStop(event?.detail?.frameIndex);
+      animatedSprite.gotoAndStop(frameIndex);
       render?.();
     }
   };

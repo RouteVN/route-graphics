@@ -171,6 +171,8 @@ const createPixiModuleMock = () => {
     }
   }
 
+  class MockAnimatedSprite extends MockSprite {}
+
   class MockFilter {}
 
   class MockFillGradient {
@@ -276,6 +278,7 @@ const createPixiModuleMock = () => {
     },
     Container: MockContainer,
     Sprite: MockSprite,
+    AnimatedSprite: MockAnimatedSprite,
     Filter: MockFilter,
     FillGradient: MockFillGradient,
     GlProgram: MockGlProgram,

@@ -153,14 +153,26 @@ export const queueDeferredUpdateAnimationStart = (
     animationBaseState,
   });
 
-export const flushDeferredMountOperations = (renderContext) => {
+export const flushDeferredMountOperations = (
+  renderContext,
+  shouldFlush = () => true,
+) => {
   if (!renderContext?.deferredMountOperations?.length) {
     return;
   }
 
   const operations = renderContext.deferredMountOperations.splice(0);
+  const deferredOperations = [];
 
   for (const operation of operations) {
-    executeDeferredMountOperation(operation);
+    if (shouldFlush(operation)) {
+      executeDeferredMountOperation(operation);
+    } else {
+      deferredOperations.push(operation);
+    }
+  }
+
+  if (deferredOperations.length > 0) {
+    renderContext.deferredMountOperations.push(...deferredOperations);
   }
 };
