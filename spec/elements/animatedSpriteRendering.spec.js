@@ -603,7 +603,7 @@ describe("spritesheet animation rendering", () => {
       new CustomEvent("snapShotAnimatedSpriteFrame", {
         detail: {
           elementId: "animated-sprite-1",
-          frameIndex: 2,
+          frameIndex: "2",
         },
       }),
     );

@@ -8,7 +8,7 @@ import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.j
 import { createRenderContext } from "./renderContext.js";
 
 /**
- * Render elements using plugin system (synchronous)
+ * Render elements using plugin system.
  * @param {Object} params
  * @param {import('../../types.js').Application} params.app - The PixiJS application
  * @param {import('../../types.js').Container} params.parent - Parent container
@@ -37,6 +37,12 @@ export const renderElements = ({
 }) => {
   // Enable PixiJS built-in sorting by zIndex
   parent.sortableChildren = true;
+  const pendingOperations = [];
+  const collectOperation = (operation) => {
+    if (operation && typeof operation.then === "function") {
+      pendingOperations.push(operation);
+    }
+  };
 
   const pluginByType = new Map(
     elementPlugins.map((plugin) => [plugin.type, plugin]),
@@ -119,7 +125,7 @@ export const renderElements = ({
     }
   }
 
-  // Delete elements (synchronous)
+  // Delete elements
   for (const element of toDeleteElement) {
     const replaceAnimation = renderContext.suppressAnimations
       ? null
@@ -135,40 +141,44 @@ export const renderElements = ({
     }
 
     if (replaceAnimation) {
-      runReplaceAnimation({
+      collectOperation(
+        runReplaceAnimation({
+          app,
+          parent,
+          prevElement: element,
+          nextElement: null,
+          animation: replaceAnimation,
+          animations: animationsByTarget,
+          animationBus,
+          completionTracker,
+          eventHandler,
+          elementPlugins,
+          renderContext,
+          plugin,
+          zIndex: getExistingChildZIndex(element.id),
+          signal,
+        }),
+      );
+      continue;
+    }
+
+    collectOperation(
+      plugin.delete({
         app,
         parent,
-        prevElement: element,
-        nextElement: null,
-        animation: replaceAnimation,
+        element,
         animations: animationsByTarget,
         animationBus,
         completionTracker,
         eventHandler,
         elementPlugins,
         renderContext,
-        plugin,
-        zIndex: getExistingChildZIndex(element.id),
         signal,
-      });
-      continue;
-    }
-
-    plugin.delete({
-      app,
-      parent,
-      element,
-      animations: animationsByTarget,
-      animationBus,
-      completionTracker,
-      eventHandler,
-      elementPlugins,
-      renderContext,
-      signal,
-    });
+      }),
+    );
   }
 
-  // Add elements (synchronous)
+  // Add elements
   for (const element of toAddElement) {
     const replaceAnimation = renderContext.suppressAnimations
       ? null
@@ -190,41 +200,45 @@ export const renderElements = ({
     }
 
     if (replaceAnimation) {
-      runReplaceAnimation({
-        app,
-        parent,
-        prevElement: null,
-        nextElement: element,
-        animation: replaceAnimation,
-        animations: animationsByTarget,
-        animationBus,
-        completionTracker,
-        eventHandler,
-        elementPlugins,
-        renderContext,
-        plugin,
-        zIndex,
-        signal,
-      });
+      collectOperation(
+        runReplaceAnimation({
+          app,
+          parent,
+          prevElement: null,
+          nextElement: element,
+          animation: replaceAnimation,
+          animations: animationsByTarget,
+          animationBus,
+          completionTracker,
+          eventHandler,
+          elementPlugins,
+          renderContext,
+          plugin,
+          zIndex,
+          signal,
+        }),
+      );
       continue;
     }
 
-    plugin.add({
-      app,
-      parent,
-      element,
-      animations: animationsByTarget,
-      eventHandler,
-      animationBus,
-      completionTracker,
-      elementPlugins,
-      renderContext,
-      zIndex,
-      signal,
-    });
+    collectOperation(
+      plugin.add({
+        app,
+        parent,
+        element,
+        animations: animationsByTarget,
+        eventHandler,
+        animationBus,
+        completionTracker,
+        elementPlugins,
+        renderContext,
+        zIndex,
+        signal,
+      }),
+    );
   }
 
-  // Update elements (synchronous)
+  // Update elements
   for (const { prev, next } of toUpdateElement) {
     const plugin = getPlugin(next.type);
 
@@ -244,38 +258,48 @@ export const renderElements = ({
         animationBus.updateContinuation(replaceAnimation.id, { zIndex });
       }
     } else if (replaceAnimation) {
-      runReplaceAnimation({
+      collectOperation(
+        runReplaceAnimation({
+          app,
+          parent,
+          prevElement: prev,
+          nextElement: next,
+          animation: replaceAnimation,
+          animations: animationsByTarget,
+          animationBus,
+          completionTracker,
+          eventHandler,
+          elementPlugins,
+          renderContext,
+          plugin,
+          zIndex,
+          signal,
+        }),
+      );
+      continue;
+    }
+
+    collectOperation(
+      plugin.update({
         app,
         parent,
         prevElement: prev,
         nextElement: next,
-        animation: replaceAnimation,
         animations: animationsByTarget,
         animationBus,
         completionTracker,
         eventHandler,
         elementPlugins,
         renderContext,
-        plugin,
         zIndex,
         signal,
-      });
-      continue;
-    }
-
-    plugin.update({
-      app,
-      parent,
-      prevElement: prev,
-      nextElement: next,
-      animations: animationsByTarget,
-      animationBus,
-      completionTracker,
-      eventHandler,
-      elementPlugins,
-      renderContext,
-      zIndex,
-      signal,
-    });
+      }),
+    );
   }
+
+  if (pendingOperations.length === 0) {
+    return undefined;
+  }
+
+  return Promise.all(pendingOperations).then(() => undefined);
 };

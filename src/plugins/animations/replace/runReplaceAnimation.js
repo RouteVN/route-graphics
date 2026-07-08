@@ -1,4 +1,5 @@
 import {
+  AnimatedSprite,
   Container,
   Filter,
   Matrix,
@@ -137,6 +138,34 @@ const createSnapshotSubject = (app, displayObject) => {
     height: frame.height * Math.abs(wrapper.scale.y),
   };
 };
+
+const createLiveSubject = (displayObject) => {
+  const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
+
+  return {
+    wrapper: displayObject,
+    live: true,
+    width: frame.width * Math.abs(displayObject.scale?.x ?? 1),
+    height: frame.height * Math.abs(displayObject.scale?.y ?? 1),
+  };
+};
+
+const hasAnimatedSpriteInTree = (displayObject) => {
+  if (!displayObject || displayObject.destroyed) {
+    return false;
+  }
+
+  if (displayObject instanceof AnimatedSprite) {
+    return true;
+  }
+
+  return (
+    displayObject.children?.some((child) => hasAnimatedSpriteInTree(child)) ??
+    false
+  );
+};
+
+const isLiveSubject = (subject) => subject?.live === true;
 
 const getSubjectDefaultValue = (property, base) => {
   switch (property) {
@@ -1004,6 +1033,98 @@ const renderOffscreenContainer = ({ app, container, target, frame }) => {
   });
 };
 
+const renderLiveSubjectTexture = ({ app, displayObject, target, frame }) => {
+  const original = {
+    x: displayObject.x ?? 0,
+    y: displayObject.y ?? 0,
+    scaleX: displayObject.scale?.x ?? 1,
+    scaleY: displayObject.scale?.y ?? 1,
+    rotation: displayObject.rotation ?? 0,
+    alpha: displayObject.alpha ?? 1,
+    skewX: displayObject.skew?.x ?? 0,
+    skewY: displayObject.skew?.y ?? 0,
+  };
+
+  try {
+    displayObject.x = 0;
+    displayObject.y = 0;
+    displayObject.scale?.set?.(1, 1);
+    displayObject.rotation = 0;
+    displayObject.alpha = 1;
+    displayObject.skew?.set?.(0, 0);
+    displayObject.updateLocalTransform?.();
+
+    renderOffscreenContainer({
+      app,
+      container: displayObject,
+      target,
+      frame,
+    });
+  } finally {
+    displayObject.x = original.x;
+    displayObject.y = original.y;
+    displayObject.scale?.set?.(original.scaleX, original.scaleY);
+    displayObject.rotation = original.rotation;
+    displayObject.alpha = original.alpha;
+    displayObject.skew?.set?.(original.skewX, original.skewY);
+    displayObject.updateLocalTransform?.();
+  }
+};
+
+const createPlainOverlaySubject = (app, subject) => {
+  if (!isLiveSubject(subject) || !subject?.wrapper) {
+    return {
+      subject,
+      render: () => {},
+      destroy: () => {},
+    };
+  }
+
+  const liveWrapper = subject.wrapper;
+  const frame = normalizeFrame(getLocalBoundsRectangle(liveWrapper));
+  const texture = createShaderRenderTexture(frame.width, frame.height);
+  const sprite = new Sprite(texture);
+  sprite.x = frame.x - (liveWrapper.pivot?.x ?? 0);
+  sprite.y = frame.y - (liveWrapper.pivot?.y ?? 0);
+
+  const wrapper = new Container();
+  wrapper.x = liveWrapper.x ?? 0;
+  wrapper.y = liveWrapper.y ?? 0;
+  wrapper.scale.set(liveWrapper.scale?.x ?? 1, liveWrapper.scale?.y ?? 1);
+  wrapper.rotation = liveWrapper.rotation ?? 0;
+  wrapper.skew?.set?.(liveWrapper.skew?.x ?? 0, liveWrapper.skew?.y ?? 0);
+  wrapper.alpha = liveWrapper.alpha ?? 1;
+  wrapper.addChild(sprite);
+
+  const renderRoot = new Container();
+  renderRoot.addChild(liveWrapper);
+
+  return {
+    subject: {
+      wrapper,
+      width: frame.width * Math.abs(wrapper.scale.x),
+      height: frame.height * Math.abs(wrapper.scale.y),
+    },
+    render: () =>
+      renderLiveSubjectTexture({
+        app,
+        displayObject: liveWrapper,
+        target: texture,
+        frame,
+      }),
+    destroy: () => {
+      if (liveWrapper.parent === renderRoot) {
+        renderRoot.removeChild(liveWrapper);
+      }
+      renderRoot.destroy();
+      if (!wrapper.destroyed) {
+        wrapper.destroy({ children: true });
+      }
+      texture.destroy(true);
+    },
+  };
+};
+
 const detachChildFromParent = (child, parent) => {
   if (!child || child.parent !== parent) {
     return;
@@ -1013,6 +1134,10 @@ const detachChildFromParent = (child, parent) => {
 };
 
 const destroySubjectSnapshot = (subject, app) => {
+  if (isLiveSubject(subject)) {
+    return;
+  }
+
   if (subject?.wrapper && !subject.wrapper.destroyed) {
     cleanupParticlesInTree({ app, root: subject.wrapper });
     subject.wrapper.destroy({ children: true });
@@ -1067,21 +1192,23 @@ const createPlainOverlay = ({
 }) => {
   const overlay = new Container();
   overlay.zIndex = zIndex;
+  const prevOverlaySubject = createPlainOverlaySubject(app, prevSubject);
+  const nextOverlaySubject = createPlainOverlaySubject(app, nextSubject);
 
-  if (prevSubject?.wrapper) {
-    overlay.addChild(prevSubject.wrapper);
+  if (prevOverlaySubject.subject?.wrapper) {
+    overlay.addChild(prevOverlaySubject.subject.wrapper);
   }
 
-  if (nextSubject?.wrapper) {
-    overlay.addChild(nextSubject.wrapper);
+  if (nextOverlaySubject.subject?.wrapper) {
+    overlay.addChild(nextOverlaySubject.subject.wrapper);
   }
 
   const prevController = createSubjectController(
-    prevSubject,
+    prevOverlaySubject.subject,
     animation.prev?.tween,
   );
   const nextController = createSubjectController(
-    nextSubject,
+    nextOverlaySubject.subject,
     animation.next?.tween,
   );
 
@@ -1089,6 +1216,8 @@ const createPlainOverlay = ({
     overlay,
     duration: Math.max(prevController.duration, nextController.duration),
     apply: (time) => {
+      prevOverlaySubject.render();
+      nextOverlaySubject.render();
       prevController.apply(time);
       nextController.apply(time);
     },
@@ -1096,6 +1225,8 @@ const createPlainOverlay = ({
       overlay.removeFromParent();
       cleanupParticlesInTree({ app, root: overlay });
       overlay.destroy({ children: true });
+      prevOverlaySubject.destroy();
+      nextOverlaySubject.destroy();
       destroySubjectSnapshot(prevSubject, app);
       destroySubjectSnapshot(nextSubject, app);
     },
@@ -1454,8 +1585,26 @@ const createReplaceOverlay = ({
   nextSubject,
   zIndex,
 }) => {
+  let replaceOverlay;
+
   if (animation.compositor) {
-    return createCompositorOverlay({
+    replaceOverlay = createCompositorOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  } else if (animation.mask) {
+    replaceOverlay = createMaskedOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  } else {
+    replaceOverlay = createPlainOverlay({
       app,
       animation,
       prevSubject,
@@ -1464,23 +1613,11 @@ const createReplaceOverlay = ({
     });
   }
 
-  if (animation.mask) {
-    return createMaskedOverlay({
-      app,
-      animation,
-      prevSubject,
-      nextSubject,
-      zIndex,
-    });
-  }
-
-  return createPlainOverlay({
-    app,
-    animation,
+  return {
+    ...replaceOverlay,
     prevSubject,
     nextSubject,
-    zIndex,
-  });
+  };
 };
 
 const instantiateNextLiveElement = ({
@@ -1583,9 +1720,6 @@ export const runReplaceAnimation = ({
     );
   }
 
-  const prevSubject = prevDisplayObject
-    ? createSnapshotSubject(app, prevDisplayObject)
-    : null;
   const isPersistent = animation.playback?.continuity === "persistent";
   const continuitySignature = getAnimationContinuitySignature(animation);
   const transitionSignalController = isPersistent
@@ -1622,6 +1756,7 @@ export const runReplaceAnimation = ({
   const nextDisplayObjectRef = { value: null };
   const replaceOverlayRef = { value: null };
   let finalized = false;
+  let previousLiveDeleted = false;
   const cleanupPendingTransition = () => {
     if (typeof animationBus?.removePending === "function") {
       animationBus.removePending(animation.id);
@@ -1646,11 +1781,47 @@ export const runReplaceAnimation = ({
     }
   };
 
+  const deletePreviousLiveElement = () => {
+    const prevSubject = replaceOverlayRef.value?.prevSubject;
+    if (
+      previousLiveDeleted ||
+      !isLiveSubject(prevSubject) ||
+      !prevElement ||
+      !prevDisplayObject ||
+      prevDisplayObject.destroyed
+    ) {
+      return;
+    }
+
+    previousLiveDeleted = true;
+    plugin.delete({
+      app,
+      parent: prevDisplayObject.parent ?? replaceOverlayRef.value.overlay,
+      element: prevElement,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      signal: transitionSignal,
+    });
+  };
+
   const finalize = ({ flushDeferredEffects }) => {
     if (finalized) return;
     finalized = true;
 
+    deletePreviousLiveElement();
+
     if (nextDisplayObjectRef.value && !nextDisplayObjectRef.value.destroyed) {
+      nextDisplayObjectRef.value.zIndex = currentZIndex;
+      if (nextDisplayObjectRef.value.parent !== parent) {
+        nextDisplayObjectRef.value.parent?.removeChild?.(
+          nextDisplayObjectRef.value,
+        );
+        parent.addChild(nextDisplayObjectRef.value);
+      }
       nextDisplayObjectRef.value.visible = true;
     }
 
@@ -1677,7 +1848,6 @@ export const runReplaceAnimation = ({
         clearDeferredMountOperations(hiddenMountContext);
         cleanupParticlesInTree({ app, root: transitionMountParent });
         transitionMountParent.destroy({ children: true });
-        destroySubjectSnapshot(prevSubject, app);
         completeTransition();
       },
       onContinuationUpdate: handleContinuationUpdate,
@@ -1692,7 +1862,6 @@ export const runReplaceAnimation = ({
       clearDeferredMountOperations(hiddenMountContext);
       cleanupParticlesInTree({ app, root: transitionMountParent });
       transitionMountParent.destroy({ children: true });
-      destroySubjectSnapshot(prevSubject, app);
       completeTransition();
       return;
     }
@@ -1706,9 +1875,20 @@ export const runReplaceAnimation = ({
       );
     }
 
-    nextDisplayObjectRef.value = nextDisplayObject;
+    const useLivePlainOverlay =
+      animation.mask === undefined &&
+      animation.compositor === undefined &&
+      (hasAnimatedSpriteInTree(prevDisplayObject) ||
+        hasAnimatedSpriteInTree(nextDisplayObject));
+    const prevSubject = prevDisplayObject
+      ? useLivePlainOverlay
+        ? createLiveSubject(prevDisplayObject)
+        : createSnapshotSubject(app, prevDisplayObject)
+      : null;
     const nextSubject = nextDisplayObject
-      ? createSnapshotSubject(app, nextDisplayObject)
+      ? useLivePlainOverlay
+        ? createLiveSubject(nextDisplayObject)
+        : createSnapshotSubject(app, nextDisplayObject)
       : null;
 
     const overlaySubjects = resolveOverlaySubjects({
@@ -1731,7 +1911,7 @@ export const runReplaceAnimation = ({
     cleanupParticlesInTree({ app, root: transitionMountParent });
     transitionMountParent.destroy({ children: true });
 
-    if (prevDisplayObject) {
+    if (prevDisplayObject && !isLiveSubject(overlaySubjects.prevSubject)) {
       plugin.delete({
         app,
         parent,
@@ -1746,7 +1926,7 @@ export const runReplaceAnimation = ({
       });
     }
 
-    if (nextDisplayObject) {
+    if (nextDisplayObject && !isLiveSubject(overlaySubjects.nextSubject)) {
       nextDisplayObject.zIndex = currentZIndex;
       parent.addChild(nextDisplayObject);
       nextDisplayObject.visible = false;
@@ -1760,8 +1940,15 @@ export const runReplaceAnimation = ({
       zIndex: currentZIndex,
     });
     replaceOverlayRef.value = replaceOverlay;
+    nextDisplayObjectRef.value = nextDisplayObject;
 
     parent.addChild(replaceOverlay.overlay);
+    if (isLiveSubject(overlaySubjects.nextSubject)) {
+      flushDeferredMountOperations(
+        hiddenMountContext,
+        (operation) => operation?.type === "play-animated-sprite",
+      );
+    }
     const animationPayload = {
       id: animation.id,
       driver: "custom",
@@ -1775,6 +1962,7 @@ export const runReplaceAnimation = ({
       deferCompletionUntilNextFrame: animation.compositor !== undefined,
       applyFrame: replaceOverlay.apply,
       applyTargetState: () => {
+        replaceOverlay.apply(replaceOverlay.duration);
         finalize({ flushDeferredEffects: false });
       },
       onComplete: () => {
@@ -1829,13 +2017,12 @@ export const runReplaceAnimation = ({
     nextDisplayObjectOrPromise &&
     typeof nextDisplayObjectOrPromise.then === "function"
   ) {
-    void resolveNextDisplayObject(nextDisplayObjectOrPromise).then(
+    return resolveNextDisplayObject(nextDisplayObjectOrPromise).then(
       continueWithNextDisplayObject,
     );
-    return;
   }
 
-  continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
+  return continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
 };
 
 export default runReplaceAnimation;

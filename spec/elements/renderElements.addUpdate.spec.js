@@ -65,6 +65,56 @@ describe("renderElements add-time update animations", () => {
     ]);
   });
 
+  it("returns a promise that waits for async add operations", async () => {
+    const parent = new Container();
+    let resolveAdd;
+    const addOperation = new Promise((resolve) => {
+      resolveAdd = resolve;
+    });
+    const plugin = {
+      type: "async-test",
+      add: vi.fn(() => addOperation),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    const result = renderElements({
+      app: { renderer: { width: 1280, height: 720 } },
+      parent,
+      prevComputedTree: [],
+      nextComputedTree: [
+        {
+          id: "async-1",
+          type: "async-test",
+        },
+      ],
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 3,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [plugin],
+      signal: new AbortController().signal,
+    });
+
+    let settled = false;
+    result.then(() => {
+      settled = true;
+    });
+
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+
+    resolveAdd();
+    await result;
+
+    expect(settled).toBe(true);
+  });
+
   it("passes update animations to deleted elements so plugins can animate before removal", () => {
     const parent = new Container();
     const child = new Container();

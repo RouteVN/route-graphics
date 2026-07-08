@@ -1,0 +1,182 @@
+---
+title: Container Transition Spritesheet Child
+description: |
+  A same-id container transition should snapshot the destination after nested
+  spritesheet children finish their async atlas mount.
+specs:
+  - halfway through the crossfade, the incoming nested spritesheet should show the live selected frame
+  - the final frame should keep the spritesheet child visible in the destination container
+steps:
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 500
+  - action: customEvent
+    name: "snapShotAnimatedSpriteFrame"
+    detail:
+      elementId: "destination-spritesheet"
+      frameIndex: 1
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: source-container
+    elements:
+      - id: scene-root
+        type: container
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        alpha: 1
+        children:
+          - id: source-bg
+            type: rect
+            x: 0
+            "y": 0
+            width: 1280
+            height: 720
+            fill: "#18232F"
+          - id: source-platform
+            type: rect
+            x: 390
+            "y": 500
+            width: 500
+            height: 56
+            fill: "#6E7F91"
+          - id: source-body
+            type: rect
+            x: 502
+            "y": 190
+            width: 250
+            height: 330
+            fill: "#4B6881"
+          - id: source-label
+            type: text
+            x: 470
+            "y": 584
+            content: "Source container"
+            textStyle:
+              fontSize: 34
+              fill: "#E8EEF5"
+  - id: destination-container
+    elements:
+      - id: scene-root
+        type: container
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        alpha: 1
+        children:
+          - id: destination-bg
+            type: rect
+            x: 0
+            "y": 0
+            width: 1280
+            height: 720
+            fill: "#2D1B28"
+          - id: destination-platform
+            type: rect
+            x: 390
+            "y": 500
+            width: 500
+            height: 56
+            fill: "#C0A15A"
+          - id: destination-body
+            type: rect
+            x: 502
+            "y": 190
+            width: 250
+            height: 330
+            fill: "#70546F"
+          - id: destination-spritesheet
+            type: spritesheet-animation
+            x: 530
+            "y": 240
+            width: 220
+            height: 220
+            src: sprite-mask-asym-outgoing
+            atlas:
+              frames:
+                red-triangle.png:
+                  frame:
+                    x: 0
+                    "y": 0
+                    w: 220
+                    h: 220
+                  rotated: false
+                  trimmed: false
+                  spriteSourceSize:
+                    x: 0
+                    "y": 0
+                    w: 220
+                    h: 220
+                  sourceSize:
+                    w: 220
+                    h: 220
+                green-circle.png:
+                  frame:
+                    x: 1000
+                    "y": 100
+                    w: 220
+                    h: 220
+                  rotated: false
+                  trimmed: false
+                  spriteSourceSize:
+                    x: 0
+                    "y": 0
+                    w: 220
+                    h: 220
+                  sourceSize:
+                    w: 220
+                    h: 220
+              meta:
+                format: RGBA8888
+                size:
+                  w: 1280
+                  h: 720
+                scale: "1"
+            playback:
+              frames:
+                - 0
+                - 1
+              fps: 1
+              loop: false
+            alpha: 1
+          - id: destination-label
+            type: text
+            x: 440
+            "y": 584
+            content: "Destination spritesheet"
+            textStyle:
+              fontSize: 34
+              fill: "#FFF4CC"
+    animations:
+      - id: scene-root-crossfade
+        targetId: scene-root
+        type: transition
+        prev:
+          tween:
+            alpha:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 0
+                  easing: linear
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear
