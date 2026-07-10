@@ -340,6 +340,24 @@ const createRouteGraphics = () => {
   let canvasContextMenuListener;
 
   /**
+   * @type {(event: Event) => void | undefined}
+   */
+  let canvasWebglContextLostListener;
+
+  /**
+   * @type {(event: Event) => void | undefined}
+   */
+  let canvasWebglContextRestoredListener;
+
+  /**
+   * Assets created by this Route Graphics instance and eligible for explicit
+   * unload. Cache entries owned by another instance are intentionally not
+   * claimed when encountered.
+   * @type {Map<string, { category: string, value?: unknown, managedByAssets?: boolean }>}
+   */
+  const loadedAssetRecords = new Map();
+
+  /**
    * Video source URLs created or attached in loadAssets; revokable blob URLs
    * are cleaned up on destroy.
    * @type {Map<string, { url: string, revokable: boolean }>}
@@ -636,13 +654,82 @@ const createRouteGraphics = () => {
     });
   };
 
+  const revokeVideoSourceUrl = (key) => {
+    const value = videoSourceUrls.get(key);
+    if (value?.revokable === true && typeof value?.url === "string") {
+      URL.revokeObjectURL(value.url);
+    }
+    videoSourceUrls.delete(key);
+  };
+
   const revokeVideoBlobUrls = () => {
-    for (const value of videoSourceUrls.values()) {
-      if (value?.revokable === true && typeof value?.url === "string") {
-        URL.revokeObjectURL(value.url);
+    for (const key of videoSourceUrls.keys()) {
+      revokeVideoSourceUrl(key);
+    }
+  };
+
+  const recordLoadedAsset = (key, record) => {
+    loadedAssetRecords.set(key, record);
+    return record.value;
+  };
+
+  const releaseTextureResource = (resource) => {
+    const isVideoElement =
+      resource?.nodeName === "VIDEO" ||
+      (typeof HTMLVideoElement !== "undefined" &&
+        resource instanceof HTMLVideoElement);
+    if (isVideoElement) {
+      resource.pause();
+      resource.removeAttribute("src");
+      resource.querySelectorAll("source").forEach((source) => source.remove());
+      resource.load();
+      return;
+    }
+
+    if (typeof resource?.close === "function") {
+      resource.close();
+    }
+  };
+
+  const unloadTextureRecord = async (key, record) => {
+    const texture = record.value;
+    const resource = texture?.source?.resource;
+
+    if (record.managedByAssets === true) {
+      await Assets.unload(key);
+    } else {
+      if (Assets.cache.has(key)) {
+        Assets.cache.remove(key);
+      }
+      if (!texture?.destroyed) {
+        texture?.destroy?.(true);
       }
     }
-    videoSourceUrls.clear();
+
+    releaseTextureResource(resource);
+  };
+
+  const unloadAsset = async (key) => {
+    const record = loadedAssetRecords.get(key);
+    if (!record) {
+      return false;
+    }
+
+    if (record.category === "audio") {
+      AudioAsset.unload(key);
+    } else if (record.category === "font") {
+      document.fonts?.delete?.(record.value);
+    } else if (record.category === "texture" || record.category === "video") {
+      await unloadTextureRecord(key, record);
+      if (record.category === "video") {
+        revokeVideoSourceUrl(key);
+      }
+    }
+
+    if (loadedAssetRecords.get(key) === record) {
+      loadedAssetRecords.delete(key);
+    }
+    return true;
   };
 
   const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
@@ -947,6 +1034,28 @@ const createRouteGraphics = () => {
         event.preventDefault();
       };
       app.canvas.addEventListener("contextmenu", canvasContextMenuListener);
+      canvasWebglContextLostListener = (event) => {
+        event.preventDefault();
+        const payload = {};
+        if (
+          typeof event.statusMessage === "string" &&
+          event.statusMessage.length > 0
+        ) {
+          payload.statusMessage = event.statusMessage;
+        }
+        eventHandler?.("rendererContextLost", payload);
+      };
+      canvasWebglContextRestoredListener = () => {
+        eventHandler?.("rendererContextRestored", {});
+      };
+      app.canvas.addEventListener(
+        "webglcontextlost",
+        canvasWebglContextLostListener,
+      );
+      app.canvas.addEventListener(
+        "webglcontextrestored",
+        canvasWebglContextRestoredListener,
+      );
 
       backgroundGraphic = new Graphics();
       backgroundGraphic.label = "__route_graphics_background__";
@@ -1022,6 +1131,20 @@ const createRouteGraphics = () => {
         );
         canvasContextMenuListener = undefined;
       }
+      if (canvasWebglContextLostListener && app?.canvas) {
+        app.canvas.removeEventListener(
+          "webglcontextlost",
+          canvasWebglContextLostListener,
+        );
+        canvasWebglContextLostListener = undefined;
+      }
+      if (canvasWebglContextRestoredListener && app?.canvas) {
+        app.canvas.removeEventListener(
+          "webglcontextrestored",
+          canvasWebglContextRestoredListener,
+        );
+        canvasWebglContextRestoredListener = undefined;
+      }
       app?.inputDomBridge?.destroy?.();
       keyboardManager?.destroy();
       clearPendingSounds();
@@ -1091,8 +1214,16 @@ const createRouteGraphics = () => {
               asset,
             },
             async () => {
+              const existingRecord = loadedAssetRecords.get(key);
+              if (existingRecord?.category === "audio") {
+                return existingRecord.value;
+              }
               assertAssetBuffer(asset, "Audio");
-              return AudioAsset.load(key, asset.buffer);
+              const audioBuffer = await AudioAsset.load(key, asset.buffer);
+              return recordLoadedAsset(key, {
+                category: "audio",
+                value: audioBuffer,
+              });
             },
           ),
         });
@@ -1109,6 +1240,10 @@ const createRouteGraphics = () => {
               asset,
             },
             async () => {
+              const existingRecord = loadedAssetRecords.get(key);
+              if (existingRecord?.category === "font") {
+                return existingRecord.value;
+              }
               assertAssetBuffer(asset, "Font");
               const blob = new Blob([asset.buffer], { type: asset.type });
               const url = URL.createObjectURL(blob);
@@ -1117,6 +1252,10 @@ const createRouteGraphics = () => {
               try {
                 await fontFace.load();
                 document.fonts.add(fontFace);
+                return recordLoadedAsset(key, {
+                  category: "font",
+                  value: fontFace,
+                });
               } finally {
                 URL.revokeObjectURL(url);
               }
@@ -1139,14 +1278,23 @@ const createRouteGraphics = () => {
               asset,
             },
             async () => {
+              const existingRecord = loadedAssetRecords.get(key);
+              if (existingRecord?.category === "texture") {
+                return existingRecord.value;
+              }
               if (Assets.cache.has(key)) {
                 return Assets.cache.get(key);
               }
 
               if (asset?.source === "url" && typeof asset?.url === "string") {
-                return Assets.load({
+                const texture = await Assets.load({
                   alias: key,
                   src: asset.url,
+                });
+                return recordLoadedAsset(key, {
+                  category: "texture",
+                  value: texture,
+                  managedByAssets: true,
                 });
               }
 
@@ -1159,7 +1307,11 @@ const createRouteGraphics = () => {
               // directly from the cache instead of attempting a relative URL fetch.
               Assets.cache.set(key, texture);
 
-              return texture;
+              return recordLoadedAsset(key, {
+                category: "texture",
+                value: texture,
+                managedByAssets: false,
+              });
             },
           ),
         }),
@@ -1178,6 +1330,10 @@ const createRouteGraphics = () => {
               asset,
             },
             async () => {
+              const existingRecord = loadedAssetRecords.get(key);
+              if (existingRecord?.category === "video") {
+                return existingRecord.value;
+              }
               if (Assets.cache.has(key)) {
                 return Assets.cache.get(key);
               }
@@ -1199,10 +1355,15 @@ const createRouteGraphics = () => {
               });
 
               try {
-                return await loadVideoTexture({
+                const texture = await loadVideoTexture({
                   key,
                   sourceUrl,
                   mimeType: asset?.type,
+                });
+                return recordLoadedAsset(key, {
+                  category: "video",
+                  value: texture,
+                  managedByAssets: false,
                 });
               } catch (error) {
                 videoSourceUrls.delete(key);
@@ -1230,12 +1391,72 @@ const createRouteGraphics = () => {
         .filter(Boolean);
     },
 
+    /**
+     * Unload assets previously created by this Route Graphics instance.
+     * Unknown or already-unloaded keys are ignored.
+     * @param {string[]} assetIds
+     * @returns {Promise<string[]>} Asset IDs successfully unloaded
+     */
+    unloadAssets: async (assetIds) => {
+      if (!Array.isArray(assetIds)) {
+        throw new Error("assetIds must be an array");
+      }
+
+      const uniqueAssetIds = Array.from(
+        new Set(
+          assetIds.filter(
+            (assetId) => typeof assetId === "string" && assetId.length > 0,
+          ),
+        ),
+      );
+      const unloadedAssetIds = [];
+      const failures = [];
+
+      for (const assetId of uniqueAssetIds) {
+        try {
+          if (await unloadAsset(assetId)) {
+            unloadedAssetIds.push(assetId);
+          }
+        } catch (cause) {
+          const error = new Error(`Could not unload asset "${assetId}".`, {
+            cause,
+          });
+          error.details = {
+            assetKey: assetId,
+            phase: "unload",
+            cause: getErrorMessage(cause),
+          };
+          failures.push(error);
+        }
+      }
+
+      if (failures.length === 1) {
+        throw failures[0];
+      }
+      if (failures.length > 1) {
+        throw new AggregateError(
+          failures,
+          `Could not unload ${failures.length} assets.`,
+        );
+      }
+
+      return unloadedAssetIds;
+    },
+
     loadAudioAssets: async (urls) => {
       return Promise.all(
         urls.map(async (url) => {
+          const existingRecord = loadedAssetRecords.get(url);
+          if (existingRecord?.category === "audio") {
+            return existingRecord.value;
+          }
           const response = await fetch(url);
           const arrayBuffer = await response.arrayBuffer();
-          return AudioAsset.load(url, arrayBuffer);
+          const audioBuffer = await AudioAsset.load(url, arrayBuffer);
+          return recordLoadedAsset(url, {
+            category: "audio",
+            value: audioBuffer,
+          });
         }),
       );
     },

@@ -74,6 +74,53 @@ describe("AudioAsset", () => {
     expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
   });
 
+  it("unloads decoded audio and permits the key to be loaded again", async () => {
+    const { AudioAsset, context, decodedBuffer } = await setupAudioAsset();
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("click", arrayBuffer);
+
+    expect(AudioAsset.unload("click")).toBe(true);
+    expect(AudioAsset.getAsset("click")).toBeUndefined();
+    expect(AudioAsset.unload("click")).toBe(false);
+
+    await expect(AudioAsset.load("click", arrayBuffer)).resolves.toBe(
+      decodedBuffer,
+    );
+    expect(context.decodeAudioData).toHaveBeenCalledTimes(2);
+    expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
+  });
+
+  it("does not repopulate the cache when an in-flight decode is unloaded", async () => {
+    vi.resetModules();
+
+    let resolveDecode;
+    const decodedBuffer = { decoded: true };
+    const context = {
+      decodeAudioData: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveDecode = () => resolve(decodedBuffer);
+          }),
+      ),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const loadPromise = AudioAsset.load(
+      "voice-line",
+      new Uint8Array([1, 2, 3]).buffer,
+    );
+
+    expect(AudioAsset.unload("voice-line")).toBe(true);
+    resolveDecode();
+    await expect(loadPromise).resolves.toBe(decodedBuffer);
+
+    expect(AudioAsset.getAsset("voice-line")).toBeUndefined();
+  });
+
   it("rejects decode failures with asset context and root cause", async () => {
     vi.resetModules();
 
