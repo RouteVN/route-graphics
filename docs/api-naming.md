@@ -125,6 +125,9 @@ Event names are semantic Route Graphics events, not native input events.
 - These are renderer lifecycle events, not element interaction events.
 - Consumers should use them to show renderer-independent fallback UI and
   rebuild renderer-owned assets.
+- WebGL can emit both events. WebGPU device loss emits `rendererContextLost`,
+  but a lost WebGPU device cannot be restored; recreate the Route Graphics
+  instance instead of waiting for `rendererContextRestored`.
 - Browser-native names such as `webglcontextlost` and `webglcontextrestored`
   remain internal implementation details.
 

@@ -10,9 +10,31 @@ const createMockBounds = (width, height) => ({
   },
 });
 
-const createPixiModuleMock = () => {
+const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
   let lastApplication = null;
   const assetCache = new Map();
+  const assetCacheGroups = new Map();
+  const assetValues = new Map();
+
+  const removeCachedAsset = (key) => {
+    const cacheKeys = assetCacheGroups.get(key) ?? [key];
+    cacheKeys.forEach((cacheKey) => assetCache.delete(cacheKey));
+    assetCacheGroups.delete(key);
+    assetValues.delete(key);
+  };
+
+  const setCachedAsset = (key, value) => {
+    removeCachedAsset(key);
+    const cacheKeys = Array.isArray(value)
+      ? value.map((_, index) => `${key}${index === 0 ? "" : index + 1}`)
+      : [key];
+
+    cacheKeys.forEach((cacheKey, index) => {
+      assetCache.set(cacheKey, Array.isArray(value) ? value[index] : value);
+    });
+    assetCacheGroups.set(key, cacheKeys);
+    assetValues.set(key, value);
+  };
 
   class MockDisplayObject {
     constructor(label = null) {
@@ -240,6 +262,7 @@ const createPixiModuleMock = () => {
         extract: {
           base64: vi.fn(),
         },
+        ...rendererOverrides,
       };
       this.canvas = document.createElement("canvas");
     }
@@ -259,15 +282,16 @@ const createPixiModuleMock = () => {
       registerPlugin: vi.fn(),
       load: vi.fn(),
       unload: vi.fn(async (key) => {
-        const asset = assetCache.get(key);
-        assetCache.delete(key);
-        asset?.destroy?.(true);
+        const asset = assetValues.get(key) ?? assetCache.get(key);
+        removeCachedAsset(key);
+        const assets = Array.isArray(asset) ? asset : [asset];
+        assets.forEach((value) => value?.destroy?.(true));
       }),
       cache: {
         has: vi.fn((key) => assetCache.has(key)),
         get: vi.fn((key) => assetCache.get(key)),
-        set: vi.fn((key, value) => assetCache.set(key, value)),
-        remove: vi.fn((key) => assetCache.delete(key)),
+        set: vi.fn(setCachedAsset),
+        remove: vi.fn(removeCachedAsset),
       },
     },
     detectVideoAlphaMode: vi.fn().mockResolvedValue("premultiplied-alpha"),
@@ -356,13 +380,14 @@ let currentApp = null;
 const setupRouteGraphics = async ({
   initOptions = {},
   pluginsFactory,
+  rendererOverrides,
   audioAsset = {
     load: vi.fn(),
     getAsset: vi.fn(),
     unload: vi.fn(),
   },
 } = {}) => {
-  const pixiMock = createPixiModuleMock();
+  const pixiMock = createPixiModuleMock({ rendererOverrides });
 
   vi.doMock("pixi.js", () => pixiMock);
   vi.doMock("../src/AudioStage.js", () => ({
@@ -396,7 +421,7 @@ const setupRouteGraphics = async ({
 
   currentApp = app;
 
-  return { app, pixiMock, audioAsset };
+  return { app, pixiMock, audioAsset, createRouteGraphics };
 };
 
 const getAutoAnimationTick = (pixiMock) =>
@@ -461,20 +486,21 @@ describe("RouteGraphics public API", () => {
 
   it("uses Pixi asset unloading for URL-backed textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
+    const sourceUrl = "https://cdn.example.test/background.png";
     const resource = { close: vi.fn() };
     const texture = {
       source: { resource },
       destroy: vi.fn(),
     };
-    pixiMock.Assets.load.mockImplementation(async ({ alias }) => {
-      pixiMock.Assets.cache.set(alias, texture);
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      pixiMock.Assets.cache.set(url, texture);
       return texture;
     });
 
     await app.loadAssets({
       background: {
         source: "url",
-        url: "https://cdn.example.test/background.png",
+        url: sourceUrl,
         type: "image/png",
       },
     });
@@ -482,9 +508,332 @@ describe("RouteGraphics public API", () => {
       "background",
     ]);
 
-    expect(pixiMock.Assets.unload).toHaveBeenCalledWith("background");
+    expect(pixiMock.Assets.load).toHaveBeenCalledWith(sourceUrl);
+    expect(pixiMock.Assets.unload).toHaveBeenCalledWith(sourceUrl);
     expect(texture.destroy).toHaveBeenCalledWith(true);
     expect(resource.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains URL-backed textures shared by multiple aliases", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const sourceUrl = "https://cdn.example.test/shared-background.png";
+    const resource = { close: vi.fn() };
+    const texture = {
+      source: { resource },
+      destroy: vi.fn(),
+    };
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      if (!pixiMock.Assets.cache.has(url)) {
+        pixiMock.Assets.cache.set(url, texture);
+      }
+      return pixiMock.Assets.cache.get(url);
+    });
+
+    await app.loadAssets({
+      backgroundDay: {
+        source: "url",
+        url: sourceUrl,
+        type: "image/png",
+      },
+      backgroundNight: {
+        source: "url",
+        url: sourceUrl,
+        type: "image/png",
+      },
+    });
+
+    await expect(app.unloadAssets(["backgroundDay"])).resolves.toEqual([
+      "backgroundDay",
+    ]);
+    expect(pixiMock.Assets.unload).not.toHaveBeenCalled();
+    expect(texture.destroy).not.toHaveBeenCalled();
+    expect(resource.close).not.toHaveBeenCalled();
+    expect(pixiMock.Assets.cache.get("backgroundNight")).toBe(texture);
+
+    await expect(app.unloadAssets(["backgroundNight"])).resolves.toEqual([
+      "backgroundNight",
+    ]);
+    expect(pixiMock.Assets.unload).toHaveBeenCalledTimes(1);
+    expect(pixiMock.Assets.unload).toHaveBeenCalledWith(sourceUrl);
+    expect(texture.destroy).toHaveBeenCalledWith(true);
+    expect(resource.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares ownership for relative and absolute forms of one Pixi URL", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const relativeUrl = "/shared/equivalent.png";
+    const absoluteUrl = "https://cdn.example.test/shared/equivalent.png";
+    pixiMock.Assets.resolver = {
+      resolve: vi.fn(() => ({ src: absoluteUrl })),
+    };
+    const texture = {
+      source: { resource: { close: vi.fn() } },
+      destroy: vi.fn(),
+    };
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      pixiMock.Assets.cache.set(url, texture);
+      return texture;
+    });
+
+    await app.loadAssets({
+      relativeBackground: {
+        source: "url",
+        url: relativeUrl,
+        type: "image/png",
+      },
+      absoluteBackground: {
+        source: "url",
+        url: absoluteUrl,
+        type: "image/png",
+      },
+    });
+
+    expect(pixiMock.Assets.load).toHaveBeenCalledTimes(1);
+    await app.unloadAssets(["relativeBackground"]);
+    expect(pixiMock.Assets.unload).not.toHaveBeenCalled();
+    expect(texture.destroy).not.toHaveBeenCalled();
+    expect(pixiMock.Assets.cache.get("absoluteBackground")).toBe(texture);
+
+    await app.unloadAssets(["absoluteBackground"]);
+    expect(pixiMock.Assets.unload).toHaveBeenCalledTimes(1);
+    expect(texture.destroy).toHaveBeenCalledWith(true);
+  });
+
+  it("reserves URL texture ownership before a cross-instance load settles", async () => {
+    const {
+      app: firstApp,
+      pixiMock,
+      createRouteGraphics,
+    } = await setupRouteGraphics();
+    const secondApp = createRouteGraphics();
+    await secondApp.init({
+      width: 320,
+      height: 240,
+      backgroundColor: 0x000000,
+      plugins: { elements: [], animations: [], audio: [] },
+    });
+    const sourceUrl = "https://cdn.example.test/racing-background.png";
+    const texture = {
+      source: { resource: { close: vi.fn() } },
+      destroy: vi.fn(),
+    };
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      pixiMock.Assets.cache.set(url, texture);
+      return texture;
+    });
+
+    try {
+      await firstApp.loadAssets({
+        firstBackground: {
+          source: "url",
+          url: sourceUrl,
+          type: "image/png",
+        },
+      });
+
+      const secondLoadPromise = secondApp.loadAssets({
+        secondBackground: {
+          source: "url",
+          url: sourceUrl,
+          type: "image/png",
+        },
+      });
+      await expect(firstApp.unloadAssets(["firstBackground"])).resolves.toEqual(
+        ["firstBackground"],
+      );
+
+      expect(pixiMock.Assets.unload).not.toHaveBeenCalled();
+      expect(texture.destroy).not.toHaveBeenCalled();
+      await expect(secondLoadPromise).resolves.toEqual([texture]);
+      expect(pixiMock.Assets.cache.get("secondBackground")).toBe(texture);
+
+      await secondApp.unloadAssets(["secondBackground"]);
+      expect(pixiMock.Assets.unload).toHaveBeenCalledWith(sourceUrl);
+      expect(texture.destroy).toHaveBeenCalledWith(true);
+    } finally {
+      secondApp.destroy();
+    }
+  });
+
+  it("removes every logical cache key for URL texture arrays before reload", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const sourceUrl = "https://cdn.example.test/characters.json";
+    const loadedTextureArrays = [];
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      const textures = [
+        {
+          source: { resource: { close: vi.fn() } },
+          destroy: vi.fn(),
+        },
+        {
+          source: { resource: { close: vi.fn() } },
+          destroy: vi.fn(),
+        },
+      ];
+      loadedTextureArrays.push(textures);
+      pixiMock.Assets.cache.set(url, textures);
+      return textures;
+    });
+    const asset = {
+      source: "url",
+      url: sourceUrl,
+      type: "application/json",
+    };
+
+    await app.loadAssets({ characters: asset });
+    expect(pixiMock.Assets.cache.get("characters")).toBe(
+      loadedTextureArrays[0][0],
+    );
+    expect(pixiMock.Assets.cache.get("characters2")).toBe(
+      loadedTextureArrays[0][1],
+    );
+
+    await app.unloadAssets(["characters"]);
+    expect(pixiMock.Assets.cache.has("characters")).toBe(false);
+    expect(pixiMock.Assets.cache.has("characters2")).toBe(false);
+    expect(loadedTextureArrays[0][0].destroy).toHaveBeenCalledWith(true);
+    expect(loadedTextureArrays[0][1].destroy).toHaveBeenCalledWith(true);
+
+    await app.loadAssets({ characters: asset });
+    expect(pixiMock.Assets.load).toHaveBeenCalledTimes(2);
+    expect(pixiMock.Assets.cache.get("characters")).toBe(
+      loadedTextureArrays[1][0],
+    );
+    expect(pixiMock.Assets.cache.get("characters2")).toBe(
+      loadedTextureArrays[1][1],
+    );
+
+    await app.unloadAssets(["characters"]);
+  });
+
+  it("reloads a URL-backed key from its new source URL", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const firstUrl = "https://cdn.example.test/background.png?token=old";
+    const secondUrl = "https://cdn.example.test/background.png?token=new";
+    const loadedTextures = [];
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      const texture = {
+        source: { resource: { close: vi.fn() } },
+        destroy: vi.fn(),
+        url,
+      };
+      loadedTextures.push(texture);
+      pixiMock.Assets.cache.set(url, texture);
+      return texture;
+    });
+
+    await app.loadAssets({
+      background: { source: "url", url: firstUrl, type: "image/png" },
+    });
+    await app.unloadAssets(["background"]);
+    await app.loadAssets({
+      background: { source: "url", url: secondUrl, type: "image/png" },
+    });
+
+    expect(pixiMock.Assets.load.mock.calls.map(([url]) => url)).toEqual([
+      firstUrl,
+      secondUrl,
+    ]);
+    expect(pixiMock.Assets.unload).toHaveBeenCalledWith(firstUrl);
+    expect(loadedTextures[0].destroy).toHaveBeenCalledWith(true);
+    expect(pixiMock.Assets.cache.get("background")).toBe(loadedTextures[1]);
+
+    await app.unloadAssets(["background"]);
+  });
+
+  it("honors unload requests while a texture load is pending", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    let resolveImageBitmap;
+    const imageBitmap = { width: 8, height: 6, close: vi.fn() };
+    const createImageBitmap = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveImageBitmap = resolve;
+        }),
+    );
+    vi.stubGlobal("createImageBitmap", createImageBitmap);
+
+    const loadPromise = app.loadAssets({
+      portrait: {
+        buffer: new Uint8Array([1, 2, 3]).buffer,
+        type: "image/png",
+      },
+    });
+    await vi.waitFor(() => {
+      expect(createImageBitmap).toHaveBeenCalledTimes(1);
+    });
+
+    let unloadSettled = false;
+    const unloadPromise = app.unloadAssets(["portrait"]).then((result) => {
+      unloadSettled = true;
+      return result;
+    });
+    await Promise.resolve();
+    expect(unloadSettled).toBe(false);
+
+    resolveImageBitmap(imageBitmap);
+    await loadPromise;
+    await expect(unloadPromise).resolves.toEqual(["portrait"]);
+
+    const texture = pixiMock.Assets.cache.set.mock.calls.find(
+      ([key]) => key === "portrait",
+    )?.[1];
+    expect(pixiMock.Assets.cache.has("portrait")).toBe(false);
+    expect(texture.destroy).toHaveBeenCalledWith(true);
+    expect(imageBitmap.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("deduplicates pending buffer texture loads across instances", async () => {
+    const {
+      app: firstApp,
+      pixiMock,
+      createRouteGraphics,
+    } = await setupRouteGraphics();
+    const secondApp = createRouteGraphics();
+    await secondApp.init({
+      width: 320,
+      height: 240,
+      backgroundColor: 0x000000,
+      plugins: { elements: [], animations: [], audio: [] },
+    });
+    let resolveImageBitmap;
+    const imageBitmap = { width: 8, height: 6, close: vi.fn() };
+    const createImageBitmap = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveImageBitmap = resolve;
+        }),
+    );
+    vi.stubGlobal("createImageBitmap", createImageBitmap);
+    const asset = {
+      buffer: new Uint8Array([1, 2, 3]).buffer,
+      type: "image/png",
+    };
+
+    try {
+      const firstLoad = firstApp.loadAssets({ portrait: asset });
+      const secondLoad = secondApp.loadAssets({ portrait: asset });
+
+      expect(createImageBitmap).toHaveBeenCalledTimes(1);
+      resolveImageBitmap(imageBitmap);
+      const [[firstTexture], [secondTexture]] = await Promise.all([
+        firstLoad,
+        secondLoad,
+      ]);
+
+      expect(firstTexture).toBe(secondTexture);
+      expect(pixiMock.Assets.cache.get("portrait")).toBe(firstTexture);
+
+      await firstApp.unloadAssets(["portrait"]);
+      expect(firstTexture.destroy).not.toHaveBeenCalled();
+      expect(pixiMock.Assets.cache.get("portrait")).toBe(firstTexture);
+
+      await secondApp.unloadAssets(["portrait"]);
+      expect(firstTexture.destroy).toHaveBeenCalledWith(true);
+      expect(imageBitmap.close).toHaveBeenCalledTimes(1);
+    } finally {
+      secondApp.destroy();
+    }
   });
 
   it("unloads audio and font assets", async () => {
@@ -534,6 +883,55 @@ describe("RouteGraphics public API", () => {
     }
   });
 
+  it("retains audio shared by separate Route Graphics instances", async () => {
+    const decodedAudio = { decoded: true };
+    let cachedAudio;
+    const audioAsset = {
+      load: vi.fn(async () => {
+        cachedAudio ??= decodedAudio;
+        return cachedAudio;
+      }),
+      getAsset: vi.fn(() => cachedAudio),
+      unload: vi.fn(() => {
+        cachedAudio = undefined;
+        return true;
+      }),
+    };
+    const { app: firstApp, createRouteGraphics } = await setupRouteGraphics({
+      audioAsset,
+    });
+    const secondApp = createRouteGraphics();
+    await secondApp.init({
+      width: 320,
+      height: 240,
+      backgroundColor: 0x000000,
+      plugins: { elements: [], animations: [], audio: [] },
+    });
+    const clickAsset = {
+      buffer: new Uint8Array([1, 2, 3]).buffer,
+      type: "audio/mpeg",
+    };
+
+    try {
+      await firstApp.loadAssets({ click: clickAsset });
+      await secondApp.loadAssets({ click: clickAsset });
+
+      await expect(firstApp.unloadAssets(["click"])).resolves.toEqual([
+        "click",
+      ]);
+      expect(audioAsset.unload).not.toHaveBeenCalled();
+      expect(audioAsset.getAsset("click")).toBe(decodedAudio);
+
+      await expect(secondApp.unloadAssets(["click"])).resolves.toEqual([
+        "click",
+      ]);
+      expect(audioAsset.unload).toHaveBeenCalledTimes(1);
+      expect(audioAsset.unload).toHaveBeenCalledWith("click");
+    } finally {
+      secondApp.destroy();
+    }
+  });
+
   it("emits WebGL context lifecycle events", async () => {
     const eventHandler = vi.fn();
     const { app } = await setupRouteGraphics({
@@ -547,6 +945,34 @@ describe("RouteGraphics public API", () => {
     expect(lostEvent.defaultPrevented).toBe(true);
     expect(eventHandler).toHaveBeenCalledWith("rendererContextLost", {});
     expect(eventHandler).toHaveBeenCalledWith("rendererContextRestored", {});
+  });
+
+  it("emits context loss from the WebGPU fallback device", async () => {
+    let resolveDeviceLost;
+    const deviceLost = new Promise((resolve) => {
+      resolveDeviceLost = resolve;
+    });
+    const eventHandler = vi.fn();
+    await setupRouteGraphics({
+      initOptions: { eventHandler },
+      rendererOverrides: {
+        gpu: {
+          device: { lost: deviceLost },
+        },
+      },
+    });
+
+    resolveDeviceLost({
+      reason: "unknown",
+      message: "The GPU process exited.",
+    });
+
+    await vi.waitFor(() => {
+      expect(eventHandler).toHaveBeenCalledWith("rendererContextLost", {
+        reason: "unknown",
+        statusMessage: "The GPU process exited.",
+      });
+    });
   });
 
   it("loads video assets through lazy HTML video textures", async () => {
@@ -606,10 +1032,9 @@ describe("RouteGraphics public API", () => {
     }
 
     expect(pixiMock.Assets.load).toHaveBeenCalledTimes(1);
-    expect(pixiMock.Assets.load).toHaveBeenCalledWith({
-      alias: "urlTexture",
-      src: "blob:http://route-graphics/texture",
-    });
+    expect(pixiMock.Assets.load).toHaveBeenCalledWith(
+      "blob:http://route-graphics/texture",
+    );
     expect(pixiMock.Assets.cache.set).toHaveBeenCalledWith(
       "bufferVideo",
       expect.objectContaining({
@@ -696,6 +1121,83 @@ describe("RouteGraphics public API", () => {
         "blob:http://route-graphics/video-unload",
       );
     } finally {
+      createElement.mockRestore();
+      createObjectURL.mockRestore();
+      revokeObjectURL.mockRestore();
+    }
+  });
+
+  it("deduplicates pending video texture setup across instances", async () => {
+    const {
+      app: firstApp,
+      pixiMock,
+      createRouteGraphics,
+    } = await setupRouteGraphics();
+    const secondApp = createRouteGraphics();
+    await secondApp.init({
+      width: 320,
+      height: 240,
+      backgroundColor: 0x000000,
+      plugins: { elements: [], animations: [], audio: [] },
+    });
+    let resolveAlphaMode;
+    pixiMock.detectVideoAlphaMode.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveAlphaMode = resolve;
+        }),
+    );
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:http://route-graphics/shared-video");
+    const revokeObjectURL = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
+    const originalCreateElement = document.createElement.bind(document);
+    const videos = [];
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+        if (tagName === "video") {
+          videos.push(element);
+          element.load = vi.fn();
+          element.pause = vi.fn();
+        }
+        return element;
+      });
+    const asset = {
+      buffer: new Uint8Array([1, 2, 3]).buffer,
+      type: "video/mp4",
+    };
+
+    try {
+      const firstLoad = firstApp.loadAssets({ cutscene: asset });
+      const secondLoad = secondApp.loadAssets({ cutscene: asset });
+
+      expect(videos).toHaveLength(1);
+      expect(pixiMock.detectVideoAlphaMode).toHaveBeenCalledTimes(1);
+      resolveAlphaMode("premultiplied-alpha");
+      const [[firstTexture], [secondTexture]] = await Promise.all([
+        firstLoad,
+        secondLoad,
+      ]);
+
+      expect(firstTexture).toBe(secondTexture);
+      expect(pixiMock.Assets.cache.get("cutscene")).toBe(firstTexture);
+
+      await firstApp.unloadAssets(["cutscene"]);
+      expect(firstTexture.destroy).not.toHaveBeenCalled();
+      expect(videos[0].pause).not.toHaveBeenCalled();
+
+      await secondApp.unloadAssets(["cutscene"]);
+      expect(firstTexture.destroy).toHaveBeenCalledWith(true);
+      expect(videos[0].pause).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith(
+        "blob:http://route-graphics/shared-video",
+      );
+    } finally {
+      secondApp.destroy();
       createElement.mockRestore();
       createObjectURL.mockRestore();
       revokeObjectURL.mockRestore();

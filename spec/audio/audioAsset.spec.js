@@ -41,8 +41,36 @@ describe("AudioAsset", () => {
       decodedBuffer,
     );
 
-    expect(context.decodeAudioData).toHaveBeenCalledWith(arrayBuffer);
+    const decodedInput = context.decodeAudioData.mock.calls[0][0];
+    expect(decodedInput).not.toBe(arrayBuffer);
+    expect(new Uint8Array(decodedInput)).toEqual(new Uint8Array(arrayBuffer));
     expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
+  });
+
+  it("can reload a manager-owned buffer after decoders detach their input", async () => {
+    vi.resetModules();
+
+    const decodedBuffer = { decoded: true };
+    const context = {
+      decodeAudioData: vi.fn((decodeBuffer) => {
+        structuredClone(decodeBuffer, { transfer: [decodeBuffer] });
+        return Promise.resolve(decodedBuffer);
+      }),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const managerBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("click", managerBuffer);
+    expect(managerBuffer.byteLength).toBe(3);
+    AudioAsset.unload("click");
+    await AudioAsset.load("click", managerBuffer);
+
+    expect(context.decodeAudioData).toHaveBeenCalledTimes(2);
+    expect(managerBuffer.byteLength).toBe(3);
   });
 
   it("reuses an in-flight decode for duplicate load requests", async () => {
