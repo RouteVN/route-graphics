@@ -39,8 +39,11 @@ const load = (key, arrayBuffer) => {
     return;
   }
 
+  // decodeAudioData may detach its input. Decode a private copy so callers can
+  // reuse manager-owned buffers after unload or application recreation.
+  const decodeBuffer = arrayBuffer.slice(0);
   const loadPromise = getAudioContext()
-    .decodeAudioData(arrayBuffer)
+    .decodeAudioData(decodeBuffer)
     .then((audioBuffer) => {
       if (loadingAssets[key] === loadPromise) {
         loadedAssets[key] = audioBuffer;

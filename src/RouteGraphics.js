@@ -43,6 +43,15 @@ import {
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
 
+// Pixi's asset cache and AudioAsset are module-global. Keep ownership global as
+// well so separate Route Graphics instances and logical aliases cannot release
+// a resource that another instance still uses.
+const sharedTextureAssetOwners = new Map();
+const sharedTextureAliasOwners = new Map();
+const sharedUrlTextureAssetOwners = new Map();
+const sharedPendingTextureLoads = new Map();
+const sharedAudioAssetOwners = new Map();
+
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
 
@@ -350,12 +359,26 @@ const createRouteGraphics = () => {
   let canvasWebglContextRestoredListener;
 
   /**
+   * Identity token used to ignore a WebGPU device-loss promise after destroy.
+   * @type {object|undefined}
+   */
+  let webgpuDeviceLossSubscription;
+
+  /**
    * Assets created by this Route Graphics instance and eligible for explicit
-   * unload. Cache entries owned by another instance are intentionally not
-   * claimed when encountered.
-   * @type {Map<string, { category: string, value?: unknown, managedByAssets?: boolean }>}
+   * unload. Known entries owned by another Route Graphics instance are
+   * retained as shared; unrelated external cache entries remain borrowed.
+   * @type {Map<string, { category: string, value?: unknown, sharedOwnership?: object, released?: boolean }>}
    */
   const loadedAssetRecords = new Map();
+
+  /**
+   * Loads currently running for this instance, keyed by their public asset ID.
+   * unloadAssets waits for these promises so an unload request always wins a
+   * race with a pending load.
+   * @type {Map<string, Promise<unknown>>}
+   */
+  const pendingAssetLoads = new Map();
 
   /**
    * Video source URLs created or attached in loadAssets; revokable blob URLs
@@ -662,15 +685,204 @@ const createRouteGraphics = () => {
     videoSourceUrls.delete(key);
   };
 
-  const revokeVideoBlobUrls = () => {
-    for (const key of videoSourceUrls.keys()) {
-      revokeVideoSourceUrl(key);
-    }
-  };
-
   const recordLoadedAsset = (key, record) => {
     loadedAssetRecords.set(key, record);
     return record.value;
+  };
+
+  const trackAssetLoad = (key, load) => {
+    const pendingLoad = pendingAssetLoads.get(key);
+    if (pendingLoad) {
+      return pendingLoad;
+    }
+
+    let resolveLoad;
+    let rejectLoad;
+    const loadPromise = new Promise((resolve, reject) => {
+      resolveLoad = resolve;
+      rejectLoad = reject;
+    });
+
+    // Publish the operation before starting it, then invoke the loader
+    // synchronously so source-level ownership is reserved before loadAssets
+    // returns to its caller.
+    pendingAssetLoads.set(key, loadPromise);
+
+    const clearPendingLoad = () => {
+      if (pendingAssetLoads.get(key) === loadPromise) {
+        pendingAssetLoads.delete(key);
+      }
+    };
+    void loadPromise.then(clearPendingLoad, clearPendingLoad);
+
+    try {
+      Promise.resolve(load()).then(resolveLoad, rejectLoad);
+    } catch (error) {
+      rejectLoad(error);
+    }
+
+    return loadPromise;
+  };
+
+  const trackSharedTextureLoad = (identity, load) => {
+    const pendingLoad = sharedPendingTextureLoads.get(identity);
+    if (pendingLoad) {
+      return pendingLoad;
+    }
+
+    let resolveLoad;
+    let rejectLoad;
+    const loadPromise = new Promise((resolve, reject) => {
+      resolveLoad = resolve;
+      rejectLoad = reject;
+    });
+    sharedPendingTextureLoads.set(identity, loadPromise);
+
+    const clearPendingLoad = () => {
+      if (sharedPendingTextureLoads.get(identity) === loadPromise) {
+        sharedPendingTextureLoads.delete(identity);
+      }
+    };
+    void loadPromise.then(clearPendingLoad, clearPendingLoad);
+
+    try {
+      Promise.resolve(load()).then(resolveLoad, rejectLoad);
+    } catch (error) {
+      rejectLoad(error);
+    }
+
+    return loadPromise;
+  };
+
+  const retainSharedOwnership = (ownership) => {
+    ownership.referenceCount += 1;
+    return ownership;
+  };
+
+  const retainSharedAsset = ({ registry, identity, dispose }) => {
+    let ownership = registry.get(identity);
+
+    if (!ownership) {
+      ownership = {
+        registry,
+        identity,
+        referenceCount: 0,
+        dispose,
+        unregister: () => {
+          if (registry.get(identity) === ownership) {
+            registry.delete(identity);
+          }
+        },
+      };
+      registry.set(identity, ownership);
+    }
+
+    return retainSharedOwnership(ownership);
+  };
+
+  const releaseSharedAsset = async (ownership) => {
+    ownership.referenceCount -= 1;
+    if (ownership.referenceCount > 0) {
+      return;
+    }
+
+    if (ownership.onZeroReferences) {
+      await ownership.onZeroReferences();
+      return;
+    }
+
+    ownership.unregister?.();
+    await ownership.dispose?.();
+  };
+
+  const recordLoadedAudio = (key, value, { dispose } = {}) => {
+    const record = {
+      category: "audio",
+      value,
+      sharedOwnership: retainSharedAsset({
+        registry: sharedAudioAssetOwners,
+        identity: key,
+        dispose,
+      }),
+    };
+
+    return recordLoadedAsset(key, record);
+  };
+
+  const getTexturePrimaryValue = (value) =>
+    Array.isArray(value) ? value[0] : value;
+
+  const recordLoadedTexture = (
+    key,
+    record,
+    {
+      dispose,
+      ownership: reservedOwnership,
+      ownershipAlreadyRetained = false,
+      cacheAliasInstalled = false,
+    } = {},
+  ) => {
+    const ownership = reservedOwnership
+      ? ownershipAlreadyRetained
+        ? reservedOwnership
+        : retainSharedOwnership(reservedOwnership)
+      : retainSharedAsset({
+          registry: sharedTextureAssetOwners,
+          identity: record.value,
+          dispose,
+        });
+    ownership.aliasRecords ??= new Map();
+
+    let aliasRecord = ownership.aliasRecords.get(key);
+    if (!aliasRecord) {
+      aliasRecord = {
+        referenceCount: 0,
+        cacheAliasInstalled: false,
+        primaryValue: getTexturePrimaryValue(record.value),
+      };
+      ownership.aliasRecords.set(key, aliasRecord);
+    }
+    aliasRecord.referenceCount += 1;
+    if (cacheAliasInstalled) {
+      aliasRecord.cacheAliasInstalled = true;
+      aliasRecord.primaryValue = getTexturePrimaryValue(record.value);
+    }
+
+    sharedTextureAliasOwners.set(key, ownership);
+    record.sharedOwnership = ownership;
+
+    return recordLoadedAsset(key, record);
+  };
+
+  const recordSharedTextureLoadResult = (key, category, result) => {
+    const aliasOwnership = sharedTextureAliasOwners.get(key);
+    const ownership =
+      (aliasOwnership &&
+      getTexturePrimaryValue(aliasOwnership.value) ===
+        getTexturePrimaryValue(result.value)
+        ? aliasOwnership
+        : undefined) ?? sharedTextureAssetOwners.get(result.value);
+
+    if (!result.created && !ownership) {
+      return result.value;
+    }
+
+    return recordLoadedTexture(
+      key,
+      {
+        category,
+        value: ownership?.value ?? result.value,
+      },
+      ownership
+        ? {
+            ownership,
+            cacheAliasInstalled: result.cacheAliasInstalled,
+          }
+        : {
+            dispose: result.dispose,
+            cacheAliasInstalled: result.cacheAliasInstalled,
+          },
+    );
   };
 
   const releaseTextureResource = (resource) => {
@@ -691,52 +903,183 @@ const createRouteGraphics = () => {
     }
   };
 
-  const unloadTextureRecord = async (key, record) => {
-    const texture = record.value;
-    const resource = texture?.source?.resource;
+  const getTextureResources = (value) => {
+    const resources = new Set();
+    const textures = Array.isArray(value) ? value : [value];
 
-    if (record.managedByAssets === true) {
-      await Assets.unload(key);
-    } else {
-      if (Assets.cache.has(key)) {
-        Assets.cache.remove(key);
-      }
-      if (!texture?.destroyed) {
-        texture?.destroy?.(true);
+    for (const texture of textures) {
+      const resource = texture?.source?.resource;
+      if (resource) {
+        resources.add(resource);
       }
     }
 
-    releaseTextureResource(resource);
+    return resources;
+  };
+
+  const getCanonicalTextureSource = (sourceUrl) => {
+    let resolvedSource = sourceUrl;
+
+    try {
+      resolvedSource = Assets.resolver?.resolve?.(sourceUrl)?.src ?? sourceUrl;
+    } catch {
+      // Fall back to URL resolution when a custom resolver rejects an
+      // unregistered source.
+    }
+
+    try {
+      const baseUrl =
+        (typeof document !== "undefined" ? document.baseURI : undefined) ??
+        globalThis.location?.href;
+      return new URL(resolvedSource, baseUrl).href;
+    } catch {
+      return resolvedSource;
+    }
+  };
+
+  const createUrlTextureOwnership = (
+    sourceUrl,
+    sourceIdentity,
+    waitForDisposal,
+  ) => {
+    const ownership = {
+      sourceUrl,
+      sourceIdentity,
+      referenceCount: 0,
+      aliasRecords: new Map(),
+      disposing: false,
+    };
+    sharedUrlTextureAssetOwners.set(sourceIdentity, ownership);
+
+    ownership.loadPromise = (async () => {
+      if (waitForDisposal) {
+        try {
+          await waitForDisposal;
+        } catch {
+          // A successor load must run after disposal settles even if the
+          // previous caller observes a disposal failure.
+        }
+      }
+
+      const sourceWasAlreadyCached = Assets.cache.has(sourceUrl);
+      const value = await Assets.load(sourceUrl);
+      const resources = getTextureResources(value);
+
+      ownership.value = value;
+      sharedTextureAssetOwners.set(value, ownership);
+      if (!sourceWasAlreadyCached) {
+        ownership.dispose = async () => {
+          try {
+            await Assets.unload(sourceUrl);
+          } finally {
+            for (const resource of resources) {
+              releaseTextureResource(resource);
+            }
+          }
+        };
+      }
+
+      return value;
+    })();
+
+    ownership.onZeroReferences = async () => {
+      ownership.disposing = true;
+      if (
+        ownership.value !== undefined &&
+        sharedTextureAssetOwners.get(ownership.value) === ownership
+      ) {
+        sharedTextureAssetOwners.delete(ownership.value);
+      }
+
+      const disposalPromise = Promise.resolve().then(() =>
+        ownership.dispose?.(),
+      );
+      ownership.disposalPromise = disposalPromise;
+
+      try {
+        await disposalPromise;
+      } finally {
+        if (sharedUrlTextureAssetOwners.get(sourceIdentity) === ownership) {
+          sharedUrlTextureAssetOwners.delete(sourceIdentity);
+        }
+      }
+    };
+
+    return ownership;
+  };
+
+  const reserveUrlTextureOwnership = (sourceUrl) => {
+    const sourceIdentity = getCanonicalTextureSource(sourceUrl);
+    let ownership = sharedUrlTextureAssetOwners.get(sourceIdentity);
+
+    if (!ownership || ownership.disposing) {
+      ownership = createUrlTextureOwnership(
+        sourceUrl,
+        sourceIdentity,
+        ownership?.disposalPromise,
+      );
+    }
+
+    return retainSharedOwnership(ownership);
+  };
+
+  const releaseTextureRecord = async (key, record) => {
+    const ownership = record.sharedOwnership;
+    const aliasRecord = ownership.aliasRecords.get(key);
+    const remainingAliasReferences = (aliasRecord?.referenceCount ?? 1) - 1;
+
+    if (remainingAliasReferences > 0) {
+      aliasRecord.referenceCount = remainingAliasReferences;
+    } else {
+      ownership.aliasRecords.delete(key);
+      if (sharedTextureAliasOwners.get(key) === ownership) {
+        sharedTextureAliasOwners.delete(key);
+      }
+      if (
+        aliasRecord?.cacheAliasInstalled === true &&
+        Assets.cache.has(key) &&
+        Assets.cache.get(key) === aliasRecord.primaryValue
+      ) {
+        Assets.cache.remove(key);
+      }
+    }
+
+    await releaseSharedAsset(ownership);
   };
 
   const unloadAsset = async (key) => {
-    const record = loadedAssetRecords.get(key);
-    if (!record) {
-      return false;
-    }
-
-    if (record.category === "audio") {
-      AudioAsset.unload(key);
-    } else if (record.category === "font") {
-      document.fonts?.delete?.(record.value);
-    } else if (record.category === "texture" || record.category === "video") {
-      await unloadTextureRecord(key, record);
-      if (record.category === "video") {
-        revokeVideoSourceUrl(key);
+    const pendingLoad = pendingAssetLoads.get(key);
+    if (pendingLoad) {
+      try {
+        await pendingLoad;
+      } catch {
+        // A failed load did not install an asset, so there is nothing left for
+        // the racing unload request to release.
+        return false;
       }
     }
 
+    const record = loadedAssetRecords.get(key);
+    if (!record || record.released === true) {
+      return false;
+    }
+
+    record.released = true;
     if (loadedAssetRecords.get(key) === record) {
       loadedAssetRecords.delete(key);
+    }
+
+    if (record.category === "audio") {
+      await releaseSharedAsset(record.sharedOwnership);
+    } else if (record.category === "font") {
+      document.fonts?.delete?.(record.value);
+    } else if (record.category === "texture" || record.category === "video") {
+      await releaseTextureRecord(key, record);
     }
     return true;
   };
 
-  const loadVideoTexture = async ({ key, sourceUrl, mimeType }) => {
-    if (Assets.cache.has(key)) {
-      return Assets.cache.get(key);
-    }
-
+  const loadVideoTexture = async ({ sourceUrl, mimeType }) => {
     const video = document.createElement("video");
     video.crossOrigin = "anonymous";
     video.preload = "metadata";
@@ -756,7 +1099,6 @@ const createRouteGraphics = () => {
       source: createVideoTextureSource(video, alphaMode),
     });
     configureManagedVideoTextureUpdates(texture);
-    Assets.cache.set(key, texture);
 
     return texture;
   };
@@ -1057,6 +1399,39 @@ const createRouteGraphics = () => {
         canvasWebglContextRestoredListener,
       );
 
+      const webgpuDeviceLost = app.renderer?.gpu?.device?.lost;
+      if (webgpuDeviceLost && typeof webgpuDeviceLost.then === "function") {
+        const subscription = {};
+        webgpuDeviceLossSubscription = subscription;
+        void Promise.resolve(webgpuDeviceLost).then(
+          (deviceLostInfo) => {
+            if (webgpuDeviceLossSubscription !== subscription) {
+              return;
+            }
+
+            const payload = {};
+            if (
+              typeof deviceLostInfo?.reason === "string" &&
+              deviceLostInfo.reason.length > 0
+            ) {
+              payload.reason = deviceLostInfo.reason;
+            }
+            if (
+              typeof deviceLostInfo?.message === "string" &&
+              deviceLostInfo.message.length > 0
+            ) {
+              payload.statusMessage = deviceLostInfo.message;
+            }
+            eventHandler?.("rendererContextLost", payload);
+          },
+          () => {
+            // GPUDevice.lost resolves by specification. Ignore non-standard
+            // thenables that reject so lifecycle observation cannot create an
+            // unhandled rejection.
+          },
+        );
+      }
+
       backgroundGraphic = new Graphics();
       backgroundGraphic.label = "__route_graphics_background__";
       drawBackgroundGraphic(backgroundGraphic, width, height, backgroundColor);
@@ -1145,6 +1520,19 @@ const createRouteGraphics = () => {
         );
         canvasWebglContextRestoredListener = undefined;
       }
+      webgpuDeviceLossSubscription = undefined;
+
+      const ownedAssetIds = new Set([
+        ...loadedAssetRecords.keys(),
+        ...pendingAssetLoads.keys(),
+      ]);
+      for (const assetId of ownedAssetIds) {
+        void unloadAsset(assetId).catch(() => {
+          // destroy is synchronous and best-effort; explicit unloadAssets calls
+          // continue to surface disposal failures to the caller.
+        });
+      }
+
       app?.inputDomBridge?.destroy?.();
       keyboardManager?.destroy();
       clearPendingSounds();
@@ -1175,7 +1563,6 @@ const createRouteGraphics = () => {
       animationPlaybackMode = "auto";
       animationPlaybackTimeMS = null;
       backgroundGraphic = undefined;
-      revokeVideoBlobUrls();
     },
 
     /**
@@ -1206,25 +1593,32 @@ const createRouteGraphics = () => {
       Object.entries(assetsByType.audio).forEach(([key, asset]) => {
         loadJobs.push({
           includeInReturn: false,
-          promise: loadAssetWithContext(
-            {
-              key,
-              category: "audio",
-              phase: "decode",
-              asset,
-            },
-            async () => {
-              const existingRecord = loadedAssetRecords.get(key);
-              if (existingRecord?.category === "audio") {
-                return existingRecord.value;
-              }
-              assertAssetBuffer(asset, "Audio");
-              const audioBuffer = await AudioAsset.load(key, asset.buffer);
-              return recordLoadedAsset(key, {
+          promise: trackAssetLoad(key, () =>
+            loadAssetWithContext(
+              {
+                key,
                 category: "audio",
-                value: audioBuffer,
-              });
-            },
+                phase: "decode",
+                asset,
+              },
+              async () => {
+                const existingRecord = loadedAssetRecords.get(key);
+                if (existingRecord?.category === "audio") {
+                  return existingRecord.value;
+                }
+                assertAssetBuffer(asset, "Audio");
+                const audioWasAlreadyLoaded =
+                  !sharedAudioAssetOwners.has(key) &&
+                  AudioAsset.getAsset(key) !== undefined;
+                const audioBuffer = await AudioAsset.load(key, asset.buffer);
+
+                return recordLoadedAudio(key, audioBuffer, {
+                  dispose: audioWasAlreadyLoaded
+                    ? undefined
+                    : () => AudioAsset.unload(key),
+                });
+              },
+            ),
           ),
         });
       });
@@ -1232,34 +1626,36 @@ const createRouteGraphics = () => {
       Object.entries(assetsByType.font).forEach(([key, asset]) => {
         loadJobs.push({
           includeInReturn: false,
-          promise: loadAssetWithContext(
-            {
-              key,
-              category: "font",
-              phase: "font face load",
-              asset,
-            },
-            async () => {
-              const existingRecord = loadedAssetRecords.get(key);
-              if (existingRecord?.category === "font") {
-                return existingRecord.value;
-              }
-              assertAssetBuffer(asset, "Font");
-              const blob = new Blob([asset.buffer], { type: asset.type });
-              const url = URL.createObjectURL(blob);
-              // Use the key as font family name - this should match the fontFamily in text styles
-              const fontFace = new FontFace(key, `url(${url})`);
-              try {
-                await fontFace.load();
-                document.fonts.add(fontFace);
-                return recordLoadedAsset(key, {
-                  category: "font",
-                  value: fontFace,
-                });
-              } finally {
-                URL.revokeObjectURL(url);
-              }
-            },
+          promise: trackAssetLoad(key, () =>
+            loadAssetWithContext(
+              {
+                key,
+                category: "font",
+                phase: "font face load",
+                asset,
+              },
+              async () => {
+                const existingRecord = loadedAssetRecords.get(key);
+                if (existingRecord?.category === "font") {
+                  return existingRecord.value;
+                }
+                assertAssetBuffer(asset, "Font");
+                const blob = new Blob([asset.buffer], { type: asset.type });
+                const url = URL.createObjectURL(blob);
+                // Use the key as font family name - this should match the fontFamily in text styles
+                const fontFace = new FontFace(key, `url(${url})`);
+                try {
+                  await fontFace.load();
+                  document.fonts.add(fontFace);
+                  return recordLoadedAsset(key, {
+                    category: "font",
+                    value: fontFace,
+                  });
+                } finally {
+                  URL.revokeObjectURL(url);
+                }
+              },
+            ),
           ),
         });
       });
@@ -1267,52 +1663,166 @@ const createRouteGraphics = () => {
       Object.entries(assetsByType.texture).forEach(([key, asset]) =>
         loadJobs.push({
           includeInReturn: true,
-          promise: loadAssetWithContext(
-            {
-              key,
-              category: "texture",
-              phase:
-                asset?.source === "url" && typeof asset?.url === "string"
-                  ? "Pixi URL load"
-                  : "image bitmap creation",
-              asset,
-            },
-            async () => {
-              const existingRecord = loadedAssetRecords.get(key);
-              if (existingRecord?.category === "texture") {
-                return existingRecord.value;
-              }
-              if (Assets.cache.has(key)) {
-                return Assets.cache.get(key);
-              }
-
-              if (asset?.source === "url" && typeof asset?.url === "string") {
-                const texture = await Assets.load({
-                  alias: key,
-                  src: asset.url,
-                });
-                return recordLoadedAsset(key, {
-                  category: "texture",
-                  value: texture,
-                  managedByAssets: true,
-                });
-              }
-
-              assertAssetBuffer(asset, "Texture");
-              const blob = new Blob([asset.buffer], { type: asset.type });
-              const imageBitmap = await createImageBitmap(blob);
-              const texture = Texture.from(imageBitmap);
-
-              // Alias the logical asset key so Texture.from("key") resolves
-              // directly from the cache instead of attempting a relative URL fetch.
-              Assets.cache.set(key, texture);
-
-              return recordLoadedAsset(key, {
+          promise: trackAssetLoad(key, () =>
+            loadAssetWithContext(
+              {
+                key,
                 category: "texture",
-                value: texture,
-                managedByAssets: false,
-              });
-            },
+                phase:
+                  asset?.source === "url" && typeof asset?.url === "string"
+                    ? "Pixi URL load"
+                    : "image bitmap creation",
+                asset,
+              },
+              async () => {
+                const existingRecord = loadedAssetRecords.get(key);
+                if (existingRecord?.category === "texture") {
+                  return existingRecord.value;
+                }
+                if (Assets.cache.has(key)) {
+                  const cachedPrimaryValue = Assets.cache.get(key);
+                  const sourceUrl =
+                    asset?.source === "url" && typeof asset?.url === "string"
+                      ? asset.url
+                      : undefined;
+                  const sourceOwnership = sourceUrl
+                    ? sharedUrlTextureAssetOwners.get(
+                        getCanonicalTextureSource(sourceUrl),
+                      )
+                    : undefined;
+                  const sourceTransitionInProgress =
+                    sourceOwnership &&
+                    (sourceOwnership.disposing ||
+                      sourceOwnership.value === undefined);
+
+                  if (!sourceTransitionInProgress) {
+                    const aliasOwnership = sharedTextureAliasOwners.get(key);
+                    const ownership =
+                      (aliasOwnership &&
+                      getTexturePrimaryValue(aliasOwnership.value) ===
+                        cachedPrimaryValue
+                        ? aliasOwnership
+                        : undefined) ??
+                      (sourceOwnership &&
+                      getTexturePrimaryValue(sourceOwnership.value) ===
+                        cachedPrimaryValue
+                        ? sourceOwnership
+                        : undefined) ??
+                      sharedTextureAssetOwners.get(cachedPrimaryValue);
+
+                    // A cache entry owned by Route Graphics is a shared
+                    // resource, so this instance must retain it. Unknown
+                    // external entries remain borrowed and are never destroyed
+                    // by this instance.
+                    if (ownership) {
+                      return recordLoadedTexture(
+                        key,
+                        {
+                          category: "texture",
+                          value: ownership.value,
+                        },
+                        { ownership },
+                      );
+                    }
+                    return cachedPrimaryValue;
+                  }
+                }
+
+                if (asset?.source === "url" && typeof asset?.url === "string") {
+                  const sourceUrl = asset.url;
+                  const ownership = reserveUrlTextureOwnership(sourceUrl);
+                  let cacheAliasInstalled = false;
+
+                  try {
+                    // Load by URL and add the logical key only to Pixi's cache.
+                    // This avoids leaving a persistent resolver alias that
+                    // would point a later reload at an expired signed URL.
+                    const texture = await ownership.loadPromise;
+                    if (key !== sourceUrl) {
+                      Assets.cache.set(key, texture);
+                      cacheAliasInstalled = true;
+                    }
+
+                    return recordLoadedTexture(
+                      key,
+                      {
+                        category: "texture",
+                        value: texture,
+                      },
+                      {
+                        ownership,
+                        ownershipAlreadyRetained: true,
+                        cacheAliasInstalled,
+                      },
+                    );
+                  } catch (error) {
+                    if (
+                      cacheAliasInstalled &&
+                      Assets.cache.has(key) &&
+                      Assets.cache.get(key) ===
+                        getTexturePrimaryValue(ownership.value)
+                    ) {
+                      Assets.cache.remove(key);
+                    }
+                    await releaseSharedAsset(ownership);
+                    throw error;
+                  }
+                }
+
+                const result = await trackSharedTextureLoad(
+                  `texture:${key}`,
+                  async () => {
+                    if (Assets.cache.has(key)) {
+                      return {
+                        value: Assets.cache.get(key),
+                        created: false,
+                        cacheAliasInstalled: false,
+                      };
+                    }
+
+                    assertAssetBuffer(asset, "Texture");
+                    const blob = new Blob([asset.buffer], {
+                      type: asset.type,
+                    });
+                    const imageBitmap = await createImageBitmap(blob);
+                    const texture = Texture.from(imageBitmap);
+                    const dispose = () => {
+                      try {
+                        if (!texture?.destroyed) {
+                          texture?.destroy?.(true);
+                        }
+                      } finally {
+                        releaseTextureResource(imageBitmap);
+                      }
+                    };
+
+                    // An external cache writer may have won while image decode
+                    // was pending. Keep its value and discard our duplicate.
+                    if (Assets.cache.has(key)) {
+                      dispose();
+                      return {
+                        value: Assets.cache.get(key),
+                        created: false,
+                        cacheAliasInstalled: false,
+                      };
+                    }
+
+                    // Alias the logical asset key so Texture.from("key")
+                    // resolves directly from the cache instead of attempting a
+                    // relative URL fetch.
+                    Assets.cache.set(key, texture);
+                    return {
+                      value: texture,
+                      created: true,
+                      cacheAliasInstalled: true,
+                      dispose,
+                    };
+                  },
+                );
+
+                return recordSharedTextureLoadResult(key, "texture", result);
+              },
+            ),
           ),
         }),
       );
@@ -1322,57 +1832,107 @@ const createRouteGraphics = () => {
       Object.entries(assetsByType.video).forEach(([key, asset]) => {
         loadJobs.push({
           includeInReturn: true,
-          promise: loadAssetWithContext(
-            {
-              key,
-              category: "video",
-              phase: "video texture load",
-              asset,
-            },
-            async () => {
-              const existingRecord = loadedAssetRecords.get(key);
-              if (existingRecord?.category === "video") {
-                return existingRecord.value;
-              }
-              if (Assets.cache.has(key)) {
-                return Assets.cache.get(key);
-              }
-
-              if (asset?.source !== "url") {
-                assertAssetBuffer(asset, "Video");
-              }
-
-              const sourceUrl =
-                asset?.source === "url" && typeof asset?.url === "string"
-                  ? asset.url
-                  : URL.createObjectURL(
-                      new Blob([asset.buffer], { type: asset.type }),
-                    );
-              const isRevokableBlobUrl = asset?.source !== "url";
-
-              trackVideoSourceUrl(key, sourceUrl, {
-                revokable: isRevokableBlobUrl,
-              });
-
-              try {
-                const texture = await loadVideoTexture({
-                  key,
-                  sourceUrl,
-                  mimeType: asset?.type,
-                });
-                return recordLoadedAsset(key, {
-                  category: "video",
-                  value: texture,
-                  managedByAssets: false,
-                });
-              } catch (error) {
-                videoSourceUrls.delete(key);
-                if (isRevokableBlobUrl) {
-                  URL.revokeObjectURL(sourceUrl);
+          promise: trackAssetLoad(key, () =>
+            loadAssetWithContext(
+              {
+                key,
+                category: "video",
+                phase: "video texture load",
+                asset,
+              },
+              async () => {
+                const existingRecord = loadedAssetRecords.get(key);
+                if (existingRecord?.category === "video") {
+                  return existingRecord.value;
                 }
-                throw error;
-              }
-            },
+                if (Assets.cache.has(key)) {
+                  const texture = Assets.cache.get(key);
+                  if (sharedTextureAssetOwners.has(texture)) {
+                    return recordLoadedTexture(key, {
+                      category: "video",
+                      value: texture,
+                    });
+                  }
+                  return texture;
+                }
+
+                if (asset?.source !== "url") {
+                  assertAssetBuffer(asset, "Video");
+                }
+
+                const result = await trackSharedTextureLoad(
+                  `video:${key}`,
+                  async () => {
+                    if (Assets.cache.has(key)) {
+                      return {
+                        value: Assets.cache.get(key),
+                        created: false,
+                        cacheAliasInstalled: false,
+                      };
+                    }
+
+                    const sourceUrl =
+                      asset?.source === "url" && typeof asset?.url === "string"
+                        ? asset.url
+                        : URL.createObjectURL(
+                            new Blob([asset.buffer], { type: asset.type }),
+                          );
+                    const isRevokableBlobUrl = asset?.source !== "url";
+
+                    trackVideoSourceUrl(key, sourceUrl, {
+                      revokable: isRevokableBlobUrl,
+                    });
+
+                    let texture;
+                    try {
+                      texture = await loadVideoTexture({
+                        sourceUrl,
+                        mimeType: asset?.type,
+                      });
+                    } catch (error) {
+                      videoSourceUrls.delete(key);
+                      if (isRevokableBlobUrl) {
+                        URL.revokeObjectURL(sourceUrl);
+                      }
+                      throw error;
+                    }
+
+                    const resource = texture?.source?.resource;
+                    const dispose = () => {
+                      try {
+                        if (!texture?.destroyed) {
+                          texture?.destroy?.(true);
+                        }
+                        releaseTextureResource(resource);
+                      } finally {
+                        revokeVideoSourceUrl(key);
+                      }
+                    };
+
+                    // Keep a cache entry installed while video setup was
+                    // pending and discard this duplicate texture.
+                    if (Assets.cache.has(key)) {
+                      dispose();
+                      return {
+                        value: Assets.cache.get(key),
+                        created: false,
+                        cacheAliasInstalled: false,
+                      };
+                    }
+
+                    Assets.cache.set(key, texture);
+                    return {
+                      value: texture,
+                      created: true,
+                      cacheAliasInstalled: true,
+                      dispose,
+                    };
+                  },
+                );
+
+                return recordSharedTextureLoadResult(key, "video", result);
+              },
+            ),
           ),
         });
       });
@@ -1445,19 +2005,26 @@ const createRouteGraphics = () => {
 
     loadAudioAssets: async (urls) => {
       return Promise.all(
-        urls.map(async (url) => {
-          const existingRecord = loadedAssetRecords.get(url);
-          if (existingRecord?.category === "audio") {
-            return existingRecord.value;
-          }
-          const response = await fetch(url);
-          const arrayBuffer = await response.arrayBuffer();
-          const audioBuffer = await AudioAsset.load(url, arrayBuffer);
-          return recordLoadedAsset(url, {
-            category: "audio",
-            value: audioBuffer,
-          });
-        }),
+        urls.map((url) =>
+          trackAssetLoad(url, async () => {
+            const existingRecord = loadedAssetRecords.get(url);
+            if (existingRecord?.category === "audio") {
+              return existingRecord.value;
+            }
+
+            const cachedAudioBuffer = AudioAsset.getAsset(url);
+            if (cachedAudioBuffer !== undefined) {
+              return recordLoadedAudio(url, cachedAudioBuffer);
+            }
+
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await AudioAsset.load(url, arrayBuffer);
+            return recordLoadedAudio(url, audioBuffer, {
+              dispose: () => AudioAsset.unload(url),
+            });
+          }),
+        ),
       );
     },
 
