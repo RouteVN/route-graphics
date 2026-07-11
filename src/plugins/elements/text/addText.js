@@ -14,6 +14,11 @@ import {
   isRichTextComputedNode,
   renderRichTextDisplayObject,
 } from "./richTextDisplay.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 export const getTextAnimationTargetState = (textComputedNode) => ({
   ...(isRichTextComputedNode(textComputedNode)
@@ -37,6 +42,10 @@ export const createTextDisplayObject = (textComputedNode, zIndex) => {
   syncTextAnchorRatios(text, textComputedNode);
   text.alpha = textComputedNode.alpha;
   positionTextInLayoutBox(text, textComputedNode);
+  syncShaderFilters(text, textComputedNode.filters, {
+    width: textComputedNode.width,
+    height: textComputedNode.height,
+  });
 
   return text;
 };
@@ -74,6 +83,15 @@ export const addText = ({
   zIndex,
 }) => {
   const text = createTextDisplayObject(textComputedNode, zIndex);
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    textComputedNode.id,
+  );
+  syncShaderFilters(text, textComputedNode.filters, {
+    width: textComputedNode.width,
+    height: textComputedNode.height,
+    force: shouldForceShaderProgress,
+  });
 
   bindTextInteractions({
     app,
@@ -92,7 +110,12 @@ export const addText = ({
     animationBus,
     completionTracker,
     element: text,
-    targetState: getTextAnimationTargetState(textComputedNode),
+    targetState: {
+      ...getTextAnimationTargetState(textComputedNode),
+      ...getShaderFilterTargetState(textComputedNode, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     renderContext,
   });
 };

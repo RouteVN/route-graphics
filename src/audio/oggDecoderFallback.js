@@ -169,11 +169,17 @@ const getDecoder = (codec) => {
 
 const decodeWithQueuedDecoder = async ({ codec, bytes }) => {
   const state = decoderState[codec];
+  if (!state) {
+    throw new Error(`Unsupported Ogg codec "${codec}".`);
+  }
+
   const run = async () => {
     const decoder = await getDecoder(codec);
-    const decoded = await decoder.decodeFile(bytes);
-    await decoder.reset?.();
-    return decoded;
+    try {
+      return await decoder.decodeFile(bytes);
+    } finally {
+      await decoder.reset?.();
+    }
   };
 
   const result = state.queue.then(run, run);

@@ -19,6 +19,17 @@ import {
   hasBlurUpdateAnimation,
   syncBlurEffect,
 } from "../util/blurEffect.js";
+import {
+  getShaderFilterTargetState,
+  hasStaleShaderFilterProgressInTree,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
 
 /**
  * Update container element (synchronous)
@@ -48,22 +59,39 @@ export const updateContainer = ({
 
   containerElement.zIndex = zIndex;
 
-  const { x, y, alpha } = nextElement;
+  const { alpha } = nextElement;
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(containerElement, prevElement.blur, { force: true });
   }
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(containerElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(containerElement);
+  }
 
   const updateElement = () => {
     if (!isDeepEqual(prevElement, nextElement)) {
-      containerElement.x = Math.round(x);
-      containerElement.y = Math.round(y);
       containerElement.label = nextElement.id;
       containerElement.alpha = alpha;
       containerElement.scale.x = 1;
       containerElement.scale.y = 1;
+      applyElementTransform(containerElement, nextElement);
       syncBlurEffect(containerElement, nextElement.blur, {
         force: shouldForceBlur,
+      });
+      syncShaderFilters(containerElement, nextElement.filters, {
+        width: nextElement.width,
+        height: nextElement.height,
+        force: shouldForceShaderProgress,
       });
 
       const prevUsesViewport = prevElement.scroll || prevElement.anchorToBottom;
@@ -120,14 +148,18 @@ export const updateContainer = ({
     const hasChildAnimation = Array.from(childIds).some(
       (childId) => getTargetAnimations(animations, childId).length > 0,
     );
+    const contentContainer = containerElement.children.find(
+      (child) => child.label === `${nextElement.id}-content`,
+    );
+    const renderParent = contentContainer || containerElement;
+    const hasChildShaderProgressReset = hasStaleShaderFilterProgressInTree({
+      parent: renderParent,
+      elements: nextElement.children,
+      animations,
+    });
 
     // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation) {
-      const contentContainer = containerElement.children.find(
-        (child) => child.label === `${nextElement.id}-content`,
-      );
-      const renderParent = contentContainer || containerElement;
-
+    if (childrenChanged || hasChildAnimation || hasChildShaderProgressReset) {
       renderElements({
         app,
         parent: renderParent,
@@ -161,11 +193,12 @@ export const updateContainer = ({
     completionTracker,
     element: containerElement,
     targetState: {
-      x,
-      y,
-      alpha,
+      ...getElementTransformTargetState(nextElement, { alpha }),
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
+      }),
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
       }),
     },
     onComplete: () => {

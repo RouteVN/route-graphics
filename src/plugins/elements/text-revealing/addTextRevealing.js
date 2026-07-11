@@ -11,6 +11,7 @@ import {
  * @param {import("../elementPlugin").AddElementOptions} params
  */
 export const addTextRevealing = async ({
+  app,
   parent,
   element,
   animations,
@@ -56,6 +57,7 @@ export const addTextRevealing = async ({
       animationBus,
       zIndex,
       signal,
+      app,
       playback: "paused-initial",
     });
 
@@ -66,6 +68,7 @@ export const addTextRevealing = async ({
       animationBus,
       zIndex,
       signal,
+      app,
     });
     return;
   }
@@ -77,6 +80,7 @@ export const addTextRevealing = async ({
     animationBus,
     zIndex,
     signal,
+    app,
     playback: "autoplay",
   });
 };

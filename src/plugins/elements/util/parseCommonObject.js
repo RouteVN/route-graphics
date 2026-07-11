@@ -1,5 +1,15 @@
 import { calculatePositionAfterAnchor } from "./common.js";
 import { ComputedNodeType } from "../../../types.js";
+import { normalizeElementShaderFilters } from "./shaderConfig.js";
+
+const SHADER_FILTER_ELEMENT_TYPES = new Set([
+  ComputedNodeType.RECT,
+  ComputedNodeType.TEXT,
+  ComputedNodeType.CONTAINER,
+  ComputedNodeType.SPRITE,
+  ComputedNodeType.SPRITESHEET_ANIMATION,
+  ComputedNodeType.VIDEO,
+]);
 
 /**
  * @typedef {import('../types.js').BaseElement} BaseElement
@@ -49,6 +59,10 @@ export const parseCommonObject = (state) => {
     anchorX: state.anchorX,
     anchorY: state.anchorY,
   });
+  const transformOriginX =
+    typeof state.originX === "number" ? state.originX : originX;
+  const transformOriginY =
+    typeof state.originY === "number" ? state.originY : originY;
 
   // Round all pixel calculations
   let computedObj = {
@@ -58,8 +72,8 @@ export const parseCommonObject = (state) => {
     height: Math.round(heightAfterScale),
     x: Math.round(adjustedPositionX),
     y: Math.round(adjustedPositionY),
-    originX: Math.round(originX),
-    originY: Math.round(originY),
+    originX: Math.round(transformOriginX),
+    originY: Math.round(transformOriginY),
     alpha: state.alpha ?? 1,
   };
 
@@ -69,6 +83,16 @@ export const parseCommonObject = (state) => {
 
   if (state.click) {
     computedObj.click = state.click;
+  }
+
+  if (state.filters !== undefined) {
+    if (!SHADER_FILTER_ELEMENT_TYPES.has(state.type)) {
+      throw new Error(
+        `Input Error: filters are not supported on ${state.type} elements`,
+      );
+    }
+
+    computedObj.filters = normalizeElementShaderFilters(state.filters);
   }
 
   return computedObj;

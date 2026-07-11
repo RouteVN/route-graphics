@@ -76,7 +76,7 @@ states:
             src: circle-green
             width: 12
             height: 12
-          offset: 12
+          offsetX: 12
         content:
           - text: "Maximum speed should skip the typewriter effect and draw the full sentence at once."
             textStyle:
@@ -109,7 +109,7 @@ states:
             src: circle-green
             width: 12
             height: 12
-          offset: 12
+          offsetX: 12
         content:
           - text: "Maximum speed should also bypass the soft wipe and present the final layout immediately."
             textStyle:

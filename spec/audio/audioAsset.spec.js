@@ -84,10 +84,36 @@ describe("AudioAsset", () => {
     );
 
     expect(context.decodeAudioData).toHaveBeenCalledTimes(1);
-    expect(new Uint8Array(context.decodeAudioData.mock.calls[0][0])).toEqual(
-      new Uint8Array([1, 2, 3]),
-    );
+    const decodedInput = context.decodeAudioData.mock.calls[0][0];
+    expect(decodedInput).not.toBe(arrayBuffer);
+    expect(new Uint8Array(decodedInput)).toEqual(new Uint8Array(arrayBuffer));
     expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
+  });
+
+  it("can reload a manager-owned buffer after decoders detach their input", async () => {
+    vi.resetModules();
+
+    const decodedBuffer = { decoded: true };
+    const context = {
+      decodeAudioData: vi.fn((decodeBuffer) => {
+        structuredClone(decodeBuffer, { transfer: [decodeBuffer] });
+        return Promise.resolve(decodedBuffer);
+      }),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const managerBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("click", managerBuffer);
+    expect(managerBuffer.byteLength).toBe(3);
+    AudioAsset.unload("click");
+    await AudioAsset.load("click", managerBuffer);
+
+    expect(context.decodeAudioData).toHaveBeenCalledTimes(2);
+    expect(managerBuffer.byteLength).toBe(3);
   });
 
   it("reuses an in-flight decode for duplicate load requests", async () => {
@@ -182,5 +208,110 @@ describe("AudioAsset", () => {
     });
 
     expect(OggVorbisDecoder).not.toHaveBeenCalled();
+  });
+
+  it("reports an unsupported codec for an unrecognized Ogg stream", async () => {
+    vi.resetModules();
+    createAudioContextMock({
+      decodeAudioData: vi.fn(() =>
+        Promise.reject(new Error("native decode failed")),
+      ),
+    });
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const buffer = new Uint8Array([0x4f, 0x67, 0x67, 0x53]).buffer;
+
+    await expect(
+      AudioAsset.load("mystery", buffer, "audio/ogg"),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        details: expect.objectContaining({
+          assetKey: "mystery",
+          cause: 'Unsupported Ogg codec "unknown".',
+        }),
+      }),
+    );
+  });
+
+  it("unloads decoded audio and permits the key to be loaded again", async () => {
+    const { AudioAsset, context, decodedBuffer } = await setupAudioAsset();
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("click", arrayBuffer);
+
+    expect(AudioAsset.unload("click")).toBe(true);
+    expect(AudioAsset.getAsset("click")).toBeUndefined();
+    expect(AudioAsset.unload("click")).toBe(false);
+
+    await expect(AudioAsset.load("click", arrayBuffer)).resolves.toBe(
+      decodedBuffer,
+    );
+    expect(context.decodeAudioData).toHaveBeenCalledTimes(2);
+    expect(AudioAsset.getAsset("click")).toBe(decodedBuffer);
+  });
+
+  it("does not repopulate the cache when an in-flight decode is unloaded", async () => {
+    vi.resetModules();
+
+    let resolveDecode;
+    const decodedBuffer = { decoded: true };
+    const context = {
+      decodeAudioData: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveDecode = () => resolve(decodedBuffer);
+          }),
+      ),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const loadPromise = AudioAsset.load(
+      "voice-line",
+      new Uint8Array([1, 2, 3]).buffer,
+    );
+
+    expect(AudioAsset.unload("voice-line")).toBe(true);
+    resolveDecode();
+    await expect(loadPromise).resolves.toBe(decodedBuffer);
+
+    expect(AudioAsset.getAsset("voice-line")).toBeUndefined();
+  });
+
+  it("rejects decode failures with asset context and root cause", async () => {
+    vi.resetModules();
+
+    const context = {
+      decodeAudioData: vi.fn(() =>
+        Promise.reject(new Error("unsupported codec")),
+      ),
+    };
+    window.AudioContext = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.webkitAudioContext = undefined;
+
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    let thrownError;
+    try {
+      await AudioAsset.load("voice-line", arrayBuffer);
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError?.message).toBe(
+      'Could not load audio "voice-line". Unsupported or damaged audio file.',
+    );
+    expect(thrownError?.details).toEqual(
+      expect.objectContaining({
+        assetKey: "voice-line",
+        assetKind: "audio",
+        phase: "decode",
+        cause: "unsupported codec",
+      }),
+    );
   });
 });

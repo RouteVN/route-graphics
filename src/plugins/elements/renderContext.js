@@ -48,6 +48,7 @@ const executeDeferredMountOperation = (operation) => {
         animationBus: operation.animationBus,
         zIndex: operation.zIndex,
         signal: operation.signal,
+        app: operation.app,
         playback: "autoplay",
       });
       return;
@@ -62,6 +63,7 @@ const executeDeferredMountOperation = (operation) => {
         completionTracker: operation.completionTracker,
         element: operation.element,
         targetState: operation.targetState,
+        animationBaseState: operation.animationBaseState,
       });
       return;
   }
@@ -117,10 +119,11 @@ export const queueDeferredParticlesStart = (
 
 export const queueDeferredTextRevealAutoplay = (
   renderContext,
-  { container, element, completionTracker, animationBus, zIndex, signal },
+  { app, container, element, completionTracker, animationBus, zIndex, signal },
 ) =>
   queueDeferredMountOperation(renderContext, {
     type: "autoplay-text-reveal",
+    app,
     container,
     element,
     completionTracker,
@@ -131,7 +134,14 @@ export const queueDeferredTextRevealAutoplay = (
 
 export const queueDeferredUpdateAnimationStart = (
   renderContext,
-  { animations, animationBus, completionTracker, element, targetState },
+  {
+    animations,
+    animationBus,
+    completionTracker,
+    element,
+    targetState,
+    animationBaseState,
+  },
 ) =>
   queueDeferredMountOperation(renderContext, {
     type: "start-update-animations",
@@ -140,16 +150,29 @@ export const queueDeferredUpdateAnimationStart = (
     completionTracker,
     element,
     targetState,
+    animationBaseState,
   });
 
-export const flushDeferredMountOperations = (renderContext) => {
+export const flushDeferredMountOperations = (
+  renderContext,
+  shouldFlush = () => true,
+) => {
   if (!renderContext?.deferredMountOperations?.length) {
     return;
   }
 
   const operations = renderContext.deferredMountOperations.splice(0);
+  const deferredOperations = [];
 
   for (const operation of operations) {
-    executeDeferredMountOperation(operation);
+    if (shouldFlush(operation)) {
+      executeDeferredMountOperation(operation);
+    } else {
+      deferredOperations.push(operation);
+    }
+  }
+
+  if (deferredOperations.length > 0) {
+    renderContext.deferredMountOperations.push(...deferredOperations);
   }
 };

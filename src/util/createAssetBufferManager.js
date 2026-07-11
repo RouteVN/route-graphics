@@ -4,6 +4,66 @@
 const createAssetBufferManager = () => {
   const cache = new Map();
   const isBlobUrl = (url) => typeof url === "string" && url.startsWith("blob:");
+  const getErrorMessage = (error) => {
+    if (!error) return "Unknown error";
+    if (typeof error === "string") return error;
+    return error.message || String(error);
+  };
+  const truncateErrorValue = (value, maxLength = 180) => {
+    if (typeof value !== "string") return undefined;
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength - 1)}...`;
+  };
+  const getHttpStatusCode = (message) => {
+    const match = message.match(/HTTP\s+(\d{3})/);
+    return match?.[1];
+  };
+  const getFriendlyFetchCauseMessage = (error) => {
+    const causeMessage = getErrorMessage(error);
+    const httpStatusCode = getHttpStatusCode(causeMessage);
+
+    if (httpStatusCode === "404") {
+      return "File not found.";
+    }
+
+    if (httpStatusCode === "401" || httpStatusCode === "403") {
+      return "Access denied.";
+    }
+
+    if (httpStatusCode?.startsWith("5")) {
+      return "File server error.";
+    }
+
+    if (/URL is missing/i.test(causeMessage)) {
+      return "Missing file URL.";
+    }
+
+    return "File could not be downloaded.";
+  };
+  const getAssetFetchErrorDetails = ({ key, value, error }) => {
+    const details = {
+      assetKey: key,
+      cause: getErrorMessage(error),
+    };
+
+    if (value?.type) details.type = value.type;
+    if (value?.url) details.url = truncateErrorValue(value.url);
+
+    return details;
+  };
+  const createAssetFetchError = ({ key, value, error }) => {
+    const rootCauseMessage = getFriendlyFetchCauseMessage(error);
+    const message = `Could not load asset "${key}". ${rootCauseMessage}`;
+    const fetchError = new Error(message, {
+      cause: error,
+    });
+
+    fetchError.userMessage = message;
+    fetchError.rootCauseMessage = rootCauseMessage;
+    fetchError.details = getAssetFetchErrorDetails({ key, value, error });
+
+    return fetchError;
+  };
   const shouldCacheByUrl = (value) => {
     return (
       typeof value?.type === "string" &&
@@ -32,25 +92,38 @@ const createAssetBufferManager = () => {
     if (toFetch.length > 0) {
       await Promise.all(
         toFetch.map(async ([key, value]) => {
-          if (shouldCacheByUrl(value)) {
-            cache.set(key, {
-              url: value.url,
+          try {
+            if (!value?.url) {
+              throw new Error("Asset URL is missing.");
+            }
+
+            if (shouldCacheByUrl(value)) {
+              cache.set(key, {
+                url: value.url,
+                type: value.type,
+                source: "url",
+              });
+              return;
+            }
+
+            const resp = await fetch(value.url);
+            if (!resp.ok) {
+              throw new Error(
+                `HTTP ${resp.status}${resp.statusText ? ` ${resp.statusText}` : ""}`,
+              );
+            }
+            const buffer = await resp.arrayBuffer();
+            const bufferData = {
+              buffer,
               type: value.type,
-              source: "url",
-            });
-            return;
+              source: "buffer",
+            };
+
+            // Cache the result
+            cache.set(key, bufferData);
+          } catch (error) {
+            throw createAssetFetchError({ key, value, error });
           }
-
-          const resp = await fetch(value.url);
-          const buffer = await resp.arrayBuffer();
-          const bufferData = {
-            buffer,
-            type: value.type,
-            source: "buffer",
-          };
-
-          // Cache the result
-          cache.set(key, bufferData);
         }),
       );
     }

@@ -100,6 +100,38 @@ out:
       rotation: 90
       alpha: 1
 ---
+case: Test parsing container with explicit origin independent of anchor
+in:
+  - state:
+      id: container-origin
+      type: container
+      x: 300
+      "y": 200
+      width: 120
+      height: 80
+      anchorX: 0.5
+      anchorY: 0.5
+      originX: 0
+      originY: 80
+      rotation: 30
+      children: []
+out:
+  id: container-origin
+  type: container
+  direction: absolute
+  gapX: 0
+  gapY: 0
+  width: 120
+  height: 80
+  x: 240
+  "y": 160
+  originX: 0
+  originY: 80
+  scroll: false
+  rotation: 30
+  alpha: 1
+  children: []
+---
 case: Test parsing container hover inheritance config
 in:
   - state:

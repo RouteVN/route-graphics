@@ -2,6 +2,107 @@ $schema: http://json-schema.org/draft-07/schema#
 title: Rect Computed Node
 description: Schema for rectangle computed node after parsing
 type: object
+$def:
+  point:
+    type: object
+    additionalProperties: false
+    required:
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        description: X coordinate
+      y:
+        type: number
+        description: Y coordinate
+  stop:
+    type: object
+    additionalProperties: false
+    required:
+      - offset
+      - color
+    properties:
+      offset:
+        type: number
+        minimum: 0
+        maximum: 1
+        description: Gradient stop offset from 0 to 1
+      color:
+        type: string
+        description: Gradient stop color
+  fill:
+    oneOf:
+      - type: string
+        description: Solid fill color. Use "transparent" for a transparent fill.
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - color
+        properties:
+          type:
+            const: solid
+          color:
+            type: string
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - stops
+        properties:
+          type:
+            const: linear-gradient
+          start:
+            "$ref": "#/$def/point"
+          end:
+            "$ref": "#/$def/point"
+          stops:
+            type: array
+            minItems: 2
+            items:
+              "$ref": "#/$def/stop"
+          coordinateSpace:
+            type: string
+            enum: [local, global]
+          textureSize:
+            type: number
+          wrapMode:
+            type: string
+            enum: [clamp-to-edge, repeat]
+      - type: object
+        additionalProperties: false
+        required:
+          - type
+          - stops
+        properties:
+          type:
+            const: radial-gradient
+          innerCenter:
+            "$ref": "#/$def/point"
+          innerRadius:
+            type: number
+          outerCenter:
+            "$ref": "#/$def/point"
+          outerRadius:
+            type: number
+          stops:
+            type: array
+            minItems: 2
+            items:
+              "$ref": "#/$def/stop"
+          coordinateSpace:
+            type: string
+            enum: [local, global]
+          textureSize:
+            type: number
+          wrapMode:
+            type: string
+            enum: [clamp-to-edge, repeat]
+          scale:
+            type: number
+          rotation:
+            type: number
 required:
   - id
   - type
@@ -37,8 +138,8 @@ properties:
     type: number
     description: Calculated origin Y coordinate based on anchor
   fill:
-    type: string
-    description: Optional fill color of the rectangle. When omitted, the rect renders transparent.
+    "$ref": "#/$def/fill"
+    description: Optional fill of the rectangle. Supports solid colors and structured gradient fills. When omitted, the rect renders transparent.
   border:
     type: object
     description: Border properties

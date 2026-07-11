@@ -73,6 +73,7 @@
  * @typedef {Object} SpriteComputedProps
  * @property {'sprite'} type
  * @property {number} alpha
+ * @property {number} [rotation] - Rotation in degrees
  * @property {string} url
  * @property {BlurConfig} [blur]
  * @property {SpriteHover} hover
@@ -379,9 +380,57 @@
  */
 
 /**
+ * @typedef {Object} RectFillPoint
+ * @property {number} x
+ * @property {number} y
+ */
+
+/**
+ * @typedef {Object} RectFillStop
+ * @property {number} offset
+ * @property {string} color
+ */
+
+/**
+ * @typedef {Object} RectSolidFill
+ * @property {'solid'} type
+ * @property {string} color
+ */
+
+/**
+ * @typedef {Object} RectLinearGradientFill
+ * @property {'linear-gradient'} type
+ * @property {RectFillPoint} [start]
+ * @property {RectFillPoint} [end]
+ * @property {RectFillStop[]} stops
+ * @property {'local' | 'global'} [coordinateSpace]
+ * @property {number} [textureSize]
+ * @property {'clamp-to-edge' | 'repeat'} [wrapMode]
+ */
+
+/**
+ * @typedef {Object} RectRadialGradientFill
+ * @property {'radial-gradient'} type
+ * @property {RectFillPoint} [innerCenter]
+ * @property {number} [innerRadius]
+ * @property {RectFillPoint} [outerCenter]
+ * @property {number} [outerRadius]
+ * @property {RectFillStop[]} stops
+ * @property {'local' | 'global'} [coordinateSpace]
+ * @property {number} [textureSize]
+ * @property {'clamp-to-edge' | 'repeat'} [wrapMode]
+ * @property {number} [scale]
+ * @property {number} [rotation]
+ */
+
+/**
+ * @typedef {string | RectSolidFill | RectLinearGradientFill | RectRadialGradientFill} RectFill
+ */
+
+/**
  * @typedef {Object} RectComputedProps
  * @property {'rect'} type
- * @property {string} [fill] - Optional fill color. When omitted, the rect renders transparent.
+ * @property {RectFill} [fill] - Optional fill. When omitted, the rect renders transparent.
  * @property {Object} border
  * @property {number} border.width
  * @property {string} border.color
@@ -432,6 +481,7 @@
  * @property {number} wordWrapWidth - Word wrap width
  * @property {string} [strokeColor] - Text stroke/outline color
  * @property {number} [strokeWidth] - Text stroke/outline width
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
@@ -457,13 +507,24 @@
  */
 
 /**
+ * @typedef {Object} InputStrokeStyle
+ * @property {number} width
+ * @property {string} color
+ * @property {number} alpha
+ */
+
+/**
  * @typedef {Object} InputComputedProps
  * @property {'input'} type
  * @property {string} value
  * @property {string} placeholder
  * @property {boolean} multiline
+ * @property {boolean} [submitOnEnter]
  * @property {boolean} disabled
  * @property {number} [maxLength]
+ * @property {RectFill} fill
+ * @property {InputStrokeStyle} border
+ * @property {InputStrokeStyle} focusRing
  * @property {Object} textStyle
  * @property {InputPadding} padding
  * @property {Object} [change]
@@ -495,16 +556,34 @@
  * @property {number} [initialRevealedCharacters=0] - Number of leading text characters rendered as already revealed before the reveal animation starts
  * @property {Object} complete - Complete event
  * @property {Object} [indicator] - Settings for the text continuation indicator
- * @property {Object} [indicator.revealing] - Settings for the revealing state indicator
- * @property {string} [indicator.revealing.src] - Source of the indicator image while text is revealing
- * @property {number} [indicator.revealing.width] - Width of the indicator image while revealing
- * @property {number} [indicator.revealing.height] - Height of the indicator image while revealing
- * @property {Object} [indicator.complete] - Settings for the complete state indicator
- * @property {string} [indicator.complete.src] - Source of the indicator image when text revealing is finished
- * @property {number} [indicator.complete.width] - Width of the indicator image when complete
- * @property {number} [indicator.complete.height] - Height of the indicator image when complete
+ * @property {Object} [indicator.revealing] - Visual shown while text is revealing
+ * @property {'image' | 'spritesheet'} [indicator.revealing.kind='image'] - Revealing indicator visual kind
+ * @property {string} [indicator.revealing.src] - Source of the revealing indicator image or spritesheet
+ * @property {number} [indicator.revealing.width] - Width of the revealing indicator visual
+ * @property {number} [indicator.revealing.height] - Height of the revealing indicator visual
+ * @property {number} [indicator.revealing.offsetX] - Revealing visual horizontal offset; falls back to indicator.offsetX
+ * @property {number} [indicator.revealing.offsetY] - Revealing visual vertical offset; falls back to indicator.offsetY
+ * @property {Object} [indicator.revealing.atlas] - Spritesheet atlas metadata when kind is spritesheet
+ * @property {Object} [indicator.revealing.clips] - Named spritesheet clips when kind is spritesheet
+ * @property {Object} [indicator.revealing.playback] - Spritesheet playback settings when kind is spritesheet
+ * @property {Object} [indicator.complete] - Visual shown when text revealing is finished
+ * @property {'image' | 'spritesheet'} [indicator.complete.kind='image'] - Complete indicator visual kind
+ * @property {string} [indicator.complete.src] - Source of the complete indicator image or spritesheet
+ * @property {number} [indicator.complete.width] - Width of the complete indicator visual
+ * @property {number} [indicator.complete.height] - Height of the complete indicator visual
+ * @property {number} [indicator.complete.offsetX] - Complete visual horizontal offset; falls back to indicator.offsetX
+ * @property {number} [indicator.complete.offsetY] - Complete visual vertical offset; falls back to indicator.offsetY
+ * @property {Object} [indicator.complete.atlas] - Spritesheet atlas metadata when kind is spritesheet
+ * @property {Object} [indicator.complete.clips] - Named spritesheet clips when kind is spritesheet
+ * @property {Object} [indicator.complete.playback] - Spritesheet playback settings when kind is spritesheet
+ * @property {number} [indicator.offsetX=16] - Horizontal offset between the text and the indicator
+ * @property {number} [indicator.offsetY=0] - Vertical adjustment from the indicator's automatic line placement; positive values move down
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
+ * @property {Object} [revealSound] - Sound to play while text is actively revealing
+ * @property {string} revealSound.src - Source alias or URL for the reveal sound
+ * @property {number} [revealSound.volume=100] - Reveal sound volume where 0 is muted and 100 is full volume
+ * @property {boolean} [revealSound.loop=true] - Whether the reveal sound loops until revealing finishes
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 
@@ -589,7 +668,7 @@
 /**
  * @typedef {Object} AudioTransition
  * @property {string} id - Unique identifier
- * @property {string} type - Should be "audioTransition"
+ * @property {string} type - Should be "audio-transition"
  * @property {string} targetId - Target sound or audio-channel id
  * @property {Object} properties - Transition properties
  */
@@ -616,11 +695,14 @@ export const WhiteListAnimationProps = {
   alpha: "alpha",
   x: "x",
   y: "y",
+  translateX: "translateX",
+  translateY: "translateY",
   scaleX: "scaleX",
   scaleY: "scaleY",
   rotation: "rotation",
   blurX: "blurX",
   blurY: "blurY",
+  uProgress: "uProgress",
 };
 
 export const WhiteListTransitionProps = WhiteListAnimationProps;
@@ -638,9 +720,12 @@ export const TRANSITION_PROPERTY_PATH_MAP = {
   rotation: ["rotation"],
   blurX: ["_routeGraphicsBlur", "x"],
   blurY: ["_routeGraphicsBlur", "y"],
+  uProgress: ["uProgress"],
 };
 
 export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
+  x: ["x"],
+  y: ["y"],
   translateX: ["x"],
   translateY: ["y"],
   scaleX: ["scale", "x"],
@@ -650,6 +735,8 @@ export const REPLACE_SUBJECT_PROPERTY_PATH_MAP = {
 };
 
 export const WhiteListReplaceSubjectProps = {
+  x: "x",
+  y: "y",
   translateX: "translateX",
   translateY: "translateY",
   alpha: "alpha",
@@ -777,6 +864,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fontFamily - The font family of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 

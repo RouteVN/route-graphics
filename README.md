@@ -78,6 +78,26 @@ app.render({
 `createAssetBufferManager()` may keep image and video assets as direct source
 URLs when possible, while audio and font assets remain buffer-backed.
 
+Assets loaded by an app instance can be released after no rendered or
+transitioning element still references them:
+
+```javascript
+await app.unloadAssets(["circle-red", "bgm-1"]);
+```
+
+`unloadAssets()` removes renderer cache entries and releases texture, video,
+audio, and font resources owned by that Route Graphics instance. Unknown or
+already-unloaded keys are ignored, shared resources remain alive until their
+last Route Graphics consumer unloads them, and released keys can be loaded
+again.
+
+The event handler also receives `rendererContextLost` and
+`rendererContextRestored` lifecycle events. Fallback UI should live outside the
+renderer so it remains available while the graphics context is unavailable.
+WebGPU device loss emits `rendererContextLost`; because a lost WebGPU device is
+not restorable, consumers must recreate the Route Graphics instance rather than
+wait for `rendererContextRestored`.
+
 For complete usage details, go to:
 
 - [Getting Started](http://route-graphics.routevn.com/docs/introduction/getting-started/)
@@ -88,6 +108,7 @@ For complete usage details, go to:
 Design notes:
 
 - [Audio Effects](./docs/audio-effects.md)
+- [Shader Interface](./docs/shader-interface.md)
 
 ## Render CLI
 

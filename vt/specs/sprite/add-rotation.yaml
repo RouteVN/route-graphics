@@ -1,0 +1,72 @@
+---
+title: Sprite Static Rotation
+description: Sprites rendered with rotation on initial add, including explicit origin overrides.
+specs:
+  - static sprite rotation should apply without an animation
+  - omitted origin should default to the anchor-derived pivot
+  - explicit origin should rotate independently from the anchor layout point
+  - explicit origin 0,0 should rotate around the sprite's top-left corner
+---
+states:
+  - elements:
+      - id: center-origin-sprite
+        type: sprite
+        src: slider
+        x: 360
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        rotation: 35
+      - id: explicit-origin-sprite
+        type: sprite
+        src: slider
+        x: 850
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 24
+        rotation: 35
+      - id: origin-zero-sprite
+        type: sprite
+        src: slider
+        x: 1130
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 0
+        rotation: 35
+      - id: center-origin-marker
+        type: rect
+        x: 360
+        "y": 360
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: explicit-origin-marker
+        type: rect
+        x: 730
+        "y": 372
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: origin-zero-marker
+        type: rect
+        x: 1010
+        "y": 348
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"

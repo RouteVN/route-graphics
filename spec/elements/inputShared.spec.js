@@ -1,5 +1,5 @@
-import { Container } from "pixi.js";
-import { describe, expect, it } from "vitest";
+import { Container, FillGradient } from "pixi.js";
+import { describe, expect, it, vi } from "vitest";
 import { parseInput } from "../../src/plugins/elements/input/parseInput.js";
 import {
   buildInputRuntime,
@@ -8,7 +8,7 @@ import {
   syncInputView,
 } from "../../src/plugins/elements/input/inputShared.js";
 
-const createRuntime = (state) => {
+const createRuntime = (state, { sync = true } = {}) => {
   const element = parseInput({
     state: {
       id: "input-test",
@@ -29,9 +29,22 @@ const createRuntime = (state) => {
     element,
   });
 
-  syncInputView(runtime, element);
+  if (sync) {
+    syncInputView(runtime, element);
+  }
 
   return { element, runtime };
+};
+
+const createRuntimeWithMockedBackground = (state) => {
+  const result = createRuntime(state, { sync: false });
+
+  result.runtime.background.clear = vi.fn();
+  result.runtime.background.rect = vi.fn();
+  result.runtime.background.fill = vi.fn();
+  result.runtime.background.stroke = vi.fn();
+
+  return result;
 };
 
 describe("inputShared hit testing", () => {
@@ -99,5 +112,116 @@ describe("inputShared hit testing", () => {
         y: actualSecondLineY + runtime.layoutState.layout.lineHeight / 2,
       }),
     ).toBe(secondLineStartIndex);
+  });
+});
+
+describe("inputShared chrome rendering", () => {
+  it("draws the default fill and border chrome", () => {
+    const { element, runtime } = createRuntimeWithMockedBackground({});
+
+    syncInputView(runtime, element);
+
+    expect(runtime.background.rect).toHaveBeenCalledWith(0, 0, 240, 80);
+    expect(runtime.background.fill).toHaveBeenCalledWith("#FFFFFF");
+    expect(runtime.background.stroke).toHaveBeenCalledTimes(1);
+    expect(runtime.background.stroke).toHaveBeenCalledWith({
+      color: "#2E2E2E",
+      alpha: 1,
+      width: 1,
+    });
+  });
+
+  it("draws custom border and focus ring chrome when focused", () => {
+    const { element, runtime } = createRuntimeWithMockedBackground({
+      fill: "#101820",
+      border: {
+        width: 2,
+        color: "#334155",
+        alpha: 0.75,
+      },
+      focusRing: {
+        width: 3,
+        color: "#38BDF8",
+        alpha: 0.9,
+      },
+    });
+
+    runtime.focused = true;
+    syncInputView(runtime, element);
+
+    expect(runtime.background.fill).toHaveBeenCalledWith("#101820");
+    expect(runtime.background.stroke).toHaveBeenCalledTimes(2);
+    expect(runtime.background.stroke).toHaveBeenNthCalledWith(1, {
+      color: "#334155",
+      alpha: 0.75,
+      width: 2,
+    });
+    expect(runtime.background.stroke).toHaveBeenNthCalledWith(2, {
+      color: "#38BDF8",
+      alpha: 0.9,
+      width: 3,
+    });
+  });
+
+  it("does not draw focus ring chrome for disabled inputs", () => {
+    const { element, runtime } = createRuntimeWithMockedBackground({
+      disabled: true,
+      focusRing: {
+        width: 4,
+        color: "#FF0000",
+      },
+    });
+
+    runtime.focused = true;
+    syncInputView(runtime, element);
+
+    expect(runtime.background.stroke).toHaveBeenCalledTimes(1);
+    expect(runtime.background.stroke).toHaveBeenCalledWith({
+      color: "#2E2E2E",
+      alpha: 1,
+      width: 1,
+    });
+  });
+
+  it("supports transparent fills and disabled strokes", () => {
+    const { element, runtime } = createRuntimeWithMockedBackground({
+      fill: "transparent",
+      border: {
+        width: 0,
+      },
+      focusRing: {
+        width: 0,
+      },
+    });
+
+    runtime.focused = true;
+    syncInputView(runtime, element);
+
+    expect(runtime.background.fill).toHaveBeenCalledWith({
+      color: 0x000000,
+      alpha: 0,
+    });
+    expect(runtime.background.stroke).not.toHaveBeenCalled();
+  });
+
+  it("supports rect-compatible gradient fills", () => {
+    const { element, runtime } = createRuntimeWithMockedBackground({
+      fill: {
+        type: "linear-gradient",
+        start: { x: 0, y: 0 },
+        end: { x: 1, y: 0 },
+        stops: [
+          { offset: 0, color: "#101820" },
+          { offset: 1, color: "#38BDF8" },
+        ],
+      },
+    });
+
+    syncInputView(runtime, element);
+
+    const fill = runtime.background.fill.mock.calls[0][0];
+
+    expect(fill).toBeInstanceOf(FillGradient);
+    expect(runtime.background._rtglFillResource).toBe(fill);
   });
 });

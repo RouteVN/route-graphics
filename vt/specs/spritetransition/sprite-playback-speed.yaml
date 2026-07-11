@@ -1,0 +1,71 @@
+---
+title: Sprite Playback Speed
+description: Verifies tween playback speed scales elapsed animation time.
+specs:
+  - speed 2 should complete the top sprite movement after 500ms
+  - speed 0.5 should move the bottom sprite one quarter of the authored distance after 500ms
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: fast-sprite
+        type: sprite
+        src: circle-green
+        x: 100
+        "y": 120
+        width: 120
+        height: 120
+      - id: slow-sprite
+        type: sprite
+        src: circle-blue
+        x: 100
+        "y": 360
+        width: 120
+        height: 120
+  - elements:
+      - id: fast-sprite
+        type: sprite
+        src: circle-green
+        x: 900
+        "y": 120
+        width: 120
+        height: 120
+      - id: slow-sprite
+        type: sprite
+        src: circle-blue
+        x: 900
+        "y": 360
+        width: 120
+        height: 120
+    animations:
+      - id: fast-sprite-move
+        targetId: fast-sprite
+        type: update
+        playback:
+          speed: 2
+        tween:
+          x:
+            initialValue: 100
+            keyframes:
+              - duration: 1000
+                value: 900
+                easing: linear
+      - id: slow-sprite-move
+        targetId: slow-sprite
+        type: update
+        playback:
+          speed: 0.5
+        tween:
+          x:
+            initialValue: 100
+            keyframes:
+              - duration: 1000
+                value: 900
+                easing: linear

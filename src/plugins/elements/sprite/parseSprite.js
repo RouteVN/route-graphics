@@ -18,6 +18,7 @@ export const parseSprite = ({ state }) => {
     ...computedObj,
     src: state.src ?? "",
     alpha: state.alpha ?? 1,
+    rotation: state.rotation ?? 0,
     ...(state.blur !== undefined && {
       blur: normalizeBlurConfig(state.blur),
     }),

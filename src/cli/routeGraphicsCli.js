@@ -407,7 +407,12 @@ const getServedAssetPath = (assetId, assetPath) => {
 const getDistFilePath = (pathname) => {
   if (!pathname.startsWith("/dist/")) return null;
 
-  const relativePath = decodeURIComponent(pathname.slice("/dist/".length));
+  let relativePath;
+  try {
+    relativePath = decodeURIComponent(pathname.slice("/dist/".length));
+  } catch {
+    return null;
+  }
   const normalizedPath = path.normalize(relativePath);
   if (
     normalizedPath.startsWith("..") ||

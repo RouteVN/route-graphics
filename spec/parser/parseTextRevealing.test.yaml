@@ -240,7 +240,8 @@ in:
           src: checkmark
           width: 14
           height: 14
-        offset: 8
+        offsetX: 8
+        offsetY: -4
 out:
   id: tr5
   type: text-revealing
@@ -253,14 +254,17 @@ out:
   alpha: 1
   indicator:
     revealing:
+      kind: image
       src: arrow-right
       width: 12
       height: 12
     complete:
+      kind: image
       src: checkmark
       width: 14
       height: 14
-    offset: 8
+    offsetX: 8
+    offsetY: -4
   content:
     - lineParts:
         - text: Text with indicator
@@ -319,14 +323,17 @@ out:
   alpha: 1
   indicator:
     revealing:
+      kind: image
       src: circle-blue
       width: 12
       height: 12
     complete:
+      kind: image
       src: circle-green
       width: 12
       height: 12
-    offset: 12
+    offsetX: 16
+    offsetY: 0
   content:
     - lineParts:
         - text: Text with indicator defaults
@@ -589,3 +596,16 @@ out:
     wordWrapWidth: 0
   speed: 50
   revealEffect: typewriter
+---
+case: Test parsing text-revealing throws when legacy indicator offset is used
+in:
+  - state:
+      id: tr-legacy-offset
+      type: text-revealing
+      content:
+        - text: Legacy offset
+      indicator:
+        revealing:
+          src: circle-blue
+        offset: 12
+throws: "Input Error: indicator.offset is no longer supported. Use offsetX and offsetY."

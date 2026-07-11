@@ -18,6 +18,7 @@ const getRevealIdentity = (element = {}) =>
     initialRevealedCharacters: element.initialRevealedCharacters ?? 0,
     width: element.width ?? null,
     indicator: element.indicator ?? null,
+    revealSound: element.revealSound ?? null,
     x: element.x ?? null,
     y: element.y ?? null,
     alpha: element.alpha ?? 1,
@@ -31,6 +32,7 @@ const shouldRestartReveal = (prevElement, nextElement) =>
  * @param {import("../elementPlugin").UpdateElementOptions} params
  */
 export const updateTextRevealing = async ({
+  app,
   parent,
   prevElement,
   nextElement: element,
@@ -67,6 +69,7 @@ export const updateTextRevealing = async ({
           animationBus,
           zIndex,
           signal,
+          app,
           playback: "resume",
         });
       }
@@ -85,6 +88,7 @@ export const updateTextRevealing = async ({
         animationBus,
         zIndex,
         signal,
+        app,
         playback: "paused-initial",
       });
 
@@ -95,6 +99,7 @@ export const updateTextRevealing = async ({
         animationBus,
         zIndex,
         signal,
+        app,
       });
       return;
     }
@@ -106,6 +111,7 @@ export const updateTextRevealing = async ({
       animationBus,
       zIndex,
       signal,
+      app,
       playback: "autoplay",
     });
   };

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   textureFrom,
   dispatchLiveAnimations,
+  getLiveAnimations,
   MockAnimatedSprite,
   MockBlurFilter,
   MockSpritesheet,
@@ -57,6 +58,7 @@ const {
   return {
     textureFrom: vi.fn(),
     dispatchLiveAnimations: vi.fn(() => false),
+    getLiveAnimations: vi.fn(() => []),
     MockAnimatedSprite: HoistedMockAnimatedSprite,
     MockBlurFilter: HoistedMockBlurFilter,
     MockSpritesheet: HoistedMockSpritesheet,
@@ -74,6 +76,7 @@ vi.mock("pixi.js", () => ({
 
 vi.mock("../../src/plugins/animations/planAnimations.js", () => ({
   dispatchLiveAnimations,
+  getLiveAnimations,
 }));
 
 import { addAnimatedSprite } from "../../src/plugins/elements/animated-sprite/addAnimatedSprite.js";
@@ -120,6 +123,8 @@ describe("spritesheet animation rendering", () => {
     textureFrom.mockReturnValue({ alias: "fighter-spritesheet" });
     dispatchLiveAnimations.mockReset();
     dispatchLiveAnimations.mockReturnValue(false);
+    getLiveAnimations.mockReset();
+    getLiveAnimations.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -298,6 +303,294 @@ describe("spritesheet animation rendering", () => {
     ]);
   });
 
+  it("reloads changed spritesheet resources before dispatching update animations", async () => {
+    const order = [];
+    textureFrom.mockImplementation((src) => {
+      order.push(`texture:${src}`);
+      return { alias: src };
+    });
+    dispatchLiveAnimations.mockImplementation(() => {
+      order.push("dispatch");
+      return true;
+    });
+    getLiveAnimations.mockReturnValue([
+      {
+        id: "animated-sprite-update",
+        targetId: "animated-sprite-1",
+        type: "update",
+      },
+    ]);
+
+    const app = {
+      debug: false,
+      render: vi.fn(() => {
+        order.push(
+          `render:${animatedSpriteElement.width}x${animatedSpriteElement.height}`,
+        );
+      }),
+    };
+    const animatedSpriteElement = new MockAnimatedSprite([
+      { frameName: "old" },
+    ]);
+    animatedSpriteElement.label = "animated-sprite-1";
+    animatedSpriteElement.x = 20;
+    animatedSpriteElement.y = 30;
+    animatedSpriteElement.width = 64;
+    animatedSpriteElement.height = 64;
+    const parent = {
+      children: [animatedSpriteElement],
+    };
+    const prevElement = createAnimatedSpriteElement({
+      x: 20,
+      y: 30,
+      width: 64,
+      height: 64,
+    });
+    const nextElement = createAnimatedSpriteElement({
+      src: "fighter-spritesheet-v2",
+      x: 240,
+      y: 160,
+      width: 128,
+      height: 128,
+    });
+
+    await updateAnimatedSprite({
+      app,
+      parent,
+      prevElement,
+      nextElement,
+      animations: [
+        {
+          id: "animated-sprite-update",
+          targetId: "animated-sprite-1",
+          type: "update",
+          tween: {
+            x: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus: {},
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(() => {
+          order.push("track");
+        }),
+        complete: vi.fn(() => {
+          order.push("complete");
+        }),
+      },
+      zIndex: 4,
+      signal: undefined,
+    });
+
+    expect(order).toEqual([
+      "track",
+      "texture:fighter-spritesheet-v2",
+      "render:128x128",
+      "dispatch",
+      "complete",
+    ]);
+    expect(animatedSpriteElement.textures).toEqual([
+      { frameName: "frame-0.png" },
+      { frameName: "frame-1.png" },
+      { frameName: "frame-2.png" },
+    ]);
+    expect(animatedSpriteElement.x).toBe(20);
+    expect(animatedSpriteElement.y).toBe(30);
+    expect(animatedSpriteElement.width).toBe(128);
+    expect(animatedSpriteElement.height).toBe(128);
+  });
+
+  it("keeps animated dimensions at their current values before dispatch", async () => {
+    const order = [];
+    textureFrom.mockImplementation((src) => {
+      order.push(`texture:${src}`);
+      return { alias: src };
+    });
+    dispatchLiveAnimations.mockImplementation(({ element }) => {
+      order.push(`dispatch:${element.width}x${element.height}`);
+      return true;
+    });
+    getLiveAnimations.mockReturnValue([
+      {
+        id: "animated-sprite-update",
+        targetId: "animated-sprite-1",
+        type: "update",
+        tween: {
+          width: {
+            auto: {
+              duration: 300,
+              easing: "linear",
+            },
+          },
+          height: {
+            auto: {
+              duration: 300,
+              easing: "linear",
+            },
+          },
+        },
+      },
+    ]);
+
+    const app = {
+      debug: false,
+      render: vi.fn(),
+    };
+    const animatedSpriteElement = new MockAnimatedSprite([
+      { frameName: "old" },
+    ]);
+    animatedSpriteElement.label = "animated-sprite-1";
+    animatedSpriteElement.x = 20;
+    animatedSpriteElement.y = 30;
+    animatedSpriteElement.width = 64;
+    animatedSpriteElement.height = 48;
+    const parent = {
+      children: [animatedSpriteElement],
+    };
+    const prevElement = createAnimatedSpriteElement({
+      x: 20,
+      y: 30,
+      width: 64,
+      height: 48,
+    });
+    const nextElement = createAnimatedSpriteElement({
+      src: "fighter-spritesheet-v2",
+      x: 20,
+      y: 30,
+      width: 128,
+      height: 96,
+    });
+
+    await updateAnimatedSprite({
+      app,
+      parent,
+      prevElement,
+      nextElement,
+      animations: [
+        {
+          id: "animated-sprite-update",
+          targetId: "animated-sprite-1",
+          type: "update",
+          tween: {
+            width: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+            height: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus: {},
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      zIndex: 4,
+      signal: undefined,
+    });
+
+    expect(order).toEqual(["texture:fighter-spritesheet-v2", "dispatch:64x48"]);
+    expect(animatedSpriteElement.textures).toEqual([
+      { frameName: "frame-0.png" },
+      { frameName: "frame-1.png" },
+      { frameName: "frame-2.png" },
+    ]);
+    expect(animatedSpriteElement.width).toBe(64);
+    expect(animatedSpriteElement.height).toBe(48);
+  });
+
+  it("does not reload frame textures before dispatch for playback-only updates", async () => {
+    const order = [];
+    dispatchLiveAnimations.mockImplementation(() => {
+      order.push("dispatch");
+      return true;
+    });
+    getLiveAnimations.mockReturnValue([
+      {
+        id: "animated-sprite-update",
+        targetId: "animated-sprite-1",
+        type: "update",
+        tween: {
+          x: {
+            auto: {
+              duration: 300,
+              easing: "linear",
+            },
+          },
+        },
+      },
+    ]);
+
+    const app = {
+      debug: false,
+      render: vi.fn(),
+    };
+    const animatedSpriteElement = new MockAnimatedSprite([
+      { frameName: "old" },
+    ]);
+    animatedSpriteElement.label = "animated-sprite-1";
+    const parent = {
+      children: [animatedSpriteElement],
+    };
+    const prevElement = createAnimatedSpriteElement();
+    const nextElement = createAnimatedSpriteElement({
+      playback: {
+        clip: "idle",
+        fps: 12,
+        loop: true,
+        autoplay: true,
+      },
+    });
+
+    await updateAnimatedSprite({
+      app,
+      parent,
+      prevElement,
+      nextElement,
+      animations: [
+        {
+          id: "animated-sprite-update",
+          targetId: "animated-sprite-1",
+          type: "update",
+          tween: {
+            x: {
+              auto: {
+                duration: 300,
+                easing: "linear",
+              },
+            },
+          },
+        },
+      ],
+      animationBus: {},
+      completionTracker: {
+        getVersion: vi.fn().mockReturnValue(1),
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      zIndex: 4,
+      signal: undefined,
+    });
+
+    expect(order).toEqual(["dispatch"]);
+    expect(textureFrom).not.toHaveBeenCalled();
+    expect(animatedSpriteElement.animationSpeed).toBe(0);
+  });
+
   it("re-renders when a debug snapshot frame event changes the current frame", () => {
     const animatedSprite = new MockAnimatedSprite([
       { frameName: "frame-0.png" },
@@ -310,7 +603,7 @@ describe("spritesheet animation rendering", () => {
       new CustomEvent("snapShotAnimatedSpriteFrame", {
         detail: {
           elementId: "animated-sprite-1",
-          frameIndex: 2,
+          frameIndex: "2",
         },
       }),
     );

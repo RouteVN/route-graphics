@@ -36,10 +36,32 @@ properties:
     type: string
   multiline:
     type: boolean
+  submitOnEnter:
+    type: boolean
   disabled:
     type: boolean
   maxLength:
     type: number
+  fill:
+    description: Input field fill after default resolution
+  border:
+    type: object
+    properties:
+      width:
+        type: number
+      color:
+        type: string
+      alpha:
+        type: number
+  focusRing:
+    type: object
+    properties:
+      width:
+        type: number
+      color:
+        type: string
+      alpha:
+        type: number
   textStyle:
     type: object
   padding:

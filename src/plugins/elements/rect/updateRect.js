@@ -3,11 +3,17 @@ import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { isPrimaryPointerEvent } from "../util/isPrimaryPointerEvent.js";
-
-const normalizeRectFill = (fill) =>
-  fill === undefined || fill === null || fill === "" || fill === "transparent"
-    ? { color: 0x000000, alpha: 0 }
-    : fill;
+import { resolveRectFill } from "./rectFill.js";
+import {
+  applyElementTransform,
+  getElementTransformTargetState,
+} from "../util/transform.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -32,9 +38,21 @@ export const updateRect = ({
 
   rectElement.zIndex = zIndex;
 
-  const { x, y, width, height, fill, border, alpha, scaleX, scaleY } =
-    nextElement;
-  const targetState = { x, y, alpha };
+  const { width, height, fill, border, alpha, scaleX, scaleY } = nextElement;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevElement.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(rectElement, prevElement.filters, {
+      width: prevElement.width,
+      height: prevElement.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(rectElement);
+  }
+  const targetState = getElementTransformTargetState(nextElement, { alpha });
 
   if (scaleX !== undefined) {
     targetState.scaleX = scaleX;
@@ -51,14 +69,13 @@ export const updateRect = ({
 
       rectElement
         .rect(0, 0, Math.round(width), Math.round(height))
-        .fill(normalizeRectFill(fill));
-      rectElement.x = Math.round(x);
-      rectElement.y = Math.round(y);
+        .fill(resolveRectFill(rectElement, fill, nextElement));
       rectElement.alpha = alpha;
       // Rect computed nodes already bake scale into width/height for layout.
       // Reset the live transform so update tweens do not double-apply scale.
       rectElement.scale.x = 1;
       rectElement.scale.y = 1;
+      applyElementTransform(rectElement, nextElement);
 
       if (border) {
         rectElement.stroke({
@@ -67,6 +84,12 @@ export const updateRect = ({
           width: Math.round(border.width),
         });
       }
+
+      syncShaderFilters(rectElement, nextElement.filters, {
+        width,
+        height,
+        force: shouldForceShaderProgress,
+      });
 
       rectElement.removeAllListeners("pointerover");
       rectElement.removeAllListeners("pointerout");
@@ -231,7 +254,12 @@ export const updateRect = ({
     animationBus,
     completionTracker,
     element: rectElement,
-    targetState,
+    targetState: {
+      ...targetState,
+      ...getShaderFilterTargetState(nextElement, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },

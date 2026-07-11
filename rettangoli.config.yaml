@@ -52,6 +52,15 @@ vt:
         - title: "Replace Transitions"
           files: "replacetransition"
           description: "Replace transition tests"
+    - title: "Shader Group"
+      type: "groupLabel"
+      items:
+        - title: "Shader Filters"
+          files: "shaderfilters"
+          description: "Element shader filter rendering tests"
+        - title: "Shader Transitions"
+          files: "shadertransition"
+          description: "Transition shader compositor rendering tests"
     - title: "Sprite Group"
       type: "groupLabel"
       items:

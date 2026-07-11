@@ -1,0 +1,75 @@
+---
+title: Text Revealing - Indicator Visual Offsets
+description: Validates per-visual indicator offsets for revealing and complete states; colored indicator assets are used intentionally for reveal-state distinction.
+specs:
+  - revealing indicator visual offsets should override the shared indicator offset while text is still revealing
+  - complete indicator visual offsets should override the shared indicator offset after the completion visual swap
+  - vertical offsets should be applied from the automatic line placement for both visual states
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+---
+states:
+  - id: revealing-visual-offset
+    elements:
+      - id: revealing-offset-line
+        type: text-revealing
+        x: 80
+        "y": 96
+        width: 760
+        speed: 8
+        initialRevealedCharacters: 14
+        revealEffect: softWipe
+        softWipe:
+          easing: linear
+          softness: 0
+        indicator:
+          revealing:
+            src: circle-red
+            width: 14
+            height: 14
+            offsetX: 96
+            offsetY: -18
+          complete:
+            src: circle-green
+            width: 14
+            height: 14
+            offsetX: 28
+            offsetY: 18
+        content:
+          - text: "Revealing visual offset keeps this red indicator ahead of the wipe edge."
+            textStyle:
+              fontSize: 32
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.3
+  - id: complete-visual-offset
+    elements:
+      - id: complete-offset-line
+        type: text-revealing
+        x: 80
+        "y": 210
+        width: 760
+        speed: 100
+        revealEffect: none
+        indicator:
+          revealing:
+            src: circle-red
+            width: 14
+            height: 14
+            offsetX: 96
+            offsetY: -18
+          complete:
+            src: circle-green
+            width: 14
+            height: 14
+            offsetX: 128
+            offsetY: 28
+        content:
+          - text: "Complete visual offset moves this green indicator below and past the finished text."
+            textStyle:
+              fontSize: 32
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.3

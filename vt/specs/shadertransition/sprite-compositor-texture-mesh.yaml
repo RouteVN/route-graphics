@@ -1,0 +1,199 @@
+---
+title: Sprite Shader Compositor Texture Mesh
+description: Transition compositors should support custom textures, pipeline options, custom vertex source, and subdivided meshes.
+specs:
+  - uTexture should sample the outgoing sprite surface
+  - uNextTexture should sample the incoming sprite surface
+  - a custom texture should be bound after uNextTexture
+  - mesh.grid and custom vertex source should allow a visible wave deformation
+  - the post-completion frame should match the final compositor frame
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: sprite-compositor
+        type: sprite
+        src: sprite-mask-asym-outgoing
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
+  - elements:
+      - id: sprite-compositor
+        type: sprite
+        src: sprite-mask-asym-incoming
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
+    animations:
+      - id: sprite-textured-compositor
+        targetId: sprite-compositor
+        type: transition
+        tween:
+          uProgress:
+            initialValue: 0
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: easeInOutCubic
+        compositor:
+          type: shader
+          mesh:
+            grid: [8, 4]
+          uniforms:
+            wave: 0.14
+          textures:
+            paper: mask-diagonal
+          pipeline:
+            blend: normal
+            textureWrap: repeat
+            mipmap: true
+          source:
+            webgl:
+              vertex: |
+                precision mediump float;
+
+                in vec2 aPosition;
+
+                out vec2 vTextureCoord;
+
+                uniform vec4 uInputSize;
+                uniform vec4 uOutputFrame;
+                uniform vec4 uOutputTexture;
+                uniform float uProgress;
+                uniform float uWave;
+
+                vec4 filterVertexPosition(vec2 localPosition)
+                {
+                    vec2 position = localPosition * uOutputFrame.zw + uOutputFrame.xy;
+                    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+                    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+                    return vec4(position, 0.0, 1.0);
+                }
+
+                void main(void)
+                {
+                    vec2 warped = aPosition;
+                    float wave = sin((aPosition.x * 4.0 + uProgress * 2.0) * 3.14159265) * uWave * sin(uProgress * 3.14159265);
+                    warped.y += wave;
+                    gl_Position = filterVertexPosition(warped);
+                    vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
+                }
+              fragment: |
+                precision mediump float;
+
+                in vec2 vTextureCoord;
+                out vec4 finalColor;
+
+                uniform sampler2D uTexture;
+                uniform sampler2D uNextTexture;
+                uniform sampler2D uPaperTexture;
+                uniform mat3 uNextTextureMatrix;
+                uniform vec4 uInputClamp;
+                uniform float uProgress;
+                uniform vec4 uNextTextureClamp;
+
+                void main(void)
+                {
+                    vec2 uv = clamp(vTextureCoord, uInputClamp.xy, uInputClamp.zw);
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
+                    vec4 prevColor = texture(uTexture, uv);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
+                    float grain = texture(uPaperTexture, uv * 3.0).r;
+                    float progress = clamp(uProgress, 0.0, 1.0);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
+                    float grainAmount = sin(progress * 3.14159265);
+                    float mixedProgress = clamp(progress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                    vec4 color = mix(prevColor, nextColor, mixedProgress);
+                    finalColor = vec4(color.rgb * color.a, color.a);
+                }
+            webgpu:
+              source: |
+                struct GlobalFilterUniforms {
+                  uInputSize: vec4<f32>,
+                  uInputPixel: vec4<f32>,
+                  uInputClamp: vec4<f32>,
+                  uOutputFrame: vec4<f32>,
+                  uGlobalFrame: vec4<f32>,
+                  uOutputTexture: vec4<f32>,
+                };
+
+                struct ShaderUniforms {
+                  uProgress: f32,
+                  uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
+                  uWave: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
+                @group(0) @binding(1) var uTexture: texture_2d<f32>;
+                @group(0) @binding(2) var uSampler: sampler;
+                @group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+                @group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+                @group(1) @binding(2) var uPaperTexture: texture_2d<f32>;
+
+                struct VSOutput {
+                  @builtin(position) position: vec4<f32>,
+                  @location(0) uv: vec2<f32>,
+                };
+
+                fn filterVertexPosition(localPosition: vec2<f32>) -> vec4<f32>
+                {
+                  var position = localPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+                  position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;
+                  position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;
+                  return vec4<f32>(position, 0.0, 1.0);
+                }
+
+                @vertex
+                fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
+                {
+                  var warped = aPosition;
+                  let wave = sin((aPosition.x * 4.0 + shaderUniforms.uProgress * 2.0) * 3.14159265) * shaderUniforms.uWave * sin(shaderUniforms.uProgress * 3.14159265);
+                  warped.y = warped.y + wave;
+                  return VSOutput(filterVertexPosition(warped), aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw));
+                }
+
+                @fragment
+                fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32>
+                {
+                  let clampedUv = clamp(uv, gfu.uInputClamp.xy, gfu.uInputClamp.zw);
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
+                  let prevColor = textureSample(uTexture, uSampler, clampedUv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
+                  let grain = textureSample(uPaperTexture, uSampler, clampedUv * 3.0).r;
+                  let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
+                  let grainAmount = sin(progress * 3.14159265);
+                  let mixedProgress = clamp(progress + (grain - 0.5) * 0.35 * grainAmount, 0.0, 1.0);
+                  let color = mix(prevColor, nextColor, mixedProgress);
+                  return vec4<f32>(color.rgb * color.a, color.a);
+                }

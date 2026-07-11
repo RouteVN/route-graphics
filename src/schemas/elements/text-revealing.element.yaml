@@ -74,6 +74,10 @@ $def:
       strokeWidth:
         type: number
         description: Text stroke/outline width
+      padding:
+        type: number
+        minimum: 0
+        description: Extra texture padding around rendered glyphs, useful for fonts with overhanging glyph bounds.
       shadow:
         "$ref": "#/$def/textShadow"
   softWipe:
@@ -101,6 +105,64 @@ $def:
         minimum: 0
         description: Delay in milliseconds before the next line starts after overlap is applied.
         default: 0
+  indicatorVisual:
+    type: object
+    description: Indicator visual. Use `kind: image` for a static texture or `kind: spritesheet` for frame animation.
+    properties:
+      kind:
+        type: string
+        enum: [image, spritesheet]
+        default: image
+        description: Visual kind. If omitted, image is used unless spritesheet fields are present.
+      src:
+        type: string
+        description: Source alias or URL for the image or spritesheet texture
+      width:
+        type: number
+        description: Display width of the indicator visual
+        default: 12
+      height:
+        type: number
+        description: Display height of the indicator visual
+        default: 12
+      offsetX:
+        type: number
+        description: Horizontal offset for this indicator visual. Falls back to indicator.offsetX, then 16.
+      offsetY:
+        type: number
+        description: Vertical offset for this indicator visual. Falls back to indicator.offsetY, then 0.
+      atlas:
+        type: object
+        description: Spritesheet atlas metadata when `kind` is `spritesheet`; uses the same shape as `spritesheet-animation.atlas`.
+      clips:
+        type: object
+        description: Named frame sequences when `kind` is `spritesheet`.
+        additionalProperties:
+          type: array
+          items:
+            type: string
+      playback:
+        type: object
+        description: Playback configuration when `kind` is `spritesheet`.
+        properties:
+          clip:
+            type: string
+            description: Named clip to play from `clips` or `atlas.animations`
+          frames:
+            type: array
+            items:
+              type: string
+            description: Ordered frame names for playback
+          fps:
+            type: number
+            minimum: 0.1
+            default: 30
+          loop:
+            type: boolean
+            default: true
+          autoplay:
+            type: boolean
+            default: true
 properties:
   id:
     type: string
@@ -166,29 +228,17 @@ properties:
     description: Settings for the text continuation indicator
     properties:
       revealing:
-        src:
-          type: string
-          description: Source of the indicator image while text is revealing
-        width:
-          type: number
-          description: Width of the indicator image
-        height:
-          type: number
-        description: Height of the indicator image
+        "$ref": "#/$def/indicatorVisual"
       complete:
-        src:
-          type: string
-          description: Source of the indicator image when text revealing is finished
-        width:
-          type: number
-          description: Width of the indicator image
-        height:
-          type: number
-          description: Height of the indicator image
-      offset:
+        "$ref": "#/$def/indicatorVisual"
+      offsetX:
         type: number
-        description: Offset between the text and the indicator
-        default: 12
+        description: Default horizontal offset between the text and the indicator when a visual does not provide offsetX
+        default: 16
+      offsetY:
+        type: number
+        description: Default vertical adjustment from the indicator's automatic line placement when a visual does not provide offsetY; positive values move down
+        default: 0
   speed:
     type: number
     description: Animation speed on a curved 0-100 scale; 100 renders instantly
@@ -205,6 +255,25 @@ properties:
     default: typewriter
   softWipe:
     "$ref": "#/$def/softWipe"
+  revealSound:
+    type: object
+    description: Sound to play while text is actively revealing.
+    required:
+      - src
+    properties:
+      src:
+        type: string
+        description: Source alias or URL for the reveal sound
+      volume:
+        type: number
+        description: Volume. 0 means muted. 100 means original full volume.
+        default: 100
+        minimum: 0
+        maximum: 100
+      loop:
+        type: boolean
+        description: Whether the reveal sound loops until the reveal finishes
+        default: true
   textStyle:
     "$ref": "#/$def/textStyle"
   complete:

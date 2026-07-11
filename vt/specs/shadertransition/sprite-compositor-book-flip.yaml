@@ -1,0 +1,263 @@
+---
+title: Sprite Shader Compositor Book Flip
+description: A shader transition should render a page-flip style compositor from one image sprite to another image sprite.
+specs:
+  - uTexture should show the outgoing image at the start of the flip
+  - uNextTexture should show the incoming image as the page turns
+  - mesh.grid and custom vertex source should curve the turning page
+  - the near-end frame should settle to the incoming image before overlay teardown
+  - the final frame should resolve fully to the incoming image
+  - the post-completion frame should match the final compositor frame without a handoff jump
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 250
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 460
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 40
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 16
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: book-flip-sprite
+        type: sprite
+        src: sprite-mask-asym-outgoing
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
+  - elements:
+      - id: book-flip-sprite
+        type: sprite
+        src: sprite-mask-asym-incoming
+        x: 160
+        "y": 90
+        width: 960
+        height: 540
+    animations:
+      - id: sprite-book-flip-compositor
+        targetId: book-flip-sprite
+        type: transition
+        tween:
+          uProgress:
+            initialValue: 0
+            keyframes:
+              - duration: 960
+                value: 1
+                easing: easeInOutCubic
+              - duration: 40
+                value: 1
+                easing: linear
+        compositor:
+          type: shader
+          mesh:
+            grid: [32, 12]
+          uniforms:
+            curl: 0.9
+            shadow: 0.42
+          pipeline:
+            blend: normal
+            textureWrap: clamp
+            mipmap: false
+          source:
+            webgl:
+              vertex: |
+                precision mediump float;
+
+                in vec2 aPosition;
+
+                out vec2 vTextureCoord;
+
+                uniform vec4 uInputSize;
+                uniform vec4 uOutputFrame;
+                uniform vec4 uOutputTexture;
+                uniform float uProgress;
+                uniform float uCurl;
+
+                const float PI = 3.14159265;
+
+                vec4 filterVertexPosition(vec2 localPosition)
+                {
+                    vec2 position = localPosition * uOutputFrame.zw + uOutputFrame.xy;
+                    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+                    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+                    return vec4(position, 0.0, 1.0);
+                }
+
+                void main(void)
+                {
+                    float progress = clamp(uProgress, 0.0, 1.0);
+                    float foldWidth = 0.018;
+                    float fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                    float pageSide = step(fold, aPosition.x);
+                    float foldDistance = abs(aPosition.x - fold);
+                    float foldBand = 1.0 - smoothstep(0.0, 0.34, foldDistance);
+                    float curlAmount = foldBand * sin(progress * PI) * uCurl;
+
+                    vec2 warped = aPosition;
+                    warped.x -= pageSide * curlAmount * 0.08;
+                    warped.y += (aPosition.y - 0.5) * pageSide * curlAmount * 0.18;
+
+                    gl_Position = filterVertexPosition(warped);
+                    vTextureCoord = aPosition * (uOutputFrame.zw * uInputSize.zw);
+                }
+              fragment: |
+                precision mediump float;
+
+                in vec2 vTextureCoord;
+                out vec4 finalColor;
+
+                uniform sampler2D uTexture;
+                uniform sampler2D uNextTexture;
+                uniform mat3 uNextTextureMatrix;
+                uniform float uProgress;
+                uniform float uShadow;
+                uniform vec4 uNextTextureClamp;
+
+                const float PI = 3.14159265;
+
+                void main(void)
+                {
+                    vec2 uv = clamp(vTextureCoord, vec2(0.0), vec2(1.0));
+                    vec2 nextUv = clamp((uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy, uNextTextureClamp.xy, uNextTextureClamp.zw);
+                    float progress = clamp(uProgress, 0.0, 1.0);
+                    float foldWidth = 0.018;
+                    float fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                    float reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
+
+                    vec4 prevColor = texture(uTexture, uv);
+                    vec4 nextColor = texture(uNextTexture, nextUv);
+                    if (progress >= 1.0) {
+                        finalColor = vec4(nextColor.rgb * nextColor.a, nextColor.a);
+                        return;
+                    }
+                    vec4 color = mix(prevColor, nextColor, reveal);
+
+                    float foldDistance = abs(uv.x - fold);
+                    float curlBand = (1.0 - smoothstep(0.0, 0.19, foldDistance)) * sin(progress * PI);
+                    vec2 backUv = vec2(clamp(fold + foldDistance * (1.32 - progress * 0.45), 0.0, 1.0), uv.y);
+                    vec4 curledPage = texture(uTexture, backUv);
+                    float pageShade = mix(0.58, 0.92, smoothstep(0.0, 0.19, foldDistance));
+                    curledPage = vec4(curledPage.rgb * pageShade, curledPage.a);
+
+                    color = mix(color, curledPage, curlBand * 0.86);
+
+                    float shadow = (1.0 - smoothstep(0.0, 0.26, foldDistance)) * sin(progress * PI) * uShadow;
+                    color.rgb *= 1.0 - shadow * step(uv.x, fold);
+                    finalColor = vec4(color.rgb * color.a, color.a);
+                }
+            webgpu:
+              source: |
+                struct GlobalFilterUniforms {
+                  uInputSize: vec4<f32>,
+                  uInputPixel: vec4<f32>,
+                  uInputClamp: vec4<f32>,
+                  uOutputFrame: vec4<f32>,
+                  uGlobalFrame: vec4<f32>,
+                  uOutputTexture: vec4<f32>,
+                };
+
+                struct ShaderUniforms {
+                  uProgress: f32,
+                  uResolution: vec2<f32>,
+                  uNextTextureMatrix: mat3x3<f32>,
+                  uNextTextureClamp: vec4<f32>,
+                  uCurl: f32,
+                  uShadow: f32,
+                };
+
+                @group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;
+                @group(0) @binding(1) var uTexture: texture_2d<f32>;
+                @group(0) @binding(2) var uSampler: sampler;
+                @group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+                @group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+
+                struct VSOutput {
+                  @builtin(position) position: vec4<f32>,
+                  @location(0) uv: vec2<f32>,
+                };
+
+                fn filterVertexPosition(localPosition: vec2<f32>) -> vec4<f32>
+                {
+                  var position = localPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+                  position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;
+                  position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;
+                  return vec4<f32>(position, 0.0, 1.0);
+                }
+
+                @vertex
+                fn mainVertex(@location(0) aPosition: vec2<f32>) -> VSOutput
+                {
+                  let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
+                  let foldWidth = 0.018;
+                  let fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                  let pageSide = step(fold, aPosition.x);
+                  let foldDistance = abs(aPosition.x - fold);
+                  let foldBand = 1.0 - smoothstep(0.0, 0.34, foldDistance);
+                  let curlAmount = foldBand * sin(progress * 3.14159265) * shaderUniforms.uCurl;
+
+                  var warped = aPosition;
+                  warped.x = warped.x - pageSide * curlAmount * 0.08;
+                  warped.y = warped.y + (aPosition.y - 0.5) * pageSide * curlAmount * 0.18;
+
+                  return VSOutput(
+                    filterVertexPosition(warped),
+                    aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw),
+                  );
+                }
+
+                @fragment
+                fn mainFragment(@location(0) uvIn: vec2<f32>) -> @location(0) vec4<f32>
+                {
+                  let uv = clamp(uvIn, vec2<f32>(0.0), vec2<f32>(1.0));
+                  let nextUv = clamp(
+                    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uvIn, 1.0)).xy,
+                    shaderUniforms.uNextTextureClamp.xy,
+                    shaderUniforms.uNextTextureClamp.zw,
+                  );
+                  let progress = clamp(shaderUniforms.uProgress, 0.0, 1.0);
+                  let foldWidth = 0.018;
+                  let fold = mix(1.0 + foldWidth, -foldWidth, progress);
+                  let reveal = smoothstep(fold - foldWidth, fold + foldWidth, uv.x);
+
+                  let prevColor = textureSample(uTexture, uSampler, uv);
+                  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
+                  if (progress >= 1.0) {
+                    return vec4<f32>(nextColor.rgb * nextColor.a, nextColor.a);
+                  }
+                  var color = mix(prevColor, nextColor, reveal);
+
+                  let foldDistance = abs(uv.x - fold);
+                  let curlBand = (1.0 - smoothstep(0.0, 0.19, foldDistance)) * sin(progress * 3.14159265);
+                  let backUv = vec2<f32>(clamp(fold + foldDistance * (1.32 - progress * 0.45), 0.0, 1.0), uv.y);
+                  var curledPage = textureSample(uTexture, uSampler, backUv);
+                  let pageShade = mix(0.58, 0.92, smoothstep(0.0, 0.19, foldDistance));
+                  curledPage = vec4<f32>(curledPage.rgb * pageShade, curledPage.a);
+
+                  color = mix(color, curledPage, curlBand * 0.86);
+
+                  let shadow = (1.0 - smoothstep(0.0, 0.26, foldDistance)) * sin(progress * 3.14159265) * shaderUniforms.uShadow;
+                  let shadedRgb = color.rgb * (1.0 - shadow * step(uv.x, fold));
+                  return vec4<f32>(shadedRgb * color.a, color.a);
+                }

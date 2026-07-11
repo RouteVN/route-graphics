@@ -1,24 +1,21 @@
 import { AudioAsset } from "./AudioAsset.js";
 import { normalizeVolume } from "./util/normalizeVolume.js";
 import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
+import { getAudioContext } from "./audioContext.js";
 
 const ROOT_CHANNEL_ID = "__route_graphics_audio_root__";
 const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
 
-let audioContext;
+const isAudioDebugEnabled = () =>
+  globalThis.window?.RTGL_AUDIO_DEBUG === true ||
+  globalThis.window?.RTGL_VT_DEBUG === true;
 
-const getAudioContext = () => {
-  if (audioContext) return audioContext;
-
-  const AudioContextCtor =
-    globalThis.window?.AudioContext ?? globalThis.window?.webkitAudioContext;
-
-  if (!AudioContextCtor) {
-    throw new Error("AudioContext is not available in this environment.");
+const debugAudio = (message, details = {}) => {
+  if (!isAudioDebugEnabled()) {
+    return;
   }
 
-  audioContext = new AudioContextCtor();
-  return audioContext;
+  console.log(`[AudioStage] ${message}`, details);
 };
 
 const connect = (from, to) => {
@@ -33,24 +30,61 @@ const disconnect = (node) => {
   }
 };
 
+const toFiniteParamValue = (value, fallback = 0) => {
+  const parsed = Number(value);
+  if (Number.isFinite(parsed)) {
+    return parsed;
+  }
+
+  return fallback;
+};
+
 const getParamValue = (param, fallback = 0) =>
-  typeof param?.value === "number" ? param.value : fallback;
+  toFiniteParamValue(param?.value, fallback);
 
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
-    void context.resume().catch(() => {});
+    const previousState = context.state;
+    debugAudio("resume requested", { state: previousState });
+
+    return context
+      .resume()
+      .then(() => {
+        debugAudio("resume resolved", {
+          previousState,
+          state: context.state,
+        });
+      })
+      .catch((error) => {
+        if (isAudioDebugEnabled()) {
+          console.warn("[AudioStage] resume failed", {
+            previousState,
+            state: context.state,
+            error,
+          });
+        }
+      });
   }
+
+  debugAudio("resume skipped", {
+    state: context.state,
+    canResume: typeof context.resume === "function",
+  });
+  return Promise.resolve();
 };
 
 const setParamNow = (param, value, context = getAudioContext()) => {
   if (!param) return;
+
+  const nextValue = toFiniteParamValue(value, getParamValue(param));
+
   if (typeof param.cancelScheduledValues === "function") {
     param.cancelScheduledValues(context.currentTime);
   }
   if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(value, context.currentTime);
+    param.setValueAtTime(nextValue, context.currentTime);
   } else {
-    param.value = value;
+    param.value = nextValue;
   }
 };
 
@@ -58,8 +92,9 @@ const rampParam = (param, value, durationMs, context = getAudioContext()) => {
   if (!param) return;
 
   const now = context.currentTime;
-  const seconds = durationMs / 1000;
+  const seconds = Math.max(0, toFiniteParamValue(durationMs, 0)) / 1000;
   const currentValue = getParamValue(param);
+  const nextValue = toFiniteParamValue(value, currentValue);
 
   if (typeof param.cancelScheduledValues === "function") {
     param.cancelScheduledValues(now);
@@ -71,11 +106,11 @@ const rampParam = (param, value, durationMs, context = getAudioContext()) => {
   }
 
   if (seconds > 0 && typeof param.linearRampToValueAtTime === "function") {
-    param.linearRampToValueAtTime(value, now + seconds);
+    param.linearRampToValueAtTime(nextValue, now + seconds);
   } else if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(value, now + seconds);
+    param.setValueAtTime(nextValue, now + seconds);
   } else {
-    param.value = value;
+    param.value = nextValue;
   }
 };
 
@@ -100,17 +135,31 @@ const createPannerNode = (pan = 0) => {
 const getVolumeValue = ({ volume, muted }) =>
   muted ? 0 : normalizeVolume(volume, 100);
 
+const normalizeDirectVolume = (volume, fallback = 1) => {
+  const parsedFallback = Number(fallback);
+  const normalizedFallback = Number.isFinite(parsedFallback)
+    ? parsedFallback
+    : 1;
+  const parsedVolume = Number(volume ?? normalizedFallback);
+  const normalizedVolume = Number.isFinite(parsedVolume)
+    ? parsedVolume
+    : normalizedFallback;
+
+  return (
+    normalizeVolume(normalizedVolume * 100, normalizedFallback * 100) * 100
+  );
+};
+
 const getTransitionPhase = (effects = [], targetId, property, phase) => {
   const transition = effects.find(
     (effect) =>
-      effect.type === "audioTransition" && effect.targetId === targetId,
+      (effect.type === "audio-transition" ||
+        effect.type === "audioTransition") &&
+      effect.targetId === targetId,
   );
 
   return transition?.properties?.[property]?.[phase] ?? null;
 };
-
-const getTransitionDuration = (transition) =>
-  typeof transition?.duration === "number" ? transition.duration : 0;
 
 const applyVolume = ({ gainNode, targetValue, transition }) => {
   if (!transition) {
@@ -180,13 +229,20 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     source: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
+    playRequestId: 0,
   };
 };
 
 const createSourceForSound = (sound) => {
   const context = getAudioContext();
-  resumeAudioContext(context);
   const audioBuffer = AudioAsset.getAsset(sound.src);
+  debugAudio("asset lookup", {
+    id: sound.id,
+    src: sound.src,
+    found: Boolean(audioBuffer),
+    duration: audioBuffer?.duration ?? null,
+    contextState: context.state,
+  });
   if (!audioBuffer) {
     console.warn("AudioStage: asset not found", sound.src);
     return null;
@@ -207,16 +263,28 @@ const createSourceForSound = (sound) => {
     sound.endAt !== null && sound.endAt !== undefined
       ? Math.max(sound.endAt - offset, 0)
       : undefined;
+  const startTime = Math.max(0, toFiniteParamValue(context.currentTime, 0));
 
   if (source.loop && sound.endAt !== null && sound.endAt !== undefined) {
     source.loopStart = offset;
     source.loopEnd = sound.endAt;
-    source.start(0, offset);
+    source.start(startTime, offset);
   } else if (duration !== undefined) {
-    source.start(0, offset, duration);
+    source.start(startTime, offset, duration);
   } else {
-    source.start(0, offset);
+    source.start(startTime, offset);
   }
+  debugAudio("source started", {
+    id: sound.id,
+    src: sound.src,
+    loop: source.loop,
+    startTime,
+    offset,
+    duration: duration ?? null,
+    playbackRate: sound.playbackRate,
+    gain: getParamValue(sound.gainNode?.gain, null),
+    contextState: context.state,
+  });
 
   return source;
 };
@@ -227,22 +295,55 @@ const playSound = (sound) => {
     sound.pendingTimeoutId = null;
   }
 
-  resumeAudioContext(getAudioContext());
+  const context = getAudioContext();
+  const playRequestId = (sound.playRequestId ?? 0) + 1;
+  sound.playRequestId = playRequestId;
+  debugAudio("play requested", {
+    id: sound.id,
+    src: sound.src,
+    loop: sound.loop,
+    volume: sound.volume,
+    muted: sound.muted,
+    startDelayMs: sound.startDelayMs,
+    contextState: context.state,
+  });
+  const needsResume =
+    context.state === "suspended" && typeof context.resume === "function";
 
   const start = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
     sound.pendingTimeoutId = null;
     sound.source = createSourceForSound(sound);
   };
 
-  if (sound.startDelayMs > 0) {
-    sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+  const scheduleStart = () => {
+    if (sound.playRequestId !== playRequestId) {
+      return;
+    }
+
+    if (sound.startDelayMs > 0) {
+      sound.pendingTimeoutId = setTimeout(start, sound.startDelayMs);
+      return;
+    }
+
+    start();
+  };
+
+  const resumePromise = resumeAudioContext(context);
+  if (needsResume) {
+    void resumePromise.then(scheduleStart);
     return;
   }
 
-  start();
+  scheduleStart();
 };
 
 const stopSource = (sound, delayMs = 0) => {
+  sound.playRequestId = (sound.playRequestId ?? 0) + 1;
+
   if (sound.pendingTimeoutId !== null) {
     clearTimeout(sound.pendingTimeoutId);
     sound.pendingTimeoutId = null;
@@ -307,7 +408,7 @@ export const createAudioPlayer = (id, options) => {
     id,
     src: options.url,
     loop: options.loop ?? false,
-    volume: (options.volume ?? 1) * 100,
+    volume: normalizeDirectVolume(options.volume),
   };
   const channel = createChannelInstance(
     { id: `${id}:channel`, volume: 100, muted: false, pan: 0 },
@@ -326,8 +427,9 @@ export const createAudioPlayer = (id, options) => {
     instance.url = instance.src;
     instance.loop = newState.loop ?? instance.loop;
     if (newState.volume !== undefined) {
-      instance.volume = newState.volume * 100;
-      setParamNow(instance.gainNode.gain, newState.volume);
+      const nextVolume = normalizeDirectVolume(newState.volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     }
   };
 
@@ -348,8 +450,9 @@ export const createAudioPlayer = (id, options) => {
       if (instance.source) instance.source.loop = loop;
     },
     setVolume: (volume) => {
-      instance.volume = volume * 100;
-      setParamNow(instance.gainNode.gain, volume);
+      const nextVolume = normalizeDirectVolume(volume);
+      instance.volume = nextVolume;
+      setParamNow(instance.gainNode.gain, normalizeVolume(nextVolume, 100));
     },
     get id() {
       return instance.id;
@@ -634,7 +737,7 @@ export const createAudioStage = () => {
     const removedChannels = new Map();
     const channelCleanupDurations = new Map();
 
-    for (const [id, prevChannel] of prevChannelById) {
+    for (const [id] of prevChannelById) {
       if (!nextChannelById.has(id)) {
         const duration = removeChannel(channels.get(id), prevAudioEffects);
         removedChannels.set(id, channels.get(id));
@@ -746,24 +849,47 @@ export const createAudioStage = () => {
       type: "sound",
       src: element.url ?? element.src,
       loop: element.loop ?? false,
-      volume: (element.volume ?? 1) * 100,
-      startDelayMs: element.startDelayMs ?? 0,
+      volume: normalizeDirectVolume(element.volume),
+      muted: element.muted ?? false,
+      pan: toFiniteParamValue(element.pan, 0),
+      startDelayMs: Math.max(0, toFiniteParamValue(element.startDelayMs, 0)),
+      playbackRate: toFiniteParamValue(element.playbackRate, 1),
+      startAt: Math.max(0, toFiniteParamValue(element.startAt, 0)),
+      endAt:
+        element.endAt !== undefined && element.endAt !== null
+          ? Math.max(0, toFiniteParamValue(element.endAt, 0))
+          : null,
     };
 
     directAudios.set(element.id, audio);
+    debugAudio("direct add", {
+      id: audio.id,
+      src: audio.src,
+      loop: audio.loop,
+      volume: audio.volume,
+      muted: audio.muted,
+      pan: audio.pan,
+    });
   };
 
   const remove = (id) => {
-    directAudios.delete(id);
-    currentSoundKeyById.delete(id);
     const internalId = `direct:${id}`;
     const instance = sounds.get(internalId);
+    debugAudio("direct remove", {
+      id,
+      hadAudio: directAudios.has(id),
+      hadInstance: Boolean(instance),
+    });
+    directAudios.delete(id);
+    currentSoundKeyById.delete(id);
     if (instance) {
       removeSoundInstance(instance, [], 0);
     }
   };
 
   const getById = (id) => directAudios.get(id);
+
+  const resume = () => resumeAudioContext(getAudioContext());
 
   const tick = () => {
     const channel = ensureRootChannel(DIRECT_CHANNEL_ID);
@@ -828,6 +954,7 @@ export const createAudioStage = () => {
     add,
     remove,
     getById,
+    resume,
     tick,
     renderGraph,
     destroy,

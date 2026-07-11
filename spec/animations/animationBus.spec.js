@@ -134,6 +134,98 @@ describe("animationBus auto tween shorthand", () => {
     expect(element.alpha).toBeCloseTo(0.625);
   });
 
+  it("scales ticked elapsed time by playback speed", () => {
+    const animationBus = createAnimationBus();
+    const onComplete = vi.fn();
+    const element = {
+      x: 0,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "fast-x",
+        playbackSpeed: 2,
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    animationBus.tick(250);
+
+    expect(element.x).toBeCloseTo(50);
+    expect(onComplete).not.toHaveBeenCalled();
+
+    animationBus.tick(250);
+
+    expect(element.x).toBeCloseTo(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it("scales manually sampled time by playback speed", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      x: 0,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-fast-x",
+        playbackSpeed: 2,
+        element,
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    animationBus.setTime(250);
+
+    expect(element.x).toBeCloseTo(50);
+    expect(animationBus.getState().animations[0]).toMatchObject({
+      id: "manual-fast-x",
+      currentTime: 500,
+      playbackSpeed: 2,
+      progress: 0.5,
+    });
+  });
+
+  it("rejects invalid playback speeds", () => {
+    const animationBus = createAnimationBus();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "bad-speed",
+        playbackSpeed: 0,
+        element: {
+          x: 0,
+          scale: { x: 1, y: 1 },
+        },
+        properties: {
+          x: {
+            keyframes: [{ duration: 1000, value: 100, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    expect(() => animationBus.flush()).toThrow(
+      'Animation "bad-speed" playback speed must be a finite number greater than 0.',
+    );
+  });
+
   it("applies property path mapping for auto scale tweens", () => {
     const animationBus = createAnimationBus();
     const onComplete = vi.fn();
@@ -214,6 +306,83 @@ describe("animationBus auto tween shorthand", () => {
 
     expect(element._routeGraphicsBlur.x).toBeCloseTo(5);
     expect(element._routeGraphicsBlur.y).toBeCloseTo(4);
+  });
+
+  it("uses degree values for rotation tweens while applying Pixi radians", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      rotation: Math.PI / 2,
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "auto-rotation",
+        element,
+        properties: {
+          rotation: {
+            auto: {
+              duration: 200,
+              easing: "linear",
+            },
+          },
+        },
+        targetState: { rotation: 180 },
+      },
+    });
+
+    animationBus.flush();
+    expect(element.rotation).toBeCloseTo(Math.PI / 2);
+
+    animationBus.tick(100);
+    expect(element.rotation).toBeCloseTo((3 * Math.PI) / 4);
+
+    animationBus.tick(100);
+    expect(element.rotation).toBeCloseTo(Math.PI);
+  });
+
+  it("applies translate tweens relative to the subject dimensions", () => {
+    const animationBus = createAnimationBus();
+    const element = {
+      x: 10,
+      y: 20,
+      width: 120,
+      height: 80,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "manual-translate",
+        element,
+        properties: {
+          translateX: {
+            initialValue: 0,
+            keyframes: [{ duration: 200, value: 1, easing: "linear" }],
+          },
+          translateY: {
+            initialValue: -0.5,
+            keyframes: [{ duration: 200, value: 0.5, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    animationBus.flush();
+
+    expect(element.x).toBeCloseTo(10);
+    expect(element.y).toBeCloseTo(-20);
+
+    animationBus.tick(100);
+
+    expect(element.x).toBeCloseTo(70);
+    expect(element.y).toBeCloseTo(20);
+
+    animationBus.tick(100);
+
+    expect(element.x).toBeCloseTo(130);
+    expect(element.y).toBeCloseTo(60);
   });
 
   it("samples property animations at an exact time without completing them", () => {
@@ -314,6 +483,107 @@ describe("animationBus auto tween shorthand", () => {
     expect(applyTargetState).not.toHaveBeenCalled();
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onCancel).not.toHaveBeenCalled();
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
+  it("completes custom animations immediately by default during playback", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-playback-complete",
+        driver: "custom",
+        duration: 100,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.tick(120);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
+  it("keeps deferred custom animations active for one final playback frame", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-transition-final-frame",
+        driver: "custom",
+        duration: 100,
+        deferCompletionUntilNextFrame: true,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.tick(120);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(animationBus.getState()).toEqual(
+      expect.objectContaining({
+        activeCount: 1,
+        animations: [
+          expect.objectContaining({
+            id: "custom-transition-final-frame",
+            currentTime: 100,
+            duration: 100,
+            progress: 1,
+          }),
+        ],
+      }),
+    );
+
+    animationBus.tick(16);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(animationBus.getState().activeCount).toBe(0);
+  });
+
+  it("does not defer custom animation completion in sampled-time mode", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-sampled-final-frame",
+        driver: "custom",
+        duration: 100,
+        deferCompletionUntilNextFrame: true,
+        applyFrame,
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    applyFrame.mockClear();
+
+    animationBus.setTime(100);
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(100);
+    expect(onComplete).toHaveBeenCalledTimes(1);
     expect(animationBus.getState().activeCount).toBe(0);
   });
 

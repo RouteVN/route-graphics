@@ -5,10 +5,16 @@ const createAudioParam = (initialValue = 0) => {
     value: initialValue,
     cancelScheduledValues: vi.fn(),
     setValueAtTime: vi.fn((value) => {
+      if (!Number.isFinite(value)) {
+        throw new TypeError("AudioParam value must be finite");
+      }
       param.value = value;
       return param;
     }),
     linearRampToValueAtTime: vi.fn((value) => {
+      if (!Number.isFinite(value)) {
+        throw new TypeError("AudioParam value must be finite");
+      }
       param.value = value;
       return param;
     }),
@@ -16,7 +22,7 @@ const createAudioParam = (initialValue = 0) => {
   return param;
 };
 
-const createAudioContextMock = () => {
+const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
   const context = {
     currentTime: 10,
     state: "running",
@@ -24,6 +30,7 @@ const createAudioContextMock = () => {
     gainNodes: [],
     pannerNodes: [],
     sources: [],
+    decodeAudioData: vi.fn(() => Promise.resolve(decodedBuffer)),
     resume: vi.fn(() => Promise.resolve()),
     createGain: vi.fn(() => {
       const node = {
@@ -101,6 +108,11 @@ const findCurrentSound = (stage, id) => {
   return inspect.sounds.get(key);
 };
 
+const flushPromises = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
 describe("AudioStage graph rendering", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -109,6 +121,7 @@ describe("AudioStage graph rendering", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.doUnmock("../../src/AudioAsset.js");
     vi.resetModules();
   });
 
@@ -150,7 +163,33 @@ describe("AudioStage graph rendering", () => {
     expect(getAsset).toHaveBeenCalledWith("click-sfx");
     expect(context.sources).toHaveLength(2);
     expect(context.sources[0].loop).toBe(true);
-    expect(context.sources[0].start).toHaveBeenCalledWith(0, 0);
+    expect(context.sources[0].start).toHaveBeenCalledWith(
+      context.currentTime,
+      0,
+    );
+  });
+
+  it("sanitizes direct audio defaults across repeated ticks", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.add({ id: "blip", url: "message-display1", volume: Number.NaN });
+
+    expect(() => stage.tick()).not.toThrow();
+    expect(() => stage.tick()).not.toThrow();
+
+    const blip = findCurrentSound(stage, "blip");
+    expect(blip.gainNode.gain.value).toBe(1);
+    expect(blip.pannerNode.pan.value).toBe(0);
+    expect(blip.source.playbackRate.value).toBe(1);
+  });
+
+  it("sanitizes invalid direct audio volume before scheduling playback", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.add({ id: "sfx", url: "click", volume: Number.NaN });
+
+    expect(() => stage.tick()).not.toThrow();
+    expect(findCurrentSound(stage, "sfx").gainNode.gain.value).toBe(1);
   });
 
   it("resumes a suspended audio context before playback starts", async () => {
@@ -162,6 +201,78 @@ describe("AudioStage graph rendering", () => {
     });
 
     expect(context.resume).toHaveBeenCalled();
+    expect(context.sources).toHaveLength(0);
+
+    context.state = "running";
+    await flushPromises();
+
+    expect(context.sources).toHaveLength(1);
+  });
+
+  it("cancels suspended-context playback before resume resolves", async () => {
+    const { stage, context, getAsset } = await setupAudioStage();
+    let resolveResume;
+    context.state = "suspended";
+    context.resume.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveResume = () => {
+            context.state = "running";
+            resolve();
+          };
+        }),
+    );
+    const audio = [{ id: "sfx", type: "sound", src: "click" }];
+
+    stage.renderGraph({ nextAudio: audio });
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+    expect(context.sources).toHaveLength(0);
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+    resolveResume();
+    await flushPromises();
+
+    expect(getAsset).not.toHaveBeenCalled();
+    expect(context.sources).toHaveLength(0);
+  });
+
+  it("uses one audio context for asset decode and playback", async () => {
+    vi.resetModules();
+    vi.doUnmock("../../src/AudioAsset.js");
+
+    const decodedBuffer = { duration: 1.25 };
+    const context = createAudioContextMock({ decodedBuffer });
+    const AudioContextMock = vi.fn(function AudioContextMock() {
+      return context;
+    });
+    window.AudioContext = AudioContextMock;
+    window.webkitAudioContext = undefined;
+
+    const { AudioAsset } = await import("../../src/AudioAsset.js");
+    const { createAudioStage } = await import("../../src/AudioStage.js");
+    const arrayBuffer = new Uint8Array([1, 2, 3]).buffer;
+
+    await AudioAsset.load("theme", arrayBuffer);
+
+    const stage = createAudioStage();
+    stage.renderGraph({
+      nextAudio: [{ id: "theme-sound", type: "sound", src: "theme" }],
+    });
+
+    expect(AudioContextMock).toHaveBeenCalledTimes(1);
+    expect(context.decodeAudioData).toHaveBeenCalledWith(arrayBuffer);
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0].buffer).toBe(decodedBuffer);
+  });
+
+  it("exposes an explicit resume hook for user input unlocks", async () => {
+    const { stage, context } = await setupAudioStage();
+    context.state = "suspended";
+
+    await stage.resume();
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
   });
 
   it("resumes a suspended audio context before scheduling delayed playback", async () => {
@@ -186,6 +297,7 @@ describe("AudioStage graph rendering", () => {
     expect(context.resume).toHaveBeenCalledTimes(1);
     expect(getAsset).not.toHaveBeenCalled();
 
+    await flushPromises();
     vi.advanceTimersByTime(100);
 
     expect(context.resume).toHaveBeenCalledTimes(1);
@@ -208,7 +320,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -241,7 +353,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-update",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -264,7 +376,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "music-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -298,7 +410,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -308,7 +420,7 @@ describe("AudioStage graph rendering", () => {
         },
         {
           id: "bgm-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -366,7 +478,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "music-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -383,7 +495,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "music-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "music",
           properties: {
             volume: {
@@ -419,7 +531,7 @@ describe("AudioStage graph rendering", () => {
       prevAudioEffects: [
         {
           id: "bgm-exit",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -431,7 +543,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "bgm-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {
@@ -571,7 +683,7 @@ describe("AudioStage graph rendering", () => {
     expect(source.loop).toBe(true);
     expect(source.loopStart).toBe(1);
     expect(source.loopEnd).toBe(4);
-    expect(source.start).toHaveBeenCalledWith(0, 1);
+    expect(source.start).toHaveBeenCalledWith(context.currentTime, 1);
     expect(source.start.mock.calls[0]).toHaveLength(2);
   });
 
@@ -584,7 +696,7 @@ describe("AudioStage graph rendering", () => {
         nextAudioEffects: [
           {
             id: "bad",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "missing",
             properties: {
               volume: {

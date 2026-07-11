@@ -1,6 +1,13 @@
-const hasVideoPlaybackCompleted = (video) => {
+const hasVideoPlaybackSettled = (video) => {
   if (!video) return true;
   if (video.ended) return true;
+  if (video.error) return true;
+  if (
+    typeof video.NETWORK_NO_SOURCE === "number" &&
+    video.networkState === video.NETWORK_NO_SOURCE
+  ) {
+    return true;
+  }
 
   return (
     Number.isFinite(video.duration) &&
@@ -14,8 +21,13 @@ export const clearVideoPlaybackTracking = ({ videoElement, video }) => {
     video.removeEventListener("ended", videoElement._videoEndedListener);
   }
 
+  if (video && videoElement?._videoErrorListener) {
+    video.removeEventListener("error", videoElement._videoErrorListener);
+  }
+
   if (videoElement) {
     videoElement._videoEndedListener = undefined;
+    videoElement._videoErrorListener = undefined;
     videoElement._playbackStateVersion = null;
   }
 };
@@ -32,18 +44,20 @@ export const syncVideoPlaybackTracking = ({
     return;
   }
 
-  if (hasVideoPlaybackCompleted(video)) {
+  if (hasVideoPlaybackSettled(video)) {
     return;
   }
 
   const playbackStateVersion = completionTracker.getVersion();
   completionTracker.track(playbackStateVersion);
 
-  const onEnded = () => {
+  const completePlayback = () => {
     completionTracker.complete(playbackStateVersion);
   };
 
-  video.addEventListener("ended", onEnded);
-  videoElement._videoEndedListener = onEnded;
+  video.addEventListener("ended", completePlayback);
+  video.addEventListener("error", completePlayback);
+  videoElement._videoEndedListener = completePlayback;
+  videoElement._videoErrorListener = completePlayback;
   videoElement._playbackStateVersion = playbackStateVersion;
 };

@@ -3,58 +3,21 @@ import {
   WhiteListAnimationProps,
 } from "../../types.js";
 import {
+  applyAnimationProperty,
+  createAnimationSubjectState,
+  getTimelineInitialValue,
+  isTranslateAnimationProperty,
+} from "./animationPropertyUtils.js";
+import {
   buildTimeline,
   calculateMaxDuration,
   getValueAtTime,
 } from "../../util/animationTimeline.js";
 
-const getMappedPath = (propertyPathMap, path) => {
-  if (typeof path !== "string") {
-    return path;
-  }
+const DEFAULT_PLAYBACK_SPEED = 1;
 
-  return propertyPathMap[path] ?? path;
-};
-
-const getAnimationProperty = (object, path, propertyPathMap, defaultValue) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    const result = object[mappedPath];
-    return result === undefined ? defaultValue : result;
-  }
-
-  let result = object;
-  for (const key of mappedPath) {
-    if (result == null) {
-      return defaultValue;
-    }
-    result = result[key];
-  }
-
-  return result === undefined ? defaultValue : result;
-};
-
-const setAnimationProperty = (object, path, propertyPathMap, value) => {
-  const mappedPath = getMappedPath(propertyPathMap, path);
-
-  if (typeof mappedPath === "string") {
-    object[mappedPath] = value;
-    return object;
-  }
-
-  let current = object;
-  for (let i = 0; i < mappedPath.length - 1; i++) {
-    const key = mappedPath[i];
-    if (!(key in current)) {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-
-  current[mappedPath[mappedPath.length - 1]] = value;
-  return object;
-};
+const hasTranslateProperties = (properties = {}) =>
+  Object.keys(properties).some(isTranslateAnimationProperty);
 
 const resolveAutoTargetValue = (targetState, property, animationId) => {
   if (
@@ -75,6 +38,7 @@ const buildPropertyTimelines = (
   propertyPathMap,
   targetState,
   animationId,
+  subjectState,
 ) =>
   Object.entries(properties)
     .map(([property, config]) => {
@@ -84,12 +48,13 @@ const buildPropertyTimelines = (
         );
       }
 
-      const currentValue = getAnimationProperty(
-        element,
+      const currentValue = getTimelineInitialValue({
+        object: element,
         property,
         propertyPathMap,
-        0,
-      );
+        subjectState,
+        defaultValue: 0,
+      });
 
       if (config.auto) {
         const targetValue = resolveAutoTargetValue(
@@ -143,10 +108,27 @@ export const createAnimationBus = () => {
   };
 
   const applyTimeToContext = (context, timeMS) => {
-    const nextTime = clampAnimationTime(timeMS, context.duration);
+    const nextTime = clampAnimationTime(
+      timeMS * context.playbackSpeed,
+      context.duration,
+    );
     context.currentTime = nextTime;
     context.applyFrame(nextTime);
     return nextTime >= context.duration;
+  };
+
+  const normalizePlaybackSpeed = (value, animationId) => {
+    if (value === undefined || value === null) {
+      return DEFAULT_PLAYBACK_SPEED;
+    }
+
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+      throw new Error(
+        `Animation "${animationId}" playback speed must be a finite number greater than 0.`,
+      );
+    }
+
+    return value;
   };
 
   const emit = (event, data) => {
@@ -176,6 +158,10 @@ export const createAnimationBus = () => {
     context.targetId = metadata.targetId ?? context.targetId;
     context.signature = metadata.signature ?? context.signature;
     context.continuity = metadata.continuity ?? context.continuity ?? "render";
+    context.playbackSpeed = normalizePlaybackSpeed(
+      metadata.playbackSpeed ?? context.playbackSpeed,
+      context.id,
+    );
     context.onContinuationUpdate =
       metadata.onContinuationUpdate ?? context.onContinuationUpdate;
     return context;
@@ -215,7 +201,21 @@ export const createAnimationBus = () => {
       onComplete,
       onCancel,
       propertyPathMap = TRANSITION_PROPERTY_PATH_MAP,
+      animationBaseState,
     } = payload;
+    let subjectState =
+      animationBaseState ??
+      (hasTranslateProperties(properties)
+        ? createAnimationSubjectState(element)
+        : null);
+
+    const getSubjectState = () => {
+      if (!subjectState) {
+        subjectState = createAnimationSubjectState(element);
+      }
+
+      return subjectState;
+    };
 
     const timelines = buildPropertyTimelines(
       element,
@@ -223,6 +223,7 @@ export const createAnimationBus = () => {
       propertyPathMap,
       targetState,
       id,
+      subjectState,
     );
 
     if (timelines.length === 0) {
@@ -237,6 +238,7 @@ export const createAnimationBus = () => {
       timelines,
       duration: calculateMaxDuration(timelines),
       currentTime: 0,
+      playbackSpeed: DEFAULT_PLAYBACK_SPEED,
       stateVersion,
       targetState,
       onComplete,
@@ -245,7 +247,15 @@ export const createAnimationBus = () => {
         for (const { property, timeline } of timelines) {
           const value = getValueAtTime(timeline, time);
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Element might be mid-destroy or otherwise invalid.
           }
@@ -263,7 +273,15 @@ export const createAnimationBus = () => {
 
         for (const [property, value] of Object.entries(targetState)) {
           try {
-            setAnimationProperty(element, property, propertyPathMap, value);
+            applyAnimationProperty({
+              object: element,
+              property,
+              propertyPathMap,
+              subjectState: isTranslateAnimationProperty(property)
+                ? getSubjectState()
+                : subjectState,
+              value,
+            });
           } catch (_error) {
             // Skip properties that fail to apply.
           }
@@ -281,6 +299,10 @@ export const createAnimationBus = () => {
       kind: "custom",
       duration: payload.duration ?? 0,
       currentTime: 0,
+      playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+      deferCompletionUntilNextFrame:
+        payload.deferCompletionUntilNextFrame === true,
+      pendingCompletion: false,
       stateVersion,
       onComplete: payload.onComplete,
       onCancel: payload.onCancel,
@@ -435,10 +457,28 @@ export const createAnimationBus = () => {
         continue;
       }
 
-      context.currentTime += deltaMS;
+      if (context.pendingCompletion) {
+        fireCompleteEvent(context);
+        toRemove.push(id);
+        continue;
+      }
+
+      context.currentTime = clampAnimationTime(
+        context.currentTime + deltaMS * context.playbackSpeed,
+        context.duration,
+      );
 
       if (context.currentTime >= context.duration) {
         context.applyFrame(context.duration);
+
+        if (
+          context.deferCompletionUntilNextFrame === true &&
+          context.duration > 0
+        ) {
+          context.pendingCompletion = true;
+          continue;
+        }
+
         fireCompleteEvent(context);
         toRemove.push(id);
         continue;
@@ -530,6 +570,7 @@ export const createAnimationBus = () => {
       targetId: pendingContext.targetId,
       signature: pendingContext.signature,
       continuity: pendingContext.continuity,
+      playbackSpeed: pendingContext.playbackSpeed,
       onContinuationUpdate:
         payload.onContinuationUpdate ?? pendingContext.onContinuationUpdate,
     });
@@ -584,6 +625,7 @@ export const createAnimationBus = () => {
       id,
       currentTime: ctx.currentTime,
       duration: ctx.duration,
+      playbackSpeed: ctx.playbackSpeed,
       progress: ctx.duration > 0 ? ctx.currentTime / ctx.duration : 0,
     })),
   });

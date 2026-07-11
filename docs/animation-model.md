@@ -6,6 +6,7 @@ See also:
 
 - `docs/animation-type-semantics.md`
 - `docs/animation-implementation-plan.md`
+- `docs/shader-interface.md`
 
 ## Goal
 
@@ -137,7 +138,7 @@ Use it for:
 - `next.tween`
 - `mask`
 - `playback.continuity`
-- future `shader`
+- `compositor`
 
 `transition` may define:
 
@@ -181,6 +182,17 @@ The same payload is reused in two places:
 
 - manual `update.tween`
 - `prev.tween` / `next.tween`
+
+Position tweens support two addressing modes in both `update` and `transition`:
+
+- `x` / `y` are absolute pixel positions in the parent coordinate space
+- `translateX` / `translateY` are relative offsets in units of the animated
+  subject's own width or height
+
+For example, `translateX: -1` moves the subject left by one subject width, and
+`translateY: 0.5` moves it down by half its height. A single tween cannot define
+both `x` and `translateX`, or both `y` and `translateY`, because that would make
+the final position ambiguous.
 
 `update` also supports a shorthand for the common "animate this property from
 its current live value to the next state's value" case:
@@ -297,7 +309,8 @@ of these remain true:
 
 - the animation `id` is the same
 - the `targetId` is the same
-- the normalized `prev`, `next`, `mask`, and `playback` config are the same
+- the normalized `prev`, `next`, `mask`, `compositor`, top-level
+  `tween.uProgress`, and `playback` config are the same
 - the transition still owns the same target subtree handoff
 
 This is continuity of one already-started transition.
@@ -313,7 +326,9 @@ That means:
 
 - if a later render omits that animation, it stops
 - if a later render changes that animation's `tween` or `playback` config, it restarts from the beginning
-- if a later render changes a persistent transition's `prev`, `next`, or `mask` config, it restarts from the beginning
+- if a later render changes a persistent transition's `prev`, `next`, `mask`,
+  `compositor`, or top-level `tween.uProgress` config, it restarts from the
+  beginning
 - if the target element or target subtree is deleted, replaced, or otherwise no longer matches the active handoff, it stops or restarts
 
 ### Transition Ownership Rule
@@ -515,11 +530,17 @@ Sequence rules:
 - sequence frame textures should include their own feathering/alpha softness;
   `softness` is not valid on `kind: sequence`.
 
-## Future Shader
+## Shader Compositor
 
-If shader support comes back later, it should be `transition`-only.
+Shader compositor support is `transition`-only.
 
-It should live next to `mask`, not on `update`.
+It lives next to `mask`, not on `update`.
+
+Element shader filters are outside the animation object and live on elements.
+`update` animations may tween `uProgress`, but they do not define shader source
+or shader filter configuration.
+
+The v1 shader interface is tracked in `docs/shader-interface.md`.
 
 ## Validation Rules
 
@@ -531,8 +552,13 @@ It should live next to `mask`, not on `update`.
   - `prev`
   - `next`
   - `mask`
+  - `compositor`
 - `mask` is transition-only
-- future `shader` would also be transition-only
+- transition `compositor` is transition-only
+- transition `compositor` is mutually exclusive with `mask` in v1
+- top-level `transition.tween` is valid only for `uProgress` when `compositor`
+  is present
+- `compositor` requires top-level `tween.uProgress`
 
 ## Summary
 
@@ -542,4 +568,4 @@ It should live next to `mask`, not on `update`.
 - allow optional `playback.continuity: render | persistent`
 - let `transition` define `prev` and/or `next`
 - keep `mask` as a transition-only primitive
-- keep future `shader` transition-only as well
+- keep transition `compositor` transition-only as well

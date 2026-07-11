@@ -1,18 +1,26 @@
 import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
+import { normalizeShaderCompositor } from "../plugins/elements/util/shaderConfig.js";
 
 const ANIMATION_TYPES = new Set(["update", "transition"]);
 const CONTINUITY_MODES = new Set(["render", "persistent"]);
+const DEFAULT_PLAYBACK_CONTINUITY = "render";
+const DEFAULT_PLAYBACK_SPEED = 1;
 const UPDATE_TWEEN_PROPERTIES = new Set([
   "alpha",
   "x",
   "y",
+  "translateX",
+  "translateY",
   "scaleX",
   "scaleY",
   "rotation",
   "blurX",
   "blurY",
+  "uProgress",
 ]);
 const TRANSITION_TWEEN_PROPERTIES = new Set([
+  "x",
+  "y",
   "translateX",
   "translateY",
   "alpha",
@@ -20,6 +28,7 @@ const TRANSITION_TWEEN_PROPERTIES = new Set([
   "scaleY",
   "rotation",
 ]);
+const TRANSITION_COMPOSITOR_TWEEN_PROPERTIES = new Set(["uProgress"]);
 const MASK_KINDS = new Set(["single", "sequence"]);
 const MASK_CHANNELS = new Set(["red", "green", "blue", "alpha"]);
 const MASK_SEQUENCE_SAMPLE_MODES = new Set(["hold", "linear"]);
@@ -43,18 +52,32 @@ const assertNumber = (value, path) => {
   }
 };
 
+const assertPositiveFiniteNumber = (value, path) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`${path} must be a finite number greater than 0.`);
+  }
+};
+
 const normalizePlayback = (playback, path) => {
   assertPlainObject(playback, path);
 
-  if (!CONTINUITY_MODES.has(playback.continuity)) {
+  const continuity = playback.continuity ?? DEFAULT_PLAYBACK_CONTINUITY;
+  if (!CONTINUITY_MODES.has(continuity)) {
     throw new Error(
       `${path}.continuity must be one of: ${Array.from(CONTINUITY_MODES).join(", ")}.`,
     );
   }
 
-  return {
-    continuity: playback.continuity,
-  };
+  const normalized = { continuity };
+
+  if (playback.speed !== undefined) {
+    assertPositiveFiniteNumber(playback.speed, `${path}.speed`);
+    if (playback.speed !== DEFAULT_PLAYBACK_SPEED) {
+      normalized.speed = playback.speed;
+    }
+  }
+
+  return normalized;
 };
 
 const normalizeAutoTween = (autoConfig, path) => {
@@ -175,6 +198,14 @@ const normalizeTweenMap = (
   propertyNormalizer = normalizeKeyframes,
 ) => {
   assertPlainObject(tween, path);
+
+  if (tween.x !== undefined && tween.translateX !== undefined) {
+    throw new Error(`${path} cannot define both x and translateX.`);
+  }
+
+  if (tween.y !== undefined && tween.translateY !== undefined) {
+    throw new Error(`${path} cannot define both y and translateY.`);
+  }
 
   const normalizedEntries = Object.entries(tween).map(([property, config]) => {
     if (!allowedProperties.has(property)) {
@@ -380,12 +411,26 @@ const normalizeReplacePayload = (animation, path) => {
     normalized.mask = normalizeMask(animation.mask, `${path}.mask`);
   }
 
+  if (animation.compositor !== undefined) {
+    normalized.compositor = normalizeShaderCompositor(
+      animation.compositor,
+      `${path}.compositor`,
+    );
+  }
+
+  if (normalized.mask !== undefined && normalized.compositor !== undefined) {
+    throw new Error(
+      `${path}.compositor cannot be combined with ${path}.mask in v1.`,
+    );
+  }
+
   if (
     normalized.prev === undefined &&
     normalized.next === undefined &&
-    normalized.mask === undefined
+    normalized.mask === undefined &&
+    normalized.compositor === undefined
   ) {
-    throw new Error(`${path} must define prev, next, or mask.`);
+    throw new Error(`${path} must define prev, next, mask, or compositor.`);
   }
 
   return normalized;
@@ -481,6 +526,12 @@ export const normalizeAnimations = (animations = []) => {
         );
       }
 
+      if (animation.compositor !== undefined) {
+        throw new Error(
+          `${path}.compositor is only valid for transition animations.`,
+        );
+      }
+
       if (animation.shader !== undefined) {
         throw new Error(`${path}.shader is not supported.`);
       }
@@ -488,7 +539,7 @@ export const normalizeAnimations = (animations = []) => {
       return normalizedAnimation;
     }
 
-    if (animation.tween !== undefined) {
+    if (animation.tween !== undefined && animation.compositor === undefined) {
       throw new Error(`${path}.tween is not valid for transition animations.`);
     }
 
@@ -508,6 +559,20 @@ export const normalizeAnimations = (animations = []) => {
     if (normalizedReplace.mask !== undefined) {
       normalizedAnimation.mask = normalizedReplace.mask;
     }
+    if (normalizedReplace.compositor !== undefined) {
+      normalizedAnimation.compositor = normalizedReplace.compositor;
+      if (animation.tween === undefined) {
+        throw new Error(
+          `${path}.tween.uProgress is required when compositor is defined.`,
+        );
+      }
+
+      normalizedAnimation.tween = normalizeTweenMap(
+        animation.tween,
+        `${path}.tween`,
+        TRANSITION_COMPOSITOR_TWEEN_PROPERTIES,
+      );
+    }
 
     return normalizedAnimation;
   });
@@ -526,6 +591,25 @@ export const normalizeAnimations = (animations = []) => {
         `Animations targeting "${targetId}" cannot mix update and transition types in the same state.`,
       );
     }
+  }
+
+  const updateProgressTargets = new Set();
+
+  for (const animation of normalized) {
+    if (
+      animation.type !== "update" ||
+      animation.tween?.uProgress === undefined
+    ) {
+      continue;
+    }
+
+    if (updateProgressTargets.has(animation.targetId)) {
+      throw new Error(
+        `Animations targeting "${animation.targetId}" cannot define multiple active uProgress update tweens in the same state.`,
+      );
+    }
+
+    updateProgressTargets.add(animation.targetId);
   }
 
   return normalized;

@@ -68,6 +68,49 @@ describe("addContainer", () => {
     );
   });
 
+  it("returns the fresh child mount operation", () => {
+    const parent = new Container();
+    const renderContext = createRenderContext();
+    const childMountOperation = Promise.resolve();
+    renderElements.mockReturnValueOnce(childMountOperation);
+
+    const result = addContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      element: {
+        id: "container-1",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        children: [
+          {
+            id: "child-1",
+            type: "rect",
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 20,
+          },
+        ],
+      },
+      animations: [],
+      eventHandler: vi.fn(),
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      renderContext,
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toBe(childMountOperation);
+  });
+
   it("dispatches update animations when the container is newly added", () => {
     const parent = new Container();
     const animationBus = { dispatch: vi.fn() };
@@ -127,6 +170,48 @@ describe("addContainer", () => {
         },
       }),
     });
+  });
+
+  it("applies degree rotation around the computed anchor origin", () => {
+    const parent = new Container();
+
+    addContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      element: {
+        id: "container-1",
+        type: "container",
+        x: 200,
+        y: 150,
+        width: 240,
+        height: 120,
+        originX: 120,
+        originY: 60,
+        rotation: 45,
+        alpha: 1,
+        children: [],
+      },
+      animations: [],
+      eventHandler: vi.fn(),
+      animationBus: { dispatch: vi.fn() },
+      elementPlugins: [],
+      renderContext: createRenderContext(),
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    const container = parent.getChildByLabel("container-1");
+
+    expect(container.pivot.x).toBe(120);
+    expect(container.pivot.y).toBe(60);
+    expect(container.x).toBe(320);
+    expect(container.y).toBe(210);
+    expect(container.rotation).toBeCloseTo(Math.PI / 4);
   });
 
   it("falls back to direct child add when sibling ids are duplicated", () => {

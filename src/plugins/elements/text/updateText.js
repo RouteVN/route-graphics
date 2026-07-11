@@ -16,6 +16,12 @@ import {
   bindTextInteractions,
   clearTextInteractions,
 } from "./textInteractions.js";
+import {
+  getShaderFilterTargetState,
+  hasShaderProgressUpdateAnimation,
+  resetShaderFilterProgress,
+  syncShaderFilters,
+} from "../util/shaderFilterEffect.js";
 
 const displayKindChanged = (displayObject, textComputedNode) =>
   isRichTextDisplayObject(displayObject) !==
@@ -101,6 +107,19 @@ export const updateText = ({
   if (!textElement) return;
 
   textElement.zIndex = zIndex;
+  const shouldForceShaderProgress = hasShaderProgressUpdateAnimation(
+    animations,
+    prevTextComputedNode.id,
+  );
+  if (shouldForceShaderProgress) {
+    syncShaderFilters(textElement, prevTextComputedNode.filters, {
+      width: prevTextComputedNode.width,
+      height: prevTextComputedNode.height,
+      force: true,
+    });
+  } else {
+    resetShaderFilterProgress(textElement);
+  }
 
   const updateElement = () => {
     if (isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
@@ -116,6 +135,11 @@ export const updateText = ({
         eventHandler,
         zIndex,
       });
+      syncShaderFilters(textElement, nextTextComputedNode.filters, {
+        width: nextTextComputedNode.width,
+        height: nextTextComputedNode.height,
+        force: shouldForceShaderProgress,
+      });
       return;
     }
 
@@ -125,6 +149,11 @@ export const updateText = ({
       app,
       eventHandler,
     });
+    syncShaderFilters(textElement, nextTextComputedNode.filters, {
+      width: nextTextComputedNode.width,
+      height: nextTextComputedNode.height,
+      force: shouldForceShaderProgress,
+    });
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -133,7 +162,12 @@ export const updateText = ({
     animationBus,
     completionTracker,
     element: textElement,
-    targetState: getTextAnimationTargetState(nextTextComputedNode),
+    targetState: {
+      ...getTextAnimationTargetState(nextTextComputedNode),
+      ...getShaderFilterTargetState(nextTextComputedNode, {
+        force: shouldForceShaderProgress,
+      }),
+    },
     onComplete: () => {
       updateElement();
     },

@@ -58,7 +58,7 @@ audio:
 
 audioEffects:
   - id: music-volume
-    type: audioTransition
+    type: audio-transition
     targetId: music
     properties:
       volume:
@@ -200,7 +200,7 @@ nodes that target audio node IDs or other effect IDs.
 
 First implementation effect item types:
 
-- `audioTransition`
+- `audio-transition`
 
 Effects are render-state entries, not resources.
 
@@ -211,7 +211,7 @@ Route Graphics should reject invalid audio render state instead of guessing:
 - duplicate IDs across `audio` nodes and `audioEffects`
 - `audio-channel.children` entries whose type is not `sound`
 - nested `audio-channel` nodes in the first implementation
-- `audioTransition.targetId` that cannot be resolved in the state used for its
+- `audio-transition.targetId` that cannot be resolved in the state used for its
   lifecycle
 - transition phases missing required `duration` or `easing`
 - transition phases that use an unsupported easing name
@@ -219,12 +219,12 @@ Route Graphics should reject invalid audio render state instead of guessing:
 
 ## Audio Transitions
 
-An `audioTransition` automates property changes on a target.
+An `audio-transition` automates property changes on a target.
 
 ```yaml
 audioEffects:
   - id: music-transitions
-    type: audioTransition
+    type: audio-transition
     targetId: music
     properties:
       volume:
@@ -237,12 +237,12 @@ audioEffects:
 
 Fields:
 
-| Field        | Type              | Default  | Description                         |
-| ------------ | ----------------- | -------- | ----------------------------------- |
-| `id`         | string            | required | Stable effect ID                    |
-| `type`       | `audioTransition` | required | Effect type                         |
-| `targetId`   | string            | required | Audio node or effect ID to automate |
-| `properties` | object            | required | Property automation map             |
+| Field        | Type               | Default  | Description                         |
+| ------------ | ------------------ | -------- | ----------------------------------- |
+| `id`         | string             | required | Stable effect ID                    |
+| `type`       | `audio-transition` | required | Effect type                         |
+| `targetId`   | string             | required | Audio node or effect ID to automate |
+| `properties` | object             | required | Property automation map             |
 
 First implementation `targetId` may reference:
 
@@ -276,7 +276,7 @@ First implementation target:
 ```yaml
 audioEffects:
   - id: music-volume
-    type: audioTransition
+    type: audio-transition
     targetId: music
     properties:
       volume:
@@ -290,7 +290,7 @@ Future transition targets:
 ```yaml
 audioEffects:
   - id: bgm-transitions
-    type: audioTransition
+    type: audio-transition
     targetId: bgm
     properties:
       pan:
@@ -373,7 +373,7 @@ Removing a filter without such a transition may change the sound immediately.
 ### Filter Automation
 
 Filter parameters are automated by targeting the filter effect ID with an
-`audioTransition`.
+`audio-transition`.
 
 ```yaml
 audioEffects:
@@ -385,7 +385,7 @@ audioEffects:
     q: 1
 
   - id: music-lowpass-transition
-    type: audioTransition
+    type: audio-transition
     targetId: music-lowpass
     properties:
       frequency:
@@ -435,9 +435,9 @@ individual sound fades.
 Route Graphics should keep audio declarative.
 
 - Added audio node or effect: create it and apply `enter` transition if a
-  matching `audioTransition` exists in the next `audioEffects`.
+  matching `audio-transition` exists in the next `audioEffects`.
 - Updated audio node or effect: update changed properties and apply `update`
-  transition if a matching `audioTransition` exists in the next `audioEffects`.
+  transition if a matching `audio-transition` exists in the next `audioEffects`.
 - Removed audio node or effect: keep the internal node alive until `exit`
   transition from the previous `audioEffects` completes, then stop and clean up.
 
@@ -468,7 +468,7 @@ audio:
 
 audioEffects:
   - id: bgm-volume
-    type: audioTransition
+    type: audio-transition
     targetId: bgm
     properties:
       volume:
@@ -485,7 +485,7 @@ audio:
 
 audioEffects:
   - id: bgm-volume
-    type: audioTransition
+    type: audio-transition
     targetId: bgm
     properties:
       volume:
@@ -531,10 +531,10 @@ source.stop(now + seconds);
 
 Implemented:
 
-- schemas for `audio-channel`, extended `sound`, and `audioTransition`
+- schemas for `audio-channel`, extended `sound`, and `audio-transition`
 - flat `sound` normalization through an implicit root channel
 - channel gain nodes and internal playback instance IDs
-- `audioTransition` for `volume` on channels and sounds
+- `audio-transition` for `volume` on channels and sounds
 - same-ID, different-source replacement with overlapping internal instances
 - removal of the legacy `sound.delay` interface in favor of `startDelayMs`
 

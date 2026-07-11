@@ -1,6 +1,6 @@
 ---
 title: Audio Manual - Volume Transitions
-description: Manual fixture for audioTransition enter, update, exit, and same-id source crossfade. Use the state pager or n/b keys.
+description: Manual fixture for audio-transition enter, update, exit, and same-id source crossfade. Use the state pager or n/b keys.
 skipScreenshot: true
 specs:
   - state 1 is silent baseline
@@ -25,7 +25,7 @@ states:
             volume: 100
     audioEffects:
       - id: music-enter
-        type: audioTransition
+        type: audio-transition
         targetId: music
         properties:
           volume:
@@ -46,7 +46,7 @@ states:
             volume: 100
     audioEffects:
       - id: music-update-down
-        type: audioTransition
+        type: audio-transition
         targetId: music
         properties:
           volume:
@@ -54,7 +54,7 @@ states:
               duration: 1500
               easing: linear
       - id: transition-bgm-exit-ready
-        type: audioTransition
+        type: audio-transition
         targetId: transition-bgm
         properties:
           volume:
@@ -75,7 +75,7 @@ states:
             volume: 100
     audioEffects:
       - id: transition-bgm-enter
-        type: audioTransition
+        type: audio-transition
         targetId: transition-bgm
         properties:
           volume:
@@ -88,7 +88,7 @@ states:
               duration: 1200
               easing: linear
       - id: music-exit-ready
-        type: audioTransition
+        type: audio-transition
         targetId: music
         properties:
           volume:

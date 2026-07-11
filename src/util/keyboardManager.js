@@ -130,8 +130,118 @@ const getShortcutActivationKey = (binding, shortcut) => {
   return `${binding}${SHORTCUT_ACTIVATION_KEY_DELIMITER}${shortcut.shortcut}`;
 };
 
-const shouldHandleKeydown = (event) => {
-  return typeof hotkeys.filter !== "function" || hotkeys.filter(event);
+const isEditableKeyboardTarget = (target) => {
+  if (!target || typeof target !== "object") {
+    return false;
+  }
+
+  const tagName =
+    typeof target.tagName === "string" ? target.tagName.toLowerCase() : "";
+
+  if (["input", "textarea", "select"].includes(tagName)) {
+    return true;
+  }
+
+  if (
+    (typeof HTMLInputElement !== "undefined" &&
+      target instanceof HTMLInputElement) ||
+    (typeof HTMLTextAreaElement !== "undefined" &&
+      target instanceof HTMLTextAreaElement) ||
+    (typeof HTMLSelectElement !== "undefined" &&
+      target instanceof HTMLSelectElement)
+  ) {
+    return true;
+  }
+
+  if (
+    target.isContentEditable === true ||
+    target.contentEditable === "true" ||
+    target.contentEditable === "plaintext-only"
+  ) {
+    return true;
+  }
+
+  if (typeof target.getAttribute === "function") {
+    const contentEditable = target.getAttribute("contenteditable");
+
+    if (contentEditable !== null && contentEditable.toLowerCase() !== "false") {
+      return true;
+    }
+
+    if (target.getAttribute("data-route-graphics-input-id") !== null) {
+      return true;
+    }
+  }
+
+  const closest =
+    typeof target.closest === "function"
+      ? target.closest.bind(target)
+      : typeof target.parentElement?.closest === "function"
+        ? target.parentElement.closest.bind(target.parentElement)
+        : null;
+
+  if (!closest) {
+    return false;
+  }
+
+  return Boolean(
+    closest(
+      '[data-route-graphics-input-id], [contenteditable]:not([contenteditable="false"])',
+    ),
+  );
+};
+
+const getActiveKeyboardTarget = () => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return document.activeElement ?? null;
+};
+
+const isEditableKeyboardEvent = (event) => {
+  if (isEditableKeyboardTarget(event?.target)) {
+    return true;
+  }
+
+  return isEditableKeyboardTarget(getActiveKeyboardTarget());
+};
+
+const getKeydownBlockReason = (event) => {
+  if (isEditableKeyboardEvent(event)) {
+    return "editable-context";
+  }
+
+  if (typeof hotkeys.filter === "function" && !hotkeys.filter(event)) {
+    return "hotkeys-filter";
+  }
+
+  return null;
+};
+
+const clearReleasedKeyState = ({
+  activeKeyupShortcuts,
+  activeModifierShortcuts,
+  pressedKeyCodes,
+  releasedKeyCode,
+}) => {
+  for (const [activationKey, activeShortcut] of Array.from(
+    activeKeyupShortcuts,
+  )) {
+    if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
+      activeKeyupShortcuts.delete(activationKey);
+    }
+  }
+
+  for (const [activationKey, activeShortcut] of Array.from(
+    activeModifierShortcuts,
+  )) {
+    if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
+      activeModifierShortcuts.delete(activationKey);
+    }
+  }
+
+  pressedKeyCodes.delete(releasedKeyCode);
 };
 
 const normalizeBindingConfig = (config) => {
@@ -186,15 +296,17 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const clearBindingState = (binding) => {
-    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeKeyupShortcuts,
+    )) {
       if (activeShortcut.binding === binding) {
         activeKeyupShortcuts.delete(activationKey);
       }
     }
 
-    for (const [activationKey, activeShortcut] of [
-      ...activeModifierShortcuts,
-    ]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeModifierShortcuts,
+    )) {
       if (activeShortcut.binding === binding) {
         activeModifierShortcuts.delete(activationKey);
       }
@@ -245,7 +357,10 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const onDocumentKeydown = (event) => {
-    if (!shouldHandleKeydown(event)) {
+    const blockReason = getKeydownBlockReason(event);
+
+    if (blockReason) {
+      clearActiveKeyupBindings();
       return;
     }
 
@@ -254,7 +369,6 @@ export const createKeyboardManager = (eventHandler) => {
     if (typeof pressedKeyCode !== "number") {
       return;
     }
-
     pressedKeyCodes.add(pressedKeyCode);
 
     for (const [binding, config] of registeredBindings) {
@@ -278,13 +392,29 @@ export const createKeyboardManager = (eventHandler) => {
   };
 
   const onDocumentKeyup = (event) => {
+    const isEditableEvent = isEditableKeyboardEvent(event);
     const releasedKeyCode = getEventKeyCode(event);
+
+    if (isEditableEvent) {
+      if (typeof releasedKeyCode === "number") {
+        clearReleasedKeyState({
+          activeKeyupShortcuts,
+          activeModifierShortcuts,
+          pressedKeyCodes,
+          releasedKeyCode,
+        });
+      } else {
+        clearActiveKeyupBindings();
+      }
+      return;
+    }
 
     if (typeof releasedKeyCode !== "number") {
       return;
     }
-
-    for (const [activationKey, activeShortcut] of [...activeKeyupShortcuts]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeKeyupShortcuts,
+    )) {
       const config = registeredBindings.get(activeShortcut.binding);
 
       if (!activeShortcut.releaseCodes.has(releasedKeyCode) || !config?.keyup) {
@@ -295,9 +425,9 @@ export const createKeyboardManager = (eventHandler) => {
       emitKeyboardEvent("keyup", activeShortcut.binding, config.keyup.payload);
     }
 
-    for (const [activationKey, activeShortcut] of [
-      ...activeModifierShortcuts,
-    ]) {
+    for (const [activationKey, activeShortcut] of Array.from(
+      activeModifierShortcuts,
+    )) {
       if (activeShortcut.releaseCodes.has(releasedKeyCode)) {
         activeModifierShortcuts.delete(activationKey);
       }
@@ -369,6 +499,11 @@ export const createKeyboardManager = (eventHandler) => {
       // hotkeys-js is reliable for combo activation, but not for combo release
       // when modifiers are released before the final non-modifier key.
       hotkeys(binding, (_event, handler) => {
+        if (isEditableKeyboardEvent(_event)) {
+          clearActiveKeyupBindings();
+          return;
+        }
+
         const shortcut = getHandlerShortcut(binding, handler);
 
         if (shortcut?.isModifierOnly) {

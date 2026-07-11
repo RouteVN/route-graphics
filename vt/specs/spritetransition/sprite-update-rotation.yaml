@@ -1,50 +1,173 @@
 ---
 title: Sprite Update Rotation Transition
-description: A sprite rotating during update; uses a colored sprite texture intentionally to make rotation checkpoints clear (guideline exception for asset-based tests).
+description: Sprites rotating around anchor-derived, explicit, and zero origins during update animations.
 specs:
-  - sprite should rotate from 0 to 360 degrees
-  - animation should take 1.5 seconds
-  - demonstrates rotation property
+  - sprites should rotate from 0 to 90 degrees
+  - omitted origin should animate around the anchor-derived pivot
+  - explicit origin should animate independently from the anchor layout point
+  - explicit origin 0,0 should animate around the sprite's top-left corner
+  - auto rotation tween should use degree values
 steps:
   - action: keypress
     key: "n"
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 750
+      deltaMS: 500
   - action: screenshot
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 750
+      deltaMS: 500
   - action: screenshot
 ---
 states:
   - elements:
-      - id: sprite1
+      - id: center-origin-sprite
         type: sprite
-        src: circle-red
-        x: 350
-        "y": 250
-        width: 150
-        height: 150
+        src: slider
+        x: 360
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
         rotation: 0
-  - elements:
-      - id: sprite1
+      - id: explicit-origin-sprite
         type: sprite
-        src: circle-red
-        x: 350
-        "y": 250
-        width: 150
-        height: 150
-        rotation: 6.28318
+        src: slider
+        x: 850
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 24
+        rotation: 0
+      - id: origin-zero-sprite
+        type: sprite
+        src: slider
+        x: 1130
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 0
+        rotation: 0
+      - id: center-origin-marker
+        type: rect
+        x: 360
+        "y": 360
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: explicit-origin-marker
+        type: rect
+        x: 730
+        "y": 372
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: origin-zero-marker
+        type: rect
+        x: 1010
+        "y": 348
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+  - elements:
+      - id: center-origin-sprite
+        type: sprite
+        src: slider
+        x: 360
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        rotation: 90
+      - id: explicit-origin-sprite
+        type: sprite
+        src: slider
+        x: 850
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 24
+        rotation: 90
+      - id: origin-zero-sprite
+        type: sprite
+        src: slider
+        x: 1130
+        "y": 360
+        width: 240
+        height: 24
+        anchorX: 0.5
+        anchorY: 0.5
+        originX: 0
+        originY: 0
+        rotation: 90
+      - id: center-origin-marker
+        type: rect
+        x: 360
+        "y": 360
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: explicit-origin-marker
+        type: rect
+        x: 730
+        "y": 372
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
+      - id: origin-zero-marker
+        type: rect
+        x: 1010
+        "y": 348
+        width: 10
+        height: 10
+        anchorX: 0.5
+        anchorY: 0.5
+        fill: "#FF3355"
     animations:
-      - id: sprite-rotate
-        targetId: sprite1
+      - id: center-origin-sprite-rotate-auto
+        targetId: center-origin-sprite
         type: update
         tween:
           rotation:
-            keyframes:
-              - duration: 1500
-                value: 6.28318
-                easing: linear
+            auto:
+              duration: 1000
+              easing: linear
+      - id: explicit-origin-sprite-rotate-auto
+        targetId: explicit-origin-sprite
+        type: update
+        tween:
+          rotation:
+            auto:
+              duration: 1000
+              easing: linear
+      - id: origin-zero-sprite-rotate-auto
+        targetId: origin-zero-sprite
+        type: update
+        tween:
+          rotation:
+            auto:
+              duration: 1000
+              easing: linear

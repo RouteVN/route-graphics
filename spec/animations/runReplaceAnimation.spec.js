@@ -1,4 +1,11 @@
-import { Container, Filter, RenderTexture, Texture } from "pixi.js";
+import {
+  AnimatedSprite,
+  Container,
+  Filter,
+  RenderTexture,
+  Sprite,
+  Texture,
+} from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import {
   runReplaceAnimation,
@@ -9,6 +16,7 @@ import {
   queueDeferredAnimatedSpritePlay,
   queueDeferredParticlesStart,
 } from "../../src/plugins/elements/renderContext.js";
+import { addContainer } from "../../src/plugins/elements/container/addContainer.js";
 
 const createFrame = (x = 0, y = 0, width = 100, height = 100) => ({
   x,
@@ -50,6 +58,103 @@ const createParent = (...children) => ({
     return child;
   },
 });
+
+const passthroughCompositor = {
+  type: "shader",
+  uniforms: [],
+  textures: [],
+  pipeline: {},
+  mesh: { grid: [1, 1] },
+  source: {
+    webgl: {
+      fragment: `
+precision mediump float;
+
+in vec2 vTextureCoord;
+out vec4 finalColor;
+
+uniform sampler2D uTexture;
+uniform sampler2D uNextTexture;
+uniform mat3 uNextTextureMatrix;
+uniform float uProgress;
+uniform vec4 uNextTextureClamp;
+
+void main(void)
+{
+    vec2 nextUv = clamp(
+        (uNextTextureMatrix * vec3(vTextureCoord, 1.0)).xy,
+        uNextTextureClamp.xy,
+        uNextTextureClamp.zw
+    );
+    finalColor = mix(
+        texture(uTexture, vTextureCoord),
+        texture(uNextTexture, nextUv),
+        clamp(uProgress, 0.0, 1.0)
+    );
+}
+`,
+    },
+    webgpu: {
+      source: `
+struct GlobalFilterUniforms {
+  uInputSize: vec4<f32>,
+  uInputPixel: vec4<f32>,
+  uInputClamp: vec4<f32>,
+  uOutputFrame: vec4<f32>,
+  uGlobalFrame: vec4<f32>,
+  uOutputTexture: vec4<f32>,
+};
+
+struct ShaderUniforms {
+  uProgress: f32,
+  uResolution: vec2<f32>,
+  uNextTextureMatrix: mat3x3<f32>,
+  uNextTextureClamp: vec4<f32>,
+};
+
+struct VertexOutput {
+  @builtin(position) position: vec4<f32>,
+  @location(0) uv: vec2<f32>,
+};
+
+@group(0) @binding(0) var uTexture: texture_2d<f32>;
+@group(0) @binding(1) var uSampler: sampler;
+@group(0) @binding(2) var<uniform> gfu: GlobalFilterUniforms;
+@group(1) @binding(0) var<uniform> shaderUniforms: ShaderUniforms;
+@group(1) @binding(1) var uNextTexture: texture_2d<f32>;
+
+@vertex
+fn mainVertex(
+  @location(0) aPosition: vec2<f32>,
+) -> VertexOutput {
+  var output: VertexOutput;
+  let position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;
+  output.position = vec4<f32>(
+    position.x * (2.0 / gfu.uOutputTexture.x) - 1.0,
+    position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) -
+      gfu.uOutputTexture.z,
+    0.0,
+    1.0,
+  );
+  output.uv = aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);
+  return output;
+}
+
+@fragment
+fn mainFragment(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+  let nextUv = clamp(
+    (shaderUniforms.uNextTextureMatrix * vec3<f32>(uv, 1.0)).xy,
+    shaderUniforms.uNextTextureClamp.xy,
+    shaderUniforms.uNextTextureClamp.zw,
+  );
+  let prevColor = textureSample(uTexture, uSampler, uv);
+  let nextColor = textureSample(uNextTexture, uSampler, nextUv);
+  return mix(prevColor, nextColor, clamp(shaderUniforms.uProgress, 0.0, 1.0));
+}
+`,
+    },
+  },
+};
 
 describe("runReplaceAnimation", () => {
   it("reveals higher-valued mask pixels earlier by default", () => {
@@ -217,12 +322,308 @@ describe("runReplaceAnimation", () => {
     expect(tracker.track).toHaveBeenCalledWith(11);
 
     const dispatched = animationBus.dispatch.mock.calls[0][0];
+    expect(dispatched.payload.deferCompletionUntilNextFrame).toBe(false);
     dispatched.payload.onComplete();
 
     expect(parent.children).toEqual([nextDisplayObject]);
     expect(nextDisplayObject.visible).toBe(true);
     expect(deferredEffect).toHaveBeenCalledTimes(1);
     expect(tracker.complete).toHaveBeenCalledWith(11);
+  });
+
+  it("defers compositor transition completion until the final shader frame is presented", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    prevDisplayObject.x = 160;
+    prevDisplayObject.y = 90;
+    prevDisplayObject.scale.set(0.75, 0.75);
+    nextDisplayObject.x = 160;
+    nextDisplayObject.y = 90;
+    nextDisplayObject.scale.set(0.75, 0.75);
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const snapshotCalls = [];
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(({ target }) => {
+          snapshotCalls.push({
+            x: target.x,
+            y: target.y,
+            scaleX: target.scale.x,
+            scaleY: target.scale.y,
+            alpha: target.alpha,
+          });
+          return Texture.EMPTY;
+        }),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-compositor",
+        targetId: "scene-root",
+        type: "transition",
+        tween: {
+          uProgress: {
+            initialValue: 0,
+            keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+          },
+        },
+        compositor: passthroughCompositor,
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "START",
+        payload: expect.objectContaining({
+          id: "scene-compositor",
+          driver: "custom",
+          deferCompletionUntilNextFrame: true,
+        }),
+      }),
+    );
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.applyFrame(150);
+
+    expect(snapshotCalls).toEqual([
+      { x: 0, y: 0, scaleX: 1, scaleY: 1, alpha: 1 },
+      { x: 0, y: 0, scaleX: 1, scaleY: 1, alpha: 1 },
+    ]);
+    expect(prevDisplayObject).toEqual(
+      expect.objectContaining({
+        x: 160,
+        y: 90,
+        alpha: 1,
+      }),
+    );
+    expect(prevDisplayObject.scale.x).toBe(0.75);
+    expect(prevDisplayObject.scale.y).toBe(0.75);
+
+    expect(app.renderer.render).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clear: true,
+        clearColor: [0, 0, 0, 0],
+      }),
+    );
+
+    const overlay = parent.children.find((child) =>
+      child.children?.some((grandchild) => grandchild.filters?.length > 0),
+    );
+    const compositorSprite = overlay.children.find(
+      (child) => child.filters?.length > 0,
+    );
+    const compositorFilter = compositorSprite.filters[0];
+    const shaderUniforms = compositorFilter.resources.shaderUniforms;
+    const filterManager = {
+      calculateSpriteMatrix: vi.fn(),
+      applyFilter: vi.fn(),
+    };
+
+    compositorFilter.apply(filterManager, Texture.EMPTY, Texture.EMPTY, true);
+
+    expect(filterManager.calculateSpriteMatrix).toHaveBeenCalledWith(
+      shaderUniforms.uniforms.uNextTextureMatrix,
+      compositorSprite,
+    );
+    expect(Array.from(shaderUniforms.uniforms.uNextTextureClamp)).not.toEqual([
+      0, 0, 1, 1,
+    ]);
+    expect(filterManager.applyFilter).toHaveBeenCalledWith(
+      compositorFilter,
+      Texture.EMPTY,
+      Texture.EMPTY,
+      true,
+    );
+  });
+
+  it("reuses plain sprite textures for compositor snapshots instead of baking display scale into the texture", () => {
+    const prevDisplayObject = new Sprite(Texture.WHITE);
+    const nextDisplayObject = new Sprite(Texture.WHITE);
+    prevDisplayObject.label = "scene-root";
+    nextDisplayObject.label = "scene-root";
+    prevDisplayObject.x = 160;
+    prevDisplayObject.y = 90;
+    prevDisplayObject.scale.set(0.75, 0.75);
+    nextDisplayObject.x = 160;
+    nextDisplayObject.y = 90;
+    nextDisplayObject.scale.set(0.75, 0.75);
+
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "sprite" },
+      nextElement: { id: "scene-root", type: "sprite" },
+      animation: {
+        id: "sprite-compositor",
+        targetId: "scene-root",
+        type: "transition",
+        tween: {
+          uProgress: {
+            initialValue: 0,
+            keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+          },
+        },
+        compositor: passthroughCompositor,
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 12,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.applyFrame(150);
+
+    expect(app.renderer.generateTexture).not.toHaveBeenCalled();
+    expect(prevDisplayObject.scale.x).toBe(0.75);
+    expect(prevDisplayObject.scale.y).toBe(0.75);
+    expect(nextDisplayObject.scale.x).toBe(0.75);
+    expect(nextDisplayObject.scale.y).toBe(0.75);
+  });
+
+  it("applies transition rotation tween values as degree deltas", () => {
+    const parent = createParent();
+    const nextDisplayObject = createDisplayObject("scene-root");
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        children: [],
+      },
+      animation: {
+        id: "scene-rotate",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            rotation: {
+              keyframes: [{ duration: 300, value: 90, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 0,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children[1];
+    const wrapper = overlay.children[0];
+
+    dispatched.payload.applyFrame(300);
+
+    expect(wrapper.rotation).toBeCloseTo(Math.PI / 2);
   });
 
   it("runs persistent transitions without tracking render completion", () => {
@@ -450,6 +851,218 @@ describe("runReplaceAnimation", () => {
     await vi.waitFor(() => {
       expect(animationBus.dispatch).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("keeps nested animated sprites live during plain async container transitions", async () => {
+    const parent = createParent();
+    let resolveChildMount;
+    const childMountOperation = new Promise((resolve) => {
+      resolveChildMount = resolve;
+    });
+    let animatedSprite;
+
+    const childPlugin = {
+      type: "spritesheet-animation",
+      add: vi.fn(({ parent: targetParent, element, renderContext }) =>
+        childMountOperation.then(() => {
+          animatedSprite = new AnimatedSprite([Texture.EMPTY]);
+          vi.spyOn(animatedSprite, "play");
+          animatedSprite.label = element.id;
+          queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+          targetParent.addChild(animatedSprite);
+        }),
+      ),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+    const plugin = {
+      add: addContainer,
+      delete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    const result = runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        children: [
+          {
+            id: "character-face",
+            type: "spritesheet-animation",
+          },
+        ],
+      },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [childPlugin],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(typeof result?.then).toBe("function");
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+
+    resolveChildMount();
+    await result;
+
+    expect(animationBus.dispatch).toHaveBeenCalledTimes(1);
+    expect(app.renderer.generateTexture).not.toHaveBeenCalled();
+    expect(animatedSprite.play).toHaveBeenCalledTimes(1);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children[0];
+
+    expect(overlay.getChildByLabel("scene-root", true)).toBeNull();
+    expect(animatedSprite.parent.label).toBe("scene-root");
+
+    dispatched.payload.applyFrame(500);
+
+    expect(app.renderer.render).toHaveBeenCalled();
+    expect(overlay.children[0].alpha).toBe(0.5);
+    expect(animatedSprite.parent.alpha).toBe(1);
+
+    dispatched.payload.onComplete();
+
+    expect(parent.children.find((child) => child.label === "scene-root")).toBe(
+      animatedSprite.parent,
+    );
+    expect(animatedSprite.destroyed).not.toBe(true);
+  });
+
+  it("keeps hidden next animated sprite playback deferred for prev-only same-id live transitions", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    let animatedSprite;
+
+    const childPlugin = {
+      type: "spritesheet-animation",
+      add: vi.fn(({ parent: targetParent, element, renderContext }) => {
+        animatedSprite = new AnimatedSprite([Texture.EMPTY]);
+        vi.spyOn(animatedSprite, "play");
+        animatedSprite.label = element.id;
+        queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+        targetParent.addChild(animatedSprite);
+      }),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+    const plugin = {
+      add: addContainer,
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: {
+        id: "scene-root",
+        type: "container",
+        x: 0,
+        y: 0,
+        alpha: 1,
+        children: [
+          {
+            id: "hidden-character-face",
+            type: "spritesheet-animation",
+          },
+        ],
+      },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 0, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [childPlugin],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(animationBus.dispatch).toHaveBeenCalledTimes(1);
+    expect(animatedSprite.play).not.toHaveBeenCalled();
+    expect(animatedSprite.parent.visible).toBe(false);
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.onComplete();
+
+    expect(animatedSprite.parent.visible).toBe(true);
+    expect(animatedSprite.play).toHaveBeenCalledTimes(1);
   });
 
   it("preserves continuation zIndex updates while an async persistent transition is pending", async () => {
@@ -833,7 +1446,7 @@ describe("runReplaceAnimation", () => {
 
     expect(overlay.children).toHaveLength(1);
     dispatched.payload.applyFrame(500);
-    expect(overlay.children[0].x).toBeLessThan(0);
+    expect(overlay.children[0].x).toBeCloseTo(-50);
     expect(nextDisplayObject.visible).toBe(false);
   });
 
@@ -909,8 +1522,174 @@ describe("runReplaceAnimation", () => {
 
     expect(overlay.children).toHaveLength(1);
     dispatched.payload.applyFrame(500);
-    expect(overlay.children[0].x).toBeGreaterThan(0);
+    expect(overlay.children[0].x).toBeCloseTo(50);
     expect(nextDisplayObject.visible).toBe(false);
+  });
+
+  it("applies absolute x and y tweens to transition snapshots", () => {
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent();
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: null,
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-absolute-in",
+        targetId: "scene-root",
+        type: "transition",
+        next: {
+          tween: {
+            x: {
+              initialValue: 20,
+              keyframes: [{ duration: 1000, value: 120, easing: "linear" }],
+            },
+            y: {
+              initialValue: 10,
+              keyframes: [{ duration: 1000, value: 60, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+
+    dispatched.payload.applyFrame(500);
+    expect(overlay.children[0].x).toBeCloseTo(70);
+    expect(overlay.children[0].y).toBeCloseTo(35);
+  });
+
+  it("expands masked transition bounds for absolute position tweens", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const maskTexture = document.createElement("canvas");
+    maskTexture.width = 1;
+    maskTexture.height = 1;
+
+    const plugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.children.find(
+          (item) => item.label === element.id,
+        );
+        if (child) {
+          targetParent.removeChild(child);
+        }
+      }),
+    };
+
+    const animationBus = {
+      dispatch: vi.fn(),
+    };
+
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+        render: vi.fn(),
+      },
+    };
+
+    runReplaceAnimation({
+      app,
+      parent,
+      prevElement: { id: "scene-root", type: "container" },
+      nextElement: { id: "scene-root", type: "container", children: [] },
+      animation: {
+        id: "scene-mask-position",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 1000, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            x: {
+              initialValue: 200,
+              keyframes: [{ duration: 1000, value: 400, easing: "linear" }],
+            },
+          },
+        },
+        mask: {
+          kind: "single",
+          texture: maskTexture,
+          channel: "red",
+          progress: {
+            initialValue: 0,
+            keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const overlay = parent.children.find(
+      (child) => child !== nextDisplayObject,
+    );
+    const sprite = overlay.children[0];
+
+    expect(sprite.x).toBe(0);
+    expect(sprite.filterArea.width).toBe(401);
+    expect(sprite.filterArea.height).toBe(1);
   });
 
   it("does not preprocess single masks through CPU extraction", () => {

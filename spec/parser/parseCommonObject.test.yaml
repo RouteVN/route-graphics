@@ -61,6 +61,29 @@ in:
     anchorY: 0.5
 throws: "Input Error: Width or height is missing"
 ---
+case: Explicit origin overrides anchor-derived transform origin without changing anchored position
+in:
+  - id: origin-override
+    type: rect
+    x: 200
+    "y": 120
+    width: 80
+    height: 40
+    anchorX: 0.5
+    anchorY: 0.5
+    originX: 10
+    originY: 30
+out:
+  id: origin-override
+  type: rect
+  width: 80
+  height: 40
+  x: 160
+  "y": 100
+  originX: 10
+  originY: 30
+  alpha: 1
+---
 case: Parsing object with no id
 in:
   - type: text
@@ -73,6 +96,39 @@ in:
     width: 483.94921875
     height: 29
 throws: "Input Error: Id is missing"
+---
+case: Parsing unsupported input filters throws
+in:
+  - id: typed-name
+    type: input
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on input elements"
+---
+case: Parsing unsupported slider filters throws
+in:
+  - id: volume
+    type: slider
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on slider elements"
+---
+case: Parsing unsupported text-revealing filters throws
+in:
+  - id: line
+    type: text-revealing
+    x: 0
+    "y": 0
+    width: 240
+    height: 48
+    filters: []
+throws: "Input Error: filters are not supported on text-revealing elements"
 ---
 case: Parsing object with incorrect type
 in:

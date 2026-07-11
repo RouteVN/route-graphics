@@ -1,4 +1,5 @@
 import {
+  AnimatedSprite,
   Container,
   Filter,
   Matrix,
@@ -20,6 +21,12 @@ import {
 } from "../../elements/renderContext.js";
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
+import { degreesToRadians } from "../../elements/util/transform.js";
+import {
+  createShaderFilter,
+  setShaderFilterProgress,
+  setShaderFilterResolution,
+} from "../../elements/util/shaderFilterEffect.js";
 const DEFAULT_SUBJECT_VALUES = {
   translateX: 0,
   translateY: 0,
@@ -57,51 +64,141 @@ const normalizeFrame = (frame) => {
   return frame;
 };
 
+const generateLocalSnapshotTexture = ({ app, displayObject, frame }) => {
+  const original = {
+    x: displayObject.x ?? 0,
+    y: displayObject.y ?? 0,
+    scaleX: displayObject.scale?.x ?? 1,
+    scaleY: displayObject.scale?.y ?? 1,
+    rotation: displayObject.rotation ?? 0,
+    alpha: displayObject.alpha ?? 1,
+    skewX: displayObject.skew?.x ?? 0,
+    skewY: displayObject.skew?.y ?? 0,
+  };
+
+  try {
+    displayObject.x = 0;
+    displayObject.y = 0;
+    displayObject.scale?.set?.(1, 1);
+    displayObject.rotation = 0;
+    displayObject.alpha = 1;
+    displayObject.skew?.set?.(0, 0);
+    displayObject.updateLocalTransform?.();
+
+    return app.renderer.generateTexture({
+      target: displayObject,
+      frame,
+    });
+  } finally {
+    displayObject.x = original.x;
+    displayObject.y = original.y;
+    displayObject.scale?.set?.(original.scaleX, original.scaleY);
+    displayObject.rotation = original.rotation;
+    displayObject.alpha = original.alpha;
+    displayObject.skew?.set?.(original.skewX, original.skewY);
+    displayObject.updateLocalTransform?.();
+  }
+};
+
 const createSnapshotSubject = (app, displayObject) => {
   const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
-  const texture = app.renderer.generateTexture({
-    target: displayObject,
-    frame,
-  });
+  const canReuseSpriteTexture =
+    displayObject instanceof Sprite &&
+    (displayObject.filters?.length ?? 0) === 0;
+  const texture = canReuseSpriteTexture
+    ? displayObject.texture
+    : generateLocalSnapshotTexture({
+        app,
+        displayObject,
+        frame,
+      });
 
   const sprite = new Sprite(texture);
-  sprite.x = frame.x;
-  sprite.y = frame.y;
+  if (canReuseSpriteTexture) {
+    sprite.tint = displayObject.tint;
+    sprite.blendMode = displayObject.blendMode;
+  }
+  sprite.x = frame.x - (displayObject.pivot?.x ?? 0);
+  sprite.y = frame.y - (displayObject.pivot?.y ?? 0);
 
   const wrapper = new Container();
   wrapper.x = displayObject.x ?? 0;
   wrapper.y = displayObject.y ?? 0;
   wrapper.scale.set(displayObject.scale?.x ?? 1, displayObject.scale?.y ?? 1);
   wrapper.rotation = displayObject.rotation ?? 0;
+  wrapper.skew?.set?.(displayObject.skew?.x ?? 0, displayObject.skew?.y ?? 0);
   wrapper.alpha = displayObject.alpha ?? 1;
   wrapper.addChild(sprite);
 
   return {
     wrapper,
     texture,
+    ownsTexture: !canReuseSpriteTexture,
+    width: frame.width * Math.abs(wrapper.scale.x),
+    height: frame.height * Math.abs(wrapper.scale.y),
   };
 };
 
-const buildSubjectTimelines = (tween = {}) =>
+const createLiveSubject = (displayObject) => {
+  const frame = normalizeFrame(getLocalBoundsRectangle(displayObject));
+
+  return {
+    wrapper: displayObject,
+    live: true,
+    width: frame.width * Math.abs(displayObject.scale?.x ?? 1),
+    height: frame.height * Math.abs(displayObject.scale?.y ?? 1),
+  };
+};
+
+const hasAnimatedSpriteInTree = (displayObject) => {
+  if (!displayObject || displayObject.destroyed) {
+    return false;
+  }
+
+  if (displayObject instanceof AnimatedSprite) {
+    return true;
+  }
+
+  return (
+    displayObject.children?.some((child) => hasAnimatedSpriteInTree(child)) ??
+    false
+  );
+};
+
+const isLiveSubject = (subject) => subject?.live === true;
+
+const getSubjectDefaultValue = (property, base) => {
+  switch (property) {
+    case "x":
+      return base.x;
+    case "y":
+      return base.y;
+    default:
+      return DEFAULT_SUBJECT_VALUES[property] ?? 0;
+  }
+};
+
+const buildSubjectTimelines = (tween = {}, base) =>
   Object.entries(tween).map(([property, config]) => ({
     property,
     timeline: buildTimeline([
       {
-        value: config.initialValue ?? DEFAULT_SUBJECT_VALUES[property] ?? 0,
+        value: config.initialValue ?? getSubjectDefaultValue(property, base),
       },
       ...config.keyframes,
     ]),
   }));
 
-const createSubjectController = (wrapper, tween, app) => {
-  if (!wrapper || !tween) {
+const createSubjectController = (subject, tween) => {
+  if (!subject?.wrapper || !tween) {
     return {
       duration: 0,
+      timelines: [],
       apply: () => {},
     };
   }
 
-  const timelines = buildSubjectTimelines(tween);
+  const wrapper = subject.wrapper;
   const base = {
     x: wrapper.x,
     y: wrapper.y,
@@ -109,10 +206,14 @@ const createSubjectController = (wrapper, tween, app) => {
     scaleX: wrapper.scale.x,
     scaleY: wrapper.scale.y,
     rotation: wrapper.rotation,
+    width: subject.width,
+    height: subject.height,
   };
+  const timelines = buildSubjectTimelines(tween, base);
 
   return {
     duration: calculateMaxDuration(timelines),
+    timelines,
     apply: (time) => {
       wrapper.x = base.x;
       wrapper.y = base.y;
@@ -125,11 +226,17 @@ const createSubjectController = (wrapper, tween, app) => {
         const value = getValueAtTime(timeline, time);
 
         switch (property) {
+          case "x":
+            wrapper.x = value;
+            break;
+          case "y":
+            wrapper.y = value;
+            break;
           case "translateX":
-            wrapper.x = base.x + value * app.renderer.width;
+            wrapper.x = base.x + value * base.width;
             break;
           case "translateY":
-            wrapper.y = base.y + value * app.renderer.height;
+            wrapper.y = base.y + value * base.height;
             break;
           case "alpha":
             wrapper.alpha = base.alpha * value;
@@ -141,12 +248,63 @@ const createSubjectController = (wrapper, tween, app) => {
             wrapper.scale.y = base.scaleY * value;
             break;
           case "rotation":
-            wrapper.rotation = base.rotation + value;
+            wrapper.rotation = base.rotation + degreesToRadians(value);
             break;
         }
       }
     },
   };
+};
+
+const collectControllerSampleTimes = (controllers) => {
+  const sampleTimes = new Set([0]);
+
+  for (const controller of controllers) {
+    sampleTimes.add(controller.duration);
+
+    for (const { timeline } of controller.timelines ?? []) {
+      for (let index = 0; index < timeline.length; index++) {
+        const currentTime = timeline[index].time;
+        sampleTimes.add(currentTime);
+
+        if (index === 0) {
+          continue;
+        }
+
+        const previousTime = timeline[index - 1].time;
+        const span = currentTime - previousTime;
+        if (span <= 0) {
+          continue;
+        }
+
+        sampleTimes.add(previousTime + span * 0.25);
+        sampleTimes.add(previousTime + span * 0.5);
+        sampleTimes.add(previousTime + span * 0.75);
+      }
+    }
+  }
+
+  return [...sampleTimes].sort((a, b) => a - b);
+};
+
+const unionRectangles = (rectangles) => {
+  if (rectangles.length === 0) {
+    return new Rectangle(0, 0, 1, 1);
+  }
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const rectangle of rectangles) {
+    minX = Math.min(minX, rectangle.x);
+    minY = Math.min(minY, rectangle.y);
+    maxX = Math.max(maxX, rectangle.x + rectangle.width);
+    maxY = Math.max(maxY, rectangle.y + rectangle.height);
+  }
+
+  return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 };
 
 const createMaskProgressTimeline = (mask) =>
@@ -155,6 +313,14 @@ const createMaskProgressTimeline = (mask) =>
       value: mask?.progress?.initialValue ?? 0,
     },
     ...(mask?.progress?.keyframes ?? []),
+  ]);
+
+const createCompositorProgressTimeline = (animation) =>
+  buildTimeline([
+    {
+      value: animation.tween?.uProgress?.initialValue ?? 0,
+    },
+    ...(animation.tween?.uProgress?.keyframes ?? []),
   ]);
 
 const REPLACE_MASK_FILTER_VERTEX = `
@@ -822,13 +988,141 @@ const getUnionBounds = (subjects) => {
   return normalizeFrame(getLocalBoundsRectangle(boundsContainer));
 };
 
+const getAnimatedUnionBounds = (subjects, controllers) => {
+  const activeSubjects = subjects.filter((subject) => subject?.wrapper);
+
+  if (activeSubjects.length === 0) {
+    return getUnionBounds(subjects);
+  }
+
+  const boundsContainer = new Container();
+  for (const subject of activeSubjects) {
+    boundsContainer.addChild(subject.wrapper);
+  }
+
+  const rectangles = [];
+  for (const time of collectControllerSampleTimes(controllers)) {
+    for (const controller of controllers) {
+      controller.apply(time);
+    }
+
+    rectangles.push(getLocalBoundsRectangle(boundsContainer));
+  }
+
+  for (const controller of controllers) {
+    controller.apply(0);
+  }
+
+  for (const subject of activeSubjects) {
+    if (subject.wrapper.parent === boundsContainer) {
+      boundsContainer.removeChild(subject.wrapper);
+    }
+  }
+  boundsContainer.destroy();
+
+  return normalizeFrame(unionRectangles(rectangles));
+};
+
 const renderOffscreenContainer = ({ app, container, target, frame }) => {
   app.renderer.render({
     container,
     target,
     clear: true,
+    clearColor: [0, 0, 0, 0],
     transform: new Matrix(1, 0, 0, 1, -frame.x, -frame.y),
   });
+};
+
+const renderLiveSubjectTexture = ({ app, displayObject, target, frame }) => {
+  const original = {
+    x: displayObject.x ?? 0,
+    y: displayObject.y ?? 0,
+    scaleX: displayObject.scale?.x ?? 1,
+    scaleY: displayObject.scale?.y ?? 1,
+    rotation: displayObject.rotation ?? 0,
+    alpha: displayObject.alpha ?? 1,
+    skewX: displayObject.skew?.x ?? 0,
+    skewY: displayObject.skew?.y ?? 0,
+  };
+
+  try {
+    displayObject.x = 0;
+    displayObject.y = 0;
+    displayObject.scale?.set?.(1, 1);
+    displayObject.rotation = 0;
+    displayObject.alpha = 1;
+    displayObject.skew?.set?.(0, 0);
+    displayObject.updateLocalTransform?.();
+
+    renderOffscreenContainer({
+      app,
+      container: displayObject,
+      target,
+      frame,
+    });
+  } finally {
+    displayObject.x = original.x;
+    displayObject.y = original.y;
+    displayObject.scale?.set?.(original.scaleX, original.scaleY);
+    displayObject.rotation = original.rotation;
+    displayObject.alpha = original.alpha;
+    displayObject.skew?.set?.(original.skewX, original.skewY);
+    displayObject.updateLocalTransform?.();
+  }
+};
+
+const createPlainOverlaySubject = (app, subject) => {
+  if (!isLiveSubject(subject) || !subject?.wrapper) {
+    return {
+      subject,
+      render: () => {},
+      destroy: () => {},
+    };
+  }
+
+  const liveWrapper = subject.wrapper;
+  const frame = normalizeFrame(getLocalBoundsRectangle(liveWrapper));
+  const texture = createShaderRenderTexture(frame.width, frame.height);
+  const sprite = new Sprite(texture);
+  sprite.x = frame.x - (liveWrapper.pivot?.x ?? 0);
+  sprite.y = frame.y - (liveWrapper.pivot?.y ?? 0);
+
+  const wrapper = new Container();
+  wrapper.x = liveWrapper.x ?? 0;
+  wrapper.y = liveWrapper.y ?? 0;
+  wrapper.scale.set(liveWrapper.scale?.x ?? 1, liveWrapper.scale?.y ?? 1);
+  wrapper.rotation = liveWrapper.rotation ?? 0;
+  wrapper.skew?.set?.(liveWrapper.skew?.x ?? 0, liveWrapper.skew?.y ?? 0);
+  wrapper.alpha = liveWrapper.alpha ?? 1;
+  wrapper.addChild(sprite);
+
+  const renderRoot = new Container();
+  renderRoot.addChild(liveWrapper);
+
+  return {
+    subject: {
+      wrapper,
+      width: frame.width * Math.abs(wrapper.scale.x),
+      height: frame.height * Math.abs(wrapper.scale.y),
+    },
+    render: () =>
+      renderLiveSubjectTexture({
+        app,
+        displayObject: liveWrapper,
+        target: texture,
+        frame,
+      }),
+    destroy: () => {
+      if (liveWrapper.parent === renderRoot) {
+        renderRoot.removeChild(liveWrapper);
+      }
+      renderRoot.destroy();
+      if (!wrapper.destroyed) {
+        wrapper.destroy({ children: true });
+      }
+      texture.destroy(true);
+    },
+  };
 };
 
 const detachChildFromParent = (child, parent) => {
@@ -840,12 +1134,18 @@ const detachChildFromParent = (child, parent) => {
 };
 
 const destroySubjectSnapshot = (subject, app) => {
+  if (isLiveSubject(subject)) {
+    return;
+  }
+
   if (subject?.wrapper && !subject.wrapper.destroyed) {
     cleanupParticlesInTree({ app, root: subject.wrapper });
     subject.wrapper.destroy({ children: true });
   }
 
-  subject?.texture?.destroy(true);
+  if (subject?.ownsTexture) {
+    subject.texture?.destroy(true);
+  }
 };
 
 const resolveOverlaySubjects = ({
@@ -862,23 +1162,19 @@ const resolveOverlaySubjects = ({
   let overlayPrevSubject = prevSubject;
   let overlayNextSubject = nextSubject;
 
-  if (
-    animation.mask !== undefined &&
-    animation.prev === undefined &&
-    animation.next === undefined
-  ) {
+  if (animation.mask !== undefined || animation.compositor !== undefined) {
     return {
       prevSubject: overlayPrevSubject,
       nextSubject: overlayNextSubject,
     };
-  } else {
-    if (animation.prev === undefined) {
-      overlayPrevSubject = null;
-    }
+  }
 
-    if (animation.next === undefined) {
-      overlayNextSubject = null;
-    }
+  if (animation.prev === undefined) {
+    overlayPrevSubject = null;
+  }
+
+  if (animation.next === undefined) {
+    overlayNextSubject = null;
   }
 
   return {
@@ -896,30 +1192,32 @@ const createPlainOverlay = ({
 }) => {
   const overlay = new Container();
   overlay.zIndex = zIndex;
+  const prevOverlaySubject = createPlainOverlaySubject(app, prevSubject);
+  const nextOverlaySubject = createPlainOverlaySubject(app, nextSubject);
 
-  if (prevSubject?.wrapper) {
-    overlay.addChild(prevSubject.wrapper);
+  if (prevOverlaySubject.subject?.wrapper) {
+    overlay.addChild(prevOverlaySubject.subject.wrapper);
   }
 
-  if (nextSubject?.wrapper) {
-    overlay.addChild(nextSubject.wrapper);
+  if (nextOverlaySubject.subject?.wrapper) {
+    overlay.addChild(nextOverlaySubject.subject.wrapper);
   }
 
   const prevController = createSubjectController(
-    prevSubject?.wrapper ?? null,
+    prevOverlaySubject.subject,
     animation.prev?.tween,
-    app,
   );
   const nextController = createSubjectController(
-    nextSubject?.wrapper ?? null,
+    nextOverlaySubject.subject,
     animation.next?.tween,
-    app,
   );
 
   return {
     overlay,
     duration: Math.max(prevController.duration, nextController.duration),
     apply: (time) => {
+      prevOverlaySubject.render();
+      nextOverlaySubject.render();
       prevController.apply(time);
       nextController.apply(time);
     },
@@ -927,6 +1225,187 @@ const createPlainOverlay = ({
       overlay.removeFromParent();
       cleanupParticlesInTree({ app, root: overlay });
       overlay.destroy({ children: true });
+      prevOverlaySubject.destroy();
+      nextOverlaySubject.destroy();
+      destroySubjectSnapshot(prevSubject, app);
+      destroySubjectSnapshot(nextSubject, app);
+    },
+  };
+};
+
+const createCompositorOverlay = ({
+  app,
+  animation,
+  prevSubject,
+  nextSubject,
+  zIndex,
+}) => {
+  const prevController = createSubjectController(
+    prevSubject,
+    animation.prev?.tween,
+  );
+  const nextController = createSubjectController(
+    nextSubject,
+    animation.next?.tween,
+  );
+  const progressTimeline = createCompositorProgressTimeline(animation);
+  const progressDuration = calculateMaxDuration([
+    {
+      timeline: progressTimeline,
+    },
+  ]);
+  const unionBounds = getAnimatedUnionBounds(
+    [prevSubject, nextSubject],
+    [prevController, nextController],
+  );
+  const prevRoot = new Container();
+  const nextRoot = new Container();
+
+  if (prevSubject?.wrapper) {
+    prevRoot.addChild(prevSubject.wrapper);
+  }
+
+  if (nextSubject?.wrapper) {
+    nextRoot.addChild(nextSubject.wrapper);
+  }
+
+  const prevTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const nextTexture = createShaderRenderTexture(
+    unionBounds.width,
+    unionBounds.height,
+  );
+
+  const overlay = new Container();
+  overlay.zIndex = zIndex;
+
+  const sprite = new Sprite(prevTexture);
+  sprite.x = unionBounds.x;
+  sprite.y = unionBounds.y;
+  sprite.filterArea = new Rectangle(
+    0,
+    0,
+    unionBounds.width,
+    unionBounds.height,
+  );
+  overlay.addChild(sprite);
+
+  const compositorFilter = createShaderFilter({
+    shader: animation.compositor,
+    width: unionBounds.width,
+    height: unionBounds.height,
+    progress: getValueAtTime(progressTimeline, 0),
+    nextTextureSource: nextTexture.source,
+    name: `route-graphics-transition-compositor-${animation.id}`,
+  });
+  sprite.filters = [compositorFilter];
+  const nextTextureClamp = createFullFrameClamp(
+    unionBounds.width,
+    unionBounds.height,
+  );
+  const baseApplyCompositorFilter =
+    typeof compositorFilter.apply === "function"
+      ? compositorFilter.apply.bind(compositorFilter)
+      : (filterManager, input, output, clearMode) => {
+          filterManager.applyFilter(compositorFilter, input, output, clearMode);
+        };
+  compositorFilter.apply = (filterManager, input, output, clearMode) => {
+    const shaderUniforms = compositorFilter.resources.shaderUniforms;
+    if (shaderUniforms?.uniforms?.uNextTextureMatrix) {
+      filterManager.calculateSpriteMatrix(
+        shaderUniforms.uniforms.uNextTextureMatrix,
+        sprite,
+      );
+      shaderUniforms.uniforms.uNextTextureClamp = nextTextureClamp;
+      shaderUniforms.update();
+    }
+    baseApplyCompositorFilter(filterManager, input, output, clearMode);
+  };
+
+  let prevStaticRendered = false;
+  let nextStaticRendered = false;
+
+  if (!prevSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: prevRoot,
+      target: prevTexture,
+      frame: unionBounds,
+    });
+    prevStaticRendered = true;
+  }
+
+  if (!nextSubject?.wrapper) {
+    renderOffscreenContainer({
+      app,
+      container: nextRoot,
+      target: nextTexture,
+      frame: unionBounds,
+    });
+    nextStaticRendered = true;
+  }
+
+  return {
+    overlay,
+    duration: Math.max(
+      prevController.duration,
+      nextController.duration,
+      progressDuration,
+    ),
+    apply: (time) => {
+      prevController.apply(time);
+      nextController.apply(time);
+
+      if (
+        prevSubject?.wrapper &&
+        (prevController.duration > 0 || !prevStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: prevRoot,
+          target: prevTexture,
+          frame: unionBounds,
+        });
+        prevStaticRendered = true;
+      }
+
+      if (
+        nextSubject?.wrapper &&
+        (nextController.duration > 0 || !nextStaticRendered)
+      ) {
+        renderOffscreenContainer({
+          app,
+          container: nextRoot,
+          target: nextTexture,
+          frame: unionBounds,
+        });
+        nextStaticRendered = true;
+      }
+
+      setShaderFilterResolution(
+        compositorFilter,
+        unionBounds.width,
+        unionBounds.height,
+      );
+      setShaderFilterProgress(
+        compositorFilter,
+        getValueAtTime(progressTimeline, time),
+      );
+    },
+    destroy: () => {
+      overlay.removeFromParent();
+      sprite.filters = [];
+      compositorFilter.destroy();
+      cleanupParticlesInTree({ app, root: overlay });
+      cleanupParticlesInTree({ app, root: prevRoot });
+      cleanupParticlesInTree({ app, root: nextRoot });
+      overlay.destroy({ children: true });
+      prevRoot.destroy({ children: true });
+      nextRoot.destroy({ children: true });
+      prevTexture.destroy(true);
+      nextTexture.destroy(true);
       destroySubjectSnapshot(prevSubject, app);
       destroySubjectSnapshot(nextSubject, app);
     },
@@ -940,7 +1419,18 @@ const createMaskedOverlay = ({
   nextSubject,
   zIndex,
 }) => {
-  const unionBounds = getUnionBounds([prevSubject, nextSubject]);
+  const prevController = createSubjectController(
+    prevSubject,
+    animation.prev?.tween,
+  );
+  const nextController = createSubjectController(
+    nextSubject,
+    animation.next?.tween,
+  );
+  const unionBounds = getAnimatedUnionBounds(
+    [prevSubject, nextSubject],
+    [prevController, nextController],
+  );
   const prevRoot = new Container();
   const nextRoot = new Container();
 
@@ -1005,16 +1495,6 @@ const createMaskedOverlay = ({
     unionBounds.width,
     unionBounds.height,
     maskFilter,
-  );
-  const prevController = createSubjectController(
-    prevSubject?.wrapper ?? null,
-    animation.prev?.tween,
-    app,
-  );
-  const nextController = createSubjectController(
-    nextSubject?.wrapper ?? null,
-    animation.next?.tween,
-    app,
   );
   let prevStaticRendered = false;
   let nextStaticRendered = false;
@@ -1105,8 +1585,26 @@ const createReplaceOverlay = ({
   nextSubject,
   zIndex,
 }) => {
-  if (animation.mask) {
-    return createMaskedOverlay({
+  let replaceOverlay;
+
+  if (animation.compositor) {
+    replaceOverlay = createCompositorOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  } else if (animation.mask) {
+    replaceOverlay = createMaskedOverlay({
+      app,
+      animation,
+      prevSubject,
+      nextSubject,
+      zIndex,
+    });
+  } else {
+    replaceOverlay = createPlainOverlay({
       app,
       animation,
       prevSubject,
@@ -1115,13 +1613,11 @@ const createReplaceOverlay = ({
     });
   }
 
-  return createPlainOverlay({
-    app,
-    animation,
+  return {
+    ...replaceOverlay,
     prevSubject,
     nextSubject,
-    zIndex,
-  });
+  };
 };
 
 const instantiateNextLiveElement = ({
@@ -1224,9 +1720,6 @@ export const runReplaceAnimation = ({
     );
   }
 
-  const prevSubject = prevDisplayObject
-    ? createSnapshotSubject(app, prevDisplayObject)
-    : null;
   const isPersistent = animation.playback?.continuity === "persistent";
   const continuitySignature = getAnimationContinuitySignature(animation);
   const transitionSignalController = isPersistent
@@ -1263,6 +1756,7 @@ export const runReplaceAnimation = ({
   const nextDisplayObjectRef = { value: null };
   const replaceOverlayRef = { value: null };
   let finalized = false;
+  let previousLiveDeleted = false;
   const cleanupPendingTransition = () => {
     if (typeof animationBus?.removePending === "function") {
       animationBus.removePending(animation.id);
@@ -1287,11 +1781,47 @@ export const runReplaceAnimation = ({
     }
   };
 
+  const deletePreviousLiveElement = () => {
+    const prevSubject = replaceOverlayRef.value?.prevSubject;
+    if (
+      previousLiveDeleted ||
+      !isLiveSubject(prevSubject) ||
+      !prevElement ||
+      !prevDisplayObject ||
+      prevDisplayObject.destroyed
+    ) {
+      return;
+    }
+
+    previousLiveDeleted = true;
+    plugin.delete({
+      app,
+      parent: prevDisplayObject.parent ?? replaceOverlayRef.value.overlay,
+      element: prevElement,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      signal: transitionSignal,
+    });
+  };
+
   const finalize = ({ flushDeferredEffects }) => {
     if (finalized) return;
     finalized = true;
 
+    deletePreviousLiveElement();
+
     if (nextDisplayObjectRef.value && !nextDisplayObjectRef.value.destroyed) {
+      nextDisplayObjectRef.value.zIndex = currentZIndex;
+      if (nextDisplayObjectRef.value.parent !== parent) {
+        nextDisplayObjectRef.value.parent?.removeChild?.(
+          nextDisplayObjectRef.value,
+        );
+        parent.addChild(nextDisplayObjectRef.value);
+      }
       nextDisplayObjectRef.value.visible = true;
     }
 
@@ -1312,12 +1842,12 @@ export const runReplaceAnimation = ({
       targetId: animation.targetId,
       signature: continuitySignature,
       continuity: "persistent",
+      playbackSpeed: animation.playback?.speed,
       onCancel: () => {
         transitionSignalController?.abort();
         clearDeferredMountOperations(hiddenMountContext);
         cleanupParticlesInTree({ app, root: transitionMountParent });
         transitionMountParent.destroy({ children: true });
-        destroySubjectSnapshot(prevSubject, app);
         completeTransition();
       },
       onContinuationUpdate: handleContinuationUpdate,
@@ -1332,7 +1862,6 @@ export const runReplaceAnimation = ({
       clearDeferredMountOperations(hiddenMountContext);
       cleanupParticlesInTree({ app, root: transitionMountParent });
       transitionMountParent.destroy({ children: true });
-      destroySubjectSnapshot(prevSubject, app);
       completeTransition();
       return;
     }
@@ -1346,9 +1875,20 @@ export const runReplaceAnimation = ({
       );
     }
 
-    nextDisplayObjectRef.value = nextDisplayObject;
+    const useLivePlainOverlay =
+      animation.mask === undefined &&
+      animation.compositor === undefined &&
+      (hasAnimatedSpriteInTree(prevDisplayObject) ||
+        hasAnimatedSpriteInTree(nextDisplayObject));
+    const prevSubject = prevDisplayObject
+      ? useLivePlainOverlay
+        ? createLiveSubject(prevDisplayObject)
+        : createSnapshotSubject(app, prevDisplayObject)
+      : null;
     const nextSubject = nextDisplayObject
-      ? createSnapshotSubject(app, nextDisplayObject)
+      ? useLivePlainOverlay
+        ? createLiveSubject(nextDisplayObject)
+        : createSnapshotSubject(app, nextDisplayObject)
       : null;
 
     const overlaySubjects = resolveOverlaySubjects({
@@ -1371,7 +1911,7 @@ export const runReplaceAnimation = ({
     cleanupParticlesInTree({ app, root: transitionMountParent });
     transitionMountParent.destroy({ children: true });
 
-    if (prevDisplayObject) {
+    if (prevDisplayObject && !isLiveSubject(overlaySubjects.prevSubject)) {
       plugin.delete({
         app,
         parent,
@@ -1386,7 +1926,7 @@ export const runReplaceAnimation = ({
       });
     }
 
-    if (nextDisplayObject) {
+    if (nextDisplayObject && !isLiveSubject(overlaySubjects.nextSubject)) {
       nextDisplayObject.zIndex = currentZIndex;
       parent.addChild(nextDisplayObject);
       nextDisplayObject.visible = false;
@@ -1400,8 +1940,15 @@ export const runReplaceAnimation = ({
       zIndex: currentZIndex,
     });
     replaceOverlayRef.value = replaceOverlay;
+    nextDisplayObjectRef.value = nextDisplayObject;
 
     parent.addChild(replaceOverlay.overlay);
+    if (isLiveSubject(overlaySubjects.nextSubject)) {
+      flushDeferredMountOperations(
+        hiddenMountContext,
+        (operation) => operation?.type === "play-animated-sprite",
+      );
+    }
     const animationPayload = {
       id: animation.id,
       driver: "custom",
@@ -1409,10 +1956,13 @@ export const runReplaceAnimation = ({
       targetId: animation.targetId,
       signature: continuitySignature,
       continuity: isPersistent ? "persistent" : "render",
+      playbackSpeed: animation.playback?.speed,
       onContinuationUpdate: handleContinuationUpdate,
       duration: replaceOverlay.duration,
+      deferCompletionUntilNextFrame: animation.compositor !== undefined,
       applyFrame: replaceOverlay.apply,
       applyTargetState: () => {
+        replaceOverlay.apply(replaceOverlay.duration);
         finalize({ flushDeferredEffects: false });
       },
       onComplete: () => {
@@ -1467,13 +2017,12 @@ export const runReplaceAnimation = ({
     nextDisplayObjectOrPromise &&
     typeof nextDisplayObjectOrPromise.then === "function"
   ) {
-    void resolveNextDisplayObject(nextDisplayObjectOrPromise).then(
+    return resolveNextDisplayObject(nextDisplayObjectOrPromise).then(
       continueWithNextDisplayObject,
     );
-    return;
   }
 
-  continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
+  return continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
 };
 
 export default runReplaceAnimation;
