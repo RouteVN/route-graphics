@@ -39,20 +39,25 @@ const load = (key, arrayBuffer) => {
     return;
   }
 
-  loadingAssets[key] = getAudioContext()
+  const loadPromise = getAudioContext()
     .decodeAudioData(arrayBuffer)
     .then((audioBuffer) => {
-      loadedAssets[key] = audioBuffer;
+      if (loadingAssets[key] === loadPromise) {
+        loadedAssets[key] = audioBuffer;
+      }
       return audioBuffer;
     })
     .catch((error) => {
       throw createAudioDecodeError(key, error);
     })
     .finally(() => {
-      delete loadingAssets[key];
+      if (loadingAssets[key] === loadPromise) {
+        delete loadingAssets[key];
+      }
     });
 
-  return loadingAssets[key];
+  loadingAssets[key] = loadPromise;
+  return loadPromise;
 };
 
 const getAsset = (url) => {
@@ -60,7 +65,15 @@ const getAsset = (url) => {
   return arrayBuffer;
 };
 
+const unload = (key) => {
+  const hadAsset = !!loadedAssets[key] || !!loadingAssets[key];
+  delete loadedAssets[key];
+  delete loadingAssets[key];
+  return hadAsset;
+};
+
 export const AudioAsset = {
   load,
   getAsset,
+  unload,
 };

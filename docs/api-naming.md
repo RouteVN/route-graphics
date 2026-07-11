@@ -63,6 +63,8 @@ The public semantic event names are:
 - `keydown`
 - `keyup`
 - `renderComplete`
+- `rendererContextLost`
+- `rendererContextRestored`
 
 These are the names Route Graphics consumers should listen for in `eventHandler`.
 
@@ -115,6 +117,16 @@ Event names are semantic Route Graphics events, not native input events.
 
 - Fired when the current render has finished all tracked asynchronous work.
 - This is a lifecycle event, not an element interaction event.
+
+### `rendererContextLost` / `rendererContextRestored`
+
+- Fired when the active renderer loses or restores the graphics context needed
+  to present frames.
+- These are renderer lifecycle events, not element interaction events.
+- Consumers should use them to show renderer-independent fallback UI and
+  rebuild renderer-owned assets.
+- Browser-native names such as `webglcontextlost` and `webglcontextrestored`
+  remain internal implementation details.
 
 ## Config Shape
 
@@ -314,6 +326,8 @@ Platform differences should be handled by the runtime adapter, not pushed into c
 ### Render lifecycle
 
 - `renderComplete`
+- `rendererContextLost`
+- `rendererContextRestored`
 
 ## Authoring Rules
 

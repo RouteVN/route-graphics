@@ -258,10 +258,16 @@ const createPixiModuleMock = () => {
     Assets: {
       registerPlugin: vi.fn(),
       load: vi.fn(),
+      unload: vi.fn(async (key) => {
+        const asset = assetCache.get(key);
+        assetCache.delete(key);
+        asset?.destroy?.(true);
+      }),
       cache: {
         has: vi.fn((key) => assetCache.has(key)),
         get: vi.fn((key) => assetCache.get(key)),
         set: vi.fn((key, value) => assetCache.set(key, value)),
+        remove: vi.fn((key) => assetCache.delete(key)),
       },
     },
     detectVideoAlphaMode: vi.fn().mockResolvedValue("premultiplied-alpha"),
@@ -307,9 +313,9 @@ const createPixiModuleMock = () => {
           assetCache.get(source) ??
           new MockTexture({
             source: {
-              resource: { width: 1, height: 1 },
-              width: 1,
-              height: 1,
+              resource: source,
+              width: source?.width ?? 1,
+              height: source?.height ?? 1,
             },
           })
         );
@@ -353,6 +359,7 @@ const setupRouteGraphics = async ({
   audioAsset = {
     load: vi.fn(),
     getAsset: vi.fn(),
+    unload: vi.fn(),
   },
 } = {}) => {
   const pixiMock = createPixiModuleMock();
@@ -409,6 +416,8 @@ describe("RouteGraphics public API", () => {
   afterEach(() => {
     currentApp?.destroy();
     currentApp = null;
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.resetModules();
   });
 
@@ -418,6 +427,127 @@ describe("RouteGraphics public API", () => {
     expect(() => app.findElementByLabel("missing-label")).not.toThrow();
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
+
+  it("unloads and reloads buffer-backed textures", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const firstBitmap = { width: 8, height: 6, close: vi.fn() };
+    const secondBitmap = { width: 8, height: 6, close: vi.fn() };
+    const createImageBitmap = vi
+      .fn()
+      .mockResolvedValueOnce(firstBitmap)
+      .mockResolvedValueOnce(secondBitmap);
+    vi.stubGlobal("createImageBitmap", createImageBitmap);
+    const asset = {
+      buffer: new Uint8Array([1, 2, 3]).buffer,
+      type: "image/png",
+    };
+
+    await app.loadAssets({ portrait: asset });
+    const firstTexture = pixiMock.Assets.cache.get("portrait");
+
+    await expect(
+      app.unloadAssets(["portrait", "portrait", "missing"]),
+    ).resolves.toEqual(["portrait"]);
+    expect(pixiMock.Assets.cache.remove).toHaveBeenCalledWith("portrait");
+    expect(firstTexture.destroy).toHaveBeenCalledWith(true);
+    expect(firstBitmap.close).toHaveBeenCalledTimes(1);
+    expect(pixiMock.Assets.cache.has("portrait")).toBe(false);
+
+    await app.loadAssets({ portrait: asset });
+
+    expect(createImageBitmap).toHaveBeenCalledTimes(2);
+    expect(pixiMock.Assets.cache.get("portrait")).not.toBe(firstTexture);
+  });
+
+  it("uses Pixi asset unloading for URL-backed textures", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const resource = { close: vi.fn() };
+    const texture = {
+      source: { resource },
+      destroy: vi.fn(),
+    };
+    pixiMock.Assets.load.mockImplementation(async ({ alias }) => {
+      pixiMock.Assets.cache.set(alias, texture);
+      return texture;
+    });
+
+    await app.loadAssets({
+      background: {
+        source: "url",
+        url: "https://cdn.example.test/background.png",
+        type: "image/png",
+      },
+    });
+    await expect(app.unloadAssets(["background"])).resolves.toEqual([
+      "background",
+    ]);
+
+    expect(pixiMock.Assets.unload).toHaveBeenCalledWith("background");
+    expect(texture.destroy).toHaveBeenCalledWith(true);
+    expect(resource.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("unloads audio and font assets", async () => {
+    const audioAsset = {
+      load: vi.fn().mockResolvedValue({ decoded: true }),
+      getAsset: vi.fn(),
+      unload: vi.fn(),
+    };
+    const { app } = await setupRouteGraphics({ audioAsset });
+    const fontFace = { load: vi.fn().mockResolvedValue(undefined) };
+    const FontFaceMock = vi.fn(function FontFaceMock() {
+      return fontFace;
+    });
+    const fontSet = {
+      add: vi.fn(),
+      delete: vi.fn(),
+    };
+    vi.stubGlobal("FontFace", FontFaceMock);
+    Object.defineProperty(document, "fonts", {
+      value: fontSet,
+      configurable: true,
+    });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue(
+      "blob:http://route-graphics/font",
+    );
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    try {
+      await app.loadAssets({
+        click: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "audio/mpeg",
+        },
+        dialogueFont: {
+          buffer: new Uint8Array([4, 5, 6]).buffer,
+          type: "font/woff2",
+        },
+      });
+
+      await expect(
+        app.unloadAssets(["click", "dialogueFont"]),
+      ).resolves.toEqual(["click", "dialogueFont"]);
+      expect(audioAsset.unload).toHaveBeenCalledWith("click");
+      expect(fontSet.delete).toHaveBeenCalledWith(fontFace);
+    } finally {
+      delete document.fonts;
+    }
+  });
+
+  it("emits WebGL context lifecycle events", async () => {
+    const eventHandler = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: { eventHandler },
+    });
+    const lostEvent = new Event("webglcontextlost", { cancelable: true });
+
+    app.canvas.dispatchEvent(lostEvent);
+    app.canvas.dispatchEvent(new Event("webglcontextrestored"));
+
+    expect(lostEvent.defaultPrevented).toBe(true);
+    expect(eventHandler).toHaveBeenCalledWith("rendererContextLost", {});
+    expect(eventHandler).toHaveBeenCalledWith("rendererContextRestored", {});
+  });
 
   it("loads video assets through lazy HTML video textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
@@ -521,6 +651,55 @@ describe("RouteGraphics public API", () => {
         );
       }),
     ).toBe(true);
+  });
+
+  it("unloads video textures and revokes buffer source URLs", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    let video;
+    const createObjectURL = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:http://route-graphics/video-unload");
+    const revokeObjectURL = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+        if (tagName === "video") {
+          video = element;
+          element.load = vi.fn();
+          element.pause = vi.fn();
+        }
+        return element;
+      });
+
+    try {
+      await app.loadAssets({
+        cutscene: {
+          buffer: new Uint8Array([1, 2, 3]).buffer,
+          type: "video/mp4",
+        },
+      });
+      const texture = pixiMock.Assets.cache.get("cutscene");
+
+      await expect(app.unloadAssets(["cutscene"])).resolves.toEqual([
+        "cutscene",
+      ]);
+
+      expect(video.pause).toHaveBeenCalledTimes(1);
+      expect(video.querySelector("source")).toBeNull();
+      expect(texture.destroy).toHaveBeenCalledWith(true);
+      expect(pixiMock.Assets.cache.remove).toHaveBeenCalledWith("cutscene");
+      expect(revokeObjectURL).toHaveBeenCalledWith(
+        "blob:http://route-graphics/video-unload",
+      );
+    } finally {
+      createElement.mockRestore();
+      createObjectURL.mockRestore();
+      revokeObjectURL.mockRestore();
+    }
   });
 
   it("awaits audio asset decoding during loadAssets", async () => {
