@@ -245,7 +245,7 @@ describe("normalizeAudioRenderState", () => {
     ).not.toThrow();
   });
 
-  it("validates volume transitions strictly", () => {
+  it("validates audio transitions strictly", () => {
     const audio = [{ id: "music", type: "audio-channel" }];
 
     expect(() =>
@@ -293,14 +293,16 @@ describe("normalizeAudioRenderState", () => {
             type: "audio-transition",
             targetId: "music",
             properties: {
-              pan: {
+              playbackRate: {
                 update: { duration: 100, easing: "linear" },
               },
             },
           },
         ],
       }),
-    ).toThrow('unsupported audio transition property "pan"');
+    ).toThrow(
+      'audio transition property "playbackRate" is not supported for target type "audio-channel"',
+    );
 
     expect(() =>
       normalizeAudioRenderState({
@@ -319,5 +321,83 @@ describe("normalizeAudioRenderState", () => {
         ],
       }),
     ).toThrow('unsupported audio transition field "to"');
+  });
+
+  it("accepts pan and sound playback-rate transitions", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [
+          { id: "music", type: "audio-channel" },
+          { id: "bgm", type: "sound", src: "theme" },
+        ],
+        audioEffects: [
+          {
+            id: "music-pan",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              pan: {
+                enter: { from: -1, duration: 100, easing: "linear" },
+              },
+            },
+          },
+          {
+            id: "bgm-controls",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              pan: {
+                exit: { to: 1, duration: 100, easing: "linear" },
+              },
+              playbackRate: {
+                update: { duration: 200, easing: "linear" },
+              },
+            },
+          },
+        ],
+      }),
+    ).not.toThrow();
+  });
+
+  it("validates pan and playback-rate transition ranges", () => {
+    const sound = [{ id: "bgm", type: "sound", src: "theme" }];
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: sound,
+        audioEffects: [
+          {
+            id: "bad-pan",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              pan: {
+                enter: { from: -2, duration: 100, easing: "linear" },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow("properties.pan.enter.from must be greater than or equal to -1");
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: sound,
+        audioEffects: [
+          {
+            id: "bad-rate",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              playbackRate: {
+                exit: { to: -1, duration: 100, easing: "linear" },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow(
+      "properties.playbackRate.exit.to must be greater than or equal to 0",
+    );
   });
 });

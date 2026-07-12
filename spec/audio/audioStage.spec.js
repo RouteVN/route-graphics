@@ -399,6 +399,252 @@ describe("AudioStage graph rendering", () => {
     expect(bgmSource.stop).toHaveBeenCalledWith(11);
   });
 
+  it("applies enter, update, and exit pan transitions", async () => {
+    const { stage, context } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        pan: 0.5,
+        children: [{ id: "bgm", type: "sound", src: "theme", pan: -0.5 }],
+      },
+    ];
+
+    stage.renderGraph({
+      nextAudio: firstAudio,
+      nextAudioEffects: [
+        {
+          id: "music-enter",
+          type: "audio-transition",
+          targetId: "music",
+          properties: {
+            pan: {
+              enter: { from: -1, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: {
+              enter: { from: 1, duration: 500, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    const music = stage._inspect().channels.get("music");
+    const bgm = findCurrentSound(stage, "bgm");
+    expect(music.pannerNode.pan.setValueAtTime).toHaveBeenCalledWith(-1, 10);
+    expect(music.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.5,
+      11,
+    );
+    expect(bgm.pannerNode.pan.setValueAtTime).toHaveBeenCalledWith(1, 10);
+    expect(bgm.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      -0.5,
+      10.5,
+    );
+
+    const secondAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        pan: -0.25,
+        children: [{ id: "bgm", type: "sound", src: "theme", pan: 0.25 }],
+      },
+    ];
+    stage.renderGraph({
+      prevAudio: firstAudio,
+      nextAudio: secondAudio,
+      nextAudioEffects: [
+        {
+          id: "music-update",
+          type: "audio-transition",
+          targetId: "music",
+          properties: {
+            pan: { update: { duration: 200, easing: "linear" } },
+          },
+        },
+        {
+          id: "bgm-update",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: { update: { duration: 300, easing: "linear" } },
+          },
+        },
+      ],
+    });
+
+    expect(music.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      -0.25,
+      10.2,
+    );
+    expect(bgm.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.25,
+      10.3,
+    );
+
+    const source = context.sources[0];
+    stage.renderGraph({
+      prevAudio: secondAudio,
+      nextAudio: [],
+      prevAudioEffects: [
+        {
+          id: "music-exit",
+          type: "audio-transition",
+          targetId: "music",
+          properties: {
+            pan: { exit: { to: 1, duration: 700, easing: "linear" } },
+          },
+        },
+        {
+          id: "bgm-exit",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: { exit: { to: -1, duration: 900, easing: "linear" } },
+          },
+        },
+      ],
+    });
+
+    expect(music.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      1,
+      10.7,
+    );
+    expect(bgm.pannerNode.pan.linearRampToValueAtTime).toHaveBeenCalledWith(
+      -1,
+      10.9,
+    );
+    expect(source.stop).toHaveBeenCalledWith(10.9);
+  });
+
+  it("applies enter, update, and exit playback-rate transitions", async () => {
+    const { stage, context } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "bgm",
+        type: "sound",
+        src: "theme",
+        playbackRate: 1.5,
+      },
+    ];
+
+    stage.renderGraph({
+      nextAudio: firstAudio,
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            playbackRate: {
+              enter: { from: 0.5, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    const source = context.sources[0];
+    expect(source.playbackRate.setValueAtTime).toHaveBeenCalledWith(0.5, 10);
+    expect(source.playbackRate.linearRampToValueAtTime).toHaveBeenCalledWith(
+      1.5,
+      11,
+    );
+
+    const secondAudio = [
+      { id: "bgm", type: "sound", src: "theme", playbackRate: 2 },
+    ];
+    stage.renderGraph({
+      prevAudio: firstAudio,
+      nextAudio: secondAudio,
+      nextAudioEffects: [
+        {
+          id: "bgm-update",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            playbackRate: {
+              update: { duration: 400, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(source.playbackRate.linearRampToValueAtTime).toHaveBeenCalledWith(
+      2,
+      10.4,
+    );
+
+    stage.renderGraph({
+      prevAudio: secondAudio,
+      nextAudio: [],
+      prevAudioEffects: [
+        {
+          id: "bgm-exit",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            playbackRate: {
+              exit: { to: 0.25, duration: 1200, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(source.playbackRate.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.25,
+      11.2,
+    );
+    expect(source.stop).toHaveBeenCalledWith(11.2);
+  });
+
+  it("starts delayed playback-rate transitions when the source starts", async () => {
+    const { stage, context } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          startDelayMs: 100,
+          playbackRate: 2,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            playbackRate: {
+              enter: { from: 0.5, duration: 300, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(context.sources).toHaveLength(0);
+    vi.advanceTimersByTime(100);
+
+    const source = context.sources[0];
+    expect(source.playbackRate.setValueAtTime).toHaveBeenCalledWith(0.5, 10);
+    expect(source.playbackRate.linearRampToValueAtTime).toHaveBeenCalledWith(
+      2,
+      10.3,
+    );
+  });
+
   it("does not cancel unchanged channel or sound volume ramps", async () => {
     const { stage } = await setupAudioStage();
     const audio = [

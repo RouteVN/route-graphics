@@ -6,7 +6,16 @@ const AUDIO_EFFECT_TYPES = new Set([
   LEGACY_AUDIO_TRANSITION_TYPE,
 ]);
 const AUDIO_TRANSITION_PHASES = new Set(["enter", "exit", "update"]);
-const AUDIO_TRANSITION_PROPERTIES = new Set(["volume"]);
+const AUDIO_TRANSITION_PROPERTIES = new Set(["volume", "pan", "playbackRate"]);
+const AUDIO_TRANSITION_PROPERTIES_BY_NODE_TYPE = {
+  "audio-channel": new Set(["volume", "pan"]),
+  sound: new Set(["volume", "pan", "playbackRate"]),
+};
+const AUDIO_TRANSITION_PROPERTY_RANGES = {
+  volume: { min: 0, max: 100 },
+  pan: { min: -1, max: 1 },
+  playbackRate: { min: 0 },
+};
 const AUDIO_EASINGS = new Set(["linear"]);
 const AUDIO_TRANSITION_PHASE_KEYS = {
   enter: new Set(["from", "duration", "easing"]),
@@ -205,6 +214,12 @@ const validateAudioNodes = (audio, ids) => {
     channels: flattenedChannels,
     sounds: flattenedSounds,
     builtinNodeIds,
+    builtinNodeTypes: new Map(
+      [...flattenedChannels, ...flattenedSounds].map((node) => [
+        node.id,
+        node.type,
+      ]),
+    ),
   };
 };
 
@@ -237,26 +252,29 @@ const validateTransitionPhase = (phase, phaseName, path, propertyName) => {
     if (phase.from === undefined) {
       throw new Error(`Input error: ${path}.from is required.`);
     }
-    assertNumber(phase.from, `${path}.from`, { min: 0, max: 100 });
+    assertNumber(
+      phase.from,
+      `${path}.from`,
+      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
+    );
   }
 
   if (phaseName === "exit") {
     if (phase.to === undefined) {
       throw new Error(`Input error: ${path}.to is required.`);
     }
-    assertNumber(phase.to, `${path}.to`, { min: 0, max: 100 });
-  }
-
-  if (propertyName !== "volume") {
-    throw new Error(
-      `Input error: unsupported audio transition property "${propertyName}" at ${path}.`,
+    assertNumber(
+      phase.to,
+      `${path}.to`,
+      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
     );
   }
 };
 
-const validateAudioTransition = (effect, path, nodeIds) => {
+const validateAudioTransition = (effect, path, nodeTypes) => {
   assertNonEmptyString(effect.targetId, `${path}.targetId`);
-  if (!nodeIds.has(effect.targetId)) {
+  const targetType = nodeTypes.get(effect.targetId);
+  if (!targetType) {
     throw new Error(
       `Input error: ${path}.targetId "${effect.targetId}" does not resolve to an audio node.`,
     );
@@ -270,6 +288,14 @@ const validateAudioTransition = (effect, path, nodeIds) => {
     if (!AUDIO_TRANSITION_PROPERTIES.has(propertyName)) {
       throw new Error(
         `Input error: unsupported audio transition property "${propertyName}" at ${path}.properties.`,
+      );
+    }
+
+    if (
+      !AUDIO_TRANSITION_PROPERTIES_BY_NODE_TYPE[targetType].has(propertyName)
+    ) {
+      throw new Error(
+        `Input error: audio transition property "${propertyName}" is not supported for target type "${targetType}" at ${path}.properties.`,
       );
     }
 
@@ -292,7 +318,7 @@ const validateAudioTransition = (effect, path, nodeIds) => {
   }
 };
 
-const validateAudioEffects = (audioEffects, ids, nodeIds) => {
+const validateAudioEffects = (audioEffects, ids, nodeTypes) => {
   if (!Array.isArray(audioEffects)) {
     throw new Error("Input error: `audioEffects` must be an array.");
   }
@@ -315,7 +341,7 @@ const validateAudioEffects = (audioEffects, ids, nodeIds) => {
       effect.type === AUDIO_TRANSITION_TYPE ||
       effect.type === LEGACY_AUDIO_TRANSITION_TYPE
     ) {
-      validateAudioTransition(effect, path, nodeIds);
+      validateAudioTransition(effect, path, nodeTypes);
       if (transitionTargetIds.has(effect.targetId)) {
         throw new Error(
           `Input error: duplicate audio-transition targetId "${effect.targetId}" at ${path}.targetId.`,
@@ -337,7 +363,7 @@ export const normalizeAudioRenderState = ({
 } = {}) => {
   const ids = new Set();
   const flattened = validateAudioNodes(audio, ids);
-  validateAudioEffects(audioEffects, ids, flattened.builtinNodeIds);
+  validateAudioEffects(audioEffects, ids, flattened.builtinNodeTypes);
 
   return {
     audio,

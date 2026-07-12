@@ -25,15 +25,35 @@ properties:
         type: object
         properties:
           enter:
-            $ref: "#/definitions/enterPhase"
+            $ref: "#/definitions/volumeEnterPhase"
           exit:
-            $ref: "#/definitions/exitPhase"
+            $ref: "#/definitions/volumeExitPhase"
+          update:
+            $ref: "#/definitions/updatePhase"
+        additionalProperties: false
+      pan:
+        type: object
+        properties:
+          enter:
+            $ref: "#/definitions/panEnterPhase"
+          exit:
+            $ref: "#/definitions/panExitPhase"
+          update:
+            $ref: "#/definitions/updatePhase"
+        additionalProperties: false
+      playbackRate:
+        type: object
+        properties:
+          enter:
+            $ref: "#/definitions/playbackRateEnterPhase"
+          exit:
+            $ref: "#/definitions/playbackRateExitPhase"
           update:
             $ref: "#/definitions/updatePhase"
         additionalProperties: false
     additionalProperties: false
 definitions:
-  enterPhase:
+  volumeEnterPhase:
     type: object
     required:
       - from
@@ -50,7 +70,7 @@ definitions:
       easing:
         const: linear
     additionalProperties: false
-  exitPhase:
+  volumeExitPhase:
     type: object
     required:
       - to
@@ -61,6 +81,72 @@ definitions:
         type: number
         minimum: 0
         maximum: 100
+      duration:
+        type: number
+        minimum: 0
+      easing:
+        const: linear
+    additionalProperties: false
+  panEnterPhase:
+    type: object
+    required:
+      - from
+      - duration
+      - easing
+    properties:
+      from:
+        type: number
+        minimum: -1
+        maximum: 1
+      duration:
+        type: number
+        minimum: 0
+      easing:
+        const: linear
+    additionalProperties: false
+  panExitPhase:
+    type: object
+    required:
+      - to
+      - duration
+      - easing
+    properties:
+      to:
+        type: number
+        minimum: -1
+        maximum: 1
+      duration:
+        type: number
+        minimum: 0
+      easing:
+        const: linear
+    additionalProperties: false
+  playbackRateEnterPhase:
+    type: object
+    required:
+      - from
+      - duration
+      - easing
+    properties:
+      from:
+        type: number
+        minimum: 0
+      duration:
+        type: number
+        minimum: 0
+      easing:
+        const: linear
+    additionalProperties: false
+  playbackRateExitPhase:
+    type: object
+    required:
+      - to
+      - duration
+      - easing
+    properties:
+      to:
+        type: number
+        minimum: 0
       duration:
         type: number
         minimum: 0

@@ -254,7 +254,7 @@ Fields:
 | `targetId`   | string             | required | Audio node ID to automate |
 | `properties` | object             | required | Property automation map   |
 
-First implementation `targetId` may reference:
+`targetId` may reference:
 
 - an `audio-channel`
 - a `sound`
@@ -292,7 +292,7 @@ finishes.
 Using the previous state's `audioEffects` for `exit` lets a removed sound fade
 out without keeping a dead target in the next render state.
 
-First implementation target:
+Volume transition example:
 
 ```yaml
 audioEffects:
@@ -306,7 +306,7 @@ audioEffects:
         update: { duration: 300, easing: linear }
 ```
 
-Future transition targets:
+Pan and playback-rate transition example:
 
 ```yaml
 audioEffects:
@@ -461,15 +461,16 @@ AudioBufferSourceNode
   -> AudioContext.destination
 ```
 
-Volume and transition scheduling use Web Audio `AudioParam` automation:
+Volume, pan, and playback-rate transitions use Web Audio `AudioParam`
+automation:
 
 ```js
 const now = audioContext.currentTime;
 const seconds = duration / 1000;
 
-gain.gain.cancelScheduledValues(now);
-gain.gain.setValueAtTime(currentValue, now);
-gain.gain.linearRampToValueAtTime(targetValue, now + seconds);
+param.cancelScheduledValues(now);
+param.setValueAtTime(currentValue, now);
+param.linearRampToValueAtTime(targetValue, now + seconds);
 ```
 
 For removed nodes with an exit transition, cleanup happens after the ramp:
@@ -485,12 +486,8 @@ Implemented:
 - schemas for `audio-channel`, extended `sound`, and `audio-transition`
 - flat `sound` normalization through an implicit root channel
 - channel gain nodes and internal playback instance IDs
-- `audio-transition` for `volume` on channels and sounds
+- `audio-transition` for `volume` and `pan` on channels and sounds
+- `audio-transition` for `playbackRate` on sounds
 - same-ID source-identity replacement with overlapping internal instances
 - validation for duplicate transition targets and cross-state audio node kinds
 - removal of the legacy `sound.delay` interface in favor of `startDelayMs`
-
-Planned separately:
-
-- transition automation for `pan`
-- transition automation for `playbackRate`

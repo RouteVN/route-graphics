@@ -167,28 +167,63 @@ const getTransitionPhase = (effects = [], targetId, property, phase) => {
   return transition?.properties?.[property]?.[phase] ?? null;
 };
 
-const applyVolume = ({ gainNode, targetValue, transition }) => {
+const applyAudioParam = ({
+  param,
+  targetValue,
+  transition,
+  normalizeTargetValue = (value) => value,
+  normalizeTransitionValue = normalizeTargetValue,
+}) => {
+  const normalizedTargetValue = normalizeTargetValue(targetValue);
+
   if (!transition) {
-    setParamNow(gainNode.gain, targetValue);
+    setParamNow(param, normalizedTargetValue);
     return 0;
   }
 
   const initialValue =
     transition.from !== undefined
-      ? normalizeVolume(transition.from, 100)
+      ? normalizeTransitionValue(transition.from)
       : undefined;
   const finalValue =
     transition.to !== undefined
-      ? normalizeVolume(transition.to, 100)
-      : targetValue;
+      ? normalizeTransitionValue(transition.to)
+      : normalizedTargetValue;
 
   if (initialValue !== undefined) {
-    setParamNow(gainNode.gain, initialValue);
+    setParamNow(param, initialValue);
   }
-  rampParam(gainNode.gain, finalValue, transition.duration);
+  rampParam(param, finalValue, transition.duration);
 
   return transition.duration;
 };
+
+const applyVolume = ({ gainNode, targetValue, transition }) =>
+  applyAudioParam({
+    param: gainNode?.gain,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) =>
+      Math.max(0, Math.min(1, toFiniteParamValue(value, 1))),
+    normalizeTransitionValue: (value) => normalizeVolume(value, 100),
+  });
+
+const applyPan = ({ pannerNode, targetValue, transition }) =>
+  applyAudioParam({
+    param: pannerNode?.pan,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) =>
+      Math.max(-1, Math.min(1, toFiniteParamValue(value, 0))),
+  });
+
+const applyPlaybackRate = ({ source, targetValue, transition }) =>
+  applyAudioParam({
+    param: source?.playbackRate,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) => Math.max(0, toFiniteParamValue(value, 1)),
+  });
 
 const createChannelInstance = (channel, outputNode) => {
   const gainNode = createGainNode(getVolumeValue(channel));
@@ -233,6 +268,7 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     gainNode,
     pannerNode,
     source: null,
+    playbackRateTransition: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
     playRequestId: 0,
@@ -258,9 +294,12 @@ const createSourceForSound = (sound) => {
   source.buffer = audioBuffer;
   source.loop = sound.loop ?? false;
 
-  if (source.playbackRate) {
-    setParamNow(source.playbackRate, sound.playbackRate ?? 1, context);
-  }
+  applyPlaybackRate({
+    source,
+    targetValue: sound.playbackRate ?? 1,
+    transition: sound.playbackRateTransition,
+  });
+  sound.playbackRateTransition = null;
 
   connect(source, sound.gainNode);
 
@@ -502,7 +541,13 @@ export const createAudioStage = () => {
 
   const ensureChannel = (channel, effects, phase) => {
     const existing = channels.get(channel.id);
-    const transition = getTransitionPhase(effects, channel.id, "volume", phase);
+    const volumeTransition = getTransitionPhase(
+      effects,
+      channel.id,
+      "volume",
+      phase,
+    );
+    const panTransition = getTransitionPhase(effects, channel.id, "pan", phase);
 
     if (existing && existing.cleanupTimeoutId !== null) {
       const created = createChannelInstance(
@@ -513,7 +558,12 @@ export const createAudioStage = () => {
       applyVolume({
         gainNode: created.gainNode,
         targetValue: getVolumeValue(channel),
-        transition,
+        transition: volumeTransition,
+      });
+      applyPan({
+        pannerNode: created.pannerNode,
+        targetValue: channel.pan,
+        transition: panTransition,
       });
       return created;
     }
@@ -528,11 +578,11 @@ export const createAudioStage = () => {
       existing.muted = channel.muted;
       existing.pan = channel.pan;
 
-      if (volumeChanged && transition) {
+      if (volumeChanged && volumeTransition) {
         applyVolume({
           gainNode: existing.gainNode,
           targetValue: nextVolumeValue,
-          transition,
+          transition: volumeTransition,
         });
       } else if (volumeChanged) {
         applyVolume({
@@ -542,8 +592,12 @@ export const createAudioStage = () => {
         });
       }
 
-      if (panChanged && existing.pannerNode?.pan) {
-        setParamNow(existing.pannerNode.pan, channel.pan ?? 0);
+      if (panChanged) {
+        applyPan({
+          pannerNode: existing.pannerNode,
+          targetValue: channel.pan,
+          transition: panTransition,
+        });
       }
       return existing;
     }
@@ -556,7 +610,12 @@ export const createAudioStage = () => {
     applyVolume({
       gainNode: created.gainNode,
       targetValue: getVolumeValue(channel),
-      transition,
+      transition: volumeTransition,
+    });
+    applyPan({
+      pannerNode: created.pannerNode,
+      targetValue: channel.pan,
+      transition: panTransition,
     });
     return created;
   };
@@ -592,19 +651,30 @@ export const createAudioStage = () => {
       return 0;
     }
 
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       channel.id,
       "volume",
       "exit",
     );
-    const duration = applyVolume({
+    const panTransition = getTransitionPhase(
+      effects,
+      channel.id,
+      "pan",
+      "exit",
+    );
+    const volumeDuration = applyVolume({
       gainNode: channel.gainNode,
       targetValue: getVolumeValue(channel),
-      transition,
+      transition: volumeTransition,
+    });
+    const panDuration = applyPan({
+      pannerNode: channel.pannerNode,
+      targetValue: channel.pan,
+      transition: panTransition,
     });
 
-    return duration;
+    return Math.max(volumeDuration, panDuration);
   };
 
   const addSoundInstance = ({ sound, effects, phase, internalId }) => {
@@ -618,12 +688,29 @@ export const createAudioStage = () => {
     sounds.set(internalId, instance);
     currentSoundKeyById.set(sound.id, internalId);
 
-    const transition = getTransitionPhase(effects, sound.id, "volume", phase);
+    const volumeTransition = getTransitionPhase(
+      effects,
+      sound.id,
+      "volume",
+      phase,
+    );
+    const panTransition = getTransitionPhase(effects, sound.id, "pan", phase);
     applyVolume({
       gainNode: instance.gainNode,
       targetValue: getVolumeValue(sound),
-      transition,
+      transition: volumeTransition,
     });
+    applyPan({
+      pannerNode: instance.pannerNode,
+      targetValue: sound.pan,
+      transition: panTransition,
+    });
+    instance.playbackRateTransition = getTransitionPhase(
+      effects,
+      sound.id,
+      "playbackRate",
+      phase,
+    );
     playSound(instance);
     return instance;
   };
@@ -631,17 +718,44 @@ export const createAudioStage = () => {
   const removeSoundInstance = (instance, effects, inheritedDuration = 0) => {
     if (!instance) return 0;
 
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       instance.id,
       "volume",
       "exit",
     );
-    const ownDuration = applyVolume({
+    const panTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "pan",
+      "exit",
+    );
+    const playbackRateTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "playbackRate",
+      "exit",
+    );
+    const volumeDuration = applyVolume({
       gainNode: instance.gainNode,
       targetValue: getVolumeValue(instance),
-      transition,
+      transition: volumeTransition,
     });
+    const panDuration = applyPan({
+      pannerNode: instance.pannerNode,
+      targetValue: instance.pan,
+      transition: panTransition,
+    });
+    const playbackRateDuration = applyPlaybackRate({
+      source: instance.source,
+      targetValue: instance.playbackRate,
+      transition: playbackRateTransition,
+    });
+    const ownDuration = Math.max(
+      volumeDuration,
+      panDuration,
+      playbackRateDuration,
+    );
     const duration = Math.max(ownDuration, inheritedDuration);
 
     stopSource(instance, duration);
@@ -657,6 +771,8 @@ export const createAudioStage = () => {
     const currentVolumeValue = getVolumeValue(instance);
     const nextVolumeValue = getVolumeValue(sound);
     const volumeChanged = currentVolumeValue !== nextVolumeValue;
+    const panChanged = instance.pan !== sound.pan;
+    const playbackRateChanged = instance.playbackRate !== sound.playbackRate;
     const startDelayChanged = instance.startDelayMs !== sound.startDelayMs;
 
     if (instance.channelId !== sound.channelId) {
@@ -676,26 +792,19 @@ export const createAudioStage = () => {
 
     if (instance.source) {
       instance.source.loop = sound.loop;
-      if (instance.source.playbackRate) {
-        setParamNow(instance.source.playbackRate, sound.playbackRate);
-      }
     }
 
-    if (instance.pannerNode?.pan) {
-      setParamNow(instance.pannerNode.pan, sound.pan);
-    }
-
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       sound.id,
       "volume",
       "update",
     );
-    if (volumeChanged && transition) {
+    if (volumeChanged && volumeTransition) {
       applyVolume({
         gainNode: instance.gainNode,
         targetValue: nextVolumeValue,
-        transition,
+        transition: volumeTransition,
       });
     } else if (volumeChanged) {
       applyVolume({
@@ -703,6 +812,32 @@ export const createAudioStage = () => {
         targetValue: nextVolumeValue,
         transition: null,
       });
+    }
+
+    if (panChanged) {
+      applyPan({
+        pannerNode: instance.pannerNode,
+        targetValue: sound.pan,
+        transition: getTransitionPhase(effects, sound.id, "pan", "update"),
+      });
+    }
+
+    if (playbackRateChanged) {
+      const playbackRateTransition = getTransitionPhase(
+        effects,
+        sound.id,
+        "playbackRate",
+        "update",
+      );
+      if (instance.source) {
+        applyPlaybackRate({
+          source: instance.source,
+          targetValue: sound.playbackRate,
+          transition: playbackRateTransition,
+        });
+      } else {
+        instance.playbackRateTransition = playbackRateTransition;
+      }
     }
 
     if (startDelayChanged && instance.pendingTimeoutId !== null) {
