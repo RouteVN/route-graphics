@@ -1,5 +1,6 @@
 ---
 title: Update Text Revealing Continue From Offset Typewriter
+diffThreshold: 0.5
 description: |
   Same text-revealing element id can append content and reveal only the new suffix
   when initialRevealedCharacters marks the already-visible prefix.

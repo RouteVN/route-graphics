@@ -51,7 +51,15 @@ describe("toPixiTextStyle", () => {
     });
 
     expect(style.dropShadow).toBeNull();
-    expect(style).not.toHaveProperty("padding");
+    expect(style.padding).toBe(7);
+  });
+
+  it("adds automatic texture padding for glyph overhangs", () => {
+    const style = toPixiTextStyle({
+      fontSize: 160,
+    });
+
+    expect(style.padding).toBe(64);
   });
 
   it("does not expose Pixi dropShadow as public pass-through input", () => {

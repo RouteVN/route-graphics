@@ -36,6 +36,49 @@ const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
 };
 
 describe("text hover layout", () => {
+  it("applies configured text texture padding", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const element = parseText({
+      state: {
+        id: "text-padding",
+        type: "text",
+        x: 20,
+        y: 30,
+        alpha: 1,
+        content: "Padding",
+        textStyle: {
+          fontSize: 24,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+          padding: 18,
+        },
+        hover: {
+          textStyle: {
+            padding: 30,
+          },
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element,
+    });
+
+    const text = parent.getChildByLabel("text-padding");
+
+    expect(text.style.padding).toBe(18);
+
+    text.emit("pointerover");
+    expect(text.style.padding).toBe(30);
+
+    text.emit("pointerout");
+    expect(text.style.padding).toBe(18);
+  });
+
   it("keeps the text anchor stable when hover styles change text metrics", () => {
     const parent = new Container();
     const shared = createSharedParams();
@@ -225,7 +268,7 @@ describe("text hover layout", () => {
       distance: 5,
     });
     expect(text.style.dropShadow.angle).toBeCloseTo(Math.atan2(4, 3), 8);
-    expect(text.style.padding).toBe(9);
+    expect(text.style.padding).toBe(10);
   });
 
   it("deep-merges and removes shadow in interactive textStyle states", () => {

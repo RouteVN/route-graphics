@@ -20,6 +20,11 @@ import {
   resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
+import {
+  registerManagedVideoSprite,
+  requestManagedVideoTextureUpdate,
+  unregisterManagedVideoSprite,
+} from "./managedVideoTextureSizing.js";
 
 /**
  * Update video element
@@ -77,6 +82,7 @@ export const updateVideo = ({
 
     if (srcChanged) {
       const oldVideo = activeVideo;
+      const oldSource = videoElement.texture?.source;
       clearVideoPlaybackTracking({
         videoElement,
         video: oldVideo,
@@ -88,12 +94,15 @@ export const updateVideo = ({
 
       const newTexture = Texture.from(nextElement.src);
       videoElement.texture = newTexture;
+      unregisterManagedVideoSprite(videoElement, oldSource);
+      registerManagedVideoSprite(videoElement);
       activeVideo = newTexture.source.resource;
 
       activeVideo.muted = false;
       activeVideo.pause();
       activeVideo.currentTime = 0;
       currentSrc = nextElement.src;
+      requestManagedVideoTextureUpdate(videoElement);
     }
 
     syncVideoPlaybackTracking({

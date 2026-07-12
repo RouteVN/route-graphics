@@ -481,6 +481,7 @@
  * @property {number} wordWrapWidth - Word wrap width
  * @property {string} [strokeColor] - Text stroke/outline color
  * @property {number} [strokeWidth] - Text stroke/outline width
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
@@ -579,6 +580,10 @@
  * @property {number} [indicator.offsetY=0] - Vertical adjustment from the indicator's automatic line placement; positive values move down
  * @property {'typewriter' | 'softWipe' | 'none'} [revealEffect='typewriter'] - Text reveal effect (typewriter = per-character reveal, softWipe = full-text soft mask wipe, none = skip animation)
  * @property {SoftWipeConfig} [softWipe] - Parameters for the softWipe reveal effect
+ * @property {Object} [revealSound] - Sound to play while text is actively revealing
+ * @property {string} revealSound.src - Source alias or URL for the reveal sound
+ * @property {number} [revealSound.volume=100] - Reveal sound volume where 0 is muted and 100 is full volume
+ * @property {boolean} [revealSound.loop=true] - Whether the reveal sound loops until revealing finishes
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 
@@ -859,6 +864,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fontFamily - The font family of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
+ * @property {number} [padding] - Extra texture padding around rendered glyphs
  * @property {TextShadow | null} [shadow] - Optional text shadow
  */
 
