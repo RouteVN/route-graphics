@@ -189,7 +189,7 @@ describe("AudioAsset", () => {
     expect(AudioAsset.getAsset("sfx")).toBe(audioBuffer);
   });
 
-  it("does not import a fallback decoder when native Ogg support is reported", async () => {
+  it("does not instantiate a fallback decoder when native Ogg support is reported", async () => {
     const OggVorbisDecoder = vi.fn();
     vi.doMock("@wasm-audio-decoders/ogg-vorbis", () => ({
       OggVorbisDecoder,

@@ -1,3 +1,6 @@
+import { OggVorbisDecoder } from "@wasm-audio-decoders/ogg-vorbis";
+import { OggOpusDecoder } from "ogg-opus-decoder";
+
 const OGG_AUDIO_TYPES = new Set(["audio/ogg", "application/ogg"]);
 
 const decoderState = {
@@ -133,13 +136,11 @@ const createAudioBuffer = ({
 
 const loadOpusDecoder = async () => {
   if (!decoderState.opus.decoderPromise) {
-    decoderState.opus.decoderPromise = import("ogg-opus-decoder").then(
-      async ({ OggOpusDecoder }) => {
-        const decoder = new OggOpusDecoder();
-        await decoder.ready;
-        return decoder;
-      },
-    );
+    decoderState.opus.decoderPromise = (async () => {
+      const decoder = new OggOpusDecoder();
+      await decoder.ready;
+      return decoder;
+    })();
   }
 
   return decoderState.opus.decoderPromise;
@@ -147,14 +148,11 @@ const loadOpusDecoder = async () => {
 
 const loadVorbisDecoder = async () => {
   if (!decoderState.vorbis.decoderPromise) {
-    decoderState.vorbis.decoderPromise =
-      import("@wasm-audio-decoders/ogg-vorbis").then(
-        async ({ OggVorbisDecoder }) => {
-          const decoder = new OggVorbisDecoder();
-          await decoder.ready;
-          return decoder;
-        },
-      );
+    decoderState.vorbis.decoderPromise = (async () => {
+      const decoder = new OggVorbisDecoder();
+      await decoder.ready;
+      return decoder;
+    })();
   }
 
   return decoderState.vorbis.decoderPromise;
