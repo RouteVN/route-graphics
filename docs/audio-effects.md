@@ -14,19 +14,18 @@ also still accepts flat Route Graphics `sound` audio nodes for compatibility.
   Graphics visual nodes and animations
 - keep channels out of `resources`
 - keep audio nodes focused on current audio state
-- keep automation in `audioEffects` and planned filters on their owning audio
-  nodes
+- keep automation in `audioEffects`
 - support mixer-style channel volume without a separate mixer concept
 - support smooth volume fades and crossfades
 - preserve compatibility with existing flat `sound` render state
-- leave room for pan, playback-rate automation, and Web Audio filters
+- leave room for pan and playback-rate automation
 
 ## Non-Goals
 
 - no nested audio channels in the first implementation
 - no command-style `play` / `stop` operation model in Route Graphics
 - no required channel declarations in project resources
-- no first implementation dependency on reverb, delay, or EQ filters
+- no audio filter or general-purpose DSP interface
 
 ## Render-State Shape
 
@@ -38,13 +37,11 @@ audioEffects: []
 ```
 
 `audio` defines the desired audio graph state. `audioEffects` defines typed
-effects that target audio node IDs and, when filters are implemented, nested
-filter IDs.
+effects that target audio node IDs.
 
-All audio node IDs, nested filter IDs, and `audioEffects` IDs share one
-render-state namespace. IDs must be globally unique within a rendered frame.
-This keeps `targetId` resolution unambiguous and avoids channel-scoped lookup
-rules.
+All audio node IDs and `audioEffects` IDs share one render-state namespace. IDs
+must be globally unique within a rendered frame. This keeps `targetId`
+resolution unambiguous and avoids channel-scoped lookup rules.
 
 ```yaml
 audio:
@@ -158,7 +155,7 @@ Fields:
 duration is `endAt - startAt`.
 
 The channel audio graph uses `startDelayMs` only. `sound.delay` is not part of
-this interface, which avoids confusion with the future `delay` audio filter.
+this interface.
 
 ### Sound Identity and Replay
 
@@ -201,7 +198,7 @@ not "play it again".
 ## Audio Effects
 
 `audioEffects` is a typed automation list. It contains transitions that target
-audio node IDs and, in the planned filter expansion, nested filter IDs.
+audio node IDs.
 
 First implementation effect item types:
 
@@ -220,7 +217,7 @@ Route Graphics should reject invalid audio render state instead of guessing:
   lifecycle
 - transition phases missing required `duration` or `easing`
 - transition phases that use an unsupported easing name
-- unknown audio node, effect, filter, or automated property types
+- unknown audio node, effect, or automated property types
 
 ## Audio Transitions
 
@@ -242,12 +239,12 @@ audioEffects:
 
 Fields:
 
-| Field        | Type               | Default  | Description                         |
-| ------------ | ------------------ | -------- | ----------------------------------- |
-| `id`         | string             | required | Stable effect ID                    |
-| `type`       | `audio-transition` | required | Effect type                         |
-| `targetId`   | string             | required | Audio node or effect ID to automate |
-| `properties` | object             | required | Property automation map             |
+| Field        | Type               | Default  | Description               |
+| ------------ | ------------------ | -------- | ------------------------- |
+| `id`         | string             | required | Stable effect ID          |
+| `type`       | `audio-transition` | required | Effect type               |
+| `targetId`   | string             | required | Audio node ID to automate |
+| `properties` | object             | required | Property automation map   |
 
 First implementation `targetId` may reference:
 
@@ -273,8 +270,8 @@ Transition phase fields:
 `duration` is in milliseconds. `easing` is required and must not be defaulted
 silently. The first implementation only needs to support `linear`.
 
-Using the previous state's `audioEffects` for `exit` lets a removed sound or
-filter fade out without keeping a dead target in the next render state.
+Using the previous state's `audioEffects` for `exit` lets a removed sound fade
+out without keeping a dead target in the next render state.
 
 First implementation target:
 
@@ -303,32 +300,6 @@ audioEffects:
       playbackRate:
         update: { duration: 500, easing: linear }
 ```
-
-## Planned Audio Filters
-
-The earlier top-level `audioFilter` proposal is superseded by node-owned filter
-arrays. The complete proposed contract is documented in
-[Audio Channel And Sound Interface](./audio-channel-sound-interface.md).
-
-A sound or channel owns its ordered processing chain:
-
-```yaml
-audio:
-  - id: music
-    type: audio-channel
-    filters:
-      - id: music-lowpass
-        type: lowpass
-        frequency: 12000
-        q: 1
-        wet: 100
-    children: []
-```
-
-Filter IDs share the audio render-state namespace, so existing
-`audio-transition` objects can target them directly without dotted paths or a
-new transition shape. The first planned filter types are `lowpass`, `highpass`,
-and `bandpass`.
 
 ## Volume
 
@@ -437,11 +408,9 @@ The intended internal graph for one channel and one child sound is:
 
 ```text
 AudioBufferSourceNode
-  -> sound-targeted filters
   -> sound StereoPannerNode
   -> sound GainNode
   -> channel mix
-  -> channel-targeted filters
   -> channel StereoPannerNode
   -> channel GainNode
   -> AudioContext.destination
@@ -477,6 +446,5 @@ Implemented:
 
 Planned separately:
 
-- node-owned `lowpass`, `highpass`, and `bandpass` filters
 - transition automation for `pan`
 - transition automation for `playbackRate`
