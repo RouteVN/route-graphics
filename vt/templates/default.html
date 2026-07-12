@@ -352,6 +352,10 @@
         },
         "sfx-1": { url: "/public/sfx-1.mp3", type: "audio/mpeg" },
         "sfx-2": { url: "/public/sfx-2.wav", type: "audio/wav" },
+        "sfx-ogg-vorbis": {
+          url: "/public/sfx-ogg-vorbis.ogg",
+          type: "audio/ogg",
+        },
         "message-display1": {
           url: "/public/message-display1.mp3?v=2",
           type: "audio/mpeg",
@@ -422,8 +426,7 @@
           element.children.some(elementHasRevealSound));
       const stateHasAudio = (state) =>
         (Array.isArray(state?.audio) && state.audio.length > 0) ||
-        (Array.isArray(state?.audioEffects) &&
-          state.audioEffects.length > 0) ||
+        (Array.isArray(state?.audioEffects) && state.audioEffects.length > 0) ||
         (Array.isArray(state?.elements) &&
           state.elements.some(elementHasRevealSound));
       const hasAudioStates = states.some(stateHasAudio);

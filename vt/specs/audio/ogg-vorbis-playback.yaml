@@ -1,0 +1,21 @@
+---
+title: Audio Manual - OGG Vorbis Playback
+description: Manual macOS fixture for native or WASM-fallback decoding and playback of a Vorbis OGG file. Use the state pager or n/b keys.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should repeatedly play the short sfx-ogg-vorbis OGG clip without decode or playback errors
+  - state 3 should stop the looping OGG audio
+---
+states:
+  - id: ogg-ready
+    audio: []
+  - id: ogg-vorbis-loop
+    audio:
+      - id: ogg-vorbis-sound
+        type: sound
+        src: sfx-ogg-vorbis
+        loop: true
+        volume: 100
+  - id: ogg-stopped
+    audio: []

@@ -1,8 +1,16 @@
+import {
+  decodeOggToAudioBuffer,
+  isOggAudioType,
+  prepareOggDecoders,
+} from "./audio/oggDecoderFallback.js";
 import { getAudioContext } from "./audioContext.js";
 
 const loadedAssets = {};
 const loadingAssets = {};
 
+const prepareDecoders = async (assetMap) => {
+  await prepareOggDecoders(assetMap);
+};
 const getErrorMessage = (error) => {
   if (!error) return "Unknown error";
   if (typeof error === "string") return error;
@@ -28,30 +36,48 @@ const createAudioDecodeError = (key, error) => {
   return audioError;
 };
 
-const load = (key, arrayBuffer) => {
+const decodeAudio = async ({ key, arrayBuffer, type, audioContext }) => {
+  try {
+    return await audioContext.decodeAudioData(arrayBuffer.slice(0));
+  } catch (nativeDecodeError) {
+    if (!isOggAudioType(type)) {
+      throw createAudioDecodeError(key, nativeDecodeError);
+    }
+
+    try {
+      return await decodeOggToAudioBuffer({
+        arrayBuffer,
+        audioContext,
+      });
+    } catch (fallbackError) {
+      throw createAudioDecodeError(key, fallbackError);
+    }
+  }
+};
+
+const load = (key, arrayBuffer, type) => {
   if (loadedAssets[key]) {
     return loadedAssets[key];
   }
   if (loadingAssets[key]) {
     return loadingAssets[key];
   }
-  if (arrayBuffer.byteLength === 0) {
+  if (!arrayBuffer || arrayBuffer.byteLength === 0) {
     return;
   }
 
-  // decodeAudioData may detach its input. Decode a private copy so callers can
-  // reuse manager-owned buffers after unload or application recreation.
-  const decodeBuffer = arrayBuffer.slice(0);
-  const loadPromise = getAudioContext()
-    .decodeAudioData(decodeBuffer)
+  const context = getAudioContext();
+  const loadPromise = decodeAudio({
+    key,
+    arrayBuffer,
+    type,
+    audioContext: context,
+  })
     .then((audioBuffer) => {
       if (loadingAssets[key] === loadPromise) {
         loadedAssets[key] = audioBuffer;
       }
       return audioBuffer;
-    })
-    .catch((error) => {
-      throw createAudioDecodeError(key, error);
     })
     .finally(() => {
       if (loadingAssets[key] === loadPromise) {
@@ -76,6 +102,7 @@ const unload = (key) => {
 };
 
 export const AudioAsset = {
+  prepareDecoders,
   load,
   getAsset,
   unload,

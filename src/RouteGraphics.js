@@ -407,23 +407,48 @@ const createRouteGraphics = () => {
   const classifyAsset = (mimeType) => {
     if (!mimeType) return "texture";
 
-    if (mimeType.startsWith("audio/")) return "audio";
+    const normalizedMimeType = mimeType.split(";")[0].trim().toLowerCase();
 
     if (
-      mimeType.startsWith("font/") ||
+      normalizedMimeType.startsWith("audio/") ||
+      normalizedMimeType === "application/ogg"
+    ) {
+      return "audio";
+    }
+
+    if (
+      normalizedMimeType.startsWith("font/") ||
       [
         "application/font-woff",
         "application/font-woff2",
         "application/x-font-ttf",
         "application/x-font-otf",
-      ].includes(mimeType)
+      ].includes(normalizedMimeType)
     ) {
       return "font";
     }
 
-    if (mimeType.startsWith("video/")) return "video";
+    if (normalizedMimeType.startsWith("video/")) return "video";
 
     return "texture";
+  };
+
+  const inferAudioTypeFromUrl = (url) => {
+    if (typeof url !== "string") return "audio/mpeg";
+
+    const pathWithoutQuery = url.split("?")[0].split("#")[0].toLowerCase();
+    if (
+      pathWithoutQuery.endsWith(".ogg") ||
+      pathWithoutQuery.endsWith(".oga")
+    ) {
+      return "audio/ogg";
+    }
+    if (pathWithoutQuery.endsWith(".m4a")) return "audio/mp4";
+    if (pathWithoutQuery.endsWith(".aac")) return "audio/aac";
+    if (pathWithoutQuery.endsWith(".wav")) return "audio/wav";
+    if (pathWithoutQuery.endsWith(".flac")) return "audio/flac";
+
+    return "audio/mpeg";
   };
 
   const getErrorMessage = (error) => {
@@ -1588,9 +1613,15 @@ const createRouteGraphics = () => {
         assetsByType[assetType][key] = asset;
       }
 
+      const audioAssets = Object.entries(assetsByType.audio);
+      const decoderPreparationPromise =
+        audioAssets.length > 0 &&
+        typeof AudioAsset.prepareDecoders === "function"
+          ? AudioAsset.prepareDecoders(assetsByType.audio)
+          : undefined;
       const loadJobs = [];
 
-      Object.entries(assetsByType.audio).forEach(([key, asset]) => {
+      audioAssets.forEach(([key, asset]) => {
         loadJobs.push({
           includeInReturn: false,
           promise: trackAssetLoad(key, () =>
@@ -1607,10 +1638,15 @@ const createRouteGraphics = () => {
                   return existingRecord.value;
                 }
                 assertAssetBuffer(asset, "Audio");
+                await decoderPreparationPromise;
                 const audioWasAlreadyLoaded =
                   !sharedAudioAssetOwners.has(key) &&
                   AudioAsset.getAsset(key) !== undefined;
-                const audioBuffer = await AudioAsset.load(key, asset.buffer);
+                const audioBuffer = await AudioAsset.load(
+                  key,
+                  asset.buffer,
+                  asset.type,
+                );
 
                 return recordLoadedAudio(key, audioBuffer, {
                   dispose: audioWasAlreadyLoaded
@@ -2019,7 +2055,11 @@ const createRouteGraphics = () => {
 
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await AudioAsset.load(url, arrayBuffer);
+            const type = inferAudioTypeFromUrl(url);
+            await AudioAsset.prepareDecoders?.({
+              [url]: { buffer: arrayBuffer, type },
+            });
+            const audioBuffer = await AudioAsset.load(url, arrayBuffer, type);
             return recordLoadedAudio(url, audioBuffer, {
               dispose: () => AudioAsset.unload(url),
             });

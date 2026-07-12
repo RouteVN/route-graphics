@@ -1210,6 +1210,7 @@ describe("RouteGraphics public API", () => {
       resolveAudioLoad = resolve;
     });
     const audioAsset = {
+      prepareDecoders: vi.fn().mockResolvedValue(undefined),
       load: vi.fn(() => audioLoadPromise),
       getAsset: vi.fn(),
     };
@@ -1220,7 +1221,7 @@ describe("RouteGraphics public API", () => {
       .loadAssets({
         click: {
           buffer: new Uint8Array([1, 2, 3]).buffer,
-          type: "audio/mpeg",
+          type: "application/ogg; codecs=vorbis",
         },
       })
       .then(() => {
@@ -1229,9 +1230,15 @@ describe("RouteGraphics public API", () => {
 
     await Promise.resolve();
 
+    expect(audioAsset.prepareDecoders).toHaveBeenCalledWith({
+      click: expect.objectContaining({
+        type: "application/ogg; codecs=vorbis",
+      }),
+    });
     expect(audioAsset.load).toHaveBeenCalledWith(
       "click",
       expect.any(ArrayBuffer),
+      "application/ogg; codecs=vorbis",
     );
     expect(loadAssetsResolved).toBe(false);
 
