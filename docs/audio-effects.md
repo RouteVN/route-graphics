@@ -1,6 +1,6 @@
 # Audio Channel Design
 
-Last updated: 2026-04-30
+Last updated: 2026-07-12
 
 This document defines the channel-based audio interface for Route Graphics
 render state.
@@ -14,7 +14,8 @@ also still accepts flat Route Graphics `sound` audio nodes for compatibility.
   Graphics visual nodes and animations
 - keep channels out of `resources`
 - keep audio nodes focused on current audio state
-- put automation and filters in a separate `audioEffects` array
+- keep automation in `audioEffects` and planned filters on their owning audio
+  nodes
 - support mixer-style channel volume without a separate mixer concept
 - support smooth volume fades and crossfades
 - preserve compatibility with existing flat `sound` render state
@@ -37,11 +38,13 @@ audioEffects: []
 ```
 
 `audio` defines the desired audio graph state. `audioEffects` defines typed
-effects that target audio node IDs.
+effects that target audio node IDs and, when filters are implemented, nested
+filter IDs.
 
-All `audio` node IDs and `audioEffects` IDs share one render-state namespace.
-IDs must be globally unique within a rendered frame. This keeps `targetId`
-resolution unambiguous and avoids channel-scoped lookup rules.
+All audio node IDs, nested filter IDs, and `audioEffects` IDs share one
+render-state namespace. IDs must be globally unique within a rendered frame.
+This keeps `targetId` resolution unambiguous and avoids channel-scoped lookup
+rules.
 
 ```yaml
 audio:
@@ -161,9 +164,11 @@ this interface, which avoids confusion with the future `delay` audio filter.
 
 Route Graphics treats `sound.id` as the playback identity.
 
-If a `sound` remains present with the same `id` and same `src`, it is a
-continuing playback instance. It should not restart just because the same render
-state is submitted again.
+If a `sound` remains present with the same `id`, `src`, `startAt`, `endAt`, and
+`startDelayMs`, it is a continuing playback instance. It should not restart just
+because the same render state is submitted again. Changing any of those source
+identity fields replaces the playback instance; changes to output controls,
+looping, playback rate, or channel ownership update it in place.
 
 Use stable IDs for persistent sounds:
 
@@ -195,8 +200,8 @@ not "play it again".
 
 ## Audio Effects
 
-`audioEffects` is a typed effect list. It contains automation and processing
-nodes that target audio node IDs or other effect IDs.
+`audioEffects` is a typed automation list. It contains transitions that target
+audio node IDs and, in the planned filter expansion, nested filter IDs.
 
 First implementation effect item types:
 
@@ -301,100 +306,29 @@ audioEffects:
 
 ## Planned Audio Filters
 
-An `audioFilter` is a planned Web Audio processing effect. It will target an
-audio node when implemented.
+The earlier top-level `audioFilter` proposal is superseded by node-owned filter
+arrays. The complete proposed contract is documented in
+[Audio Channel And Sound Interface](./audio-channel-sound-interface.md).
+
+A sound or channel owns its ordered processing chain:
 
 ```yaml
-audioEffects:
-  - id: music-lowpass
-    type: audioFilter
-    targetId: music
-    filterType: lowpass
-    frequency: 900
-    q: 1
+audio:
+  - id: music
+    type: audio-channel
+    filters:
+      - id: music-lowpass
+        type: lowpass
+        frequency: 12000
+        q: 1
+        wet: 100
+    children: []
 ```
 
-Fields:
-
-| Field        | Type          | Default  | Description                   |
-| ------------ | ------------- | -------- | ----------------------------- |
-| `id`         | string        | required | Stable filter effect ID       |
-| `type`       | `audioFilter` | required | Effect type                   |
-| `targetId`   | string        | required | Audio node ID to process      |
-| `filterType` | string        | required | Web Audio filter kind         |
-| `enabled`    | boolean       | `true`   | Disabled filters are bypassed |
-
-Filter-specific fields depend on `filterType`.
-
-`targetId` may reference:
-
-- an `audio-channel`
-- a `sound`
-
-When multiple filters target the same node, they are applied in `audioEffects`
-order.
-
-Future versions may allow an `audioFilter` to target another `audioFilter`.
-That requires graph validation, topological ordering, and cycle rejection. It
-should not be part of the first filter implementation.
-
-### Planned Filter Types
-
-| `filterType` | Web Audio node                 | Common fields                                     |
-| ------------ | ------------------------------ | ------------------------------------------------- |
-| `lowpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `highpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `bandpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `notch`      | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `lowshelf`   | `BiquadFilterNode`             | `frequency`, `gain`                               |
-| `highshelf`  | `BiquadFilterNode`             | `frequency`, `gain`                               |
-| `peaking`    | `BiquadFilterNode`             | `frequency`, `q`, `gain`                          |
-| `allpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `delay`      | `DelayNode` plus feedback gain | `delayTime`, `feedback`, `wet`                    |
-| `compressor` | `DynamicsCompressorNode`       | `threshold`, `knee`, `ratio`, `attack`, `release` |
-| `reverb`     | `ConvolverNode`                | `impulseSrc`, `wet`                               |
-
-Filters are not required for the first implementation. The interface should be
-designed now so filters can be added without changing the audio tree shape.
-
-### Filter Lifecycle
-
-`enabled` is an immediate bypass flag. It should not be treated as a fade.
-
-Smooth filter enter and exit need one of these explicit strategies:
-
-- transition filter parameters toward or away from neutral values
-- use a filter-provided `wet` parameter when the filter supports wet/dry mixing
-
-For example, a lowpass filter can be made less audible by transitioning
-`frequency` back toward a high neutral value before the filter is removed.
-Removing a filter without such a transition may change the sound immediately.
-
-### Filter Automation
-
-Filter parameters are automated by targeting the filter effect ID with an
-`audio-transition`.
-
-```yaml
-audioEffects:
-  - id: music-lowpass
-    type: audioFilter
-    targetId: music
-    filterType: lowpass
-    frequency: 12000
-    q: 1
-
-  - id: music-lowpass-transition
-    type: audio-transition
-    targetId: music-lowpass
-    properties:
-      frequency:
-        update: { duration: 600, easing: linear }
-      q:
-        update: { duration: 300, easing: linear }
-```
-
-No dotted paths are needed.
+Filter IDs share the audio render-state namespace, so existing
+`audio-transition` objects can target them directly without dotted paths or a
+new transition shape. The first planned filter types are `lowpass`, `highpass`,
+and `bandpass`.
 
 ## Volume
 
@@ -443,12 +377,14 @@ Route Graphics should keep audio declarative.
 
 No explicit `op: play` or `op: stop` is needed in Route Graphics render state.
 
-Same `sound.id` and same `sound.src` means continuation. It does not replay.
-Consumers must use a new playback-instance ID when replaying a one-shot sound.
+The same `sound.id` and source identity fields mean continuation. It does not
+replay. Consumers must use a new playback-instance ID when replaying a one-shot
+sound.
 
-### Same ID, Different Source
+### Same ID, Different Source Identity
 
-If a `sound` keeps the same `id` but changes `src`, treat it as replacement:
+If a `sound` keeps the same `id` but changes `src`, `startAt`, `endAt`, or
+`startDelayMs`, treat it as replacement:
 
 1. old source uses its `exit` transition
 2. new source uses its `enter` transition
@@ -501,12 +437,13 @@ The intended internal graph for one channel and one child sound is:
 
 ```text
 AudioBufferSourceNode
-  -> sound GainNode
-  -> sound StereoPannerNode
   -> sound-targeted filters
-  -> channel GainNode
-  -> channel StereoPannerNode
+  -> sound StereoPannerNode
+  -> sound GainNode
+  -> channel mix
   -> channel-targeted filters
+  -> channel StereoPannerNode
+  -> channel GainNode
   -> AudioContext.destination
 ```
 
@@ -540,6 +477,6 @@ Implemented:
 
 Planned separately:
 
-- `audioFilter`
+- node-owned `lowpass`, `highpass`, and `bandpass` filters
 - transition automation for `pan`
 - transition automation for `playbackRate`
