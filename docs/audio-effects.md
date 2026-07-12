@@ -116,6 +116,8 @@ First implementation rule:
 
 - `audio-channel.children` may contain `sound` nodes only.
 - nested `audio-channel` nodes are invalid until explicitly supported.
+- child array order does not control playback order; sounds are mixed in
+  parallel and may use `startDelayMs` for scheduled sequences.
 
 ### Sounds
 
@@ -206,6 +208,10 @@ First implementation effect item types:
 
 Effects are render-state entries, not resources.
 
+New render state should emit the kebab-case `audio-transition` spelling. The
+runtime continues to accept the legacy `audioTransition` spelling for backward
+compatibility.
+
 ### Validation Rules
 
 Route Graphics should reject invalid audio render state instead of guessing:
@@ -217,6 +223,8 @@ Route Graphics should reject invalid audio render state instead of guessing:
   lifecycle
 - transition phases missing required `duration` or `easing`
 - transition phases that use an unsupported easing name
+- more than one `audio-transition` targeting the same audio node in one render
+  state
 - unknown audio node, effect, or automated property types
 
 ## Audio Transitions
@@ -251,6 +259,11 @@ First implementation `targetId` may reference:
 - an `audio-channel`
 - a `sound`
 
+`targetId` resolves the target kind directly, so `targetType` is unnecessary.
+Each target may have at most one `audio-transition` in a render state. Authors
+combine all automated properties and lifecycle phases for that target inside
+one `properties` map.
+
 Transition phases:
 
 | Phase    | When it applies                               | Transition source       |
@@ -269,6 +282,12 @@ Transition phase fields:
 
 `duration` is in milliseconds. `easing` is required and must not be defaulted
 silently. The first implementation only needs to support `linear`.
+
+An omitted phase makes that lifecycle change immediate for the property. If a
+new render interrupts an active transition, the next ramp starts from the
+current audible value after cancelling or holding previously scheduled
+automation. Removed instances remain alive until their longest exit transition
+finishes.
 
 Using the previous state's `audioEffects` for `exit` lets a removed sound fade
 out without keeping a dead target in the next render state.
@@ -300,6 +319,17 @@ audioEffects:
       playbackRate:
         update: { duration: 500, easing: linear }
 ```
+
+Recommended transitionable properties:
+
+| Target type     | Properties                      |
+| --------------- | ------------------------------- |
+| `audio-channel` | `volume`, `pan`                 |
+| `sound`         | `volume`, `pan`, `playbackRate` |
+
+`muted` and `loop` are immediate boolean switches. `src`, `startAt`, `endAt`,
+and `startDelayMs` define source identity and replace the playback instance when
+changed; they are not transitionable properties.
 
 ## Volume
 
@@ -335,6 +365,10 @@ If both channel and sound volumes transition at the same time, both ramps apply.
 Authors should use channel transitions for group fades and sound transitions for
 individual sound fades.
 
+`muted: true` is an immediate hard gate that overrides, but does not change,
+the node's volume. Unmuting restores the current volume. Authors should
+transition `volume` to `0` when they need a smooth mute.
+
 ## Add, Update, Remove
 
 Route Graphics should keep audio declarative.
@@ -351,6 +385,17 @@ No explicit `op: play` or `op: stop` is needed in Route Graphics render state.
 The same `sound.id` and source identity fields mean continuation. It does not
 replay. Consumers must use a new playback-instance ID when replaying a one-shot
 sound.
+
+Cross-state identity rules:
+
+| Object          | Continues when                                       | Replaced when                                        |
+| --------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| `audio-channel` | Its `id` exists as an `audio-channel` in both states | It is removed and later added                        |
+| `sound`         | Its `id` and all source identity fields match        | `src`, `startAt`, `endAt`, or `startDelayMs` changes |
+
+Changing an ID between `sound` and `audio-channel` is invalid rather than a
+replacement. Moving a continuing sound between channels reroutes it without
+restarting playback.
 
 ### Same ID, Different Source Identity
 
