@@ -128,6 +128,36 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow('duplicate audio render-state id "music"');
   });
 
+  it("rejects multiple audio transitions targeting the same node", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [{ id: "music", type: "audio-channel" }],
+        audioEffects: [
+          {
+            id: "music-fade-a",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              volume: {
+                update: { duration: 100, easing: "linear" },
+              },
+            },
+          },
+          {
+            id: "music-fade-b",
+            type: "audioTransition",
+            targetId: "music",
+            properties: {
+              volume: {
+                exit: { to: 0, duration: 200, easing: "linear" },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow('duplicate audio-transition targetId "music"');
+  });
+
   it("preserves top-level custom audio plugin nodes", () => {
     const result = normalizeAudioRenderState({
       audio: [

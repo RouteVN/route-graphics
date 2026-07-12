@@ -297,6 +297,8 @@ const validateAudioEffects = (audioEffects, ids, nodeIds) => {
     throw new Error("Input error: `audioEffects` must be an array.");
   }
 
+  const transitionTargetIds = new Set();
+
   for (const [index, effect] of audioEffects.entries()) {
     const path = `audioEffects[${index}]`;
     assertRecord(effect, path);
@@ -314,6 +316,12 @@ const validateAudioEffects = (audioEffects, ids, nodeIds) => {
       effect.type === LEGACY_AUDIO_TRANSITION_TYPE
     ) {
       validateAudioTransition(effect, path, nodeIds);
+      if (transitionTargetIds.has(effect.targetId)) {
+        throw new Error(
+          `Input error: duplicate audio-transition targetId "${effect.targetId}" at ${path}.targetId.`,
+        );
+      }
+      transitionTargetIds.add(effect.targetId);
     }
   }
 };

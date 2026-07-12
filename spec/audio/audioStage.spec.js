@@ -151,6 +151,11 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources).toHaveLength(2);
     expect(context.sources[0].loop).toBe(true);
     expect(context.sources[0].start).toHaveBeenCalledWith(0, 0);
+    expect(context.sources[0].connect).toHaveBeenCalledWith(bgm.gainNode);
+    expect(bgm.gainNode.connect).toHaveBeenCalledWith(bgm.pannerNode);
+    expect(bgm.pannerNode.connect).toHaveBeenCalledWith(music.gainNode);
+    expect(music.gainNode.connect).toHaveBeenCalledWith(music.pannerNode);
+    expect(music.pannerNode.connect).toHaveBeenCalledWith(context.destination);
   });
 
   it("resumes a suspended audio context before playback starts", async () => {
@@ -447,6 +452,78 @@ describe("AudioStage graph rendering", () => {
     expect(findCurrentSound(stage, "bgm").src).toBe("track-b");
   });
 
+  it.each([
+    ["startAt", { startAt: 1 }],
+    ["endAt", { endAt: 2 }],
+    ["startDelayMs", { startDelayMs: 100 }],
+  ])(
+    "replaces same-id sounds when %s changes",
+    async (_field, sourceIdentityChange) => {
+      const { stage } = await setupAudioStage();
+      const firstAudio = [{ id: "bgm", type: "sound", src: "track" }];
+      const secondAudio = [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "track",
+          ...sourceIdentityChange,
+        },
+      ];
+
+      stage.renderGraph({ nextAudio: firstAudio });
+      const outgoing = findCurrentSound(stage, "bgm");
+
+      stage.renderGraph({
+        prevAudio: firstAudio,
+        nextAudio: secondAudio,
+        prevAudioEffects: [
+          {
+            id: "bgm-exit",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              volume: {
+                exit: { to: 0, duration: 1000, easing: "linear" },
+              },
+            },
+          },
+        ],
+      });
+
+      const incoming = findCurrentSound(stage, "bgm");
+      expect(incoming).not.toBe(outgoing);
+      expect(stage._inspect().sounds.size).toBe(2);
+      expect(outgoing.source.stop).toHaveBeenCalledWith(11);
+    },
+  );
+
+  it.each([
+    [
+      "sound",
+      "audio-channel",
+      { id: "shared", type: "sound", src: "track" },
+      { id: "shared", type: "audio-channel" },
+    ],
+    [
+      "audio-channel",
+      "sound",
+      { id: "shared", type: "audio-channel" },
+      { id: "shared", type: "sound", src: "track" },
+    ],
+  ])(
+    "rejects changing an audio node from %s to %s",
+    async (previousType, nextType, previousNode, nextNode) => {
+      const { stage } = await setupAudioStage();
+
+      expect(() =>
+        stage.renderGraph({
+          prevAudio: [previousNode],
+          nextAudio: [nextNode],
+        }),
+      ).toThrow(`cannot change type from "${previousType}" to "${nextType}"`);
+    },
+  );
+
   it("reconnects continuing sounds when they move between channels", async () => {
     const { stage } = await setupAudioStage();
     const firstAudio = [
@@ -513,7 +590,7 @@ describe("AudioStage graph rendering", () => {
     expect(findSound(stage, "sfx")).toBeUndefined();
   });
 
-  it("reschedules pending startDelayMs playback when the delay changes", async () => {
+  it("replaces pending playback when startDelayMs changes", async () => {
     const { stage, getAsset } = await setupAudioStage();
     const firstAudio = [
       {
@@ -541,13 +618,17 @@ describe("AudioStage graph rendering", () => {
     ];
 
     stage.renderGraph({ nextAudio: firstAudio });
+    const firstInstance = findCurrentSound(stage, "sfx");
     vi.advanceTimersByTime(50);
 
     stage.renderGraph({ prevAudio: firstAudio, nextAudio: secondAudio });
+    const secondInstance = findCurrentSound(stage, "sfx");
+    expect(secondInstance).not.toBe(firstInstance);
     vi.advanceTimersByTime(50);
     expect(getAsset).not.toHaveBeenCalled();
 
     stage.renderGraph({ prevAudio: secondAudio, nextAudio: immediateAudio });
+    expect(findCurrentSound(stage, "sfx")).not.toBe(secondInstance);
     expect(getAsset).toHaveBeenCalledWith("click");
   });
 

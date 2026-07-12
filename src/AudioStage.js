@@ -100,6 +100,12 @@ const createPannerNode = (pan = 0) => {
 const getVolumeValue = ({ volume, muted }) =>
   muted ? 0 : normalizeVolume(volume, 100);
 
+const hasSameSoundSourceIdentity = (previous, next) =>
+  previous.src === next.src &&
+  previous.startAt === next.startAt &&
+  previous.endAt === next.endAt &&
+  previous.startDelayMs === next.startDelayMs;
+
 const getTransitionPhase = (effects = [], targetId, property, phase) => {
   const transition = effects.find(
     (effect) =>
@@ -631,6 +637,21 @@ export const createAudioStage = () => {
       next.sounds.map((sound) => [sound.id, sound]),
     );
 
+    for (const id of prevChannelById.keys()) {
+      if (nextSoundById.has(id)) {
+        throw new Error(
+          `Input error: audio node "${id}" cannot change type from "audio-channel" to "sound" between render states.`,
+        );
+      }
+    }
+    for (const id of prevSoundById.keys()) {
+      if (nextChannelById.has(id)) {
+        throw new Error(
+          `Input error: audio node "${id}" cannot change type from "sound" to "audio-channel" between render states.`,
+        );
+      }
+    }
+
     ensureRootChannel(ROOT_CHANNEL_ID);
 
     const removedChannels = new Map();
@@ -679,7 +700,7 @@ export const createAudioStage = () => {
         continue;
       }
 
-      if (prevSound.src !== nextSound.src) {
+      if (!hasSameSoundSourceIdentity(prevSound, nextSound)) {
         const duration = removeSoundInstance(
           instance,
           prevAudioEffects,
@@ -715,7 +736,7 @@ export const createAudioStage = () => {
       }
 
       const prevSound = prevSoundById.get(id);
-      if (prevSound.src !== nextSound.src) {
+      if (!hasSameSoundSourceIdentity(prevSound, nextSound)) {
         continue;
       }
 

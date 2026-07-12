@@ -453,11 +453,11 @@ The intended internal graph for one channel and one child sound is:
 
 ```text
 AudioBufferSourceNode
-  -> sound StereoPannerNode
   -> sound GainNode
+  -> sound StereoPannerNode
   -> channel mix
-  -> channel StereoPannerNode
   -> channel GainNode
+  -> channel StereoPannerNode
   -> AudioContext.destination
 ```
 
@@ -486,7 +486,8 @@ Implemented:
 - flat `sound` normalization through an implicit root channel
 - channel gain nodes and internal playback instance IDs
 - `audio-transition` for `volume` on channels and sounds
-- same-ID, different-source replacement with overlapping internal instances
+- same-ID source-identity replacement with overlapping internal instances
+- validation for duplicate transition targets and cross-state audio node kinds
 - removal of the legacy `sound.delay` interface in favor of `startDelayMs`
 
 Planned separately:
