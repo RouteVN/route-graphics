@@ -260,4 +260,4 @@ Completed on 2026-07-15:
 4. The full suite passes: 87 test files and 664 tests.
 5. Prettier validation and the production build pass.
 6. The three targeted browser VT specs pass with 10/10 matching references.
-7. The package version remains `1.26.0`, equal to `main`.
+7. The package version is `1.27.0` for this release.
