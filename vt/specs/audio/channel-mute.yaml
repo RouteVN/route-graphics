@@ -1,0 +1,48 @@
+---
+title: Audio Manual - Channel Mute
+description: Isolated manual fixture for immediate channel mute and restoration of the configured volume.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-1 at channel volume 70
+  - state 3 should immediately silence the channel without removing or restarting the sound
+  - state 4 should immediately restore the continuing sound at the previous volume
+  - state 5 should stop the sound
+---
+states:
+  - id: channel-mute-ready
+    audio: []
+  - id: channel-mute-audible
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        children:
+          - id: channel-mute-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-muted
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        muted: true
+        children:
+          - id: channel-mute-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-unmuted
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        muted: false
+        children:
+          - id: channel-mute-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-mute-stopped
+    audio: []

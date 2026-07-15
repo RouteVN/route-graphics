@@ -1,0 +1,30 @@
+---
+title: Audio Manual - Scheduled Sequence
+description: Isolated fixture for building a sequence from parallel sound nodes with startDelayMs.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start three one-shots roughly one second apart; remain on it for at least three seconds
+  - state 3 should remove any remaining audio
+---
+states:
+  - id: scheduled-sequence-ready
+    audio: []
+  - id: scheduled-sequence-playing
+    audio:
+      - id: effects
+        type: audio-channel
+        children:
+          - id: sequence-first
+            type: sound
+            src: sfx-1
+          - id: sequence-second
+            type: sound
+            src: sfx-2
+            startDelayMs: 1000
+          - id: sequence-third
+            type: sound
+            src: sfx-1
+            startDelayMs: 2000
+  - id: scheduled-sequence-stopped
+    audio: []

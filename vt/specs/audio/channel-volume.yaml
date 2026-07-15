@@ -1,0 +1,35 @@
+---
+title: Audio Manual - Channel Volume
+description: Isolated manual fixture for immediate channel-volume updates without restarting its child sound.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start a quiet looping bgm-1
+  - state 3 should immediately make the continuing bgm-1 louder without restarting it
+  - state 4 should stop the sound
+---
+states:
+  - id: channel-volume-ready
+    audio: []
+  - id: channel-volume-quiet
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 25
+        children:
+          - id: channel-volume-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-volume-loud
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 80
+        children:
+          - id: channel-volume-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-volume-stopped
+    audio: []

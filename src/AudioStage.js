@@ -1,10 +1,14 @@
 import { AudioAsset } from "./AudioAsset.js";
+import { getEasingFunction } from "./util/animationTimeline.js";
 import { normalizeVolume } from "./util/normalizeVolume.js";
 import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
 import { getAudioContext } from "./audioContext.js";
 
 const ROOT_CHANNEL_ID = "__route_graphics_audio_root__";
 const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
+const AUDIO_AUTOMATION_SAMPLE_INTERVAL_MS = 16;
+const AUDIO_AUTOMATION_MAX_SAMPLES = 1024;
+const audioParamAutomation = new WeakMap();
 
 const isAudioDebugEnabled = () =>
   globalThis.window?.RTGL_AUDIO_DEBUG === true ||
@@ -42,6 +46,49 @@ const toFiniteParamValue = (value, fallback = 0) => {
 const getParamValue = (param, fallback = 0) =>
   toFiniteParamValue(param?.value, fallback);
 
+const getTimelineValueAtTime = (timeline, elapsedMs) => {
+  if (timeline.length === 0) return 0;
+
+  const lastKeyframe = timeline[timeline.length - 1];
+  if (elapsedMs >= lastKeyframe.time) return lastKeyframe.value;
+
+  for (let index = 1; index < timeline.length; index++) {
+    const start = timeline[index - 1];
+    const end = timeline[index];
+    if (elapsedMs >= end.time || end.time === start.time) continue;
+
+    const progress = Math.max(
+      0,
+      Math.min(1, (elapsedMs - start.time) / (end.time - start.time)),
+    );
+    const easedProgress = getEasingFunction(end.easing)(progress);
+    return start.value + (end.value - start.value) * easedProgress;
+  }
+
+  return lastKeyframe.value;
+};
+
+const getCurrentParamValue = (param, context = getAudioContext()) => {
+  const automation = audioParamAutomation.get(param);
+  if (!automation) return getParamValue(param);
+
+  const elapsedMs = Math.max(
+    0,
+    (context.currentTime - automation.startTime) * 1000,
+  );
+  return automation.normalizeValue(
+    getTimelineValueAtTime(automation.timeline, elapsedMs),
+  );
+};
+
+const setParamAtTime = (param, value, time) => {
+  if (typeof param.setValueAtTime === "function") {
+    param.setValueAtTime(value, time);
+  } else {
+    param.value = value;
+  }
+};
+
 const resumeAudioContext = (context = getAudioContext()) => {
   if (context.state === "suspended" && typeof context.resume === "function") {
     const previousState = context.state;
@@ -76,42 +123,145 @@ const resumeAudioContext = (context = getAudioContext()) => {
 const setParamNow = (param, value, context = getAudioContext()) => {
   if (!param) return;
 
-  const nextValue = toFiniteParamValue(value, getParamValue(param));
-
-  if (typeof param.cancelScheduledValues === "function") {
-    param.cancelScheduledValues(context.currentTime);
-  }
-  if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(nextValue, context.currentTime);
-  } else {
-    param.value = nextValue;
-  }
-};
-
-const rampParam = (param, value, durationMs, context = getAudioContext()) => {
-  if (!param) return;
-
   const now = context.currentTime;
-  const seconds = Math.max(0, toFiniteParamValue(durationMs, 0)) / 1000;
-  const currentValue = getParamValue(param);
-  const nextValue = toFiniteParamValue(value, currentValue);
+  const nextValue = toFiniteParamValue(value, getParamValue(param));
 
   if (typeof param.cancelScheduledValues === "function") {
     param.cancelScheduledValues(now);
   }
-  if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(currentValue, now);
-  } else {
-    param.value = currentValue;
+  setParamAtTime(param, nextValue, now);
+  audioParamAutomation.set(param, {
+    startTime: now,
+    timeline: [{ time: 0, value: nextValue, easing: "linear" }],
+    normalizeValue: (automationValue) => automationValue,
+  });
+};
+
+const buildAudioTimeline = ({
+  transition,
+  currentValue,
+  normalizeTransitionValue,
+  denormalizeParamValue,
+}) => {
+  const initialAuthoredValue =
+    transition.initialValue === undefined
+      ? denormalizeParamValue(currentValue)
+      : transition.initialValue;
+  const initialValue = normalizeTransitionValue(initialAuthoredValue);
+  let authoredValue = denormalizeParamValue(initialValue);
+  let elapsedMs = 0;
+  const timeline = [
+    {
+      time: 0,
+      value: initialValue,
+      easing: "linear",
+    },
+  ];
+
+  for (const keyframe of transition.keyframes) {
+    elapsedMs += Math.max(0, toFiniteParamValue(keyframe.duration, 0));
+    const nextAuthoredValue = keyframe.relative
+      ? authoredValue + keyframe.value
+      : keyframe.value;
+    const nextValue = normalizeTransitionValue(nextAuthoredValue);
+    authoredValue = denormalizeParamValue(nextValue);
+    timeline.push({
+      time: elapsedMs,
+      value: nextValue,
+      easing: keyframe.easing ?? "linear",
+    });
   }
 
-  if (seconds > 0 && typeof param.linearRampToValueAtTime === "function") {
-    param.linearRampToValueAtTime(nextValue, now + seconds);
-  } else if (typeof param.setValueAtTime === "function") {
-    param.setValueAtTime(nextValue, now + seconds);
-  } else {
-    param.value = nextValue;
+  return timeline;
+};
+
+const scheduleTimelineSegment = ({
+  param,
+  start,
+  end,
+  startTime,
+  normalizeValue,
+}) => {
+  const durationMs = end.time - start.time;
+  const endTime = startTime + end.time / 1000;
+
+  if (durationMs <= 0) {
+    setParamAtTime(param, end.value, endTime);
+    return;
   }
+
+  if (typeof param.linearRampToValueAtTime !== "function") {
+    setParamAtTime(param, end.value, endTime);
+    return;
+  }
+
+  if (end.easing === "linear") {
+    param.linearRampToValueAtTime(end.value, endTime);
+    return;
+  }
+
+  const easing = getEasingFunction(end.easing);
+  const sampleCount = Math.min(
+    AUDIO_AUTOMATION_MAX_SAMPLES,
+    Math.max(1, Math.ceil(durationMs / AUDIO_AUTOMATION_SAMPLE_INTERVAL_MS)),
+  );
+  for (let sample = 1; sample <= sampleCount; sample++) {
+    const progress = sample / sampleCount;
+    const value = normalizeValue(
+      start.value + (end.value - start.value) * easing(progress),
+    );
+    const time = startTime + (start.time + durationMs * progress) / 1000;
+    param.linearRampToValueAtTime(value, time);
+  }
+};
+
+const rampParam = ({
+  param,
+  transition,
+  normalizeTransitionValue,
+  denormalizeParamValue,
+  normalizeParamValue,
+  context = getAudioContext(),
+}) => {
+  if (!param) return 0;
+
+  const now = context.currentTime;
+  const currentValue = getCurrentParamValue(param, context);
+  const timeline = buildAudioTimeline({
+    transition,
+    currentValue,
+    normalizeTransitionValue,
+    denormalizeParamValue,
+  });
+  const hasExplicitInitialValue = transition.initialValue !== undefined;
+
+  if (
+    !hasExplicitInitialValue &&
+    typeof param.cancelAndHoldAtTime === "function"
+  ) {
+    param.cancelAndHoldAtTime(now);
+  } else if (typeof param.cancelScheduledValues === "function") {
+    param.cancelScheduledValues(now);
+  }
+
+  setParamAtTime(param, timeline[0].value, now);
+  for (let index = 1; index < timeline.length; index++) {
+    scheduleTimelineSegment({
+      param,
+      start: timeline[index - 1],
+      end: timeline[index],
+      startTime: now,
+      normalizeValue: normalizeParamValue,
+    });
+  }
+
+  audioParamAutomation.set(param, {
+    startTime: now,
+    timeline,
+    normalizeValue: normalizeParamValue,
+  });
+
+  return timeline[timeline.length - 1].time;
 };
 
 const createGainNode = (value = 1) => {
@@ -135,6 +285,12 @@ const createPannerNode = (pan = 0) => {
 const getVolumeValue = ({ volume, muted }) =>
   muted ? 0 : normalizeVolume(volume, 100);
 
+const hasSameSoundSourceIdentity = (previous, next) =>
+  previous.src === next.src &&
+  previous.startAt === next.startAt &&
+  previous.endAt === next.endAt &&
+  previous.startDelayMs === next.startDelayMs;
+
 const normalizeDirectVolume = (volume, fallback = 1) => {
   const parsedFallback = Number(fallback);
   const normalizedFallback = Number.isFinite(parsedFallback)
@@ -153,36 +309,65 @@ const normalizeDirectVolume = (volume, fallback = 1) => {
 const getTransitionPhase = (effects = [], targetId, property, phase) => {
   const transition = effects.find(
     (effect) =>
-      (effect.type === "audio-transition" ||
-        effect.type === "audioTransition") &&
-      effect.targetId === targetId,
+      effect.type === "audio-transition" && effect.targetId === targetId,
   );
 
   return transition?.properties?.[property]?.[phase] ?? null;
 };
 
-const applyVolume = ({ gainNode, targetValue, transition }) => {
+const applyAudioParam = ({
+  param,
+  targetValue,
+  transition,
+  normalizeTargetValue = (value) => value,
+  normalizeTransitionValue = normalizeTargetValue,
+  denormalizeParamValue = (value) => value,
+}) => {
+  if (!param) return 0;
+
+  const normalizedTargetValue = normalizeTargetValue(targetValue);
+
   if (!transition) {
-    setParamNow(gainNode.gain, targetValue);
+    setParamNow(param, normalizedTargetValue);
     return 0;
   }
 
-  const initialValue =
-    transition.from !== undefined
-      ? normalizeVolume(transition.from, 100)
-      : undefined;
-  const finalValue =
-    transition.to !== undefined
-      ? normalizeVolume(transition.to, 100)
-      : targetValue;
-
-  if (initialValue !== undefined) {
-    setParamNow(gainNode.gain, initialValue);
-  }
-  rampParam(gainNode.gain, finalValue, transition.duration);
-
-  return transition.duration;
+  return rampParam({
+    param,
+    transition,
+    normalizeTransitionValue,
+    denormalizeParamValue,
+    normalizeParamValue: normalizeTargetValue,
+  });
 };
+
+const applyVolume = ({ gainNode, targetValue, transition }) =>
+  applyAudioParam({
+    param: gainNode?.gain,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) =>
+      Math.max(0, Math.min(1, toFiniteParamValue(value, 1))),
+    normalizeTransitionValue: (value) => normalizeVolume(value, 100),
+    denormalizeParamValue: (value) => value * 100,
+  });
+
+const applyPan = ({ pannerNode, targetValue, transition }) =>
+  applyAudioParam({
+    param: pannerNode?.pan,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) =>
+      Math.max(-1, Math.min(1, toFiniteParamValue(value, 0))),
+  });
+
+const applyPlaybackRate = ({ source, targetValue, transition }) =>
+  applyAudioParam({
+    param: source?.playbackRate,
+    targetValue,
+    transition,
+    normalizeTargetValue: (value) => Math.max(0, toFiniteParamValue(value, 1)),
+  });
 
 const createChannelInstance = (channel, outputNode) => {
   const gainNode = createGainNode(getVolumeValue(channel));
@@ -227,6 +412,7 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     gainNode,
     pannerNode,
     source: null,
+    playbackRateTransition: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
     playRequestId: 0,
@@ -252,9 +438,12 @@ const createSourceForSound = (sound) => {
   source.buffer = audioBuffer;
   source.loop = sound.loop ?? false;
 
-  if (source.playbackRate) {
-    setParamNow(source.playbackRate, sound.playbackRate ?? 1, context);
-  }
+  applyPlaybackRate({
+    source,
+    targetValue: sound.playbackRate ?? 1,
+    transition: sound.playbackRateTransition,
+  });
+  sound.playbackRateTransition = null;
 
   connect(source, sound.gainNode);
 
@@ -496,7 +685,13 @@ export const createAudioStage = () => {
 
   const ensureChannel = (channel, effects, phase) => {
     const existing = channels.get(channel.id);
-    const transition = getTransitionPhase(effects, channel.id, "volume", phase);
+    const volumeTransition = getTransitionPhase(
+      effects,
+      channel.id,
+      "volume",
+      phase,
+    );
+    const panTransition = getTransitionPhase(effects, channel.id, "pan", phase);
 
     if (existing && existing.cleanupTimeoutId !== null) {
       const created = createChannelInstance(
@@ -507,7 +702,12 @@ export const createAudioStage = () => {
       applyVolume({
         gainNode: created.gainNode,
         targetValue: getVolumeValue(channel),
-        transition,
+        transition: volumeTransition,
+      });
+      applyPan({
+        pannerNode: created.pannerNode,
+        targetValue: channel.pan,
+        transition: panTransition,
       });
       return created;
     }
@@ -522,11 +722,11 @@ export const createAudioStage = () => {
       existing.muted = channel.muted;
       existing.pan = channel.pan;
 
-      if (volumeChanged && transition) {
+      if (volumeChanged && volumeTransition) {
         applyVolume({
           gainNode: existing.gainNode,
           targetValue: nextVolumeValue,
-          transition,
+          transition: volumeTransition,
         });
       } else if (volumeChanged) {
         applyVolume({
@@ -536,8 +736,12 @@ export const createAudioStage = () => {
         });
       }
 
-      if (panChanged && existing.pannerNode?.pan) {
-        setParamNow(existing.pannerNode.pan, channel.pan ?? 0);
+      if (panChanged) {
+        applyPan({
+          pannerNode: existing.pannerNode,
+          targetValue: channel.pan,
+          transition: panTransition,
+        });
       }
       return existing;
     }
@@ -550,7 +754,12 @@ export const createAudioStage = () => {
     applyVolume({
       gainNode: created.gainNode,
       targetValue: getVolumeValue(channel),
-      transition,
+      transition: volumeTransition,
+    });
+    applyPan({
+      pannerNode: created.pannerNode,
+      targetValue: channel.pan,
+      transition: panTransition,
     });
     return created;
   };
@@ -586,19 +795,30 @@ export const createAudioStage = () => {
       return 0;
     }
 
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       channel.id,
       "volume",
       "exit",
     );
-    const duration = applyVolume({
+    const panTransition = getTransitionPhase(
+      effects,
+      channel.id,
+      "pan",
+      "exit",
+    );
+    const volumeDuration = applyVolume({
       gainNode: channel.gainNode,
       targetValue: getVolumeValue(channel),
-      transition,
+      transition: volumeTransition,
+    });
+    const panDuration = applyPan({
+      pannerNode: channel.pannerNode,
+      targetValue: channel.pan,
+      transition: panTransition,
     });
 
-    return duration;
+    return Math.max(volumeDuration, panDuration);
   };
 
   const addSoundInstance = ({ sound, effects, phase, internalId }) => {
@@ -612,12 +832,29 @@ export const createAudioStage = () => {
     sounds.set(internalId, instance);
     currentSoundKeyById.set(sound.id, internalId);
 
-    const transition = getTransitionPhase(effects, sound.id, "volume", phase);
+    const volumeTransition = getTransitionPhase(
+      effects,
+      sound.id,
+      "volume",
+      phase,
+    );
+    const panTransition = getTransitionPhase(effects, sound.id, "pan", phase);
     applyVolume({
       gainNode: instance.gainNode,
       targetValue: getVolumeValue(sound),
-      transition,
+      transition: volumeTransition,
     });
+    applyPan({
+      pannerNode: instance.pannerNode,
+      targetValue: sound.pan,
+      transition: panTransition,
+    });
+    instance.playbackRateTransition = getTransitionPhase(
+      effects,
+      sound.id,
+      "playbackRate",
+      phase,
+    );
     playSound(instance);
     return instance;
   };
@@ -625,17 +862,44 @@ export const createAudioStage = () => {
   const removeSoundInstance = (instance, effects, inheritedDuration = 0) => {
     if (!instance) return 0;
 
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       instance.id,
       "volume",
       "exit",
     );
-    const ownDuration = applyVolume({
+    const panTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "pan",
+      "exit",
+    );
+    const playbackRateTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "playbackRate",
+      "exit",
+    );
+    const volumeDuration = applyVolume({
       gainNode: instance.gainNode,
       targetValue: getVolumeValue(instance),
-      transition,
+      transition: volumeTransition,
     });
+    const panDuration = applyPan({
+      pannerNode: instance.pannerNode,
+      targetValue: instance.pan,
+      transition: panTransition,
+    });
+    const playbackRateDuration = applyPlaybackRate({
+      source: instance.source,
+      targetValue: instance.playbackRate,
+      transition: playbackRateTransition,
+    });
+    const ownDuration = Math.max(
+      volumeDuration,
+      panDuration,
+      playbackRateDuration,
+    );
     const duration = Math.max(ownDuration, inheritedDuration);
 
     stopSource(instance, duration);
@@ -651,6 +915,8 @@ export const createAudioStage = () => {
     const currentVolumeValue = getVolumeValue(instance);
     const nextVolumeValue = getVolumeValue(sound);
     const volumeChanged = currentVolumeValue !== nextVolumeValue;
+    const panChanged = instance.pan !== sound.pan;
+    const playbackRateChanged = instance.playbackRate !== sound.playbackRate;
     const startDelayChanged = instance.startDelayMs !== sound.startDelayMs;
 
     if (instance.channelId !== sound.channelId) {
@@ -670,26 +936,19 @@ export const createAudioStage = () => {
 
     if (instance.source) {
       instance.source.loop = sound.loop;
-      if (instance.source.playbackRate) {
-        setParamNow(instance.source.playbackRate, sound.playbackRate);
-      }
     }
 
-    if (instance.pannerNode?.pan) {
-      setParamNow(instance.pannerNode.pan, sound.pan);
-    }
-
-    const transition = getTransitionPhase(
+    const volumeTransition = getTransitionPhase(
       effects,
       sound.id,
       "volume",
       "update",
     );
-    if (volumeChanged && transition) {
+    if (volumeChanged && volumeTransition) {
       applyVolume({
         gainNode: instance.gainNode,
         targetValue: nextVolumeValue,
-        transition,
+        transition: volumeTransition,
       });
     } else if (volumeChanged) {
       applyVolume({
@@ -697,6 +956,32 @@ export const createAudioStage = () => {
         targetValue: nextVolumeValue,
         transition: null,
       });
+    }
+
+    if (panChanged) {
+      applyPan({
+        pannerNode: instance.pannerNode,
+        targetValue: sound.pan,
+        transition: getTransitionPhase(effects, sound.id, "pan", "update"),
+      });
+    }
+
+    if (playbackRateChanged) {
+      const playbackRateTransition = getTransitionPhase(
+        effects,
+        sound.id,
+        "playbackRate",
+        "update",
+      );
+      if (instance.source) {
+        applyPlaybackRate({
+          source: instance.source,
+          targetValue: sound.playbackRate,
+          transition: playbackRateTransition,
+        });
+      } else {
+        instance.playbackRateTransition = playbackRateTransition;
+      }
     }
 
     if (startDelayChanged && instance.pendingTimeoutId !== null) {
@@ -731,6 +1016,21 @@ export const createAudioStage = () => {
     const nextSoundById = new Map(
       next.sounds.map((sound) => [sound.id, sound]),
     );
+
+    for (const id of prevChannelById.keys()) {
+      if (nextSoundById.has(id)) {
+        throw new Error(
+          `Input error: audio node "${id}" cannot change type from "audio-channel" to "sound" between render states.`,
+        );
+      }
+    }
+    for (const id of prevSoundById.keys()) {
+      if (nextChannelById.has(id)) {
+        throw new Error(
+          `Input error: audio node "${id}" cannot change type from "sound" to "audio-channel" between render states.`,
+        );
+      }
+    }
 
     ensureRootChannel(ROOT_CHANNEL_ID);
 
@@ -780,7 +1080,7 @@ export const createAudioStage = () => {
         continue;
       }
 
-      if (prevSound.src !== nextSound.src) {
+      if (!hasSameSoundSourceIdentity(prevSound, nextSound)) {
         const duration = removeSoundInstance(
           instance,
           prevAudioEffects,
@@ -816,7 +1116,7 @@ export const createAudioStage = () => {
       }
 
       const prevSound = prevSoundById.get(id);
-      if (prevSound.src !== nextSound.src) {
+      if (!hasSameSoundSourceIdentity(prevSound, nextSound)) {
         continue;
       }
 

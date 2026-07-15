@@ -666,11 +666,25 @@
  */
 
 /**
+ * @typedef {Object} AudioTransitionKeyframe
+ * @property {number} value - Absolute target value, or delta when relative is true
+ * @property {number} duration - Duration to reach this value in milliseconds
+ * @property {string} [easing="linear"] - Animation easing name
+ * @property {boolean} [relative=false] - Whether value is relative to the previous value
+ */
+
+/**
+ * @typedef {Object} AudioTransitionPhase
+ * @property {number} [initialValue] - Optional starting value before the first keyframe
+ * @property {AudioTransitionKeyframe[]} keyframes - Ordered property keyframes
+ */
+
+/**
  * @typedef {Object} AudioTransition
  * @property {string} id - Unique identifier
  * @property {string} type - Should be "audio-transition"
  * @property {string} targetId - Target sound or audio-channel id
- * @property {Object} properties - Transition properties
+ * @property {Object<string, Object<string, AudioTransitionPhase>>} properties - Property lifecycle keyframes
  */
 
 /**

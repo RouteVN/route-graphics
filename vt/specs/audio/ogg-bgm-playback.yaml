@@ -1,0 +1,37 @@
+---
+title: Audio Manual - OGG BGM Playback
+description: Manual fixture for native or WASM-fallback decoding of all three OGG BGM assets. Remain on each playback state long enough to identify the track.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should decode and loop bgm-1.ogg without errors
+  - state 3 should stop bgm-1, decode, and loop bgm-2.ogg without errors
+  - state 4 should stop bgm-2, decode, and loop bgm-3.ogg without errors
+  - state 5 should stop all OGG audio
+---
+states:
+  - id: ogg-bgm-ready
+    audio: []
+  - id: ogg-bgm-one
+    audio:
+      - id: ogg-bgm-1
+        type: sound
+        src: bgm-1-ogg
+        loop: true
+        volume: 80
+  - id: ogg-bgm-two
+    audio:
+      - id: ogg-bgm-2
+        type: sound
+        src: bgm-2-ogg
+        loop: true
+        volume: 80
+  - id: ogg-bgm-three
+    audio:
+      - id: ogg-bgm-3
+        type: sound
+        src: bgm-3-ogg
+        loop: true
+        volume: 80
+  - id: ogg-bgm-stopped
+    audio: []

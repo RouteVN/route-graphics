@@ -1,0 +1,39 @@
+---
+title: Audio Manual - Sound Mute
+description: Isolated manual fixture for immediate sound mute and restoration of the configured volume.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-1 at sound volume 70
+  - state 3 should immediately silence the sound without removing or restarting it
+  - state 4 should immediately restore the continuing sound at the previous volume
+  - state 5 should stop the sound
+---
+states:
+  - id: sound-mute-ready
+    audio: []
+  - id: sound-mute-audible
+    audio:
+      - id: sound-mute-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 70
+  - id: sound-muted
+    audio:
+      - id: sound-mute-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 70
+        muted: true
+  - id: sound-unmuted
+    audio:
+      - id: sound-mute-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 70
+        muted: false
+  - id: sound-mute-stopped
+    audio: []

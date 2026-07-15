@@ -1,0 +1,40 @@
+---
+title: Audio Manual - Playback Rate
+description: Isolated fixture for immediate playbackRate updates without replacing the sound source.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-3 at half speed
+  - state 3 should change the continuing sound to normal speed without restarting it
+  - state 4 should change it to one-and-a-half speed without restarting it
+  - state 5 should stop the sound
+---
+states:
+  - id: playback-rate-ready
+    audio: []
+  - id: playback-rate-slow
+    audio:
+      - id: playback-rate-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        playbackRate: 0.5
+  - id: playback-rate-normal
+    audio:
+      - id: playback-rate-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        playbackRate: 1
+  - id: playback-rate-fast
+    audio:
+      - id: playback-rate-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        playbackRate: 1.5
+  - id: playback-rate-stopped
+    audio: []

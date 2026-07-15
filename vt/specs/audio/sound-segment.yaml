@@ -1,0 +1,31 @@
+---
+title: Audio Manual - Sound Segment
+description: Isolated fixture for startAt and endAt partial-source playback.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play only bgm-3 from second 1 through second 5
+  - state 3 should play a new short bgm-3 segment from second 2 through second 3
+  - state 4 should stop all audio
+---
+states:
+  - id: sound-segment-ready
+    audio: []
+  - id: sound-segment-long
+    audio:
+      - id: segment-long
+        type: sound
+        src: bgm-3
+        volume: 80
+        startAt: 1
+        endAt: 5
+  - id: sound-segment-short
+    audio:
+      - id: segment-short
+        type: sound
+        src: bgm-3
+        volume: 80
+        startAt: 2
+        endAt: 3
+  - id: sound-segment-stopped
+    audio: []

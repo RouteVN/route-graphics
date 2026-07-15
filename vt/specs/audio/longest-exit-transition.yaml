@@ -1,0 +1,42 @@
+---
+title: Audio Manual - Longest Exit Transition Cleanup
+description: Isolated fixture proving that a removed sound stays alive until its longest property exit transition finishes.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-3 centered at normal speed
+  - state 3 should pan right over one second, slow over three seconds, remain audible, then stop after three seconds
+---
+states:
+  - id: longest-exit-ready
+    audio: []
+  - id: longest-exit-playing
+    audio:
+      - id: longest-exit-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        pan: 0
+        playbackRate: 1
+    audioEffects:
+      - id: longest-exit-properties
+        type: audio-transition
+        targetId: longest-exit-bgm
+        properties:
+          volume:
+            exit:
+              keyframes:
+                - { value: 60, duration: 1000, easing: linear }
+                - { value: 80, duration: 1000, easing: linear }
+          pan:
+            exit:
+              keyframes:
+                - { value: 1, duration: 1000, easing: linear }
+          playbackRate:
+            exit:
+              keyframes:
+                - { value: 0.75, duration: 1000, easing: linear }
+                - { value: 0.25, duration: 2000, easing: linear }
+  - id: longest-exit-stopped
+    audio: []

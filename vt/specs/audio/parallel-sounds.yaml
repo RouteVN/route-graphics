@@ -1,0 +1,25 @@
+---
+title: Audio Manual - Parallel Sounds
+description: Isolated fixture proving that sibling sounds mix in parallel and child-array order is not a sequence.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start sfx-1 and sfx-2 together rather than one after the other
+  - state 3 should remove any remaining audio
+---
+states:
+  - id: parallel-sounds-ready
+    audio: []
+  - id: parallel-sounds-playing
+    audio:
+      - id: effects
+        type: audio-channel
+        children:
+          - id: parallel-first
+            type: sound
+            src: sfx-1
+          - id: parallel-second
+            type: sound
+            src: sfx-2
+  - id: parallel-sounds-stopped
+    audio: []

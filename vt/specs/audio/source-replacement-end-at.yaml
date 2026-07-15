@@ -1,0 +1,33 @@
+---
+title: Audio Manual - Source Replacement by EndAt
+description: Isolated fixture proving that changing endAt replaces a same-id sound.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should loop the first six seconds of bgm-3
+  - state 3 should restart the same public sound id and loop only its first three seconds
+  - state 4 should stop the sound
+---
+states:
+  - id: replacement-end-at-ready
+    audio: []
+  - id: replacement-end-at-six
+    audio:
+      - id: replacement-end-at-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 0
+        endAt: 6
+  - id: replacement-end-at-three
+    audio:
+      - id: replacement-end-at-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 0
+        endAt: 3
+  - id: replacement-end-at-stopped
+    audio: []
