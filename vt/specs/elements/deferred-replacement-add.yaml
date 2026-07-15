@@ -1,0 +1,117 @@
+---
+title: Deferred Replacement Add Completion
+description: |
+  Exercises a same-id type replacement whose previous cleanup is synchronous
+  but whose next plugin add returns a manually released Promise.
+specs:
+  - renderComplete should remain pending until the async add settles
+  - resolving the add should explicitly present the mounted browser frame
+  - the final object should be owned by the deferred-add plugin
+skipInitialScreenshot: true
+useBrowserScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.pendingDeferredRectAddIds
+    value:
+      - async-add-target
+  - action: assert
+    type: js
+    fn: vtAssert.mountedVtElementType
+    args:
+      - async-add-target
+    value: null
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value: []
+  - action: customEvent
+    name: vtResolveDeferredRectAdd
+    detail:
+      elementId: async-add-target
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.pendingDeferredRectAddIds
+    value: []
+  - action: assert
+    type: js
+    fn: vtAssert.mountedVtElementType
+    args:
+      - async-add-target
+    value: vt-deferred-add-rect
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: async-add-latest
+        aborted: false
+  - action: assert
+    type: js
+    fn: vtAssert.pluginDispatchMismatches
+    value: []
+---
+states:
+  - id: async-add-baseline
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Baseline: synchronous plugin A is mounted"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: async-add-target
+        type: vt-strict-rect
+        x: 180
+        "y": 220
+        width: 300
+        height: 220
+        fill: "#EF4444"
+  - id: async-add-latest
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Latest: async plugin B mounts after release"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: async-add-target
+        type: vt-deferred-add-rect
+        x: 760
+        "y": 220
+        width: 300
+        height: 220
+        fill: "#3B82F6"

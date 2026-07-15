@@ -34,26 +34,45 @@ const getMountedChild = (parent, id) => {
   return undefined;
 };
 
-const markMountedElement = (parent, element) => {
-  const child = getMountedChild(parent, element.id);
+const getAddedChild = (parent, element, childrenBefore) => {
+  for (let index = parent.children.length - 1; index >= 0; index--) {
+    const child = parent.children[index];
+    if (
+      !child.destroyed &&
+      child.label === element.id &&
+      !childrenBefore.has(child)
+    ) {
+      const rendered = getElementRenderState(child);
+      if (!rendered || rendered.type === element.type) {
+        return child;
+      }
+    }
+  }
+  return null;
+};
+
+const markMountedElement = (child, element) => {
   if (child) {
     setElementRenderState(child, element);
   }
 };
 
 export const addElementWithRenderState = ({ plugin, ...options }) => {
+  const childrenBefore = new Set(options.parent.children);
   const operation = plugin.add(options);
-  const { parent, element, signal } = options;
-  markMountedElement(parent, element);
+  const { parent, element } = options;
+  let mountedChild = getAddedChild(parent, element, childrenBefore);
+  markMountedElement(mountedChild, element);
 
   if (!isPromise(operation)) {
     return operation;
   }
 
   return operation.then(() => {
-    if (!signal?.aborted && !parent.destroyed) {
-      markMountedElement(parent, element);
+    if (!mountedChild || mountedChild.destroyed) {
+      mountedChild = getAddedChild(parent, element, childrenBefore);
     }
+    markMountedElement(mountedChild, element);
   });
 };
 
@@ -92,6 +111,7 @@ const createLifecycle = (rootParent) => ({
   currentRender: null,
   desiredElements: new Map(),
   pendingReplacements: new Map(),
+  renderParents: new Map(),
   rootOwnerElementId: getOwnerElementId(rootParent),
   rootParent,
 });
@@ -200,6 +220,17 @@ export const prepareElementRenderState = ({
   }
 
   const ownerElementId = getOwnerElementId(parent);
+  const renderedPrevComputedTree = getRenderedPreviousElements(
+    parent,
+    prevComputedTree,
+  );
+  for (const element of [...renderedPrevComputedTree, ...nextComputedTree]) {
+    lifecycle.renderParents.set(
+      getElementKey(ownerElementId, element.id),
+      parent,
+    );
+  }
+
   const pendingReplacementIds = new Set();
   for (const replacement of lifecycle.pendingReplacements.values()) {
     if (replacement.ownerElementId === ownerElementId) {
@@ -211,10 +242,9 @@ export const prepareElementRenderState = ({
     lifecycle,
     ownerElementId,
     pendingReplacementIds,
-    renderedPrevComputedTree: getRenderedPreviousElements(
-      parent,
-      prevComputedTree,
-    ),
+    renderedPrevComputedTree,
+    resolveRenderParent: (id) =>
+      resolveRenderParent(lifecycle, ownerElementId, id),
   };
 };
 
@@ -228,22 +258,64 @@ const findByLabel = (parent, label) => {
   return null;
 };
 
-const resolveRenderParent = (lifecycle, ownerElementId) => {
+const isInLifecycleTree = (displayObject, rootParent) => {
+  let current = displayObject;
+  while (current) {
+    if (current === rootParent) return true;
+    current = current.parent;
+  }
+  return false;
+};
+
+const findMountedParent = (parent, id) => {
+  for (const child of parent.children ?? []) {
+    if (child.destroyed) continue;
+    const rendered = getElementRenderState(child);
+    if (child.label === id && rendered?.id === id) {
+      return child.parent;
+    }
+    const match = findMountedParent(child, id);
+    if (match) return match;
+  }
+  return null;
+};
+
+const resolveRenderParent = (lifecycle, ownerElementId, id) => {
   const { rootOwnerElementId, rootParent } = lifecycle;
   if (!rootParent || rootParent.destroyed) return null;
-  if (ownerElementId === rootOwnerElementId) return rootParent;
 
+  const key = getElementKey(ownerElementId, id);
+  const registeredParent = lifecycle.renderParents.get(key);
+  const registeredParentIsCurrent =
+    registeredParent &&
+    !registeredParent.destroyed &&
+    isInLifecycleTree(registeredParent, rootParent);
   const owner =
-    rootParent.getChildByLabel?.(ownerElementId, true) ??
-    findByLabel(rootParent, ownerElementId);
+    ownerElementId === rootOwnerElementId
+      ? rootParent
+      : (rootParent.getChildByLabel?.(ownerElementId, true) ??
+        findByLabel(rootParent, ownerElementId));
   if (!owner) return null;
 
-  return (
-    owner.children?.find(
-      (child) =>
-        !child.destroyed && child.label === `${ownerElementId}-content`,
-    ) ?? owner
+  const mountedParent = findMountedParent(owner, id);
+  if (
+    registeredParentIsCurrent &&
+    (!mountedParent || isInLifecycleTree(mountedParent, registeredParent))
+  ) {
+    return registeredParent;
+  }
+
+  if (mountedParent) {
+    lifecycle.renderParents.set(key, mountedParent);
+    return mountedParent;
+  }
+
+  const builtInContent = owner.children?.find(
+    (child) => !child.destroyed && child.label === `${ownerElementId}-content`,
   );
+  const resolvedParent = builtInContent ?? owner;
+  lifecycle.renderParents.set(key, resolvedParent);
+  return resolvedParent;
 };
 
 const getDesiredElement = (lifecycle, replacement) =>
@@ -263,7 +335,11 @@ const settleReplacement = async (lifecycle, replacement) => {
     const render = lifecycle.currentRender;
     if (!isActive(lifecycle, render)) return false;
 
-    const parent = resolveRenderParent(lifecycle, replacement.ownerElementId);
+    const parent = resolveRenderParent(
+      lifecycle,
+      replacement.ownerElementId,
+      replacement.id,
+    );
     if (!parent || parent.destroyed) return false;
 
     const desired = getDesiredElement(lifecycle, replacement);
@@ -294,7 +370,11 @@ const settleReplacement = async (lifecycle, replacement) => {
       await render.deleteElement({ parent, element: rendered });
       if (
         isActive(lifecycle, render) &&
-        resolveRenderParent(lifecycle, replacement.ownerElementId) === parent &&
+        resolveRenderParent(
+          lifecycle,
+          replacement.ownerElementId,
+          replacement.id,
+        ) === parent &&
         getMountedChild(parent, replacement.id) === child
       ) {
         throw new Error(
@@ -332,22 +412,22 @@ const requestCurrentFrame = (lifecycle) => {
 };
 
 export const registerPendingElementReplacement = ({
-  deleteOperation,
   lifecycle,
+  operation,
   replacement,
 }) => {
   const key = getElementKey(replacement.ownerElementId, replacement.id);
   lifecycle.pendingReplacements.set(key, replacement);
   reserveCompletion(replacement, lifecycle.currentRender);
 
-  return deleteOperation
+  return operation
     .then(() => settleReplacement(lifecycle, replacement))
     .then(
       (shouldPresent) => {
         if (lifecycle.pendingReplacements.get(key) === replacement) {
           removePendingReplacement(lifecycle, replacement);
-          releaseCompletion(replacement);
           if (shouldPresent) requestCurrentFrame(lifecycle);
+          releaseCompletion(replacement);
         }
       },
       (error) => {

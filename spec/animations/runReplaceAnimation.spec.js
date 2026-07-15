@@ -7,6 +7,7 @@ import {
   Texture,
 } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
+import { createAnimationBus } from "../../src/plugins/animations/animationBus.js";
 import {
   runReplaceAnimation,
   sampleMaskReveal,
@@ -510,6 +511,86 @@ describe("runReplaceAnimation", () => {
       parent.children.filter((child) => child.label === "preview-background"),
     ).toEqual([nextDisplayObject]);
     expect(animationBus.dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("activates an asynchronously installed transition before it can be superseded", async () => {
+    const prevDisplayObject = createDisplayObject("preview-background");
+    const nextDisplayObject = createDisplayObject("preview-background");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const cleanup = createDeferred();
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(() =>
+        cleanup.promise.then(() => {
+          parent.removeChild(prevDisplayObject);
+        }),
+      ),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const animationBus = createAnimationBus();
+    const operation = runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+        },
+      },
+      parent,
+      prevElement: { id: "preview-background", type: "sprite" },
+      nextElement: { id: "preview-background", type: "rect" },
+      animation: {
+        id: "background-transition",
+        targetId: "preview-background",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    cleanup.resolve();
+    await operation;
+
+    expect(animationBus.getState().activeCount).toBe(1);
+
+    animationBus.cancelAllExcept(new Set());
+    expect(animationBus.getState().activeCount).toBe(0);
+
+    animationBus.flush();
+    expect(animationBus.getState().activeCount).toBe(0);
   });
 
   it("returns async transition cleanup rejection to the caller", async () => {
@@ -1208,6 +1289,173 @@ describe("runReplaceAnimation", () => {
       animatedSprite.parent,
     );
     expect(animatedSprite.destroyed).not.toBe(true);
+  });
+
+  it("keeps live transition resources and completion pending for async cleanup", async () => {
+    const prevDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    prevDisplayObject.label = "scene-root";
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const cleanup = createDeferred();
+    let cleanedPrevious = false;
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(({ parent: targetParent, element }) =>
+        cleanup.promise.then(() => {
+          const child = targetParent.children.find(
+            (item) => item.label === element.id,
+          );
+          if (!child) return;
+          targetParent.removeChild(child);
+          cleanedPrevious = true;
+        }),
+      ),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+
+    runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+          render: vi.fn(),
+        },
+      },
+      parent,
+      prevElement: { id: "scene-root", type: "spritesheet-animation" },
+      nextElement: { id: "scene-root", type: "container" },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children.find(
+      (child) => child !== prevDisplayObject && child !== nextDisplayObject,
+    );
+    const completionOperation = dispatched.payload.onComplete();
+
+    expect(typeof completionOperation?.then).toBe("function");
+    expect(tracker.complete).not.toHaveBeenCalled();
+    expect(overlay.destroyed).toBe(false);
+    expect(nextDisplayObject.parent).toBe(parent);
+    expect(prevDisplayObject.parent).not.toBe(parent);
+
+    cleanup.resolve();
+    await completionOperation;
+
+    expect(cleanedPrevious).toBe(true);
+    expect(tracker.complete).toHaveBeenCalledWith(11);
+    expect(overlay.destroyed).toBe(true);
+    expect(nextDisplayObject.parent).toBe(parent);
+    expect(nextDisplayObject.visible).toBe(true);
+  });
+
+  it("observes live transition cleanup rejection and releases resources", async () => {
+    const prevDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    prevDisplayObject.label = "scene-root";
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const cleanup = createDeferred();
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(() => cleanup.promise),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+
+    runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+          render: vi.fn(),
+        },
+      },
+      parent,
+      prevElement: { id: "scene-root", type: "spritesheet-animation" },
+      nextElement: { id: "scene-root", type: "container" },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+        prev: {},
+        next: {},
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    const overlay = parent.children[0];
+    const completionOperation = dispatched.payload.onComplete();
+    const error = new Error("live cleanup failed");
+    cleanup.reject(error);
+
+    await expect(completionOperation).rejects.toBe(error);
+    expect(tracker.complete).toHaveBeenCalledWith(11);
+    expect(overlay.destroyed).toBe(true);
+    expect(nextDisplayObject.parent).toBe(parent);
+    expect(nextDisplayObject.visible).toBe(true);
   });
 
   it("keeps hidden next animated sprite playback deferred for prev-only same-id live transitions", () => {

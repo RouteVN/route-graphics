@@ -401,7 +401,9 @@
       // Deterministic VT-only plugins for exercising asynchronous same-id
       // replacements. A custom event releases the first delete for each ID,
       // which lets specs supersede renders without relying on timer races.
+      const vtDeferredRectAdds = new Map();
       const vtDeferredRectDeletes = new Map();
+      const vtReleasedDeferredRectAddIds = new Set();
       const vtReleasedDeferredRectDeleteIds = new Set();
       const vtPluginDispatchMismatches = [];
 
@@ -434,7 +436,11 @@
         }
       };
 
-      const createVtRectPlugin = ({ type, deferFirstDelete = false }) => ({
+      const createVtRectPlugin = ({
+        type,
+        deferFirstAdd = false,
+        deferFirstDelete = false,
+      }) => ({
         type,
         parse: (options) => ({
           ...rectPlugin.parse({
@@ -444,6 +450,30 @@
           type,
         }),
         add: (options) => {
+          if (
+            deferFirstAdd &&
+            !vtReleasedDeferredRectAddIds.has(options.element.id)
+          ) {
+            const existing = vtDeferredRectAdds.get(options.element.id);
+            if (existing) {
+              return existing.promise;
+            }
+
+            let resolve;
+            let reject;
+            const promise = new Promise((resolvePromise, rejectPromise) => {
+              resolve = resolvePromise;
+              reject = rejectPromise;
+            });
+            vtDeferredRectAdds.set(options.element.id, {
+              options,
+              promise,
+              reject,
+              resolve,
+            });
+            return promise;
+          }
+
           const operation = rectPlugin.add(options);
           markVtRectType(options.parent, options.element, type);
           return operation;
@@ -490,6 +520,10 @@
         type: "vt-deferred-rect",
         deferFirstDelete: true,
       });
+      const vtDeferredAddRectPlugin = createVtRectPlugin({
+        type: "vt-deferred-add-rect",
+        deferFirstAdd: true,
+      });
       const vtStrictRectPlugin = createVtRectPlugin({
         type: "vt-strict-rect",
       });
@@ -514,11 +548,34 @@
         }
       };
 
+      const resolveDeferredRectAdd = (elementId) => {
+        const id = elementId ?? vtDeferredRectAdds.keys().next().value ?? null;
+        const pending = id ? vtDeferredRectAdds.get(id) : null;
+        if (!pending) {
+          throw new Error(`No deferred VT rect add found for ${id}.`);
+        }
+
+        vtDeferredRectAdds.delete(id);
+        vtReleasedDeferredRectAddIds.add(id);
+        try {
+          rectPlugin.add(pending.options);
+          markVtRectType(
+            pending.options.parent,
+            pending.options.element,
+            "vt-deferred-add-rect",
+          );
+          pending.resolve();
+        } catch (error) {
+          pending.reject(error);
+        }
+      };
+
       const plugins = {
         elements: [
           textPlugin,
           rectPlugin,
           vtDeferredRectPlugin,
+          vtDeferredAddRectPlugin,
           vtStrictRectPlugin,
           spritePlugin,
           videoPlugin,
@@ -644,6 +701,8 @@
             .map((event) => event.payload),
         pendingDeferredRectDeleteIds: () =>
           Array.from(vtDeferredRectDeletes.keys()).sort(),
+        pendingDeferredRectAddIds: () =>
+          Array.from(vtDeferredRectAdds.keys()).sort(),
         mountedVtElementType: (elementId) =>
           app.findElementByLabel(elementId)?.__vtElementPluginType ?? null,
         pluginDispatchMismatches: () =>
@@ -837,6 +896,10 @@
 
         window.addEventListener("vtResolveDeferredRectDelete", (event) => {
           resolveDeferredRectDelete(event.detail?.elementId);
+        });
+
+        window.addEventListener("vtResolveDeferredRectAdd", (event) => {
+          resolveDeferredRectAdd(event.detail?.elementId);
         });
 
         window.addEventListener("vtKeyboardShiftCReleaseShiftFirst", () => {

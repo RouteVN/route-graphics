@@ -118,6 +118,7 @@ export const renderElements = ({
     ownerElementId,
     pendingReplacementIds,
     renderedPrevComputedTree,
+    resolveRenderParent,
   } = prepareElementRenderState({
     parent,
     prevComputedTree,
@@ -188,13 +189,22 @@ export const renderElements = ({
 
     if (deleteOperation && typeof deleteOperation.then === "function") {
       return registerPendingElementReplacement({
-        deleteOperation,
         lifecycle,
+        operation: deleteOperation,
         replacement,
       });
     }
 
-    return addNextElement();
+    const addOperation = addNextElement();
+    if (addOperation && typeof addOperation.then === "function") {
+      return registerPendingElementReplacement({
+        lifecycle,
+        operation: addOperation,
+        replacement,
+      });
+    }
+
+    return addOperation;
   };
 
   for (const element of nextComputedTree) {
@@ -278,6 +288,7 @@ export const renderElements = ({
           elementPlugins,
           renderContext,
           plugin,
+          resolveParent: () => resolveRenderParent(element.id),
           zIndex: getExistingChildZIndex(element.id),
           signal,
         }),
@@ -337,6 +348,7 @@ export const renderElements = ({
           elementPlugins,
           renderContext,
           plugin,
+          resolveParent: () => resolveRenderParent(element.id),
           zIndex,
           signal,
         }),
@@ -395,6 +407,7 @@ export const renderElements = ({
           plugin: nextPlugin,
           prevPlugin,
           nextPlugin,
+          resolveParent: () => resolveRenderParent(next.id),
           zIndex,
           signal,
         }),
