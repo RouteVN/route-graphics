@@ -1,10 +1,6 @@
 const AUDIO_NODE_TYPES = new Set(["audio-channel", "sound"]);
 const AUDIO_TRANSITION_TYPE = "audio-transition";
-const LEGACY_AUDIO_TRANSITION_TYPE = "audioTransition";
-const AUDIO_EFFECT_TYPES = new Set([
-  AUDIO_TRANSITION_TYPE,
-  LEGACY_AUDIO_TRANSITION_TYPE,
-]);
+const AUDIO_EFFECT_TYPES = new Set([AUDIO_TRANSITION_TYPE]);
 const AUDIO_TRANSITION_PHASES = new Set(["enter", "exit", "update"]);
 const AUDIO_TRANSITION_PROPERTIES = new Set(["volume", "pan", "playbackRate"]);
 const AUDIO_TRANSITION_PROPERTIES_BY_NODE_TYPE = {
@@ -337,10 +333,7 @@ const validateAudioEffects = (audioEffects, ids, nodeTypes) => {
       );
     }
 
-    if (
-      effect.type === AUDIO_TRANSITION_TYPE ||
-      effect.type === LEGACY_AUDIO_TRANSITION_TYPE
-    ) {
+    if (effect.type === AUDIO_TRANSITION_TYPE) {
       validateAudioTransition(effect, path, nodeTypes);
       if (transitionTargetIds.has(effect.targetId)) {
         throw new Error(

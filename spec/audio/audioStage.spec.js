@@ -432,7 +432,7 @@ describe("AudioStage graph rendering", () => {
       nextAudioEffects: [
         {
           id: "bgm-enter",
-          type: "audioTransition",
+          type: "audio-transition",
           targetId: "bgm",
           properties: {
             volume: {

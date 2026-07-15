@@ -145,7 +145,7 @@ describe("normalizeAudioRenderState", () => {
           },
           {
             id: "music-fade-b",
-            type: "audioTransition",
+            type: "audio-transition",
             targetId: "music",
             properties: {
               volume: {
@@ -225,7 +225,7 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow("audio[0].delay is not supported");
   });
 
-  it("accepts legacy audioTransition effect type as an alias", () => {
+  it("rejects the non-canonical audioTransition effect type", () => {
     expect(() =>
       normalizeAudioRenderState({
         audio: [{ id: "music", type: "audio-channel" }],
@@ -242,7 +242,7 @@ describe("normalizeAudioRenderState", () => {
           },
         ],
       }),
-    ).not.toThrow();
+    ).toThrow('unsupported audio effect type "audioTransition"');
   });
 
   it("validates audio transitions strictly", () => {

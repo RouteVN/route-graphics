@@ -168,9 +168,7 @@ const normalizeDirectVolume = (volume, fallback = 1) => {
 const getTransitionPhase = (effects = [], targetId, property, phase) => {
   const transition = effects.find(
     (effect) =>
-      (effect.type === "audio-transition" ||
-        effect.type === "audioTransition") &&
-      effect.targetId === targetId,
+      effect.type === "audio-transition" && effect.targetId === targetId,
   );
 
   return transition?.properties?.[property]?.[phase] ?? null;

@@ -202,15 +202,11 @@ not "play it again".
 `audioEffects` is a typed automation list. It contains transitions that target
 audio node IDs.
 
-First implementation effect item types:
+Supported effect item type:
 
 - `audio-transition`
 
 Effects are render-state entries, not resources.
-
-New render state should emit the kebab-case `audio-transition` spelling. The
-runtime continues to accept the legacy `audioTransition` spelling for backward
-compatibility.
 
 ### Validation Rules
 

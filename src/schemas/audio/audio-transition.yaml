@@ -12,7 +12,7 @@ properties:
     type: string
     description: Unique identifier
   type:
-    enum: [audio-transition, audioTransition]
+    const: audio-transition
     description: Audio transition
   targetId:
     type: string
