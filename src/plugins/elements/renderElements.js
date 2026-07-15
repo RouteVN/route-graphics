@@ -81,6 +81,38 @@ export const renderElements = ({
       signal,
       plugin,
     });
+  const deleteElement = ({ parent: targetParent = parent, element }) =>
+    getPlugin(element.type).delete({
+      app,
+      parent: targetParent,
+      element,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+    });
+  const updateElement = ({
+    parent: targetParent = parent,
+    prevElement,
+    nextElement,
+    zIndex,
+  }) =>
+    getPlugin(nextElement.type).update({
+      app,
+      parent: targetParent,
+      prevElement,
+      nextElement,
+      animations: animationsByTarget,
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      zIndex,
+      signal,
+    });
   const {
     lifecycle,
     ownerElementId,
@@ -90,9 +122,15 @@ export const renderElements = ({
     parent,
     prevComputedTree,
     nextComputedTree,
-    mountElement,
     renderContext,
-    signal,
+    renderSnapshot: {
+      completionTracker,
+      deleteElement,
+      mountElement,
+      requestFrame: () => app?.render?.(),
+      signal,
+      updateElement,
+    },
   });
   const prevElementById = new Map();
   const nextIndexById = new Map();
@@ -126,13 +164,7 @@ export const renderElements = ({
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
 
-  const replaceElement = ({
-    prevElement,
-    nextElement,
-    prevPlugin,
-    nextPlugin,
-    zIndex,
-  }) => {
+  const replaceElement = ({ prevElement, nextElement, nextPlugin, zIndex }) => {
     const addNextElement = () => {
       if (signal?.aborted || parent.destroyed) {
         return undefined;
@@ -148,21 +180,11 @@ export const renderElements = ({
     const replacement = {
       id: nextElement.id,
       ownerElementId,
-      parent,
+      prevElement,
     };
     // The deletion belongs to the replacement lifecycle, not one render. Its
     // eventual add is gated by the lifecycle's latest signal and desired tree.
-    const deleteOperation = prevPlugin.delete({
-      app,
-      parent,
-      element: prevElement,
-      animations: [],
-      animationBus,
-      completionTracker,
-      eventHandler,
-      elementPlugins,
-      renderContext,
-    });
+    const deleteOperation = deleteElement({ parent, element: prevElement });
 
     if (deleteOperation && typeof deleteOperation.then === "function") {
       return registerPendingElementReplacement({
@@ -385,7 +407,6 @@ export const renderElements = ({
         replaceElement({
           prevElement: prev,
           nextElement: next,
-          prevPlugin,
           nextPlugin,
           zIndex,
         }),

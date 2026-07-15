@@ -1920,89 +1920,121 @@ export const runReplaceAnimation = ({
     cleanupParticlesInTree({ app, root: transitionMountParent });
     transitionMountParent.destroy({ children: true });
 
-    if (prevDisplayObject && !isLiveSubject(overlaySubjects.prevSubject)) {
-      prevPlugin.delete({
+    const cleanupPreparedTransition = () => {
+      cleanupPendingTransition();
+      clearDeferredMountOperations(hiddenMountContext);
+      destroySubjectSnapshot(overlaySubjects.prevSubject, app);
+      destroySubjectSnapshot(overlaySubjects.nextSubject, app);
+
+      if (nextDisplayObject && !nextDisplayObject.destroyed) {
+        nextDisplayObject.removeFromParent?.();
+        cleanupParticlesInTree({ app, root: nextDisplayObject });
+        nextDisplayObject.destroy({ children: true });
+      }
+
+      completeTransition();
+    };
+
+    const installTransition = () => {
+      if (transitionSignal?.aborted || parent.destroyed) {
+        cleanupPreparedTransition();
+        return;
+      }
+
+      if (nextDisplayObject && !isLiveSubject(overlaySubjects.nextSubject)) {
+        nextDisplayObject.zIndex = currentZIndex;
+        parent.addChild(nextDisplayObject);
+        nextDisplayObject.visible = false;
+      }
+
+      const replaceOverlay = createReplaceOverlay({
         app,
-        parent,
-        element: prevElement,
-        animations: [],
-        animationBus,
-        completionTracker,
-        eventHandler,
-        elementPlugins,
-        renderContext,
-        signal: transitionSignal,
+        animation,
+        prevSubject: overlaySubjects.prevSubject,
+        nextSubject: overlaySubjects.nextSubject,
+        zIndex: currentZIndex,
+      });
+      replaceOverlayRef.value = replaceOverlay;
+      nextDisplayObjectRef.value = nextDisplayObject;
+
+      parent.addChild(replaceOverlay.overlay);
+      if (isLiveSubject(overlaySubjects.nextSubject)) {
+        flushDeferredMountOperations(
+          hiddenMountContext,
+          (operation) => operation?.type === "play-animated-sprite",
+        );
+      }
+      const animationPayload = {
+        id: animation.id,
+        driver: "custom",
+        animationType: animation.type,
+        targetId: animation.targetId,
+        signature: continuitySignature,
+        continuity: isPersistent ? "persistent" : "render",
+        playbackSpeed: animation.playback?.speed,
+        onContinuationUpdate: handleContinuationUpdate,
+        duration: replaceOverlay.duration,
+        deferCompletionUntilNextFrame: animation.compositor !== undefined,
+        applyFrame: replaceOverlay.apply,
+        applyTargetState: () => {
+          replaceOverlay.apply(replaceOverlay.duration);
+          finalize({ flushDeferredEffects: false });
+        },
+        onComplete: () => {
+          try {
+            finalize({ flushDeferredEffects: true });
+          } finally {
+            completeTransition();
+          }
+        },
+        onCancel: () => {
+          completeTransition();
+        },
+        isValid: () =>
+          Boolean(replaceOverlay.overlay) &&
+          !replaceOverlay.overlay.destroyed &&
+          (!nextDisplayObject || !nextDisplayObject.destroyed),
+      };
+
+      if (
+        isPersistent &&
+        typeof animationBus?.activatePending === "function" &&
+        animationBus.activatePending(animation.id, animationPayload)
+      ) {
+        return;
+      }
+
+      cleanupPendingTransition();
+      animationBus.dispatch({
+        type: "START",
+        payload: animationPayload,
+      });
+    };
+
+    const deleteOperation =
+      prevDisplayObject && !isLiveSubject(overlaySubjects.prevSubject)
+        ? prevPlugin.delete({
+            app,
+            parent,
+            element: prevElement,
+            animations: [],
+            animationBus,
+            completionTracker,
+            eventHandler,
+            elementPlugins,
+            renderContext,
+            signal: transitionSignal,
+          })
+        : undefined;
+
+    if (deleteOperation && typeof deleteOperation.then === "function") {
+      return deleteOperation.then(installTransition, (error) => {
+        cleanupPreparedTransition();
+        throw error;
       });
     }
 
-    if (nextDisplayObject && !isLiveSubject(overlaySubjects.nextSubject)) {
-      nextDisplayObject.zIndex = currentZIndex;
-      parent.addChild(nextDisplayObject);
-      nextDisplayObject.visible = false;
-    }
-
-    const replaceOverlay = createReplaceOverlay({
-      app,
-      animation,
-      prevSubject: overlaySubjects.prevSubject,
-      nextSubject: overlaySubjects.nextSubject,
-      zIndex: currentZIndex,
-    });
-    replaceOverlayRef.value = replaceOverlay;
-    nextDisplayObjectRef.value = nextDisplayObject;
-
-    parent.addChild(replaceOverlay.overlay);
-    if (isLiveSubject(overlaySubjects.nextSubject)) {
-      flushDeferredMountOperations(
-        hiddenMountContext,
-        (operation) => operation?.type === "play-animated-sprite",
-      );
-    }
-    const animationPayload = {
-      id: animation.id,
-      driver: "custom",
-      animationType: animation.type,
-      targetId: animation.targetId,
-      signature: continuitySignature,
-      continuity: isPersistent ? "persistent" : "render",
-      playbackSpeed: animation.playback?.speed,
-      onContinuationUpdate: handleContinuationUpdate,
-      duration: replaceOverlay.duration,
-      deferCompletionUntilNextFrame: animation.compositor !== undefined,
-      applyFrame: replaceOverlay.apply,
-      applyTargetState: () => {
-        replaceOverlay.apply(replaceOverlay.duration);
-        finalize({ flushDeferredEffects: false });
-      },
-      onComplete: () => {
-        try {
-          finalize({ flushDeferredEffects: true });
-        } finally {
-          completeTransition();
-        }
-      },
-      onCancel: () => {
-        completeTransition();
-      },
-      isValid: () =>
-        Boolean(replaceOverlay.overlay) &&
-        !replaceOverlay.overlay.destroyed &&
-        (!nextDisplayObject || !nextDisplayObject.destroyed),
-    };
-
-    if (
-      isPersistent &&
-      typeof animationBus?.activatePending === "function" &&
-      animationBus.activatePending(animation.id, animationPayload)
-    ) {
-      return;
-    }
-
-    cleanupPendingTransition();
-    animationBus.dispatch({
-      type: "START",
-      payload: animationPayload,
-    });
+    return installTransition();
   };
 
   const nextDisplayObjectOrPromise = nextElement

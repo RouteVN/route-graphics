@@ -59,6 +59,17 @@ const createParent = (...children) => ({
   },
 });
 
+const createDeferred = () => {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, reject, resolve };
+};
+
 const passthroughCompositor = {
   type: "shader",
   uniforms: [],
@@ -415,6 +426,152 @@ describe("runReplaceAnimation", () => {
 
     expect(parent.children).toEqual([nextDisplayObject]);
     expect(nextDisplayObject.visible).toBe(true);
+  });
+
+  it("awaits async previous-plugin cleanup before installing a cross-type transition", async () => {
+    const prevDisplayObject = createDisplayObject("preview-background");
+    const nextDisplayObject = createDisplayObject("preview-background");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const cleanup = createDeferred();
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(() =>
+        cleanup.promise.then(() => {
+          parent.removeChild(prevDisplayObject);
+        }),
+      ),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+    const operation = runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+        },
+      },
+      parent,
+      prevElement: { id: "preview-background", type: "sprite" },
+      nextElement: { id: "preview-background", type: "rect" },
+      animation: {
+        id: "background-transition",
+        targetId: "preview-background",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(typeof operation?.then).toBe("function");
+    expect(
+      parent.children.filter((child) => child.label === "preview-background"),
+    ).toEqual([prevDisplayObject]);
+    expect(prevPlugin.delete).toHaveBeenCalledTimes(1);
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+
+    cleanup.resolve();
+    await operation;
+
+    expect(
+      parent.children.filter((child) => child.label === "preview-background"),
+    ).toEqual([nextDisplayObject]);
+    expect(animationBus.dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns async transition cleanup rejection to the caller", async () => {
+    const prevDisplayObject = createDisplayObject("preview-background");
+    const nextDisplayObject = createDisplayObject("preview-background");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+    const cleanup = createDeferred();
+    void cleanup.promise.catch(() => {});
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(() => cleanup.promise),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent }) => {
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const tracker = {
+      getVersion: () => 11,
+      track: vi.fn(),
+      complete: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+    const operation = runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+        },
+      },
+      parent,
+      prevElement: { id: "preview-background", type: "sprite" },
+      nextElement: { id: "preview-background", type: "rect" },
+      animation: {
+        id: "background-transition",
+        targetId: "preview-background",
+        type: "transition",
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(typeof operation?.then).toBe("function");
+
+    const error = new Error("cleanup failed");
+    cleanup.reject(error);
+
+    await expect(operation).rejects.toBe(error);
+    expect(animationBus.dispatch).not.toHaveBeenCalled();
+    expect(parent.children).toEqual([prevDisplayObject]);
+    expect(nextDisplayObject.destroy).toHaveBeenCalledTimes(1);
+    expect(tracker.complete).toHaveBeenCalledWith(11);
   });
 
   it("defers compositor transition completion until the final shader frame is presented", () => {
