@@ -236,7 +236,7 @@ describe("renderElements abort handling", () => {
     });
 
     await Promise.resolve();
-    expect(deleteSignal.aborted).toBe(false);
+    expect(deleteSignal).toBeUndefined();
     expect(nextPlugin.add).not.toHaveBeenCalled();
 
     resolveDelete();

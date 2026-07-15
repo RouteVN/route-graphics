@@ -53,21 +53,44 @@ export const renderElements = ({
     elementPlugins.map((plugin) => [plugin.type, plugin]),
   );
   const animationsByTarget = groupAnimationsByTarget(animations);
+  const getPlugin = (type) => {
+    const plugin = pluginByType.get(type);
+    if (!plugin) {
+      throw new Error(`No plugin found for element type: ${type}`);
+    }
+
+    return plugin;
+  };
+  const mountElement = ({
+    parent: targetParent = parent,
+    element,
+    zIndex,
+    plugin = getPlugin(element.type),
+  }) =>
+    addElementWithRenderState({
+      app,
+      parent: targetParent,
+      element,
+      animations: animationsByTarget,
+      eventHandler,
+      animationBus,
+      completionTracker,
+      elementPlugins,
+      renderContext,
+      zIndex,
+      signal,
+      plugin,
+    });
   const {
+    lifecycle,
     ownerElementId,
     pendingReplacementIds,
     renderedPrevComputedTree,
-    renderRoot,
   } = prepareElementRenderState({
-    app,
     parent,
     prevComputedTree,
     nextComputedTree,
-    animations: animationsByTarget,
-    animationBus,
-    completionTracker,
-    eventHandler,
-    elementPlugins,
+    mountElement,
     renderContext,
     signal,
   });
@@ -100,34 +123,8 @@ export const renderElements = ({
     toUpdateElement.map(({ next }) => next.id),
   );
 
-  const getPlugin = (type) => {
-    const plugin = pluginByType.get(type);
-    if (!plugin) {
-      throw new Error(`No plugin found for element type: ${type}`);
-    }
-
-    return plugin;
-  };
-
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
-
-  const addElement = ({ plugin, element, zIndex }) => {
-    return addElementWithRenderState({
-      app,
-      parent,
-      element,
-      animations: animationsByTarget,
-      eventHandler,
-      animationBus,
-      completionTracker,
-      elementPlugins,
-      renderContext,
-      zIndex,
-      signal,
-      plugin,
-    });
-  };
 
   const replaceElement = ({
     prevElement,
@@ -141,31 +138,20 @@ export const renderElements = ({
         return undefined;
       }
 
-      return addElement({
+      return mountElement({
         plugin: nextPlugin,
         element: nextElement,
         zIndex,
       });
     };
 
-    const operationController = new AbortController();
     const replacement = {
       id: nextElement.id,
-      app,
-      animations: animationsByTarget,
-      animationBus,
-      completionTracker,
-      elementPlugins,
-      eventHandler,
-      nextElement,
-      operationController,
       ownerElementId,
       parent,
-      renderContext,
-      root: renderRoot,
-      signal,
-      zIndex,
     };
+    // The deletion belongs to the replacement lifecycle, not one render. Its
+    // eventual add is gated by the lifecycle's latest signal and desired tree.
     const deleteOperation = prevPlugin.delete({
       app,
       parent,
@@ -176,12 +162,12 @@ export const renderElements = ({
       eventHandler,
       elementPlugins,
       renderContext,
-      signal: operationController.signal,
     });
 
     if (deleteOperation && typeof deleteOperation.then === "function") {
       return registerPendingElementReplacement({
         deleteOperation,
+        lifecycle,
         replacement,
       });
     }
@@ -337,7 +323,7 @@ export const renderElements = ({
     }
 
     collectOperation(
-      addElement({
+      mountElement({
         plugin,
         element,
         zIndex,

@@ -1,66 +1,26 @@
 const ELEMENT_RENDER_STATE = Symbol("routeGraphicsElementRenderState");
-
-// JSON state is committed synchronously, while plugin mounts and removals may
-// finish later. Keep the mounted type and deferred replacements separate from
-// that committed state so a superseding render can reconcile the live stage.
-const managedParents = new WeakSet();
-const pendingReplacementsByParent = new WeakMap();
-const pendingReplacementsByRoot = new WeakMap();
+const PARENT_RENDER_STATE = Symbol("routeGraphicsParentRenderState");
+const RENDER_LIFECYCLE = Symbol("routeGraphicsElementRenderLifecycle");
 
 export const getElementRenderState = (displayObject) =>
   displayObject?.[ELEMENT_RENDER_STATE] ?? null;
 
 export const setElementRenderState = (displayObject, element) => {
-  if (!displayObject || !element) {
-    return;
+  if (displayObject && element) {
+    displayObject[ELEMENT_RENDER_STATE] = element;
   }
-
-  displayObject[ELEMENT_RENDER_STATE] = element;
 };
 
-const getRenderRoot = (parent) => {
-  let root = parent;
-
-  while (root?.parent) {
-    root = root.parent;
+const getParentRenderState = (parent) => {
+  if (!parent[PARENT_RENDER_STATE]) {
+    parent[PARENT_RENDER_STATE] = {
+      lifecycle: null,
+      managed: false,
+      pendingReplacements: new Map(),
+    };
   }
 
-  return root;
-};
-
-const collectElementInfoById = (
-  elements,
-  elementInfoById = new Map(),
-  ownerElementId = null,
-) => {
-  for (let index = 0; index < elements.length; index++) {
-    const element = elements[index];
-    elementInfoById.set(element.id, {
-      element,
-      ownerElementId,
-      zIndex: index,
-    });
-
-    if (Array.isArray(element.children)) {
-      collectElementInfoById(element.children, elementInfoById, element.id);
-    }
-  }
-
-  return elementInfoById;
-};
-
-const getOwnerElementId = (parent) => {
-  let ancestor = parent;
-
-  while (ancestor) {
-    const element = getElementRenderState(ancestor);
-    if (element) {
-      return element.id;
-    }
-    ancestor = ancestor.parent;
-  }
-
-  return null;
+  return parent[PARENT_RENDER_STATE];
 };
 
 const getMountedChild = (parent, element) => {
@@ -80,33 +40,9 @@ const markMountedElement = (parent, element) => {
   }
 };
 
-export const addElementWithRenderState = ({
-  app,
-  parent,
-  element,
-  animations,
-  eventHandler,
-  animationBus,
-  completionTracker,
-  elementPlugins,
-  renderContext,
-  zIndex,
-  signal,
-  plugin,
-}) => {
-  const operation = plugin.add({
-    app,
-    parent,
-    element,
-    animations,
-    eventHandler,
-    animationBus,
-    completionTracker,
-    elementPlugins,
-    renderContext,
-    zIndex,
-    signal,
-  });
+export const addElementWithRenderState = ({ plugin, ...options }) => {
+  const operation = plugin.add(options);
+  const { parent, element, signal } = options;
 
   markMountedElement(parent, element);
 
@@ -121,265 +57,203 @@ export const addElementWithRenderState = ({
   return operation;
 };
 
-const updatePendingReplacement = (
-  replacement,
-  {
-    app,
-    elementInfo,
-    animations,
-    animationBus,
-    completionTracker,
-    eventHandler,
-    elementPlugins,
-    renderContext,
-    signal,
-  },
+const collectDesiredElements = (
+  elements,
+  desiredElementById = new Map(),
+  ownerElementId = null,
 ) => {
-  replacement.app = app;
-  replacement.nextElement = elementInfo?.element ?? null;
-  replacement.zIndex = elementInfo?.zIndex ?? -1;
-  replacement.animations = animations;
-  replacement.animationBus = animationBus;
-  replacement.completionTracker = completionTracker;
-  replacement.eventHandler = eventHandler;
-  replacement.elementPlugins = elementPlugins;
-  replacement.renderContext = renderContext;
-  adoptPendingReplacementSignal(replacement, signal);
-};
-
-const adoptPendingReplacementSignal = (replacement, signal) => {
-  if (
-    replacement.signal === signal &&
-    replacement.signalOwnershipRegistered === true
-  ) {
-    return;
-  }
-
-  replacement.removeSignalAbortListener?.();
-  replacement.signal = signal;
-  replacement.signalOwnershipRegistered = true;
-  if (!signal) {
-    return;
-  }
-
-  const abortOperationIfStillOwned = () => {
-    // RouteGraphics aborts the old signal immediately before starting the next
-    // render. Defer the ownership check so that synchronous render can adopt
-    // the pending replacement first; destruction has no adopter and aborts it.
-    queueMicrotask(() => {
-      if (replacement.signal === signal) {
-        replacement.operationController.abort();
-      }
+  for (let zIndex = 0; zIndex < elements.length; zIndex++) {
+    const element = elements[zIndex];
+    desiredElementById.set(element.id, {
+      element,
+      ownerElementId,
+      zIndex,
     });
-  };
 
-  if (signal.aborted) {
-    abortOperationIfStillOwned();
-    return;
+    if (Array.isArray(element.children)) {
+      collectDesiredElements(element.children, desiredElementById, element.id);
+    }
   }
 
-  signal.addEventListener("abort", abortOperationIfStillOwned, {
-    once: true,
-  });
-  replacement.removeSignalAbortListener = () => {
-    signal.removeEventListener("abort", abortOperationIfStillOwned);
-  };
+  return desiredElementById;
 };
 
-const mountPendingReplacement = (replacement) => {
-  const { nextElement, parent, signal } = replacement;
-  if (!nextElement || signal?.aborted || parent.destroyed) {
-    return undefined;
+const getOwnerElementId = (parent) => {
+  let ancestor = parent;
+
+  while (ancestor) {
+    const element = getElementRenderState(ancestor);
+    if (element) {
+      return element.id;
+    }
+    ancestor = ancestor.parent;
   }
 
-  const plugin = replacement.elementPlugins.find(
-    (candidate) => candidate.type === nextElement.type,
+  return null;
+};
+
+const createLifecycle = () => ({
+  currentRender: null,
+  desiredElementById: new Map(),
+});
+
+const getLifecycle = (parent, renderContext) => {
+  const contextLifecycle = renderContext[RENDER_LIFECYCLE];
+  if (contextLifecycle) {
+    return { lifecycle: contextLifecycle, isRootRender: false };
+  }
+
+  const parentState = getParentRenderState(parent);
+  const lifecycle = parentState.lifecycle ?? createLifecycle();
+  parentState.lifecycle = lifecycle;
+
+  renderContext[RENDER_LIFECYCLE] = lifecycle;
+  return { lifecycle, isRootRender: true };
+};
+
+const beginRootRender = (
+  lifecycle,
+  { parent, nextComputedTree, mountElement, signal },
+) => {
+  lifecycle.currentRender = {
+    mountElement,
+    signal,
+  };
+  lifecycle.desiredElementById = collectDesiredElements(
+    nextComputedTree,
+    new Map(),
+    getOwnerElementId(parent),
   );
-  if (!plugin) {
-    throw new Error(`No plugin found for element type: ${nextElement.type}`);
-  }
-
-  return addElementWithRenderState({
-    ...replacement,
-    element: nextElement,
-    plugin,
-  });
 };
 
-const removePendingReplacement = (replacement, replacements) => {
-  replacement.removeSignalAbortListener?.();
-  replacement.removeSignalAbortListener = null;
-  replacements.delete(replacement.id);
-  if (replacements.size === 0) {
-    pendingReplacementsByParent.delete(replacement.parent);
+const getRenderedPreviousElements = (parent, prevComputedTree) => {
+  const parentState = getParentRenderState(parent);
+  const committedElementById = new Map(
+    prevComputedTree.map((element) => [element.id, element]),
+  );
+
+  if (!parentState.managed) {
+    for (const child of parent.children) {
+      const committedElement = committedElementById.get(child.label);
+      if (committedElement) {
+        setElementRenderState(child, committedElement);
+      }
+    }
+
+    parentState.managed = true;
+    return prevComputedTree;
   }
 
-  const rootReplacements = pendingReplacementsByRoot.get(replacement.root);
-  rootReplacements?.delete(replacement);
-  if (rootReplacements?.size === 0) {
-    pendingReplacementsByRoot.delete(replacement.root);
+  const renderedElementById = new Map();
+  for (const child of parent.children) {
+    if (child.destroyed) {
+      continue;
+    }
+
+    let renderedElement = getElementRenderState(child);
+    const committedElement = committedElementById.get(child.label);
+
+    if (!renderedElement && committedElement) {
+      renderedElement = committedElement;
+      setElementRenderState(child, committedElement);
+    }
+
+    if (renderedElement) {
+      renderedElementById.set(
+        renderedElement.id,
+        committedElement?.type === renderedElement.type
+          ? committedElement
+          : renderedElement,
+      );
+    }
   }
+
+  return Array.from(renderedElementById.values());
 };
 
 export const prepareElementRenderState = ({
-  app,
   parent,
   prevComputedTree,
   nextComputedTree,
-  animations,
-  animationBus,
-  completionTracker,
-  eventHandler,
-  elementPlugins,
+  mountElement,
   renderContext,
   signal,
 }) => {
-  const wasParentManaged = managedParents.has(parent);
-  const committedPrevElementById = new Map(
-    prevComputedTree.map((element) => [element.id, element]),
-  );
-  const nextElementInfoById = new Map(
-    nextComputedTree.map((element, zIndex) => [
-      element.id,
-      { element, zIndex },
-    ]),
-  );
-  const pendingReplacements = pendingReplacementsByParent.get(parent);
-  const renderRoot = getRenderRoot(parent);
-
-  if (renderRoot === parent) {
-    // A pending replacement may be nested under an unchanged container, whose
-    // own renderElements call will be skipped. Refresh every descendant record
-    // from the root tree so those operations are adopted as well.
-    const elementInfoById = collectElementInfoById(nextComputedTree);
-    const rootReplacements = pendingReplacementsByRoot.get(renderRoot);
-
-    for (const replacement of rootReplacements ?? []) {
-      const elementInfo = elementInfoById.get(replacement.id);
-      updatePendingReplacement(replacement, {
-        app,
-        elementInfo:
-          elementInfo?.ownerElementId === replacement.ownerElementId
-            ? elementInfo
-            : undefined,
-        animations,
-        animationBus,
-        completionTracker,
-        eventHandler,
-        elementPlugins,
-        renderContext,
-        signal,
-      });
-    }
+  const { lifecycle, isRootRender } = getLifecycle(parent, renderContext);
+  if (isRootRender) {
+    beginRootRender(lifecycle, {
+      parent,
+      nextComputedTree,
+      mountElement,
+      signal,
+    });
   }
 
-  if (!wasParentManaged) {
-    for (const child of parent.children) {
-      const element = committedPrevElementById.get(child.label);
-      if (element) {
-        setElementRenderState(child, element);
-      }
-    }
-  }
-
-  let renderedPrevComputedTree = prevComputedTree;
-  if (wasParentManaged) {
-    // Prefer the definition attached to the actual display object whenever its
-    // type differs from the optimistically committed previous JSON state.
-    const renderedElementById = new Map();
-
-    for (const child of parent.children) {
-      if (child.destroyed) {
-        continue;
-      }
-
-      let renderedElement = getElementRenderState(child);
-      const committedElement = committedPrevElementById.get(child.label);
-
-      if (!renderedElement && committedElement) {
-        renderedElement = committedElement;
-        setElementRenderState(child, committedElement);
-      }
-
-      if (renderedElement) {
-        renderedElementById.set(
-          renderedElement.id,
-          committedElement?.type === renderedElement.type
-            ? committedElement
-            : renderedElement,
-        );
-      }
-    }
-
-    renderedPrevComputedTree = Array.from(renderedElementById.values());
-  }
-
-  if (pendingReplacements) {
-    const renderedElementById = new Map(
-      renderedPrevComputedTree.map((element) => [element.id, element]),
-    );
-
-    for (const replacement of pendingReplacements.values()) {
-      updatePendingReplacement(replacement, {
-        app,
-        elementInfo: nextElementInfoById.get(replacement.id),
-        animations,
-        animationBus,
-        completionTracker,
-        eventHandler,
-        elementPlugins,
-        renderContext,
-        signal,
-      });
-
-      if (replacement.nextElement) {
-        renderedElementById.set(replacement.id, replacement.nextElement);
-      } else {
-        renderedElementById.delete(replacement.id);
-      }
-    }
-
-    renderedPrevComputedTree = Array.from(renderedElementById.values());
-  }
-
-  managedParents.add(parent);
-
+  const pendingReplacements = getParentRenderState(parent).pendingReplacements;
   return {
+    lifecycle,
     ownerElementId: getOwnerElementId(parent),
     pendingReplacementIds: new Set(pendingReplacements?.keys() ?? []),
-    renderedPrevComputedTree,
-    renderRoot,
+    renderedPrevComputedTree: getRenderedPreviousElements(
+      parent,
+      prevComputedTree,
+    ),
   };
+};
+
+const removePendingReplacement = (replacement) => {
+  const replacements = getParentRenderState(
+    replacement.parent,
+  ).pendingReplacements;
+  if (replacements.get(replacement.id) !== replacement) {
+    return false;
+  }
+
+  replacements.delete(replacement.id);
+  return true;
+};
+
+const mountPendingReplacement = (lifecycle, replacement) => {
+  const { currentRender } = lifecycle;
+  if (
+    !currentRender ||
+    currentRender.signal?.aborted ||
+    replacement.parent.destroyed
+  ) {
+    return undefined;
+  }
+
+  const desiredElement = lifecycle.desiredElementById.get(replacement.id);
+  if (desiredElement?.ownerElementId !== replacement.ownerElementId) {
+    return undefined;
+  }
+
+  return currentRender.mountElement({
+    parent: replacement.parent,
+    element: desiredElement.element,
+    zIndex: desiredElement.zIndex,
+  });
 };
 
 export const registerPendingElementReplacement = ({
   deleteOperation,
+  lifecycle,
   replacement,
 }) => {
-  const replacements =
-    pendingReplacementsByParent.get(replacement.parent) ?? new Map();
+  const replacements = getParentRenderState(
+    replacement.parent,
+  ).pendingReplacements;
   replacements.set(replacement.id, replacement);
-  pendingReplacementsByParent.set(replacement.parent, replacements);
-
-  const rootReplacements =
-    pendingReplacementsByRoot.get(replacement.root) ?? new Set();
-  rootReplacements.add(replacement);
-  pendingReplacementsByRoot.set(replacement.root, rootReplacements);
-  adoptPendingReplacementSignal(replacement, replacement.signal);
 
   const finishReplacement = () => {
-    if (replacements.get(replacement.id) !== replacement) {
+    if (!removePendingReplacement(replacement)) {
       return undefined;
     }
-
-    removePendingReplacement(replacement, replacements);
-    return mountPendingReplacement(replacement);
+    return mountPendingReplacement(lifecycle, replacement);
   };
 
   return deleteOperation.then(finishReplacement, (error) => {
-    if (replacements.get(replacement.id) === replacement) {
-      removePendingReplacement(replacement, replacements);
-    }
+    removePendingReplacement(replacement);
     throw error;
   });
 };
