@@ -1,0 +1,29 @@
+---
+title: Audio Manual - Source Replacement by Src
+description: Isolated fixture proving that changing src replaces a same-id sound instead of updating its current source.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start looping bgm-1
+  - state 3 should replace it with bgm-2 even though the public sound id is unchanged
+  - state 4 should stop the sound
+---
+states:
+  - id: replacement-src-ready
+    audio: []
+  - id: replacement-src-first
+    audio:
+      - id: replacement-src-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+  - id: replacement-src-second
+    audio:
+      - id: replacement-src-bgm
+        type: sound
+        src: bgm-2
+        loop: true
+        volume: 80
+  - id: replacement-src-stopped
+    audio: []

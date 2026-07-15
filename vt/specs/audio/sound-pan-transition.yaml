@@ -1,0 +1,46 @@
+---
+title: Audio Manual - Sound Pan Transition
+description: Isolated headphone fixture for sound-pan enter, update, and exit automation.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should sweep the sound from fully left to fully right over three seconds
+  - state 3 should sweep the continuing sound back left over three seconds
+  - state 4 should sweep it right over two seconds and then stop it
+---
+states:
+  - id: sound-pan-transition-ready
+    audio: []
+  - id: sound-pan-transition-enter
+    audio:
+      - id: sound-pan-transition-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+        pan: 1
+    audioEffects:
+      - id: sound-pan-enter
+        type: audio-transition
+        targetId: sound-pan-transition-bgm
+        properties:
+          pan:
+            enter: { from: -1, duration: 3000, easing: linear }
+  - id: sound-pan-transition-update
+    audio:
+      - id: sound-pan-transition-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+        pan: -1
+    audioEffects:
+      - id: sound-pan-update-exit
+        type: audio-transition
+        targetId: sound-pan-transition-bgm
+        properties:
+          pan:
+            update: { duration: 3000, easing: linear }
+            exit: { to: 1, duration: 2000, easing: linear }
+  - id: sound-pan-transition-exit
+    audio: []

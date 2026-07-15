@@ -1,0 +1,23 @@
+---
+title: Audio Manual - Sound Loop and Stop
+description: Isolated fixture for looped playback and declarative stopping by removal.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should repeatedly loop the first four seconds of bgm-3
+  - state 3 should immediately stop and clean up the loop
+---
+states:
+  - id: sound-loop-ready
+    audio: []
+  - id: sound-loop-playing
+    audio:
+      - id: looping-bgm
+        type: sound
+        src: bgm-3
+        volume: 80
+        loop: true
+        startAt: 0
+        endAt: 4
+  - id: sound-loop-stopped
+    audio: []

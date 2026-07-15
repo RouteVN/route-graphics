@@ -1,0 +1,49 @@
+---
+title: Audio Manual - Stacked Channel and Sound Volume
+description: Isolated fixture for multiplicative channel and sound gain.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play bgm-1 at roughly 25 percent effective gain from channel 50 times sound 50
+  - state 3 should raise only the channel to 100 for roughly 50 percent effective gain
+  - state 4 should raise only the sound to 100 for full effective gain
+  - state 5 should stop the sound
+---
+states:
+  - id: stacked-volume-ready
+    audio: []
+  - id: stacked-volume-quarter
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 50
+        children:
+          - id: stacked-volume-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 50
+  - id: stacked-volume-half
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 100
+        children:
+          - id: stacked-volume-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 50
+  - id: stacked-volume-full
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 100
+        children:
+          - id: stacked-volume-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 100
+  - id: stacked-volume-stopped
+    audio: []

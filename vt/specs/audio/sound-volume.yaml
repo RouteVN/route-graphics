@@ -1,0 +1,29 @@
+---
+title: Audio Manual - Sound Volume
+description: Isolated manual fixture for immediate sound-volume updates on a continuing playback instance.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start a quiet looping bgm-1
+  - state 3 should immediately make the continuing sound louder without restarting it
+  - state 4 should stop the sound
+---
+states:
+  - id: sound-volume-ready
+    audio: []
+  - id: sound-volume-quiet
+    audio:
+      - id: sound-volume-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 25
+  - id: sound-volume-loud
+    audio:
+      - id: sound-volume-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+  - id: sound-volume-stopped
+    audio: []

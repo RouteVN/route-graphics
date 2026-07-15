@@ -1,0 +1,25 @@
+---
+title: Audio Manual - One-Shot Replay Identity
+description: Isolated fixture proving that a new playback-instance id replays the same one-shot asset.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play sfx-1 once; wait for it to finish
+  - state 3 should play sfx-1 again because its playback-instance id changed
+  - state 4 should remove all audio
+---
+states:
+  - id: one-shot-replay-ready
+    audio: []
+  - id: one-shot-replay-first
+    audio:
+      - id: one-shot-replay-1
+        type: sound
+        src: sfx-1
+  - id: one-shot-replay-second
+    audio:
+      - id: one-shot-replay-2
+        type: sound
+        src: sfx-1
+  - id: one-shot-replay-stopped
+    audio: []

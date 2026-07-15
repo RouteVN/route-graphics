@@ -1,0 +1,46 @@
+---
+title: Audio Manual - Playback-Rate Transition
+description: Isolated fixture for sound playbackRate enter, update, and exit automation.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should accelerate bgm-3 from half speed to normal speed over three seconds
+  - state 3 should accelerate the continuing sound to one-and-a-half speed over three seconds
+  - state 4 should slow it to quarter speed over two seconds and then stop it
+---
+states:
+  - id: playback-rate-transition-ready
+    audio: []
+  - id: playback-rate-transition-enter
+    audio:
+      - id: playback-rate-transition-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        playbackRate: 1
+    audioEffects:
+      - id: playback-rate-enter
+        type: audio-transition
+        targetId: playback-rate-transition-bgm
+        properties:
+          playbackRate:
+            enter: { from: 0.5, duration: 3000, easing: linear }
+  - id: playback-rate-transition-update
+    audio:
+      - id: playback-rate-transition-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        playbackRate: 1.5
+    audioEffects:
+      - id: playback-rate-update-exit
+        type: audio-transition
+        targetId: playback-rate-transition-bgm
+        properties:
+          playbackRate:
+            update: { duration: 3000, easing: linear }
+            exit: { to: 0.25, duration: 2000, easing: linear }
+  - id: playback-rate-transition-exit
+    audio: []

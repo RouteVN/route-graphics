@@ -1,0 +1,40 @@
+---
+title: Audio Manual - Sound Pan
+description: Isolated headphone fixture for immediate stereo-pan updates on a continuing sound.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-1 in the center
+  - state 3 should immediately move the continuing sound fully left
+  - state 4 should immediately move it fully right
+  - state 5 should stop the sound
+---
+states:
+  - id: sound-pan-ready
+    audio: []
+  - id: sound-pan-center
+    audio:
+      - id: sound-pan-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+        pan: 0
+  - id: sound-pan-left
+    audio:
+      - id: sound-pan-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+        pan: -1
+  - id: sound-pan-right
+    audio:
+      - id: sound-pan-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+        pan: 1
+  - id: sound-pan-stopped
+    audio: []
