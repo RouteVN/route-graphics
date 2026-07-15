@@ -78,6 +78,47 @@ export const renderElements = ({
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
 
+  const replaceElement = ({
+    prevElement,
+    nextElement,
+    prevPlugin,
+    nextPlugin,
+    zIndex,
+  }) => {
+    const addNextElement = () =>
+      nextPlugin.add({
+        app,
+        parent,
+        element: nextElement,
+        animations: animationsByTarget,
+        eventHandler,
+        animationBus,
+        completionTracker,
+        elementPlugins,
+        renderContext,
+        zIndex,
+        signal,
+      });
+    const deleteOperation = prevPlugin.delete({
+      app,
+      parent,
+      element: prevElement,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      signal,
+    });
+
+    if (deleteOperation && typeof deleteOperation.then === "function") {
+      return deleteOperation.then(addNextElement);
+    }
+
+    return addNextElement();
+  };
+
   for (const element of nextComputedTree) {
     const prevElement = prevElementById.get(element.id);
     if (!prevElement || scheduledUpdateIds.has(element.id)) {
@@ -240,7 +281,9 @@ export const renderElements = ({
 
   // Update elements
   for (const { prev, next } of toUpdateElement) {
-    const plugin = getPlugin(next.type);
+    const prevPlugin = getPlugin(prev.type);
+    const nextPlugin = getPlugin(next.type);
+    const isTypeReplacement = prev.type !== next.type;
 
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(next.id) ?? -1;
@@ -257,6 +300,10 @@ export const renderElements = ({
       if (typeof animationBus?.updateContinuation === "function") {
         animationBus.updateContinuation(replaceAnimation.id, { zIndex });
       }
+
+      if (isTypeReplacement) {
+        continue;
+      }
     } else if (replaceAnimation) {
       collectOperation(
         runReplaceAnimation({
@@ -271,7 +318,9 @@ export const renderElements = ({
           eventHandler,
           elementPlugins,
           renderContext,
-          plugin,
+          plugin: nextPlugin,
+          prevPlugin,
+          nextPlugin,
           zIndex,
           signal,
         }),
@@ -279,8 +328,21 @@ export const renderElements = ({
       continue;
     }
 
+    if (isTypeReplacement) {
+      collectOperation(
+        replaceElement({
+          prevElement: prev,
+          nextElement: next,
+          prevPlugin,
+          nextPlugin,
+          zIndex,
+        }),
+      );
+      continue;
+    }
+
     collectOperation(
-      plugin.update({
+      nextPlugin.update({
         app,
         parent,
         prevElement: prev,

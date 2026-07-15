@@ -244,6 +244,84 @@ describe("renderElements transition handling", () => {
     );
   });
 
+  it("routes same-id type changes through both transition plugins", () => {
+    const parent = {
+      children: [],
+      sortableChildren: false,
+    };
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+    const nextPlugin = {
+      type: "rect",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    renderElements({
+      app: { renderer: { width: 1280, height: 720 } },
+      parent,
+      prevComputedTree: [
+        {
+          id: "preview-background",
+          type: "sprite",
+          src: "background.png",
+        },
+      ],
+      nextComputedTree: [
+        {
+          id: "preview-background",
+          type: "rect",
+          width: 1280,
+          height: 720,
+          fill: "#000000",
+        },
+      ],
+      animations: [
+        {
+          id: "background-transition",
+          targetId: "preview-background",
+          type: "transition",
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 3,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+      signal: new AbortController().signal,
+    });
+
+    expect(previousPlugin.delete).not.toHaveBeenCalled();
+    expect(nextPlugin.add).not.toHaveBeenCalled();
+    expect(nextPlugin.update).not.toHaveBeenCalled();
+    expect(mocks.runReplaceAnimation).toHaveBeenCalledTimes(1);
+    expect(mocks.runReplaceAnimation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prevElement: expect.objectContaining({ type: "sprite" }),
+        nextElement: expect.objectContaining({ type: "rect" }),
+        plugin: nextPlugin,
+        prevPlugin: previousPlugin,
+        nextPlugin,
+      }),
+    );
+  });
+
   it("suppresses descendant transitions when render context owns the subtree", () => {
     const parent = {
       children: [],

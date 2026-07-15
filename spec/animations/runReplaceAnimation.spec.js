@@ -331,6 +331,92 @@ describe("runReplaceAnimation", () => {
     expect(tracker.complete).toHaveBeenCalledWith(11);
   });
 
+  it("uses separate plugins for cross-type transition lifecycle operations", () => {
+    const prevDisplayObject = createDisplayObject("preview-background");
+    const nextDisplayObject = createDisplayObject("preview-background");
+    const parent = createParent(prevDisplayObject);
+    prevDisplayObject.parent = parent;
+
+    const prevPlugin = {
+      add: vi.fn(),
+      delete: vi.fn(({ parent: targetParent }) => {
+        targetParent.removeChild(prevDisplayObject);
+      }),
+    };
+    const nextPlugin = {
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+      }),
+      delete: vi.fn(),
+    };
+    const animationBus = { dispatch: vi.fn() };
+
+    runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+        },
+      },
+      parent,
+      prevElement: {
+        id: "preview-background",
+        type: "sprite",
+      },
+      nextElement: {
+        id: "preview-background",
+        type: "rect",
+      },
+      animation: {
+        id: "background-transition",
+        targetId: "preview-background",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              initialValue: 1,
+              keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+            },
+          },
+        },
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: {
+        getVersion: () => 11,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      prevPlugin,
+      nextPlugin,
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    expect(nextPlugin.add).toHaveBeenCalledTimes(1);
+    expect(prevPlugin.delete).toHaveBeenCalledTimes(1);
+    expect(prevPlugin.add).not.toHaveBeenCalled();
+    expect(nextPlugin.delete).not.toHaveBeenCalled();
+
+    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    dispatched.payload.onComplete();
+
+    expect(parent.children).toEqual([nextDisplayObject]);
+    expect(nextDisplayObject.visible).toBe(true);
+  });
+
   it("defers compositor transition completion until the final shader frame is presented", () => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const nextDisplayObject = createDisplayObject("scene-root");

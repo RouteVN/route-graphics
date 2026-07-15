@@ -1697,6 +1697,8 @@ export const runReplaceAnimation = ({
   elementPlugins,
   renderContext,
   plugin,
+  prevPlugin = plugin,
+  nextPlugin = plugin,
   zIndex,
   signal,
 }) => {
@@ -1794,7 +1796,7 @@ export const runReplaceAnimation = ({
     }
 
     previousLiveDeleted = true;
-    plugin.delete({
+    prevPlugin.delete({
       app,
       parent: prevDisplayObject.parent ?? replaceOverlayRef.value.overlay,
       element: prevElement,
@@ -1912,7 +1914,7 @@ export const runReplaceAnimation = ({
     transitionMountParent.destroy({ children: true });
 
     if (prevDisplayObject && !isLiveSubject(overlaySubjects.prevSubject)) {
-      plugin.delete({
+      prevPlugin.delete({
         app,
         parent,
         element: prevElement,
@@ -2001,7 +2003,7 @@ export const runReplaceAnimation = ({
         app,
         parent: transitionMountParent,
         nextElement,
-        plugin,
+        plugin: nextPlugin,
         animations,
         eventHandler,
         animationBus,

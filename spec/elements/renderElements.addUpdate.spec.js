@@ -178,4 +178,114 @@ describe("renderElements add-time update animations", () => {
       }),
     ]);
   });
+
+  it("replaces a same-id element through its previous and next type plugins", () => {
+    const parent = new Container();
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+    const nextPlugin = {
+      type: "rect",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    const result = renderElements({
+      app: { renderer: { width: 1280, height: 720 } },
+      parent,
+      prevComputedTree: [
+        {
+          id: "preview-background",
+          type: "sprite",
+          src: "background.png",
+        },
+      ],
+      nextComputedTree: [
+        {
+          id: "preview-background",
+          type: "rect",
+          width: 1280,
+          height: 720,
+          fill: "#000000",
+        },
+      ],
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 3,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+      signal: new AbortController().signal,
+    });
+
+    expect(result).toBeUndefined();
+    expect(previousPlugin.delete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        element: expect.objectContaining({ type: "sprite" }),
+        animations: [],
+      }),
+    );
+    expect(nextPlugin.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        element: expect.objectContaining({ type: "rect" }),
+        zIndex: 0,
+      }),
+    );
+    expect(previousPlugin.update).not.toHaveBeenCalled();
+    expect(nextPlugin.update).not.toHaveBeenCalled();
+    expect(previousPlugin.delete.mock.invocationCallOrder[0]).toBeLessThan(
+      nextPlugin.add.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("waits for async previous-type cleanup before adding a replacement", async () => {
+    const parent = new Container();
+    let resolveDelete;
+    const deleteOperation = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(() => deleteOperation),
+    };
+    const nextPlugin = {
+      type: "rect",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    const result = renderElements({
+      app: { renderer: { width: 1280, height: 720 } },
+      parent,
+      prevComputedTree: [{ id: "preview-background", type: "sprite" }],
+      nextComputedTree: [{ id: "preview-background", type: "rect" }],
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 3,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+      signal: new AbortController().signal,
+    });
+
+    expect(nextPlugin.add).not.toHaveBeenCalled();
+
+    resolveDelete();
+    await result;
+
+    expect(nextPlugin.add).toHaveBeenCalledTimes(1);
+  });
 });
