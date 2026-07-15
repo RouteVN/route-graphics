@@ -5,6 +5,11 @@ import {
   groupAnimationsByTarget,
 } from "../animations/planAnimations.js";
 import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.js";
+import {
+  addElementWithRenderState,
+  prepareElementRenderState,
+  registerPendingElementReplacement,
+} from "./elementRenderState.js";
 import { createRenderContext } from "./renderContext.js";
 
 /**
@@ -48,19 +53,48 @@ export const renderElements = ({
     elementPlugins.map((plugin) => [plugin.type, plugin]),
   );
   const animationsByTarget = groupAnimationsByTarget(animations);
+  const {
+    ownerElementId,
+    pendingReplacementIds,
+    renderedPrevComputedTree,
+    renderRoot,
+  } = prepareElementRenderState({
+    app,
+    parent,
+    prevComputedTree,
+    nextComputedTree,
+    animations: animationsByTarget,
+    animationBus,
+    completionTracker,
+    eventHandler,
+    elementPlugins,
+    renderContext,
+    signal,
+  });
   const prevElementById = new Map();
   const nextIndexById = new Map();
-  for (const element of prevComputedTree) {
+  for (const element of renderedPrevComputedTree) {
     prevElementById.set(element.id, element);
   }
   for (let index = 0; index < nextComputedTree.length; index++) {
     nextIndexById.set(nextComputedTree[index].id, index);
   }
 
-  const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
-    prevComputedTree,
+  const diff = diffElements(
+    renderedPrevComputedTree,
     nextComputedTree,
     animations,
+  );
+  const isPendingReplacement = (element) =>
+    pendingReplacementIds.has(element.id);
+  const toAddElement = diff.toAddElement.filter(
+    (element) => !isPendingReplacement(element),
+  );
+  const toDeleteElement = diff.toDeleteElement.filter(
+    (element) => !isPendingReplacement(element),
+  );
+  const toUpdateElement = diff.toUpdateElement.filter(
+    ({ next }) => !isPendingReplacement(next),
   );
   const scheduledUpdateIds = new Set(
     toUpdateElement.map(({ next }) => next.id),
@@ -78,6 +112,23 @@ export const renderElements = ({
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
 
+  const addElement = ({ plugin, element, zIndex }) => {
+    return addElementWithRenderState({
+      app,
+      parent,
+      element,
+      animations: animationsByTarget,
+      eventHandler,
+      animationBus,
+      completionTracker,
+      elementPlugins,
+      renderContext,
+      zIndex,
+      signal,
+      plugin,
+    });
+  };
+
   const replaceElement = ({
     prevElement,
     nextElement,
@@ -90,19 +141,30 @@ export const renderElements = ({
         return undefined;
       }
 
-      return nextPlugin.add({
-        app,
-        parent,
+      return addElement({
+        plugin: nextPlugin,
         element: nextElement,
-        animations: animationsByTarget,
-        eventHandler,
-        animationBus,
-        completionTracker,
-        elementPlugins,
-        renderContext,
         zIndex,
-        signal,
       });
+    };
+
+    const operationController = new AbortController();
+    const replacement = {
+      id: nextElement.id,
+      app,
+      animations: animationsByTarget,
+      animationBus,
+      completionTracker,
+      elementPlugins,
+      eventHandler,
+      nextElement,
+      operationController,
+      ownerElementId,
+      parent,
+      renderContext,
+      root: renderRoot,
+      signal,
+      zIndex,
     };
     const deleteOperation = prevPlugin.delete({
       app,
@@ -114,17 +176,24 @@ export const renderElements = ({
       eventHandler,
       elementPlugins,
       renderContext,
-      signal,
+      signal: operationController.signal,
     });
 
     if (deleteOperation && typeof deleteOperation.then === "function") {
-      return deleteOperation.then(addNextElement);
+      return registerPendingElementReplacement({
+        deleteOperation,
+        replacement,
+      });
     }
 
     return addNextElement();
   };
 
   for (const element of nextComputedTree) {
+    if (pendingReplacementIds.has(element.id)) {
+      continue;
+    }
+
     const prevElement = prevElementById.get(element.id);
     if (!prevElement || scheduledUpdateIds.has(element.id)) {
       continue;
@@ -268,18 +337,10 @@ export const renderElements = ({
     }
 
     collectOperation(
-      plugin.add({
-        app,
-        parent,
+      addElement({
+        plugin,
         element,
-        animations: animationsByTarget,
-        eventHandler,
-        animationBus,
-        completionTracker,
-        elementPlugins,
-        renderContext,
         zIndex,
-        signal,
       }),
     );
   }

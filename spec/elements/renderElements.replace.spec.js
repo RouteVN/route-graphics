@@ -1,3 +1,4 @@
+import { Container } from "pixi.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRenderContext } from "../../src/plugins/elements/renderContext.js";
 
@@ -384,5 +385,81 @@ describe("renderElements transition handling", () => {
       }),
     );
     expect(mocks.runReplaceAnimation).not.toHaveBeenCalled();
+  });
+
+  it("uses the live element type after an async transition is superseded", () => {
+    const parent = new Container();
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(({ parent: targetParent, element }) => {
+        const child = new Container();
+        child.label = element.id;
+        targetParent.addChild(child);
+      }),
+      update: vi.fn(),
+      delete: vi.fn(({ parent: targetParent, element }) => {
+        const child = targetParent.getChildByLabel(element.id);
+        if (!child) return;
+        targetParent.removeChild(child);
+        child.destroy();
+      }),
+    };
+    const nextPlugin = {
+      type: "spritesheet-animation",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(() => {
+        throw new Error("wrong lifecycle plugin");
+      }),
+    };
+    const commonParams = {
+      app: { renderer: { width: 1280, height: 720 } },
+      parent,
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 3,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+    };
+
+    renderElements({
+      ...commonParams,
+      prevComputedTree: [],
+      nextComputedTree: [{ id: "character", type: "sprite" }],
+      animations: [],
+      signal: new AbortController().signal,
+    });
+
+    const transitionController = new AbortController();
+    renderElements({
+      ...commonParams,
+      prevComputedTree: [{ id: "character", type: "sprite" }],
+      nextComputedTree: [{ id: "character", type: "spritesheet-animation" }],
+      animations: [
+        {
+          id: "character-transition",
+          targetId: "character",
+          type: "transition",
+        },
+      ],
+      signal: transitionController.signal,
+    });
+
+    transitionController.abort();
+
+    expect(() =>
+      renderElements({
+        ...commonParams,
+        prevComputedTree: [{ id: "character", type: "spritesheet-animation" }],
+        nextComputedTree: [],
+        animations: [],
+        signal: new AbortController().signal,
+      }),
+    ).not.toThrow();
+    expect(previousPlugin.delete).toHaveBeenCalledTimes(1);
+    expect(nextPlugin.delete).not.toHaveBeenCalled();
   });
 });

@@ -19,6 +19,7 @@ import {
   createRenderContext,
   flushDeferredMountOperations,
 } from "../../elements/renderContext.js";
+import { setElementRenderState } from "../../elements/elementRenderState.js";
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
 import { degreesToRadians } from "../../elements/util/transform.js";
@@ -1658,9 +1659,12 @@ const instantiateNextLiveElement = ({
         return null;
       }
 
-      return (
-        parent.children.find((child) => child.label === nextElement.id) ?? null
-      );
+      const nextDisplayObject =
+        parent.children.find((child) => child.label === nextElement.id) ?? null;
+      if (nextDisplayObject) {
+        setElementRenderState(nextDisplayObject, nextElement);
+      }
+      return nextDisplayObject;
     });
   }
 
@@ -1668,9 +1672,12 @@ const instantiateNextLiveElement = ({
     return null;
   }
 
-  return (
-    parent.children.find((child) => child.label === nextElement.id) ?? null
-  );
+  const nextDisplayObject =
+    parent.children.find((child) => child.label === nextElement.id) ?? null;
+  if (nextDisplayObject) {
+    setElementRenderState(nextDisplayObject, nextElement);
+  }
+  return nextDisplayObject;
 };
 
 const resolveNextDisplayObject = async (nextDisplayObjectOrPromise) => {
