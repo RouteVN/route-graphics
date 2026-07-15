@@ -27,7 +27,10 @@ states:
         targetId: music
         properties:
           volume:
-            enter: { from: 0, duration: 2000, easing: linear }
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 80, duration: 2000, easing: linear }
   - id: channel-volume-transition-update
     audio:
       - id: music
@@ -44,7 +47,11 @@ states:
         targetId: music
         properties:
           volume:
-            update: { duration: 2000, easing: linear }
-            exit: { to: 0, duration: 2000, easing: linear }
+            update:
+              keyframes:
+                - { value: 25, duration: 2000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 0, duration: 2000, easing: linear }
   - id: channel-volume-transition-exit
     audio: []

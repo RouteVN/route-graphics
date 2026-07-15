@@ -25,10 +25,18 @@ states:
         targetId: longest-exit-bgm
         properties:
           volume:
-            exit: { to: 80, duration: 2000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 60, duration: 1000, easing: linear }
+                - { value: 80, duration: 1000, easing: linear }
           pan:
-            exit: { to: 1, duration: 1000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 1, duration: 1000, easing: linear }
           playbackRate:
-            exit: { to: 0.25, duration: 3000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 0.75, duration: 1000, easing: linear }
+                - { value: 0.25, duration: 2000, easing: linear }
   - id: longest-exit-stopped
     audio: []

@@ -25,7 +25,10 @@ states:
         targetId: playback-rate-transition-bgm
         properties:
           playbackRate:
-            enter: { from: 0.5, duration: 3000, easing: linear }
+            enter:
+              initialValue: 0.5
+              keyframes:
+                - { value: 1, duration: 3000, easing: linear }
   - id: playback-rate-transition-update
     audio:
       - id: playback-rate-transition-bgm
@@ -40,7 +43,11 @@ states:
         targetId: playback-rate-transition-bgm
         properties:
           playbackRate:
-            update: { duration: 3000, easing: linear }
-            exit: { to: 0.25, duration: 2000, easing: linear }
+            update:
+              keyframes:
+                - { value: 1.5, duration: 3000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 0.25, duration: 2000, easing: linear }
   - id: playback-rate-transition-exit
     audio: []

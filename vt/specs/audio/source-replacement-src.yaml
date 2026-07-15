@@ -24,7 +24,9 @@ states:
         targetId: replacement-src-bgm
         properties:
           volume:
-            exit: { to: 0, duration: 1200, easing: linear }
+            exit:
+              keyframes:
+                - { value: 0, duration: 1200, easing: linear }
   - id: replacement-src-second
     audio:
       - id: replacement-src-bgm
@@ -38,7 +40,12 @@ states:
         targetId: replacement-src-bgm
         properties:
           volume:
-            enter: { from: 0, duration: 1200, easing: linear }
-            exit: { to: 0, duration: 1200, easing: linear }
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 80, duration: 1200, easing: linear }
+            exit:
+              keyframes:
+                - { value: 0, duration: 1200, easing: linear }
   - id: replacement-src-stopped
     audio: []

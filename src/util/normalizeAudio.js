@@ -1,3 +1,5 @@
+import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
+
 const AUDIO_NODE_TYPES = new Set(["audio-channel", "sound"]);
 const AUDIO_TRANSITION_TYPE = "audio-transition";
 const AUDIO_EFFECT_TYPES = new Set([AUDIO_TRANSITION_TYPE]);
@@ -12,12 +14,14 @@ const AUDIO_TRANSITION_PROPERTY_RANGES = {
   pan: { min: -1, max: 1 },
   playbackRate: { min: 0 },
 };
-const AUDIO_EASINGS = new Set(["linear"]);
-const AUDIO_TRANSITION_PHASE_KEYS = {
-  enter: new Set(["from", "duration", "easing"]),
-  exit: new Set(["to", "duration", "easing"]),
-  update: new Set(["duration", "easing"]),
-};
+const AUDIO_EASINGS = new Set(SUPPORTED_EASING_NAMES);
+const AUDIO_TRANSITION_PHASE_KEYS = new Set(["initialValue", "keyframes"]);
+const AUDIO_TRANSITION_KEYFRAME_KEYS = new Set([
+  "value",
+  "duration",
+  "easing",
+  "relative",
+]);
 
 const isRecord = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -219,51 +223,66 @@ const validateAudioNodes = (audio, ids) => {
   };
 };
 
-const validateTransitionPhase = (phase, phaseName, path, propertyName) => {
+const validateTransitionPhase = (phase, path, propertyName) => {
   assertRecord(phase, path);
 
   for (const key of Object.keys(phase)) {
-    if (!AUDIO_TRANSITION_PHASE_KEYS[phaseName].has(key)) {
+    if (!AUDIO_TRANSITION_PHASE_KEYS.has(key)) {
       throw new Error(
         `Input error: unsupported audio transition field "${key}" at ${path}.`,
       );
     }
   }
 
-  if (phase.duration === undefined) {
-    throw new Error(`Input error: ${path}.duration is required.`);
+  if (phase.initialValue !== undefined) {
+    assertNumber(
+      phase.initialValue,
+      `${path}.initialValue`,
+      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
+    );
   }
-  assertNumber(phase.duration, `${path}.duration`, { min: 0 });
 
-  if (phase.easing === undefined) {
-    throw new Error(`Input error: ${path}.easing is required.`);
-  }
-  if (!AUDIO_EASINGS.has(phase.easing)) {
+  if (!Array.isArray(phase.keyframes) || phase.keyframes.length === 0) {
     throw new Error(
-      `Input error: ${path}.easing "${phase.easing}" is not supported.`,
+      `Input error: ${path}.keyframes must be a non-empty array.`,
     );
   }
 
-  if (phaseName === "enter") {
-    if (phase.from === undefined) {
-      throw new Error(`Input error: ${path}.from is required.`);
-    }
-    assertNumber(
-      phase.from,
-      `${path}.from`,
-      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
-    );
-  }
+  for (const [index, keyframe] of phase.keyframes.entries()) {
+    const keyframePath = `${path}.keyframes[${index}]`;
+    assertRecord(keyframe, keyframePath);
 
-  if (phaseName === "exit") {
-    if (phase.to === undefined) {
-      throw new Error(`Input error: ${path}.to is required.`);
+    for (const key of Object.keys(keyframe)) {
+      if (!AUDIO_TRANSITION_KEYFRAME_KEYS.has(key)) {
+        throw new Error(
+          `Input error: unsupported audio transition keyframe field "${key}" at ${keyframePath}.`,
+        );
+      }
+    }
+
+    if (keyframe.value === undefined) {
+      throw new Error(`Input error: ${keyframePath}.value is required.`);
     }
     assertNumber(
-      phase.to,
-      `${path}.to`,
-      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
+      keyframe.value,
+      `${keyframePath}.value`,
+      keyframe.relative
+        ? undefined
+        : AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
     );
+
+    if (keyframe.duration === undefined) {
+      throw new Error(`Input error: ${keyframePath}.duration is required.`);
+    }
+    assertNumber(keyframe.duration, `${keyframePath}.duration`, { min: 0 });
+
+    if (keyframe.easing !== undefined && !AUDIO_EASINGS.has(keyframe.easing)) {
+      throw new Error(
+        `Input error: ${keyframePath}.easing "${keyframe.easing}" is not supported.`,
+      );
+    }
+
+    assertOptionalBoolean(keyframe.relative, `${keyframePath}.relative`);
   }
 };
 
@@ -306,7 +325,6 @@ const validateAudioTransition = (effect, path, nodeTypes) => {
 
       validateTransitionPhase(
         phase,
-        phaseName,
         `${path}.properties.${propertyName}.${phaseName}`,
         propertyName,
       );

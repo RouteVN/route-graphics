@@ -1,6 +1,6 @@
 # Audio Channel Design
 
-Last updated: 2026-07-12
+Last updated: 2026-07-15
 
 This document defines the channel-based audio interface for Route Graphics
 render state.
@@ -62,9 +62,13 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 80, duration: 1000, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 ```
 
 For compatibility, flat `sound` nodes remain valid:
@@ -217,8 +221,9 @@ Route Graphics should reject invalid audio render state instead of guessing:
 - nested `audio-channel` nodes in the first implementation
 - `audio-transition.targetId` that cannot be resolved in the state used for its
   lifecycle
-- transition phases missing required `duration` or `easing`
-- transition phases that use an unsupported easing name
+- transition phases without a non-empty `keyframes` array
+- keyframes missing required `value` or `duration`
+- keyframes that use an unsupported easing name
 - more than one `audio-transition` targeting the same audio node in one render
   state
 - unknown audio node, effect, or automated property types
@@ -234,11 +239,20 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 80, duration: 1000, easing: linear }
+        update:
+          keyframes:
+            - { value: 40, duration: 300, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
       pan:
-        update: { duration: 200, easing: linear }
+        update:
+          keyframes:
+            - { value: -1, duration: 200, easing: linear }
 ```
 
 Fields:
@@ -268,16 +282,44 @@ Transition phases:
 | `exit`   | Target disappears from the next render state  | previous `audioEffects` |
 | `update` | Target remains but the property value changes | next `audioEffects`     |
 
-Transition phase fields:
+Every phase uses the same keyframe payload as visual animation transitions:
 
-| Phase    | Required fields              | Value rule                                                   |
-| -------- | ---------------------------- | ------------------------------------------------------------ |
-| `enter`  | `from`, `duration`, `easing` | Starts at `from`; ends at the target's declared value        |
-| `exit`   | `to`, `duration`, `easing`   | Starts at the current value; ends at `to`                    |
-| `update` | `duration`, `easing`         | Starts at the current value; ends at the next declared value |
+```yaml
+enter:
+  initialValue: 0
+  keyframes:
+    - value: 40
+      duration: 300
+      easing: easeOutQuad
+    - value: 80
+      duration: 700
+      easing: easeInOutSine
+```
 
-`duration` is in milliseconds. `easing` is required and must not be defaulted
-silently. The first implementation only needs to support `linear`.
+Phase fields:
+
+| Field          | Type       | Default               | Description                                  |
+| -------------- | ---------- | --------------------- | -------------------------------------------- |
+| `initialValue` | number     | current audible value | Value before the first keyframe              |
+| `keyframes`    | keyframe[] | required              | Ordered, non-empty property automation steps |
+
+Keyframe fields:
+
+| Field      | Type    | Default  | Description                                              |
+| ---------- | ------- | -------- | -------------------------------------------------------- |
+| `value`    | number  | required | Absolute target, or a delta when `relative` is `true`    |
+| `duration` | number  | required | Milliseconds to reach this keyframe from the prior value |
+| `easing`   | string  | `linear` | Animation easing applied to the segment reaching it      |
+| `relative` | boolean | `false`  | Resolve `value` relative to the prior keyframe value     |
+
+The first keyframe starts at `initialValue` when provided; otherwise it starts
+at the current audible value. Each later keyframe starts where the previous one
+ended. Total phase duration is the sum of its keyframe durations.
+
+Audio keyframes support the same easing names as visual animation keyframes.
+Resolved volume, pan, and playback-rate values are constrained to their valid
+ranges. For `enter` and `update`, authors should normally finish at the value
+declared on the target audio node so declarative state and audible state agree.
 
 An omitted phase makes that lifecycle change immediate for the property. If a
 new render interrupts an active transition, the next ramp starts from the
@@ -297,9 +339,16 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 100, duration: 1000, easing: linear }
+        update:
+          keyframes:
+            - { value: 40, duration: 300, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 ```
 
 Pan and playback-rate transition example:
@@ -311,9 +360,13 @@ audioEffects:
     targetId: bgm
     properties:
       pan:
-        update: { duration: 200, easing: linear }
+        update:
+          keyframes:
+            - { value: 1, duration: 200, easing: linear }
       playbackRate:
-        update: { duration: 500, easing: linear }
+        update:
+          keyframes:
+            - { value: 1.5, duration: 500, easing: linear }
 ```
 
 Recommended transitionable properties:
@@ -420,7 +473,9 @@ audioEffects:
     targetId: bgm
     properties:
       volume:
-        exit: { to: 0, duration: 1000, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 
 # next
 audio:
@@ -437,7 +492,10 @@ audioEffects:
     targetId: bgm
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 100, duration: 1000, easing: linear }
 ```
 
 The public ID remains `bgm`, but the audio stage needs separate internal
@@ -458,21 +516,32 @@ AudioBufferSourceNode
 ```
 
 Volume, pan, and playback-rate transitions use Web Audio `AudioParam`
-automation:
+automation. Each keyframe is scheduled after the previous segment:
 
 ```js
 const now = audioContext.currentTime;
-const seconds = duration / 1000;
+const currentValue = getTrackedAudibleValue(param, now);
 
-param.cancelScheduledValues(now);
+if (param.cancelAndHoldAtTime) {
+  param.cancelAndHoldAtTime(now);
+} else {
+  param.cancelScheduledValues(now);
+}
+
 param.setValueAtTime(currentValue, now);
-param.linearRampToValueAtTime(targetValue, now + seconds);
+scheduleKeyframes(param, keyframes, now);
 ```
 
-For removed nodes with an exit transition, cleanup happens after the ramp:
+Linear segments use native linear ramps. Other animation easings are sampled
+into short linear segments. Tracking the scheduled timeline prevents stale
+`AudioParam.value` readback from causing a jump when a later render interrupts
+an active ramp.
+
+For removed nodes with an exit transition, cleanup happens after the longest
+property phase. A phase duration is the sum of its keyframe durations:
 
 ```js
-source.stop(now + seconds);
+source.stop(now + longestExitDuration / 1000);
 ```
 
 ## Implementation Status
@@ -484,6 +553,7 @@ Implemented:
 - channel gain nodes and internal playback instance IDs
 - `audio-transition` for `volume` and `pan` on channels and sounds
 - `audio-transition` for `playbackRate` on sounds
+- animation-style multi-keyframe phases with shared easing names
 - same-ID source-identity replacement with overlapping internal instances
 - validation for duplicate transition targets and cross-state audio node kinds
 - removal of the legacy `sound.delay` interface in favor of `startDelayMs`

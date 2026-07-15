@@ -119,7 +119,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
@@ -139,7 +141,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
@@ -149,7 +153,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                exit: { to: 0, duration: 200, easing: "linear" },
+                exit: {
+                  keyframes: [{ value: 0, duration: 200 }],
+                },
               },
             },
           },
@@ -236,7 +242,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
@@ -258,7 +266,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "missing",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
@@ -276,13 +286,15 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100 },
+                update: {},
               },
             },
           },
         ],
       }),
-    ).toThrow("audioEffects[0].properties.volume.update.easing is required");
+    ).toThrow(
+      "audioEffects[0].properties.volume.update.keyframes must be a non-empty array",
+    );
 
     expect(() =>
       normalizeAudioRenderState({
@@ -294,7 +306,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               playbackRate: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 2, duration: 100 }],
+                },
               },
             },
           },
@@ -314,13 +328,35 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                enter: { from: 0, to: 50, duration: 100, easing: "linear" },
+                enter: { from: 0, duration: 100, easing: "linear" },
               },
             },
           },
         ],
       }),
-    ).toThrow('unsupported audio transition field "to"');
+    ).toThrow('unsupported audio transition field "from"');
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "fade",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              volume: {
+                update: {
+                  keyframes: [
+                    { value: 50, duration: 100, easing: "unknownEase" },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow('keyframes[0].easing "unknownEase" is not supported');
   });
 
   it("accepts pan and sound playback-rate transitions", () => {
@@ -337,7 +373,12 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               pan: {
-                enter: { from: -1, duration: 100, easing: "linear" },
+                enter: {
+                  initialValue: -1,
+                  keyframes: [
+                    { value: 0, duration: 100, easing: "easeInOutSine" },
+                  ],
+                },
               },
             },
           },
@@ -347,10 +388,17 @@ describe("normalizeAudioRenderState", () => {
             targetId: "bgm",
             properties: {
               pan: {
-                exit: { to: 1, duration: 100, easing: "linear" },
+                exit: {
+                  keyframes: [{ value: 1, duration: 100 }],
+                },
               },
               playbackRate: {
-                update: { duration: 200, easing: "linear" },
+                update: {
+                  keyframes: [
+                    { value: 0.5, duration: 100, relative: true },
+                    { value: 1, duration: 100 },
+                  ],
+                },
               },
             },
           },
@@ -372,13 +420,18 @@ describe("normalizeAudioRenderState", () => {
             targetId: "bgm",
             properties: {
               pan: {
-                enter: { from: -2, duration: 100, easing: "linear" },
+                enter: {
+                  initialValue: -2,
+                  keyframes: [{ value: 0, duration: 100 }],
+                },
               },
             },
           },
         ],
       }),
-    ).toThrow("properties.pan.enter.from must be greater than or equal to -1");
+    ).toThrow(
+      "properties.pan.enter.initialValue must be greater than or equal to -1",
+    );
 
     expect(() =>
       normalizeAudioRenderState({
@@ -390,14 +443,16 @@ describe("normalizeAudioRenderState", () => {
             targetId: "bgm",
             properties: {
               playbackRate: {
-                exit: { to: -1, duration: 100, easing: "linear" },
+                exit: {
+                  keyframes: [{ value: -1, duration: 100 }],
+                },
               },
             },
           },
         ],
       }),
     ).toThrow(
-      "properties.playbackRate.exit.to must be greater than or equal to 0",
+      "properties.playbackRate.exit.keyframes[0].value must be greater than or equal to 0",
     );
   });
 });

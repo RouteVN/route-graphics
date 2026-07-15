@@ -5,7 +5,7 @@ skipScreenshot: true
 specs:
   - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
   - state 2 should fade the sound in from silence over two seconds
-  - state 3 should fade the continuing sound down to volume 25 over two seconds
+  - state 3 should fade the continuing sound down to volume 25 through two one-second keyframes
   - state 4 should fade it out over two seconds and then stop it
 ---
 states:
@@ -24,7 +24,10 @@ states:
         targetId: sound-volume-transition-bgm
         properties:
           volume:
-            enter: { from: 0, duration: 2000, easing: linear }
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 80, duration: 2000, easing: easeInOutSine }
   - id: sound-volume-transition-update
     audio:
       - id: sound-volume-transition-bgm
@@ -38,7 +41,12 @@ states:
         targetId: sound-volume-transition-bgm
         properties:
           volume:
-            update: { duration: 2000, easing: linear }
-            exit: { to: 0, duration: 2000, easing: linear }
+            update:
+              keyframes:
+                - { value: 60, duration: 1000, easing: easeOutQuad }
+                - { value: 25, duration: 1000, easing: easeInQuad }
+            exit:
+              keyframes:
+                - { value: 0, duration: 2000, easing: easeInOutSine }
   - id: sound-volume-transition-exit
     audio: []

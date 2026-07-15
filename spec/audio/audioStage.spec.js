@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const createAudioParam = (
   initialValue = 0,
-  { reflectScheduledValue = true } = {},
+  { reflectScheduledValue = true, supportCancelAndHold = true } = {},
 ) => {
   const param = {
     value: initialValue,
@@ -26,15 +26,21 @@ const createAudioParam = (
       return param;
     }),
   };
+  if (supportCancelAndHold) {
+    param.cancelAndHoldAtTime = vi.fn();
+  }
   return param;
 };
 
 const createAudioContextMock = ({
   decodedBuffer = { duration: 1 },
   reflectScheduledAudioParamValue = true,
+  supportCancelAndHold = true,
+  supportStereoPanner = true,
 } = {}) => {
   const audioParamOptions = {
     reflectScheduledValue: reflectScheduledAudioParamValue,
+    supportCancelAndHold,
   };
   const context = {
     currentTime: 10,
@@ -83,6 +89,10 @@ const createAudioContextMock = ({
     }),
   };
 
+  if (!supportStereoPanner) {
+    context.createStereoPanner = undefined;
+  }
+
   return context;
 };
 
@@ -128,6 +138,22 @@ const flushPromises = async () => {
   await Promise.resolve();
   await Promise.resolve();
 };
+
+const keyframePhase = (
+  value,
+  duration,
+  { initialValue, easing = "linear", relative } = {},
+) => ({
+  ...(initialValue !== undefined ? { initialValue } : {}),
+  keyframes: [
+    {
+      value,
+      duration,
+      easing,
+      ...(relative !== undefined ? { relative } : {}),
+    },
+  ],
+});
 
 describe("AudioStage graph rendering", () => {
   beforeEach(() => {
@@ -345,7 +371,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(80, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -378,7 +404,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              update: { duration: 500, easing: "linear" },
+              update: keyframePhase(30, 500),
             },
           },
         },
@@ -401,7 +427,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              exit: { to: 0, duration: 1000, easing: "linear" },
+              exit: keyframePhase(0, 1000),
             },
           },
         },
@@ -436,7 +462,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(80, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -449,6 +475,202 @@ describe("AudioStage graph rendering", () => {
       0.8,
       11,
     );
+  });
+
+  it("schedules multi-stage keyframes and animation easings", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          volume: 80,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            volume: {
+              enter: {
+                initialValue: 0,
+                keyframes: [
+                  { value: 40, duration: 200, easing: "linear" },
+                  { value: 80, duration: 300, easing: "easeInQuad" },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const gain = findCurrentSound(stage, "bgm").gainNode.gain;
+    expect(gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.4, 10.2);
+    expect(gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0.8, 10.5);
+    expect(gain.linearRampToValueAtTime.mock.calls.length).toBeGreaterThan(2);
+  });
+
+  it("uses the summed keyframe duration for exit cleanup", async () => {
+    const { stage, context } = await setupAudioStage();
+    const audio = [{ id: "bgm", type: "sound", src: "theme", volume: 100 }];
+
+    stage.renderGraph({ nextAudio: audio });
+    const source = context.sources[0];
+    const gain = findCurrentSound(stage, "bgm").gainNode.gain;
+    stage.renderGraph({
+      prevAudio: audio,
+      nextAudio: [],
+      prevAudioEffects: [
+        {
+          id: "bgm-exit",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            volume: {
+              exit: {
+                keyframes: [
+                  {
+                    value: -50,
+                    duration: 400,
+                    easing: "linear",
+                    relative: true,
+                  },
+                  { value: 0, duration: 600, easing: "linear" },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.5, 10.4);
+    expect(gain.linearRampToValueAtTime).toHaveBeenCalledWith(0, 11);
+    expect(source.stop).toHaveBeenCalledWith(11);
+  });
+
+  it("holds tracked pan and playback-rate values when ramps are interrupted", async () => {
+    const { stage, context } = await setupAudioStage({
+      contextOptions: { reflectScheduledAudioParamValue: false },
+    });
+    const firstAudio = [
+      {
+        id: "bgm",
+        type: "sound",
+        src: "theme",
+        pan: 1,
+        playbackRate: 2,
+      },
+    ];
+
+    stage.renderGraph({
+      nextAudio: firstAudio,
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: {
+              enter: keyframePhase(1, 1000, { initialValue: -1 }),
+            },
+            playbackRate: {
+              enter: keyframePhase(2, 1000, { initialValue: 0.5 }),
+            },
+          },
+        },
+      ],
+    });
+
+    context.currentTime = 10.25;
+    stage.renderGraph({
+      prevAudio: firstAudio,
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          pan: -1,
+          playbackRate: 1,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-update",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: { update: keyframePhase(-1, 500) },
+            playbackRate: { update: keyframePhase(1, 500) },
+          },
+        },
+      ],
+    });
+
+    const bgm = findCurrentSound(stage, "bgm");
+    expect(bgm.pannerNode.pan.cancelAndHoldAtTime).toHaveBeenCalledWith(10.25);
+    expect(bgm.pannerNode.pan.setValueAtTime).toHaveBeenLastCalledWith(
+      -0.5,
+      10.25,
+    );
+    expect(bgm.source.playbackRate.cancelAndHoldAtTime).toHaveBeenCalledWith(
+      10.25,
+    );
+    expect(bgm.source.playbackRate.setValueAtTime).toHaveBeenLastCalledWith(
+      0.875,
+      10.25,
+    );
+  });
+
+  it("tracks interrupted ramp values without cancelAndHoldAtTime", async () => {
+    const { stage, context } = await setupAudioStage({
+      contextOptions: {
+        reflectScheduledAudioParamValue: false,
+        supportCancelAndHold: false,
+      },
+    });
+    const firstAudio = [{ id: "bgm", type: "sound", src: "theme", pan: 1 }];
+
+    stage.renderGraph({
+      nextAudio: firstAudio,
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: {
+              enter: keyframePhase(1, 1000, { initialValue: -1 }),
+            },
+          },
+        },
+      ],
+    });
+
+    context.currentTime = 10.25;
+    stage.renderGraph({
+      prevAudio: firstAudio,
+      nextAudio: [{ id: "bgm", type: "sound", src: "theme", pan: 0 }],
+      nextAudioEffects: [
+        {
+          id: "bgm-update",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: { update: keyframePhase(0, 500) },
+          },
+        },
+      ],
+    });
+
+    const pan = findCurrentSound(stage, "bgm").pannerNode.pan;
+    expect(pan.cancelScheduledValues).toHaveBeenLastCalledWith(10.25);
+    expect(pan.setValueAtTime).toHaveBeenLastCalledWith(-0.5, 10.25);
   });
 
   it("applies enter, update, and exit pan transitions", async () => {
@@ -471,7 +693,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             pan: {
-              enter: { from: -1, duration: 1000, easing: "linear" },
+              enter: keyframePhase(0.5, 1000, { initialValue: -1 }),
             },
           },
         },
@@ -481,7 +703,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             pan: {
-              enter: { from: 1, duration: 500, easing: "linear" },
+              enter: keyframePhase(-0.5, 500, { initialValue: 1 }),
             },
           },
         },
@@ -518,7 +740,7 @@ describe("AudioStage graph rendering", () => {
           type: "audio-transition",
           targetId: "music",
           properties: {
-            pan: { update: { duration: 200, easing: "linear" } },
+            pan: { update: keyframePhase(-0.25, 200) },
           },
         },
         {
@@ -526,7 +748,7 @@ describe("AudioStage graph rendering", () => {
           type: "audio-transition",
           targetId: "bgm",
           properties: {
-            pan: { update: { duration: 300, easing: "linear" } },
+            pan: { update: keyframePhase(0.25, 300) },
           },
         },
       ],
@@ -551,7 +773,7 @@ describe("AudioStage graph rendering", () => {
           type: "audio-transition",
           targetId: "music",
           properties: {
-            pan: { exit: { to: 1, duration: 700, easing: "linear" } },
+            pan: { exit: keyframePhase(1, 700) },
           },
         },
         {
@@ -559,7 +781,7 @@ describe("AudioStage graph rendering", () => {
           type: "audio-transition",
           targetId: "bgm",
           properties: {
-            pan: { exit: { to: -1, duration: 900, easing: "linear" } },
+            pan: { exit: keyframePhase(-1, 900) },
           },
         },
       ],
@@ -574,6 +796,33 @@ describe("AudioStage graph rendering", () => {
       10.9,
     );
     expect(source.stop).toHaveBeenCalledWith(10.9);
+  });
+
+  it("ignores pan-only exit duration when stereo panning is unavailable", async () => {
+    const { stage, context } = await setupAudioStage({
+      contextOptions: { supportStereoPanner: false },
+    });
+    const audio = [{ id: "bgm", type: "sound", src: "theme", pan: 1 }];
+
+    stage.renderGraph({ nextAudio: audio });
+    const source = context.sources[0];
+    stage.renderGraph({
+      prevAudio: audio,
+      nextAudio: [],
+      prevAudioEffects: [
+        {
+          id: "bgm-exit",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: { exit: keyframePhase(-1, 900) },
+          },
+        },
+      ],
+    });
+
+    expect(source.stop).toHaveBeenCalledWith(10);
+    expect(findSound(stage, "bgm")).toBeUndefined();
   });
 
   it("applies enter, update, and exit playback-rate transitions", async () => {
@@ -596,7 +845,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             playbackRate: {
-              enter: { from: 0.5, duration: 1000, easing: "linear" },
+              enter: keyframePhase(1.5, 1000, { initialValue: 0.5 }),
             },
           },
         },
@@ -623,7 +872,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             playbackRate: {
-              update: { duration: 400, easing: "linear" },
+              update: keyframePhase(2, 400),
             },
           },
         },
@@ -645,7 +894,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             playbackRate: {
-              exit: { to: 0.25, duration: 1200, easing: "linear" },
+              exit: keyframePhase(0.25, 1200),
             },
           },
         },
@@ -679,7 +928,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             playbackRate: {
-              enter: { from: 0.5, duration: 300, easing: "linear" },
+              enter: keyframePhase(2, 300, { initialValue: 0.5 }),
             },
           },
         },
@@ -717,7 +966,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(80, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -727,7 +976,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(60, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -785,7 +1034,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              exit: { to: 0, duration: 1000, easing: "linear" },
+              exit: keyframePhase(0, 1000),
             },
           },
         },
@@ -802,7 +1051,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "music",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(80, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -838,7 +1087,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             volume: {
-              exit: { to: 0, duration: 1000, easing: "linear" },
+              exit: keyframePhase(0, 1000),
             },
           },
         },
@@ -850,7 +1099,7 @@ describe("AudioStage graph rendering", () => {
           targetId: "bgm",
           properties: {
             volume: {
-              enter: { from: 0, duration: 1000, easing: "linear" },
+              enter: keyframePhase(100, 1000, { initialValue: 0 }),
             },
           },
         },
@@ -893,7 +1142,7 @@ describe("AudioStage graph rendering", () => {
             targetId: "bgm",
             properties: {
               volume: {
-                exit: { to: 0, duration: 1000, easing: "linear" },
+                exit: keyframePhase(0, 1000),
               },
             },
           },
@@ -1079,7 +1328,7 @@ describe("AudioStage graph rendering", () => {
             targetId: "missing",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: keyframePhase(100, 100),
               },
             },
           },

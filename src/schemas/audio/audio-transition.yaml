@@ -1,6 +1,6 @@
 $schema: http://json-schema.org/draft-07/schema#
 title: Audio Transition
-description: Schema for audio property automation
+description: Schema for audio property keyframe automation
 type: object
 required:
   - id
@@ -20,148 +20,178 @@ properties:
   properties:
     type: object
     description: Property automation map
+    minProperties: 1
     properties:
       volume:
-        type: object
-        properties:
-          enter:
-            $ref: "#/definitions/volumeEnterPhase"
-          exit:
-            $ref: "#/definitions/volumeExitPhase"
-          update:
-            $ref: "#/definitions/updatePhase"
-        additionalProperties: false
+        $ref: "#/definitions/volumeLifecycle"
       pan:
-        type: object
-        properties:
-          enter:
-            $ref: "#/definitions/panEnterPhase"
-          exit:
-            $ref: "#/definitions/panExitPhase"
-          update:
-            $ref: "#/definitions/updatePhase"
-        additionalProperties: false
+        $ref: "#/definitions/panLifecycle"
       playbackRate:
-        type: object
-        properties:
-          enter:
-            $ref: "#/definitions/playbackRateEnterPhase"
-          exit:
-            $ref: "#/definitions/playbackRateExitPhase"
-          update:
-            $ref: "#/definitions/updatePhase"
-        additionalProperties: false
+        $ref: "#/definitions/playbackRateLifecycle"
     additionalProperties: false
 definitions:
-  volumeEnterPhase:
+  easing:
+    type: string
+    enum:
+      - linear
+      - easeInQuad
+      - easeOutQuad
+      - easeInOutQuad
+      - easeInCubic
+      - easeOutCubic
+      - easeInOutCubic
+      - easeInQuart
+      - easeOutQuart
+      - easeInOutQuart
+      - easeInQuint
+      - easeOutQuint
+      - easeInOutQuint
+      - easeInSine
+      - easeOutSine
+      - easeInOutSine
+      - easeInExpo
+      - easeOutExpo
+      - easeInOutExpo
+      - easeInCirc
+      - easeOutCirc
+      - easeInOutCirc
+      - easeInBack
+      - easeOutBack
+      - easeInOutBack
+      - easeInBounce
+      - easeOutBounce
+      - easeInOutBounce
+      - easeInElastic
+      - easeOutElastic
+      - easeInOutElastic
+  keyframe:
     type: object
     required:
-      - from
+      - value
       - duration
-      - easing
     properties:
-      from:
+      value:
+        type: number
+        description: Absolute target value, or delta when relative is true
+      duration:
+        type: number
+        minimum: 0
+        description: Duration to reach this value in milliseconds
+      easing:
+        $ref: "#/definitions/easing"
+      relative:
+        type: boolean
+        default: false
+    additionalProperties: false
+  volumeKeyframe:
+    allOf:
+      - $ref: "#/definitions/keyframe"
+      - if:
+          properties:
+            relative:
+              const: false
+        then:
+          properties:
+            value:
+              minimum: 0
+              maximum: 100
+  panKeyframe:
+    allOf:
+      - $ref: "#/definitions/keyframe"
+      - if:
+          properties:
+            relative:
+              const: false
+        then:
+          properties:
+            value:
+              minimum: -1
+              maximum: 1
+  playbackRateKeyframe:
+    allOf:
+      - $ref: "#/definitions/keyframe"
+      - if:
+          properties:
+            relative:
+              const: false
+        then:
+          properties:
+            value:
+              minimum: 0
+  volumePhase:
+    type: object
+    required:
+      - keyframes
+    properties:
+      initialValue:
         type: number
         minimum: 0
         maximum: 100
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
+      keyframes:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/volumeKeyframe"
     additionalProperties: false
-  volumeExitPhase:
+  panPhase:
     type: object
     required:
-      - to
-      - duration
-      - easing
+      - keyframes
     properties:
-      to:
-        type: number
-        minimum: 0
-        maximum: 100
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
-    additionalProperties: false
-  panEnterPhase:
-    type: object
-    required:
-      - from
-      - duration
-      - easing
-    properties:
-      from:
+      initialValue:
         type: number
         minimum: -1
         maximum: 1
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
+      keyframes:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/panKeyframe"
     additionalProperties: false
-  panExitPhase:
+  playbackRatePhase:
     type: object
     required:
-      - to
-      - duration
-      - easing
+      - keyframes
     properties:
-      to:
-        type: number
-        minimum: -1
-        maximum: 1
-      duration:
+      initialValue:
         type: number
         minimum: 0
-      easing:
-        const: linear
+      keyframes:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/definitions/playbackRateKeyframe"
     additionalProperties: false
-  playbackRateEnterPhase:
+  volumeLifecycle:
     type: object
-    required:
-      - from
-      - duration
-      - easing
+    minProperties: 1
     properties:
-      from:
-        type: number
-        minimum: 0
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
+      enter:
+        $ref: "#/definitions/volumePhase"
+      update:
+        $ref: "#/definitions/volumePhase"
+      exit:
+        $ref: "#/definitions/volumePhase"
     additionalProperties: false
-  playbackRateExitPhase:
+  panLifecycle:
     type: object
-    required:
-      - to
-      - duration
-      - easing
+    minProperties: 1
     properties:
-      to:
-        type: number
-        minimum: 0
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
+      enter:
+        $ref: "#/definitions/panPhase"
+      update:
+        $ref: "#/definitions/panPhase"
+      exit:
+        $ref: "#/definitions/panPhase"
     additionalProperties: false
-  updatePhase:
+  playbackRateLifecycle:
     type: object
-    required:
-      - duration
-      - easing
+    minProperties: 1
     properties:
-      duration:
-        type: number
-        minimum: 0
-      easing:
-        const: linear
+      enter:
+        $ref: "#/definitions/playbackRatePhase"
+      update:
+        $ref: "#/definitions/playbackRatePhase"
+      exit:
+        $ref: "#/definitions/playbackRatePhase"
     additionalProperties: false

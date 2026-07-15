@@ -24,7 +24,10 @@ states:
         targetId: interrupted-bgm
         properties:
           volume:
-            enter: { from: 0, duration: 6000, easing: linear }
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 100, duration: 6000, easing: linear }
   - id: transition-interruption-update
     audio:
       - id: interrupted-bgm
@@ -38,6 +41,8 @@ states:
         targetId: interrupted-bgm
         properties:
           volume:
-            update: { duration: 2000, easing: linear }
+            update:
+              keyframes:
+                - { value: 10, duration: 2000, easing: linear }
   - id: transition-interruption-stopped
     audio: []

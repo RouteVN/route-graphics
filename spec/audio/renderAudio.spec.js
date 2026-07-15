@@ -22,7 +22,10 @@ describe("renderAudio", () => {
         targetId: "music",
         properties: {
           volume: {
-            enter: { from: 0, duration: 100, easing: "linear" },
+            enter: {
+              initialValue: 0,
+              keyframes: [{ value: 100, duration: 100, easing: "linear" }],
+            },
           },
         },
       },
