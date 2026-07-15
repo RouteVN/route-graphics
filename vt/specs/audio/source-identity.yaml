@@ -1,0 +1,64 @@
+---
+title: Audio Manual - Source Identity Replacement
+description: Manual fixture for same-id sound replacement when src, startAt, endAt, or startDelayMs changes. Use the state pager or n/b keys.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start a looping five-second bgm-3 segment from its beginning
+  - state 3 should restart the same sound id from two seconds into the source
+  - state 4 should restart it again with an earlier endAt boundary
+  - state 5 should replace it, stay silent for one second, then start the delayed segment
+  - state 6 should immediately replace the delayed segment with bgm-2
+  - state 7 should stop all audio
+---
+states:
+  - id: source-identity-ready
+    audio: []
+  - id: source-identity-baseline
+    audio:
+      - id: identity-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 0
+        endAt: 5
+  - id: source-identity-start-at
+    audio:
+      - id: identity-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 2
+        endAt: 5
+  - id: source-identity-end-at
+    audio:
+      - id: identity-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 2
+        endAt: 4
+  - id: source-identity-start-delay
+    audio:
+      - id: identity-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startAt: 2
+        endAt: 4
+        startDelayMs: 1000
+  - id: source-identity-src
+    audio:
+      - id: identity-bgm
+        type: sound
+        src: bgm-2
+        loop: true
+        volume: 80
+        startAt: 0
+        endAt: 4
+  - id: source-identity-stopped
+    audio: []

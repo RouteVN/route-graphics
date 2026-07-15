@@ -1,24 +1,44 @@
 ---
 title: Audio Manual - Playback Options
-description: Manual fixture for startDelayMs, playbackRate, startAt, endAt, loop, and stopping audio. Use the state pager or n/b keys.
+description: Manual fixture for parallel playback, startDelayMs sequencing, playbackRate, startAt, endAt, loop, and stopping audio. Use the state pager or n/b keys.
 skipScreenshot: true
 specs:
   - state 1 is silent so pressing n starts audio from a user gesture
-  - state 2 should play sfx-1 after a one second delay
-  - state 3 should play a fast partial bgm-3 segment
-  - state 4 should loop a slower bgm-3 segment
-  - state 5 should remove all audio
+  - state 2 should play sfx-1 and sfx-2 in parallel
+  - state 3 should start three one-shots roughly one second apart; wait at least three seconds
+  - state 4 should play a fast partial bgm-3 segment
+  - state 5 should loop a slower bgm-3 segment
+  - state 6 should remove all audio
 ---
 states:
   - id: playback-ready
     audio: []
-  - id: delayed-sfx
+  - id: parallel-sfx
     audio:
-      - id: delayed-sfx
+      - id: parallel-sfx-mp3
         type: sound
         src: sfx-1
         volume: 100
+      - id: parallel-sfx-wav
+        type: sound
+        src: sfx-2
+        volume: 100
+  - id: scheduled-sfx-sequence
+    audio:
+      - id: sequence-first
+        type: sound
+        src: sfx-1
+        volume: 100
+      - id: sequence-second
+        type: sound
+        src: sfx-2
+        volume: 100
         startDelayMs: 1000
+      - id: sequence-third
+        type: sound
+        src: sfx-1
+        volume: 100
+        startDelayMs: 2000
   - id: partial-fast-segment
     audio:
       - id: partial-fast

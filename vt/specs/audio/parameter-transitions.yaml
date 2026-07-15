@@ -1,0 +1,119 @@
+---
+title: Audio Manual - Pan and Playback-Rate Transitions
+description: Manual fixture for channel pan plus sound pan and playbackRate enter, update, and exit transitions. Use headphones and the state pager or n/b keys.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should sweep bgm-1 from left to right over four seconds as the channel enters
+  - state 3 should sweep the continuing bgm-1 back to the left over four seconds
+  - state 4 should sweep that channel right for two seconds and then stop it
+  - state 5 should start bgm-3 slowly on the left, then ramp its speed up and pan right over four seconds
+  - state 6 should keep the same sound playing while slowing it down and panning left over four seconds
+  - state 7 should speed up, sweep right, and stop after three seconds
+---
+states:
+  - id: parameter-transition-ready
+    audio: []
+  - id: channel-pan-enter
+    audio:
+      - id: sweep-channel
+        type: audio-channel
+        pan: 1
+        children:
+          - id: channel-sweep-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+    audioEffects:
+      - id: channel-pan-enter-transition
+        type: audio-transition
+        targetId: sweep-channel
+        properties:
+          pan:
+            enter:
+              from: -1
+              duration: 4000
+              easing: linear
+  - id: channel-pan-update
+    audio:
+      - id: sweep-channel
+        type: audio-channel
+        pan: -1
+        children:
+          - id: channel-sweep-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+    audioEffects:
+      - id: channel-pan-update-and-exit
+        type: audio-transition
+        targetId: sweep-channel
+        properties:
+          pan:
+            update:
+              duration: 4000
+              easing: linear
+            exit:
+              to: 1
+              duration: 2000
+              easing: linear
+  - id: channel-pan-exit
+    audio: []
+  - id: sound-parameters-enter
+    audio:
+      - id: parameter-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        pan: 1
+        playbackRate: 1.5
+    audioEffects:
+      - id: sound-parameters-enter-transition
+        type: audio-transition
+        targetId: parameter-bgm
+        properties:
+          pan:
+            enter:
+              from: -1
+              duration: 4000
+              easing: linear
+          playbackRate:
+            enter:
+              from: 0.5
+              duration: 4000
+              easing: linear
+  - id: sound-parameters-update
+    audio:
+      - id: parameter-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        pan: -1
+        playbackRate: 0.7
+    audioEffects:
+      - id: sound-parameters-update-and-exit
+        type: audio-transition
+        targetId: parameter-bgm
+        properties:
+          pan:
+            update:
+              duration: 4000
+              easing: linear
+            exit:
+              to: 1
+              duration: 3000
+              easing: linear
+          playbackRate:
+            update:
+              duration: 4000
+              easing: linear
+            exit:
+              to: 1.75
+              duration: 3000
+              easing: linear
+  - id: sound-parameters-exit
+    audio: []
