@@ -2755,6 +2755,224 @@ describe("RouteGraphics public API", () => {
     });
   });
 
+  it("uses the live plugin when superseding an async cross-type transition", async () => {
+    let resolveAdd;
+    const addPromise = new Promise((resolve) => {
+      resolveAdd = resolve;
+    });
+    let previousPlugin;
+    let nextPlugin;
+
+    const { app } = await setupRouteGraphics({
+      pluginsFactory: async ({ pixiMock }) => {
+        previousPlugin = {
+          type: "sync-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element }) => {
+            const child = new pixiMock.Container();
+            child.label = element.id;
+            parent.addChild(child);
+          }),
+          update: vi.fn(),
+          delete: vi.fn(({ parent, element }) => {
+            const child = parent.children.find(
+              (candidate) => candidate.label === element.id,
+            );
+            if (!child) return;
+            parent.removeChild(child);
+            child.destroy();
+          }),
+        };
+        nextPlugin = {
+          type: "async-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element, signal }) =>
+            addPromise.then(() => {
+              if (signal?.aborted || parent.destroyed) return;
+              const child = new pixiMock.Container();
+              child.label = element.id;
+              parent.addChild(child);
+            }),
+          ),
+          update: vi.fn(),
+          delete: vi.fn(() => {
+            throw new Error("used the pending type instead of the live type");
+          }),
+        };
+
+        return {
+          elements: [previousPlugin, nextPlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    app.render({
+      id: "cross-type-initial",
+      elements: [{ id: "character", type: "sync-node" }],
+    });
+    app.render({
+      id: "cross-type-pending",
+      elements: [{ id: "character", type: "async-node" }],
+      animations: [
+        {
+          id: "character-transition",
+          targetId: "character",
+          type: "transition",
+          next: {
+            tween: {
+              alpha: {
+                initialValue: 0,
+                keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    expect(nextPlugin.add).toHaveBeenCalledTimes(1);
+    expect(() =>
+      app.render({
+        id: "cross-type-removed",
+        elements: [],
+      }),
+    ).not.toThrow();
+    expect(previousPlugin.delete).toHaveBeenCalledTimes(1);
+    expect(nextPlugin.delete).not.toHaveBeenCalled();
+
+    resolveAdd();
+    await addPromise;
+    await vi.waitFor(() => {
+      expect(app.findElementByLabel("character")).toBeNull();
+    });
+  });
+
+  it("adopts an async cross-type replacement retained by a newer render", async () => {
+    let resolveDelete;
+    const deleteOperation = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+    let nextPlugin;
+
+    const { app } = await setupRouteGraphics({
+      pluginsFactory: async ({ pixiMock }) => {
+        const { containerPlugin } =
+          await import("../src/plugins/elements/container/index.js");
+        const createChild = (parent, element) => {
+          const child = new pixiMock.Container();
+          child.label = element.id;
+          child.value = element.value;
+          parent.addChild(child);
+        };
+        const previousPlugin = {
+          type: "previous-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element }) => {
+            createChild(parent, element);
+          }),
+          update: vi.fn(),
+          delete: vi.fn(({ parent, element }) =>
+            deleteOperation.then(() => {
+              const child = parent.children.find(
+                (candidate) => candidate.label === element.id,
+              );
+              if (!child) return;
+              parent.removeChild(child);
+              child.destroy();
+            }),
+          ),
+        };
+        nextPlugin = {
+          type: "next-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element }) => {
+            createChild(parent, element);
+          }),
+          update: vi.fn(),
+          delete: vi.fn(),
+        };
+        const siblingPlugin = {
+          type: "sibling-node",
+          parse: ({ state }) => state,
+          add: vi.fn(({ parent, element }) => {
+            createChild(parent, element);
+          }),
+          update: vi.fn(({ parent, nextElement }) => {
+            const child = parent.children.find(
+              (candidate) => candidate.label === nextElement.id,
+            );
+            if (child) child.value = nextElement.value;
+          }),
+          delete: vi.fn(),
+        };
+
+        return {
+          elements: [
+            containerPlugin,
+            previousPlugin,
+            nextPlugin,
+            siblingPlugin,
+          ],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+
+    const createGroup = (childType) => ({
+      id: "group",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      children: [
+        {
+          id: "background",
+          type: childType,
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        },
+      ],
+    });
+
+    app.render({
+      id: "deferred-replacement-initial",
+      elements: [
+        createGroup("previous-node"),
+        { id: "sibling", type: "sibling-node", value: 0 },
+      ],
+    });
+    app.render({
+      id: "deferred-replacement-pending",
+      elements: [
+        createGroup("next-node"),
+        { id: "sibling", type: "sibling-node", value: 0 },
+      ],
+    });
+    app.render({
+      id: "deferred-replacement-adopted",
+      elements: [
+        createGroup("next-node"),
+        { id: "sibling", type: "sibling-node", value: 1 },
+      ],
+    });
+
+    expect(nextPlugin.add).not.toHaveBeenCalled();
+
+    resolveDelete();
+    await deleteOperation;
+
+    await vi.waitFor(() => {
+      expect(nextPlugin.add).toHaveBeenCalledTimes(1);
+      expect(app.findElementByLabel("background")).not.toBeNull();
+    });
+  });
+
   it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {
     const eventHandler = vi.fn();
 

@@ -5,6 +5,11 @@ import {
   groupAnimationsByTarget,
 } from "../animations/planAnimations.js";
 import { runReplaceAnimation } from "../animations/replace/runReplaceAnimation.js";
+import {
+  addElementWithRenderState,
+  prepareElementRenderState,
+  registerPendingElementReplacement,
+} from "./elementRenderState.js";
 import { createRenderContext } from "./renderContext.js";
 
 /**
@@ -48,24 +53,6 @@ export const renderElements = ({
     elementPlugins.map((plugin) => [plugin.type, plugin]),
   );
   const animationsByTarget = groupAnimationsByTarget(animations);
-  const prevElementById = new Map();
-  const nextIndexById = new Map();
-  for (const element of prevComputedTree) {
-    prevElementById.set(element.id, element);
-  }
-  for (let index = 0; index < nextComputedTree.length; index++) {
-    nextIndexById.set(nextComputedTree[index].id, index);
-  }
-
-  const { toAddElement, toDeleteElement, toUpdateElement } = diffElements(
-    prevComputedTree,
-    nextComputedTree,
-    animations,
-  );
-  const scheduledUpdateIds = new Set(
-    toUpdateElement.map(({ next }) => next.id),
-  );
-
   const getPlugin = (type) => {
     const plugin = pluginByType.get(type);
     if (!plugin) {
@@ -74,11 +61,157 @@ export const renderElements = ({
 
     return plugin;
   };
+  const mountElement = ({
+    parent: targetParent = parent,
+    element,
+    zIndex,
+    plugin = getPlugin(element.type),
+  }) =>
+    addElementWithRenderState({
+      app,
+      parent: targetParent,
+      element,
+      animations: animationsByTarget,
+      eventHandler,
+      animationBus,
+      completionTracker,
+      elementPlugins,
+      renderContext,
+      zIndex,
+      signal,
+      plugin,
+    });
+  const deleteElement = ({ parent: targetParent = parent, element }) =>
+    getPlugin(element.type).delete({
+      app,
+      parent: targetParent,
+      element,
+      animations: [],
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+    });
+  const updateElement = ({
+    parent: targetParent = parent,
+    prevElement,
+    nextElement,
+    zIndex,
+  }) =>
+    getPlugin(nextElement.type).update({
+      app,
+      parent: targetParent,
+      prevElement,
+      nextElement,
+      animations: animationsByTarget,
+      animationBus,
+      completionTracker,
+      eventHandler,
+      elementPlugins,
+      renderContext,
+      zIndex,
+      signal,
+    });
+  const {
+    lifecycle,
+    ownerElementId,
+    pendingReplacementIds,
+    renderedPrevComputedTree,
+    resolveRenderParent,
+  } = prepareElementRenderState({
+    parent,
+    prevComputedTree,
+    nextComputedTree,
+    renderContext,
+    renderSnapshot: {
+      completionTracker,
+      deleteElement,
+      mountElement,
+      requestFrame: () => app?.render?.(),
+      signal,
+      updateElement,
+    },
+  });
+  const prevElementById = new Map();
+  const nextIndexById = new Map();
+  for (const element of renderedPrevComputedTree) {
+    prevElementById.set(element.id, element);
+  }
+  for (let index = 0; index < nextComputedTree.length; index++) {
+    nextIndexById.set(nextComputedTree[index].id, index);
+  }
+
+  const diff = diffElements(
+    renderedPrevComputedTree,
+    nextComputedTree,
+    animations,
+  );
+  const isPendingReplacement = (element) =>
+    pendingReplacementIds.has(element.id);
+  const toAddElement = diff.toAddElement.filter(
+    (element) => !isPendingReplacement(element),
+  );
+  const toDeleteElement = diff.toDeleteElement.filter(
+    (element) => !isPendingReplacement(element),
+  );
+  const toUpdateElement = diff.toUpdateElement.filter(
+    ({ next }) => !isPendingReplacement(next),
+  );
+  const scheduledUpdateIds = new Set(
+    toUpdateElement.map(({ next }) => next.id),
+  );
 
   const getExistingChildZIndex = (targetId) =>
     parent.children.find((child) => child.label === targetId)?.zIndex ?? -1;
 
+  const replaceElement = ({ prevElement, nextElement, nextPlugin, zIndex }) => {
+    const addNextElement = () => {
+      if (signal?.aborted || parent.destroyed) {
+        return undefined;
+      }
+
+      return mountElement({
+        plugin: nextPlugin,
+        element: nextElement,
+        zIndex,
+      });
+    };
+
+    const replacement = {
+      id: nextElement.id,
+      ownerElementId,
+      prevElement,
+    };
+    // The deletion belongs to the replacement lifecycle, not one render. Its
+    // eventual add is gated by the lifecycle's latest signal and desired tree.
+    const deleteOperation = deleteElement({ parent, element: prevElement });
+
+    if (deleteOperation && typeof deleteOperation.then === "function") {
+      return registerPendingElementReplacement({
+        lifecycle,
+        operation: deleteOperation,
+        replacement,
+      });
+    }
+
+    const addOperation = addNextElement();
+    if (addOperation && typeof addOperation.then === "function") {
+      return registerPendingElementReplacement({
+        lifecycle,
+        operation: addOperation,
+        replacement,
+      });
+    }
+
+    return addOperation;
+  };
+
   for (const element of nextComputedTree) {
+    if (pendingReplacementIds.has(element.id)) {
+      continue;
+    }
+
     const prevElement = prevElementById.get(element.id);
     if (!prevElement || scheduledUpdateIds.has(element.id)) {
       continue;
@@ -155,6 +288,7 @@ export const renderElements = ({
           elementPlugins,
           renderContext,
           plugin,
+          resolveParent: () => resolveRenderParent(element.id),
           zIndex: getExistingChildZIndex(element.id),
           signal,
         }),
@@ -214,6 +348,7 @@ export const renderElements = ({
           elementPlugins,
           renderContext,
           plugin,
+          resolveParent: () => resolveRenderParent(element.id),
           zIndex,
           signal,
         }),
@@ -222,25 +357,19 @@ export const renderElements = ({
     }
 
     collectOperation(
-      plugin.add({
-        app,
-        parent,
+      mountElement({
+        plugin,
         element,
-        animations: animationsByTarget,
-        eventHandler,
-        animationBus,
-        completionTracker,
-        elementPlugins,
-        renderContext,
         zIndex,
-        signal,
       }),
     );
   }
 
   // Update elements
   for (const { prev, next } of toUpdateElement) {
-    const plugin = getPlugin(next.type);
+    const prevPlugin = getPlugin(prev.type);
+    const nextPlugin = getPlugin(next.type);
+    const isTypeReplacement = prev.type !== next.type;
 
     // Calculate zIndex based on position in nextComputedTree
     const zIndex = nextIndexById.get(next.id) ?? -1;
@@ -257,6 +386,10 @@ export const renderElements = ({
       if (typeof animationBus?.updateContinuation === "function") {
         animationBus.updateContinuation(replaceAnimation.id, { zIndex });
       }
+
+      if (isTypeReplacement) {
+        continue;
+      }
     } else if (replaceAnimation) {
       collectOperation(
         runReplaceAnimation({
@@ -271,7 +404,10 @@ export const renderElements = ({
           eventHandler,
           elementPlugins,
           renderContext,
-          plugin,
+          plugin: nextPlugin,
+          prevPlugin,
+          nextPlugin,
+          resolveParent: () => resolveRenderParent(next.id),
           zIndex,
           signal,
         }),
@@ -279,8 +415,20 @@ export const renderElements = ({
       continue;
     }
 
+    if (isTypeReplacement) {
+      collectOperation(
+        replaceElement({
+          prevElement: prev,
+          nextElement: next,
+          nextPlugin,
+          zIndex,
+        }),
+      );
+      continue;
+    }
+
     collectOperation(
-      plugin.update({
+      nextPlugin.update({
         app,
         parent,
         prevElement: prev,

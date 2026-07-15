@@ -1,0 +1,263 @@
+---
+title: Deferred Element Replacement Removal
+description: |
+  Exercises a pending A-to-B same-id replacement that is reparented and then
+  removed by the latest render before A's asynchronous cleanup settles.
+specs:
+  - a rebuilt scrolling parent should preserve the live plugin A marker
+  - removing the target should never dispatch plugin B against live plugin A output
+  - deferred cleanup should retarget to the current physical parent
+  - cleanup-only completion should explicitly present the removed frame
+skipInitialScreenshot: true
+useBrowserScreenshot: true
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: keypress
+    key: "n"
+  - action: keypress
+    key: "n"
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.pendingDeferredRectDeleteIds
+    value:
+      - removal-target
+  - action: assert
+    type: js
+    fn: vtAssert.mountedVtElementType
+    args:
+      - removal-target
+    value: vt-deferred-rect
+  - action: assert
+    type: js
+    fn: vtAssert.pluginDispatchMismatches
+    value: []
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: removal-pending
+        aborted: true
+      - id: removal-reparented
+        aborted: true
+  - action: customEvent
+    name: vtResolveDeferredRectDelete
+    detail:
+      elementId: removal-target
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.pendingDeferredRectDeleteIds
+    value: []
+  - action: assert
+    type: js
+    fn: vtAssert.mountedVtElementType
+    args:
+      - removal-target
+    value: null
+  - action: assert
+    type: js
+    fn: vtAssert.pluginDispatchMismatches
+    value: []
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: removal-pending
+        aborted: true
+      - id: removal-reparented
+        aborted: true
+      - id: removal-latest
+        aborted: false
+---
+states:
+  - id: removal-baseline
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Baseline: live plugin A"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: panel-background
+        type: rect
+        x: 80
+        "y": 150
+        width: 420
+        height: 300
+        fill: "#1F2937"
+      - id: removal-scroll-panel
+        type: container
+        x: 100
+        "y": 170
+        width: 380
+        height: 260
+        scroll: true
+        children:
+          - id: removal-target
+            type: vt-deferred-rect
+            x: 20
+            "y": 20
+            width: 320
+            height: 180
+            fill: "#EF4444"
+          - id: overflow-sentinel
+            type: rect
+            x: 20
+            "y": 340
+            width: 20
+            height: 40
+            fill: "#1F2937"
+  - id: removal-pending
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Pending: committed state requests plugin B"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: panel-background
+        type: rect
+        x: 80
+        "y": 150
+        width: 420
+        height: 300
+        fill: "#1F2937"
+      - id: removal-scroll-panel
+        type: container
+        x: 100
+        "y": 170
+        width: 380
+        height: 260
+        scroll: true
+        children:
+          - id: removal-target
+            type: vt-strict-rect
+            x: 20
+            "y": 20
+            width: 320
+            height: 180
+            fill: "#3B82F6"
+          - id: overflow-sentinel
+            type: rect
+            x: 20
+            "y": 340
+            width: 20
+            height: 40
+            fill: "#1F2937"
+  - id: removal-reparented
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Superseded: plugin A moved into a rebuilt parent"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: panel-background
+        type: rect
+        x: 80
+        "y": 150
+        width: 460
+        height: 300
+        fill: "#1F2937"
+      - id: removal-scroll-panel
+        type: container
+        x: 100
+        "y": 170
+        width: 420
+        height: 260
+        scroll: true
+        children:
+          - id: removal-target
+            type: vt-strict-rect
+            x: 20
+            "y": 20
+            width: 320
+            height: 180
+            fill: "#3B82F6"
+          - id: overflow-sentinel
+            type: rect
+            x: 20
+            "y": 340
+            width: 20
+            height: 40
+            fill: "#1F2937"
+  - id: removal-latest
+    elements:
+      - id: stage-background
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#111827"
+      - id: state-heading
+        type: text
+        x: 80
+        "y": 64
+        content: "Latest: target removed after deferred cleanup"
+        textStyle:
+          fontSize: 30
+          fill: "#F8FAFC"
+      - id: panel-background
+        type: rect
+        x: 80
+        "y": 150
+        width: 460
+        height: 300
+        fill: "#1F2937"
+      - id: removal-scroll-panel
+        type: container
+        x: 100
+        "y": 170
+        width: 420
+        height: 260
+        scroll: true
+        children:
+          - id: overflow-sentinel
+            type: rect
+            x: 20
+            "y": 340
+            width: 20
+            height: 40
+            fill: "#1F2937"
