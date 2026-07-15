@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const createAudioParam = (initialValue = 0) => {
+const createAudioParam = (
+  initialValue = 0,
+  { reflectScheduledValue = true } = {},
+) => {
   const param = {
     value: initialValue,
     cancelScheduledValues: vi.fn(),
@@ -8,21 +11,31 @@ const createAudioParam = (initialValue = 0) => {
       if (!Number.isFinite(value)) {
         throw new TypeError("AudioParam value must be finite");
       }
-      param.value = value;
+      if (reflectScheduledValue) {
+        param.value = value;
+      }
       return param;
     }),
     linearRampToValueAtTime: vi.fn((value) => {
       if (!Number.isFinite(value)) {
         throw new TypeError("AudioParam value must be finite");
       }
-      param.value = value;
+      if (reflectScheduledValue) {
+        param.value = value;
+      }
       return param;
     }),
   };
   return param;
 };
 
-const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
+const createAudioContextMock = ({
+  decodedBuffer = { duration: 1 },
+  reflectScheduledAudioParamValue = true,
+} = {}) => {
+  const audioParamOptions = {
+    reflectScheduledValue: reflectScheduledAudioParamValue,
+  };
   const context = {
     currentTime: 10,
     state: "running",
@@ -35,7 +48,7 @@ const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
     createGain: vi.fn(() => {
       const node = {
         type: "gain",
-        gain: createAudioParam(1),
+        gain: createAudioParam(1, audioParamOptions),
         connect: vi.fn(),
         disconnect: vi.fn(),
       };
@@ -45,7 +58,7 @@ const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
     createStereoPanner: vi.fn(() => {
       const node = {
         type: "panner",
-        pan: createAudioParam(0),
+        pan: createAudioParam(0, audioParamOptions),
         connect: vi.fn(),
         disconnect: vi.fn(),
       };
@@ -59,7 +72,7 @@ const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
         loop: false,
         loopStart: 0,
         loopEnd: 0,
-        playbackRate: createAudioParam(1),
+        playbackRate: createAudioParam(1, audioParamOptions),
         connect: vi.fn(),
         disconnect: vi.fn(),
         start: vi.fn(),
@@ -73,9 +86,12 @@ const createAudioContextMock = ({ decodedBuffer = { duration: 1 } } = {}) => {
   return context;
 };
 
-const setupAudioStage = async ({ assetMap = new Map() } = {}) => {
+const setupAudioStage = async ({
+  assetMap = new Map(),
+  contextOptions = {},
+} = {}) => {
   vi.resetModules();
-  const context = createAudioContextMock();
+  const context = createAudioContextMock(contextOptions);
   const AudioContextMock = vi.fn(function AudioContextMock() {
     return context;
   });
@@ -397,6 +413,42 @@ describe("AudioStage graph rendering", () => {
       11,
     );
     expect(bgmSource.stop).toHaveBeenCalledWith(11);
+  });
+
+  it("uses the explicit enter start when AudioParam readback is stale", async () => {
+    const { stage } = await setupAudioStage({
+      contextOptions: { reflectScheduledAudioParamValue: false },
+    });
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          volume: 80,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audioTransition",
+          targetId: "bgm",
+          properties: {
+            volume: {
+              enter: { from: 0, duration: 1000, easing: "linear" },
+            },
+          },
+        },
+      ],
+    });
+
+    const bgm = findCurrentSound(stage, "bgm");
+    expect(bgm.gainNode.gain.setValueAtTime).toHaveBeenLastCalledWith(0, 10);
+    expect(bgm.gainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.8,
+      11,
+    );
   });
 
   it("applies enter, update, and exit pan transitions", async () => {

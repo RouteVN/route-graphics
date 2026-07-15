@@ -88,12 +88,21 @@ const setParamNow = (param, value, context = getAudioContext()) => {
   }
 };
 
-const rampParam = (param, value, durationMs, context = getAudioContext()) => {
+const rampParam = ({
+  param,
+  value,
+  durationMs,
+  startValue,
+  context = getAudioContext(),
+}) => {
   if (!param) return;
 
   const now = context.currentTime;
   const seconds = Math.max(0, toFiniteParamValue(durationMs, 0)) / 1000;
-  const currentValue = getParamValue(param);
+  const currentValue =
+    startValue === undefined
+      ? getParamValue(param)
+      : toFiniteParamValue(startValue, getParamValue(param));
   const nextValue = toFiniteParamValue(value, currentValue);
 
   if (typeof param.cancelScheduledValues === "function") {
@@ -190,10 +199,12 @@ const applyAudioParam = ({
       ? normalizeTransitionValue(transition.to)
       : normalizedTargetValue;
 
-  if (initialValue !== undefined) {
-    setParamNow(param, initialValue);
-  }
-  rampParam(param, finalValue, transition.duration);
+  rampParam({
+    param,
+    value: finalValue,
+    durationMs: transition.duration,
+    startValue: initialValue,
+  });
 
   return transition.duration;
 };
