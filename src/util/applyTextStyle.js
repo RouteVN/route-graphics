@@ -6,6 +6,10 @@ export default (element, style) => {
     fill: style?.fill ?? DEFAULT_TEXT_STYLE.fill,
     fontFamily: style?.fontFamily ?? DEFAULT_TEXT_STYLE.fontFamily,
     fontSize: style?.fontSize ?? DEFAULT_TEXT_STYLE.fontSize,
+    ...(style?.fontWeight !== undefined
+      ? { fontWeight: style.fontWeight }
+      : {}),
+    ...(style?.fontStyle !== undefined ? { fontStyle: style.fontStyle } : {}),
     align: style?.align ?? DEFAULT_TEXT_STYLE.align,
     lineHeight: style?.lineHeight ?? DEFAULT_TEXT_STYLE.lineHeight,
     wordWrap: style?.wordWrap ?? DEFAULT_TEXT_STYLE.wordWrap,

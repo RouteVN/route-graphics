@@ -858,6 +858,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {string} fill - The fill color of the text
  * @property {number} fontSize - The font family of the text
  * @property {string} fontWeight - The font weight of the text
+ * @property {string} fontStyle - The font style of the text
  * @property {number} lineHeight - The line height of the text
  * @property {number} wordWrapWidth - Wrap width
  * @property {boolean} wordWrap - Whether to word wrap
