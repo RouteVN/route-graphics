@@ -515,6 +515,79 @@ describe("AudioStage graph rendering", () => {
     expect(gain.linearRampToValueAtTime.mock.calls.length).toBeGreaterThan(2);
   });
 
+  it("accumulates relative keyframes from clamped audible endpoints", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          pan: 0.8,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            pan: {
+              enter: {
+                initialValue: 0.8,
+                keyframes: [
+                  { value: 0.5, duration: 100, relative: true },
+                  { value: -0.2, duration: 100, relative: true },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const pan = findCurrentSound(stage, "bgm").pannerNode.pan;
+    expect(pan.linearRampToValueAtTime).toHaveBeenNthCalledWith(1, 1, 10.1);
+    expect(pan.linearRampToValueAtTime).toHaveBeenNthCalledWith(2, 0.8, 10.2);
+  });
+
+  it("bounds easing samples for long non-linear keyframes", async () => {
+    const { stage } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "bgm",
+          type: "sound",
+          src: "theme",
+          volume: 80,
+        },
+      ],
+      nextAudioEffects: [
+        {
+          id: "bgm-enter",
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            volume: {
+              enter: {
+                initialValue: 0,
+                keyframes: [
+                  { value: 80, duration: 600_000, easing: "easeInQuad" },
+                ],
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const gain = findCurrentSound(stage, "bgm").gainNode.gain;
+    expect(gain.linearRampToValueAtTime).toHaveBeenCalledTimes(1024);
+    expect(gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0.8, 610);
+  });
+
   it("uses the summed keyframe duration for exit cleanup", async () => {
     const { stage, context } = await setupAudioStage();
     const audio = [{ id: "bgm", type: "sound", src: "theme", volume: 100 }];

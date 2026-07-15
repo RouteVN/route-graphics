@@ -32,6 +32,13 @@ const assertRecord = (value, path) => {
   }
 };
 
+const assertNonEmptyRecord = (value, path) => {
+  assertRecord(value, path);
+  if (Object.keys(value).length === 0) {
+    throw new Error(`Input error: ${path} must be a non-empty object.`);
+  }
+};
+
 const assertNonEmptyString = (value, path) => {
   if (typeof value !== "string" || value.length === 0) {
     throw new Error(`Input error: ${path} must be a non-empty string.`);
@@ -295,7 +302,7 @@ const validateAudioTransition = (effect, path, nodeTypes) => {
     );
   }
 
-  assertRecord(effect.properties, `${path}.properties`);
+  assertNonEmptyRecord(effect.properties, `${path}.properties`);
 
   for (const [propertyName, propertyTransitions] of Object.entries(
     effect.properties,
@@ -314,7 +321,10 @@ const validateAudioTransition = (effect, path, nodeTypes) => {
       );
     }
 
-    assertRecord(propertyTransitions, `${path}.properties.${propertyName}`);
+    assertNonEmptyRecord(
+      propertyTransitions,
+      `${path}.properties.${propertyName}`,
+    );
 
     for (const [phaseName, phase] of Object.entries(propertyTransitions)) {
       if (!AUDIO_TRANSITION_PHASES.has(phaseName)) {

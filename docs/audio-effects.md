@@ -221,6 +221,7 @@ Route Graphics should reject invalid audio render state instead of guessing:
 - nested `audio-channel` nodes in the first implementation
 - `audio-transition.targetId` that cannot be resolved in the state used for its
   lifecycle
+- an empty `audio-transition.properties` map or empty property lifecycle map
 - transition phases without a non-empty `keyframes` array
 - keyframes missing required `value` or `duration`
 - keyframes that use an unsupported easing name
@@ -314,7 +315,9 @@ Keyframe fields:
 
 The first keyframe starts at `initialValue` when provided; otherwise it starts
 at the current audible value. Each later keyframe starts where the previous one
-ended. Total phase duration is the sum of its keyframe durations.
+ended. When a relative keyframe exceeds a property's range, its clamped audible
+endpoint is the baseline for the next relative keyframe. Total phase duration
+is the sum of its keyframe durations.
 
 Audio keyframes support the same easing names as visual animation keyframes.
 Resolved volume, pan, and playback-rate values are constrained to their valid
@@ -533,9 +536,9 @@ scheduleKeyframes(param, keyframes, now);
 ```
 
 Linear segments use native linear ramps. Other animation easings are sampled
-into short linear segments. Tracking the scheduled timeline prevents stale
-`AudioParam.value` readback from causing a jump when a later render interrupts
-an active ramp.
+into short linear segments, with a bounded sample count for very long
+transitions. Tracking the scheduled timeline prevents stale `AudioParam.value`
+readback from causing a jump when a later render interrupts an active ramp.
 
 For removed nodes with an exit transition, cleanup happens after the longest
 property phase. A phase duration is the sum of its keyframe durations:

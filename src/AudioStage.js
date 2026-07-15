@@ -7,6 +7,7 @@ import { getAudioContext } from "./audioContext.js";
 const ROOT_CHANNEL_ID = "__route_graphics_audio_root__";
 const DIRECT_CHANNEL_ID = "__route_graphics_audio_direct__";
 const AUDIO_AUTOMATION_SAMPLE_INTERVAL_MS = 16;
+const AUDIO_AUTOMATION_MAX_SAMPLES = 1024;
 const audioParamAutomation = new WeakMap();
 
 const isAudioDebugEnabled = () =>
@@ -142,27 +143,31 @@ const buildAudioTimeline = ({
   normalizeTransitionValue,
   denormalizeParamValue,
 }) => {
-  let authoredValue =
+  const initialAuthoredValue =
     transition.initialValue === undefined
       ? denormalizeParamValue(currentValue)
       : transition.initialValue;
+  const initialValue = normalizeTransitionValue(initialAuthoredValue);
+  let authoredValue = denormalizeParamValue(initialValue);
   let elapsedMs = 0;
   const timeline = [
     {
       time: 0,
-      value: normalizeTransitionValue(authoredValue),
+      value: initialValue,
       easing: "linear",
     },
   ];
 
   for (const keyframe of transition.keyframes) {
     elapsedMs += Math.max(0, toFiniteParamValue(keyframe.duration, 0));
-    authoredValue = keyframe.relative
+    const nextAuthoredValue = keyframe.relative
       ? authoredValue + keyframe.value
       : keyframe.value;
+    const nextValue = normalizeTransitionValue(nextAuthoredValue);
+    authoredValue = denormalizeParamValue(nextValue);
     timeline.push({
       time: elapsedMs,
-      value: normalizeTransitionValue(authoredValue),
+      value: nextValue,
       easing: keyframe.easing ?? "linear",
     });
   }
@@ -196,9 +201,9 @@ const scheduleTimelineSegment = ({
   }
 
   const easing = getEasingFunction(end.easing);
-  const sampleCount = Math.max(
-    1,
-    Math.ceil(durationMs / AUDIO_AUTOMATION_SAMPLE_INTERVAL_MS),
+  const sampleCount = Math.min(
+    AUDIO_AUTOMATION_MAX_SAMPLES,
+    Math.max(1, Math.ceil(durationMs / AUDIO_AUTOMATION_SAMPLE_INTERVAL_MS)),
   );
   for (let sample = 1; sample <= sampleCount; sample++) {
     const progress = sample / sampleCount;

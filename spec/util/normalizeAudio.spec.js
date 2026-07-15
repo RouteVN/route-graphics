@@ -359,6 +359,38 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow('keyframes[0].easing "unknownEase" is not supported');
   });
 
+  it("rejects empty audio transition property maps", () => {
+    const audio = [{ id: "music", type: "audio-channel" }];
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "empty-properties",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {},
+          },
+        ],
+      }),
+    ).toThrow("audioEffects[0].properties must be a non-empty object");
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "empty-lifecycle",
+            type: "audio-transition",
+            targetId: "music",
+            properties: { volume: {} },
+          },
+        ],
+      }),
+    ).toThrow("audioEffects[0].properties.volume must be a non-empty object");
+  });
+
   it("accepts pan and sound playback-rate transitions", () => {
     expect(() =>
       normalizeAudioRenderState({
