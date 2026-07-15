@@ -70,4 +70,91 @@ describe("renderElements abort handling", () => {
     expect(parent.getChildByLabel("first", true)).toBeNull();
     expect(parent.getChildByLabel("second", true)).toBeTruthy();
   });
+
+  it("does not add an async replacement after render cancellation", async () => {
+    const parent = new Container();
+    const controller = new AbortController();
+    let resolveDelete;
+    const deleteOperation = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(() => deleteOperation),
+    };
+    const nextPlugin = {
+      type: "rect",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    const renderOperation = renderElements({
+      app: {},
+      parent,
+      prevComputedTree: [{ id: "background", type: "sprite" }],
+      nextComputedTree: [{ id: "background", type: "rect" }],
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 0,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+      signal: controller.signal,
+    });
+
+    controller.abort();
+    resolveDelete();
+    await renderOperation;
+
+    expect(nextPlugin.add).not.toHaveBeenCalled();
+  });
+
+  it("does not add an async replacement after its parent is destroyed", async () => {
+    const parent = new Container();
+    let resolveDelete;
+    const deleteOperation = new Promise((resolve) => {
+      resolveDelete = resolve;
+    });
+    const previousPlugin = {
+      type: "sprite",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(() => deleteOperation),
+    };
+    const nextPlugin = {
+      type: "rect",
+      add: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    const renderOperation = renderElements({
+      app: {},
+      parent,
+      prevComputedTree: [{ id: "background", type: "sprite" }],
+      nextComputedTree: [{ id: "background", type: "rect" }],
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 0,
+        track: vi.fn(),
+        complete: vi.fn(),
+      },
+      eventHandler: vi.fn(),
+      elementPlugins: [previousPlugin, nextPlugin],
+      signal: new AbortController().signal,
+    });
+
+    parent.destroy();
+    resolveDelete();
+    await renderOperation;
+
+    expect(nextPlugin.add).not.toHaveBeenCalled();
+  });
 });

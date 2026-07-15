@@ -85,8 +85,12 @@ export const renderElements = ({
     nextPlugin,
     zIndex,
   }) => {
-    const addNextElement = () =>
-      nextPlugin.add({
+    const addNextElement = () => {
+      if (signal?.aborted || parent.destroyed) {
+        return undefined;
+      }
+
+      return nextPlugin.add({
         app,
         parent,
         element: nextElement,
@@ -99,6 +103,7 @@ export const renderElements = ({
         zIndex,
         signal,
       });
+    };
     const deleteOperation = prevPlugin.delete({
       app,
       parent,
