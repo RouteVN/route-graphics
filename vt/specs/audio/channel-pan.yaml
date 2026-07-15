@@ -1,0 +1,49 @@
+---
+title: Audio Manual - Channel Pan
+description: Isolated headphone fixture for immediate stereo-pan updates on an audio channel.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should play looping bgm-1 in the center
+  - state 3 should immediately move the continuing sound fully left
+  - state 4 should immediately move it fully right
+  - state 5 should stop the sound
+---
+states:
+  - id: channel-pan-ready
+    audio: []
+  - id: channel-pan-center
+    audio:
+      - id: music
+        type: audio-channel
+        pan: 0
+        children:
+          - id: channel-pan-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+  - id: channel-pan-left
+    audio:
+      - id: music
+        type: audio-channel
+        pan: -1
+        children:
+          - id: channel-pan-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+  - id: channel-pan-right
+    audio:
+      - id: music
+        type: audio-channel
+        pan: 1
+        children:
+          - id: channel-pan-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+  - id: channel-pan-stopped
+    audio: []

@@ -1,0 +1,31 @@
+---
+title: Audio Manual - Source Replacement by StartDelayMs
+description: Isolated fixture proving that changing startDelayMs replaces and reschedules a same-id sound.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should immediately start looping bgm-3
+  - state 3 should stop the old instance, remain silent for one second, then start its replacement
+  - state 4 should stop the sound
+---
+states:
+  - id: replacement-start-delay-ready
+    audio: []
+  - id: replacement-start-delay-immediate
+    audio:
+      - id: replacement-start-delay-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startDelayMs: 0
+  - id: replacement-start-delay-delayed
+    audio:
+      - id: replacement-start-delay-bgm
+        type: sound
+        src: bgm-3
+        loop: true
+        volume: 80
+        startDelayMs: 1000
+  - id: replacement-start-delay-stopped
+    audio: []

@@ -1,18 +1,27 @@
+import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
+
 const AUDIO_NODE_TYPES = new Set(["audio-channel", "sound"]);
 const AUDIO_TRANSITION_TYPE = "audio-transition";
-const LEGACY_AUDIO_TRANSITION_TYPE = "audioTransition";
-const AUDIO_EFFECT_TYPES = new Set([
-  AUDIO_TRANSITION_TYPE,
-  LEGACY_AUDIO_TRANSITION_TYPE,
-]);
+const AUDIO_EFFECT_TYPES = new Set([AUDIO_TRANSITION_TYPE]);
 const AUDIO_TRANSITION_PHASES = new Set(["enter", "exit", "update"]);
-const AUDIO_TRANSITION_PROPERTIES = new Set(["volume"]);
-const AUDIO_EASINGS = new Set(["linear"]);
-const AUDIO_TRANSITION_PHASE_KEYS = {
-  enter: new Set(["from", "duration", "easing"]),
-  exit: new Set(["to", "duration", "easing"]),
-  update: new Set(["duration", "easing"]),
+const AUDIO_TRANSITION_PROPERTIES = new Set(["volume", "pan", "playbackRate"]);
+const AUDIO_TRANSITION_PROPERTIES_BY_NODE_TYPE = {
+  "audio-channel": new Set(["volume", "pan"]),
+  sound: new Set(["volume", "pan", "playbackRate"]),
 };
+const AUDIO_TRANSITION_PROPERTY_RANGES = {
+  volume: { min: 0, max: 100 },
+  pan: { min: -1, max: 1 },
+  playbackRate: { min: 0 },
+};
+const AUDIO_EASINGS = new Set(SUPPORTED_EASING_NAMES);
+const AUDIO_TRANSITION_PHASE_KEYS = new Set(["initialValue", "keyframes"]);
+const AUDIO_TRANSITION_KEYFRAME_KEYS = new Set([
+  "value",
+  "duration",
+  "easing",
+  "relative",
+]);
 
 const isRecord = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -20,6 +29,13 @@ const isRecord = (value) =>
 const assertRecord = (value, path) => {
   if (!isRecord(value)) {
     throw new Error(`Input error: ${path} must be an object.`);
+  }
+};
+
+const assertNonEmptyRecord = (value, path) => {
+  assertRecord(value, path);
+  if (Object.keys(value).length === 0) {
+    throw new Error(`Input error: ${path} must be a non-empty object.`);
   }
 };
 
@@ -205,64 +221,88 @@ const validateAudioNodes = (audio, ids) => {
     channels: flattenedChannels,
     sounds: flattenedSounds,
     builtinNodeIds,
+    builtinNodeTypes: new Map(
+      [...flattenedChannels, ...flattenedSounds].map((node) => [
+        node.id,
+        node.type,
+      ]),
+    ),
   };
 };
 
-const validateTransitionPhase = (phase, phaseName, path, propertyName) => {
+const validateTransitionPhase = (phase, path, propertyName) => {
   assertRecord(phase, path);
 
   for (const key of Object.keys(phase)) {
-    if (!AUDIO_TRANSITION_PHASE_KEYS[phaseName].has(key)) {
+    if (!AUDIO_TRANSITION_PHASE_KEYS.has(key)) {
       throw new Error(
         `Input error: unsupported audio transition field "${key}" at ${path}.`,
       );
     }
   }
 
-  if (phase.duration === undefined) {
-    throw new Error(`Input error: ${path}.duration is required.`);
-  }
-  assertNumber(phase.duration, `${path}.duration`, { min: 0 });
-
-  if (phase.easing === undefined) {
-    throw new Error(`Input error: ${path}.easing is required.`);
-  }
-  if (!AUDIO_EASINGS.has(phase.easing)) {
-    throw new Error(
-      `Input error: ${path}.easing "${phase.easing}" is not supported.`,
+  if (phase.initialValue !== undefined) {
+    assertNumber(
+      phase.initialValue,
+      `${path}.initialValue`,
+      AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
     );
   }
 
-  if (phaseName === "enter") {
-    if (phase.from === undefined) {
-      throw new Error(`Input error: ${path}.from is required.`);
-    }
-    assertNumber(phase.from, `${path}.from`, { min: 0, max: 100 });
-  }
-
-  if (phaseName === "exit") {
-    if (phase.to === undefined) {
-      throw new Error(`Input error: ${path}.to is required.`);
-    }
-    assertNumber(phase.to, `${path}.to`, { min: 0, max: 100 });
-  }
-
-  if (propertyName !== "volume") {
+  if (!Array.isArray(phase.keyframes) || phase.keyframes.length === 0) {
     throw new Error(
-      `Input error: unsupported audio transition property "${propertyName}" at ${path}.`,
+      `Input error: ${path}.keyframes must be a non-empty array.`,
     );
+  }
+
+  for (const [index, keyframe] of phase.keyframes.entries()) {
+    const keyframePath = `${path}.keyframes[${index}]`;
+    assertRecord(keyframe, keyframePath);
+
+    for (const key of Object.keys(keyframe)) {
+      if (!AUDIO_TRANSITION_KEYFRAME_KEYS.has(key)) {
+        throw new Error(
+          `Input error: unsupported audio transition keyframe field "${key}" at ${keyframePath}.`,
+        );
+      }
+    }
+
+    if (keyframe.value === undefined) {
+      throw new Error(`Input error: ${keyframePath}.value is required.`);
+    }
+    assertNumber(
+      keyframe.value,
+      `${keyframePath}.value`,
+      keyframe.relative
+        ? undefined
+        : AUDIO_TRANSITION_PROPERTY_RANGES[propertyName],
+    );
+
+    if (keyframe.duration === undefined) {
+      throw new Error(`Input error: ${keyframePath}.duration is required.`);
+    }
+    assertNumber(keyframe.duration, `${keyframePath}.duration`, { min: 0 });
+
+    if (keyframe.easing !== undefined && !AUDIO_EASINGS.has(keyframe.easing)) {
+      throw new Error(
+        `Input error: ${keyframePath}.easing "${keyframe.easing}" is not supported.`,
+      );
+    }
+
+    assertOptionalBoolean(keyframe.relative, `${keyframePath}.relative`);
   }
 };
 
-const validateAudioTransition = (effect, path, nodeIds) => {
+const validateAudioTransition = (effect, path, nodeTypes) => {
   assertNonEmptyString(effect.targetId, `${path}.targetId`);
-  if (!nodeIds.has(effect.targetId)) {
+  const targetType = nodeTypes.get(effect.targetId);
+  if (!targetType) {
     throw new Error(
       `Input error: ${path}.targetId "${effect.targetId}" does not resolve to an audio node.`,
     );
   }
 
-  assertRecord(effect.properties, `${path}.properties`);
+  assertNonEmptyRecord(effect.properties, `${path}.properties`);
 
   for (const [propertyName, propertyTransitions] of Object.entries(
     effect.properties,
@@ -273,7 +313,18 @@ const validateAudioTransition = (effect, path, nodeIds) => {
       );
     }
 
-    assertRecord(propertyTransitions, `${path}.properties.${propertyName}`);
+    if (
+      !AUDIO_TRANSITION_PROPERTIES_BY_NODE_TYPE[targetType].has(propertyName)
+    ) {
+      throw new Error(
+        `Input error: audio transition property "${propertyName}" is not supported for target type "${targetType}" at ${path}.properties.`,
+      );
+    }
+
+    assertNonEmptyRecord(
+      propertyTransitions,
+      `${path}.properties.${propertyName}`,
+    );
 
     for (const [phaseName, phase] of Object.entries(propertyTransitions)) {
       if (!AUDIO_TRANSITION_PHASES.has(phaseName)) {
@@ -284,7 +335,6 @@ const validateAudioTransition = (effect, path, nodeIds) => {
 
       validateTransitionPhase(
         phase,
-        phaseName,
         `${path}.properties.${propertyName}.${phaseName}`,
         propertyName,
       );
@@ -292,10 +342,12 @@ const validateAudioTransition = (effect, path, nodeIds) => {
   }
 };
 
-const validateAudioEffects = (audioEffects, ids, nodeIds) => {
+const validateAudioEffects = (audioEffects, ids, nodeTypes) => {
   if (!Array.isArray(audioEffects)) {
     throw new Error("Input error: `audioEffects` must be an array.");
   }
+
+  const transitionTargetIds = new Set();
 
   for (const [index, effect] of audioEffects.entries()) {
     const path = `audioEffects[${index}]`;
@@ -309,11 +361,14 @@ const validateAudioEffects = (audioEffects, ids, nodeIds) => {
       );
     }
 
-    if (
-      effect.type === AUDIO_TRANSITION_TYPE ||
-      effect.type === LEGACY_AUDIO_TRANSITION_TYPE
-    ) {
-      validateAudioTransition(effect, path, nodeIds);
+    if (effect.type === AUDIO_TRANSITION_TYPE) {
+      validateAudioTransition(effect, path, nodeTypes);
+      if (transitionTargetIds.has(effect.targetId)) {
+        throw new Error(
+          `Input error: duplicate audio-transition targetId "${effect.targetId}" at ${path}.targetId.`,
+        );
+      }
+      transitionTargetIds.add(effect.targetId);
     }
   }
 };
@@ -329,7 +384,7 @@ export const normalizeAudioRenderState = ({
 } = {}) => {
   const ids = new Set();
   const flattened = validateAudioNodes(audio, ids);
-  validateAudioEffects(audioEffects, ids, flattened.builtinNodeIds);
+  validateAudioEffects(audioEffects, ids, flattened.builtinNodeTypes);
 
   return {
     audio,

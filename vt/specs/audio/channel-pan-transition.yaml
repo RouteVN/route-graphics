@@ -1,0 +1,59 @@
+---
+title: Audio Manual - Channel Pan Transition
+description: Isolated headphone fixture for channel-pan enter, update, and exit automation.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should sweep the channel from fully left to fully right over three seconds
+  - state 3 should sweep the continuing channel back left over three seconds
+  - state 4 should sweep it right over two seconds and then stop it
+---
+states:
+  - id: channel-pan-transition-ready
+    audio: []
+  - id: channel-pan-transition-enter
+    audio:
+      - id: music
+        type: audio-channel
+        pan: 1
+        children:
+          - id: channel-pan-transition-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+    audioEffects:
+      - id: channel-pan-enter
+        type: audio-transition
+        targetId: music
+        properties:
+          pan:
+            enter:
+              initialValue: -1
+              keyframes:
+                - { value: 1, duration: 3000, easing: linear }
+  - id: channel-pan-transition-update
+    audio:
+      - id: music
+        type: audio-channel
+        pan: -1
+        children:
+          - id: channel-pan-transition-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+            volume: 80
+    audioEffects:
+      - id: channel-pan-update-exit
+        type: audio-transition
+        targetId: music
+        properties:
+          pan:
+            update:
+              keyframes:
+                - { value: -1, duration: 3000, easing: linear }
+            exit:
+              keyframes:
+                - { value: 1, duration: 2000, easing: linear }
+  - id: channel-pan-transition-exit
+    audio: []

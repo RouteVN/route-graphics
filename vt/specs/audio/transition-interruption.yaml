@@ -1,0 +1,48 @@
+---
+title: Audio Manual - Transition Interruption
+description: Isolated fixture for replacing active AudioParam automation from the current audible value.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 begins a six-second fade from silence to full volume
+  - advance to state 3 after about two seconds; volume should ramp smoothly down without a jump
+  - state 4 should stop the sound
+---
+states:
+  - id: transition-interruption-ready
+    audio: []
+  - id: transition-interruption-enter
+    audio:
+      - id: interrupted-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 100
+    audioEffects:
+      - id: interrupted-enter
+        type: audio-transition
+        targetId: interrupted-bgm
+        properties:
+          volume:
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 100, duration: 6000, easing: linear }
+  - id: transition-interruption-update
+    audio:
+      - id: interrupted-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 10
+    audioEffects:
+      - id: interrupted-update
+        type: audio-transition
+        targetId: interrupted-bgm
+        properties:
+          volume:
+            update:
+              keyframes:
+                - { value: 10, duration: 2000, easing: linear }
+  - id: transition-interruption-stopped
+    audio: []

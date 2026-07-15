@@ -1,0 +1,39 @@
+---
+title: Audio Manual - Continuing Sound Channel Reroute
+description: Isolated fixture proving that moving a continuing sound between channels reroutes it without source restart.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should start looping bgm-1 through the music channel
+  - state 3 should continue at the same playback position after moving to the effects channel
+  - state 4 should stop the sound
+---
+states:
+  - id: channel-reroute-ready
+    audio: []
+  - id: channel-reroute-music
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        children:
+          - id: rerouted-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-reroute-effects
+    audio:
+      - id: music
+        type: audio-channel
+        volume: 70
+        children: []
+      - id: effects
+        type: audio-channel
+        volume: 70
+        children:
+          - id: rerouted-bgm
+            type: sound
+            src: bgm-1
+            loop: true
+  - id: channel-reroute-stopped
+    audio: []

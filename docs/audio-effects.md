@@ -1,6 +1,6 @@
 # Audio Channel Design
 
-Last updated: 2026-04-30
+Last updated: 2026-07-15
 
 This document defines the channel-based audio interface for Route Graphics
 render state.
@@ -14,18 +14,18 @@ also still accepts flat Route Graphics `sound` audio nodes for compatibility.
   Graphics visual nodes and animations
 - keep channels out of `resources`
 - keep audio nodes focused on current audio state
-- put automation and filters in a separate `audioEffects` array
+- keep automation in `audioEffects`
 - support mixer-style channel volume without a separate mixer concept
 - support smooth volume fades and crossfades
 - preserve compatibility with existing flat `sound` render state
-- leave room for pan, playback-rate automation, and Web Audio filters
+- leave room for pan and playback-rate automation
 
 ## Non-Goals
 
 - no nested audio channels in the first implementation
 - no command-style `play` / `stop` operation model in Route Graphics
 - no required channel declarations in project resources
-- no first implementation dependency on reverb, delay, or EQ filters
+- no audio filter or general-purpose DSP interface
 
 ## Render-State Shape
 
@@ -39,8 +39,8 @@ audioEffects: []
 `audio` defines the desired audio graph state. `audioEffects` defines typed
 effects that target audio node IDs.
 
-All `audio` node IDs and `audioEffects` IDs share one render-state namespace.
-IDs must be globally unique within a rendered frame. This keeps `targetId`
+All audio node IDs and `audioEffects` IDs share one render-state namespace. IDs
+must be globally unique within a rendered frame. This keeps `targetId`
 resolution unambiguous and avoids channel-scoped lookup rules.
 
 ```yaml
@@ -62,9 +62,13 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 80, duration: 1000, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 ```
 
 For compatibility, flat `sound` nodes remain valid:
@@ -116,6 +120,8 @@ First implementation rule:
 
 - `audio-channel.children` may contain `sound` nodes only.
 - nested `audio-channel` nodes are invalid until explicitly supported.
+- child array order does not control playback order; sounds are mixed in
+  parallel and may use `startDelayMs` for scheduled sequences.
 
 ### Sounds
 
@@ -155,15 +161,17 @@ Fields:
 duration is `endAt - startAt`.
 
 The channel audio graph uses `startDelayMs` only. `sound.delay` is not part of
-this interface, which avoids confusion with the future `delay` audio filter.
+this interface.
 
 ### Sound Identity and Replay
 
 Route Graphics treats `sound.id` as the playback identity.
 
-If a `sound` remains present with the same `id` and same `src`, it is a
-continuing playback instance. It should not restart just because the same render
-state is submitted again.
+If a `sound` remains present with the same `id`, `src`, `startAt`, `endAt`, and
+`startDelayMs`, it is a continuing playback instance. It should not restart just
+because the same render state is submitted again. Changing any of those source
+identity fields replaces the playback instance; changes to output controls,
+looping, playback rate, or channel ownership update it in place.
 
 Use stable IDs for persistent sounds:
 
@@ -195,10 +203,10 @@ not "play it again".
 
 ## Audio Effects
 
-`audioEffects` is a typed effect list. It contains automation and processing
-nodes that target audio node IDs or other effect IDs.
+`audioEffects` is a typed automation list. It contains transitions that target
+audio node IDs.
 
-First implementation effect item types:
+Supported effect item type:
 
 - `audio-transition`
 
@@ -213,9 +221,13 @@ Route Graphics should reject invalid audio render state instead of guessing:
 - nested `audio-channel` nodes in the first implementation
 - `audio-transition.targetId` that cannot be resolved in the state used for its
   lifecycle
-- transition phases missing required `duration` or `easing`
-- transition phases that use an unsupported easing name
-- unknown audio node, effect, filter, or automated property types
+- an empty `audio-transition.properties` map or empty property lifecycle map
+- transition phases without a non-empty `keyframes` array
+- keyframes missing required `value` or `duration`
+- keyframes that use an unsupported easing name
+- more than one `audio-transition` targeting the same audio node in one render
+  state
+- unknown audio node, effect, or automated property types
 
 ## Audio Transitions
 
@@ -228,26 +240,40 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 80, duration: 1000, easing: linear }
+        update:
+          keyframes:
+            - { value: 40, duration: 300, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
       pan:
-        update: { duration: 200, easing: linear }
+        update:
+          keyframes:
+            - { value: -1, duration: 200, easing: linear }
 ```
 
 Fields:
 
-| Field        | Type               | Default  | Description                         |
-| ------------ | ------------------ | -------- | ----------------------------------- |
-| `id`         | string             | required | Stable effect ID                    |
-| `type`       | `audio-transition` | required | Effect type                         |
-| `targetId`   | string             | required | Audio node or effect ID to automate |
-| `properties` | object             | required | Property automation map             |
+| Field        | Type               | Default  | Description               |
+| ------------ | ------------------ | -------- | ------------------------- |
+| `id`         | string             | required | Stable effect ID          |
+| `type`       | `audio-transition` | required | Effect type               |
+| `targetId`   | string             | required | Audio node ID to automate |
+| `properties` | object             | required | Property automation map   |
 
-First implementation `targetId` may reference:
+`targetId` may reference:
 
 - an `audio-channel`
 - a `sound`
+
+`targetId` resolves the target kind directly, so `targetType` is unnecessary.
+Each target may have at most one `audio-transition` in a render state. Authors
+combine all automated properties and lifecycle phases for that target inside
+one `properties` map.
 
 Transition phases:
 
@@ -257,21 +283,57 @@ Transition phases:
 | `exit`   | Target disappears from the next render state  | previous `audioEffects` |
 | `update` | Target remains but the property value changes | next `audioEffects`     |
 
-Transition phase fields:
+Every phase uses the same keyframe payload as visual animation transitions:
 
-| Phase    | Required fields              | Value rule                                                   |
-| -------- | ---------------------------- | ------------------------------------------------------------ |
-| `enter`  | `from`, `duration`, `easing` | Starts at `from`; ends at the target's declared value        |
-| `exit`   | `to`, `duration`, `easing`   | Starts at the current value; ends at `to`                    |
-| `update` | `duration`, `easing`         | Starts at the current value; ends at the next declared value |
+```yaml
+enter:
+  initialValue: 0
+  keyframes:
+    - value: 40
+      duration: 300
+      easing: easeOutQuad
+    - value: 80
+      duration: 700
+      easing: easeInOutSine
+```
 
-`duration` is in milliseconds. `easing` is required and must not be defaulted
-silently. The first implementation only needs to support `linear`.
+Phase fields:
 
-Using the previous state's `audioEffects` for `exit` lets a removed sound or
-filter fade out without keeping a dead target in the next render state.
+| Field          | Type       | Default               | Description                                  |
+| -------------- | ---------- | --------------------- | -------------------------------------------- |
+| `initialValue` | number     | current audible value | Value before the first keyframe              |
+| `keyframes`    | keyframe[] | required              | Ordered, non-empty property automation steps |
 
-First implementation target:
+Keyframe fields:
+
+| Field      | Type    | Default  | Description                                              |
+| ---------- | ------- | -------- | -------------------------------------------------------- |
+| `value`    | number  | required | Absolute target, or a delta when `relative` is `true`    |
+| `duration` | number  | required | Milliseconds to reach this keyframe from the prior value |
+| `easing`   | string  | `linear` | Animation easing applied to the segment reaching it      |
+| `relative` | boolean | `false`  | Resolve `value` relative to the prior keyframe value     |
+
+The first keyframe starts at `initialValue` when provided; otherwise it starts
+at the current audible value. Each later keyframe starts where the previous one
+ended. When a relative keyframe exceeds a property's range, its clamped audible
+endpoint is the baseline for the next relative keyframe. Total phase duration
+is the sum of its keyframe durations.
+
+Audio keyframes support the same easing names as visual animation keyframes.
+Resolved volume, pan, and playback-rate values are constrained to their valid
+ranges. For `enter` and `update`, authors should normally finish at the value
+declared on the target audio node so declarative state and audible state agree.
+
+An omitted phase makes that lifecycle change immediate for the property. If a
+new render interrupts an active transition, the next ramp starts from the
+current audible value after cancelling or holding previously scheduled
+automation. Removed instances remain alive until their longest exit transition
+finishes.
+
+Using the previous state's `audioEffects` for `exit` lets a removed sound fade
+out without keeping a dead target in the next render state.
+
+Volume transition example:
 
 ```yaml
 audioEffects:
@@ -280,12 +342,19 @@ audioEffects:
     targetId: music
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
-        exit: { to: 0, duration: 1000, easing: linear }
-        update: { duration: 300, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 100, duration: 1000, easing: linear }
+        update:
+          keyframes:
+            - { value: 40, duration: 300, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 ```
 
-Future transition targets:
+Pan and playback-rate transition example:
 
 ```yaml
 audioEffects:
@@ -294,107 +363,25 @@ audioEffects:
     targetId: bgm
     properties:
       pan:
-        update: { duration: 200, easing: linear }
+        update:
+          keyframes:
+            - { value: 1, duration: 200, easing: linear }
       playbackRate:
-        update: { duration: 500, easing: linear }
+        update:
+          keyframes:
+            - { value: 1.5, duration: 500, easing: linear }
 ```
 
-## Planned Audio Filters
+Recommended transitionable properties:
 
-An `audioFilter` is a planned Web Audio processing effect. It will target an
-audio node when implemented.
+| Target type     | Properties                      |
+| --------------- | ------------------------------- |
+| `audio-channel` | `volume`, `pan`                 |
+| `sound`         | `volume`, `pan`, `playbackRate` |
 
-```yaml
-audioEffects:
-  - id: music-lowpass
-    type: audioFilter
-    targetId: music
-    filterType: lowpass
-    frequency: 900
-    q: 1
-```
-
-Fields:
-
-| Field        | Type          | Default  | Description                   |
-| ------------ | ------------- | -------- | ----------------------------- |
-| `id`         | string        | required | Stable filter effect ID       |
-| `type`       | `audioFilter` | required | Effect type                   |
-| `targetId`   | string        | required | Audio node ID to process      |
-| `filterType` | string        | required | Web Audio filter kind         |
-| `enabled`    | boolean       | `true`   | Disabled filters are bypassed |
-
-Filter-specific fields depend on `filterType`.
-
-`targetId` may reference:
-
-- an `audio-channel`
-- a `sound`
-
-When multiple filters target the same node, they are applied in `audioEffects`
-order.
-
-Future versions may allow an `audioFilter` to target another `audioFilter`.
-That requires graph validation, topological ordering, and cycle rejection. It
-should not be part of the first filter implementation.
-
-### Planned Filter Types
-
-| `filterType` | Web Audio node                 | Common fields                                     |
-| ------------ | ------------------------------ | ------------------------------------------------- |
-| `lowpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `highpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `bandpass`   | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `notch`      | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `lowshelf`   | `BiquadFilterNode`             | `frequency`, `gain`                               |
-| `highshelf`  | `BiquadFilterNode`             | `frequency`, `gain`                               |
-| `peaking`    | `BiquadFilterNode`             | `frequency`, `q`, `gain`                          |
-| `allpass`    | `BiquadFilterNode`             | `frequency`, `q`                                  |
-| `delay`      | `DelayNode` plus feedback gain | `delayTime`, `feedback`, `wet`                    |
-| `compressor` | `DynamicsCompressorNode`       | `threshold`, `knee`, `ratio`, `attack`, `release` |
-| `reverb`     | `ConvolverNode`                | `impulseSrc`, `wet`                               |
-
-Filters are not required for the first implementation. The interface should be
-designed now so filters can be added without changing the audio tree shape.
-
-### Filter Lifecycle
-
-`enabled` is an immediate bypass flag. It should not be treated as a fade.
-
-Smooth filter enter and exit need one of these explicit strategies:
-
-- transition filter parameters toward or away from neutral values
-- use a filter-provided `wet` parameter when the filter supports wet/dry mixing
-
-For example, a lowpass filter can be made less audible by transitioning
-`frequency` back toward a high neutral value before the filter is removed.
-Removing a filter without such a transition may change the sound immediately.
-
-### Filter Automation
-
-Filter parameters are automated by targeting the filter effect ID with an
-`audio-transition`.
-
-```yaml
-audioEffects:
-  - id: music-lowpass
-    type: audioFilter
-    targetId: music
-    filterType: lowpass
-    frequency: 12000
-    q: 1
-
-  - id: music-lowpass-transition
-    type: audio-transition
-    targetId: music-lowpass
-    properties:
-      frequency:
-        update: { duration: 600, easing: linear }
-      q:
-        update: { duration: 300, easing: linear }
-```
-
-No dotted paths are needed.
+`muted` and `loop` are immediate boolean switches. `src`, `startAt`, `endAt`,
+and `startDelayMs` define source identity and replace the playback instance when
+changed; they are not transitionable properties.
 
 ## Volume
 
@@ -430,6 +417,10 @@ If both channel and sound volumes transition at the same time, both ramps apply.
 Authors should use channel transitions for group fades and sound transitions for
 individual sound fades.
 
+`muted: true` is an immediate hard gate that overrides, but does not change,
+the node's volume. Unmuting restores the current volume. Authors should
+transition `volume` to `0` when they need a smooth mute.
+
 ## Add, Update, Remove
 
 Route Graphics should keep audio declarative.
@@ -443,12 +434,25 @@ Route Graphics should keep audio declarative.
 
 No explicit `op: play` or `op: stop` is needed in Route Graphics render state.
 
-Same `sound.id` and same `sound.src` means continuation. It does not replay.
-Consumers must use a new playback-instance ID when replaying a one-shot sound.
+The same `sound.id` and source identity fields mean continuation. It does not
+replay. Consumers must use a new playback-instance ID when replaying a one-shot
+sound.
 
-### Same ID, Different Source
+Cross-state identity rules:
 
-If a `sound` keeps the same `id` but changes `src`, treat it as replacement:
+| Object          | Continues when                                       | Replaced when                                        |
+| --------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| `audio-channel` | Its `id` exists as an `audio-channel` in both states | It is removed and later added                        |
+| `sound`         | Its `id` and all source identity fields match        | `src`, `startAt`, `endAt`, or `startDelayMs` changes |
+
+Changing an ID between `sound` and `audio-channel` is invalid rather than a
+replacement. Moving a continuing sound between channels reroutes it without
+restarting playback.
+
+### Same ID, Different Source Identity
+
+If a `sound` keeps the same `id` but changes `src`, `startAt`, `endAt`, or
+`startDelayMs`, treat it as replacement:
 
 1. old source uses its `exit` transition
 2. new source uses its `enter` transition
@@ -472,7 +476,9 @@ audioEffects:
     targetId: bgm
     properties:
       volume:
-        exit: { to: 0, duration: 1000, easing: linear }
+        exit:
+          keyframes:
+            - { value: 0, duration: 1000, easing: linear }
 
 # next
 audio:
@@ -489,7 +495,10 @@ audioEffects:
     targetId: bgm
     properties:
       volume:
-        enter: { from: 0, duration: 1000, easing: linear }
+        enter:
+          initialValue: 0
+          keyframes:
+            - { value: 100, duration: 1000, easing: linear }
 ```
 
 The public ID remains `bgm`, but the audio stage needs separate internal
@@ -503,28 +512,39 @@ The intended internal graph for one channel and one child sound is:
 AudioBufferSourceNode
   -> sound GainNode
   -> sound StereoPannerNode
-  -> sound-targeted filters
+  -> channel mix
   -> channel GainNode
   -> channel StereoPannerNode
-  -> channel-targeted filters
   -> AudioContext.destination
 ```
 
-Volume and transition scheduling use Web Audio `AudioParam` automation:
+Volume, pan, and playback-rate transitions use Web Audio `AudioParam`
+automation. Each keyframe is scheduled after the previous segment:
 
 ```js
 const now = audioContext.currentTime;
-const seconds = duration / 1000;
+const currentValue = getTrackedAudibleValue(param, now);
 
-gain.gain.cancelScheduledValues(now);
-gain.gain.setValueAtTime(currentValue, now);
-gain.gain.linearRampToValueAtTime(targetValue, now + seconds);
+if (param.cancelAndHoldAtTime) {
+  param.cancelAndHoldAtTime(now);
+} else {
+  param.cancelScheduledValues(now);
+}
+
+param.setValueAtTime(currentValue, now);
+scheduleKeyframes(param, keyframes, now);
 ```
 
-For removed nodes with an exit transition, cleanup happens after the ramp:
+Linear segments use native linear ramps. Other animation easings are sampled
+into short linear segments, with a bounded sample count for very long
+transitions. Tracking the scheduled timeline prevents stale `AudioParam.value`
+readback from causing a jump when a later render interrupts an active ramp.
+
+For removed nodes with an exit transition, cleanup happens after the longest
+property phase. A phase duration is the sum of its keyframe durations:
 
 ```js
-source.stop(now + seconds);
+source.stop(now + longestExitDuration / 1000);
 ```
 
 ## Implementation Status
@@ -534,12 +554,9 @@ Implemented:
 - schemas for `audio-channel`, extended `sound`, and `audio-transition`
 - flat `sound` normalization through an implicit root channel
 - channel gain nodes and internal playback instance IDs
-- `audio-transition` for `volume` on channels and sounds
-- same-ID, different-source replacement with overlapping internal instances
+- `audio-transition` for `volume` and `pan` on channels and sounds
+- `audio-transition` for `playbackRate` on sounds
+- animation-style multi-keyframe phases with shared easing names
+- same-ID source-identity replacement with overlapping internal instances
+- validation for duplicate transition targets and cross-state audio node kinds
 - removal of the legacy `sound.delay` interface in favor of `startDelayMs`
-
-Planned separately:
-
-- `audioFilter`
-- transition automation for `pan`
-- transition automation for `playbackRate`

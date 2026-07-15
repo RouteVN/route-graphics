@@ -119,13 +119,49 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
         ],
       }),
     ).toThrow('duplicate audio render-state id "music"');
+  });
+
+  it("rejects multiple audio transitions targeting the same node", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [{ id: "music", type: "audio-channel" }],
+        audioEffects: [
+          {
+            id: "music-fade-a",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              volume: {
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
+              },
+            },
+          },
+          {
+            id: "music-fade-b",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              volume: {
+                exit: {
+                  keyframes: [{ value: 0, duration: 200 }],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow('duplicate audio-transition targetId "music"');
   });
 
   it("preserves top-level custom audio plugin nodes", () => {
@@ -195,7 +231,7 @@ describe("normalizeAudioRenderState", () => {
     ).toThrow("audio[0].delay is not supported");
   });
 
-  it("accepts legacy audioTransition effect type as an alias", () => {
+  it("rejects the non-canonical audioTransition effect type", () => {
     expect(() =>
       normalizeAudioRenderState({
         audio: [{ id: "music", type: "audio-channel" }],
@@ -206,16 +242,18 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
         ],
       }),
-    ).not.toThrow();
+    ).toThrow('unsupported audio effect type "audioTransition"');
   });
 
-  it("validates volume transitions strictly", () => {
+  it("validates audio transitions strictly", () => {
     const audio = [{ id: "music", type: "audio-channel" }];
 
     expect(() =>
@@ -228,7 +266,9 @@ describe("normalizeAudioRenderState", () => {
             targetId: "missing",
             properties: {
               volume: {
-                update: { duration: 100, easing: "linear" },
+                update: {
+                  keyframes: [{ value: 50, duration: 100 }],
+                },
               },
             },
           },
@@ -246,13 +286,15 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                update: { duration: 100 },
+                update: {},
               },
             },
           },
         ],
       }),
-    ).toThrow("audioEffects[0].properties.volume.update.easing is required");
+    ).toThrow(
+      "audioEffects[0].properties.volume.update.keyframes must be a non-empty array",
+    );
 
     expect(() =>
       normalizeAudioRenderState({
@@ -263,14 +305,18 @@ describe("normalizeAudioRenderState", () => {
             type: "audio-transition",
             targetId: "music",
             properties: {
-              pan: {
-                update: { duration: 100, easing: "linear" },
+              playbackRate: {
+                update: {
+                  keyframes: [{ value: 2, duration: 100 }],
+                },
               },
             },
           },
         ],
       }),
-    ).toThrow('unsupported audio transition property "pan"');
+    ).toThrow(
+      'audio transition property "playbackRate" is not supported for target type "audio-channel"',
+    );
 
     expect(() =>
       normalizeAudioRenderState({
@@ -282,12 +328,163 @@ describe("normalizeAudioRenderState", () => {
             targetId: "music",
             properties: {
               volume: {
-                enter: { from: 0, to: 50, duration: 100, easing: "linear" },
+                enter: { from: 0, duration: 100, easing: "linear" },
               },
             },
           },
         ],
       }),
-    ).toThrow('unsupported audio transition field "to"');
+    ).toThrow('unsupported audio transition field "from"');
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "fade",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              volume: {
+                update: {
+                  keyframes: [
+                    { value: 50, duration: 100, easing: "unknownEase" },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow('keyframes[0].easing "unknownEase" is not supported');
+  });
+
+  it("rejects empty audio transition property maps", () => {
+    const audio = [{ id: "music", type: "audio-channel" }];
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "empty-properties",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {},
+          },
+        ],
+      }),
+    ).toThrow("audioEffects[0].properties must be a non-empty object");
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio,
+        audioEffects: [
+          {
+            id: "empty-lifecycle",
+            type: "audio-transition",
+            targetId: "music",
+            properties: { volume: {} },
+          },
+        ],
+      }),
+    ).toThrow("audioEffects[0].properties.volume must be a non-empty object");
+  });
+
+  it("accepts pan and sound playback-rate transitions", () => {
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: [
+          { id: "music", type: "audio-channel" },
+          { id: "bgm", type: "sound", src: "theme" },
+        ],
+        audioEffects: [
+          {
+            id: "music-pan",
+            type: "audio-transition",
+            targetId: "music",
+            properties: {
+              pan: {
+                enter: {
+                  initialValue: -1,
+                  keyframes: [
+                    { value: 0, duration: 100, easing: "easeInOutSine" },
+                  ],
+                },
+              },
+            },
+          },
+          {
+            id: "bgm-controls",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              pan: {
+                exit: {
+                  keyframes: [{ value: 1, duration: 100 }],
+                },
+              },
+              playbackRate: {
+                update: {
+                  keyframes: [
+                    { value: 0.5, duration: 100, relative: true },
+                    { value: 1, duration: 100 },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).not.toThrow();
+  });
+
+  it("validates pan and playback-rate transition ranges", () => {
+    const sound = [{ id: "bgm", type: "sound", src: "theme" }];
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: sound,
+        audioEffects: [
+          {
+            id: "bad-pan",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              pan: {
+                enter: {
+                  initialValue: -2,
+                  keyframes: [{ value: 0, duration: 100 }],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow(
+      "properties.pan.enter.initialValue must be greater than or equal to -1",
+    );
+
+    expect(() =>
+      normalizeAudioRenderState({
+        audio: sound,
+        audioEffects: [
+          {
+            id: "bad-rate",
+            type: "audio-transition",
+            targetId: "bgm",
+            properties: {
+              playbackRate: {
+                exit: {
+                  keyframes: [{ value: -1, duration: 100 }],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).toThrow(
+      "properties.playbackRate.exit.keyframes[0].value must be greater than or equal to 0",
+    );
   });
 });

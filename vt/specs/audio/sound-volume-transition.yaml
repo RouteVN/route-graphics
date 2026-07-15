@@ -1,0 +1,52 @@
+---
+title: Audio Manual - Sound Volume Transition
+description: Isolated fixture for sound-volume enter, update, and exit automation.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should fade the sound in from silence over two seconds
+  - state 3 should fade the continuing sound down to volume 25 through two one-second keyframes
+  - state 4 should fade it out over two seconds and then stop it
+---
+states:
+  - id: sound-volume-transition-ready
+    audio: []
+  - id: sound-volume-transition-enter
+    audio:
+      - id: sound-volume-transition-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 80
+    audioEffects:
+      - id: sound-volume-enter
+        type: audio-transition
+        targetId: sound-volume-transition-bgm
+        properties:
+          volume:
+            enter:
+              initialValue: 0
+              keyframes:
+                - { value: 80, duration: 2000, easing: easeInOutSine }
+  - id: sound-volume-transition-update
+    audio:
+      - id: sound-volume-transition-bgm
+        type: sound
+        src: bgm-1
+        loop: true
+        volume: 25
+    audioEffects:
+      - id: sound-volume-update-exit
+        type: audio-transition
+        targetId: sound-volume-transition-bgm
+        properties:
+          volume:
+            update:
+              keyframes:
+                - { value: 60, duration: 1000, easing: easeOutQuad }
+                - { value: 25, duration: 1000, easing: easeInQuad }
+            exit:
+              keyframes:
+                - { value: 0, duration: 2000, easing: easeInOutSine }
+  - id: sound-volume-transition-exit
+    audio: []
