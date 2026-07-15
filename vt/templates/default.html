@@ -397,10 +397,129 @@
 
       const app = createRouteGraphics();
       window.__VT_ROUTE_GRAPHICS__ = app;
+
+      // Deterministic VT-only plugins for exercising asynchronous same-id
+      // replacements. A custom event releases the first delete for each ID,
+      // which lets specs supersede renders without relying on timer races.
+      const vtDeferredRectDeletes = new Map();
+      const vtReleasedDeferredRectDeleteIds = new Set();
+      const vtPluginDispatchMismatches = [];
+
+      const findDirectChild = (parent, id) =>
+        parent.children.find(
+          (child) => !child.destroyed && child.label === id,
+        ) ?? null;
+
+      const assertVtPluginOwnsChild = (parent, element, expectedType) => {
+        const child = findDirectChild(parent, element.id);
+        if (!child || child.__vtElementPluginType === expectedType) {
+          return;
+        }
+
+        const mismatch = {
+          id: element.id,
+          expectedType,
+          actualType: child.__vtElementPluginType ?? null,
+        };
+        vtPluginDispatchMismatches.push(mismatch);
+        throw new Error(
+          `VT plugin ${expectedType} received ${element.id} mounted by ${mismatch.actualType}.`,
+        );
+      };
+
+      const markVtRectType = (parent, element, type) => {
+        const child = findDirectChild(parent, element.id);
+        if (child) {
+          child.__vtElementPluginType = type;
+        }
+      };
+
+      const createVtRectPlugin = ({ type, deferFirstDelete = false }) => ({
+        type,
+        parse: (options) => ({
+          ...rectPlugin.parse({
+            ...options,
+            state: { ...options.state, type: "rect" },
+          }),
+          type,
+        }),
+        add: (options) => {
+          const operation = rectPlugin.add(options);
+          markVtRectType(options.parent, options.element, type);
+          return operation;
+        },
+        update: (options) => {
+          assertVtPluginOwnsChild(options.parent, options.prevElement, type);
+          const operation = rectPlugin.update(options);
+          markVtRectType(options.parent, options.nextElement, type);
+          return operation;
+        },
+        delete: (options) => {
+          assertVtPluginOwnsChild(options.parent, options.element, type);
+
+          if (
+            !deferFirstDelete ||
+            vtReleasedDeferredRectDeleteIds.has(options.element.id)
+          ) {
+            return rectPlugin.delete(options);
+          }
+
+          const existing = vtDeferredRectDeletes.get(options.element.id);
+          if (existing) {
+            return existing.promise;
+          }
+
+          let resolve;
+          let reject;
+          const promise = new Promise((resolvePromise, rejectPromise) => {
+            resolve = resolvePromise;
+            reject = rejectPromise;
+          });
+          vtDeferredRectDeletes.set(options.element.id, {
+            options,
+            promise,
+            reject,
+            resolve,
+          });
+          return promise;
+        },
+        shouldUpdateUnchanged: rectPlugin.shouldUpdateUnchanged,
+      });
+
+      const vtDeferredRectPlugin = createVtRectPlugin({
+        type: "vt-deferred-rect",
+        deferFirstDelete: true,
+      });
+      const vtStrictRectPlugin = createVtRectPlugin({
+        type: "vt-strict-rect",
+      });
+
+      const resolveDeferredRectDelete = (elementId) => {
+        const id =
+          elementId ?? vtDeferredRectDeletes.keys().next().value ?? null;
+        const pending = id ? vtDeferredRectDeletes.get(id) : null;
+        if (!pending) {
+          throw new Error(`No deferred VT rect delete found for ${id}.`);
+        }
+
+        vtDeferredRectDeletes.delete(id);
+        vtReleasedDeferredRectDeleteIds.add(id);
+        try {
+          // Deliberately retry the originally captured physical parent first.
+          // The replacement lifecycle must retarget cleanup after reparenting.
+          rectPlugin.delete(pending.options);
+          pending.resolve();
+        } catch (error) {
+          pending.reject(error);
+        }
+      };
+
       const plugins = {
         elements: [
           textPlugin,
           rectPlugin,
+          vtDeferredRectPlugin,
+          vtStrictRectPlugin,
           spritePlugin,
           videoPlugin,
           sliderPlugin,
@@ -523,6 +642,12 @@
             .getVtEvents(scope)
             .filter((event) => event.name === eventName)
             .map((event) => event.payload),
+        pendingDeferredRectDeleteIds: () =>
+          Array.from(vtDeferredRectDeletes.keys()).sort(),
+        mountedVtElementType: (elementId) =>
+          app.findElementByLabel(elementId)?.__vtElementPluginType ?? null,
+        pluginDispatchMismatches: () =>
+          structuredClone(vtPluginDispatchMismatches),
       };
       let vtReadySignaled = false;
       const signalVtReady = async () => {
@@ -708,6 +833,10 @@
 
         window.addEventListener("clearEvents", () => {
           clearEvents();
+        });
+
+        window.addEventListener("vtResolveDeferredRectDelete", (event) => {
+          resolveDeferredRectDelete(event.detail?.elementId);
         });
 
         window.addEventListener("vtKeyboardShiftCReleaseShiftFirst", () => {

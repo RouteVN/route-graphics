@@ -215,6 +215,28 @@ Existing tests remain required for:
 - synchronous same-ID type replacement
 - asynchronous next-plugin mount
 
+## Browser VT Coverage
+
+The VT template registers two test-only rectangle plugins:
+
+- `vt-deferred-rect` pauses its first delete until the spec dispatches
+  `vtResolveDeferredRectDelete`
+- `vt-strict-rect` throws if its lifecycle is dispatched against a display
+  object mounted by another plugin
+
+This keeps the browser sequences deterministic while still exercising the real
+Route Graphics parser, Pixi display tree, completion tracker, manual animation
+clock, and canvas presentation.
+
+| Scenario                      | Spec                                                              | Browser guarantees                                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Retained replacement adoption | `vt/specs/container/deferred-element-replacement-adoption.yaml`   | A remains live while scrolling reparents it; B mounts in the current parent; completion waits for B's animation     |
+| Latest-state removal          | `vt/specs/container/deferred-element-replacement-removal.yaml`    | B is never dispatched against live A; cleanup retargets after reparenting; the cleanup-only frame removes A visibly |
+| Replace-transition ordering   | `vt/specs/replacetransition/deferred-previous-plugin-delete.yaml` | No transition is installed before A cleanup settles; completion waits for transition playback; B owns final output  |
+
+The three specs produce ten browser screenshots. Their hashes were identical
+across two independent runs before the references were accepted.
+
 ## Implementation Boundaries
 
 Expected production changes are limited to:
@@ -235,6 +257,7 @@ Completed on 2026-07-15:
 2. R1 through R5b pass after the implementation.
 3. Existing replacement, transition, container, completion, and public API tests
    pass.
-4. The full suite passes: 86 test files and 663 tests.
+4. The full suite passes: 87 test files and 664 tests.
 5. Prettier validation and the production build pass.
-6. The package version remains `1.26.0`, equal to `main`.
+6. The three targeted browser VT specs pass with 10/10 matching references.
+7. The package version remains `1.26.0`, equal to `main`.
