@@ -163,7 +163,7 @@ const getLineHeightRatio = (style) => {
   return style.lineHeight / style.fontSize;
 };
 
-const resolveInteractiveTextStyle = (baseStyle, overrideStyle) => {
+export const resolveInteractiveTextStyle = (baseStyle, overrideStyle) => {
   if (!overrideStyle) return baseStyle;
 
   const resolvedStyle = mergeTextStyle(baseStyle, overrideStyle);
