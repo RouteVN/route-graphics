@@ -1,9 +1,9 @@
 ---
-title: Anchored Text Position on Hover
-description: Verifies that interactive font metric changes preserve the configured text anchor; visible text and geometry guides are intentional because text placement is the behavior under test.
+title: Rich Text Position on Hover
+description: Verifies that a fully resolved hover text style keeps parsed rich-text line metrics and visual placement stable.
 specs:
-  - anchored text should stay centered on its configured position when hover changes font size
-  - horizontal anchor alignment should remain stable when hover changes text width
+  - ratio-based hover line height should remain normalized to pixels
+  - changing font weight and fill should not shift rich text vertically
   - pointer out should restore the base style without moving the text
 steps:
   - action: move
@@ -27,36 +27,39 @@ steps:
 ---
 states:
   - elements:
-      - id: horizontal-anchor-guide
+      - id: top-guide
         type: rect
         x: 180
-        "y": 159
+        "y": 129
         width: 360
         height: 2
         fill: "#737373"
       - id: anchor-guide
         type: rect
         x: 359
-        "y": 112
+        "y": 104
         width: 2
-        height: 120
+        height: 112
         fill: "#4D4D4D"
-      - id: anchored-hover-text
+      - id: rich-hover-text
         type: text
         x: 360
         "y": 160
         anchorX: 0.5
         anchorY: 0.5
-        content: Anchored hover text
+        content:
+          - text: Rich hover text
         textStyle:
           fontFamily: Arial
           fontSize: 40
-          lineHeight: 1.2
+          fontWeight: "700"
+          lineHeight: 1.5
           fill: "#A6A6A6"
         hover:
           cursor: pointer
           textStyle:
             fontFamily: Arial
-            fontSize: 52
-            lineHeight: 1.2
+            fontSize: 40
+            fontWeight: "400"
+            lineHeight: 1.5
             fill: "#FFFFFF"

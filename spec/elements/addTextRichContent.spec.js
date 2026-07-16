@@ -69,6 +69,63 @@ describe("text rich content", () => {
     expect(line.children[1].style.fontWeight).toBe("bold");
   });
 
+  it("keeps parsed rich-text line height stable for ratio-based hover styles", () => {
+    const parent = new Container();
+    const element = parseText({
+      state: {
+        id: "rich-text-hover",
+        type: "text",
+        x: 240,
+        y: 120,
+        anchorX: 0.5,
+        anchorY: 0.5,
+        alpha: 1,
+        content: [{ text: "Menu item" }],
+        textStyle: {
+          fontSize: 36,
+          fontFamily: "Arial",
+          fontWeight: "700",
+          lineHeight: 1.5,
+          fill: "#FFFFFF",
+        },
+        hover: {
+          textStyle: {
+            fontSize: 36,
+            fontFamily: "Arial",
+            fontWeight: "400",
+            lineHeight: 1.5,
+            fill: "#D9D9D9",
+          },
+        },
+      },
+    });
+
+    addText({
+      ...createSharedParams(),
+      parent,
+      element,
+      zIndex: 0,
+    });
+
+    const text = parent.getChildByLabel("rich-text-hover");
+    const getTextPart = () => text.children[0].children[0];
+    const initialY = text.y;
+
+    expect(getTextPart().style.lineHeight).toBe(54);
+
+    text.emit("pointerover");
+
+    expect(getTextPart().style.fontWeight).toBe("400");
+    expect(getTextPart().style.lineHeight).toBe(54);
+    expect(text.y).toBe(initialY);
+
+    text.emit("pointerout");
+
+    expect(getTextPart().style.fontWeight).toBe("700");
+    expect(getTextPart().style.lineHeight).toBe(54);
+    expect(text.y).toBe(initialY);
+  });
+
   it("updates between plain and rich text display objects", () => {
     const parent = new Container();
     const shared = createSharedParams();

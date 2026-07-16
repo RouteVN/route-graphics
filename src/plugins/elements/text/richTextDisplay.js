@@ -1,7 +1,7 @@
 import { Container, Rectangle, Text, TextStyle } from "pixi.js";
-import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
+import { resolveInteractiveTextStyle } from "./textLayout.js";
 
 const RICH_TEXT_DISPLAY = Symbol("routeGraphicsRichTextDisplay");
 
@@ -37,7 +37,7 @@ const createTextObject = ({ text, style, x, y }) =>
   });
 
 const applyOverrideStyle = (style, overrideStyle) =>
-  overrideStyle ? mergeTextStyle(style, overrideStyle) : style;
+  overrideStyle ? resolveInteractiveTextStyle(style, overrideStyle) : style;
 
 export const isRichTextComputedNode = (element) =>
   Array.isArray(element?.content);
