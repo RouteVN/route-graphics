@@ -66,16 +66,6 @@ const getMeasuredWidth = (textElement) => {
   return textElement.width;
 };
 
-const getMeasuredHeight = (textElement) => {
-  const layoutState = textElement[TEXT_LAYOUT_STATE];
-
-  if (typeof layoutState?.measuredHeight === "number") {
-    return layoutState.measuredHeight;
-  }
-
-  return textElement.height;
-};
-
 const setTextLayoutState = (textElement, textComputedNode, measurements) => {
   const fixedWidth = Boolean(textComputedNode.__fixedWidth);
   const runtimeMeasurements =
@@ -203,9 +193,6 @@ export const applyInteractiveTextStyle = (
   );
   const boxPositionX = textElement.x - currentOffsetX;
   const anchorPositionX = boxPositionX + layoutWidth * anchorRatios.x;
-  const anchorPositionY =
-    textElement.y + getMeasuredHeight(textElement) * anchorRatios.y;
-
   applyTextStyle(textElement, resolvedStyle);
 
   const nextMeasurements = getRuntimeTextLayout(textElement, resolvedStyle);
@@ -219,7 +206,6 @@ export const applyInteractiveTextStyle = (
 
   textElement.x =
     anchorPositionX - nextLayoutWidth * anchorRatios.x + nextOffsetX;
-  textElement.y = anchorPositionY - nextMeasurements.height * anchorRatios.y;
   textElement[TEXT_LAYOUT_STATE] = {
     ...(textElement[TEXT_LAYOUT_STATE] ?? {}),
     layoutWidth: nextLayoutWidth,

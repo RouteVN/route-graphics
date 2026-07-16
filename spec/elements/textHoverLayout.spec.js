@@ -79,7 +79,7 @@ describe("text hover layout", () => {
     expect(text.style.padding).toBe(18);
   });
 
-  it("keeps the text anchor stable when hover styles change text metrics", () => {
+  it("keeps the vertical text position stable when hover styles change text metrics", () => {
     const parent = new Container();
     const shared = createSharedParams();
     const element = parseText({
@@ -116,17 +116,17 @@ describe("text hover layout", () => {
 
     const text = parent.getChildByLabel("text-hover-layout");
     const beforeHoverAnchorX = text.x + text.width * 0.5;
-    const beforeHoverAnchorY = text.y + text.height * 0.5;
+    const beforeHoverY = text.y;
 
     text.emit("pointerover");
 
     expect(text.x + text.width * 0.5).toBeCloseTo(beforeHoverAnchorX, 4);
-    expect(text.y + text.height * 0.5).toBeCloseTo(beforeHoverAnchorY, 4);
+    expect(text.y).toBeCloseTo(beforeHoverY, 4);
 
     text.emit("pointerout");
 
     expect(text.x + text.width * 0.5).toBeCloseTo(beforeHoverAnchorX, 4);
-    expect(text.y + text.height * 0.5).toBeCloseTo(beforeHoverAnchorY, 4);
+    expect(text.y).toBeCloseTo(beforeHoverY, 4);
   });
 
   it("keeps hover and click textStyle states working together", () => {
@@ -515,7 +515,7 @@ describe("text hover layout", () => {
     );
   });
 
-  it("keeps a fixed-width box anchor stable when hover styles change text metrics", () => {
+  it("keeps fixed-width alignment and vertical position stable when hover styles change text metrics", () => {
     const parent = new Container();
     const shared = createSharedParams();
     const element = parseText({
@@ -554,7 +554,7 @@ describe("text hover layout", () => {
     });
 
     const text = parent.getChildByLabel("text-fixed-width-hover-layout");
-    const getBoxCenter = () => {
+    const getBoxPosition = () => {
       const offset = getHorizontalOffset(
         element.width,
         text.width,
@@ -562,21 +562,19 @@ describe("text hover layout", () => {
       );
       return {
         x: text.x - offset + element.width * 0.5,
-        y: text.y + text.height * 0.5,
+        y: text.y,
       };
     };
 
-    const beforeHoverAnchor = getBoxCenter();
+    const beforeHoverPosition = getBoxPosition();
 
     text.emit("pointerover");
 
-    expect(getBoxCenter().x).toBeCloseTo(beforeHoverAnchor.x, 4);
-    expect(getBoxCenter().y).toBeCloseTo(beforeHoverAnchor.y, 4);
+    expect(getBoxPosition()).toEqual(beforeHoverPosition);
 
     text.emit("pointerout");
 
-    expect(getBoxCenter().x).toBeCloseTo(beforeHoverAnchor.x, 4);
-    expect(getBoxCenter().y).toBeCloseTo(beforeHoverAnchor.y, 4);
+    expect(getBoxPosition()).toEqual(beforeHoverPosition);
   });
 
   it("keeps fixed-width aligned text stable when only shadow metrics change", () => {
