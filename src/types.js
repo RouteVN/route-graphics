@@ -584,6 +584,7 @@
  * @property {string} revealSound.src - Source alias or URL for the reveal sound
  * @property {number} [revealSound.volume=100] - Reveal sound volume where 0 is muted and 100 is full volume
  * @property {boolean} [revealSound.loop=true] - Whether the reveal sound loops until revealing finishes
+ * @property {'loopEnd' | 'immediate'} [revealSound.stopTiming='loopEnd'] - When to stop after revealing completes; loopEnd finishes the active iteration while immediate interrupts playback
  * @typedef {ComputedNode & TextRevealingComputedProps} TextRevealingComputedNode
  */
 

@@ -30,16 +30,18 @@ describe("parseTextRevealing revealSound", () => {
       src: "voice-blip",
       volume: 100,
       loop: true,
+      stopTiming: "loopEnd",
     });
   });
 
-  it("preserves object volume and loop overrides", () => {
+  it("preserves object volume, loop, and stop timing overrides", () => {
     const parsed = parseTextRevealing({
       state: createState({
         revealSound: {
           src: "voice-blip",
           volume: 45,
           loop: false,
+          stopTiming: "immediate",
         },
       }),
     });
@@ -48,6 +50,7 @@ describe("parseTextRevealing revealSound", () => {
       src: "voice-blip",
       volume: 45,
       loop: false,
+      stopTiming: "immediate",
     });
   });
 
@@ -83,5 +86,18 @@ describe("parseTextRevealing revealSound", () => {
         }),
       }),
     ).toThrow("Input Error: revealSound.loop must be a boolean.");
+
+    expect(() =>
+      parseTextRevealing({
+        state: createState({
+          revealSound: {
+            src: "voice-blip",
+            stopTiming: "later",
+          },
+        }),
+      }),
+    ).toThrow(
+      "Input Error: revealSound.stopTiming must be one of loopEnd, immediate.",
+    );
   });
 });

@@ -1,0 +1,60 @@
+---
+title: Text Revealing - Reveal Sound Stop Timing
+description: Manual audio fixture comparing loopEnd and immediate reveal-sound stop timing.
+skipScreenshot: true
+specs:
+  - state 1 is silent so pressing n or clicking Next starts audio from a user gesture
+  - state 2 should loop message-display1 while the text reveals, then finish the active loop iteration without starting another
+  - state 3 resets to silence before the next case
+  - state 4 should loop message-display1 while the text reveals, then interrupt it immediately when the final character appears
+  - state 5 is silent
+---
+states:
+  - id: reveal-sound-stop-timing-ready
+    elements: []
+  - id: reveal-sound-loop-end
+    elements:
+      - id: reveal-sound-loop-end-line
+        type: text-revealing
+        x: 80
+        "y": 120
+        width: 620
+        speed: 12
+        revealEffect: typewriter
+        revealSound:
+          src: message-display1
+          volume: 70
+          loop: true
+          stopTiming: loopEnd
+        content:
+          - text: "loopEnd finishes the active sound iteration."
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+  - id: reveal-sound-stop-timing-reset
+    elements: []
+  - id: reveal-sound-immediate
+    elements:
+      - id: reveal-sound-immediate-line
+        type: text-revealing
+        x: 80
+        "y": 120
+        width: 620
+        speed: 12
+        revealEffect: typewriter
+        revealSound:
+          src: message-display1
+          volume: 70
+          loop: true
+          stopTiming: immediate
+        content:
+          - text: "immediate interrupts the sound on the final character."
+            textStyle:
+              fontSize: 30
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.35
+  - id: reveal-sound-stop-timing-finished
+    elements: []

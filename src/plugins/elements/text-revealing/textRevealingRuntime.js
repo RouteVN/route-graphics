@@ -164,7 +164,7 @@ const startTextRevealSound = ({ app, element }) => {
 
   const soundId = getTextRevealSoundId(element);
   const volume = normalizeVolume(revealSound.volume, 100);
-  let stopped = false;
+  let stopState = "active";
 
   debugRevealSound("start", {
     elementId: element.id,
@@ -188,19 +188,36 @@ const startTextRevealSound = ({ app, element }) => {
     directAudio: app.audioStage.getById?.(soundId) ?? null,
   });
 
-  return () => {
-    if (stopped) {
-      return;
+  return ({ completed = false } = {}) => {
+    if (stopState === "stopped") {
+      return false;
     }
 
-    stopped = true;
+    if (stopState === "finishing" && completed) {
+      return true;
+    }
+
+    const finishPlayback =
+      stopState === "active" &&
+      completed &&
+      (revealSound.stopTiming ?? "loopEnd") === "loopEnd";
     debugRevealSound("stop", {
       elementId: element.id,
       soundId,
       src: revealSound.src,
+      finishPlayback,
     });
+
+    if (finishPlayback && typeof app.audioStage.finish === "function") {
+      stopState = "finishing";
+      app.audioStage.finish(soundId);
+      return true;
+    }
+
+    stopState = "stopped";
     app.audioStage.remove(soundId);
     app.audioStage.tick?.();
+    return false;
   };
 };
 
@@ -1397,8 +1414,10 @@ const runSoftWipeReveal = ({
 
     finalized = true;
 
-    unregisterTextRevealRuntime(container, finalizeCleanup);
-    stopRevealSound();
+    const hasFinishingSound = stopRevealSound({ completed });
+    if (!hasFinishingSound) {
+      unregisterTextRevealRuntime(container, finalizeCleanup);
+    }
 
     lineMasks.forEach((lineMask) => {
       if (lineMask.line.container.mask === lineMask.sprite) {
@@ -1424,6 +1443,11 @@ const runSoftWipeReveal = ({
   };
 
   const finalizeCleanup = () => {
+    if (finalized) {
+      stopRevealSound();
+      return;
+    }
+
     animationBus.dispatch({
       type: "CANCEL",
       id: animationId,
@@ -1611,8 +1635,10 @@ export const runTextReveal = async ({
       const stopRevealSound = shouldPlayRevealSound
         ? startTextRevealSound({ app, element })
         : () => {};
-      const cleanupRevealSound = () => {
-        stopRevealSound();
+      const cleanupRevealSound = ({
+        completed: revealCompleted = false,
+      } = {}) => {
+        return stopRevealSound({ completed: revealCompleted });
       };
 
       if (shouldPlayRevealSound) {
@@ -1629,8 +1655,12 @@ export const runTextReveal = async ({
           snapshot: nextSnapshot,
         });
       } finally {
-        cleanupRevealSound();
-        unregisterTextRevealRuntime(container, cleanupRevealSound);
+        const hasFinishingSound = cleanupRevealSound({
+          completed: completed && !signal?.aborted && !container.destroyed,
+        });
+        if (!hasFinishingSound) {
+          unregisterTextRevealRuntime(container, cleanupRevealSound);
+        }
       }
     }
 

@@ -31,6 +31,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 | `initialRevealedCharacters` | number                               | No                  | `0`            | Leading characters to paint as already revealed before the animation starts.                                                    |
 | `revealEffect`              | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.     |
 | `softWipe`                  | object                               | No                  | see below      | Parameters used when `revealEffect: softWipe`.                                                                                  |
+| `revealSound`               | object                               | No                  | -              | Sound played while text reveals. By default, it stops at the end of the active loop iteration.                                  |
 | `indicator`                 | object                               | No                  | -              | Revealing/complete visual config + offset. Supports static images and spritesheets.                                             |
 | `complete`                  | object                               | No                  | -              | Parsed and kept in computed node.                                                                                               |
 
@@ -104,6 +105,25 @@ Spritesheet indicator visuals use the same `src`, `atlas`, `clips`, and `playbac
 | `easing`      | `linear` \| `easeOutCubic` | `linear` |
 | `lineOverlap` | number `0..0.95`           | `0`      |
 | `lineDelay`   | number                     | `0`      |
+
+### `revealSound`
+
+| Field        | Type                     | Default   | Notes                                                                                      |
+| ------------ | ------------------------ | --------- | ------------------------------------------------------------------------------------------ |
+| `src`        | string                   | -         | Required audio asset alias or URL.                                                         |
+| `volume`     | number                   | `100`     | Volume from `0` to `100`.                                                                  |
+| `loop`       | boolean                  | `true`    | Loops the sound while text is revealing.                                                   |
+| `stopTiming` | `loopEnd` \| `immediate` | `loopEnd` | `loopEnd` finishes the active loop iteration; `immediate` interrupts playback immediately. |
+
+Abort, update, and deletion always stop the reveal sound immediately. The finishing audio tail does not delay `renderComplete`.
+
+```yaml
+revealSound:
+  src: typing-loop
+  volume: 70
+  loop: true
+  stopTiming: loopEnd
+```
 
 ## Behavior Notes
 

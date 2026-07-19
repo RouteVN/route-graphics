@@ -28,6 +28,9 @@ const INDICATOR_VISUAL_KINDS = ["image", "spritesheet"];
 const INDICATOR_VISUAL_KIND_SET = new Set(INDICATOR_VISUAL_KINDS);
 const DEFAULT_REVEAL_SOUND_VOLUME = 100;
 const DEFAULT_REVEAL_SOUND_LOOP = true;
+const DEFAULT_REVEAL_SOUND_STOP_TIMING = "loopEnd";
+const REVEAL_SOUND_STOP_TIMINGS = ["loopEnd", "immediate"];
+const REVEAL_SOUND_STOP_TIMING_SET = new Set(REVEAL_SOUND_STOP_TIMINGS);
 
 export const normalizeFuriganaPlacement = (placement, path) => {
   if (placement === undefined) {
@@ -148,6 +151,22 @@ const normalizeRevealSoundLoop = (loop, path) => {
   throw new Error(`Input Error: ${path}.loop must be a boolean.`);
 };
 
+const normalizeRevealSoundStopTiming = (stopTiming, path) => {
+  if (stopTiming === undefined) {
+    return DEFAULT_REVEAL_SOUND_STOP_TIMING;
+  }
+
+  if (REVEAL_SOUND_STOP_TIMING_SET.has(stopTiming)) {
+    return stopTiming;
+  }
+
+  throw new Error(
+    `Input Error: ${path}.stopTiming must be one of ${REVEAL_SOUND_STOP_TIMINGS.join(
+      ", ",
+    )}.`,
+  );
+};
+
 export const normalizeRevealSound = (revealSound, path = "revealSound") => {
   if (revealSound === undefined || revealSound === null) {
     return null;
@@ -165,6 +184,7 @@ export const normalizeRevealSound = (revealSound, path = "revealSound") => {
     src: revealSound.src,
     volume: normalizeRevealSoundVolume(revealSound.volume, path),
     loop: normalizeRevealSoundLoop(revealSound.loop, path),
+    stopTiming: normalizeRevealSoundStopTiming(revealSound.stopTiming, path),
   };
 };
 

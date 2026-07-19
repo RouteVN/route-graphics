@@ -274,6 +274,11 @@ properties:
         type: boolean
         description: Whether the reveal sound loops until the reveal finishes
         default: true
+      stopTiming:
+        type: string
+        enum: [loopEnd, immediate]
+        description: When to stop the reveal sound after the text reveal completes. loopEnd finishes the active loop iteration; immediate interrupts playback. Abort, update, and deletion always stop immediately.
+        default: loopEnd
   textStyle:
     "$ref": "#/$def/textStyle"
   complete:
