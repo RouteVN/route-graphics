@@ -239,6 +239,44 @@ describe("AudioStage graph rendering", () => {
     expect(findCurrentSound(stage, "sfx").gainNode.gain.value).toBe(1);
   });
 
+  it("finishes direct audio at its active loop end", async () => {
+    const { stage, context } = await setupAudioStage();
+
+    stage.add({ id: "typing", url: "voice-blip", loop: true });
+    stage.tick();
+
+    const source = context.sources[0];
+    expect(source.loop).toBe(true);
+
+    stage.finish("typing");
+    stage.tick();
+
+    expect(source.loop).toBe(false);
+    expect(source.stop).not.toHaveBeenCalled();
+    expect(stage.getById("typing")).toBeUndefined();
+    expect(findSound(stage, "typing")?.finishing).toBe(true);
+
+    source.onended();
+
+    expect(findSound(stage, "typing")).toBeUndefined();
+  });
+
+  it("stops a finishing direct sound before reusing its id", async () => {
+    const { stage, context } = await setupAudioStage();
+
+    stage.add({ id: "typing", url: "voice-blip", loop: true });
+    stage.tick();
+    const finishingSource = context.sources[0];
+
+    stage.finish("typing");
+    stage.add({ id: "typing", url: "voice-blip", loop: true });
+    stage.tick();
+
+    expect(finishingSource.stop).toHaveBeenCalled();
+    expect(context.sources).toHaveLength(2);
+    expect(context.sources[1].loop).toBe(true);
+  });
+
   it("resumes a suspended audio context before playback starts", async () => {
     const { stage, context } = await setupAudioStage();
     context.state = "suspended";

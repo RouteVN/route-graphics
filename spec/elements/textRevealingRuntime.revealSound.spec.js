@@ -13,6 +13,7 @@ const createCompletionTracker = () => ({
 const createAudioStage = () => ({
   add: vi.fn(),
   remove: vi.fn(),
+  finish: vi.fn(),
   tick: vi.fn(),
 });
 
@@ -50,7 +51,7 @@ describe("runTextReveal revealSound", () => {
     vi.useRealTimers();
   });
 
-  it("plays a configured loop while typewriter text is revealing and stops on completion", async () => {
+  it("lets the active typewriter sound playback finish on completion by default", async () => {
     const container = new Container();
     const audioStage = createAudioStage();
     const element = createElement({
@@ -83,9 +84,40 @@ describe("runTextReveal revealSound", () => {
     await vi.runAllTimersAsync();
     await reveal;
 
+    expect(audioStage.finish).toHaveBeenCalledWith(
+      expect.stringContaining("line-1"),
+    );
+    expect(audioStage.remove).not.toHaveBeenCalled();
+  });
+
+  it("can stop the typewriter sound immediately on completion", async () => {
+    const container = new Container();
+    const audioStage = createAudioStage();
+    const element = createElement({
+      revealSound: {
+        src: "voice-blip",
+        stopTiming: "immediate",
+      },
+    });
+
+    const reveal = runTextReveal({
+      container,
+      element,
+      completionTracker: createCompletionTracker(),
+      animationBus: { dispatch: vi.fn() },
+      zIndex: 0,
+      signal: new AbortController().signal,
+      app: { audioStage },
+      playback: "autoplay",
+    });
+
+    await vi.runAllTimersAsync();
+    await reveal;
+
     expect(audioStage.remove).toHaveBeenCalledWith(
       expect.stringContaining("line-1"),
     );
+    expect(audioStage.finish).not.toHaveBeenCalled();
   });
 
   it("stops typewriter reveal sound when the reveal is aborted", async () => {
@@ -113,6 +145,7 @@ describe("runTextReveal revealSound", () => {
     expect(audioStage.remove).toHaveBeenCalledWith(
       expect.stringContaining("line-1"),
     );
+    expect(audioStage.finish).not.toHaveBeenCalled();
   });
 
   it("does not play sound for paused initial or instant reveal renders", async () => {
@@ -144,6 +177,7 @@ describe("runTextReveal revealSound", () => {
 
     expect(audioStage.add).not.toHaveBeenCalled();
     expect(audioStage.remove).not.toHaveBeenCalled();
+    expect(audioStage.finish).not.toHaveBeenCalled();
   });
 
   it("plays soft-wipe reveal sound until the animation completes", async () => {
@@ -180,8 +214,9 @@ describe("runTextReveal revealSound", () => {
 
     startAction.payload.onComplete();
 
-    expect(audioStage.remove).toHaveBeenCalledWith(
+    expect(audioStage.finish).toHaveBeenCalledWith(
       expect.stringContaining("line-1"),
     );
+    expect(audioStage.remove).not.toHaveBeenCalled();
   });
 });

@@ -412,6 +412,9 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     gainNode,
     pannerNode,
     source: null,
+    sourceEnded: false,
+    onSourceEnded: null,
+    finishing: false,
     playbackRateTransition: null,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
@@ -446,6 +449,16 @@ const createSourceForSound = (sound) => {
   sound.playbackRateTransition = null;
 
   connect(source, sound.gainNode);
+
+  sound.sourceEnded = false;
+  source.onended = () => {
+    if (sound.source !== source) {
+      return;
+    }
+
+    sound.sourceEnded = true;
+    sound.onSourceEnded?.();
+  };
 
   const offset = sound.startAt ?? 0;
   const duration =
@@ -549,6 +562,8 @@ const stopSource = (sound, delayMs = 0) => {
 };
 
 const cleanupSound = (sound) => {
+  sound.onSourceEnded = null;
+
   if (sound.pendingTimeoutId !== null) {
     clearTimeout(sound.pendingTimeoutId);
     sound.pendingTimeoutId = null;
@@ -862,6 +877,9 @@ export const createAudioStage = () => {
   const removeSoundInstance = (instance, effects, inheritedDuration = 0) => {
     if (!instance) return 0;
 
+    instance.finishing = false;
+    instance.onSourceEnded = null;
+
     const volumeTransition = getTransitionPhase(
       effects,
       instance.id,
@@ -909,6 +927,36 @@ export const createAudioStage = () => {
     }, duration);
 
     return duration;
+  };
+
+  const finishSoundInstance = (instance) => {
+    if (!instance || instance.finishing) {
+      return;
+    }
+
+    instance.finishing = true;
+    instance.loop = false;
+
+    const cleanupFinishedSound = () => {
+      if (!instance.finishing) {
+        return;
+      }
+
+      instance.finishing = false;
+      instance.onSourceEnded = null;
+      cleanupSound(instance);
+      if (sounds.get(instance.internalId) === instance) {
+        sounds.delete(instance.internalId);
+      }
+    };
+
+    if (!instance.source || instance.sourceEnded) {
+      cleanupFinishedSound();
+      return;
+    }
+
+    instance.source.loop = false;
+    instance.onSourceEnded = cleanupFinishedSound;
   };
 
   const updateSoundInstance = ({ instance, sound, effects }) => {
@@ -1144,6 +1192,11 @@ export const createAudioStage = () => {
   };
 
   const add = (element) => {
+    const existingInstance = sounds.get(`direct:${element.id}`);
+    if (existingInstance?.finishing) {
+      removeSoundInstance(existingInstance, [], 0);
+    }
+
     const audio = {
       id: element.id,
       type: "sound",
@@ -1187,6 +1240,19 @@ export const createAudioStage = () => {
     }
   };
 
+  const finish = (id) => {
+    const internalId = `direct:${id}`;
+    const instance = sounds.get(internalId);
+    debugAudio("direct finish", {
+      id,
+      hadAudio: directAudios.has(id),
+      hadInstance: Boolean(instance),
+    });
+    directAudios.delete(id);
+    currentSoundKeyById.delete(id);
+    finishSoundInstance(instance);
+  };
+
   const getById = (id) => directAudios.get(id);
 
   const resume = () => resumeAudioContext(getAudioContext());
@@ -1227,7 +1293,11 @@ export const createAudioStage = () => {
     }
 
     for (const [internalId, instance] of sounds) {
-      if (internalId.startsWith("direct:") && !directAudios.has(instance.id)) {
+      if (
+        internalId.startsWith("direct:") &&
+        !directAudios.has(instance.id) &&
+        !instance.finishing
+      ) {
         removeSoundInstance(instance, [], 0);
         currentSoundKeyById.delete(instance.id);
       }
@@ -1253,6 +1323,7 @@ export const createAudioStage = () => {
   return {
     add,
     remove,
+    finish,
     getById,
     resume,
     tick,

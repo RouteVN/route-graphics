@@ -188,17 +188,26 @@ const startTextRevealSound = ({ app, element }) => {
     directAudio: app.audioStage.getById?.(soundId) ?? null,
   });
 
-  return () => {
+  return ({ completed = false } = {}) => {
     if (stopped) {
       return;
     }
 
     stopped = true;
+    const finishPlayback =
+      completed && (revealSound.stopTiming ?? "loopEnd") === "loopEnd";
     debugRevealSound("stop", {
       elementId: element.id,
       soundId,
       src: revealSound.src,
+      finishPlayback,
     });
+
+    if (finishPlayback && typeof app.audioStage.finish === "function") {
+      app.audioStage.finish(soundId);
+      return;
+    }
+
     app.audioStage.remove(soundId);
     app.audioStage.tick?.();
   };
@@ -1398,7 +1407,7 @@ const runSoftWipeReveal = ({
     finalized = true;
 
     unregisterTextRevealRuntime(container, finalizeCleanup);
-    stopRevealSound();
+    stopRevealSound({ completed });
 
     lineMasks.forEach((lineMask) => {
       if (lineMask.line.container.mask === lineMask.sprite) {
@@ -1611,8 +1620,10 @@ export const runTextReveal = async ({
       const stopRevealSound = shouldPlayRevealSound
         ? startTextRevealSound({ app, element })
         : () => {};
-      const cleanupRevealSound = () => {
-        stopRevealSound();
+      const cleanupRevealSound = ({
+        completed: revealCompleted = false,
+      } = {}) => {
+        stopRevealSound({ completed: revealCompleted });
       };
 
       if (shouldPlayRevealSound) {
@@ -1629,7 +1640,9 @@ export const runTextReveal = async ({
           snapshot: nextSnapshot,
         });
       } finally {
-        cleanupRevealSound();
+        cleanupRevealSound({
+          completed: completed && !signal?.aborted && !container.destroyed,
+        });
         unregisterTextRevealRuntime(container, cleanupRevealSound);
       }
     }

@@ -1,10 +1,10 @@
 ---
 title: Text Revealing - Reveal Sound
-description: Manual fixture for text-revealing revealSound playback. The configured sound should loop while text is actively revealing and stop when the reveal completes.
+description: Manual fixture for text-revealing revealSound playback. The configured sound should loop while text is actively revealing, finish its active playback, and then stop when the reveal completes.
 specs:
   - revealSound should use object config with src, volume, and loop
   - sound should start when the typewriter reveal begins
-  - sound should stop after the text finishes revealing
+  - sound should finish its active playback after the text finishes revealing, then stop without starting another loop
 steps:
   - action: screenshot
   - action: keypress
@@ -36,6 +36,7 @@ states:
           src: message-display1
           volume: 70
           loop: true
+          stopTiming: loopEnd
         indicator:
           revealing:
             src: circle-red
