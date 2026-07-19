@@ -277,6 +277,22 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources[1].loop).toBe(true);
   });
 
+  it("stops rather than defers a finishing sound in a suspended context", async () => {
+    const { stage, context } = await setupAudioStage();
+    context.state = "suspended";
+    context.resume.mockRejectedValue(new Error("autoplay blocked"));
+
+    stage.add({ id: "typing", url: "voice-blip", loop: true });
+    stage.tick();
+    await flushPromises();
+
+    const source = context.sources[0];
+    stage.finish("typing");
+
+    expect(source.stop).toHaveBeenCalled();
+    expect(findSound(stage, "typing")).toBeUndefined();
+  });
+
   it("resumes a suspended audio context before playback starts", async () => {
     const { stage, context } = await setupAudioStage();
     context.state = "suspended";

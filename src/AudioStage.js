@@ -950,7 +950,11 @@ export const createAudioStage = () => {
       }
     };
 
-    if (!instance.source || instance.sourceEnded) {
+    if (
+      !instance.source ||
+      instance.sourceEnded ||
+      getAudioContext().state !== "running"
+    ) {
       cleanupFinishedSound();
       return;
     }

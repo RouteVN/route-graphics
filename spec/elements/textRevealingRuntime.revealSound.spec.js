@@ -2,7 +2,10 @@ import { Container } from "pixi.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { parseTextRevealing } from "../../src/plugins/elements/text-revealing/parseTextRevealing.js";
-import { runTextReveal } from "../../src/plugins/elements/text-revealing/textRevealingRuntime.js";
+import {
+  clearTextRevealingContainer,
+  runTextReveal,
+} from "../../src/plugins/elements/text-revealing/textRevealingRuntime.js";
 
 const createCompletionTracker = () => ({
   getVersion: () => 0,
@@ -51,7 +54,7 @@ describe("runTextReveal revealSound", () => {
     vi.useRealTimers();
   });
 
-  it("lets the active typewriter sound playback finish on completion by default", async () => {
+  it("keeps the finishing typewriter sound cancellable after completion", async () => {
     const container = new Container();
     const audioStage = createAudioStage();
     const element = createElement({
@@ -88,6 +91,12 @@ describe("runTextReveal revealSound", () => {
       expect.stringContaining("line-1"),
     );
     expect(audioStage.remove).not.toHaveBeenCalled();
+
+    clearTextRevealingContainer(container);
+
+    expect(audioStage.remove).toHaveBeenCalledWith(
+      expect.stringContaining("line-1"),
+    );
   });
 
   it("can stop the typewriter sound immediately on completion", async () => {
@@ -218,5 +227,11 @@ describe("runTextReveal revealSound", () => {
       expect.stringContaining("line-1"),
     );
     expect(audioStage.remove).not.toHaveBeenCalled();
+
+    clearTextRevealingContainer(container);
+
+    expect(audioStage.remove).toHaveBeenCalledWith(
+      expect.stringContaining("line-1"),
+    );
   });
 });
