@@ -57,34 +57,6 @@ const createSliderElement = (overrides = {}) => ({
 });
 
 describe("updateSlider", () => {
-  it("does not change or emit from a slider in design mode", () => {
-    const parent = new Container();
-    const eventHandler = vi.fn();
-    const shared = createSharedParams();
-    shared.app.interactionMode = "design";
-    const element = createSliderElement();
-
-    addSlider({
-      ...shared,
-      parent,
-      eventHandler,
-      zIndex: 0,
-      element,
-    });
-
-    const slider = parent.getChildByLabel("slider-1");
-    const thumb = slider.getChildByLabel("slider-1-thumb");
-    const initialThumbX = thumb.x;
-
-    slider.emit("pointerdown", { global: { x: 280, y: 110 } });
-    slider.emit("globalpointermove", { global: { x: 290, y: 110 } });
-
-    expect(slider.eventMode).toBe("none");
-    expect(thumb.eventMode).toBe("none");
-    expect(thumb.x).toBe(initialThumbX);
-    expect(eventHandler).not.toHaveBeenCalled();
-  });
-
   it("keeps dragging active when renders update the slider value", () => {
     const parent = new Container();
     const eventHandler = vi.fn();

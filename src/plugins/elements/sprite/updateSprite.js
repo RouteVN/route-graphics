@@ -30,7 +30,6 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Update sprite element (synchronous)
@@ -97,22 +96,12 @@ export const updateSprite = ({
     clearInheritedHoverTarget(spriteElement);
     clearInheritedPressTarget(spriteElement);
     clearInheritedRightPressTarget(spriteElement);
-    spriteElement.eventMode = "auto";
-    spriteElement.cursor = "auto";
 
     const hoverEvents = nextElement?.hover;
     const clickEvents = nextElement?.click;
     const rightClickEvents = nextElement?.rightClick;
     const scrollUpEvent = nextElement?.scrollUp;
     const scrollDownEvent = nextElement?.scrollDown;
-    const interactionsEnabled = isElementInteractionEnabled({
-      app,
-      element: nextElement,
-    });
-
-    if (!interactionsEnabled) {
-      spriteElement.eventMode = "none";
-    }
 
     let hoverController = null;
     let pressController = null;
@@ -137,7 +126,7 @@ export const updateSprite = ({
       }
     };
 
-    if (interactionsEnabled && hoverEvents) {
+    if (hoverEvents) {
       const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
       spriteElement.eventMode = "static";
       hoverController = createHoverStateController({
@@ -173,7 +162,7 @@ export const updateSprite = ({
       spriteElement.on("pointerout", outListener);
     }
 
-    if (interactionsEnabled && clickEvents) {
+    if (clickEvents) {
       const { soundSrc, soundVolume, payload } = clickEvents;
       spriteElement.eventMode = "static";
       pressController = createPressStateController({
@@ -221,7 +210,7 @@ export const updateSprite = ({
       spriteElement.on("pointerupoutside", outListener);
     }
 
-    if (interactionsEnabled && rightClickEvents) {
+    if (rightClickEvents) {
       const { soundSrc, payload } = rightClickEvents;
       spriteElement.eventMode = "static";
       rightPressController = createRightPressStateController({
@@ -267,7 +256,7 @@ export const updateSprite = ({
       spriteElement.on("rightupoutside", rightOutListener);
     }
 
-    if (interactionsEnabled && (scrollUpEvent || scrollDownEvent)) {
+    if (scrollUpEvent || scrollDownEvent) {
       setupScrollInteraction({
         canvas: app.canvas,
         displayObject: spriteElement,

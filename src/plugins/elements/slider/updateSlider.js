@@ -7,10 +7,6 @@ import {
   SLIDER_RUNTIME,
   syncSliderRuntime,
 } from "./sliderRuntime.js";
-import {
-  disableDisplayTreeInteractions,
-  isElementInteractionEnabled,
-} from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Update slider element
@@ -85,15 +81,6 @@ export const updateSlider = ({
         eventHandler,
         adoptExternalValue: shouldAdoptExternalValue,
       });
-
-      if (
-        !isElementInteractionEnabled({
-          app,
-          element: nextSliderComputedNode,
-        })
-      ) {
-        disableDisplayTreeInteractions(sliderElement);
-      }
     }
   };
 

@@ -4,7 +4,6 @@ import {
   getInputGeometry,
   syncInputView,
 } from "./inputShared.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 const emitInputEvent = ({
   eventHandler,
@@ -191,14 +190,8 @@ export const updateInput = ({
   }
 
   runtime.element = nextRuntimeElement;
-  const interactionsEnabled = isElementInteractionEnabled({
-    app,
-    element: nextElement,
-  });
   container.label = nextElement.id;
-  container.eventMode = interactionsEnabled ? "static" : "none";
-  container.cursor =
-    interactionsEnabled && !nextElement.disabled ? "text" : "default";
+  container.cursor = nextElement.disabled ? "default" : "text";
   container.x = Math.round(nextElement.x);
   container.y = Math.round(nextElement.y);
   container.alpha = nextElement.alpha;
@@ -211,20 +204,16 @@ export const updateInput = ({
     syncInputView(runtime, nextRuntimeElement);
   }
 
-  if (interactionsEnabled) {
-    app.inputDomBridge.update(nextElement.id, {
-      ...nextRuntimeElement,
-      value: runtime.value,
-      callbacks: createCallbacks({
-        element: nextRuntimeElement,
-        runtime,
-        eventHandler,
-      }),
-      getGeometry: () => getInputGeometry(app, container, nextRuntimeElement),
-    });
-  } else {
-    app.inputDomBridge.unmount?.(nextElement.id);
-  }
+  app.inputDomBridge.update(nextElement.id, {
+    ...nextRuntimeElement,
+    value: runtime.value,
+    callbacks: createCallbacks({
+      element: nextRuntimeElement,
+      runtime,
+      eventHandler,
+    }),
+    getGeometry: () => getInputGeometry(app, container, nextRuntimeElement),
+  });
 };
 
 export default updateInput;

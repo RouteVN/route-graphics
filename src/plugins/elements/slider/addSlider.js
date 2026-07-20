@@ -7,10 +7,6 @@ import {
   resizeSliderThumb,
   syncSliderRuntime,
 } from "./sliderRuntime.js";
-import {
-  disableDisplayTreeInteractions,
-  isElementInteractionEnabled,
-} from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Add slider element to the stage
@@ -29,10 +25,6 @@ export const addSlider = ({
 }) => {
   const { id, x, y, width, height, alpha, thumbSrc, barSrc } =
     sliderComputedNode;
-  const interactionsEnabled = isElementInteractionEnabled({
-    app,
-    element: sliderComputedNode,
-  });
 
   // Create container for the slider
   const sliderContainer = new Container();
@@ -42,20 +34,20 @@ export const addSlider = ({
   sliderContainer.y = y;
   sliderContainer.alpha = alpha;
   sliderContainer.sortableChildren = true;
-  sliderContainer.eventMode = interactionsEnabled ? "static" : "none";
+  sliderContainer.eventMode = "static";
 
   const labels = getSliderLabels(id);
 
   // Create bar sprite
   const bar = new Sprite(getSliderTexture(barSrc));
   bar.label = labels.bar;
-  bar.eventMode = interactionsEnabled ? "static" : "none";
+  bar.eventMode = "static";
   bar.zIndex = 1;
 
   // Create thumb sprite
   const thumb = new Sprite(getSliderTexture(thumbSrc));
   thumb.label = labels.thumb;
-  thumb.eventMode = interactionsEnabled ? "static" : "none";
+  thumb.eventMode = "static";
   thumb.zIndex = 2;
 
   resizeSliderThumb({
@@ -70,15 +62,13 @@ export const addSlider = ({
   sliderContainer.addChild(bar);
   sliderContainer.addChild(thumb);
 
-  if (interactionsEnabled) {
-    bindSliderInteractions({
-      app,
-      sliderContainer,
-      sliderComputedNode,
-      thumb,
-      eventHandler,
-    });
-  }
+  bindSliderInteractions({
+    app,
+    sliderContainer,
+    sliderComputedNode,
+    thumb,
+    eventHandler,
+  });
 
   syncSliderRuntime({
     app,
@@ -87,10 +77,6 @@ export const addSlider = ({
     thumb,
     eventHandler,
   });
-
-  if (!interactionsEnabled) {
-    disableDisplayTreeInteractions(sliderContainer);
-  }
 
   parent.addChild(sliderContainer);
 

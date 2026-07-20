@@ -7,7 +7,6 @@
  * @typedef {Object} BaseElement
  * @property {string} id - Unique identifier for the element
  * @property {string} type - Type of the element
- * @property {boolean} [designInteraction] - Renderer-only editor chrome may remain interactive in design mode
  */
 
 /**
@@ -59,7 +58,6 @@
  * @property {number} originY
  * @property {number} scaleX
  * @property {number} scaleY
- * @property {boolean} [designInteraction] - Keep this renderer-only editor chrome interactive in design mode and exclude it from bounds hit testing
  */
 
 /**
@@ -860,7 +858,6 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {boolean} [debug] - Whether debug mode is enabled
  * @property {Function} [onFirstRender] - Callback fired after the first render completes
  * @property {"auto" | "manual"} [animationPlaybackMode] - Initial animation playback mode
- * @property {"runtime" | "design"} [interactionMode] - Runtime enables authored interactions; design suppresses them except on elements marked with designInteraction
  */
 
 /**

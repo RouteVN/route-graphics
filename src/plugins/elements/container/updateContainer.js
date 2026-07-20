@@ -30,7 +30,6 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Update container element (synchronous)
@@ -61,10 +60,6 @@ export const updateContainer = ({
   containerElement.zIndex = zIndex;
 
   const { alpha } = nextElement;
-  const interactionsEnabled = isElementInteractionEnabled({
-    app,
-    element: nextElement,
-  });
   const shouldForceBlur = hasBlurUpdateAnimation(animations, prevElement.id);
   if (shouldForceBlur) {
     syncBlurEffect(containerElement, prevElement.blur, { force: true });
@@ -112,7 +107,7 @@ export const updateContainer = ({
           setupScrolling({
             container: containerElement,
             element: nextElement,
-            interactive: !!nextElement.scroll && interactionsEnabled,
+            interactive: !!nextElement.scroll,
             allowViewportWithoutScroll: !!nextElement.anchorToBottom,
             previousState: previousScrollState,
           });
@@ -128,7 +123,7 @@ export const updateContainer = ({
         setupScrolling({
           container: containerElement,
           element: nextElement,
-          interactive: !!nextElement.scroll && interactionsEnabled,
+          interactive: !!nextElement.scroll,
           allowViewportWithoutScroll: !!nextElement.anchorToBottom,
           previousState: previousScrollState,
         });

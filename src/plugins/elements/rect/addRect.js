@@ -13,7 +13,6 @@ import {
   hasShaderProgressUpdateAnimation,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Add rectangle element to the stage (synchronous)
@@ -87,13 +86,8 @@ export const addRect = ({
   const scrollUpEvent = element?.scrollUp;
   const scrollDownEvent = element?.scrollDown;
   const dragEvent = element?.drag;
-  const interactionsEnabled = isElementInteractionEnabled({ app, element });
 
-  if (!interactionsEnabled) {
-    rect.eventMode = "none";
-  }
-
-  if (interactionsEnabled && hoverEvents) {
+  if (hoverEvents) {
     const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
     rect.eventMode = "static";
 
@@ -123,7 +117,7 @@ export const addRect = ({
     rect.on("pointerout", outListener);
   }
 
-  if (interactionsEnabled && clickEvents) {
+  if (clickEvents) {
     const { soundSrc, soundVolume, payload } = clickEvents;
     rect.eventMode = "static";
 
@@ -151,7 +145,7 @@ export const addRect = ({
     rect.on("pointerup", releaseListener);
   }
 
-  if (interactionsEnabled && rightClickEvents) {
+  if (rightClickEvents) {
     const { soundSrc, payload } = rightClickEvents;
     rect.eventMode = "static";
 
@@ -174,7 +168,7 @@ export const addRect = ({
     rect.on("rightclick", rightClickListener);
   }
 
-  if (interactionsEnabled && (scrollUpEvent || scrollDownEvent)) {
+  if (scrollUpEvent || scrollDownEvent) {
     setupScrollInteraction({
       canvas: app.canvas,
       displayObject: rect,
@@ -186,7 +180,7 @@ export const addRect = ({
     });
   }
 
-  if (interactionsEnabled && dragEvent) {
+  if (dragEvent) {
     const { start, end, move } = dragEvent;
     rect.eventMode = "static";
 

@@ -202,10 +202,6 @@ const hitTestElement = ({ displayObject, element, point, path, clips }) => {
     return [];
   }
 
-  if (element.designInteraction === true) {
-    return [];
-  }
-
   if (!isInsideClips({ clips, point })) {
     return [];
   }

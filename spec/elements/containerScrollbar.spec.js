@@ -77,47 +77,6 @@ const seedContainerChildren = ({ container, element }) => {
 };
 
 describe("container scrollbar", () => {
-  it("renders inert scrolling and scrollbar chrome when interaction is disabled", () => {
-    const container = new Container();
-    container.label = "inventory";
-    const element = createScrollableElement();
-    seedContainerChildren({ container, element });
-
-    setupScrolling({
-      container,
-      element,
-      interactive: false,
-    });
-
-    const content = container.getChildByLabel("inventory-content");
-    const root = container.getChildByLabel("inventory-scrollbar-vertical");
-    const track = container.getChildByLabel(
-      "inventory-scrollbar-vertical-track",
-      true,
-    );
-    const endButton = container.getChildByLabel(
-      "inventory-scrollbar-vertical-end-button",
-      true,
-    );
-
-    container.emit("wheel", {
-      deltaX: 0,
-      deltaY: 40,
-      preventDefault: vi.fn(),
-    });
-    track.emit("pointerdown", {
-      global: { x: 90, y: 100 },
-      stopPropagation: vi.fn(),
-    });
-    endButton.emit("pointerdown", {
-      stopPropagation: vi.fn(),
-    });
-
-    expect(root.eventMode).toBe("none");
-    expect(track.eventMode).toBe("none");
-    expect(content.y).toBe(0);
-  });
-
   it("renders vertical scrollbar chrome when configured and overflowing", () => {
     const container = new Container();
     container.label = "inventory";

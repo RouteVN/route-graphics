@@ -33,36 +33,6 @@ const createApp = () => {
 };
 
 describe("input plugin", () => {
-  it("does not mount or activate the native control in design mode", () => {
-    const parent = new Container();
-    const { app } = createApp();
-    app.interactionMode = "design";
-    const element = parseInput({
-      state: {
-        id: "name",
-        type: "input",
-        x: 20,
-        y: 40,
-        width: 200,
-        height: 44,
-      },
-    });
-
-    addInput({
-      app,
-      parent,
-      element,
-      eventHandler: vi.fn(),
-      zIndex: 0,
-    });
-
-    const inputContainer = parent.getChildByLabel("name");
-
-    expect(inputContainer.eventMode).toBe("none");
-    expect(inputContainer.cursor).toBe("default");
-    expect(app.inputDomBridge.mount).not.toHaveBeenCalled();
-  });
-
   it("renders a field and preserves native-edited value across unchanged rerenders", () => {
     const parent = new Container();
     const eventHandler = vi.fn();

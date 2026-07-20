@@ -98,24 +98,7 @@ WebGPU device loss emits `rendererContextLost`; because a lost WebGPU device is
 not restorable, consumers must recreate the Route Graphics instance rather than
 wait for `rendererContextRestored`.
 
-### Design surfaces and bounds hit testing
-
-Editor canvases can suppress authored interactions while preserving their
-rendered appearance:
-
-```javascript
-await app.init({
-  width: 1280,
-  height: 720,
-  interactionMode: "design",
-  plugins,
-});
-```
-
-In `design` mode, authored hover/click/right-click/drag, keyboard, input,
-slider, and scroll behavior is inert. Renderer-owned editor chrome can opt back
-in with `designInteraction: true`; those marked elements are excluded from
-semantic bounds hit testing.
+### Semantic bounds hit testing
 
 `hitTestElementBounds({ x, y })` accepts renderer-space coordinates and returns
 all hit branches from front to back. Each branch contains a root-to-deepest
@@ -131,8 +114,14 @@ const frontmostPath = hits[0]?.path ?? [];
 ```
 
 Route Graphics deliberately returns rendered semantic identities rather than
-editor document identities. Consumers remain responsible for mapping each
-render occurrence to an authored selection owner.
+editor document identities, and it does not apply consumer-specific filtering.
+Consumers remain responsible for mapping each render occurrence to an authored
+selection owner and ignoring any renderer elements they do not want to select.
+
+Bounds queries are observational. They do not alter or suppress existing
+hover, click, drag, keyboard, input, slider, or scroll behavior. A consumer can
+therefore observe a pointer gesture for selection while Route Graphics
+continues processing the same authored interaction.
 
 For complete usage details, go to:
 

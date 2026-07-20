@@ -8,7 +8,6 @@ import {
   getInputIndexFromLocalPoint,
   syncInputView,
 } from "./inputShared.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 const emitInputEvent = ({
   eventHandler,
@@ -166,8 +165,6 @@ export const addInput = ({
   renderContext,
   zIndex,
 }) => {
-  const interactionsEnabled = isElementInteractionEnabled({ app, element });
-
   if (
     !app.inputDomBridge?.mount ||
     !app.inputDomBridge?.focus ||
@@ -184,9 +181,8 @@ export const addInput = ({
 
   container.zIndex = zIndex;
   container.sortableChildren = true;
-  container.eventMode = interactionsEnabled ? "static" : "none";
-  container.cursor =
-    interactionsEnabled && !element.disabled ? "text" : "default";
+  container.eventMode = "static";
+  container.cursor = element.disabled ? "default" : "text";
   container.x = Math.round(element.x);
   container.y = Math.round(element.y);
   container.alpha = element.alpha;
@@ -320,30 +316,26 @@ export const addInput = ({
     });
   };
 
-  if (interactionsEnabled) {
-    container.on("pointerdown", dragStartListener);
-    container.on("globalpointermove", dragMoveListener);
-    container.on("pointerup", releaseListener);
-    container.on("pointerupoutside", dragEndListener);
-    container.on("rightclick", stopInputPointerPropagation);
-  }
+  container.on("pointerdown", dragStartListener);
+  container.on("globalpointermove", dragMoveListener);
+  container.on("pointerup", releaseListener);
+  container.on("pointerupoutside", dragEndListener);
+  container.on("rightclick", stopInputPointerPropagation);
 
   container[INPUT_RUNTIME] = runtime;
 
   syncInputView(runtime, element);
 
-  if (interactionsEnabled) {
-    app.inputDomBridge.mount(element.id, {
-      ...element,
-      value: runtime.value,
-      callbacks: createCallbacks({
-        element,
-        runtime,
-        eventHandler,
-      }),
-      getGeometry: () => getInputGeometry(app, container, element),
-    });
-  }
+  app.inputDomBridge.mount(element.id, {
+    ...element,
+    value: runtime.value,
+    callbacks: createCallbacks({
+      element,
+      runtime,
+      eventHandler,
+    }),
+    getGeometry: () => getInputGeometry(app, container, element),
+  });
 
   parent.addChild(container);
 

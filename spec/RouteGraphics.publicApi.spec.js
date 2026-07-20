@@ -454,21 +454,9 @@ describe("RouteGraphics public API", () => {
   }, 15000);
 
   it("exposes empty semantic bounds hits before elements are rendered", async () => {
-    const { app } = await setupRouteGraphics({
-      initOptions: { interactionMode: "design" },
-    });
+    const { app } = await setupRouteGraphics();
 
     expect(app.hitTestElementBounds({ x: 10, y: 10 })).toEqual([]);
-  });
-
-  it("rejects unknown interaction modes", async () => {
-    await expect(
-      setupRouteGraphics({
-        initOptions: { interactionMode: "preview" },
-      }),
-    ).rejects.toThrow(
-      'Invalid interaction mode "preview". Expected "runtime" or "design".',
-    );
   });
 
   it("unloads and reloads buffer-backed textures", async () => {

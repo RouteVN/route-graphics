@@ -22,7 +22,6 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
-import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Add sprite element to the stage (synchronous)
@@ -67,11 +66,6 @@ export const addSprite = ({
   const rightClickEvents = element?.rightClick;
   const scrollUpEvent = element?.scrollUp;
   const scrollDownEvent = element?.scrollDown;
-  const interactionsEnabled = isElementInteractionEnabled({ app, element });
-
-  if (!interactionsEnabled) {
-    sprite.eventMode = "none";
-  }
 
   let hoverController = null;
   let pressController = null;
@@ -96,7 +90,7 @@ export const addSprite = ({
     }
   };
 
-  if (interactionsEnabled && hoverEvents) {
+  if (hoverEvents) {
     const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
     sprite.eventMode = "static";
     hoverController = createHoverStateController({
@@ -132,7 +126,7 @@ export const addSprite = ({
     sprite.on("pointerout", outListener);
   }
 
-  if (interactionsEnabled && clickEvents) {
+  if (clickEvents) {
     const { soundSrc, soundVolume, payload } = clickEvents;
     sprite.eventMode = "static";
     pressController = createPressStateController({
@@ -180,7 +174,7 @@ export const addSprite = ({
     sprite.on("pointerupoutside", outListener);
   }
 
-  if (interactionsEnabled && rightClickEvents) {
+  if (rightClickEvents) {
     const { soundSrc, payload } = rightClickEvents;
     sprite.eventMode = "static";
     rightPressController = createRightPressStateController({
@@ -226,7 +220,7 @@ export const addSprite = ({
     sprite.on("rightupoutside", rightOutListener);
   }
 
-  if (interactionsEnabled && (scrollUpEvent || scrollDownEvent)) {
+  if (scrollUpEvent || scrollDownEvent) {
     setupScrollInteraction({
       canvas: app.canvas,
       displayObject: sprite,

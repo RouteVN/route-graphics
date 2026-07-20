@@ -173,7 +173,7 @@ describe("hitTestElementBounds", () => {
     expect(clippedHits[0].path.map(({ id }) => id)).toEqual(["back"]);
   });
 
-  it("uses sprite-local bounds and excludes design-interaction chrome", () => {
+  it("uses sprite-local bounds without applying consumer ownership rules", () => {
     const sprite = createDisplayObject({
       label: "sprite",
       zIndex: 1,
@@ -192,14 +192,15 @@ describe("hitTestElementBounds", () => {
           width: 100,
           height: 50,
         }),
-        createElement({ id: "chrome", designInteraction: true }),
+        createElement({ id: "chrome" }),
       ],
       x: 90,
       y: 40,
     });
 
-    expect(hits).toHaveLength(1);
-    expect(hits[0].path[0]).toMatchObject({
+    expect(hits).toHaveLength(2);
+    expect(hits[0].path[0].id).toBe("chrome");
+    expect(hits[1].path[0]).toMatchObject({
       id: "sprite",
       bounds: { x: 0, y: 0, width: 100, height: 50 },
     });

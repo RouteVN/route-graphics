@@ -85,10 +85,6 @@ export const parseCommonObject = (state) => {
     computedObj.click = state.click;
   }
 
-  if (state.designInteraction === true) {
-    computedObj.designInteraction = true;
-  }
-
   if (state.filters !== undefined) {
     if (!SHADER_FILTER_ELEMENT_TYPES.has(state.type)) {
       throw new Error(

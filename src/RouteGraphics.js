@@ -41,7 +41,6 @@ import { hitTestElementBounds as hitTestElementBoundsInTree } from "./util/hitTe
  * @typedef {Object} ApplicationWithAudioStageOptions
  * @property {AudioStage} audioStage
  * @property {ReturnType<typeof createInputDomBridge>} [inputDomBridge]
- * @property {"runtime" | "design"} interactionMode
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
 
@@ -250,14 +249,6 @@ const createRouteGraphics = () => {
     if (mode !== "auto" && mode !== "manual") {
       throw new Error(
         `Invalid animation playback mode "${mode}". Expected "auto" or "manual".`,
-      );
-    }
-  };
-
-  const assertInteractionMode = (mode) => {
-    if (mode !== "runtime" && mode !== "design") {
-      throw new Error(
-        `Invalid interaction mode "${mode}". Expected "runtime" or "design".`,
       );
     }
   };
@@ -1146,11 +1137,7 @@ const createRouteGraphics = () => {
    */
   const applyGlobalObjects = (appInstance, prevGlobal, nextGlobal) => {
     if (keyboardManager) {
-      keyboardManager.registerHotkeys(
-        appInstance.interactionMode === "design"
-          ? {}
-          : (nextGlobal?.keyboard ?? {}),
-      );
+      keyboardManager.registerHotkeys(nextGlobal?.keyboard ?? {});
     }
 
     // Initialize default cursor styles if they don't exist
@@ -1373,12 +1360,10 @@ const createRouteGraphics = () => {
         debug = false,
         onFirstRender,
         animationPlaybackMode: nextAnimationPlaybackMode = "auto",
-        interactionMode = "runtime",
       } = options;
 
       onFirstRenderCallback = onFirstRender;
       assertAnimationPlaybackMode(nextAnimationPlaybackMode);
-      assertInteractionMode(interactionMode);
       animationPlaybackMode = nextAnimationPlaybackMode;
       animationPlaybackTimeMS = null;
       animationBusListenerCleanup.forEach((cleanup) => cleanup());
@@ -1409,7 +1394,6 @@ const createRouteGraphics = () => {
        */
       app = new Application();
       app.audioStage = audioStage;
-      app.interactionMode = interactionMode;
       await app.init({
         width,
         height,
