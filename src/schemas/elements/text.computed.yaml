@@ -184,6 +184,12 @@ properties:
       soundSrc:
         type: string
         description: URL to sound file to play on hover
+      soundVolume:
+        type: number
+        description: Volume. 0 means muted. 100 means original full volume.
+        minimum: 0
+        maximum: 100
+        default: 100
       payload:
         type: object
         description: Payload for hover action event

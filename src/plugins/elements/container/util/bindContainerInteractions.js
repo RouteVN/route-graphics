@@ -136,7 +136,8 @@ export const bindContainerInteractions = ({
   }
 
   if (hoverEvents) {
-    const { cursor, soundSrc, payload, inheritToChildren } = hoverEvents;
+    const { cursor, soundSrc, soundVolume, payload, inheritToChildren } =
+      hoverEvents;
 
     const overListener = (event) => {
       if (isWithinContainer(container, event?.relatedTarget)) {
@@ -162,6 +163,7 @@ export const bindContainerInteractions = ({
           id: `hover-${Date.now()}`,
           url: soundSrc,
           loop: false,
+          volume: normalizeVolume(soundVolume),
         });
       if (inheritToChildren) {
         setTreeInheritedHover({ root: container, isHovered: true });

@@ -20,6 +20,7 @@ in:
     height: 29
     hover:
       soundSrc: sound-1
+      soundVolume: 25
       cursor: cursor-1
       payload:
         prop1: "44"
@@ -41,6 +42,7 @@ out:
   alpha: 1
   hover:
     soundSrc: sound-1
+    soundVolume: 25
     cursor: cursor-1
     payload:
       prop1: "44"
@@ -153,6 +155,7 @@ in:
     height: 60
     hover:
       soundSrc: hover-sound
+      soundVolume: 25
       cursor: pointer
       payload:
         hoverAction: true
@@ -168,6 +171,7 @@ out:
   alpha: 1
   hover:
     soundSrc: hover-sound
+    soundVolume: 25
     cursor: pointer
     payload:
       hoverAction: true

@@ -33,6 +33,7 @@ in:
         barSrc: file:bar-hover
         inactiveBarSrc: file:track-hover
         soundSrc: sound-1
+        soundVolume: 85
         cursor: cursor-1
         payload:
           prop1: "44"
@@ -63,6 +64,7 @@ out:
     barSrc: file:bar-hover
     inactiveBarSrc: file:track-hover
     soundSrc: sound-1
+    soundVolume: 85
     cursor: cursor-1
     payload:
       prop1: "44"

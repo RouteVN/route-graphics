@@ -537,4 +537,65 @@ describe("updateRect", () => {
       }),
     );
   });
+
+  it("applies hover sound volume after rebinding interactions", () => {
+    const parent = new Container();
+    const rectElement = new Graphics();
+    const audioStage = { add: vi.fn() };
+    rectElement.label = "rect-1";
+    parent.addChild(rectElement);
+    const prevElement = parseRect({
+      state: {
+        id: "rect-1",
+        type: "rect",
+        x: 0,
+        y: 0,
+        width: 120,
+        height: 80,
+        fill: "#737373",
+        alpha: 1,
+      },
+    });
+    const nextElement = parseRect({
+      state: {
+        id: "rect-1",
+        type: "rect",
+        x: 0,
+        y: 0,
+        width: 120,
+        height: 80,
+        fill: "#737373",
+        alpha: 1,
+        hover: {
+          soundSrc: "hover.mp3",
+          soundVolume: 45,
+        },
+      },
+    });
+
+    updateRect({
+      app: { audioStage },
+      parent,
+      prevElement,
+      nextElement,
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      eventHandler: vi.fn(),
+      zIndex: 0,
+    });
+
+    rectElement.emit("pointerover");
+
+    expect(audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "hover.mp3",
+      loop: false,
+      volume: 0.45,
+    });
+  });
 });

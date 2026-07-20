@@ -127,7 +127,7 @@ export const updateSprite = ({
     };
 
     if (hoverEvents) {
-      const { cursor, soundSrc, payload } = hoverEvents;
+      const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
       spriteElement.eventMode = "static";
       hoverController = createHoverStateController({
         displayObject: spriteElement,
@@ -149,6 +149,7 @@ export const updateSprite = ({
             id: `hover-${Date.now()}`,
             url: soundSrc,
             loop: false,
+            volume: normalizeVolume(soundVolume),
           });
       };
 
