@@ -2,6 +2,7 @@ import { Container, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 import { createAnimationBus } from "../../src/plugins/animations/animationBus.js";
 import { renderElements } from "../../src/plugins/elements/renderElements.js";
+import { getElementRenderState } from "../../src/plugins/elements/elementRenderState.js";
 import { createCompletionTracker } from "../../src/util/completionTracker.js";
 
 const createDeferred = () => {
@@ -274,6 +275,74 @@ describe("element replacement lifecycle", () => {
     expect(
       root.children.filter((child) => child.label === "background"),
     ).toHaveLength(1);
+  });
+
+  it("keeps replacement settlement pending until a deferred update commits", async () => {
+    const root = new Container();
+    const app = { render: vi.fn() };
+    const mounting = createDeferred();
+    let commitUpdate;
+    const previousPlugin = createChildPlugin({ type: "previous" });
+    const deferredPlugin = createChildPlugin({
+      type: "deferred",
+      add: ({ parent, element }) =>
+        mounting.promise.then(() => {
+          const child = new Container({ label: element.id });
+          child.mountedType = "deferred";
+          parent.addChild(child);
+        }),
+    });
+    deferredPlugin.update.mockImplementation(
+      ({ parent, nextElement, deferRenderStateCommit, commitRenderState }) => {
+        const child = findDirectChild(parent, nextElement.id);
+        deferRenderStateCommit();
+        commitUpdate = () => {
+          child.renderedWidth = nextElement.width;
+          commitRenderState(child);
+        };
+      },
+    );
+    const plugins = [previousPlugin, deferredPlugin];
+    const previous = createChildElement("previous", { width: 20 });
+    const pending = createChildElement("deferred", { width: 40 });
+    const latest = createChildElement("deferred", { width: 100 });
+
+    render({ app, parent: root, prev: [], next: [previous], plugins });
+    const replacementOperation = render({
+      app,
+      parent: root,
+      prev: [previous],
+      next: [pending],
+      plugins,
+    });
+    render({
+      app,
+      parent: root,
+      prev: [pending],
+      next: [latest],
+      plugins,
+    });
+    let settled = false;
+    replacementOperation.then(() => {
+      settled = true;
+    });
+
+    mounting.resolve();
+    await vi.waitFor(() => {
+      expect(deferredPlugin.update).toHaveBeenCalledTimes(1);
+    });
+
+    const child = findDirectChild(root, "background");
+    expect(getElementRenderState(child)).toBe(pending);
+    expect(child.renderedWidth).toBeUndefined();
+    expect(settled).toBe(false);
+
+    commitUpdate();
+    await replacementOperation;
+
+    expect(getElementRenderState(child)).toBe(latest);
+    expect(child.renderedWidth).toBe(100);
+    expect(settled).toBe(true);
   });
 
   it("keeps a deferred replacement in a custom composite render slot", async () => {

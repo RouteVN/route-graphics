@@ -5,6 +5,7 @@ import {
   shouldRenderTextRevealImmediately,
 } from "./textRevealingRuntime.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 const getRevealIdentity = (element = {}) =>
   JSON.stringify({
@@ -42,6 +43,8 @@ export const updateTextRevealing = async ({
   completionTracker,
   zIndex,
   signal,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   if (signal?.aborted) return;
 
@@ -49,6 +52,13 @@ export const updateTextRevealing = async ({
     (child) => child.label === prevElement.id,
   );
   if (!textRevealingElement) return;
+
+  const commitMountedLayout = () => {
+    if (!signal?.aborted && !textRevealingElement.destroyed) {
+      setElementRenderState(textRevealingElement, element);
+      commitRenderState?.(textRevealingElement);
+    }
+  };
 
   const updateElement = async () => {
     if (element.x !== undefined) textRevealingElement.x = element.x;
@@ -71,6 +81,7 @@ export const updateTextRevealing = async ({
           signal,
           app,
           playback: "resume",
+          onLayoutMounted: commitMountedLayout,
         });
       }
 
@@ -90,6 +101,7 @@ export const updateTextRevealing = async ({
         signal,
         app,
         playback: "paused-initial",
+        onLayoutMounted: commitMountedLayout,
       });
 
       queueDeferredTextRevealAutoplay(renderContext, {
@@ -100,6 +112,7 @@ export const updateTextRevealing = async ({
         zIndex,
         signal,
         app,
+        onLayoutMounted: commitMountedLayout,
       });
       return;
     }
@@ -113,6 +126,7 @@ export const updateTextRevealing = async ({
       signal,
       app,
       playback: "autoplay",
+      onLayoutMounted: commitMountedLayout,
     });
   };
 
@@ -134,5 +148,7 @@ export const updateTextRevealing = async ({
 
   if (!dispatched) {
     await updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

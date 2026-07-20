@@ -19,7 +19,10 @@ import {
   createRenderContext,
   flushDeferredMountOperations,
 } from "../../elements/renderContext.js";
-import { setElementRenderState } from "../../elements/elementRenderState.js";
+import {
+  setElementHitTestBounds,
+  setElementRenderState,
+} from "../../elements/elementRenderState.js";
 import { cleanupParticlesInTree } from "../../elements/particles/particleRuntime.js";
 import { getAnimationContinuitySignature } from "../planAnimations.js";
 import { degreesToRadians } from "../../elements/util/transform.js";
@@ -2032,6 +2035,12 @@ export const runReplaceAnimation = ({
       });
       replaceOverlayRef.value = replaceOverlay;
       nextDisplayObjectRef.value = nextDisplayObject;
+
+      setElementRenderState(replaceOverlay.overlay, nextElement ?? prevElement);
+      setElementHitTestBounds(replaceOverlay.overlay, (overlay) => {
+        const localBounds = overlay.getLocalBounds?.();
+        return localBounds?.rectangle ?? localBounds;
+      });
 
       currentParent.addChild(replaceOverlay.overlay);
       if (isLiveSubject(overlaySubjects.nextSubject)) {

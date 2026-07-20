@@ -453,6 +453,12 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
 
+  it("exposes empty semantic bounds hits before elements are rendered", async () => {
+    const { app } = await setupRouteGraphics();
+
+    expect(app.hitTestElementBounds({ x: 10, y: 10 })).toEqual([]);
+  });
+
   it("unloads and reloads buffer-backed textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const firstBitmap = { width: 8, height: 6, close: vi.fn() };

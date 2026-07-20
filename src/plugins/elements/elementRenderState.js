@@ -1,6 +1,10 @@
 import { isDeepEqual } from "../../util/isDeepEqual.js";
 
 const ELEMENT_RENDER_STATE = Symbol("routeGraphicsElementRenderState");
+const ELEMENT_HIT_TEST_BOUNDS = Symbol("routeGraphicsElementHitTestBounds");
+const DEFERRED_RENDER_STATE_COMMIT = Symbol(
+  "routeGraphicsDeferredRenderStateCommit",
+);
 const PARENT_RENDER_STATE = Symbol("routeGraphicsParentRenderState");
 const RENDER_LIFECYCLE = Symbol("routeGraphicsElementRenderLifecycle");
 
@@ -16,6 +20,15 @@ export const setElementRenderState = (displayObject, element) => {
     displayObject[ELEMENT_RENDER_STATE] = element;
   }
 };
+
+export const setElementHitTestBounds = (displayObject, resolveBounds) => {
+  if (displayObject && typeof resolveBounds === "function") {
+    displayObject[ELEMENT_HIT_TEST_BOUNDS] = resolveBounds;
+  }
+};
+
+export const getElementHitTestBounds = (displayObject) =>
+  displayObject?.[ELEMENT_HIT_TEST_BOUNDS]?.(displayObject) ?? null;
 
 const getParentRenderState = (parent) => {
   if (!parent[PARENT_RENDER_STATE]) {
@@ -73,6 +86,83 @@ export const addElementWithRenderState = ({ plugin, ...options }) => {
       mountedChild = getAddedChild(parent, element, childrenBefore);
     }
     markMountedElement(mountedChild, element);
+  });
+};
+
+export const updateElementWithRenderState = ({ plugin, ...options }) => {
+  const { parent, prevElement, nextElement, signal } = options;
+  let didCommit = false;
+  let deferredCommit = null;
+
+  const deferRenderStateCommit = () => {
+    if (deferredCommit) {
+      return;
+    }
+
+    let resolveCommit;
+    const committed = new Promise((resolve) => {
+      resolveCommit = resolve;
+    });
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener?.("abort", settle);
+      resolveCommit();
+    };
+
+    deferredCommit = {
+      result: { [DEFERRED_RENDER_STATE_COMMIT]: committed },
+      settle,
+    };
+    if (didCommit || signal?.aborted || parent.destroyed) {
+      settle();
+    } else {
+      signal?.addEventListener?.("abort", settle, { once: true });
+    }
+  };
+
+  const commitRenderState = (displayObject) => {
+    didCommit = true;
+
+    if (!signal?.aborted && !parent.destroyed) {
+      const mountedChild =
+        displayObject ??
+        getMountedChild(parent, nextElement.id) ??
+        getMountedChild(parent, prevElement.id);
+      markMountedElement(mountedChild, nextElement);
+    }
+    deferredCommit?.settle();
+  };
+
+  let operation;
+  try {
+    operation = plugin.update({
+      ...options,
+      commitRenderState,
+      deferRenderStateCommit,
+    });
+  } catch (error) {
+    deferredCommit?.settle();
+    throw error;
+  }
+
+  const finishUpdate = (result) => {
+    if (deferredCommit) {
+      return deferredCommit.result;
+    }
+
+    commitRenderState();
+    return result;
+  };
+
+  if (!isPromise(operation)) {
+    return finishUpdate(operation);
+  }
+
+  return operation.then(finishUpdate, (error) => {
+    deferredCommit?.settle();
+    throw error;
   });
 };
 
@@ -352,12 +442,13 @@ const settleReplacement = async (lifecycle, replacement) => {
 
     if (child && desired && rendered.type === desired.element.type) {
       if (!isDeepEqual(rendered, desired.element)) {
-        await render.updateElement({
+        const updateResult = await render.updateElement({
           parent,
           prevElement: rendered,
           nextElement: desired.element,
           zIndex: desired.zIndex,
         });
+        await updateResult?.[DEFERRED_RENDER_STATE_COMMIT];
         if (!isActive(lifecycle, render)) continue;
       }
       if (!child.destroyed && child.parent === parent) {

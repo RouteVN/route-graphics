@@ -9,6 +9,7 @@ import {
   addElementWithRenderState,
   prepareElementRenderState,
   registerPendingElementReplacement,
+  updateElementWithRenderState,
 } from "./elementRenderState.js";
 import { createRenderContext } from "./renderContext.js";
 
@@ -98,8 +99,10 @@ export const renderElements = ({
     prevElement,
     nextElement,
     zIndex,
-  }) =>
-    getPlugin(nextElement.type).update({
+  }) => {
+    const plugin = getPlugin(nextElement.type);
+
+    return updateElementWithRenderState({
       app,
       parent: targetParent,
       prevElement,
@@ -112,7 +115,9 @@ export const renderElements = ({
       renderContext,
       zIndex,
       signal,
+      plugin,
     });
+  };
   const {
     lifecycle,
     ownerElementId,
@@ -428,19 +433,10 @@ export const renderElements = ({
     }
 
     collectOperation(
-      nextPlugin.update({
-        app,
-        parent,
+      updateElement({
         prevElement: prev,
         nextElement: next,
-        animations: animationsByTarget,
-        animationBus,
-        completionTracker,
-        eventHandler,
-        elementPlugins,
-        renderContext,
         zIndex,
-        signal,
       }),
     );
   }

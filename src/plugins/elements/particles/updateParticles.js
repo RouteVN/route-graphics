@@ -11,6 +11,7 @@ import { deleteParticles } from "./deleteParticles.js";
 import { addParticle } from "./addParticles.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * @typedef {import('../../../types.js').ParticlesComputedNode} ParticlesComputedNode
@@ -30,6 +31,8 @@ export const updateParticles = ({
   completionTracker,
   renderContext,
   zIndex,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   // Find the existing container
   const container = parent.children.find(
@@ -48,6 +51,11 @@ export const updateParticles = ({
       renderContext,
       zIndex,
     });
+    const mountedContainer = parent.children.find(
+      (child) => child.label === nextElement.id,
+    );
+    setElementRenderState(mountedContainer, nextElement);
+    commitRenderState?.(mountedContainer);
     return;
   }
 
@@ -78,6 +86,11 @@ export const updateParticles = ({
       renderContext,
       zIndex,
     });
+    const mountedContainer = parent.children.find(
+      (child) => child.label === nextElement.id,
+    );
+    setElementRenderState(mountedContainer, nextElement);
+    commitRenderState?.(mountedContainer);
   } else {
     const updateElement = () => {
       if (nextElement.alpha !== undefined) {
@@ -89,6 +102,8 @@ export const updateParticles = ({
       if (nextElement.y !== undefined) {
         container.y = nextElement.y;
       }
+      setElementRenderState(container, nextElement);
+      commitRenderState?.(container);
     };
 
     const dispatched = dispatchLiveAnimations({
@@ -107,6 +122,8 @@ export const updateParticles = ({
 
     if (!dispatched) {
       updateElement();
+    } else {
+      deferRenderStateCommit?.();
     }
   }
 };

@@ -2,6 +2,7 @@ import { Container, Rectangle, Text, TextStyle } from "pixi.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { resolveInteractiveTextStyle } from "./textLayout.js";
+import { setElementHitTestBounds } from "../elementRenderState.js";
 
 const RICH_TEXT_DISPLAY = Symbol("routeGraphicsRichTextDisplay");
 
@@ -38,6 +39,16 @@ const createTextObject = ({ text, style, x, y }) =>
 
 const applyOverrideStyle = (style, overrideStyle) =>
   overrideStyle ? resolveInteractiveTextStyle(style, overrideStyle) : style;
+
+const getRichTextHitBounds = (container, layoutWidth, layoutHeight) => {
+  const contentBounds = container.getLocalBounds();
+  const x = Math.min(0, contentBounds.x);
+  const y = Math.min(0, contentBounds.y);
+  const right = Math.max(layoutWidth, contentBounds.x + contentBounds.width);
+  const bottom = Math.max(layoutHeight, contentBounds.y + contentBounds.height);
+
+  return new Rectangle(x, y, right - x, bottom - y);
+};
 
 export const isRichTextComputedNode = (element) =>
   Array.isArray(element?.content);
@@ -103,11 +114,11 @@ export const renderRichTextDisplayObject = (
     container.addChild(lineContainer);
   }
 
-  container.hitArea = new Rectangle(
-    0,
-    0,
-    Math.max(0, layoutWidth),
-    Math.max(0, element.height ?? 0),
+  const hitAreaWidth = Math.max(0, layoutWidth);
+  const hitAreaHeight = Math.max(0, element.height ?? 0);
+  container.hitArea = new Rectangle(0, 0, hitAreaWidth, hitAreaHeight);
+  setElementHitTestBounds(container, (displayObject) =>
+    getRichTextHitBounds(displayObject, hitAreaWidth, hitAreaHeight),
   );
 };
 

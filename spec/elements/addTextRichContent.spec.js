@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { addText } from "../../src/plugins/elements/text/addText.js";
 import { parseText } from "../../src/plugins/elements/text/parseText.js";
 import { updateText } from "../../src/plugins/elements/text/updateText.js";
+import { hitTestElementBounds } from "../../src/util/hitTestElementBounds.js";
 
 const createSharedParams = () => ({
   app: {
@@ -124,6 +125,61 @@ describe("text rich content", () => {
     expect(getTextPart().style.fontWeight).toBe("700");
     expect(getTextPart().style.lineHeight).toBe(54);
     expect(text.y).toBe(initialY);
+  });
+
+  it("hit-tests rich text using live interactive glyph bounds", () => {
+    const parent = new Container();
+    const element = parseText({
+      state: {
+        id: "rich-text-live-bounds",
+        type: "text",
+        x: 20,
+        y: 30,
+        alpha: 1,
+        content: [{ text: "Growing text" }],
+        textStyle: {
+          fontSize: 16,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+        },
+        hover: {
+          textStyle: {
+            fontSize: 40,
+          },
+        },
+      },
+    });
+
+    addText({
+      ...createSharedParams(),
+      parent,
+      element,
+      zIndex: 0,
+    });
+
+    const text = parent.getChildByLabel("rich-text-live-bounds");
+    const originalHitArea = text.hitArea.clone();
+    text.emit("pointerover");
+    const probeX = element.x + element.width + 2;
+    const [hit] = hitTestElementBounds({
+      stage: parent,
+      elements: [element],
+      x: probeX,
+      y: element.y + text.hitArea.height / 2,
+    });
+
+    expect(text.hitArea).toEqual(originalHitArea);
+    expect(text.hitArea.width).toBe(element.width);
+    expect(hit.path[0].bounds.width).toBeGreaterThan(element.width);
+    expect(probeX).toBeLessThan(
+      hit.path[0].bounds.x + hit.path[0].bounds.width,
+    );
+    expect(hit.path[0]).toMatchObject({
+      id: "rich-text-live-bounds",
+      bounds: {
+        height: expect.any(Number),
+      },
+    });
   });
 
   it("updates between plain and rich text display objects", () => {

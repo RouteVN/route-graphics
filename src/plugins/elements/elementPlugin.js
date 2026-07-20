@@ -36,6 +36,8 @@
  * @property {Object} animationBus - Animation bus for dispatching animations
  * @property {import('./renderContext.js').createRenderContext} [renderContext] - Render context flags for nested mounts
  * @property {AbortSignal} [signal] - Optional cancellation signal
+ * @property {Function} [commitRenderState] - Commits the next semantic state after a deferred visual update
+ * @property {Function} [deferRenderStateCommit] - Prevents the automatic commit until commitRenderState is called
  */
 
 /**

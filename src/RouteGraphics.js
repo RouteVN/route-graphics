@@ -28,6 +28,7 @@ import {
   clearManagedVideoSprites,
   restoreManagedVideoSpriteSizes,
 } from "./plugins/elements/video/managedVideoTextureSizing.js";
+import { hitTestElementBounds as hitTestElementBoundsInTree } from "./util/hitTestElementBounds.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -1273,6 +1274,13 @@ const createRouteGraphics = () => {
     findElementByLabel: (targetLabel) => {
       return app.stage.getChildByLabel(targetLabel, true) ?? null;
     },
+
+    hitTestElementBounds: ({ x, y }) =>
+      hitTestElementBoundsInTree({
+        stage: app.stage,
+        x,
+        y,
+      }),
 
     extractBase64: async (label) => {
       if (typeof app.render === "function") {

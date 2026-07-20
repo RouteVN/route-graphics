@@ -3,6 +3,7 @@ import applyTextStyle from "../../../util/applyTextStyle.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { setElementHitTestBounds } from "../elementRenderState.js";
 
 const TEXT_ANCHOR_RATIOS = Symbol("routeGraphicsTextAnchorRatios");
 const TEXT_LAYOUT_STATE = Symbol("routeGraphicsTextLayoutState");
@@ -110,6 +111,25 @@ const getHorizontalOffset = (layoutWidth, measuredWidth, align) => {
   return 0;
 };
 
+const getTextLayoutHitBounds = (textElement) => {
+  const layoutState = textElement[TEXT_LAYOUT_STATE];
+  if (!layoutState) return null;
+
+  const layoutWidth = getLayoutWidth(textElement);
+  const measuredWidth = getMeasuredWidth(textElement);
+
+  return {
+    x: -getHorizontalOffset(
+      layoutWidth,
+      measuredWidth,
+      getTextAlign(textElement.style),
+    ),
+    y: 0,
+    width: layoutWidth,
+    height: getMeasuredHeight(textElement),
+  };
+};
+
 export const getTextLayoutPosition = (textComputedNode) => {
   const measuredWidth =
     textComputedNode.measuredWidth ?? textComputedNode.width;
@@ -149,6 +169,7 @@ export const syncTextAnchorRatios = (textElement, textComputedNode) => {
     y: anchorYRatio,
   };
   setTextLayoutState(textElement, textComputedNode, measurements);
+  setElementHitTestBounds(textElement, getTextLayoutHitBounds);
 };
 
 const getLineHeightRatio = (style) => {

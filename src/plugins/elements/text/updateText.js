@@ -22,6 +22,7 @@ import {
   resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 const displayKindChanged = (displayObject, textComputedNode) =>
   isRichTextDisplayObject(displayObject) !==
@@ -99,6 +100,8 @@ export const updateText = ({
   animationBus,
   completionTracker,
   zIndex,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   let textElement = parent.children.find(
     (child) => child.label === prevTextComputedNode.id,
@@ -123,6 +126,8 @@ export const updateText = ({
 
   const updateElement = () => {
     if (isDeepEqual(prevTextComputedNode, nextTextComputedNode)) {
+      setElementRenderState(textElement, nextTextComputedNode);
+      commitRenderState?.(textElement);
       return;
     }
 
@@ -140,6 +145,8 @@ export const updateText = ({
         height: nextTextComputedNode.height,
         force: shouldForceShaderProgress,
       });
+      setElementRenderState(textElement, nextTextComputedNode);
+      commitRenderState?.(textElement);
       return;
     }
 
@@ -154,6 +161,8 @@ export const updateText = ({
       height: nextTextComputedNode.height,
       force: shouldForceShaderProgress,
     });
+    setElementRenderState(textElement, nextTextComputedNode);
+    commitRenderState?.(textElement);
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -175,5 +184,7 @@ export const updateText = ({
 
   if (!dispatched) {
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

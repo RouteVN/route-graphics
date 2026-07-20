@@ -30,6 +30,7 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update sprite element (synchronous)
@@ -45,6 +46,8 @@ export const updateSprite = ({
   completionTracker,
   eventHandler,
   zIndex,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   const spriteElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -299,6 +302,9 @@ export const updateSprite = ({
         force: shouldForceShaderProgress,
       });
     }
+
+    setElementRenderState(spriteElement, nextElement);
+    commitRenderState?.(spriteElement);
   };
 
   if (prevElement.src !== nextElement.src && hasLiveAnimation) {
@@ -335,5 +341,7 @@ export const updateSprite = ({
   if (!dispatched) {
     // No animations, update immediately
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };
