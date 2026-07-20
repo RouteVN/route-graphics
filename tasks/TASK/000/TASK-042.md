@@ -31,9 +31,8 @@ coupling Route Graphics to an editor's authored-selection model.
 - `interactionMode: "design"` suppresses authored pointer, keyboard, input,
   slider, and scroll behavior. `designInteraction: true` restores interaction
   for editor-owned chrome while excluding that chrome from hit-test results.
-- Validation completed with the full Route Graphics suite: 88 files and 690
-  tests passed before the final focused additions; the expanded focused set
-  then passed 70 tests across six files.
+- Final pre-push validation passed all 88 Route Graphics test files and all 692
+  tests, after source formatting completed successfully.
 
 # Downstream Integration
 
