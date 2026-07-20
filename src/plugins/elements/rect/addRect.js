@@ -88,7 +88,7 @@ export const addRect = ({
   const dragEvent = element?.drag;
 
   if (hoverEvents) {
-    const { cursor, soundSrc, payload } = hoverEvents;
+    const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
     rect.eventMode = "static";
 
     const overListener = () => {
@@ -105,6 +105,7 @@ export const addRect = ({
           id: `hover-${Date.now()}`,
           url: soundSrc,
           loop: false,
+          volume: normalizeVolume(soundVolume),
         });
     };
 

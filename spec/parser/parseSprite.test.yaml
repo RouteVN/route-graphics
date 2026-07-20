@@ -30,6 +30,7 @@ in:
       rotation: 45
       hover:
         soundSrc: sound-1
+        soundVolume: 40
         cursor: cursor-1
         payload:
           prop1: "44"
@@ -61,6 +62,7 @@ out:
   src: file:circle-red
   hover:
     soundSrc: sound-1
+    soundVolume: 40
     cursor: cursor-1
     payload:
       prop1: "44"

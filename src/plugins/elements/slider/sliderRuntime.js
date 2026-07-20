@@ -3,6 +3,7 @@ import {
   clearInheritedHoverTarget,
   createHoverStateController,
 } from "../util/hoverInheritance.js";
+import { normalizeVolume } from "../../../util/normalizeVolume.js";
 
 const BAR_PADDING = 0;
 const DEFAULT_TEXTURE_SIZE = 16;
@@ -701,6 +702,7 @@ export const bindSliderInteractions = ({
         id: `hover-${Date.now()}`,
         url: hover.soundSrc,
         loop: false,
+        volume: normalizeVolume(hover.soundVolume),
       });
     }
   };

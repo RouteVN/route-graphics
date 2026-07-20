@@ -370,4 +370,74 @@ describe("updateSprite", () => {
     expect(spriteElement.y).toBe(280);
     expect(spriteElement.rotation).toBeCloseTo(Math.PI / 4);
   });
+
+  it("applies hover sound volume after rebinding interactions", () => {
+    const listeners = new Map();
+    const audioStage = { add: vi.fn() };
+    const spriteElement = {
+      label: "sprite-1",
+      texture: { src: "sprite" },
+      x: 0,
+      y: 0,
+      width: 80,
+      height: 60,
+      alpha: 1,
+      rotation: 0,
+      pivot: {
+        set: vi.fn(),
+      },
+      scale: {
+        x: 1,
+        y: 1,
+      },
+      zIndex: 0,
+      removeAllListeners: vi.fn(),
+      on: vi.fn((name, listener) => {
+        listeners.set(name, listener);
+      }),
+    };
+    const prevElement = {
+      id: "sprite-1",
+      type: "sprite",
+      src: "sprite",
+      x: 0,
+      y: 0,
+      width: 80,
+      height: 60,
+      alpha: 1,
+    };
+
+    updateSprite({
+      app: { audioStage },
+      parent: {
+        children: [spriteElement],
+      },
+      prevElement,
+      nextElement: {
+        ...prevElement,
+        hover: {
+          soundSrc: "hover.mp3",
+          soundVolume: 35,
+        },
+      },
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      eventHandler: vi.fn(),
+      zIndex: 0,
+    });
+
+    listeners.get("pointerover")();
+
+    expect(audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "hover.mp3",
+      loop: false,
+      volume: 0.35,
+    });
+  });
 });

@@ -63,7 +63,7 @@ export const bindTextInteractions = ({
   };
 
   if (hoverEvents) {
-    const { cursor, soundSrc, payload } = hoverEvents;
+    const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
 
     displayObject.eventMode = "static";
     hoverController = createHoverStateController({
@@ -86,6 +86,7 @@ export const bindTextInteractions = ({
           id: `hover-${Date.now()}`,
           url: soundSrc,
           loop: false,
+          volume: normalizeVolume(soundVolume),
         });
     };
 

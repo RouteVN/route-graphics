@@ -1334,6 +1334,7 @@ in:
         inheritToChildren: true
         cursor: pointer
         soundSrc: hover-sound
+        soundVolume: 70
         payload:
           type: hover
       click:
@@ -1371,6 +1372,7 @@ out:
     inheritToChildren: true
     cursor: pointer
     soundSrc: hover-sound
+    soundVolume: 70
     payload:
       type: hover
   click:

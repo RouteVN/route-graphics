@@ -67,6 +67,8 @@ describe("event semantics", () => {
         alpha: 1,
         fill: "#FFFFFF",
         hover: {
+          soundSrc: "rect-hover.mp3",
+          soundVolume: 25,
           payload: { source: "hover" },
         },
         click: {
@@ -114,6 +116,12 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[4][1]).toMatchObject({
       _event: { id: "rect-1" },
       direction: "down",
+    });
+    expect(shared.app.audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "rect-hover.mp3",
+      loop: false,
+      volume: 0.25,
     });
   });
 
@@ -269,7 +277,11 @@ describe("event semantics", () => {
         width: 120,
         height: 120,
         alpha: 1,
-        hover: { payload: { source: "hover" } },
+        hover: {
+          soundSrc: "sprite-hover.mp3",
+          soundVolume: 40,
+          payload: { source: "hover" },
+        },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
         scrollUp: { payload: { direction: "up" } },
@@ -305,6 +317,12 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[4][1]).toMatchObject({
       _event: { id: "sprite-1" },
       direction: "down",
+    });
+    expect(shared.app.audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "sprite-hover.mp3",
+      loop: false,
+      volume: 0.4,
     });
   });
 
@@ -401,7 +419,11 @@ describe("event semantics", () => {
           fill: "#FFFFFF",
           fontFamily: "Arial",
         },
-        hover: { payload: { source: "hover" } },
+        hover: {
+          soundSrc: "text-hover.mp3",
+          soundVolume: 55,
+          payload: { source: "hover" },
+        },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
         scrollUp: { payload: { direction: "up" } },
@@ -437,6 +459,12 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[4][1]).toMatchObject({
       _event: { id: "text-1" },
       direction: "down",
+    });
+    expect(shared.app.audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "text-hover.mp3",
+      loop: false,
+      volume: 0.55,
     });
   });
 
@@ -501,7 +529,11 @@ describe("event semantics", () => {
         height: 200,
         alpha: 1,
         children: [],
-        hover: { payload: { source: "hover" } },
+        hover: {
+          soundSrc: "container-hover.mp3",
+          soundVolume: 70,
+          payload: { source: "hover" },
+        },
         click: { payload: { source: "click" } },
         rightClick: { payload: { source: "rightClick" } },
         scrollUp: { payload: { direction: "up" } },
@@ -530,6 +562,12 @@ describe("event semantics", () => {
     expect(eventHandler.mock.calls[4][1]).toMatchObject({
       _event: { id: "container-1" },
       direction: "down",
+    });
+    expect(shared.app.audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "container-hover.mp3",
+      loop: false,
+      volume: 0.7,
     });
   });
 
@@ -591,6 +629,10 @@ describe("event semantics", () => {
         max: 100,
         step: 1,
         initialValue: 0,
+        hover: {
+          soundSrc: "slider-hover.mp3",
+          soundVolume: 85,
+        },
         change: {
           payload: { source: "drag" },
         },
@@ -598,6 +640,7 @@ describe("event semantics", () => {
     });
 
     const slider = parent.getChildByLabel("slider-1");
+    slider.emit("pointerover");
     slider.emit("pointerdown", { global: { x: 280, y: 110 } });
     slider.emit("globalpointermove", { global: { x: 290, y: 110 } });
     slider.emit("pointerup");
@@ -611,6 +654,12 @@ describe("event semantics", () => {
       source: "drag",
     });
     expect(eventHandler.mock.calls[0][1]._event.value).toBeTypeOf("number");
+    expect(shared.app.audioStage.add).toHaveBeenCalledWith({
+      id: expect.stringMatching(/^hover-/),
+      url: "slider-hover.mp3",
+      loop: false,
+      volume: 0.85,
+    });
   });
 
   it("keyboard manager emits keydown and keyup payloads for registered keys", () => {

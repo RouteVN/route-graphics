@@ -86,6 +86,12 @@ properties:
       soundSrc:
         type: string
         description: Source of sound to play when hovering over the slider
+      soundVolume:
+        type: number
+        description: Volume. 0 means muted. 100 means original full volume.
+        minimum: 0
+        maximum: 100
+        default: 100
   change:
     type: object
     description: Configuration for dragging behavior
