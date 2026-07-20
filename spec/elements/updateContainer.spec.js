@@ -8,6 +8,10 @@ vi.mock("../../src/plugins/elements/renderElements.js", () => ({
 
 import { renderElements } from "../../src/plugins/elements/renderElements.js";
 import { updateContainer } from "../../src/plugins/elements/container/updateContainer.js";
+import {
+  getElementRenderState,
+  setElementRenderState,
+} from "../../src/plugins/elements/elementRenderState.js";
 
 describe("updateContainer", () => {
   beforeEach(() => {
@@ -490,5 +494,76 @@ describe("updateContainer", () => {
 
     expect(containerElement.scale.x).toBe(1);
     expect(containerElement.scale.y).toBe(1);
+  });
+
+  it("commits its rendered snapshot only after an update animation finishes", () => {
+    const parent = new Container();
+    const containerElement = new Container();
+    containerElement.label = "container-1";
+    parent.addChild(containerElement);
+    const prevElement = {
+      id: "container-1",
+      type: "container",
+      x: 0,
+      y: 0,
+      width: 20,
+      height: 20,
+      alpha: 1,
+      children: [],
+    };
+    const nextElement = {
+      ...prevElement,
+      width: 100,
+      children: [
+        {
+          id: "next-child",
+          type: "rect",
+          x: 0,
+          y: 0,
+          width: 20,
+          height: 20,
+        },
+      ],
+    };
+    const animationBus = { dispatch: vi.fn() };
+    setElementRenderState(containerElement, prevElement);
+
+    updateContainer({
+      app: { audioStage: { add: vi.fn() } },
+      parent,
+      prevElement,
+      nextElement,
+      eventHandler: vi.fn(),
+      animations: [
+        {
+          id: "move-container",
+          targetId: "container-1",
+          type: "update",
+          tween: {
+            x: {
+              initialValue: 0,
+              keyframes: [{ duration: 100, value: 10 }],
+            },
+          },
+        },
+      ],
+      animationBus,
+      elementPlugins: [],
+      zIndex: 0,
+      completionTracker: {
+        getVersion: () => 0,
+        track: () => {},
+        complete: () => {},
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(getElementRenderState(containerElement)).toBe(prevElement);
+    expect(renderElements).not.toHaveBeenCalled();
+
+    animationBus.dispatch.mock.calls[0][0].payload.onComplete();
+
+    expect(getElementRenderState(containerElement)).toBe(nextElement);
+    expect(renderElements).toHaveBeenCalledTimes(1);
   });
 });

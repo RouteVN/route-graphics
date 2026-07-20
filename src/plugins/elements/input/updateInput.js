@@ -4,6 +4,7 @@ import {
   getInputGeometry,
   syncInputView,
 } from "./inputShared.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 const emitInputEvent = ({
   eventHandler,
@@ -214,6 +215,7 @@ export const updateInput = ({
     }),
     getGeometry: () => getInputGeometry(app, container, nextRuntimeElement),
   });
+  setElementRenderState(container, nextElement);
 };
 
 export default updateInput;

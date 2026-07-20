@@ -13,6 +13,7 @@ import {
   sampleMaskReveal,
   selectSequenceMaskFrameState,
 } from "../../src/plugins/animations/replace/runReplaceAnimation.js";
+import { getElementRenderState } from "../../src/plugins/elements/elementRenderState.js";
 import {
   queueDeferredAnimatedSpritePlay,
   queueDeferredParticlesStart,
@@ -331,6 +332,11 @@ describe("runReplaceAnimation", () => {
     expect(plugin.delete).not.toHaveBeenCalled();
     expect(parent.children).toHaveLength(2);
     expect(nextDisplayObject.visible).toBe(false);
+    expect(
+      getElementRenderState(
+        parent.children.find((child) => child !== nextDisplayObject),
+      ),
+    ).toMatchObject({ id: "scene-root", type: "container" });
     expect(tracker.track).toHaveBeenCalledWith(11);
 
     const dispatched = animationBus.dispatch.mock.calls[0][0];

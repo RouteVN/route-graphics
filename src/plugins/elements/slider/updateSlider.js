@@ -7,6 +7,7 @@ import {
   SLIDER_RUNTIME,
   syncSliderRuntime,
 } from "./sliderRuntime.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update slider element
@@ -22,6 +23,8 @@ export const updateSlider = ({
   completionTracker,
   eventHandler,
   zIndex,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   const sliderElement = parent.children.find(
     (child) => child.label === prevSliderComputedNode.id,
@@ -65,6 +68,8 @@ export const updateSlider = ({
       }
 
       if (!bar || !thumb) {
+        setElementRenderState(sliderElement, nextSliderComputedNode);
+        commitRenderState?.(sliderElement);
         return;
       }
 
@@ -82,6 +87,9 @@ export const updateSlider = ({
         adoptExternalValue: shouldAdoptExternalValue,
       });
     }
+
+    setElementRenderState(sliderElement, nextSliderComputedNode);
+    commitRenderState?.(sliderElement);
   };
 
   const { x, y, alpha } = nextSliderComputedNode;
@@ -99,5 +107,7 @@ export const updateSlider = ({
   if (!dispatched) {
     // No animations, update immediately
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

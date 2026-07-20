@@ -1,3 +1,8 @@
+import {
+  getElementHitTestBounds,
+  getElementRenderState,
+} from "../plugins/elements/elementRenderState.js";
+
 const SPRITE_ELEMENT_TYPES = new Set([
   "sprite",
   "video",
@@ -42,6 +47,11 @@ const getTextLayoutOffsetX = (element) => {
 };
 
 const getLocalHitRectangle = ({ displayObject, element }) => {
+  const liveHitBounds = getElementHitTestBounds(displayObject);
+  if (liveHitBounds) {
+    return getRectangle(liveHitBounds);
+  }
+
   if (SPRITE_ELEMENT_TYPES.has(element.type)) {
     const localBounds = displayObject.getLocalBounds?.();
     const rectangle = localBounds?.rectangle ?? localBounds;
@@ -136,9 +146,28 @@ const pairElementsWithDisplays = ({ elements, parent }) => {
   const renderChildren = getRenderChildren(parent);
   const displaysByLabel = new Map();
   const paintIndexByDisplay = new Map();
+  const pairs = [];
+  const pairedDisplays = new Set();
+  const elementIndexById = new Map(
+    elements.map((element, index) => [element.id, index]),
+  );
 
   for (let paintIndex = 0; paintIndex < renderChildren.length; paintIndex++) {
     const displayObject = renderChildren[paintIndex];
+    const renderedElement = getElementRenderState(displayObject);
+
+    if (renderedElement) {
+      pairs.push({
+        displayObject,
+        element: renderedElement,
+        elementIndex: elementIndexById.get(renderedElement.id) ?? paintIndex,
+        paintIndex,
+      });
+      pairedDisplays.add(displayObject);
+      paintIndexByDisplay.set(displayObject, paintIndex);
+      continue;
+    }
+
     const matches = displaysByLabel.get(displayObject.label) ?? [];
     matches.push(displayObject);
     displaysByLabel.set(displayObject.label, matches);
@@ -147,20 +176,22 @@ const pairElementsWithDisplays = ({ elements, parent }) => {
 
   const displayIndexByLabel = new Map();
 
-  return elements.flatMap((element, elementIndex) => {
-    const displays = displaysByLabel.get(element.id) ?? [];
-    const displayIndex = displayIndexByLabel.get(element.id) ?? 0;
-    const displayObject = displays[displayIndex];
-    displayIndexByLabel.set(element.id, displayIndex + 1);
+  return pairs.concat(
+    elements.flatMap((element, elementIndex) => {
+      const displays = displaysByLabel.get(element.id) ?? [];
+      const displayIndex = displayIndexByLabel.get(element.id) ?? 0;
+      const displayObject = displays[displayIndex];
+      displayIndexByLabel.set(element.id, displayIndex + 1);
 
-    if (!displayObject) {
-      return [];
-    }
+      if (!displayObject || pairedDisplays.has(displayObject)) {
+        return [];
+      }
 
-    const paintIndex = paintIndexByDisplay.get(displayObject) ?? -1;
+      const paintIndex = paintIndexByDisplay.get(displayObject) ?? -1;
 
-    return [{ displayObject, element, elementIndex, paintIndex }];
-  });
+      return [{ displayObject, element, elementIndex, paintIndex }];
+    }),
+  );
 };
 
 const orderFrontToBack = (pairs) =>
@@ -250,7 +281,7 @@ const hitTestElement = ({ displayObject, element, point, path, clips }) => {
  * Results are ordered front-to-back and each result represents one rendered
  * branch from a root element to its deepest hit descendant.
  */
-export const hitTestElementBounds = ({ stage, elements, x, y }) => {
+export const hitTestElementBounds = ({ stage, elements = [], x, y }) => {
   const point = { x, y };
 
   if (!stage || !Array.isArray(elements) || !isFinitePoint(point)) {

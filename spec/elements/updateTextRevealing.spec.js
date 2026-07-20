@@ -2,7 +2,10 @@ import { Container } from "pixi.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  runTextReveal: vi.fn(() => Promise.resolve()),
+  runTextReveal: vi.fn(({ onLayoutMounted }) => {
+    onLayoutMounted?.();
+    return Promise.resolve();
+  }),
 }));
 
 vi.mock(
@@ -19,6 +22,10 @@ import {
   flushDeferredMountOperations,
 } from "../../src/plugins/elements/renderContext.js";
 import { updateTextRevealing } from "../../src/plugins/elements/text-revealing/updateTextRevealing.js";
+import {
+  getElementRenderState,
+  setElementRenderState,
+} from "../../src/plugins/elements/elementRenderState.js";
 
 const createCompletionTracker = () => ({
   getVersion: () => 0,
@@ -46,6 +53,10 @@ const createElement = (overrides = {}) => ({
 describe("updateTextRevealing", () => {
   beforeEach(() => {
     mocks.runTextReveal.mockClear();
+    mocks.runTextReveal.mockImplementation(({ onLayoutMounted }) => {
+      onLayoutMounted?.();
+      return Promise.resolve();
+    });
   });
 
   it("restarts reveal when position or alpha changes", async () => {
@@ -159,6 +170,45 @@ describe("updateTextRevealing", () => {
         playback: "autoplay",
       }),
     );
+  });
+
+  it("commits the new layout before typewriter playback completes", async () => {
+    const parent = new Container();
+    const child = new Container();
+    child.label = "line-1";
+    parent.addChild(child);
+    const previous = createElement({ width: 100 });
+    const next = createElement({
+      width: 400,
+      content: [{ text: "A much wider replacement line" }],
+    });
+    let resolveReveal;
+    mocks.runTextReveal.mockImplementationOnce(({ onLayoutMounted }) => {
+      onLayoutMounted?.();
+      return new Promise((resolve) => {
+        resolveReveal = resolve;
+      });
+    });
+    setElementRenderState(child, previous);
+
+    const updateOperation = updateTextRevealing({
+      parent,
+      prevElement: previous,
+      nextElement: next,
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      renderContext: createRenderContext(),
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+      signal: new AbortController().signal,
+    });
+
+    await Promise.resolve();
+
+    expect(getElementRenderState(child)).toBe(next);
+
+    resolveReveal();
+    await updateOperation;
   });
 
   it("restarts reveal when only the initial revealed character offset changes", async () => {

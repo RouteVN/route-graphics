@@ -23,6 +23,7 @@ import {
   playbackFpsToAnimationSpeed,
   resolveAnimatedSpriteFrameTextures,
 } from "./animatedSpriteConfig.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update spritesheet animation element
@@ -38,6 +39,8 @@ export const updateAnimatedSprite = async ({
   completionTracker,
   zIndex,
   signal,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   if (signal?.aborted) return;
 
@@ -199,6 +202,11 @@ export const updateAnimatedSprite = async ({
 
       await syncFrameResource();
     }
+
+    if (!signal?.aborted && !animatedSpriteElement.destroyed) {
+      setElementRenderState(animatedSpriteElement, nextElement);
+      commitRenderState?.(animatedSpriteElement);
+    }
   };
 
   const { x, y, width, height, alpha } = nextElement;
@@ -267,5 +275,7 @@ export const updateAnimatedSprite = async ({
   if (!dispatched) {
     // No animations, update immediately
     await updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

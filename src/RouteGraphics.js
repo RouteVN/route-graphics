@@ -1278,7 +1278,6 @@ const createRouteGraphics = () => {
     hitTestElementBounds: ({ x, y }) =>
       hitTestElementBoundsInTree({
         stage: app.stage,
-        elements: state.elements,
         x,
         y,
       }),

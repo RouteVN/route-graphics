@@ -14,6 +14,7 @@ import {
   resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -29,6 +30,8 @@ export const updateRect = ({
   eventHandler,
   zIndex,
   completionTracker,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   const rectElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -247,6 +250,9 @@ export const updateRect = ({
         rectElement.on("pointerupoutside", upListener);
       }
     }
+
+    setElementRenderState(rectElement, nextElement);
+    commitRenderState?.(rectElement);
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -269,5 +275,7 @@ export const updateRect = ({
   if (!dispatched) {
     // No animations, update immediately
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

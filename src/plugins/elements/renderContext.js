@@ -50,6 +50,7 @@ const executeDeferredMountOperation = (operation) => {
         signal: operation.signal,
         app: operation.app,
         playback: "autoplay",
+        onLayoutMounted: operation.onLayoutMounted,
       });
       return;
     case "start-update-animations":
@@ -119,7 +120,16 @@ export const queueDeferredParticlesStart = (
 
 export const queueDeferredTextRevealAutoplay = (
   renderContext,
-  { app, container, element, completionTracker, animationBus, zIndex, signal },
+  {
+    app,
+    container,
+    element,
+    completionTracker,
+    animationBus,
+    zIndex,
+    signal,
+    onLayoutMounted,
+  },
 ) =>
   queueDeferredMountOperation(renderContext, {
     type: "autoplay-text-reveal",
@@ -130,6 +140,7 @@ export const queueDeferredTextRevealAutoplay = (
     animationBus,
     zIndex,
     signal,
+    onLayoutMounted,
   });
 
 export const queueDeferredUpdateAnimationStart = (

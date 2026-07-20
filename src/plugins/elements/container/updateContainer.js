@@ -30,6 +30,7 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update container element (synchronous)
@@ -50,6 +51,8 @@ export const updateContainer = ({
   zIndex,
   completionTracker,
   signal,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   const containerElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -184,6 +187,9 @@ export const updateContainer = ({
         container: containerElement,
       });
     }
+
+    setElementRenderState(containerElement, nextElement);
+    commitRenderState?.(containerElement);
   };
 
   const dispatched = dispatchLiveAnimations({
@@ -209,5 +215,7 @@ export const updateContainer = ({
   if (!dispatched) {
     // No animations, update immediately
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };

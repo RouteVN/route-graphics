@@ -2,8 +2,28 @@ import { Container } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { renderElements } from "../../src/plugins/elements/renderElements.js";
+import {
+  getElementRenderState,
+  setElementRenderState,
+} from "../../src/plugins/elements/elementRenderState.js";
+import { hitTestElementBounds } from "../../src/util/hitTestElementBounds.js";
 
 describe("renderElements add-time update animations", () => {
+  const createSharedOptions = (parent, elementPlugins) => ({
+    app: { renderer: { width: 1280, height: 720 } },
+    parent,
+    animations: [],
+    animationBus: { dispatch: vi.fn() },
+    completionTracker: {
+      getVersion: () => 3,
+      track: vi.fn(),
+      complete: vi.fn(),
+    },
+    eventHandler: vi.fn(),
+    elementPlugins,
+    signal: new AbortController().signal,
+  });
+
   it("passes update animations to newly added non-container elements", () => {
     const parent = new Container();
     const plugin = {
@@ -113,6 +133,85 @@ describe("renderElements add-time update animations", () => {
     await result;
 
     expect(settled).toBe(true);
+  });
+
+  it("refreshes semantic bounds after a custom plugin update", () => {
+    const parent = new Container();
+    const plugin = {
+      type: "custom-node",
+      add: ({ parent: targetParent, element }) => {
+        const displayObject = new Container({ label: element.id });
+        targetParent.addChild(displayObject);
+      },
+      update: vi.fn(({ parent: targetParent, nextElement }) => {
+        targetParent.getChildByLabel(nextElement.id).visualWidth =
+          nextElement.width;
+      }),
+      delete: vi.fn(),
+    };
+    const previous = {
+      id: "custom-1",
+      type: "custom-node",
+      width: 20,
+      height: 20,
+    };
+    const next = { ...previous, width: 100 };
+    const shared = createSharedOptions(parent, [plugin]);
+
+    renderElements({
+      ...shared,
+      prevComputedTree: [],
+      nextComputedTree: [previous],
+    });
+    renderElements({
+      ...shared,
+      prevComputedTree: [previous],
+      nextComputedTree: [next],
+    });
+
+    const displayObject = parent.getChildByLabel("custom-1");
+    const [hit] = hitTestElementBounds({ stage: parent, x: 80, y: 10 });
+
+    expect(plugin.update).toHaveBeenCalledTimes(1);
+    expect(displayObject.visualWidth).toBe(100);
+    expect(getElementRenderState(displayObject)).toBe(next);
+    expect(hit.path[0].bounds).toMatchObject({ width: 100, height: 20 });
+  });
+
+  it("lets a custom plugin defer its semantic snapshot commit", () => {
+    const parent = new Container();
+    const displayObject = new Container({ label: "custom-1" });
+    const previous = {
+      id: "custom-1",
+      type: "custom-node",
+      width: 20,
+      height: 20,
+    };
+    const next = { ...previous, width: 100 };
+    let commitUpdate;
+    const plugin = {
+      type: "custom-node",
+      add: vi.fn(),
+      update: vi.fn(({ commitRenderState, deferRenderStateCommit }) => {
+        deferRenderStateCommit();
+        commitUpdate = () => commitRenderState(displayObject);
+      }),
+      delete: vi.fn(),
+    };
+    parent.addChild(displayObject);
+    setElementRenderState(displayObject, previous);
+
+    renderElements({
+      ...createSharedOptions(parent, [plugin]),
+      prevComputedTree: [previous],
+      nextComputedTree: [next],
+    });
+
+    expect(getElementRenderState(displayObject)).toBe(previous);
+
+    commitUpdate();
+
+    expect(getElementRenderState(displayObject)).toBe(next);
   });
 
   it("passes update animations to deleted elements so plugins can animate before removal", () => {

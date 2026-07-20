@@ -1505,6 +1505,7 @@ export const runTextReveal = async ({
   signal,
   app,
   playback = "autoplay",
+  onLayoutMounted,
 }) => {
   if (signal?.aborted || container.destroyed) {
     return;
@@ -1579,6 +1580,7 @@ export const runTextReveal = async ({
       } else {
         runPausedInitialReveal({ contentContainer, indicatorSprite, element });
       }
+      onLayoutMounted?.();
       completeIndicatorSetup();
       return;
     }
@@ -1594,6 +1596,7 @@ export const runTextReveal = async ({
         completed: true,
       });
       runNoneReveal({ contentContainer, indicatorSprite, element });
+      onLayoutMounted?.();
       completed = true;
     } else if (element.revealEffect === "softWipe") {
       setTextRevealSnapshot(container, {
@@ -1611,6 +1614,7 @@ export const runTextReveal = async ({
         completionTracker,
         app,
       });
+      onLayoutMounted?.();
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
         completionTracker.track(stateVersion);
@@ -1646,7 +1650,7 @@ export const runTextReveal = async ({
       }
 
       try {
-        completed = await runTypewriterReveal({
+        const revealOperation = runTypewriterReveal({
           contentContainer,
           indicatorSprite,
           element,
@@ -1654,6 +1658,8 @@ export const runTextReveal = async ({
           startAtCharacter,
           snapshot: nextSnapshot,
         });
+        onLayoutMounted?.();
+        completed = await revealOperation;
       } finally {
         const hasFinishingSound = cleanupRevealSound({
           completed: completed && !signal?.aborted && !container.destroyed,

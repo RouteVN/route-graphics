@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { hitTestElementBounds } from "../../src/util/hitTestElementBounds.js";
+import {
+  setElementHitTestBounds,
+  setElementRenderState,
+} from "../../src/plugins/elements/elementRenderState.js";
 
 const createDisplayObject = ({
   label,
@@ -263,5 +267,114 @@ describe("hitTestElementBounds", () => {
     });
 
     expect(hit.path.map(({ id }) => id)).toEqual(["container", "child"]);
+  });
+
+  it("pairs a label-less transition overlay with its rendered semantic state", () => {
+    const overlay = createDisplayObject({
+      localBounds: { x: 30, y: 20, width: 40, height: 25 },
+      zIndex: 1,
+    });
+    const hiddenNext = createDisplayObject({
+      label: "incoming",
+      visible: false,
+    });
+    const incoming = createElement({
+      id: "incoming",
+      width: 100,
+      height: 100,
+    });
+    setElementRenderState(overlay, incoming);
+    setElementHitTestBounds(overlay, (displayObject) =>
+      displayObject.getLocalBounds(),
+    );
+    setElementRenderState(hiddenNext, incoming);
+
+    const [hit] = hitTestElementBounds({
+      stage: createDisplayObject({ children: [hiddenNext, overlay] }),
+      x: 50,
+      y: 30,
+    });
+
+    expect(hit.path).toEqual([
+      {
+        id: "incoming",
+        type: "rect",
+        bounds: {
+          x: 30,
+          y: 20,
+          width: 40,
+          height: 25,
+          corners: [
+            { x: 30, y: 20 },
+            { x: 70, y: 20 },
+            { x: 70, y: 45 },
+            { x: 30, y: 45 },
+          ],
+        },
+      },
+    ]);
+  });
+
+  it("walks mounted snapshots instead of a future element tree", () => {
+    const oldChildDisplay = createDisplayObject({ label: "old-child" });
+    const containerDisplay = createDisplayObject({
+      label: "panel",
+      children: [oldChildDisplay],
+    });
+    const oldChild = createElement({
+      id: "old-child",
+      width: 20,
+      height: 20,
+    });
+    const renderedPanel = createElement({
+      id: "panel",
+      type: "container",
+      children: [oldChild],
+    });
+    setElementRenderState(oldChildDisplay, oldChild);
+    setElementRenderState(containerDisplay, renderedPanel);
+
+    const [hit] = hitTestElementBounds({
+      stage: createDisplayObject({ children: [containerDisplay] }),
+      elements: [
+        createElement({
+          id: "panel",
+          type: "container",
+          children: [createElement({ id: "new-child" })],
+        }),
+      ],
+      x: 10,
+      y: 10,
+    });
+
+    expect(hit.path.map(({ id }) => id)).toEqual(["panel", "old-child"]);
+  });
+
+  it("keeps committed dimensions until the display update is applied", () => {
+    const display = createDisplayObject({ label: "resizing" });
+    const stage = createDisplayObject({ children: [display] });
+    const previous = createElement({ id: "resizing", width: 20, height: 20 });
+    const next = createElement({ id: "resizing", width: 100, height: 20 });
+    setElementRenderState(display, previous);
+
+    expect(
+      hitTestElementBounds({
+        stage,
+        elements: [next],
+        x: 50,
+        y: 10,
+      }),
+    ).toEqual([]);
+
+    setElementRenderState(display, next);
+
+    expect(
+      hitTestElementBounds({
+        stage,
+        elements: [next],
+        x: 50,
+        y: 10,
+      })[0].path[0].bounds,
+    ).toMatchObject({ width: 100, height: 20 });
   });
 });

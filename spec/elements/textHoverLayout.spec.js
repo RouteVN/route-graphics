@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { addText } from "../../src/plugins/elements/text/addText.js";
 import { parseText } from "../../src/plugins/elements/text/parseText.js";
 import { getTextLayoutPosition } from "../../src/plugins/elements/text/textLayout.js";
+import { hitTestElementBounds } from "../../src/util/hitTestElementBounds.js";
 
 const createSharedParams = () => ({
   app: {
@@ -188,6 +189,94 @@ describe("text hover layout", () => {
     text.emit("pointerout");
     expect(text.style.fill).toBe("#A6A6A6");
     expect(text.style.fontSize).toBe(24);
+  });
+
+  it("hit-tests the live fixed-width alignment and auto-width metrics", () => {
+    const parent = new Container();
+    const shared = createSharedParams();
+    const fixedWidthElement = parseText({
+      state: {
+        id: "fixed-live-bounds",
+        type: "text",
+        x: 40,
+        y: 30,
+        width: 200,
+        alpha: 1,
+        content: "Aligned",
+        textStyle: {
+          align: "center",
+          fontSize: 20,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+        },
+        hover: {
+          textStyle: {
+            align: "right",
+            fontSize: 36,
+          },
+        },
+      },
+    });
+    const autoWidthElement = parseText({
+      state: {
+        id: "auto-live-bounds",
+        type: "text",
+        x: 40,
+        y: 100,
+        alpha: 1,
+        content: "Growing text",
+        textStyle: {
+          fontSize: 16,
+          fontFamily: "Arial",
+          fill: "#FFFFFF",
+        },
+        hover: {
+          textStyle: {
+            fontSize: 40,
+          },
+        },
+      },
+    });
+
+    addText({
+      ...shared,
+      parent,
+      zIndex: 0,
+      element: fixedWidthElement,
+    });
+    addText({
+      ...shared,
+      parent,
+      zIndex: 1,
+      element: autoWidthElement,
+    });
+
+    const fixedText = parent.getChildByLabel("fixed-live-bounds");
+    const autoText = parent.getChildByLabel("auto-live-bounds");
+    fixedText.emit("pointerover");
+    autoText.emit("pointerover");
+
+    const [fixedHit] = hitTestElementBounds({
+      stage: parent,
+      elements: [fixedWidthElement, autoWidthElement],
+      x: fixedWidthElement.x + 1,
+      y: fixedWidthElement.y + 1,
+    });
+    const autoProbeX = autoWidthElement.x + autoWidthElement.width + 2;
+    const autoHits = hitTestElementBounds({
+      stage: parent,
+      elements: [fixedWidthElement, autoWidthElement],
+      x: autoProbeX,
+      y: autoText.y + autoText.height / 2,
+    });
+
+    expect(fixedHit.path[0].bounds).toMatchObject({
+      x: fixedWidthElement.x,
+      width: fixedWidthElement.width,
+    });
+    expect(autoProbeX).toBeLessThan(autoText.x + autoText.width);
+    expect(autoHits[0].path[0].id).toBe("auto-live-bounds");
+    expect(autoHits[0].path[0].bounds.width).toBeCloseTo(autoText.width, 4);
   });
 
   it("maps strokeColor and strokeWidth to Pixi stroke options", () => {

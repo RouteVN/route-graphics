@@ -25,6 +25,7 @@ import {
   requestManagedVideoTextureUpdate,
   unregisterManagedVideoSprite,
 } from "./managedVideoTextureSizing.js";
+import { setElementRenderState } from "../elementRenderState.js";
 
 /**
  * Update video element
@@ -39,6 +40,8 @@ export const updateVideo = ({
   eventHandler,
   completionTracker,
   zIndex,
+  deferRenderStateCommit,
+  commitRenderState,
 }) => {
   const videoElement = parent.children.find(
     (child) => child.label === prevElement.id,
@@ -140,6 +143,9 @@ export const updateVideo = ({
         syncVideoResource();
       }
     }
+
+    setElementRenderState(videoElement, nextElement);
+    commitRenderState?.(videoElement);
   };
 
   if (prevElement.src !== nextElement.src && hasLiveAnimation) {
@@ -180,5 +186,7 @@ export const updateVideo = ({
   if (!dispatched) {
     // No animations, update immediately
     updateElement();
+  } else {
+    deferRenderStateCommit?.();
   }
 };
