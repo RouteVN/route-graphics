@@ -13,6 +13,7 @@ import {
   setTreeInheritedRightPress,
 } from "../../util/hoverInheritance.js";
 import { setupScrollInteraction } from "../../util/setupScrollInteraction.js";
+import { isElementInteractionEnabled } from "../../../../util/isElementInteractionEnabled.js";
 
 const setContainerHitArea = ({ container, element, enabled }) => {
   const width = Number.isFinite(element?.width) ? element.width : 0;
@@ -102,6 +103,12 @@ export const bindContainerInteractions = ({
   container.removeAllListeners("rightupoutside");
   container.removeAllListeners("rightclick");
   container.cursor = "auto";
+
+  if (!isElementInteractionEnabled({ app, element })) {
+    container.eventMode = "none";
+    setContainerHitArea({ container, element, enabled: false });
+    return;
+  }
 
   if (!element.scroll) {
     container.eventMode = "auto";

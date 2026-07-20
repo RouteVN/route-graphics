@@ -12,11 +12,12 @@ const stopPropagation = (event) => {
 
 const getScrollbarTexture = (src) => (src ? Texture.from(src) : Texture.EMPTY);
 
-const createScrollSprite = ({ label }) => {
+const createScrollSprite = ({ label, interactive }) => {
   const sprite = new Sprite(Texture.EMPTY);
   sprite.label = label;
-  sprite.eventMode = "static";
-  sprite.cursor = "pointer";
+  sprite.__routeGraphicsInteractionEnabled = interactive;
+  sprite.eventMode = interactive ? "static" : "none";
+  sprite.cursor = interactive ? "pointer" : "auto";
   return sprite;
 };
 
@@ -39,7 +40,10 @@ const setSpriteVisualState = ({ sprite, config, state, width, height }) => {
   sprite.width = Math.max(width, 0);
   sprite.height = Math.max(height, 0);
   sprite.visible = sprite.width > 0 && sprite.height > 0;
-  sprite.eventMode = sprite.visible ? "static" : "none";
+  sprite.eventMode =
+    sprite.visible && sprite.__routeGraphicsInteractionEnabled
+      ? "static"
+      : "none";
 };
 
 const getVerticalScrollbarLabels = (id) => ({
@@ -74,7 +78,7 @@ const getInitialAxisOffset = ({
   return 0;
 };
 
-const createVerticalScrollbar = ({ controller }) => {
+const createVerticalScrollbar = ({ controller, interactive }) => {
   const labels = getVerticalScrollbarLabels(controller.container.label);
   const config = controller.element.scrollbar?.vertical;
 
@@ -85,14 +89,16 @@ const createVerticalScrollbar = ({ controller }) => {
   const root = new Container({
     label: labels.root,
   });
-  root.eventMode = "static";
-  root.cursor = "pointer";
+  root.eventMode = interactive ? "static" : "none";
+  root.cursor = interactive ? "pointer" : "auto";
 
   const track = createScrollSprite({
     label: labels.track,
+    interactive,
   });
   const thumb = createScrollSprite({
     label: labels.thumb,
+    interactive,
   });
 
   const verticalScrollbar = {
@@ -130,6 +136,7 @@ const createVerticalScrollbar = ({ controller }) => {
   if (config.startButton) {
     verticalScrollbar.startButton = createScrollSprite({
       label: labels.startButton,
+      interactive,
     });
     root.addChild(verticalScrollbar.startButton);
   }
@@ -137,6 +144,7 @@ const createVerticalScrollbar = ({ controller }) => {
   if (config.endButton) {
     verticalScrollbar.endButton = createScrollSprite({
       label: labels.endButton,
+      interactive,
     });
     root.addChild(verticalScrollbar.endButton);
   }
@@ -309,6 +317,18 @@ const createVerticalScrollbar = ({ controller }) => {
     state: verticalScrollbar.states.endButton,
     deltaDirection: -1,
   });
+
+  if (!interactive) {
+    for (const displayObject of [
+      root,
+      track,
+      thumb,
+      verticalScrollbar.startButton,
+      verticalScrollbar.endButton,
+    ]) {
+      displayObject?.removeAllListeners();
+    }
+  }
 
   controller.container.addChild(root);
 
@@ -533,6 +553,7 @@ export const setupScrolling = ({
     container.__routeGraphicsScrollController = controller;
     controller.verticalScrollbar = createVerticalScrollbar({
       controller,
+      interactive,
     });
     controller.setScrollOffsets({
       x: controller.scrollXOffset,

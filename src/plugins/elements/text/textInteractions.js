@@ -9,6 +9,7 @@ import {
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 export const clearTextInteractions = (displayObject) => {
   displayObject._cleanupScrollInteraction?.();
@@ -36,6 +37,17 @@ export const bindTextInteractions = ({
   eventHandler,
   applyStyle,
 }) => {
+  if (
+    !isElementInteractionEnabled({
+      app,
+      element: textComputedNode,
+    })
+  ) {
+    displayObject.eventMode = "none";
+    applyStyle();
+    return;
+  }
+
   const hoverEvents = textComputedNode?.hover;
   const clickEvents = textComputedNode?.click;
   const rightClickEvents = textComputedNode?.rightClick;

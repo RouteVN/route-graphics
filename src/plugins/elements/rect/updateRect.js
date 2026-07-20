@@ -14,6 +14,7 @@ import {
   resetShaderFilterProgress,
   syncShaderFilters,
 } from "../util/shaderFilterEffect.js";
+import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 /**
  * Update rectangle element (synchronous)
@@ -99,6 +100,9 @@ export const updateRect = ({
       rectElement.removeAllListeners("pointerdown");
       rectElement.removeAllListeners("globalpointermove");
       rectElement.removeAllListeners("pointerupoutside");
+      rectElement.eventMode = "auto";
+      rectElement.cursor = "auto";
+      rectElement._isDragging = false;
 
       const hoverEvents = nextElement?.hover;
       const clickEvents = nextElement?.click;
@@ -106,8 +110,16 @@ export const updateRect = ({
       const scrollUpEvent = nextElement?.scrollUp;
       const scrollDownEvent = nextElement?.scrollDown;
       const dragEvents = nextElement?.drag;
+      const interactionsEnabled = isElementInteractionEnabled({
+        app,
+        element: nextElement,
+      });
 
-      if (hoverEvents) {
+      if (!interactionsEnabled) {
+        rectElement.eventMode = "none";
+      }
+
+      if (interactionsEnabled && hoverEvents) {
         const { cursor, soundSrc, soundVolume, payload } = hoverEvents;
         rectElement.eventMode = "static";
 
@@ -137,7 +149,7 @@ export const updateRect = ({
         rectElement.on("pointerout", outListener);
       }
 
-      if (clickEvents) {
+      if (interactionsEnabled && clickEvents) {
         const { soundSrc, soundVolume, payload } = clickEvents;
         rectElement.eventMode = "static";
 
@@ -165,7 +177,7 @@ export const updateRect = ({
         rectElement.on("pointerup", clickListener);
       }
 
-      if (rightClickEvents) {
+      if (interactionsEnabled && rightClickEvents) {
         const { soundSrc, payload } = rightClickEvents;
         rectElement.eventMode = "static";
 
@@ -188,7 +200,7 @@ export const updateRect = ({
         rectElement.on("rightclick", rightClickListener);
       }
 
-      if (scrollUpEvent || scrollDownEvent) {
+      if (interactionsEnabled && (scrollUpEvent || scrollDownEvent)) {
         setupScrollInteraction({
           canvas: app.canvas,
           displayObject: rectElement,
@@ -200,7 +212,7 @@ export const updateRect = ({
         });
       }
 
-      if (dragEvents) {
+      if (interactionsEnabled && dragEvents) {
         const { start, end, move } = dragEvents;
         rectElement.eventMode = "static";
 

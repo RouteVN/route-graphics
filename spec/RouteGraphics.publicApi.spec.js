@@ -453,6 +453,24 @@ describe("RouteGraphics public API", () => {
     expect(app.findElementByLabel("missing-label")).toBeNull();
   }, 15000);
 
+  it("exposes empty semantic bounds hits before elements are rendered", async () => {
+    const { app } = await setupRouteGraphics({
+      initOptions: { interactionMode: "design" },
+    });
+
+    expect(app.hitTestElementBounds({ x: 10, y: 10 })).toEqual([]);
+  });
+
+  it("rejects unknown interaction modes", async () => {
+    await expect(
+      setupRouteGraphics({
+        initOptions: { interactionMode: "preview" },
+      }),
+    ).rejects.toThrow(
+      'Invalid interaction mode "preview". Expected "runtime" or "design".',
+    );
+  });
+
   it("unloads and reloads buffer-backed textures", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const firstBitmap = { width: 8, height: 6, close: vi.fn() };

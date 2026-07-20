@@ -17,6 +17,7 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
+import { isElementInteractionEnabled } from "../../../util/isElementInteractionEnabled.js";
 
 const hasDuplicateChildIds = (children = []) => {
   const seen = new Set();
@@ -155,11 +156,12 @@ export const addContainer = ({
   }
 
   const shouldUseViewport = scroll || element.anchorToBottom;
+  const interactionsEnabled = isElementInteractionEnabled({ app, element });
   if (shouldUseViewport) {
     setupScrolling({
       container,
       element,
-      interactive: !!scroll,
+      interactive: !!scroll && interactionsEnabled,
       allowViewportWithoutScroll: !!element.anchorToBottom,
     });
   }

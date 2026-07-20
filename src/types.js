@@ -7,6 +7,7 @@
  * @typedef {Object} BaseElement
  * @property {string} id - Unique identifier for the element
  * @property {string} type - Type of the element
+ * @property {boolean} [designInteraction] - Renderer-only editor chrome may remain interactive in design mode
  */
 
 /**
@@ -58,6 +59,7 @@
  * @property {number} originY
  * @property {number} scaleX
  * @property {number} scaleY
+ * @property {boolean} [designInteraction] - Keep this renderer-only editor chrome interactive in design mode and exclude it from bounds hit testing
  */
 
 /**
@@ -858,6 +860,28 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {boolean} [debug] - Whether debug mode is enabled
  * @property {Function} [onFirstRender] - Callback fired after the first render completes
  * @property {"auto" | "manual"} [animationPlaybackMode] - Initial animation playback mode
+ * @property {"runtime" | "design"} [interactionMode] - Runtime enables authored interactions; design suppresses them except on elements marked with designInteraction
+ */
+
+/**
+ * @typedef {Object} ElementBounds
+ * @property {number} x - Axis-aligned world-space left edge
+ * @property {number} y - Axis-aligned world-space top edge
+ * @property {number} width - Axis-aligned world-space width
+ * @property {number} height - Axis-aligned world-space height
+ * @property {{x: number, y: number}[]} corners - Transformed corners in clockwise order from the local top-left
+ */
+
+/**
+ * @typedef {Object} ElementBoundsPathEntry
+ * @property {string} id
+ * @property {string} type
+ * @property {ElementBounds} bounds
+ */
+
+/**
+ * @typedef {Object} ElementBoundsHit
+ * @property {ElementBoundsPathEntry[]} path - Semantic path from the root element to the deepest hit descendant
  */
 
 /**
@@ -901,6 +925,16 @@ export class BaseRouteGraphics {
    * @param {RouteGraphicsState<any,any>} state - State to render
    */
   render(state) {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * Returns semantic element branches under a renderer-space point in
+   * front-to-back paint order.
+   * @param {{x: number, y: number}} point
+   * @returns {ElementBoundsHit[]}
+   */
+  hitTestElementBounds(point) {
     throw new Error("Method not implemented.");
   }
 }
