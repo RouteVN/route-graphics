@@ -33,18 +33,18 @@ bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
 
 ## Options
 
-| Option | Meaning |
-| --- | --- |
-| `-o, --output <path>` | Required. Output PNG path. |
-| `--width <pixels>` | Override the render width. |
-| `--height <pixels>` | Override the render height. |
-| `--state <index>` | Select a state when the YAML contains multiple states. Default: `0`. |
-| `--time <ms>` | Sample animations in manual mode at a specific timeline position. |
-| `--background-color <value>` | Override the background color. Accepts `#RRGGBB`, `0xRRGGBB`, or decimal. |
-| `--browser-executable <path>` | Use a system Chrome/Chromium instead of Playwright's managed browser. |
-| `--wait-for-render-complete` | Wait for a `renderComplete` event before capture. |
-| `--timeout <ms>` | Timeout used by `--wait-for-render-complete`. Default: `15000`. |
-| `-h, --help` | Show help. |
+| Option                        | Meaning                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `-o, --output <path>`         | Required. Output PNG path.                                                |
+| `--width <pixels>`            | Override the render width.                                                |
+| `--height <pixels>`           | Override the render height.                                               |
+| `--state <index>`             | Select a state when the YAML contains multiple states. Default: `0`.      |
+| `--time <ms>`                 | Sample animations in manual mode at a specific timeline position.         |
+| `--background-color <value>`  | Override the background color. Accepts `#RRGGBB`, `0xRRGGBB`, or decimal. |
+| `--browser-executable <path>` | Use a system Chrome/Chromium instead of Playwright's managed browser.     |
+| `--wait-for-render-complete`  | Wait for a `renderComplete` event before capture.                         |
+| `--timeout <ms>`              | Timeout used by `--wait-for-render-complete`. Default: `15000`.           |
+| `-h, --help`                  | Show help.                                                                |
 
 Notes:
 
@@ -222,6 +222,9 @@ assets:
   uiFont:
     path: ./assets/fonts/NotoSans-Regular.ttf
     type: font/ttf
+  fallbackFont:
+    path: ./assets/fonts/Fallback-Regular.ttf
+    type: font/ttf
 elements:
   - id: title
     type: text
@@ -231,7 +234,7 @@ elements:
     textStyle:
       fill: "#ffffff"
       fontSize: 42
-      fontFamily: [uiFont, Arial, sans-serif]
+      fontFamily: [uiFont, fallbackFont]
   - id: avatar
     type: sprite
     x: 60

@@ -6,7 +6,7 @@ import {
 
 describe("toPixiTextStyle", () => {
   it("passes ordered font family fallbacks without sharing the input array", () => {
-    const fontFamily = ["Route UI", "Arial", "sans-serif"];
+    const fontFamily = ["uiFont", "fallbackFont"];
     const style = toPixiTextStyle({ fontFamily });
 
     expect(style.fontFamily).toEqual(fontFamily);

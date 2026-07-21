@@ -74,7 +74,7 @@ describe("collectAssetDefinitions", () => {
             type: "text",
             content: "Hello",
             textStyle: {
-              fontFamily: ["uiFont", "fallbackFont", "Arial"],
+              fontFamily: ["uiFont", "fallbackFont"],
             },
           },
           {

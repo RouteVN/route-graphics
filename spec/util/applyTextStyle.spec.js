@@ -7,14 +7,10 @@ describe("applyTextStyle", () => {
     const text = new Text();
 
     applyTextStyle(text, {
-      fontFamily: ["Route UI", "Arial", "sans-serif"],
+      fontFamily: ["uiFont", "fallbackFont"],
     });
 
-    expect(text.style.fontFamily).toEqual([
-      "Route UI",
-      "Arial",
-      "sans-serif",
-    ]);
+    expect(text.style.fontFamily).toEqual(["uiFont", "fallbackFont"]);
   });
 
   it("applies font weight and font style to plain text", () => {

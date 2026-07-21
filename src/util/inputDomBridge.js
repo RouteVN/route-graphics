@@ -183,7 +183,10 @@ export const createInputDomBridge = ({ app }) => {
     element.style.paddingRight = `${padding.right}px`;
     element.style.paddingBottom = `${padding.bottom}px`;
     element.style.paddingLeft = `${padding.left}px`;
-    element.style.fontFamily = textStyle?.fontFamily ?? "Arial";
+    const fontFamily = textStyle?.fontFamily ?? "Arial";
+    element.style.fontFamily = Array.isArray(fontFamily)
+      ? fontFamily.join(", ")
+      : fontFamily;
     element.style.fontSize = `${textStyle?.fontSize ?? 16}px`;
     element.style.fontWeight = textStyle?.fontWeight ?? "400";
     element.style.textAlign = textStyle?.align ?? "left";
