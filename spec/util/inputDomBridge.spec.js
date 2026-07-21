@@ -144,6 +144,31 @@ describe("inputDomBridge", () => {
     bridge.destroy();
   });
 
+  it("applies ordered font family aliases to the native input", () => {
+    const { app } = createApp();
+    const bridge = createInputDomBridge({ app });
+
+    const input = bridge.mount("name", {
+      value: "",
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
+      textStyle: {
+        fontFamily: ["uiFont", "fallbackFont"],
+      },
+      getGeometry: () => ({
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 25,
+        visible: true,
+      }),
+      callbacks: {},
+    });
+
+    expect(input.style.fontFamily).toBe("uiFont, fallbackFont");
+
+    bridge.destroy();
+  });
+
   it("focuses synchronously when asked to focus from pointer-driven selection", () => {
     const { app } = createApp();
     const bridge = createInputDomBridge({ app });

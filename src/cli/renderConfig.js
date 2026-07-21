@@ -273,15 +273,21 @@ const collectAssetReferences = ({ states, assetAliases }) => {
         }
       }
 
-      if (
-        FONT_ASSET_KEYS.has(key) &&
-        typeof value === "string" &&
-        assetAliases.has(value)
-      ) {
-        registerReference({
-          alias: value,
-          fallbackType: "font/ttf",
-          nodePath: nextPath,
+      if (FONT_ASSET_KEYS.has(key)) {
+        const fontFamilies = Array.isArray(value) ? value : [value];
+
+        fontFamilies.forEach((fontFamily, index) => {
+          if (typeof fontFamily !== "string" || !assetAliases.has(fontFamily)) {
+            return;
+          }
+
+          registerReference({
+            alias: fontFamily,
+            fallbackType: "font/ttf",
+            nodePath: Array.isArray(value)
+              ? getNextNodePath(nextPath, index)
+              : nextPath,
+          });
         });
       }
 

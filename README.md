@@ -205,6 +205,9 @@ assets:
   uiFont:
     path: ./assets/fonts/NotoSans-Regular.ttf
     type: font/ttf
+  fallbackFont:
+    path: ./assets/fonts/Fallback-Regular.ttf
+    type: font/ttf
 elements:
   - id: title
     type: text
@@ -214,7 +217,7 @@ elements:
     textStyle:
       fill: "#ffffff"
       fontSize: 42
-      fontFamily: uiFont
+      fontFamily: [uiFont, fallbackFont]
   - id: avatar
     type: sprite
     x: 60

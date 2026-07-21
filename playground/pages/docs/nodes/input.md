@@ -32,7 +32,7 @@ Try it in the [Playground](/playground/).
 | `fill`          | string \| object | No       | `"#FFFFFF"`   | Field fill. Matches `rect.fill`.           |
 | `border`        | object           | No       | see below     | Field border. Matches `rect.border`.       |
 | `focusRing`     | object           | No       | see below     | Stroke drawn while focused.                |
-| `textStyle`     | object           | No       | default text  | Text style for value and placeholder.      |
+| `textStyle`     | object           | No       | default text  | Text style for value and placeholder; `fontFamily` accepts a string or ordered string array. |
 | `padding`       | number \| object | No       | `10 12 10 12` | Inner content padding.                     |
 | `change`        | object           | No       | -             | Change event config.                       |
 | `submit`        | object           | No       | -             | Submit event config.                       |

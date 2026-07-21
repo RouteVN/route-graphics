@@ -5,6 +5,14 @@ import {
 } from "../../src/util/toPixiTextStyle.js";
 
 describe("toPixiTextStyle", () => {
+  it("passes ordered font family fallbacks without sharing the input array", () => {
+    const fontFamily = ["uiFont", "fallbackFont"];
+    const style = toPixiTextStyle({ fontFamily });
+
+    expect(style.fontFamily).toEqual(fontFamily);
+    expect(style.fontFamily).not.toBe(fontFamily);
+  });
+
   it("maps public shadow offsets to Pixi dropShadow distance and angle", () => {
     const style = toPixiTextStyle({
       fill: "#ffffff",

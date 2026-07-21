@@ -472,7 +472,7 @@
 /**
  * @typedef {Object} TextStyle
  * @property {string} fill - Text color
- * @property {string} fontFamily - Font family
+ * @property {string | string[]} fontFamily - Font family or ordered fallback list
  * @property {number} fontSize - Font size in pixels
  * @property {'left' | 'center' | 'right'} align - Text alignment
  * @property {number} lineHeight - Line height multiplier
@@ -898,7 +898,7 @@ export const DEFAULT_TEXT_STYLE = {
  * @property {number} lineHeight - The line height of the text
  * @property {number} wordWrapWidth - Wrap width
  * @property {boolean} wordWrap - Whether to word wrap
- * @property {string} fontFamily - The font family of the text
+ * @property {string | string[]} fontFamily - The font family or ordered fallback list of the text
  * @property {string} strokeColor - The stroke color of the text
  * @property {number} strokeWidth - The stroke width of the text
  * @property {number} [padding] - Extra texture padding around rendered glyphs

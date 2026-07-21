@@ -33,18 +33,18 @@ bun run render:png -- ./examples/hello.yaml -o ./out/hello.png
 
 ## Options
 
-| Option | Meaning |
-| --- | --- |
-| `-o, --output <path>` | Required. Output PNG path. |
-| `--width <pixels>` | Override the render width. |
-| `--height <pixels>` | Override the render height. |
-| `--state <index>` | Select a state when the YAML contains multiple states. Default: `0`. |
-| `--time <ms>` | Sample animations in manual mode at a specific timeline position. |
-| `--background-color <value>` | Override the background color. Accepts `#RRGGBB`, `0xRRGGBB`, or decimal. |
-| `--browser-executable <path>` | Use a system Chrome/Chromium instead of Playwright's managed browser. |
-| `--wait-for-render-complete` | Wait for a `renderComplete` event before capture. |
-| `--timeout <ms>` | Timeout used by `--wait-for-render-complete`. Default: `15000`. |
-| `-h, --help` | Show help. |
+| Option                        | Meaning                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `-o, --output <path>`         | Required. Output PNG path.                                                |
+| `--width <pixels>`            | Override the render width.                                                |
+| `--height <pixels>`           | Override the render height.                                               |
+| `--state <index>`             | Select a state when the YAML contains multiple states. Default: `0`.      |
+| `--time <ms>`                 | Sample animations in manual mode at a specific timeline position.         |
+| `--background-color <value>`  | Override the background color. Accepts `#RRGGBB`, `0xRRGGBB`, or decimal. |
+| `--browser-executable <path>` | Use a system Chrome/Chromium instead of Playwright's managed browser.     |
+| `--wait-for-render-complete`  | Wait for a `renderComplete` event before capture.                         |
+| `--timeout <ms>`              | Timeout used by `--wait-for-render-complete`. Default: `15000`.           |
+| `-h, --help`                  | Show help.                                                                |
 
 Notes:
 
@@ -122,7 +122,7 @@ Typical asset-bearing fields include:
 Font loading follows the same alias model when you want the CLI to load a font file:
 
 - Put the font file under top-level `assets`
-- Reference the alias from `textStyle.fontFamily`
+- Reference the alias from `textStyle.fontFamily`, either directly or as an entry in an ordered fallback array
 - Plain font family names that are not aliases are still allowed, but the CLI will not load a file for them
 
 The CLI treats interaction and keyboard `payload` objects as opaque app data. Values inside `payload` are not scanned as renderer assets.
@@ -222,6 +222,9 @@ assets:
   uiFont:
     path: ./assets/fonts/NotoSans-Regular.ttf
     type: font/ttf
+  fallbackFont:
+    path: ./assets/fonts/Fallback-Regular.ttf
+    type: font/ttf
 elements:
   - id: title
     type: text
@@ -231,7 +234,7 @@ elements:
     textStyle:
       fill: "#ffffff"
       fontSize: 42
-      fontFamily: uiFont
+      fontFamily: [uiFont, fallbackFont]
   - id: avatar
     type: sprite
     x: 60
