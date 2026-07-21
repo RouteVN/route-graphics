@@ -89,6 +89,12 @@ export const toPixiTextStyle = (style = {}, options = {}) => {
     stroke: getStrokeStyle({ strokeColor, strokeWidth, stroke }),
   };
 
+  // Pixi normalizes fallback entries in place when it builds a canvas font.
+  // Keep that internal normalization from mutating the public render state.
+  if (Array.isArray(pixiStyle.fontFamily)) {
+    pixiStyle.fontFamily = [...pixiStyle.fontFamily];
+  }
+
   if (includeShadow) {
     const pixiDropShadow = toPixiDropShadow(shadow);
     const shadowPadding = getShadowPadding(pixiDropShadow);

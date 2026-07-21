@@ -38,7 +38,7 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | Field           | Type                          | Default       |
 | --------------- | ----------------------------- | ------------- |
 | `fill`          | string                        | `black`       |
-| `fontFamily`    | string                        | `Arial`       |
+| `fontFamily`    | string \| string[]             | `Arial`       |
 | `fontSize`      | number                        | `16`          |
 | `align`         | `left` \| `center` \| `right` | `left`        |
 | `lineHeight`    | number                        | `1.2`         |
@@ -48,6 +48,8 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 | `strokeColor`   | string                        | `transparent` |
 | `strokeWidth`   | number                        | `0`           |
 | `shadow`        | object \| null                | -             |
+
+`fontFamily` arrays are ordered fallback lists. Pixi uses the first available family, so an alias-backed font can fall back to system families such as `Arial` or `sans-serif`.
 
 ### `textStyle.shadow`
 

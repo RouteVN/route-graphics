@@ -40,8 +40,12 @@ $def:
         description: Text color
         default: black
       fontFamily:
-        type: string
-        description: Font family
+        description: Font family or ordered fallback list
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
       fontSize:
         type: number
         description: Font size in pixels

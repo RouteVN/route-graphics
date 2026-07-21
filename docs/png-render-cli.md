@@ -122,7 +122,7 @@ Typical asset-bearing fields include:
 Font loading follows the same alias model when you want the CLI to load a font file:
 
 - Put the font file under top-level `assets`
-- Reference the alias from `textStyle.fontFamily`
+- Reference the alias from `textStyle.fontFamily`, either directly or as an entry in an ordered fallback array
 - Plain font family names that are not aliases are still allowed, but the CLI will not load a file for them
 
 The CLI treats interaction and keyboard `payload` objects as opaque app data. Values inside `payload` are not scanned as renderer assets.
@@ -231,7 +231,7 @@ elements:
     textStyle:
       fill: "#ffffff"
       fontSize: 42
-      fontFamily: uiFont
+      fontFamily: [uiFont, Arial, sans-serif]
   - id: avatar
     type: sprite
     x: 60

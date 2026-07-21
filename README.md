@@ -214,7 +214,7 @@ elements:
     textStyle:
       fill: "#ffffff"
       fontSize: 42
-      fontFamily: uiFont
+      fontFamily: [uiFont, Arial, sans-serif]
   - id: avatar
     type: sprite
     x: 60

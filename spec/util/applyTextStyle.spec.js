@@ -3,6 +3,20 @@ import { describe, expect, it } from "vitest";
 import applyTextStyle from "../../src/util/applyTextStyle.js";
 
 describe("applyTextStyle", () => {
+  it("applies ordered font family fallbacks to Pixi text", () => {
+    const text = new Text();
+
+    applyTextStyle(text, {
+      fontFamily: ["Route UI", "Arial", "sans-serif"],
+    });
+
+    expect(text.style.fontFamily).toEqual([
+      "Route UI",
+      "Arial",
+      "sans-serif",
+    ]);
+  });
+
   it("applies font weight and font style to plain text", () => {
     const text = new Text();
 

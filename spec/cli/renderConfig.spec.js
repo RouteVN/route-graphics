@@ -74,7 +74,7 @@ describe("collectAssetDefinitions", () => {
             type: "text",
             content: "Hello",
             textStyle: {
-              fontFamily: "uiFont",
+              fontFamily: ["uiFont", "fallbackFont", "Arial"],
             },
           },
           {
@@ -107,6 +107,7 @@ describe("collectAssetDefinitions", () => {
           path: "./fonts/ui.ttf",
           type: "font/ttf",
         },
+        fallbackFont: "./fonts/fallback.woff2",
       },
     });
 
@@ -119,6 +120,11 @@ describe("collectAssetDefinitions", () => {
       kind: "local",
       path: path.join(baseDir, "fonts/ui.ttf"),
       type: "font/ttf",
+    });
+    expect(definitions.fallbackFont).toMatchObject({
+      kind: "local",
+      path: path.join(baseDir, "fonts/fallback.woff2"),
+      type: "font/woff2",
     });
     expect(definitions["hero-hover"]).toMatchObject({
       kind: "local",
