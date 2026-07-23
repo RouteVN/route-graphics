@@ -99,6 +99,7 @@ const createAudioContextMock = ({
 const setupAudioStage = async ({
   assetMap = new Map(),
   contextOptions = {},
+  getAssetImpl,
 } = {}) => {
   vi.resetModules();
   const context = createAudioContextMock(contextOptions);
@@ -108,7 +109,9 @@ const setupAudioStage = async ({
   window.AudioContext = AudioContextMock;
   window.webkitAudioContext = undefined;
 
-  const getAsset = vi.fn((src) => assetMap.get(src) ?? { src });
+  const getAsset = vi.fn(
+    getAssetImpl ?? ((src) => assetMap.get(src) ?? { src }),
+  );
   vi.doMock("../../src/AudioAsset.js", () => ({
     AudioAsset: {
       getAsset,
@@ -364,6 +367,256 @@ describe("AudioStage graph rendering", () => {
     expect(stage._inspect().channels.has("music")).toBe(false);
   });
 
+  it("applies sound exit transitions while finishing at loop end", async () => {
+    const { stage, context } = await setupAudioStage();
+    const populatedAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          {
+            id: "outgoing",
+            type: "sound",
+            src: "outgoing",
+            loop: true,
+            playbackRate: 1,
+          },
+        ],
+      },
+    ];
+    const emptyAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: populatedAudio });
+    const outgoing = findCurrentSound(stage, "outgoing");
+    const source = context.sources[0];
+
+    stage.renderGraph({
+      prevAudio: populatedAudio,
+      nextAudio: emptyAudio,
+      prevAudioEffects: [
+        {
+          id: "outgoing-exit",
+          type: "audio-transition",
+          targetId: "outgoing",
+          properties: {
+            volume: { exit: keyframePhase(0, 300) },
+            pan: { exit: keyframePhase(1, 400) },
+            playbackRate: { exit: keyframePhase(0.5, 500) },
+          },
+        },
+      ],
+    });
+
+    expect(outgoing.gainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0,
+      10.3,
+    );
+    expect(
+      outgoing.pannerNode.pan.linearRampToValueAtTime,
+    ).toHaveBeenCalledWith(1, 10.4);
+    expect(source.playbackRate.linearRampToValueAtTime).toHaveBeenCalledWith(
+      0.5,
+      10.5,
+    );
+    expect(source.loop).toBe(false);
+
+    source.onended();
+    expect(findSound(stage, "outgoing")).toBeUndefined();
+  });
+
+  it("stops bounded loops at their current configured loop boundary", async () => {
+    const { stage, context } = await setupAudioStage();
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          {
+            id: "bounded",
+            type: "sound",
+            src: "bounded",
+            loop: true,
+            startAt: 1,
+            endAt: 4,
+          },
+        ],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: audio });
+    const source = context.sources[0];
+    context.currentTime = 11;
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+
+    expect(source.loop).toBe(false);
+    expect(source.stop).toHaveBeenCalledWith(13);
+    expect(stage._inspect().channels.has("music")).toBe(true);
+
+    source.onended();
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
+  it("explicitly cleans up loop-end sounds with zero playback rate", async () => {
+    const { stage, context } = await setupAudioStage();
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          {
+            id: "paused",
+            type: "sound",
+            src: "paused",
+            loop: true,
+            playbackRate: 0,
+          },
+        ],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: audio });
+    const source = context.sources[0];
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+
+    expect(source.stop).toHaveBeenCalledWith(context.currentTime);
+    expect(findSound(stage, "paused")).toBeUndefined();
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
+  it("uses a new bus when a deferred channel is re-added", async () => {
+    const { stage, context } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          { id: "outgoing", type: "sound", src: "outgoing", loop: true },
+        ],
+      },
+    ];
+    const readdedAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        volume: 25,
+        pan: 0.5,
+        interruption: "loopEnd",
+        children: [{ id: "incoming", type: "sound", src: "incoming" }],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: firstAudio });
+    const outgoingChannel = stage._inspect().channels.get("music");
+    const outgoingSource = context.sources[0];
+
+    stage.renderGraph({ prevAudio: firstAudio, nextAudio: [] });
+    stage.renderGraph({ prevAudio: [], nextAudio: readdedAudio });
+
+    const incomingChannel = stage._inspect().channels.get("music");
+    const incomingSound = findCurrentSound(stage, "incoming");
+    expect(incomingChannel).not.toBe(outgoingChannel);
+    expect(incomingChannel.gainNode.gain.value).toBe(0.25);
+    expect(incomingChannel.pannerNode.pan.value).toBe(0.5);
+    expect(outgoingChannel.gainNode.gain.value).toBe(1);
+    expect(outgoingChannel.pannerNode.pan.value).toBe(0);
+    expect(incomingSound.pannerNode.connect).toHaveBeenCalledWith(
+      incomingChannel.gainNode,
+    );
+
+    outgoingSource.onended();
+
+    expect(outgoingChannel.gainNode.disconnect).toHaveBeenCalled();
+    expect(stage._inspect().channels.get("music")).toBe(incomingChannel);
+  });
+
+  it("retains a removed channel bus for sounds already finishing on it", async () => {
+    const { stage, context } = await setupAudioStage();
+    const populatedAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          { id: "outgoing", type: "sound", src: "outgoing", loop: true },
+        ],
+      },
+    ];
+    const emptyAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: populatedAudio });
+    const channel = stage._inspect().channels.get("music");
+    const outgoingSource = context.sources[0];
+
+    stage.renderGraph({
+      prevAudio: populatedAudio,
+      nextAudio: emptyAudio,
+    });
+    stage.renderGraph({ prevAudio: emptyAudio, nextAudio: [] });
+
+    expect(channel.gainNode.disconnect).not.toHaveBeenCalled();
+    expect(stage._inspect().channels.get("music")).toBe(channel);
+
+    outgoingSource.onended();
+
+    expect(channel.gainNode.disconnect).toHaveBeenCalled();
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
+  it("cleans up a deferred channel when its pending sound cannot start", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { stage, getAsset } = await setupAudioStage({
+      getAssetImpl: () => null,
+    });
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          {
+            id: "missing",
+            type: "sound",
+            src: "missing",
+            startDelayMs: 100,
+          },
+        ],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: audio });
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+
+    expect(findSound(stage, "missing")?.finishing).toBe(true);
+    expect(stage._inspect().channels.has("music")).toBe(true);
+
+    vi.advanceTimersByTime(100);
+
+    expect(getAsset).toHaveBeenCalledWith("missing");
+    expect(warn).toHaveBeenCalledWith("AudioStage: asset not found", "missing");
+    expect(findSound(stage, "missing")).toBeUndefined();
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
   it("stops an interrupted channel schedule immediately by default", async () => {
     const { stage, context } = await setupAudioStage();
     const audio = [
@@ -435,6 +688,25 @@ describe("AudioStage graph rendering", () => {
 
     source.onended();
 
+    expect(findSound(stage, "typing")).toBeUndefined();
+  });
+
+  it("does not start delayed direct audio after it is finished", async () => {
+    const { stage, context, getAsset } = await setupAudioStage();
+
+    stage.add({
+      id: "typing",
+      url: "voice-blip",
+      loop: true,
+      startDelayMs: 100,
+    });
+    stage.tick();
+    stage.finish("typing");
+
+    vi.advanceTimersByTime(100);
+
+    expect(getAsset).not.toHaveBeenCalled();
+    expect(context.sources).toHaveLength(0);
     expect(findSound(stage, "typing")).toBeUndefined();
   });
 

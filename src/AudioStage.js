@@ -315,6 +315,65 @@ const getTransitionPhase = (effects = [], targetId, property, phase) => {
   return transition?.properties?.[property]?.[phase] ?? null;
 };
 
+const getTransitionDuration = (transition) =>
+  transition?.keyframes?.reduce(
+    (duration, keyframe) =>
+      duration + Math.max(0, toFiniteParamValue(keyframe.duration, 0)),
+    0,
+  ) ?? 0;
+
+const getLoopEndDelayMs = (sound, context = getAudioContext()) => {
+  const source = sound.source;
+  if (!source?.loop) {
+    return null;
+  }
+
+  const playbackRate = getCurrentParamValue(source.playbackRate, context);
+  if (playbackRate <= 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const configuredLoopEnd =
+    sound.endAt === null || sound.endAt === undefined
+      ? Number.NaN
+      : toFiniteParamValue(sound.endAt, Number.NaN);
+  const bufferDuration = toFiniteParamValue(
+    source.buffer?.duration,
+    Number.NaN,
+  );
+  const loopStart = Number.isFinite(configuredLoopEnd)
+    ? toFiniteParamValue(sound.startAt, 0)
+    : Math.max(0, toFiniteParamValue(source.loopStart, 0));
+  const loopEnd = Number.isFinite(configuredLoopEnd)
+    ? configuredLoopEnd
+    : toFiniteParamValue(source.loopEnd, 0) > loopStart
+      ? toFiniteParamValue(source.loopEnd, 0)
+      : bufferDuration;
+  const loopDuration = loopEnd - loopStart;
+  if (!Number.isFinite(loopDuration) || loopDuration < 0) {
+    return null;
+  }
+  if (loopDuration === 0) {
+    return 0;
+  }
+
+  const startedAt = toFiniteParamValue(
+    sound.sourceStartedAt,
+    context.currentTime,
+  );
+  const elapsedSeconds = Math.max(0, context.currentTime - startedAt);
+  const startOffset = toFiniteParamValue(sound.sourceStartOffset, loopStart);
+  const elapsedInLoop =
+    (Math.max(0, startOffset - loopStart) + elapsedSeconds * playbackRate) %
+    loopDuration;
+  const remainingInLoop =
+    elapsedSeconds > 0 && elapsedInLoop === 0
+      ? 0
+      : loopDuration - elapsedInLoop;
+
+  return (remainingInLoop / playbackRate) * 1000;
+};
+
 const applyAudioParam = ({
   param,
   targetValue,
@@ -412,12 +471,17 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     startAt: sound.startAt ?? 0,
     endAt: sound.endAt ?? null,
     channelId: sound.channelId ?? null,
+    channelNode,
     gainNode,
     pannerNode,
     source: null,
+    sourceStartedAt: null,
+    sourceStartOffset: sound.startAt ?? 0,
     sourceEnded: false,
     onSourceEnded: null,
+    onFinishingSourceStarted: null,
     finishing: false,
+    finishingCallbacks: new Set(),
     playbackRateTransition: null,
     playbackPending: false,
     pendingTimeoutId: null,
@@ -470,6 +534,8 @@ const createSourceForSound = (sound) => {
       ? Math.max(sound.endAt - offset, 0)
       : undefined;
   const startTime = Math.max(0, toFiniteParamValue(context.currentTime, 0));
+  sound.sourceStartedAt = startTime;
+  sound.sourceStartOffset = offset;
 
   if (source.loop && sound.endAt !== null && sound.endAt !== undefined) {
     source.loopStart = offset;
@@ -529,6 +595,12 @@ const playSound = (sound) => {
     sound.playbackPending = false;
     if (previousSource && previousSource !== sound.source) {
       disconnect(previousSource);
+    }
+    if (!sound.source && sound.finishing) {
+      sound.sourceEnded = true;
+      sound.onSourceEnded?.();
+    } else if (sound.source && sound.finishing) {
+      sound.onFinishingSourceStarted?.();
     }
   };
 
@@ -781,7 +853,11 @@ export const createAudioStage = () => {
     );
     const panTransition = getTransitionPhase(effects, channel.id, "pan", phase);
 
-    if (existing && existing.cleanupTimeoutId !== null) {
+    if (
+      existing &&
+      (existing.cleanupTimeoutId !== null ||
+        existing.deferredRemovalToken !== null)
+    ) {
       const created = createChannelInstance(
         channel,
         getAudioContext().destination,
@@ -880,6 +956,7 @@ export const createAudioStage = () => {
     disconnect(instance.pannerNode);
     connect(instance.gainNode, instance.pannerNode ?? channelNode);
     if (instance.pannerNode) connect(instance.pannerNode, channelNode);
+    instance.channelNode = channelNode;
   };
 
   const removeChannel = (channel, effects) => {
@@ -956,10 +1033,61 @@ export const createAudioStage = () => {
     return instance;
   };
 
+  const applySoundExitTransitions = (instance, effects) => {
+    const volumeTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "volume",
+      "exit",
+    );
+    const panTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "pan",
+      "exit",
+    );
+    const playbackRateTransition = getTransitionPhase(
+      effects,
+      instance.id,
+      "playbackRate",
+      "exit",
+    );
+    const volumeDuration = volumeTransition
+      ? applyVolume({
+          gainNode: instance.gainNode,
+          targetValue: getVolumeValue(instance),
+          transition: volumeTransition,
+        })
+      : 0;
+    const panDuration = panTransition
+      ? applyPan({
+          pannerNode: instance.pannerNode,
+          targetValue: instance.pan,
+          transition: panTransition,
+        })
+      : 0;
+    let playbackRateDuration = 0;
+    if (playbackRateTransition) {
+      if (instance.source) {
+        playbackRateDuration = applyPlaybackRate({
+          source: instance.source,
+          targetValue: instance.playbackRate,
+          transition: playbackRateTransition,
+        });
+      } else {
+        instance.playbackRateTransition = playbackRateTransition;
+        playbackRateDuration = getTransitionDuration(playbackRateTransition);
+      }
+    }
+
+    return Math.max(volumeDuration, panDuration, playbackRateDuration);
+  };
+
   const removeSoundInstance = (instance, effects, inheritedDuration = 0) => {
     if (!instance) return 0;
 
     instance.finishing = false;
+    instance.finishingCallbacks.clear();
     instance.onSourceEnded = null;
 
     const volumeTransition = getTransitionPhase(
@@ -1011,12 +1139,25 @@ export const createAudioStage = () => {
     return duration;
   };
 
-  const finishSoundInstance = (instance, onFinished) => {
-    if (!instance || instance.finishing) {
+  const finishSoundInstance = (
+    instance,
+    onFinished,
+    { effects = [], waitForPendingPlayback = false } = {},
+  ) => {
+    if (!instance) {
+      return;
+    }
+
+    if (onFinished) {
+      instance.finishingCallbacks.add(onFinished);
+    }
+    if (instance.finishing) {
       return;
     }
 
     instance.finishing = true;
+    const loopEndDelayMs = getLoopEndDelayMs(instance);
+    const exitDuration = applySoundExitTransitions(instance, effects);
     instance.loop = false;
 
     const cleanupFinishedSound = () => {
@@ -1026,11 +1167,48 @@ export const createAudioStage = () => {
 
       instance.finishing = false;
       instance.onSourceEnded = null;
+      instance.onFinishingSourceStarted = null;
+      const finishingCallbacks = [...instance.finishingCallbacks];
+      instance.finishingCallbacks.clear();
       cleanupSound(instance);
       if (sounds.get(instance.internalId) === instance) {
         sounds.delete(instance.internalId);
       }
-      onFinished?.();
+      finishingCallbacks.forEach((callback) => callback());
+    };
+    const stopAndCleanupAfterExit = () => {
+      stopSource(instance, exitDuration);
+      instance.cleanupTimeoutId = schedule(cleanupFinishedSound, exitDuration);
+    };
+    const finishActiveSource = () => {
+      instance.onFinishingSourceStarted = null;
+      if (!instance.finishing) {
+        return;
+      }
+      if (!instance.source || instance.sourceEnded) {
+        cleanupFinishedSound();
+        return;
+      }
+
+      const playbackRate = getCurrentParamValue(
+        instance.source.playbackRate,
+        getAudioContext(),
+      );
+      if (playbackRate <= 0 || loopEndDelayMs === Number.POSITIVE_INFINITY) {
+        stopAndCleanupAfterExit();
+        return;
+      }
+
+      instance.source.loop = false;
+      if (loopEndDelayMs !== null) {
+        try {
+          instance.source.stop(
+            getAudioContext().currentTime + loopEndDelayMs / 1000,
+          );
+        } catch {
+          cleanupFinishedSound();
+        }
+      }
     };
 
     if (getAudioContext().state !== "running") {
@@ -1039,7 +1217,11 @@ export const createAudioStage = () => {
     }
 
     instance.onSourceEnded = cleanupFinishedSound;
-    if (instance.playbackPending || instance.pendingTimeoutId !== null) {
+    if (
+      waitForPendingPlayback &&
+      (instance.playbackPending || instance.pendingTimeoutId !== null)
+    ) {
+      instance.onFinishingSourceStarted = finishActiveSource;
       return;
     }
     if (!instance.source || instance.sourceEnded) {
@@ -1047,7 +1229,7 @@ export const createAudioStage = () => {
       return;
     }
 
-    instance.source.loop = false;
+    finishActiveSource();
   };
 
   const updateSoundInstance = ({ instance, sound, effects }) => {
@@ -1193,6 +1375,21 @@ export const createAudioStage = () => {
       }
       entry.channel.deferredRemovalToken = null;
     };
+    const finishSoundForDeferredChannel = (instance, entry, effects = []) => {
+      if (!instance || !entry) {
+        return;
+      }
+
+      entry.soundIds.add(instance.internalId);
+      finishSoundInstance(
+        instance,
+        () => {
+          entry.soundIds.delete(instance.internalId);
+          tryCleanupDeferredChannel(entry);
+        },
+        { effects, waitForPendingPlayback: true },
+      );
+    };
 
     for (const [id, prevChannel] of prevChannelById) {
       if (!nextChannelById.has(id)) {
@@ -1211,6 +1408,14 @@ export const createAudioStage = () => {
             soundIds: new Set(),
           };
           deferredChannelCleanup.set(id, entry);
+          for (const instance of sounds.values()) {
+            if (
+              instance.channelNode === channel.gainNode &&
+              instance.finishing
+            ) {
+              finishSoundForDeferredChannel(instance, entry);
+            }
+          }
           if (duration > 0) {
             schedule(() => {
               entry.transitionComplete = true;
@@ -1251,16 +1456,18 @@ export const createAudioStage = () => {
         }
 
         const deferredCleanup = deferredChannelCleanup.get(prevSound.channelId);
-        if (instance && deferredCleanup) {
-          deferredCleanup.soundIds.add(instance.internalId);
+        if (deferredCleanup) {
+          finishSoundForDeferredChannel(
+            instance,
+            deferredCleanup,
+            prevAudioEffects,
+          );
+        } else {
+          finishSoundInstance(instance, undefined, {
+            effects: prevAudioEffects,
+            waitForPendingPlayback: true,
+          });
         }
-        finishSoundInstance(instance, () => {
-          if (!deferredCleanup) {
-            return;
-          }
-          deferredCleanup.soundIds.delete(instance.internalId);
-          tryCleanupDeferredChannel(deferredCleanup);
-        });
         return 0;
       };
 
