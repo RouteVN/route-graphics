@@ -102,6 +102,7 @@ type: audio-channel
 volume: 80
 muted: false
 pan: 0
+loop: false
 children: []
 ```
 
@@ -114,6 +115,7 @@ Fields:
 | `volume`   | number          | `100`    | Local channel volume, `0` to `100`             |
 | `muted`    | boolean         | `false`  | Forces this channel's effective output to zero |
 | `pan`      | number          | `0`      | Stereo pan, `-1` left to `1` right             |
+| `loop`     | boolean         | `false`  | Repeats the complete child schedule            |
 | `children` | sound[]         | `[]`     | Sound nodes owned by this channel              |
 
 First implementation rule:
@@ -122,6 +124,10 @@ First implementation rule:
 - nested `audio-channel` nodes are invalid until explicitly supported.
 - child array order does not control playback order; sounds are mixed in
   parallel and may use `startDelayMs` for scheduled sequences.
+- `loop: true` restarts the complete child schedule after every child sound has
+  finished. Looping channels cannot contain child sounds with `loop: true`.
+- Changing a channel from `loop: true` to `loop: false` cancels child sounds
+  that have not started yet and lets already-playing child sounds finish.
 
 ### Sounds
 

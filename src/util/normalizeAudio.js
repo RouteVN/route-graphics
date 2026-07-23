@@ -153,6 +153,7 @@ const validateChannel = (
   const volume = normalizeVolumeValue(node.volume, `${path}.volume`);
   assertOptionalBoolean(node.muted, `${path}.muted`);
   assertOptionalNumber(node.pan, `${path}.pan`, { min: -1, max: 1 });
+  assertOptionalBoolean(node.loop, `${path}.loop`);
 
   if (node.children !== undefined && !Array.isArray(node.children)) {
     throw new Error(`Input error: ${path}.children must be an array.`);
@@ -164,6 +165,7 @@ const validateChannel = (
     volume,
     muted: node.muted ?? false,
     pan: node.pan ?? 0,
+    loop: node.loop ?? false,
   });
 
   for (const [index, child] of (node.children ?? []).entries()) {
@@ -178,6 +180,12 @@ const validateChannel = (
 
     if (child.type !== "sound") {
       throw new Error(`Input error: ${childPath}.type must be "sound".`);
+    }
+
+    if (node.loop === true && child.loop === true) {
+      throw new Error(
+        `Input error: ${childPath}.loop cannot be true when ${path}.loop is true.`,
+      );
     }
 
     validateSound(child, childPath, ids, flattenedSounds, node.id);

@@ -34,6 +34,7 @@ describe("normalizeAudioRenderState", () => {
         volume: 80,
         muted: false,
         pan: 0,
+        loop: false,
       },
     ]);
     expect(result.sounds).toEqual([
@@ -106,6 +107,36 @@ describe("normalizeAudioRenderState", () => {
         },
       ]),
     ).toThrow("audio[0].volume must be a number");
+  });
+
+  it("normalizes channel loop and rejects incompatible child loops", () => {
+    const result = flattenAudioNodes([
+      {
+        id: "music",
+        type: "audio-channel",
+        loop: true,
+        children: [{ id: "intro", type: "sound", src: "intro" }],
+      },
+    ]);
+
+    expect(result.channels[0].loop).toBe(true);
+
+    expect(() =>
+      flattenAudioNodes([
+        {
+          id: "music",
+          type: "audio-channel",
+          loop: true,
+          children: [{ id: "intro", type: "sound", src: "intro", loop: true }],
+        },
+      ]),
+    ).toThrow(
+      "audio[0].children[0].loop cannot be true when audio[0].loop is true",
+    );
+
+    expect(() =>
+      flattenAudioNodes([{ id: "music", type: "audio-channel", loop: "yes" }]),
+    ).toThrow("audio[0].loop must be a boolean");
   });
 
   it("rejects duplicate IDs across nodes and effects", () => {
