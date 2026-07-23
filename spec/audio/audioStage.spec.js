@@ -216,6 +216,70 @@ describe("AudioStage graph rendering", () => {
     expect(music.pannerNode.connect).toHaveBeenCalledWith(context.destination);
   });
 
+  it("restarts a looping channel only after its complete delayed schedule finishes", async () => {
+    const { stage, context } = await setupAudioStage();
+
+    stage.renderGraph({
+      nextAudio: [
+        {
+          id: "music",
+          type: "audio-channel",
+          loop: true,
+          children: [
+            { id: "intro", type: "sound", src: "intro" },
+            {
+              id: "outro",
+              type: "sound",
+              src: "outro",
+              startDelayMs: 100,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(context.sources).toHaveLength(1);
+    context.sources[0].onended();
+    expect(context.sources).toHaveLength(1);
+
+    vi.advanceTimersByTime(100);
+    expect(context.sources).toHaveLength(2);
+    context.sources[1].onended();
+
+    expect(context.sources).toHaveLength(3);
+    expect(findCurrentSound(stage, "outro").pendingTimeoutId).not.toBeNull();
+
+    vi.advanceTimersByTime(100);
+    expect(context.sources).toHaveLength(4);
+    expect(context.sources[0].disconnect).toHaveBeenCalled();
+    expect(context.sources[1].disconnect).toHaveBeenCalled();
+  });
+
+  it("can enable channel looping after the current schedule has finished", async () => {
+    const { stage, context } = await setupAudioStage();
+    const firstAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        children: [{ id: "theme", type: "sound", src: "theme" }],
+      },
+    ];
+    const loopingAudio = [
+      {
+        ...firstAudio[0],
+        loop: true,
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: firstAudio });
+    context.sources[0].onended();
+
+    stage.renderGraph({ prevAudio: firstAudio, nextAudio: loopingAudio });
+
+    expect(context.sources).toHaveLength(2);
+    expect(stage._inspect().channels.get("music").loop).toBe(true);
+  });
+
   it("sanitizes direct audio defaults across repeated ticks", async () => {
     const { stage } = await setupAudioStage();
 

@@ -383,6 +383,7 @@ const createChannelInstance = (channel, outputNode) => {
     volume: channel.volume ?? 100,
     muted: channel.muted ?? false,
     pan: channel.pan ?? 0,
+    loop: channel.loop ?? false,
     outputNode,
     cleanupTimeoutId: null,
   };
@@ -500,6 +501,7 @@ const playSound = (sound) => {
   const context = getAudioContext();
   const playRequestId = (sound.playRequestId ?? 0) + 1;
   sound.playRequestId = playRequestId;
+  sound.sourceEnded = false;
   debugAudio("play requested", {
     id: sound.id,
     src: sound.src,
@@ -518,7 +520,11 @@ const playSound = (sound) => {
     }
 
     sound.pendingTimeoutId = null;
+    const previousSource = sound.source;
     sound.source = createSourceForSound(sound);
+    if (previousSource && previousSource !== sound.source) {
+      disconnect(previousSource);
+    }
   };
 
   const scheduleStart = () => {
@@ -686,6 +692,49 @@ export const createAudioStage = () => {
   const directAudios = new Map();
   let soundGeneration = 0;
 
+  const getCurrentChannelSounds = (channelId) => {
+    const channelSounds = [];
+    for (const internalId of currentSoundKeyById.values()) {
+      const sound = sounds.get(internalId);
+      if (
+        sound?.channelId === channelId &&
+        !sound.finishing &&
+        !channelSounds.includes(sound)
+      ) {
+        channelSounds.push(sound);
+      }
+    }
+    return channelSounds;
+  };
+
+  const restartLoopingChannelIfComplete = (channelId) => {
+    const channel = channels.get(channelId);
+    if (!channel?.loop) {
+      return;
+    }
+
+    const channelSounds = getCurrentChannelSounds(channelId);
+    if (
+      channelSounds.length === 0 ||
+      channelSounds.some(
+        (sound) =>
+          sound.pendingTimeoutId !== null || sound.sourceEnded !== true,
+      )
+    ) {
+      return;
+    }
+
+    channelSounds.forEach((sound) => {
+      playSound(sound);
+    });
+  };
+
+  const bindChannelLoopCompletion = (sound) => {
+    sound.onSourceEnded = sound.channelId
+      ? () => restartLoopingChannelIfComplete(sound.channelId)
+      : null;
+  };
+
   const ensureRootChannel = (id) => {
     const existing = channels.get(id);
     if (existing) return existing;
@@ -736,6 +785,7 @@ export const createAudioStage = () => {
       existing.volume = channel.volume;
       existing.muted = channel.muted;
       existing.pan = channel.pan;
+      existing.loop = channel.loop;
 
       if (volumeChanged && volumeTransition) {
         applyVolume({
@@ -846,6 +896,7 @@ export const createAudioStage = () => {
     });
     sounds.set(internalId, instance);
     currentSoundKeyById.set(sound.id, internalId);
+    bindChannelLoopCompletion(instance);
 
     const volumeTransition = getTransitionPhase(
       effects,
@@ -985,6 +1036,7 @@ export const createAudioStage = () => {
     instance.startAt = sound.startAt;
     instance.endAt = sound.endAt;
     instance.channelId = sound.channelId;
+    bindChannelLoopCompletion(instance);
 
     if (instance.source) {
       instance.source.loop = sound.loop;
@@ -1192,6 +1244,10 @@ export const createAudioStage = () => {
           channels.delete(id);
         }
       }, duration);
+    }
+
+    for (const channel of next.channels) {
+      restartLoopingChannelIfComplete(channel.id);
     }
   };
 

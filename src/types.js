@@ -663,6 +663,7 @@
  * @property {number} [volume=100] - Volume (0-100, 100 default)
  * @property {boolean} [muted=false] - Whether the channel is muted
  * @property {number} [pan=0] - Stereo pan from -1 to 1
+ * @property {boolean} [loop=false] - Whether to repeat the complete child sound schedule
  * @property {SoundElement[]} [children=[]] - Sound nodes owned by the channel
  */
 
