@@ -35,6 +35,7 @@ describe("normalizeAudioRenderState", () => {
         muted: false,
         pan: 0,
         loop: false,
+        interruption: "immediate",
       },
     ]);
     expect(result.sounds).toEqual([
@@ -137,6 +138,27 @@ describe("normalizeAudioRenderState", () => {
     expect(() =>
       flattenAudioNodes([{ id: "music", type: "audio-channel", loop: "yes" }]),
     ).toThrow("audio[0].loop must be a boolean");
+  });
+
+  it("normalizes channel interruption behavior", () => {
+    const result = flattenAudioNodes([
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+      },
+    ]);
+
+    expect(result.channels[0].interruption).toBe("loopEnd");
+    expect(() =>
+      flattenAudioNodes([
+        {
+          id: "music",
+          type: "audio-channel",
+          interruption: "later",
+        },
+      ]),
+    ).toThrow("audio[0].interruption must be one of immediate, loopEnd");
   });
 
   it("rejects duplicate IDs across nodes and effects", () => {

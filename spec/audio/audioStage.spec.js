@@ -322,6 +322,77 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources).toHaveLength(1);
   });
 
+  it("finishes the active channel schedule when interruption uses loopEnd", async () => {
+    const { stage, context } = await setupAudioStage();
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        loop: true,
+        interruption: "loopEnd",
+        children: [
+          { id: "current", type: "sound", src: "current" },
+          {
+            id: "next",
+            type: "sound",
+            src: "next",
+            startDelayMs: 100,
+          },
+        ],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: audio });
+    const activeSource = context.sources[0];
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+
+    expect(activeSource.stop).not.toHaveBeenCalled();
+    expect(findCurrentSound(stage, "next")).toBeUndefined();
+    expect(stage._inspect().channels.has("music")).toBe(true);
+
+    activeSource.onended();
+    vi.advanceTimersByTime(100);
+
+    expect(context.sources).toHaveLength(2);
+    expect(context.sources[1].stop).not.toHaveBeenCalled();
+
+    context.sources[1].onended();
+
+    expect(findSound(stage, "current")).toBeUndefined();
+    expect(findSound(stage, "next")).toBeUndefined();
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
+  it("stops an interrupted channel schedule immediately by default", async () => {
+    const { stage, context } = await setupAudioStage();
+    const audio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        children: [
+          { id: "current", type: "sound", src: "current" },
+          {
+            id: "next",
+            type: "sound",
+            src: "next",
+            startDelayMs: 100,
+          },
+        ],
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: audio });
+    const activeSource = context.sources[0];
+
+    stage.renderGraph({ prevAudio: audio, nextAudio: [] });
+    vi.advanceTimersByTime(100);
+
+    expect(activeSource.stop).toHaveBeenCalled();
+    expect(context.sources).toHaveLength(1);
+    expect(stage._inspect().channels.has("music")).toBe(false);
+  });
+
   it("sanitizes direct audio defaults across repeated ticks", async () => {
     const { stage } = await setupAudioStage();
 

@@ -1,6 +1,7 @@
 import { SUPPORTED_EASING_NAMES } from "./animationTimeline.js";
 
 const AUDIO_NODE_TYPES = new Set(["audio-channel", "sound"]);
+const AUDIO_CHANNEL_INTERRUPTION_VALUES = new Set(["immediate", "loopEnd"]);
 const AUDIO_TRANSITION_TYPE = "audio-transition";
 const AUDIO_EFFECT_TYPES = new Set([AUDIO_TRANSITION_TYPE]);
 const AUDIO_TRANSITION_PHASES = new Set(["enter", "exit", "update"]);
@@ -154,6 +155,12 @@ const validateChannel = (
   assertOptionalBoolean(node.muted, `${path}.muted`);
   assertOptionalNumber(node.pan, `${path}.pan`, { min: -1, max: 1 });
   assertOptionalBoolean(node.loop, `${path}.loop`);
+  const interruption = node.interruption ?? "immediate";
+  if (!AUDIO_CHANNEL_INTERRUPTION_VALUES.has(interruption)) {
+    throw new Error(
+      `Input error: ${path}.interruption must be one of immediate, loopEnd.`,
+    );
+  }
 
   if (node.children !== undefined && !Array.isArray(node.children)) {
     throw new Error(`Input error: ${path}.children must be an array.`);
@@ -166,6 +173,7 @@ const validateChannel = (
     muted: node.muted ?? false,
     pan: node.pan ?? 0,
     loop: node.loop ?? false,
+    interruption,
   });
 
   for (const [index, child] of (node.children ?? []).entries()) {
