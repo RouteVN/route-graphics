@@ -664,6 +664,7 @@
  * @property {boolean} [muted=false] - Whether the channel is muted
  * @property {number} [pan=0] - Stereo pan from -1 to 1
  * @property {boolean} [loop=false] - Whether to repeat the complete child sound schedule
+ * @property {'immediate' | 'loopEnd'} [interruption='immediate'] - Whether interruption stops immediately or finishes the active schedule iteration
  * @property {SoundElement[]} [children=[]] - Sound nodes owned by the channel
  */
 

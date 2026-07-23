@@ -32,6 +32,11 @@ properties:
     type: boolean
     description: Whether to repeat the complete child sound schedule after every child finishes.
     default: false
+  interruption:
+    type: string
+    enum: [immediate, loopEnd]
+    description: How active channel playback stops when the channel is interrupted.
+    default: immediate
   children:
     type: array
     description: Sound nodes owned by this channel

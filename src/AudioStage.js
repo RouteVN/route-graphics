@@ -384,8 +384,10 @@ const createChannelInstance = (channel, outputNode) => {
     muted: channel.muted ?? false,
     pan: channel.pan ?? 0,
     loop: channel.loop ?? false,
+    interruption: channel.interruption ?? "immediate",
     outputNode,
     cleanupTimeoutId: null,
+    deferredRemovalToken: null,
   };
 };
 
@@ -799,6 +801,7 @@ export const createAudioStage = () => {
     }
 
     if (existing) {
+      existing.deferredRemovalToken = null;
       const currentVolumeValue = getVolumeValue(existing);
       const nextVolumeValue = getVolumeValue(channel);
       const volumeChanged = currentVolumeValue !== nextVolumeValue;
@@ -809,6 +812,7 @@ export const createAudioStage = () => {
       existing.muted = channel.muted;
       existing.pan = channel.pan;
       existing.loop = channel.loop;
+      existing.interruption = channel.interruption;
 
       if (loopInterrupted) {
         finishChannelLoop(channel.id);
@@ -1007,7 +1011,7 @@ export const createAudioStage = () => {
     return duration;
   };
 
-  const finishSoundInstance = (instance) => {
+  const finishSoundInstance = (instance, onFinished) => {
     if (!instance || instance.finishing) {
       return;
     }
@@ -1026,19 +1030,24 @@ export const createAudioStage = () => {
       if (sounds.get(instance.internalId) === instance) {
         sounds.delete(instance.internalId);
       }
+      onFinished?.();
     };
 
-    if (
-      !instance.source ||
-      instance.sourceEnded ||
-      getAudioContext().state !== "running"
-    ) {
+    if (getAudioContext().state !== "running") {
+      cleanupFinishedSound();
+      return;
+    }
+
+    instance.onSourceEnded = cleanupFinishedSound;
+    if (instance.playbackPending || instance.pendingTimeoutId !== null) {
+      return;
+    }
+    if (!instance.source || instance.sourceEnded) {
       cleanupFinishedSound();
       return;
     }
 
     instance.source.loop = false;
-    instance.onSourceEnded = cleanupFinishedSound;
   };
 
   const updateSoundInstance = ({ instance, sound, effects }) => {
@@ -1167,12 +1176,50 @@ export const createAudioStage = () => {
 
     const removedChannels = new Map();
     const channelCleanupDurations = new Map();
+    const deferredChannelCleanup = new Map();
+    const tryCleanupDeferredChannel = (entry) => {
+      if (
+        entry.registeringSounds ||
+        !entry.transitionComplete ||
+        entry.soundIds.size > 0 ||
+        entry.channel.deferredRemovalToken !== entry.token
+      ) {
+        return;
+      }
 
-    for (const [id] of prevChannelById) {
+      cleanupChannel(entry.channel);
+      if (channels.get(entry.channel.id) === entry.channel) {
+        channels.delete(entry.channel.id);
+      }
+      entry.channel.deferredRemovalToken = null;
+    };
+
+    for (const [id, prevChannel] of prevChannelById) {
       if (!nextChannelById.has(id)) {
-        const duration = removeChannel(channels.get(id), prevAudioEffects);
-        removedChannels.set(id, channels.get(id));
+        const channel = channels.get(id);
+        const duration = removeChannel(channel, prevAudioEffects);
         channelCleanupDurations.set(id, duration);
+        if (prevChannel.interruption === "loopEnd" && channel) {
+          channel.loop = false;
+          const token = {};
+          channel.deferredRemovalToken = token;
+          const entry = {
+            channel,
+            token,
+            registeringSounds: true,
+            transitionComplete: duration <= 0,
+            soundIds: new Set(),
+          };
+          deferredChannelCleanup.set(id, entry);
+          if (duration > 0) {
+            schedule(() => {
+              entry.transitionComplete = true;
+              tryCleanupDeferredChannel(entry);
+            }, duration);
+          }
+        } else {
+          removedChannels.set(id, channel);
+        }
       }
     }
 
@@ -1191,13 +1238,34 @@ export const createAudioStage = () => {
       const inheritedDuration = prevSound.channelId
         ? (channelCleanupDurations.get(prevSound.channelId) ?? 0)
         : 0;
+      const finishAtLoopEnd =
+        prevSound.channelId !== null &&
+        prevChannelById.get(prevSound.channelId)?.interruption === "loopEnd";
+      const finishPreviousSound = () => {
+        if (!finishAtLoopEnd) {
+          return removeSoundInstance(
+            instance,
+            prevAudioEffects,
+            inheritedDuration,
+          );
+        }
+
+        const deferredCleanup = deferredChannelCleanup.get(prevSound.channelId);
+        if (instance && deferredCleanup) {
+          deferredCleanup.soundIds.add(instance.internalId);
+        }
+        finishSoundInstance(instance, () => {
+          if (!deferredCleanup) {
+            return;
+          }
+          deferredCleanup.soundIds.delete(instance.internalId);
+          tryCleanupDeferredChannel(deferredCleanup);
+        });
+        return 0;
+      };
 
       if (!nextSound) {
-        const duration = removeSoundInstance(
-          instance,
-          prevAudioEffects,
-          inheritedDuration,
-        );
+        const duration = finishPreviousSound();
         if (prevSound.channelId) {
           channelCleanupDurations.set(
             prevSound.channelId,
@@ -1212,11 +1280,7 @@ export const createAudioStage = () => {
       }
 
       if (!hasSameSoundSourceIdentity(prevSound, nextSound)) {
-        const duration = removeSoundInstance(
-          instance,
-          prevAudioEffects,
-          inheritedDuration,
-        );
+        const duration = finishPreviousSound();
         if (prevSound.channelId) {
           channelCleanupDurations.set(
             prevSound.channelId,
@@ -1260,6 +1324,11 @@ export const createAudioStage = () => {
           effects: nextAudioEffects,
         });
       }
+    }
+
+    for (const entry of deferredChannelCleanup.values()) {
+      entry.registeringSounds = false;
+      tryCleanupDeferredChannel(entry);
     }
 
     for (const [id, channel] of removedChannels) {
