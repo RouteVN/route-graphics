@@ -417,6 +417,7 @@ const createSoundInstance = ({ sound, channelNode, internalId }) => {
     onSourceEnded: null,
     finishing: false,
     playbackRateTransition: null,
+    playbackPending: false,
     pendingTimeoutId: null,
     cleanupTimeoutId: null,
     playRequestId: 0,
@@ -502,6 +503,7 @@ const playSound = (sound) => {
   const playRequestId = (sound.playRequestId ?? 0) + 1;
   sound.playRequestId = playRequestId;
   sound.sourceEnded = false;
+  sound.playbackPending = true;
   debugAudio("play requested", {
     id: sound.id,
     src: sound.src,
@@ -522,6 +524,7 @@ const playSound = (sound) => {
     sound.pendingTimeoutId = null;
     const previousSource = sound.source;
     sound.source = createSourceForSound(sound);
+    sound.playbackPending = false;
     if (previousSource && previousSource !== sound.source) {
       disconnect(previousSource);
     }
@@ -551,6 +554,7 @@ const playSound = (sound) => {
 
 const stopSource = (sound, delayMs = 0) => {
   sound.playRequestId = (sound.playRequestId ?? 0) + 1;
+  sound.playbackPending = false;
 
   if (sound.pendingTimeoutId !== null) {
     clearTimeout(sound.pendingTimeoutId);
@@ -718,7 +722,9 @@ export const createAudioStage = () => {
       channelSounds.length === 0 ||
       channelSounds.some(
         (sound) =>
-          sound.pendingTimeoutId !== null || sound.sourceEnded !== true,
+          sound.playbackPending ||
+          sound.pendingTimeoutId !== null ||
+          sound.sourceEnded !== true,
       )
     ) {
       return;
@@ -733,6 +739,22 @@ export const createAudioStage = () => {
     sound.onSourceEnded = sound.channelId
       ? () => restartLoopingChannelIfComplete(sound.channelId)
       : null;
+  };
+
+  const finishChannelLoop = (channelId) => {
+    for (const sound of getCurrentChannelSounds(channelId)) {
+      if (!sound.playbackPending) {
+        continue;
+      }
+
+      sound.playRequestId = (sound.playRequestId ?? 0) + 1;
+      sound.playbackPending = false;
+      sound.sourceEnded = true;
+      if (sound.pendingTimeoutId !== null) {
+        clearTimeout(sound.pendingTimeoutId);
+        sound.pendingTimeoutId = null;
+      }
+    }
   };
 
   const ensureRootChannel = (id) => {
@@ -781,11 +803,16 @@ export const createAudioStage = () => {
       const nextVolumeValue = getVolumeValue(channel);
       const volumeChanged = currentVolumeValue !== nextVolumeValue;
       const panChanged = existing.pan !== (channel.pan ?? 0);
+      const loopInterrupted = existing.loop && !channel.loop;
 
       existing.volume = channel.volume;
       existing.muted = channel.muted;
       existing.pan = channel.pan;
       existing.loop = channel.loop;
+
+      if (loopInterrupted) {
+        finishChannelLoop(channel.id);
+      }
 
       if (volumeChanged && volumeTransition) {
         applyVolume({

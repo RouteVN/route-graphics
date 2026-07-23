@@ -126,6 +126,8 @@ First implementation rule:
   parallel and may use `startDelayMs` for scheduled sequences.
 - `loop: true` restarts the complete child schedule after every child sound has
   finished. Looping channels cannot contain child sounds with `loop: true`.
+- Changing a channel from `loop: true` to `loop: false` cancels child sounds
+  that have not started yet and lets already-playing child sounds finish.
 
 ### Sounds
 

@@ -280,6 +280,48 @@ describe("AudioStage graph rendering", () => {
     expect(stage._inspect().channels.get("music").loop).toBe(true);
   });
 
+  it("finishes active channel sounds without playing the rest of the schedule when looping is disabled", async () => {
+    const { stage, context } = await setupAudioStage();
+    const loopingAudio = [
+      {
+        id: "music",
+        type: "audio-channel",
+        loop: true,
+        children: [
+          { id: "current", type: "sound", src: "current" },
+          {
+            id: "next",
+            type: "sound",
+            src: "next",
+            startDelayMs: 100,
+          },
+        ],
+      },
+    ];
+    const finishingAudio = [
+      {
+        ...loopingAudio[0],
+        loop: false,
+      },
+    ];
+
+    stage.renderGraph({ nextAudio: loopingAudio });
+    const activeSource = context.sources[0];
+
+    stage.renderGraph({
+      prevAudio: loopingAudio,
+      nextAudio: finishingAudio,
+    });
+
+    expect(findCurrentSound(stage, "next").pendingTimeoutId).toBeNull();
+    expect(activeSource.stop).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(100);
+    activeSource.onended();
+
+    expect(context.sources).toHaveLength(1);
+  });
+
   it("sanitizes direct audio defaults across repeated ticks", async () => {
     const { stage } = await setupAudioStage();
 
