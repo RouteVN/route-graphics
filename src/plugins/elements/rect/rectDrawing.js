@@ -42,22 +42,30 @@ export const appendRectPath = (graphics, width, height, cornerRadius) => {
     return graphics;
   }
 
-  graphics
-    .moveTo(radius.topLeft, 0)
-    .lineTo(safeWidth - radius.topRight, 0)
-    .quadraticCurveTo(safeWidth, 0, safeWidth, radius.topRight)
-    .lineTo(safeWidth, safeHeight - radius.bottomRight)
-    .quadraticCurveTo(
+  graphics.moveTo(radius.topLeft, 0).lineTo(safeWidth - radius.topRight, 0);
+  // A zero-radius corner is already reached by lineTo. Adding a degenerate
+  // quadratic creates duplicate points and non-finite Pixi stroke normals.
+  if (radius.topRight > 0) {
+    graphics.quadraticCurveTo(safeWidth, 0, safeWidth, radius.topRight);
+  }
+  graphics.lineTo(safeWidth, safeHeight - radius.bottomRight);
+  if (radius.bottomRight > 0) {
+    graphics.quadraticCurveTo(
       safeWidth,
       safeHeight,
       safeWidth - radius.bottomRight,
       safeHeight,
-    )
-    .lineTo(radius.bottomLeft, safeHeight)
-    .quadraticCurveTo(0, safeHeight, 0, safeHeight - radius.bottomLeft)
-    .lineTo(0, radius.topLeft)
-    .quadraticCurveTo(0, 0, radius.topLeft, 0)
-    .closePath();
+    );
+  }
+  graphics.lineTo(radius.bottomLeft, safeHeight);
+  if (radius.bottomLeft > 0) {
+    graphics.quadraticCurveTo(0, safeHeight, 0, safeHeight - radius.bottomLeft);
+  }
+  graphics.lineTo(0, radius.topLeft);
+  if (radius.topLeft > 0) {
+    graphics.quadraticCurveTo(0, 0, radius.topLeft, 0);
+  }
+  graphics.closePath();
 
   return graphics;
 };
