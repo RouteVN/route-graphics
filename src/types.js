@@ -582,6 +582,8 @@
  * @property {string} fill - Text color
  * @property {string | string[]} fontFamily - Font family or ordered fallback list
  * @property {number} fontSize - Font size in pixels
+ * @property {number} [letterSpacing] - Extra spacing between graphemes in pixels; may be negative
+ * @property {'pre' | 'normal' | 'pre-line'} [whiteSpace] - Whitespace handling during text wrapping (default: pre)
  * @property {'left' | 'center' | 'right'} align - Text alignment
  * @property {number} lineHeight - Line height multiplier
  * @property {boolean} wordWrap - Enable word wrapping

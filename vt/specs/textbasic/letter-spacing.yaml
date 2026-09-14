@@ -1,0 +1,42 @@
+---
+title: Letter spacing matches layout
+specs:
+  - Positive and negative letter spacing reach the displayed text, not only its measured box
+  - Wrapped, centered and right-aligned text retain their authored spacing
+---
+states:
+  - elements:
+      - id: positive
+        type: text
+        content: "AVA office jfj é á"
+        x: 120
+        y: 80
+        width: 360
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 48
+          fill: "#ffffff"
+          letterSpacing: 2
+          align: center
+      - id: negative
+        type: text
+        content: "AVA office jfj é á"
+        x: 120
+        y: 280
+        width: 360
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 48
+          fill: "#ffffff"
+          letterSpacing: -1
+          align: right
+      - id: natural
+        type: text
+        content: "AVA office jfj"
+        x: 600
+        y: 80
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 64
+          fill: "#ffffff"
+          letterSpacing: 3.5

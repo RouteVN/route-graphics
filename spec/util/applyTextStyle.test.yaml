@@ -1,0 +1,69 @@
+file: ./appliedTextStyleFixtures.js
+group: util
+suites:
+  - applied text layout styles
+---
+suite: applied text layout styles
+exportName: observeAppliedTextStyles
+---
+case: Default spacing and whitespace
+in:
+  - [{}]
+out:
+  - letterSpacing: 0
+    whiteSpace: pre
+---
+case: Positive and negative fractional spacing survive application
+in:
+  - - letterSpacing: 2.5
+    - letterSpacing: -1.25
+out:
+  - letterSpacing: 2.5
+    whiteSpace: pre
+  - letterSpacing: -1.25
+    whiteSpace: pre
+---
+case: Explicit zero resets previous spacing
+in:
+  - - letterSpacing: 4
+    - letterSpacing: 0
+out:
+  - letterSpacing: 4
+    whiteSpace: pre
+  - letterSpacing: 0
+    whiteSpace: pre
+---
+case: All supported whitespace modes survive application
+in:
+  - - whiteSpace: normal
+    - whiteSpace: pre-line
+    - whiteSpace: pre
+out:
+  - letterSpacing: 0
+    whiteSpace: normal
+  - letterSpacing: 0
+    whiteSpace: pre-line
+  - letterSpacing: 0
+    whiteSpace: pre
+---
+case: Omitted styles reset both properties on an existing text object
+in:
+  - - letterSpacing: 3
+      whiteSpace: normal
+    - {}
+out:
+  - letterSpacing: 3
+    whiteSpace: normal
+  - letterSpacing: 0
+    whiteSpace: pre
+---
+case: Null style restores Pixi defaults
+in:
+  - - letterSpacing: -2
+      whiteSpace: pre-line
+    - null
+out:
+  - letterSpacing: -2
+    whiteSpace: pre-line
+  - letterSpacing: 0
+    whiteSpace: pre

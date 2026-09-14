@@ -64,6 +64,15 @@ $def:
         enum: [left, center, right]
         default: left
         description: Text alignment
+      letterSpacing:
+        type: number
+        default: 0
+        description: Extra spacing between graphemes in pixels. Negative values tighten spacing.
+      whiteSpace:
+        type: string
+        enum: [pre, normal, pre-line]
+        default: pre
+        description: Whitespace handling during text wrapping.
       lineHeight:
         type: number
         description: Line height in pixels
