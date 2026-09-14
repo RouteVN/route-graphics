@@ -1103,6 +1103,16 @@ export class BaseRouteGraphics {
   }
 
   /**
+   * Waits for the requested scene's async mounts and first renderer submission,
+   * not animation/reveal completion or a GPU/browser presentation fence.
+   * Rejects on failure, supersession, destruction or no active render request.
+   * @returns {Promise<void>}
+   */
+  whenRenderReady() {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
    * Returns semantic element branches under a renderer-space point in
    * front-to-back paint order.
    * @param {{x: number, y: number}} point

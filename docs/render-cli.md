@@ -33,6 +33,11 @@ route-graphics render ./examples/storyboard.yaml --format mp4 -o ./out/storyboar
 
 PNG output captures one state.
 
+Capture waits for the requested scene's asynchronous mounts and first renderer
+submission before reading pixels or layout. This readiness gate is bounded by
+`--timeout` and is distinct from playback completion. `--time` is applied after
+readiness, so a paused or intermediate animation does not need to finish first.
+
 ```bash
 route-graphics render ./examples/hello.yaml -o ./out/hello.png
 route-graphics render ./scene.yaml -o ./out/state-02.png --state 2
@@ -45,7 +50,7 @@ PNG-only options:
 | ---------------------------- | ----------------------------------------------------------------- |
 | `--state <index>`            | Select one zero-based state. Default: `0`.                        |
 | `--time <ms>`                | Sample animations in manual mode at a specific timeline position. |
-| `--wait-for-render-complete` | Wait for `renderComplete` before capture.                         |
+| `--wait-for-render-complete` | Also wait for playback `renderComplete` before capture.           |
 | `--layout-report <path>`     | Write a JSON layout report for the captured state.                |
 
 The layout report path must differ from both the YAML input and image output.

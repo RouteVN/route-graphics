@@ -119,41 +119,48 @@ describe("route-graphics-render CLI", () => {
     });
   }, 30_000);
 
-  it("renders a valid PNG from asset aliases", async () => {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));
-    const aliasOutputPath = path.join(tempDir, "alias.png");
-    const aliasRun = await runCliRender({
-      inputPath: aliasFixturePath,
-      outputPath: aliasOutputPath,
-    });
+  it.each([{ args: [] }, { args: ["--time", "0"] }])(
+    "renders a valid mounted PNG from asset aliases (args: $args)",
+    async ({ args }) => {
+      const tempDir = await fs.mkdtemp(
+        path.join(os.tmpdir(), "rtgl-cli-test-"),
+      );
+      const aliasOutputPath = path.join(tempDir, "alias.png");
+      const aliasRun = await runCliRender({
+        inputPath: aliasFixturePath,
+        outputPath: aliasOutputPath,
+        args,
+      });
 
-    expect(aliasRun.stdout).toContain(`Wrote ${aliasOutputPath}`);
-    expect(aliasRun.stdout).toMatch(
-      /Timing: render=\d+(?:\.\d+)?(?:ms|s), write=\d+(?:\.\d+)?(?:ms|s), total=\d+(?:\.\d+)?(?:ms|s)/,
-    );
+      expect(aliasRun.stdout).toContain(`Wrote ${aliasOutputPath}`);
+      expect(aliasRun.stdout).toMatch(
+        /Timing: render=\d+(?:\.\d+)?(?:ms|s), write=\d+(?:\.\d+)?(?:ms|s), total=\d+(?:\.\d+)?(?:ms|s)/,
+      );
 
-    const aliasPngBuffer = await fs.readFile(aliasOutputPath);
+      const aliasPngBuffer = await fs.readFile(aliasOutputPath);
 
-    expect(aliasPngBuffer.length).toBeGreaterThan(50_000);
-    const aliasPng = PNG.sync.read(aliasPngBuffer);
+      expect(aliasPngBuffer.length).toBeGreaterThan(50_000);
+      const aliasPng = PNG.sync.read(aliasPngBuffer);
 
-    expect(aliasPng.width).toBe(1280);
-    expect(aliasPng.height).toBe(720);
+      expect(aliasPng.width).toBe(1280);
+      expect(aliasPng.height).toBe(720);
 
-    expect(Buffer.from(readPixel(aliasPng, 10, 10))).toEqual(
-      Buffer.from([0x11, 0x15, 0x1c, 0xff]),
-    );
-    expect(Buffer.from(readPixel(aliasPng, 780, 480))).toEqual(
-      Buffer.from([0x1a, 0x23, 0x30, 0xff]),
-    );
+      expect(Buffer.from(readPixel(aliasPng, 10, 10))).toEqual(
+        Buffer.from([0x11, 0x15, 0x1c, 0xff]),
+      );
+      expect(Buffer.from(readPixel(aliasPng, 780, 480))).toEqual(
+        Buffer.from([0x1a, 0x23, 0x30, 0xff]),
+      );
 
-    expect(toHex(aliasPngBuffer)).toMatch(/^[0-9a-f]{64}$/);
+      expect(toHex(aliasPngBuffer)).toMatch(/^[0-9a-f]{64}$/);
 
-    const spriteCenterPixel = Buffer.from(readPixel(aliasPng, 108, 192));
-    expect(
-      spriteCenterPixel.equals(Buffer.from([0x11, 0x15, 0x1c, 0xff])),
-    ).toBe(false);
-  }, 30_000);
+      const spriteCenterPixel = Buffer.from(readPixel(aliasPng, 108, 192));
+      expect(
+        spriteCenterPixel.equals(Buffer.from([0x11, 0x15, 0x1c, 0xff])),
+      ).toBe(false);
+    },
+    30_000,
+  );
 
   it("rejects direct file references inside render state", async () => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rtgl-cli-test-"));

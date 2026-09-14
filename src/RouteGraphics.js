@@ -29,6 +29,7 @@ import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
+import { createRenderReadiness } from "./util/renderReadiness.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
@@ -339,6 +340,8 @@ const createRouteGraphics = () => {
    * @type {AbortController|undefined}
    */
   let renderAbortController;
+
+  const renderReadiness = createRenderReadiness();
 
   /**
    * @type {Function|undefined}
@@ -1150,7 +1153,7 @@ const createRouteGraphics = () => {
       if (typeof appInstance.render === "function") {
         appInstance.render();
       }
-
+      renderReadiness.presentedUnchanged();
       return;
     }
 
@@ -1172,6 +1175,8 @@ const createRouteGraphics = () => {
     }
     renderAbortController = new AbortController();
     const signal = renderAbortController.signal;
+    // Install before reset: completion handlers may synchronously render again.
+    const ready = renderReadiness.begin(signal);
 
     // Reset completion tracker for new state (emits aborted if previous had pending)
     completionTracker.reset(nextState.id);
@@ -1182,6 +1187,7 @@ const createRouteGraphics = () => {
       !signal.aborted && completionTracker.getVersion() === version;
     const failRender = (error) => {
       if (!isCurrent()) return;
+      ready.reject(error);
       needsReconciliation = true;
       // Keep the last applied frame as the diff baseline. Async mount failure
       // does not undo changes already presented to existing elements or cursors.
@@ -1262,10 +1268,13 @@ const createRouteGraphics = () => {
             }
             if (!isCurrent()) return;
             appInstance.render?.();
+            if (!isCurrent()) return;
+            ready.resolve();
             completionTracker.complete(version);
           })
           .catch(failRender);
       } else {
+        ready.resolve();
         completionTracker.complete(version);
       }
 
@@ -1286,6 +1295,15 @@ const createRouteGraphics = () => {
 
   const routeGraphicsInstance = {
     rendererName: "pixi",
+
+    /**
+     * Wait for the currently requested scene's async mounts and first render.
+     * Does not wait for animations/reveals, GPU fences or browser composition.
+     * Equal renders share the pending wait. Supersession/destroy reject with
+     * AbortError; mount/presentation errors reject with the original error.
+     * @returns {Promise<void>}
+     */
+    whenRenderReady: () => renderReadiness.wait(),
 
     get rendererType() {
       return selectedRendererType;
@@ -1648,6 +1666,7 @@ const createRouteGraphics = () => {
         renderAbortController.abort();
         renderAbortController = undefined;
       }
+      renderReadiness.clear();
       if (debugAnimationListener) {
         window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
         debugAnimationListener = undefined;

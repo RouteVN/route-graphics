@@ -745,7 +745,20 @@ const capturePng = async ({
 
           document.body.replaceChildren(app.canvas);
           app.render(renderPayload.state);
-          app.render(renderPayload.state);
+
+          let readyTimeoutId;
+          try {
+            await Promise.race([
+              app.whenRenderReady(),
+              new Promise((_, reject) => {
+                readyTimeoutId = window.setTimeout(() => {
+                  reject(new Error("Timed out waiting for scene readiness."));
+                }, renderPayload.timeoutMS);
+              }),
+            ]);
+          } finally {
+            window.clearTimeout(readyTimeoutId);
+          }
 
           if (renderPayload.timeMS !== null) {
             app.setAnimationTime(renderPayload.timeMS);
