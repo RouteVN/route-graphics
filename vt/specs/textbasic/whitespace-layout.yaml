@@ -1,0 +1,41 @@
+---
+title: Whitespace matches layout
+specs:
+  - Pre preserves whitespace, normal collapses spaces and newlines, and pre-line preserves newlines
+  - Displayed line breaks match the parser's measured height for each mode
+---
+states:
+  - elements:
+      - id: pre
+        type: text
+        content: "  One   two\n\nThree    four"
+        x: 80
+        y: 100
+        width: 260
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 56
+          fill: "#ffffff"
+          whiteSpace: pre
+      - id: normal
+        type: text
+        content: "  One   two\n\nThree    four"
+        x: 460
+        y: 100
+        width: 260
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 56
+          fill: "#ffffff"
+          whiteSpace: normal
+      - id: pre-line
+        type: text
+        content: "  One   two\n\nThree    four"
+        x: 840
+        y: 100
+        width: 260
+        textStyle:
+          fontFamily: mr-de-haviland
+          fontSize: 56
+          fill: "#ffffff"
+          whiteSpace: pre-line

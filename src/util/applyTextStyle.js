@@ -10,6 +10,13 @@ export default (element, style) => {
       ? { fontWeight: style.fontWeight }
       : {}),
     ...(style?.fontStyle !== undefined ? { fontStyle: style.fontStyle } : {}),
+    // Keep display layout in sync with the style used by the text parser.
+    ...(style?.letterSpacing !== undefined
+      ? { letterSpacing: style.letterSpacing }
+      : {}),
+    ...(style?.whiteSpace !== undefined
+      ? { whiteSpace: style.whiteSpace }
+      : {}),
     align: style?.align ?? DEFAULT_TEXT_STYLE.align,
     lineHeight: style?.lineHeight ?? DEFAULT_TEXT_STYLE.lineHeight,
     wordWrap: style?.wordWrap ?? DEFAULT_TEXT_STYLE.wordWrap,
