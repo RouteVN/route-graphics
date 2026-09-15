@@ -8,6 +8,7 @@ specs:
   - cleanup should retarget to the rebuilt scrolling content parent
   - renderComplete should wait for both deferred cleanup and the mounted update animation
   - deferred mounting should explicitly present a new browser frame
+  - the first mounted frame should apply the fade's initial alpha before presentation
 skipInitialScreenshot: true
 useBrowserScreenshot: true
 steps:
@@ -61,6 +62,12 @@ steps:
     args:
       - adoption-target
     value: vt-strict-rect
+  - action: assert
+    type: js
+    fn: vtAssert.elementAlpha
+    args:
+      - adoption-target
+    value: 0.25
   - action: screenshot
   - action: assert
     type: js
@@ -75,6 +82,12 @@ steps:
     name: snapShotKeyFrame
     detail:
       deltaMS: 500
+  - action: assert
+    type: js
+    fn: vtAssert.elementAlpha
+    args:
+      - adoption-target
+    value: 0.625
   - action: screenshot
   - action: assert
     type: js
@@ -89,6 +102,12 @@ steps:
     name: snapShotKeyFrame
     detail:
       deltaMS: 500
+  - action: assert
+    type: js
+    fn: vtAssert.elementAlpha
+    args:
+      - adoption-target
+    value: 1
   - action: screenshot
   - action: assert
     type: js

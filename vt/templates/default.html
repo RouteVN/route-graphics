@@ -717,6 +717,8 @@
           Array.from(vtDeferredRectAdds.keys()).sort(),
         mountedVtElementType: (elementId) =>
           app.findElementByLabel(elementId)?.__vtElementPluginType ?? null,
+        elementAlpha: (elementId) =>
+          app.findElementByLabel(elementId)?.alpha ?? null,
         rendererType: () => app.rendererType,
         pluginDispatchMismatches: () =>
           structuredClone(vtPluginDispatchMismatches),
