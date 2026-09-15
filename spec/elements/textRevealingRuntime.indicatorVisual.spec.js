@@ -1,8 +1,15 @@
-import { AnimatedSprite, Cache, Container, Texture } from "pixi.js";
+import {
+  AnimatedSprite,
+  Cache,
+  Container,
+  Spritesheet,
+  Texture,
+} from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { parseTextRevealing } from "../../src/plugins/elements/text-revealing/parseTextRevealing.js";
 import { runTextReveal } from "../../src/plugins/elements/text-revealing/textRevealingRuntime.js";
+import { mountTextReveal } from "../../src/plugins/elements/text-revealing/mountTextReveal.js";
 import { getCharacterXPositionInATextObject } from "../../src/util/getCharacterXPositionInATextObject.js";
 
 const createCompletionTracker = () => ({
@@ -118,6 +125,86 @@ const getExpectedIndicatorY = (chunk, indicator, offsetY = 0) =>
   chunk.y + Math.max(0, chunk.lineMaxHeight - indicator.height) + offsetY;
 
 describe("runTextReveal indicator visuals", () => {
+  it.each([false, true])(
+    "waits for atlas setup before readiness, while owning reveal completion (aborted: %s)",
+    async (aborted) => {
+      vi.useFakeTimers();
+      const container = new Container();
+      const controller = new AbortController();
+      const completionTracker = createCompletionTracker();
+      const onLayoutMounted = vi.fn();
+      const originalParse = Spritesheet.prototype.parse;
+      let releaseAtlas;
+      const atlasReady = new Promise((resolve) => {
+        releaseAtlas = resolve;
+      });
+      const parse = vi
+        .spyOn(Spritesheet.prototype, "parse")
+        .mockImplementation(async function () {
+          await atlasReady;
+          return originalParse.call(this);
+        });
+
+      try {
+        const element = createElement(
+          {
+            revealing: {
+              kind: "spritesheet",
+              src: createTextureId("readiness-indicator"),
+              atlas: createAtlas(),
+              playback: { autoplay: false },
+            },
+          },
+          { speed: 0, content: [{ text: "AB" }] },
+        );
+        let ready = false;
+        const mounted = mountTextReveal({
+          container,
+          element,
+          completionTracker,
+          animationBus: { dispatch: vi.fn() },
+          signal: controller.signal,
+          onLayoutMounted,
+        }).then(() => {
+          ready = true;
+        });
+
+        await vi.advanceTimersByTimeAsync(0);
+        expect(parse).toHaveBeenCalledOnce();
+        expect(ready).toBe(false);
+        expect(onLayoutMounted).not.toHaveBeenCalled();
+        expect(container.children).toHaveLength(0);
+
+        if (aborted) controller.abort();
+        releaseAtlas();
+        await mounted;
+
+        if (aborted) {
+          expect(onLayoutMounted).not.toHaveBeenCalled();
+          expect(container.children).toHaveLength(0);
+          expect(completionTracker.track).toHaveBeenCalledTimes(1);
+          expect(completionTracker.complete).toHaveBeenCalledTimes(1);
+        } else {
+          expect(onLayoutMounted).toHaveBeenCalledOnce();
+          const indicator = container.getChildByLabel("line-1-indicator");
+          expect(indicator.children[0]).toBeInstanceOf(AnimatedSprite);
+          expect(getRenderedText(container)).toBe("A");
+          expect(completionTracker.track).toHaveBeenCalledTimes(2);
+          expect(completionTracker.complete).toHaveBeenCalledTimes(1);
+
+          await vi.runAllTimersAsync();
+          expect(getRenderedText(container)).toBe("AB");
+          expect(completionTracker.complete).toHaveBeenCalledTimes(2);
+        }
+      } finally {
+        controller.abort();
+        container.destroy({ children: true });
+        parse.mockRestore();
+        vi.useRealTimers();
+      }
+    },
+  );
+
   it("mounts a spritesheet revealing indicator as an AnimatedSprite", async () => {
     const sheetSrc = createTextureId("revealing-indicator-sheet");
     const element = createElement({

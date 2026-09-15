@@ -706,6 +706,10 @@
       };
 
       window.vtAssert = {
+        renderReady: async () => {
+          await app.whenRenderReady();
+          return true;
+        },
         payloadDeepEquals: (eventName, scope = "default") =>
           window
             .getVtEvents(scope)

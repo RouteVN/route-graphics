@@ -1,9 +1,7 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
-import {
-  runTextReveal,
-  shouldRenderTextRevealImmediately,
-} from "./textRevealingRuntime.js";
+import { shouldRenderTextRevealImmediately } from "./textRevealingRuntime.js";
+import { mountTextReveal } from "./mountTextReveal.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
 import { setElementRenderState } from "../elementRenderState.js";
 import {
@@ -87,7 +85,7 @@ export const updateTextRevealing = async ({
         renderContext?.suppressAnimations !== true &&
         !shouldRenderTextRevealImmediately(element)
       ) {
-        await runTextReveal({
+        await mountTextReveal({
           container: textRevealingElement,
           element,
           completionTracker,
@@ -112,7 +110,7 @@ export const updateTextRevealing = async ({
       renderContext?.suppressAnimations === true &&
       !shouldRenderTextRevealImmediately(element)
     ) {
-      await runTextReveal({
+      await mountTextReveal({
         container: textRevealingElement,
         element,
         completionTracker,
@@ -137,7 +135,7 @@ export const updateTextRevealing = async ({
       return;
     }
 
-    await runTextReveal({
+    await mountTextReveal({
       container: textRevealingElement,
       element,
       completionTracker,

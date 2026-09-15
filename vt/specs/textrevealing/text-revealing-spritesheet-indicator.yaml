@@ -1,8 +1,8 @@
 ---
 title: Text Revealing - Spritesheet Indicator
-description: Exercises text-revealing indicators backed by spritesheet animation; fighter-sheet colors are intentional asset-based visual cues.
+description: Exercises text-revealing indicators backed by spritesheet animation at deterministic reveal positions; fighter-sheet colors are intentional asset-based visual cues.
 specs:
-  - revealing indicator should render a configured spritesheet frame at the live reveal cursor
+  - typewriter indicator should retain its first spritesheet frame at a fixed partial reveal cursor during an entrance transition
   - complete indicator should be able to swap from a static image to a spritesheet visual
   - both indicator visuals should use the same atlas/playback vocabulary as spritesheet-animation
   - softWipe revealing indicators should also support spritesheet animation
@@ -10,13 +10,14 @@ skipInitialScreenshot: true
 steps:
   - action: keypress
     key: "n"
-  - action: wait
-    ms: 120
+  - action: assert
+    type: js
+    fn: vtAssert.renderReady
+    value: true
   - action: customEvent
-    name: "snapShotAnimatedSpriteFrame"
+    name: "snapShotKeyFrame"
     detail:
-      elementId: "animated-revealing-indicator"
-      frameIndex: 1
+      deltaMS: 1
   - action: customEvent
     name: "snapShotAnimatedSpriteFrame"
     detail:
@@ -27,8 +28,6 @@ steps:
     detail:
       elementId: "animated-soft-wipe-indicator"
       frameIndex: 1
-  - action: wait
-    ms: 50
   - action: screenshot
 ---
 states:
@@ -43,6 +42,7 @@ states:
         width: 760
         speed: 0
         revealEffect: typewriter
+        initialRevealedCharacters: 6
         indicator:
           revealing:
             kind: spritesheet
@@ -342,3 +342,17 @@ states:
               fill: "#F2F2F2"
               fontFamily: Arial
               lineHeight: 1.35
+    # Keep the partial typewriter layout mounted without advancing its timers.
+    # Debug mode advances this transition only through snapShotKeyFrame.
+    animations:
+      - id: hold-typewriter-prefix
+        targetId: animated-revealing
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 1
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear

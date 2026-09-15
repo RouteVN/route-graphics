@@ -462,6 +462,7 @@ let currentApp = null;
 
 const setupRouteGraphics = async ({
   initOptions = {},
+  realText = false,
   pluginsFactory,
   rendererOverrides,
   audioAsset = {
@@ -473,6 +474,21 @@ const setupRouteGraphics = async ({
   const pixiMock = createPixiModuleMock({ rendererOverrides });
   const { Color, GlUboSystem, GpuUboSystem } = await vi.importActual("pixi.js");
   Object.assign(pixiMock, { Color, GlUboSystem, GpuUboSystem });
+  if (realText) {
+    const actual = await vi.importActual("pixi.js");
+    for (const name of [
+      "Container",
+      "Text",
+      "TextStyle",
+      "CanvasTextMetrics",
+      "Spritesheet",
+      "getCanvasTexture",
+      "Sprite",
+      "AnimatedSprite",
+      "Texture",
+    ])
+      pixiMock[name] = actual[name];
+  }
 
   vi.doMock("pixi.js", () => pixiMock);
   vi.doMock("../src/AudioStage.js", () => ({
@@ -524,6 +540,106 @@ const findTransitionOverlay = (pixiMock) =>
     ) ?? null;
 
 describe("RouteGraphics public API", () => {
+  it.each([
+    "mount",
+    "update",
+    "resume",
+    "nested",
+    "nested-resume",
+    "deep-nested-resume",
+    "nested-transform-resume",
+  ])("readiness precedes real typewriter completion (%s)", async (mode) => {
+    const events = vi.fn();
+    const { app } = await setupRouteGraphics({
+      realText: true,
+      initOptions: { eventHandler: events },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/text-revealing/index.js"))
+            .textRevealingPlugin,
+          (await import("../src/plugins/elements/container/index.js"))
+            .containerPlugin,
+        ],
+      }),
+    });
+    const line = {
+      id: "line",
+      type: "text-revealing",
+      content: [{ text: "abcdefghij" }],
+      width: 500,
+      speed: 0,
+      textStyle: { fontFamily: "Arial", fontSize: 20 },
+    };
+    const state = {
+      id: "live",
+      elements: mode.includes("nested")
+        ? [
+            {
+              id: "group",
+              type: "container",
+              ...(mode === "nested-transform-resume" && { x: 25 }),
+              children:
+                mode === "deep-nested-resume"
+                  ? [{ id: "inner", type: "container", children: [line] }]
+                  : [line],
+            },
+          ]
+        : [line],
+    };
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      if (mode === "update") {
+        app.render({
+          id: "old",
+          elements: [
+            { ...line, revealEffect: "none", content: [{ text: "old" }] },
+          ],
+        });
+        await app.whenRenderReady();
+      } else if (mode.endsWith("resume")) {
+        const old = structuredClone(state);
+        if (mode === "nested-transform-resume") old.elements[0].x = 0;
+        app.render({ ...old, id: "old" });
+        await vi.advanceTimersByTimeAsync(100);
+      }
+      app.render(state);
+      let ready = false;
+      const pending = app.whenRenderReady().then(() => {
+        ready = true;
+      });
+      for (let i = 0; i < 80; i++) await Promise.resolve();
+      expect(ready).toBe(true);
+      const display = app.findElementByLabel("line");
+      const key = Object.getOwnPropertySymbols(display).find(
+        (s) => s.description === "textRevealSnapshot",
+      );
+      expect(display[key].completed).toBe(false);
+      expect(display[key].revealedCharacters).toBeGreaterThan(0);
+      expect(display[key].revealedCharacters).toBeLessThan(10);
+      expect(
+        events.mock.calls.some(
+          ([event, payload]) =>
+            event === "renderComplete" &&
+            payload.id === "live" &&
+            !payload.aborted,
+        ),
+      ).toBe(false);
+      await pending;
+      await vi.runAllTimersAsync();
+      expect(display[key].completed).toBe(true);
+      expect(
+        events.mock.calls.filter(
+          ([event, payload]) =>
+            event === "renderComplete" &&
+            payload.id === "live" &&
+            !payload.aborted,
+        ),
+      ).toHaveLength(1);
+    } finally {
+      app.destroy();
+      vi.useRealTimers();
+    }
+  });
   it("preserves the newest readiness when an abort handler renders reentrantly", async () => {
     let interrupted;
     const { app } = await setupRouteGraphics({
