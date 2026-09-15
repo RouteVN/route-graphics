@@ -1329,6 +1329,7 @@ export const createAnimationBus = () => {
     getState,
     isAnimating,
     hasContext,
+    getPendingPreparation: (id) => pendingAnimations.get(id)?.preparation,
     updateContinuation,
     destroy,
   };

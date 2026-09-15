@@ -390,6 +390,14 @@ export const prepareElementRenderState = ({
     lifecycle,
     ownerElementId,
     pendingReplacementIds,
+    // An unchanged ancestor may skip rendering its children, so the root must
+    // also await replacements inherited anywhere in its lifecycle tree.
+    pendingReplacementOperations: isRootRender
+      ? Array.from(
+          lifecycle.pendingReplacements.values(),
+          ({ operation }) => operation,
+        )
+      : [],
     renderedPrevComputedTree,
     resolveRenderParent: (id) =>
       resolveRenderParent(lifecycle, ownerElementId, id),
@@ -585,7 +593,7 @@ export const registerPendingElementReplacement = ({
   lifecycle.pendingReplacements.set(key, replacement);
   reserveCompletion(replacement, lifecycle.currentRender);
 
-  return operation
+  replacement.operation = operation
     .then(() => settleReplacement(lifecycle, replacement))
     .then(
       (shouldPresent) => {
@@ -603,4 +611,5 @@ export const registerPendingElementReplacement = ({
         throw error;
       },
     );
+  return replacement.operation;
 };

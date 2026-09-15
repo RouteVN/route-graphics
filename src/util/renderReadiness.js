@@ -3,6 +3,7 @@
 // not opt into readiness, and must not acquire unhandled Promise rejections.
 export const createRenderReadiness = () => {
   let current;
+  let rejectCurrent;
   return {
     begin(signal) {
       let resolve;
@@ -27,6 +28,7 @@ export const createRenderReadiness = () => {
         settle(reject, error);
       };
       current = promise;
+      rejectCurrent = (error) => settle(reject, error);
       signal.addEventListener("abort", abort, { once: true });
       if (signal.aborted) abort();
       return {
@@ -40,6 +42,9 @@ export const createRenderReadiness = () => {
         Promise.reject(new Error("No active render has been requested."))
       );
     },
+    reject(error) {
+      rejectCurrent?.(error);
+    },
     presentedUnchanged() {
       // An initial empty scene can equal the empty diff baseline. A genuinely
       // pending equal render must keep its original readiness reservation.
@@ -47,6 +52,7 @@ export const createRenderReadiness = () => {
     },
     clear() {
       current = undefined;
+      rejectCurrent = undefined;
     },
   };
 };

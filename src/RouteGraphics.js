@@ -1203,7 +1203,11 @@ const createRouteGraphics = () => {
       animationBus.cancelAllExcept(continuityPlan.continuedAnimationIds);
       if (!isCurrent()) return;
 
-      const renderOperation = renderElements({
+      const inheritedPreparations = Array.from(
+        continuityPlan.continuedAnimationIds,
+        (id) => animationBus.getPendingPreparation(id),
+      ).filter(Boolean);
+      const elementOperation = renderElements({
         app: appInstance,
         parent,
         prevComputedTree: state.elements,
@@ -1217,6 +1221,9 @@ const createRouteGraphics = () => {
         shaderTime: shaderTimeMS / 1000,
         getShaderTime: () => shaderTimeMS / 1000,
       });
+      const renderOperation = inheritedPreparations.length
+        ? Promise.all([...inheritedPreparations, elementOperation])
+        : elementOperation;
 
       if (renderOperation && typeof renderOperation.then === "function")
         void Promise.resolve(renderOperation).catch(() => {});
@@ -1508,6 +1515,9 @@ const createRouteGraphics = () => {
       keyboardManager = createKeyboardManager(handler);
       completionTracker = createCompletionTracker((event, payload) => {
         if (payload.failed) {
+          // Preserve the cause before cancellation or a reentrant fallback can
+          // settle this request with AbortError.
+          renderReadiness.reject(payload.error);
           needsReconciliation = true;
           renderAbortController?.abort();
           animationBus.cancelAll();

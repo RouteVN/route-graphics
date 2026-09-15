@@ -644,6 +644,10 @@ export const runReplaceAnimation = ({
     }
     throw error;
   };
+  const trackPreparation = (operation) => {
+    if (pendingRegistration) pendingRegistration.preparation = operation;
+    return operation;
+  };
   try {
     const nextDisplayObjectOrPromise = nextElement
       ? instantiateNextLiveElement({
@@ -668,14 +672,18 @@ export const runReplaceAnimation = ({
       nextDisplayObjectOrPromise &&
       typeof nextDisplayObjectOrPromise.then === "function"
     ) {
-      return resolveNextDisplayObject(nextDisplayObjectOrPromise)
-        .then((nextDisplayObject) =>
-          continueWithNextDisplayObject(nextDisplayObject, true),
-        )
-        .catch(failPreparation);
+      return trackPreparation(
+        resolveNextDisplayObject(nextDisplayObjectOrPromise)
+          .then((nextDisplayObject) =>
+            continueWithNextDisplayObject(nextDisplayObject, true),
+          )
+          .catch(failPreparation),
+      );
     }
 
-    return continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null);
+    return trackPreparation(
+      continueWithNextDisplayObject(nextDisplayObjectOrPromise ?? null),
+    );
   } catch (error) {
     return failPreparation(error);
   }
