@@ -524,6 +524,244 @@ const findTransitionOverlay = (pixiMock) =>
     ) ?? null;
 
 describe("RouteGraphics public API", () => {
+  it("preserves the newest readiness when an abort handler renders reentrantly", async () => {
+    let interrupted;
+    const { app } = await setupRouteGraphics({
+      initOptions: {
+        eventHandler: (event, payload) => {
+          if (
+            event === "renderComplete" &&
+            payload.id === "pending" &&
+            payload.aborted
+          ) {
+            interrupted = app.whenRenderReady();
+            app.render({ id: "newest", elements: [] });
+          }
+        },
+      },
+      pluginsFactory: async () => {
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
+        return {
+          elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
+        };
+      },
+    });
+    app.render({
+      id: "pending",
+      elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+    });
+    const first = app.whenRenderReady();
+    app.render({ id: "interrupted", elements: [] });
+    await expect(first).rejects.toMatchObject({ name: "AbortError" });
+    await expect(interrupted).rejects.toMatchObject({ name: "AbortError" });
+    await expect(app.whenRenderReady()).resolves.toBeUndefined();
+  });
+
+  it("accepts readiness for an initially empty scene", async () => {
+    const { app } = await setupRouteGraphics();
+    app.render({ elements: [] });
+    await expect(app.whenRenderReady()).resolves.toBeUndefined();
+  });
+
+  it.each([false, true])(
+    "rejects readiness when renderer submission fails (deferred: %s)",
+    async (deferred) => {
+      let release;
+      const pending = new Promise((resolve) => {
+        release = resolve;
+      });
+      const { app, pixiMock } = await setupRouteGraphics({
+        pluginsFactory: async () => {
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
+          return {
+            elements: [
+              {
+                ...rectPlugin,
+                add: (options) =>
+                  deferred
+                    ? pending.then(() => rectPlugin.add(options))
+                    : rectPlugin.add(options),
+              },
+            ],
+          };
+        },
+      });
+      const failure = new Error("renderer submission failed");
+      const render = pixiMock.__getLastApplication().render;
+      if (deferred) render.mockImplementationOnce(() => {});
+      render.mockImplementation(() => {
+        throw failure;
+      });
+      const state = {
+        id: "submit-failed",
+        elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      };
+      if (deferred) app.render(state);
+      else expect(() => app.render(state)).toThrow(failure);
+      const ready = app.whenRenderReady();
+      release();
+      await expect(ready).rejects.toBe(failure);
+    },
+  );
+
+  it("waits for deferred mounts and shares readiness across identical renders", async () => {
+    let release;
+    const pending = new Promise((resolve) => {
+      release = resolve;
+    });
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async () => {
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
+        return {
+          elements: [
+            {
+              ...rectPlugin,
+              add: (options) => pending.then(() => rectPlugin.add(options)),
+            },
+          ],
+        };
+      },
+    });
+    await expect(app.whenRenderReady()).rejects.toThrow("No active render");
+    const state = {
+      id: "deferred",
+      elements: [
+        { id: "box", type: "rect", width: 20, height: 20, fill: "#ff0000" },
+      ],
+    };
+    app.render(state);
+    const ready = app.whenRenderReady();
+    const done = vi.fn();
+    void ready.then(done);
+    app.render(state);
+    expect(app.whenRenderReady()).toBe(ready);
+    await Promise.resolve();
+    expect(done).not.toHaveBeenCalled();
+    expect(app.findElementByLabel("box")).toBeNull();
+    const submitted = pixiMock.__getLastApplication().render.mock.calls.length;
+    release();
+    await ready;
+    expect(done).toHaveBeenCalledOnce();
+    expect(app.findElementByLabel("box")).not.toBeNull();
+    expect(
+      pixiMock.__getLastApplication().render.mock.calls.length,
+    ).toBeGreaterThan(submitted);
+  });
+
+  it.each(["replace", "destroy"])(
+    "rejects pending readiness on %s without awaiting a hung plugin",
+    async (action) => {
+      const { app } = await setupRouteGraphics({
+        pluginsFactory: async () => {
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
+          return {
+            elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
+          };
+        },
+      });
+      app.render({
+        id: "pending",
+        elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      });
+      const ready = app.whenRenderReady();
+      if (action === "destroy") app.destroy();
+      else app.render({ id: "replacement", elements: [] });
+      await expect(ready).rejects.toMatchObject({ name: "AbortError" });
+      if (action === "destroy")
+        await expect(app.whenRenderReady()).rejects.toThrow("No active render");
+      else await expect(app.whenRenderReady()).resolves.toBeUndefined();
+    },
+  );
+
+  it.each([false, true])(
+    "rejects readiness with the mount error and preserves retry readiness (reentrant: %s)",
+    async (reentrant) => {
+      const failure = new Error("deliberate async mount failure");
+      let attempts = 0;
+      const state = {
+        id: "retry-ready",
+        elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      };
+      const { app } = await setupRouteGraphics({
+        initOptions: {
+          eventHandler: (event, payload) => {
+            if (reentrant && event === "renderComplete" && payload.failed)
+              app.render(state);
+          },
+        },
+        pluginsFactory: async () => {
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
+          return {
+            elements: [
+              {
+                ...rectPlugin,
+                add: (options) =>
+                  ++attempts === 1
+                    ? Promise.reject(failure)
+                    : rectPlugin.add(options),
+              },
+            ],
+          };
+        },
+      });
+      app.render(state);
+      const failed = app.whenRenderReady();
+      await expect(failed).rejects.toBe(failure);
+      if (!reentrant) app.render(state);
+      expect(app.whenRenderReady()).not.toBe(failed);
+      await expect(app.whenRenderReady()).resolves.toBeUndefined();
+      expect(app.findElementByLabel("box")).not.toBeNull();
+    },
+  );
+
+  it("readiness does not wait for animation completion or change manual seek", async () => {
+    const events = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: { eventHandler: events, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    app.render({
+      id: "animating",
+      elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      animations: [
+        {
+          id: "move",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { initialValue: 0, keyframes: [{ value: 100, duration: 1000 }] },
+          },
+        },
+      ],
+    });
+    await app.whenRenderReady();
+    expect(events).not.toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: false,
+    });
+    app.setAnimationTime(500);
+    expect(app.findElementByLabel("box").x).toBeCloseTo(50);
+    app.setAnimationTime(1000);
+    expect(events).toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: false,
+    });
+  });
+
   it.each([false, true])(
     "recovers applied elements and cursors after an asynchronous mount fails (reentrant: %s)",
     async (reentrant) => {
@@ -642,7 +880,9 @@ describe("RouteGraphics public API", () => {
       );
       const failure = new Error("overlay construction failed");
       let prepared;
+      let failedReady;
       vi.spyOn(surfaces, "createReplaceOverlay").mockImplementationOnce(() => {
+        failedReady = app.whenRenderReady();
         prepared = app.findElementByLabel("box");
         expect(prepared).not.toBeNull();
         throw failure;
@@ -685,6 +925,8 @@ describe("RouteGraphics public API", () => {
         id: "failed",
         aborted: false,
       });
+      await expect(failedReady).rejects.toBe(failure);
+      await expect(app.whenRenderReady()).resolves.toBeUndefined();
       expect(prepared.destroyed).toBe(true);
       const live = app.findElementByLabel("box");
       expect(live).not.toBeNull();
@@ -3959,115 +4201,134 @@ describe("RouteGraphics public API", () => {
     });
   });
 
-  it("preserves pending persistent transitions across later renders before async mount resolves", async () => {
-    let resolveAdd;
-    const addPromise = new Promise((resolve) => {
-      resolveAdd = resolve;
-    });
+  it.each([false, true])(
+    "preserves pending persistent transitions across later renders before async mount resolves (reject: %s)",
+    async (rejectPreparation) => {
+      let resolveAdd;
+      let rejectPending;
+      const addPromise = new Promise((resolve, reject) => {
+        rejectPending = reject;
+        resolveAdd = resolve;
+      });
 
-    const { app, pixiMock } = await setupRouteGraphics({
-      pluginsFactory: async ({ pixiMock: activePixiMock }) => {
-        const asyncNodePlugin = {
-          type: "async-node",
-          parse: ({ state }) => state,
-          add: vi.fn(({ parent, element, signal }) =>
-            addPromise.then(() => {
-              if (signal?.aborted || parent.destroyed) {
-                return;
-              }
+      const { app, pixiMock } = await setupRouteGraphics({
+        pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+          const asyncNodePlugin = {
+            type: "async-node",
+            parse: ({ state }) => state,
+            add: vi.fn(({ parent, element, signal }) =>
+              addPromise.then(() => {
+                if (signal?.aborted || parent.destroyed) {
+                  return;
+                }
 
-              const container = new activePixiMock.Container();
-              container.label = element.id;
-              parent.addChild(container);
-            }),
-          ),
-          update: vi.fn(),
-          delete: vi.fn(),
-        };
+                const container = new activePixiMock.Container();
+                container.label = element.id;
+                parent.addChild(container);
+              }),
+            ),
+            update: vi.fn(),
+            delete: vi.fn(),
+          };
 
-        return {
-          elements: [asyncNodePlugin],
-          animations: [],
-          audio: [],
-        };
-      },
-    });
-
-    const frameTick = getAutoAnimationTick(pixiMock);
-
-    app.render({
-      id: "persistent-async-old",
-      elements: [
-        {
-          id: "delayed-scene",
-          type: "async-node",
+          return {
+            elements: [asyncNodePlugin],
+            animations: [],
+            audio: [],
+          };
         },
-      ],
-      animations: [
-        {
-          id: "scene-enter",
-          targetId: "delayed-scene",
-          type: "transition",
-          playback: {
-            continuity: "persistent",
+      });
+
+      const frameTick = getAutoAnimationTick(pixiMock);
+
+      app.render({
+        id: "persistent-async-old",
+        elements: [
+          {
+            id: "delayed-scene",
+            type: "async-node",
           },
-          next: {
-            tween: {
-              alpha: {
-                initialValue: 0,
-                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+        ],
+        animations: [
+          {
+            id: "scene-enter",
+            targetId: "delayed-scene",
+            type: "transition",
+            playback: {
+              continuity: "persistent",
+            },
+            next: {
+              tween: {
+                alpha: {
+                  initialValue: 0,
+                  keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+                },
               },
             },
           },
-        },
-      ],
-    });
+        ],
+      });
 
-    app.render({
-      id: "persistent-async-new",
-      elements: [
-        {
-          id: "delayed-scene",
-          type: "async-node",
-        },
-      ],
-      animations: [
-        {
-          id: "scene-enter",
-          targetId: "delayed-scene",
-          type: "transition",
-          playback: {
-            continuity: "persistent",
+      app.render({
+        id: "persistent-async-new",
+        elements: [
+          {
+            id: "delayed-scene",
+            type: "async-node",
           },
-          next: {
-            tween: {
-              alpha: {
-                initialValue: 0,
-                keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+        ],
+        animations: [
+          {
+            id: "scene-enter",
+            targetId: "delayed-scene",
+            type: "transition",
+            playback: {
+              continuity: "persistent",
+            },
+            next: {
+              tween: {
+                alpha: {
+                  initialValue: 0,
+                  keyframes: [{ duration: 1000, value: 1, easing: "linear" }],
+                },
               },
             },
           },
-        },
-      ],
-    });
+        ],
+      });
 
-    resolveAdd();
-    await addPromise;
+      const ready = app.whenRenderReady();
+      const onReady = vi.fn();
+      const onFailure = vi.fn();
+      void ready.then(onReady, onFailure);
+      await Promise.resolve();
+      expect(onReady).not.toHaveBeenCalled();
 
-    await vi.waitFor(() => {
+      if (rejectPreparation) {
+        const failure = new Error("inherited preparation failed");
+        rejectPending(failure);
+        await expect(ready).rejects.toBe(failure);
+        expect(onReady).not.toHaveBeenCalled();
+        expect(onFailure).toHaveBeenCalledWith(failure);
+        return;
+      }
+
+      resolveAdd();
+      await addPromise;
+
+      await ready;
+      expect(onReady).toHaveBeenCalledTimes(1);
       const mounted = app.findElementByLabel("delayed-scene");
-      const overlay = findTransitionOverlay(pixiMock);
-
       expect(mounted).not.toBeNull();
       expect(mounted?.visible).toBe(false);
-      expect(overlay).not.toBeNull();
-    });
+      expect(findTransitionOverlay(pixiMock)).not.toBeNull();
 
-    frameTick({ deltaMS: 200 });
+      frameTick({ deltaMS: 200 });
 
-    const overlay = findTransitionOverlay(pixiMock);
-    expect(overlay?.children[0].alpha).toBeCloseTo(0.2);
-  });
+      const overlay = findTransitionOverlay(pixiMock);
+      expect(overlay?.children[0].alpha).toBeCloseTo(0.2);
+    },
+  );
 
   it("applies remembered manual time to transitions that start asynchronously", async () => {
     let resolveAdd;
@@ -4385,130 +4646,150 @@ describe("RouteGraphics public API", () => {
     });
   });
 
-  it("adopts an async cross-type replacement retained by a newer render", async () => {
-    let resolveDelete;
-    const deleteOperation = new Promise((resolve) => {
-      resolveDelete = resolve;
-    });
-    let nextPlugin;
+  it.each([false, true])(
+    "adopts an async cross-type replacement retained by a newer render (reject: %s)",
+    async (rejectPreparation) => {
+      let resolveDelete;
+      let rejectPending;
+      const deleteOperation = new Promise((resolve, reject) => {
+        rejectPending = reject;
+        resolveDelete = resolve;
+      });
+      let nextPlugin;
 
-    const { app } = await setupRouteGraphics({
-      pluginsFactory: async ({ pixiMock }) => {
-        const { containerPlugin } = await import(
-          "../src/plugins/elements/container/index.js"
-        );
-        const createChild = (parent, element) => {
-          const child = new pixiMock.Container();
-          child.label = element.id;
-          child.value = element.value;
-          parent.addChild(child);
-        };
-        const previousPlugin = {
-          type: "previous-node",
-          parse: ({ state }) => state,
-          add: vi.fn(({ parent, element }) => {
-            createChild(parent, element);
-          }),
-          update: vi.fn(),
-          delete: vi.fn(({ parent, element }) =>
-            deleteOperation.then(() => {
-              const child = parent.children.find(
-                (candidate) => candidate.label === element.id,
-              );
-              if (!child) return;
-              parent.removeChild(child);
-              child.destroy();
+      const { app } = await setupRouteGraphics({
+        pluginsFactory: async ({ pixiMock }) => {
+          const { containerPlugin } = await import(
+            "../src/plugins/elements/container/index.js"
+          );
+          const createChild = (parent, element) => {
+            const child = new pixiMock.Container();
+            child.label = element.id;
+            child.value = element.value;
+            parent.addChild(child);
+          };
+          const previousPlugin = {
+            type: "previous-node",
+            parse: ({ state }) => state,
+            add: vi.fn(({ parent, element }) => {
+              createChild(parent, element);
             }),
-          ),
-        };
-        nextPlugin = {
-          type: "next-node",
-          parse: ({ state }) => state,
-          add: vi.fn(({ parent, element }) => {
-            createChild(parent, element);
-          }),
-          update: vi.fn(),
-          delete: vi.fn(),
-        };
-        const siblingPlugin = {
-          type: "sibling-node",
-          parse: ({ state }) => state,
-          add: vi.fn(({ parent, element }) => {
-            createChild(parent, element);
-          }),
-          update: vi.fn(({ parent, nextElement }) => {
-            const child = parent.children.find(
-              (candidate) => candidate.label === nextElement.id,
-            );
-            if (child) child.value = nextElement.value;
-          }),
-          delete: vi.fn(),
-        };
+            update: vi.fn(),
+            delete: vi.fn(({ parent, element }) =>
+              deleteOperation.then(() => {
+                const child = parent.children.find(
+                  (candidate) => candidate.label === element.id,
+                );
+                if (!child) return;
+                parent.removeChild(child);
+                child.destroy();
+              }),
+            ),
+          };
+          nextPlugin = {
+            type: "next-node",
+            parse: ({ state }) => state,
+            add: vi.fn(({ parent, element }) => {
+              createChild(parent, element);
+            }),
+            update: vi.fn(),
+            delete: vi.fn(),
+          };
+          const siblingPlugin = {
+            type: "sibling-node",
+            parse: ({ state }) => state,
+            add: vi.fn(({ parent, element }) => {
+              createChild(parent, element);
+            }),
+            update: vi.fn(({ parent, nextElement }) => {
+              const child = parent.children.find(
+                (candidate) => candidate.label === nextElement.id,
+              );
+              if (child) child.value = nextElement.value;
+            }),
+            delete: vi.fn(),
+          };
 
-        return {
-          elements: [
-            containerPlugin,
-            previousPlugin,
-            nextPlugin,
-            siblingPlugin,
-          ],
-          animations: [],
-          audio: [],
-        };
-      },
-    });
-
-    const createGroup = (childType) => ({
-      id: "group",
-      type: "container",
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100,
-      children: [
-        {
-          id: "background",
-          type: childType,
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
+          return {
+            elements: [
+              containerPlugin,
+              previousPlugin,
+              nextPlugin,
+              siblingPlugin,
+            ],
+            animations: [],
+            audio: [],
+          };
         },
-      ],
-    });
+      });
 
-    app.render({
-      id: "deferred-replacement-initial",
-      elements: [
-        createGroup("previous-node"),
-        { id: "sibling", type: "sibling-node", value: 0 },
-      ],
-    });
-    app.render({
-      id: "deferred-replacement-pending",
-      elements: [
-        createGroup("next-node"),
-        { id: "sibling", type: "sibling-node", value: 0 },
-      ],
-    });
-    app.render({
-      id: "deferred-replacement-adopted",
-      elements: [
-        createGroup("next-node"),
-        { id: "sibling", type: "sibling-node", value: 1 },
-      ],
-    });
+      const createGroup = (childType) => ({
+        id: "group",
+        type: "container",
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        children: [
+          {
+            id: "background",
+            type: childType,
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+          },
+        ],
+      });
 
-    expect(nextPlugin.add).not.toHaveBeenCalled();
+      app.render({
+        id: "deferred-replacement-initial",
+        elements: [
+          createGroup("previous-node"),
+          { id: "sibling", type: "sibling-node", value: 0 },
+        ],
+      });
+      app.render({
+        id: "deferred-replacement-pending",
+        elements: [
+          createGroup("next-node"),
+          { id: "sibling", type: "sibling-node", value: 0 },
+        ],
+      });
+      app.render({
+        id: "deferred-replacement-adopted",
+        elements: [
+          createGroup("next-node"),
+          { id: "sibling", type: "sibling-node", value: 1 },
+        ],
+      });
 
-    resolveDelete();
-    await deleteOperation;
+      const ready = app.whenRenderReady();
+      const onReady = vi.fn();
+      const onFailure = vi.fn();
+      void ready.then(onReady, onFailure);
+      await Promise.resolve();
+      expect(onReady).not.toHaveBeenCalled();
+      expect(nextPlugin.add).not.toHaveBeenCalled();
 
-    await vi.waitFor(() => {
+      if (rejectPreparation) {
+        const failure = new Error("inherited preparation failed");
+        rejectPending(failure);
+        await expect(ready).rejects.toBe(failure);
+        expect(onReady).not.toHaveBeenCalled();
+        expect(onFailure).toHaveBeenCalledWith(failure);
+        return;
+      }
+
+      resolveDelete();
+      await deleteOperation;
+
+      await ready;
+      expect(onReady).toHaveBeenCalledTimes(1);
       expect(nextPlugin.add).toHaveBeenCalledTimes(1);
       expect(app.findElementByLabel("background")).not.toBeNull();
-    });
-  });
+    },
+  );
 
   it("emits renderComplete for a next-only transition in debug snapshot mode", async () => {
     const eventHandler = vi.fn();

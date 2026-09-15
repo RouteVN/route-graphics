@@ -83,6 +83,25 @@ either backend.
 `createAssetBufferManager()` may keep image and video assets as direct source
 URLs when possible, while audio and font assets remain buffer-backed.
 
+`render()` remains synchronous, but plugins may mount asynchronously. Before
+extracting pixels or reading a mounted layout, await the requested scene:
+
+```javascript
+app.render(nextState);
+await app.whenRenderReady();
+const image = await app.extractBase64();
+```
+
+This waits for async element operations and their first renderer submission,
+not the end of animations/reveals, a GPU fence or browser composition. Identical
+renders share the current wait. Supersession or destruction before readiness
+rejects with `AbortError`; preparation/render errors reject with their original
+error. Before any render and after destruction there is no active wait. Capture
+the promise before requesting another state to observe that particular request.
+Use `renderComplete` when playback completion is required. The PNG CLI waits
+for scene readiness before applying `--time`; `--wait-for-render-complete`
+retains its separate playback-completion meaning.
+
 Assets loaded by an app instance can be released after no rendered or
 transitioning element still references them:
 

@@ -136,6 +136,7 @@ export const renderElements = ({
     lifecycle,
     ownerElementId,
     pendingReplacementIds,
+    pendingReplacementOperations,
     renderedPrevComputedTree,
     resolveRenderParent,
   } = prepareElementRenderState({
@@ -152,6 +153,7 @@ export const renderElements = ({
       updateElement,
     },
   });
+  pendingReplacementOperations.forEach(collectOperation);
   const prevElementById = new Map();
   const nextIndexById = new Map();
   for (const element of renderedPrevComputedTree) {
