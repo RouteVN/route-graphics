@@ -4,6 +4,7 @@ import { updateContainer } from "./updateContainer.js";
 import { deleteContainer } from "./deleteContainer.js";
 import { parseContainer } from "./parseContainer.js";
 import { shouldUpdateUnchangedShaderFilterProgress } from "../util/shaderFilterEffect.js";
+import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
 // Export the container plugin
 export const containerPlugin = createElementPlugin({
@@ -12,5 +13,10 @@ export const containerPlugin = createElementPlugin({
   update: updateContainer,
   delete: deleteContainer,
   parse: parseContainer,
-  shouldUpdateUnchanged: shouldUpdateUnchangedShaderFilterProgress,
+  shouldUpdateUnchanged: (options) =>
+    shouldUpdateUnchangedShaderFilterProgress(options) ||
+    hasResumableTextRevealInTree({
+      parent: options.parent,
+      elements: [options.nextElement],
+    }),
 });

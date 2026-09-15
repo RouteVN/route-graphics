@@ -32,6 +32,7 @@ import {
   getElementTransformTargetState,
 } from "../util/transform.js";
 import { setElementRenderState } from "../elementRenderState.js";
+import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
 const collectDescendantTargetStates = (elements, result = new Map()) => {
   for (const element of elements ?? []) {
@@ -183,8 +184,17 @@ export const updateContainer = ({
       animations,
     });
 
-    // Render children if definition changed OR animation targets children
-    if (childrenChanged || hasChildAnimation || hasChildShaderProgressReset) {
+    const hasChildRevealResume = hasResumableTextRevealInTree({
+      parent: renderParent,
+      elements: nextElement.children,
+    });
+    // Re-enter unchanged descendants whose old timers were aborted by render.
+    if (
+      childrenChanged ||
+      hasChildAnimation ||
+      hasChildShaderProgressReset ||
+      hasChildRevealResume
+    ) {
       childOperation = renderElements({
         app,
         parent: renderParent,
