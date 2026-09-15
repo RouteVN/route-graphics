@@ -1,10 +1,8 @@
 import { Container } from "pixi.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { queueDeferredTextRevealAutoplay } from "../renderContext.js";
-import {
-  runTextReveal,
-  shouldRenderTextRevealImmediately,
-} from "./textRevealingRuntime.js";
+import { shouldRenderTextRevealImmediately } from "./textRevealingRuntime.js";
+import { mountTextReveal } from "./mountTextReveal.js";
 import {
   applyElementTransform,
   getElementTransformTargetState,
@@ -58,7 +56,7 @@ export const addTextRevealing = async ({
     renderContext?.suppressAnimations &&
     !shouldRenderTextRevealImmediately(element)
   ) {
-    await runTextReveal({
+    await mountTextReveal({
       container,
       element,
       completionTracker,
@@ -81,7 +79,7 @@ export const addTextRevealing = async ({
     return;
   }
 
-  await runTextReveal({
+  await mountTextReveal({
     container,
     element,
     completionTracker,
