@@ -2402,6 +2402,10 @@ export const createAudioStage = () => {
               instance.channelNode === channel.gainNode &&
               instance.finishing
             ) {
+              // This tail left the previous render graph earlier, but still
+              // uses this concrete channel. Its new exit owner must share the
+              // tail just like children removed in this render transaction.
+              ownSound(id, instance);
               finishSoundForDeferredChannel(instance, entry);
             }
           }
