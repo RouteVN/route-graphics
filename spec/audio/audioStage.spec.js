@@ -3276,6 +3276,107 @@ describe("AudioStage graph rendering", () => {
     expect(context.sources[1].loop).toBe(true);
   });
 
+  it.each(
+    [10.1, 10.3].flatMap((pausedAt) =>
+      [true, false].map((withUpdate) => ({ pausedAt, withUpdate })),
+    ),
+  )(
+    "settles only the current source's boundary rate after resume (pause: $pausedAt, update: $withUpdate)",
+    async ({ pausedAt, withUpdate }) => {
+      const { stage, context } = await setupAudioStage({
+        assetMap: new Map([["theme", { duration: 20 }]]),
+      });
+      const { audioParamAutomation } = await import(
+        "../../src/audio/automation.js"
+      );
+      const channel = (commandId, operation, withBegin = true) => [
+        {
+          id: "music",
+          type: "audio-channel",
+          playback: { commandId, operation },
+          children: [
+            {
+              id: "theme",
+              type: "sound",
+              src: "theme",
+              ...(withBegin
+                ? { beginEffect: { playbackRate: keyframePhase(0.5, 200) } }
+                : {}),
+            },
+          ],
+        },
+      ];
+      const playing = channel(1, "resume"),
+        paused = channel(2, "pause");
+      const resumed = channel(3, "resume"),
+        removed = channel(3, "resume", false);
+      const updated = channel(3, "resume");
+      if (withUpdate) {
+        updated[0].children[0].playbackRate = 2;
+        removed[0].children[0].playbackRate = 2;
+      }
+      stage.renderGraph({ nextAudio: playing });
+      const sound = findCurrentSound(stage, "theme");
+      const firstSource = sound.source;
+      context.currentTime = pausedAt;
+      stage.renderGraph({ prevAudio: playing, nextAudio: paused });
+      if (pausedAt > 10.2) {
+        expect(sound.channelPauseState.boundaryAutomationState).toBeNull();
+      } else {
+        expect(
+          sound.channelPauseState.boundaryAutomationState.playbackRate.phase,
+        ).toBe("begin");
+      }
+      context.currentTime = 11;
+      stage.renderGraph({ prevAudio: paused, nextAudio: resumed });
+      const source = sound.source;
+      expect(source).not.toBe(firstSource);
+      const effects = withUpdate
+        ? [
+            {
+              id: "rate-update",
+              type: "audio-transition",
+              targetId: "theme",
+              properties: { playbackRate: { update: keyframePhase(2, 1000) } },
+            },
+          ]
+        : [];
+      context.currentTime = 11.1;
+      stage.renderGraph({
+        prevAudio: resumed,
+        nextAudio: updated,
+        nextAudioEffects: effects,
+      });
+      const active = audioParamAutomation.get(source.playbackRate);
+      expect(active).toBeDefined();
+      source.playbackRate.cancelScheduledValues.mockClear();
+      source.playbackRate.setValueAtTime.mockClear();
+      context.currentTime = 11.2;
+      stage.renderGraph({
+        prevAudio: updated,
+        nextAudio: removed,
+        prevAudioEffects: effects,
+        nextAudioEffects: effects,
+      });
+      if (withUpdate) {
+        expect(audioParamAutomation.get(source.playbackRate)).toBe(active);
+        expect(
+          source.playbackRate.cancelScheduledValues,
+        ).not.toHaveBeenCalled();
+        expect(source.playbackRate.setValueAtTime).not.toHaveBeenCalled();
+      } else {
+        expect(audioParamAutomation.get(source.playbackRate)).not.toBe(active);
+        expect(source.playbackRate.setValueAtTime).toHaveBeenLastCalledWith(
+          1,
+          11.2,
+        );
+      }
+      expect(sound.boundaryAutomations.playbackRate).toBeUndefined();
+      stage.destroy();
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
+
   it("measures the current loop remainder before enabling boundary effects", async () => {
     const { stage, context } = await setupAudioStage({
       assetMap: new Map([["theme", { duration: 1 }]]),
