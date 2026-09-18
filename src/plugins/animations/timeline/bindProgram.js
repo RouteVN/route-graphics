@@ -371,13 +371,31 @@ const segmentsOverlapAcrossOccurrences = (domains, left, right) => {
   return false;
 };
 
+// Only composite expressions carry child expressions; constant values and
+// randomChoice choices are opaque payloads that may legally embed any JSON,
+// including objects shaped like expressions.
+const getExpressionChildren = (expression) => {
+  switch (expression.kind) {
+    case "add":
+    case "subtract":
+    case "multiply":
+    case "divide":
+      return [expression.left, expression.right];
+    case "min":
+    case "max":
+      return expression.values;
+    case "clamp":
+      return [expression.value, expression.min, expression.max];
+    default:
+      return [];
+  }
+};
+
 const expressionContainsKind = (expression, kind) => {
   if (!expression || typeof expression !== "object") return false;
   if (expression.kind === kind) return true;
-  return Object.values(expression).some((value) =>
-    Array.isArray(value)
-      ? value.some((item) => expressionContainsKind(item, kind))
-      : expressionContainsKind(value, kind),
+  return getExpressionChildren(expression).some((child) =>
+    expressionContainsKind(child, kind),
   );
 };
 
