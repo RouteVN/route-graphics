@@ -396,7 +396,15 @@ export const settleSoundBoundaryPhase = (
   for (const [property, record] of Object.entries(sound.boundaryAutomations)) {
     if (record.phase !== phase) continue;
 
-    if (audioParamAutomation.get(record.param) === record.automation) {
+    // Resume creates a new source. A completed boundary may be rebound without
+    // a pause snapshot, leaving record.param attached to the old source. Check
+    // the live rate parameter so the old boundary cannot settle a newer update.
+    // With no source (paused), the recorded parameter still owns settlement.
+    const param =
+      property === "playbackRate"
+        ? (sound.source?.playbackRate ?? record.param)
+        : record.param;
+    if (audioParamAutomation.get(param) === record.automation) {
       if (property === "playbackRate") {
         beforePlaybackRate?.();
       }
