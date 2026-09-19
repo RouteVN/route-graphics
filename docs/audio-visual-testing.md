@@ -93,6 +93,29 @@ The first state must use `atMs: 0`. Later states execute on deterministic audio
 time. Timers created by `startDelayMs`, cleanup tails, and controlled progress
 events use the same virtual clock.
 
+A timed state may also provide `afterMicrotask: <state object>`. The runner
+queues that render immediately after the first render returns. For cached
+controlled audio this runs after decode settles but before the queued
+`soundReady` event, allowing an AVT to check the audible removal tail.
+
+Use `eventRenders` to render synchronously inside a public sound callback:
+
+```yaml
+eventRenders:
+  - event: soundReady
+    id: player
+    states:
+      - id: removed-in-ready
+        elements: []
+        animations: []
+        audio: []
+```
+
+Each entry matches the event name and sound ID, runs once, and renders its
+states in order before the callback returns. The runner fails if a trigger
+never fires. The transcript includes the triggering event and any nested
+render events, so snapshots check event suppression alongside the audio.
+
 Use generated uncompressed tone assets for reference specs. A tone accepts
 `frequency` and optional `endFrequency`, `durationMs`, and `amplitude` fields;
 different start/end frequencies produce a deterministic chirp. Compressed
