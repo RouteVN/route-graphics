@@ -93,8 +93,16 @@ const createRouteGraphics = () => {
     restoreManagedVideoSpriteSizes(spriteSizes);
   };
 
+  class ManagedVideoSource extends VideoSource {
+    get isValid() {
+      // Pixi accepts metadata-only videos, but uploading one can leave GPU
+      // storage smaller than its cached dimensions. Wait for decoded pixels.
+      return isRenderableVideoFrameReady(this.resource);
+    }
+  }
+
   const createVideoTextureSource = (video, alphaMode) =>
-    new VideoSource({
+    new ManagedVideoSource({
       resource: video,
       width: getVideoTextureDimension(video.videoWidth),
       height: getVideoTextureDimension(video.videoHeight),

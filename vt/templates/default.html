@@ -180,6 +180,7 @@
         createAssetBufferManager,
       } from "/RouteGraphics.js";
       import { parseAllDocuments } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+      import { createManualTimeoutClock } from "/manualTimeoutClock.js";
 
       const assetsObject = {
         "background-1": {
@@ -721,7 +722,9 @@
         }));
       };
 
+      const manualTimeoutClock = createManualTimeoutClock(window);
       window.vtAssert = {
+        timersIdle: () => manualTimeoutClock.idle(),
         renderReady: async () => {
           await app.whenRenderReady();
           return true;
@@ -920,6 +923,13 @@
       });
 
       const listenEvents = () => {
+        window.addEventListener("vtInstallTimeoutClock", () => {
+          manualTimeoutClock.install();
+        });
+        window.addEventListener("vtAdvanceTimeoutClock", (event) => {
+          manualTimeoutClock.advance(Number(event.detail.deltaMS));
+        });
+
         const dispatchVtKeyboardEvent = (type, options) => {
           document.dispatchEvent(
             new KeyboardEvent(type, {
