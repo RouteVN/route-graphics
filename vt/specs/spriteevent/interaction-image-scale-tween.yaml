@@ -1,0 +1,93 @@
+---
+title: Sprite Interaction Images During Scale Tween
+description: |
+  Deterministically sample a scale tween on a centered, reflected sprite, then
+  swap to differently sized hover and pressed images without advancing time.
+  Only the grayscale image marks should change at each frozen checkpoint.
+  Advance again while hovered and restore the base image at the new live scale.
+specs:
+  - hovering or pressing must not reset the live tween to the authored size
+  - all images stay centered on the crosshair with the same reflection
+  - the tween continues after a texture swap and restoration keeps its new size
+steps:
+  - action: keypress
+    key: n
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: screenshot
+  - action: move
+    x: 640
+    "y": 360
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: mouseUp
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: screenshot
+  - action: move
+    x: 40
+    "y": 40
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 600
+  - action: screenshot
+---
+states:
+  - elements: &elements
+      - id: horizontal-guide
+        type: rect
+        x: 360
+        "y": 359
+        width: 560
+        height: 2
+        fill: "#737373"
+      - id: vertical-guide
+        type: rect
+        x: 639
+        "y": 120
+        width: 2
+        height: 480
+        fill: "#737373"
+      - id: button
+        type: sprite
+        src: interaction-base
+        x: 640
+        "y": 360
+        width: 240
+        height: 180
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: -1.5
+        scaleY: 0.75
+        rotation: 17
+        hover:
+          src: interaction-hover
+        click:
+          src: interaction-press
+  - elements: *elements
+    animations:
+      - id: live-scale
+        targetId: button
+        type: update
+        tween:
+          scaleX:
+            # Tween values use native texture units: 240 / 960 * -1.5.
+            initialValue: -0.375
+            keyframes:
+              - duration: 1200
+                value: -0.2
+                easing: linear
+          scaleY:
+            # 180 / 540 * 0.75.
+            initialValue: 0.25
+            keyframes:
+              - duration: 1200
+                value: 0.125
+                easing: linear

@@ -27,6 +27,7 @@ import {
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
+import { createInteractionTextureSetter } from "./interactionTextures.js";
 import {
   applyElementTransform,
   getElementTransformTargetState,
@@ -119,6 +120,10 @@ export const updateSprite = ({
     let hoverController = null;
     let pressController = null;
     let rightPressController = null;
+    const setInteractionTexture = createInteractionTextureSetter(
+      spriteElement,
+      texture,
+    );
 
     const updateTexture = () => {
       const isHovering = hoverController?.isHovering() ?? false;
@@ -127,15 +132,15 @@ export const updateSprite = ({
 
       if (isRightPressed && rightClickEvents?.src) {
         const rightClickTexture = Texture.from(rightClickEvents.src);
-        spriteElement.texture = rightClickTexture;
+        setInteractionTexture(rightClickTexture);
       } else if (isPressed && clickEvents?.src) {
         const clickTexture = Texture.from(clickEvents.src);
-        spriteElement.texture = clickTexture;
+        setInteractionTexture(clickTexture);
       } else if (isHovering && hoverEvents?.src) {
         const hoverTexture = Texture.from(hoverEvents.src);
-        spriteElement.texture = hoverTexture;
+        setInteractionTexture(hoverTexture);
       } else {
-        spriteElement.texture = texture;
+        setInteractionTexture(texture);
       }
     };
 

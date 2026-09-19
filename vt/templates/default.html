@@ -180,6 +180,7 @@
         createAssetBufferManager,
       } from "/RouteGraphics.js";
       import { parseAllDocuments } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
+      import { createManualTimeoutClock } from "/manualTimeoutClock.js";
 
       const assetsObject = {
         "background-1": {
@@ -189,6 +190,22 @@
         "circle-blue": { url: "/public/circle-blue.png", type: "image/png" },
         "circle-red": { url: "/public/circle-red.png", type: "image/png" },
         "circle-green": { url: "/public/circle-green.png", type: "image/png" },
+        "interaction-base": {
+          url: "/public/interaction-base.svg",
+          type: "image/svg+xml",
+        },
+        "interaction-hover": {
+          url: "/public/interaction-hover.svg",
+          type: "image/svg+xml",
+        },
+        "interaction-press": {
+          url: "/public/interaction-press.svg",
+          type: "image/svg+xml",
+        },
+        "interaction-right-press": {
+          url: "/public/interaction-right-press.svg",
+          type: "image/svg+xml",
+        },
         "sprite-mask-asym-outgoing": {
           url: "/public/sprite-mask-asym-outgoing.png",
           type: "image/png",
@@ -705,7 +722,9 @@
         }));
       };
 
+      const manualTimeoutClock = createManualTimeoutClock(window);
       window.vtAssert = {
+        timersIdle: () => manualTimeoutClock.idle(),
         renderReady: async () => {
           await app.whenRenderReady();
           return true;
@@ -904,6 +923,13 @@
       });
 
       const listenEvents = () => {
+        window.addEventListener("vtInstallTimeoutClock", () => {
+          manualTimeoutClock.install();
+        });
+        window.addEventListener("vtAdvanceTimeoutClock", (event) => {
+          manualTimeoutClock.advance(Number(event.detail.deltaMS));
+        });
+
         const dispatchVtKeyboardEvent = (type, options) => {
           document.dispatchEvent(
             new KeyboardEvent(type, {
