@@ -1,0 +1,42 @@
+title: Controlled tail removed inside soundReady
+description: >-
+  Reentrant channel removal still plays the outgoing segment and suppresses subsequent progress and
+  completion events.
+durationMs: 1500
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 1320
+states:
+  - atMs: 0
+    state:
+      id: before-ready
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          interruption: loopEnd
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              loop: true
+              volume: 75
+              startAt: 0.1
+              endAt: 0.9
+              playback:
+                commandId: 1
+                operation: play
+                positionMs: 100
+eventRenders:
+  - event: soundReady
+    id: player
+    states:
+      - id: removed
+        elements: []
+        animations: []
+        audio: []
