@@ -98,7 +98,25 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
     }
 
     addChild(child) {
+      child.parent?.removeChild(child);
       this.children.push(child);
+      child.parent = this;
+      return child;
+    }
+
+    getChildIndex(child) {
+      const index = this.children.indexOf(child);
+      if (index < 0)
+        throw new Error("The supplied child must belong to this parent");
+      return index;
+    }
+
+    addChildAt(child, index) {
+      if (index < 0 || index > this.children.length) {
+        throw new RangeError("Child index is outside this parent");
+      }
+      child.parent?.removeChild(child);
+      this.children.splice(index, 0, child);
       child.parent = this;
       return child;
     }
