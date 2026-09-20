@@ -8,6 +8,7 @@ import {
   detectVideoAlphaMode,
 } from "pixi.js";
 import "./renderer/pixi/cspCompatibility.js";
+import { extractSnapshotBase64 } from "./renderer/pixi/snapshotTexture.js";
 import {
   sharedTextureAssetOwners,
   sharedTextureAliasOwners,
@@ -1381,7 +1382,11 @@ const createRouteGraphics = () => {
       if (!element) {
         throw new Error(`Element with label '${label}' not found`);
       }
-      return await app.renderer.extract.base64({ target: element, frame });
+      return await extractSnapshotBase64({
+        renderer: app.renderer,
+        displayObject: element,
+        frame,
+      });
     },
 
     assignStageEvent: (eventType, callback) => {
