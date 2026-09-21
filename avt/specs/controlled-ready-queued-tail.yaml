@@ -1,0 +1,42 @@
+title: Controlled tail removed before queued readiness
+description: >-
+  Cached decode settles before removal; the outgoing segment stays audible and emits no sound
+  events.
+durationMs: 1500
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 1320
+states:
+  - atMs: 0
+    state:
+      id: before-ready
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          interruption: loopEnd
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              loop: true
+              volume: 75
+              startAt: 0.1
+              endAt: 0.9
+              playback:
+                commandId: 1
+                operation: play
+                positionMs: 100
+    afterMicrotask:
+      id: removed
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          interruption: loopEnd
