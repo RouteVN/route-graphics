@@ -80,6 +80,22 @@ other backend. The selected value is available as `app.rendererType`. Inline
 shader effects always provide both GLSL and WGSL so the same state works on
 either backend.
 
+For scene/editor/preview handoffs, use `await app.reset({ eventHandler })`
+instead of destroying and recreating the renderer. Reset clears the display tree,
+animations, audio playback, keyboard bindings, DOM input controls, cursor state,
+and pending render callbacks while preserving the same canvas and GPU context.
+It accepts runtime initialization overrides, including width/height and plugins;
+renderer backend, fallback policy, and debug mode must remain unchanged.
+Loaded assets stay owned by the instance: use `unloadAssets()` for media no longer
+needed, and `destroy()` when the rendering surface is permanently discarded.
+Serialize reset with asset loading and unloading. This avoids repeated WebGL
+context creation during rapid view changes, which can exhaust WebKit's context
+accounting even after explicit context loss ([WebKit bug 218305](https://bugs.webkit.org/show_bug.cgi?id=218305)).
+
+Run `bun run build && node scripts/testRendererReset.mjs` to verify 40 resets in
+Chromium and WebKit reuse one context, clear runtime state, and release the context
+on final destruction.
+
 `createAssetBufferManager()` may keep image and video assets as direct source
 URLs when possible, while audio and font assets remain buffer-backed.
 

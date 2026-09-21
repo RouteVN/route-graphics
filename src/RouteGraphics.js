@@ -1,5 +1,6 @@
 import {
   Application,
+  Container,
   Assets,
   Graphics,
   Texture,
@@ -292,7 +293,8 @@ const createRouteGraphics = () => {
   /**
    * @type {AudioStage}
    */
-  const audioStage = createAudioStage();
+  let audioStage = createAudioStage();
+  let initializationOptions;
 
   let needsReconciliation = false;
   /**
@@ -1308,6 +1310,308 @@ const createRouteGraphics = () => {
     }
   };
 
+  const initialize = async (options, reuseRenderer = false) => {
+    const {
+      eventHandler: handler,
+      plugins: pluginConfig,
+      width,
+      height,
+      backgroundColor,
+      debug = false,
+      onFirstRender,
+      animationPlaybackMode: nextAnimationPlaybackMode = "auto",
+      rendererPreference: nextRendererPreference = "webgl",
+      rendererFallback = true,
+    } = options;
+
+    onFirstRenderCallback = onFirstRender;
+    assertAnimationPlaybackMode(nextAnimationPlaybackMode);
+    assertRendererPreference(nextRendererPreference);
+    if (typeof rendererFallback !== "boolean") {
+      throw new Error("rendererFallback must be a boolean.");
+    }
+    animationPlaybackMode = nextAnimationPlaybackMode;
+    animationPlaybackTimeMS = null;
+    shaderTimeMS = 0;
+    rendererPreference = nextRendererPreference;
+    animationBusListenerCleanup.forEach((cleanup) => cleanup());
+    animationBusListenerCleanup = [];
+
+    const parserPlugins = [];
+
+    pluginConfig?.elements?.forEach((plugin) => {
+      if (plugin?.parse)
+        parserPlugins.push(
+          createParserPlugin({ type: plugin.type, parse: plugin.parse }),
+        );
+    });
+
+    plugins = {
+      elements: pluginConfig?.elements ?? [],
+      audio: pluginConfig?.audio ?? [],
+      parsers: parserPlugins,
+    };
+    eventHandler = handler;
+
+    keyboardManager = createKeyboardManager(handler);
+    completionTracker = createCompletionTracker((event, payload) => {
+      if (payload.failed) {
+        // Preserve the failure before aborting the readiness wait.
+        renderReadiness.reject(payload.error);
+        needsReconciliation = true;
+        renderAbortController?.abort();
+        animationBus.cancelAll();
+      }
+      handler?.(event, payload);
+    });
+
+    /**
+     * @type {ApplicationWithAudioStage}
+     */
+    if (!reuseRenderer) {
+      app = new Application();
+      await app.init({
+        width,
+        height,
+        backgroundColor,
+        preference: rendererPreference,
+        preserveDrawingBuffer: debug === true,
+      });
+    } else {
+      app.renderer.resize(width, height);
+      app.renderer.background.color = backgroundColor ?? 0x000000;
+    }
+    app.audioStage = audioStage;
+    selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
+    if (!rendererFallback && selectedRendererType !== rendererPreference) {
+      app.destroy();
+      throw new Error(
+        `Renderer "${rendererPreference}" is unavailable and rendererFallback is false.`,
+      );
+    }
+    if (typeof app.ticker?.remove === "function") {
+      app.ticker.remove(app.render, app);
+    }
+    app.debug = debug;
+    app.inputDomBridge = createInputDomBridge({ app });
+    canvasContextMenuListener = (event) => {
+      event.preventDefault();
+    };
+    app.canvas.addEventListener("contextmenu", canvasContextMenuListener);
+    canvasWebglContextLostListener = (event) => {
+      event.preventDefault();
+      const payload = {};
+      if (
+        typeof event.statusMessage === "string" &&
+        event.statusMessage.length > 0
+      ) {
+        payload.statusMessage = event.statusMessage;
+      }
+      eventHandler?.("rendererContextLost", payload);
+    };
+    canvasWebglContextRestoredListener = () => {
+      eventHandler?.("rendererContextRestored", {});
+    };
+    app.canvas.addEventListener(
+      "webglcontextlost",
+      canvasWebglContextLostListener,
+    );
+    app.canvas.addEventListener(
+      "webglcontextrestored",
+      canvasWebglContextRestoredListener,
+    );
+
+    const webgpuDeviceLost = app.renderer?.gpu?.device?.lost;
+    if (webgpuDeviceLost && typeof webgpuDeviceLost.then === "function") {
+      const subscription = {};
+      webgpuDeviceLossSubscription = subscription;
+      void Promise.resolve(webgpuDeviceLost).then(
+        (deviceLostInfo) => {
+          if (webgpuDeviceLossSubscription !== subscription) {
+            return;
+          }
+
+          const payload = {};
+          if (
+            typeof deviceLostInfo?.reason === "string" &&
+            deviceLostInfo.reason.length > 0
+          ) {
+            payload.reason = deviceLostInfo.reason;
+          }
+          if (
+            typeof deviceLostInfo?.message === "string" &&
+            deviceLostInfo.message.length > 0
+          ) {
+            payload.statusMessage = deviceLostInfo.message;
+          }
+          eventHandler?.("rendererContextLost", payload);
+        },
+        () => {
+          // GPUDevice.lost resolves by specification. Ignore non-standard
+          // thenables that reject so lifecycle observation cannot create an
+          // unhandled rejection.
+        },
+      );
+    }
+
+    backgroundGraphic = new Graphics();
+    backgroundGraphic.label = "__route_graphics_background__";
+    drawBackgroundGraphic(backgroundGraphic, width, height, backgroundColor);
+    app.stage.addChild(backgroundGraphic);
+    app.stage.width = width;
+    app.stage.height = height;
+    app.ticker.add(app.audioStage.tick);
+
+    // Create animation bus and attach to ticker
+    animationBus = createAnimationBus();
+    const renderManualFrame = () => {
+      if (
+        animationPlaybackMode === "manual" &&
+        typeof app.render === "function"
+      ) {
+        app.render();
+      }
+    };
+    animationBusListenerCleanup = [
+      animationBus.on("started", renderManualFrame),
+      animationBus.on("completed", renderManualFrame),
+      animationBus.on("cancelled", renderManualFrame),
+      animationBus.on("timelineEvent", (timelineEvent) => {
+        eventHandler?.("timelineEvent", timelineEvent);
+      }),
+    ];
+    if (!debug) {
+      frameTickerListener = (time) => {
+        if (animationPlaybackMode !== "auto") {
+          return;
+        }
+
+        shaderTimeMS += time.deltaMS;
+        setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
+        animationBus.tick(time.deltaMS);
+        if (typeof app.render === "function") {
+          app.render();
+        }
+      };
+      app.ticker.add(frameTickerListener);
+    } else {
+      debugAnimationListener = (event) => {
+        if (animationPlaybackMode !== "auto") {
+          return;
+        }
+
+        if (event?.detail?.deltaMS) {
+          const deltaMS = Number(event.detail.deltaMS);
+          shaderTimeMS += deltaMS;
+          setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
+          animationBus.tick(deltaMS);
+          if (typeof app.render === "function") {
+            app.render();
+          }
+        }
+      };
+      window.addEventListener("snapShotKeyFrame", debugAnimationListener);
+    }
+
+    initializationOptions = { ...options };
+    return routeGraphicsInstance;
+  };
+
+  const disposeRuntime = (retainRenderer) => {
+    renderReadiness.clear();
+    if (renderAbortController) {
+      renderAbortController.abort();
+      renderAbortController = undefined;
+    }
+    if (debugAnimationListener) {
+      window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
+      debugAnimationListener = undefined;
+    }
+    if (frameTickerListener && typeof app?.ticker?.remove === "function") {
+      app.ticker.remove(frameTickerListener);
+      frameTickerListener = undefined;
+    }
+    if (canvasContextMenuListener && app?.canvas) {
+      app.canvas.removeEventListener("contextmenu", canvasContextMenuListener);
+      canvasContextMenuListener = undefined;
+    }
+    if (canvasWebglContextLostListener && app?.canvas) {
+      app.canvas.removeEventListener(
+        "webglcontextlost",
+        canvasWebglContextLostListener,
+      );
+      canvasWebglContextLostListener = undefined;
+    }
+    if (canvasWebglContextRestoredListener && app?.canvas) {
+      app.canvas.removeEventListener(
+        "webglcontextrestored",
+        canvasWebglContextRestoredListener,
+      );
+      canvasWebglContextRestoredListener = undefined;
+    }
+    webgpuDeviceLossSubscription = undefined;
+
+    const ownedAssetIds = new Set([
+      ...loadedAssetRecords.keys(),
+      ...pendingAssetLoads.keys(),
+    ]);
+    for (const assetId of retainRenderer ? [] : ownedAssetIds) {
+      void unloadAsset(assetId).catch(() => {
+        // destroy is synchronous and best-effort; explicit unloadAssets calls
+        // continue to surface disposal failures to the caller.
+      });
+    }
+
+    app?.inputDomBridge?.destroy?.();
+    keyboardManager?.destroy();
+    clearPendingSounds();
+    animationBusListenerCleanup.forEach((cleanup) => cleanup());
+    animationBusListenerCleanup = [];
+    if (animationBus) animationBus.destroy();
+    if (app?.audioStage) {
+      app.ticker?.remove?.(app.audioStage.tick);
+      app.audioStage.destroy();
+    }
+
+    // Pause all video elements before destroying
+    const pauseVideosRecursively = (container) => {
+      for (const child of container.children) {
+        const resource = child.texture?.source?.resource;
+        if (resource instanceof HTMLVideoElement) {
+          resource.pause();
+        }
+        if (child.children) {
+          pauseVideosRecursively(child);
+        }
+      }
+    };
+
+    if (app?.stage) {
+      pauseVideosRecursively(app.stage);
+      cleanupParticlesInTree({ app, root: app.stage });
+    }
+
+    if (app && retainRenderer) {
+      app.stage.destroy({ children: true });
+      app.stage = new Container();
+      app.canvas.style.cursor = "default";
+      app.renderer.events.cursorStyles.default = "default";
+      app.renderer.events.cursorStyles.hover = "pointer";
+    } else if (app) {
+      app.destroy(false, { children: true });
+      app = undefined;
+    }
+    state = { elements: [], animations: [], audio: [], audioEffects: [] };
+    hasRenderedOnce = false;
+    needsReconciliation = false;
+    animationPlaybackMode = "auto";
+    animationPlaybackTimeMS = null;
+    shaderTimeMS = 0;
+    rendererPreference = "webgl";
+    selectedRendererType = "webgl";
+    backgroundGraphic = undefined;
+  };
+
   const routeGraphicsInstance = {
     rendererName: "pixi",
 
@@ -1477,290 +1781,38 @@ const createRouteGraphics = () => {
      * @param {RouteGraphicsInitOptions} options
      * @returns
      */
-    init: async (options) => {
-      const {
-        eventHandler: handler,
-        plugins: pluginConfig,
-        width,
-        height,
-        backgroundColor,
-        debug = false,
-        onFirstRender,
-        animationPlaybackMode: nextAnimationPlaybackMode = "auto",
-        rendererPreference: nextRendererPreference = "webgl",
-        rendererFallback = true,
-      } = options;
+    init: (options) => initialize(options),
 
-      onFirstRenderCallback = onFirstRender;
-      assertAnimationPlaybackMode(nextAnimationPlaybackMode);
-      assertRendererPreference(nextRendererPreference);
-      if (typeof rendererFallback !== "boolean") {
-        throw new Error("rendererFallback must be a boolean.");
+    /**
+     * Clear scene runtime state while retaining the canvas, renderer, and loaded
+     * assets. Call unloadAssets separately to release media no longer needed.
+     * Renderer backend and drawing-buffer configuration cannot change here.
+     */
+    reset: (options = {}) => {
+      if (!app?.renderer || !initializationOptions) {
+        throw new Error("Route Graphics must be initialized before reset.");
       }
-      animationPlaybackMode = nextAnimationPlaybackMode;
-      animationPlaybackTimeMS = null;
-      shaderTimeMS = 0;
-      rendererPreference = nextRendererPreference;
-      animationBusListenerCleanup.forEach((cleanup) => cleanup());
-      animationBusListenerCleanup = [];
-
-      const parserPlugins = [];
-
-      pluginConfig?.elements?.forEach((plugin) => {
-        if (plugin?.parse)
-          parserPlugins.push(
-            createParserPlugin({ type: plugin.type, parse: plugin.parse }),
+      const nextOptions = { ...initializationOptions, ...options };
+      for (const [key, defaultValue] of [
+        ["rendererPreference", "webgl"],
+        ["rendererFallback", true],
+        ["debug", false],
+      ]) {
+        if (
+          (nextOptions[key] ?? defaultValue) !==
+          (initializationOptions[key] ?? defaultValue)
+        ) {
+          throw new Error(
+            `reset cannot change ${key}; destroy and initialize instead.`,
           );
-      });
-
-      plugins = {
-        elements: pluginConfig?.elements ?? [],
-        audio: pluginConfig?.audio ?? [],
-        parsers: parserPlugins,
-      };
-      eventHandler = handler;
-
-      keyboardManager = createKeyboardManager(handler);
-      completionTracker = createCompletionTracker((event, payload) => {
-        if (payload.failed) {
-          // Preserve the cause before cancellation or a reentrant fallback can
-          // settle this request with AbortError.
-          renderReadiness.reject(payload.error);
-          needsReconciliation = true;
-          renderAbortController?.abort();
-          animationBus.cancelAll();
         }
-        handler?.(event, payload);
-      });
-
-      /**
-       * @type {ApplicationWithAudioStage}
-       */
-      app = new Application();
-      app.audioStage = audioStage;
-      await app.init({
-        width,
-        height,
-        backgroundColor,
-        preference: rendererPreference,
-        preserveDrawingBuffer: debug === true,
-      });
-      selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
-      if (!rendererFallback && selectedRendererType !== rendererPreference) {
-        app.destroy();
-        throw new Error(
-          `Renderer "${rendererPreference}" is unavailable and rendererFallback is false.`,
-        );
       }
-      if (typeof app.ticker?.remove === "function") {
-        app.ticker.remove(app.render, app);
-      }
-      app.debug = debug;
-      app.inputDomBridge = createInputDomBridge({ app });
-      canvasContextMenuListener = (event) => {
-        event.preventDefault();
-      };
-      app.canvas.addEventListener("contextmenu", canvasContextMenuListener);
-      canvasWebglContextLostListener = (event) => {
-        event.preventDefault();
-        const payload = {};
-        if (
-          typeof event.statusMessage === "string" &&
-          event.statusMessage.length > 0
-        ) {
-          payload.statusMessage = event.statusMessage;
-        }
-        eventHandler?.("rendererContextLost", payload);
-      };
-      canvasWebglContextRestoredListener = () => {
-        eventHandler?.("rendererContextRestored", {});
-      };
-      app.canvas.addEventListener(
-        "webglcontextlost",
-        canvasWebglContextLostListener,
-      );
-      app.canvas.addEventListener(
-        "webglcontextrestored",
-        canvasWebglContextRestoredListener,
-      );
-
-      const webgpuDeviceLost = app.renderer?.gpu?.device?.lost;
-      if (webgpuDeviceLost && typeof webgpuDeviceLost.then === "function") {
-        const subscription = {};
-        webgpuDeviceLossSubscription = subscription;
-        void Promise.resolve(webgpuDeviceLost).then(
-          (deviceLostInfo) => {
-            if (webgpuDeviceLossSubscription !== subscription) {
-              return;
-            }
-
-            const payload = {};
-            if (
-              typeof deviceLostInfo?.reason === "string" &&
-              deviceLostInfo.reason.length > 0
-            ) {
-              payload.reason = deviceLostInfo.reason;
-            }
-            if (
-              typeof deviceLostInfo?.message === "string" &&
-              deviceLostInfo.message.length > 0
-            ) {
-              payload.statusMessage = deviceLostInfo.message;
-            }
-            eventHandler?.("rendererContextLost", payload);
-          },
-          () => {
-            // GPUDevice.lost resolves by specification. Ignore non-standard
-            // thenables that reject so lifecycle observation cannot create an
-            // unhandled rejection.
-          },
-        );
-      }
-
-      backgroundGraphic = new Graphics();
-      backgroundGraphic.label = "__route_graphics_background__";
-      drawBackgroundGraphic(backgroundGraphic, width, height, backgroundColor);
-      app.stage.addChild(backgroundGraphic);
-      app.stage.width = width;
-      app.stage.height = height;
-      app.ticker.add(app.audioStage.tick);
-
-      // Create animation bus and attach to ticker
-      animationBus = createAnimationBus();
-      const renderManualFrame = () => {
-        if (
-          animationPlaybackMode === "manual" &&
-          typeof app.render === "function"
-        ) {
-          app.render();
-        }
-      };
-      animationBusListenerCleanup = [
-        animationBus.on("started", renderManualFrame),
-        animationBus.on("completed", renderManualFrame),
-        animationBus.on("cancelled", renderManualFrame),
-        animationBus.on("timelineEvent", (timelineEvent) => {
-          eventHandler?.("timelineEvent", timelineEvent);
-        }),
-      ];
-      if (!debug) {
-        frameTickerListener = (time) => {
-          if (animationPlaybackMode !== "auto") {
-            return;
-          }
-
-          shaderTimeMS += time.deltaMS;
-          setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-          animationBus.tick(time.deltaMS);
-          if (typeof app.render === "function") {
-            app.render();
-          }
-        };
-        app.ticker.add(frameTickerListener);
-      } else {
-        debugAnimationListener = (event) => {
-          if (animationPlaybackMode !== "auto") {
-            return;
-          }
-
-          if (event?.detail?.deltaMS) {
-            const deltaMS = Number(event.detail.deltaMS);
-            shaderTimeMS += deltaMS;
-            setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-            animationBus.tick(deltaMS);
-            if (typeof app.render === "function") {
-              app.render();
-            }
-          }
-        };
-        window.addEventListener("snapShotKeyFrame", debugAnimationListener);
-      }
-
-      return routeGraphicsInstance;
+      disposeRuntime(true);
+      audioStage = createAudioStage();
+      return initialize(nextOptions, true);
     },
 
-    destroy: () => {
-      if (renderAbortController) {
-        renderAbortController.abort();
-        renderAbortController = undefined;
-      }
-      renderReadiness.clear();
-      if (debugAnimationListener) {
-        window.removeEventListener("snapShotKeyFrame", debugAnimationListener);
-        debugAnimationListener = undefined;
-      }
-      if (frameTickerListener && typeof app?.ticker?.remove === "function") {
-        app.ticker.remove(frameTickerListener);
-        frameTickerListener = undefined;
-      }
-      if (canvasContextMenuListener && app?.canvas) {
-        app.canvas.removeEventListener(
-          "contextmenu",
-          canvasContextMenuListener,
-        );
-        canvasContextMenuListener = undefined;
-      }
-      if (canvasWebglContextLostListener && app?.canvas) {
-        app.canvas.removeEventListener(
-          "webglcontextlost",
-          canvasWebglContextLostListener,
-        );
-        canvasWebglContextLostListener = undefined;
-      }
-      if (canvasWebglContextRestoredListener && app?.canvas) {
-        app.canvas.removeEventListener(
-          "webglcontextrestored",
-          canvasWebglContextRestoredListener,
-        );
-        canvasWebglContextRestoredListener = undefined;
-      }
-      webgpuDeviceLossSubscription = undefined;
-
-      const ownedAssetIds = new Set([
-        ...loadedAssetRecords.keys(),
-        ...pendingAssetLoads.keys(),
-      ]);
-      for (const assetId of ownedAssetIds) {
-        void unloadAsset(assetId).catch(() => {
-          // destroy is synchronous and best-effort; explicit unloadAssets calls
-          // continue to surface disposal failures to the caller.
-        });
-      }
-
-      app?.inputDomBridge?.destroy?.();
-      keyboardManager?.destroy();
-      clearPendingSounds();
-      animationBusListenerCleanup.forEach((cleanup) => cleanup());
-      animationBusListenerCleanup = [];
-      if (animationBus) animationBus.destroy();
-      if (app?.audioStage) app.audioStage.destroy();
-
-      // Pause all video elements before destroying
-      const pauseVideosRecursively = (container) => {
-        for (const child of container.children) {
-          const resource = child.texture?.source?.resource;
-          if (resource instanceof HTMLVideoElement) {
-            resource.pause();
-          }
-          if (child.children) {
-            pauseVideosRecursively(child);
-          }
-        }
-      };
-
-      if (app?.stage) {
-        pauseVideosRecursively(app.stage);
-        cleanupParticlesInTree({ app, root: app.stage });
-      }
-
-      if (app) app.destroy(false, { children: true });
-      animationPlaybackMode = "auto";
-      animationPlaybackTimeMS = null;
-      shaderTimeMS = 0;
-      rendererPreference = "webgl";
-      selectedRendererType = "webgl";
-      backgroundGraphic = undefined;
-    },
+    destroy: () => disposeRuntime(false),
 
     /**
      * Load assets from either raw buffers or direct source URLs.
