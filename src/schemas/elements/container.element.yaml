@@ -5,8 +5,6 @@ type: object
 required:
   - id
   - type
-  - x
-  - y
 properties:
   id:
     type: string
@@ -90,6 +88,7 @@ properties:
       oneOf:
         - $ref: "./sprite.element.yaml"
         - $ref: "./text.element.yaml"
+        - $ref: "./text-revealing.element.yaml"
         - $ref: "./rect.element.yaml"
         - $ref: "./container.element.yaml"
     default: []
