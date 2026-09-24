@@ -19,6 +19,7 @@ import {
   setElementRenderState,
 } from "../../elements/elementRenderState.js";
 import { getElementTransformTargetState } from "../../elements/util/transform.js";
+import { copyTextDecoration } from "../../../util/applyTextDecoration.js";
 import {
   CanvasTextMetrics,
   Container,
@@ -209,6 +210,7 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
       style: textElement.style,
       label: `__timeline-text-unit:${query.elementId}:${index}`,
     });
+    copyTextDecoration(child, textElement);
     child.x =
       (bounds.x ?? 0) +
       getLineAlignmentOffset(line) +
@@ -264,6 +266,9 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
         target.handle.style !== textElement.style
       ) {
         target.handle.style = textElement.style;
+      }
+      if (!target.handle.destroyed) {
+        copyTextDecoration(target.handle, textElement);
       }
     }
     const renderState = getElementRenderState(textElement);
