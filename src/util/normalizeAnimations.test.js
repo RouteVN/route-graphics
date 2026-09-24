@@ -1,6 +1,80 @@
 import { describe, expect, it } from "vitest";
 import { normalizeAnimations } from "./normalizeAnimations.js";
 
+describe("normalizeAnimations empty timelines", () => {
+  it("omits empty update tweens and keyframe tracks", () => {
+    expect(
+      normalizeAnimations([
+        { id: "empty-tween", targetId: "panel", type: "update", tween: {} },
+        {
+          id: "empty-keyframes",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+        {
+          id: "mixed-tracks",
+          targetId: "panel",
+          type: "update",
+          tween: {
+            x: { keyframes: [] },
+            y: { keyframes: [{ value: 10, duration: 100 }] },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "mixed-tracks",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          y: {
+            keyframes: [{ value: 10, duration: 100, easing: "linear" }],
+          },
+        },
+      },
+    ]);
+  });
+
+  it("omits empty transition sides and keeps the active side", () => {
+    expect(
+      normalizeAnimations([
+        {
+          id: "empty-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: { tween: {} },
+          next: {},
+        },
+        {
+          id: "mixed-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: { tween: { alpha: { keyframes: [] } } },
+          next: {
+            tween: {
+              alpha: { keyframes: [{ value: 1, duration: 100 }] },
+            },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "mixed-transition",
+        targetId: "panel",
+        type: "transition",
+        next: {
+          tween: {
+            alpha: {
+              keyframes: [{ value: 1, duration: 100, easing: "linear" }],
+            },
+          },
+        },
+      },
+    ]);
+  });
+});
+
 const compositorSource = {
   webgl: {
     fragment: `
