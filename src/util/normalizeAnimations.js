@@ -644,29 +644,35 @@ const normalizeTweenMap = (
 ) => {
   assertPlainObject(tween, path);
 
-  if (tween.x !== undefined && tween.translateX !== undefined) {
+  const normalizedEntries = Object.entries(tween).flatMap(
+    ([property, config]) => {
+      if (!allowedProperties.has(property)) {
+        throw new Error(
+          `${path}.${property} is not a supported animation property.`,
+        );
+      }
+
+      if (
+        Array.isArray(config?.keyframes) &&
+        config.keyframes.length === 0 &&
+        config.auto === undefined
+      ) {
+        return [];
+      }
+
+      return [[property, propertyNormalizer(config, `${path}.${property}`)]];
+    },
+  );
+
+  const normalized = Object.fromEntries(normalizedEntries);
+  if (normalized.x !== undefined && normalized.translateX !== undefined) {
     throw new Error(`${path} cannot define both x and translateX.`);
   }
-
-  if (tween.y !== undefined && tween.translateY !== undefined) {
+  if (normalized.y !== undefined && normalized.translateY !== undefined) {
     throw new Error(`${path} cannot define both y and translateY.`);
   }
 
-  const normalizedEntries = Object.entries(tween).map(([property, config]) => {
-    if (!allowedProperties.has(property)) {
-      throw new Error(
-        `${path}.${property} is not a supported animation property.`,
-      );
-    }
-
-    return [property, propertyNormalizer(config, `${path}.${property}`)];
-  });
-
-  if (normalizedEntries.length === 0) {
-    throw new Error(`${path} must define at least one property.`);
-  }
-
-  return Object.fromEntries(normalizedEntries);
+  return normalized;
 };
 
 const normalizeFilterTweens = (filters, path) => {
@@ -701,12 +707,15 @@ const normalizeUpdateTween = (tween, path) => {
   const normalized = {};
 
   if (Object.keys(elementTween).length > 0) {
-    normalized.tween = normalizeTweenMap(
+    const elementTracks = normalizeTweenMap(
       elementTween,
       path,
       UPDATE_TWEEN_PROPERTIES,
       normalizeUpdatePropertyConfig,
     );
+    if (Object.keys(elementTracks).length > 0) {
+      normalized.tween = elementTracks;
+    }
   }
   if (Object.keys(rectTween).length > 0) {
     normalized.tween = {
@@ -717,10 +726,6 @@ const normalizeUpdateTween = (tween, path) => {
 
   if (filters !== undefined) {
     normalized.filterTweens = normalizeFilterTweens(filters, `${path}.filters`);
-  }
-
-  if (normalized.tween === undefined && normalized.filterTweens === undefined) {
-    throw new Error(`${path} must define an element property or filters.`);
   }
 
   return normalized;
@@ -895,6 +900,9 @@ const normalizeReplaceSide = (side, path) => {
   if (side.mask !== undefined) {
     throw new Error(`${path}.mask is not valid. Define mask on ${path}.`);
   }
+  if (side.tween === undefined && Object.keys(side).length > 0) {
+    throw new Error(`${path} must define tween.`);
+  }
 
   const normalized = {};
 
@@ -906,22 +914,33 @@ const normalizeReplaceSide = (side, path) => {
     );
   }
 
-  if (Object.keys(normalized).length === 0) {
-    throw new Error(`${path} must define tween.`);
-  }
-
   return normalized;
 };
 
 const normalizeReplacePayload = (animation, path) => {
+  if (
+    animation.prev === undefined &&
+    animation.next === undefined &&
+    animation.mask === undefined &&
+    animation.compositor === undefined
+  ) {
+    throw new Error(`${path} must define prev, next, mask, or compositor.`);
+  }
+
   const normalized = {};
 
   if (animation.prev !== undefined) {
-    normalized.prev = normalizeReplaceSide(animation.prev, `${path}.prev`);
+    const prev = normalizeReplaceSide(animation.prev, `${path}.prev`);
+    if (prev.tween && Object.keys(prev.tween).length > 0) {
+      normalized.prev = prev;
+    }
   }
 
   if (animation.next !== undefined) {
-    normalized.next = normalizeReplaceSide(animation.next, `${path}.next`);
+    const next = normalizeReplaceSide(animation.next, `${path}.next`);
+    if (next.tween && Object.keys(next.tween).length > 0) {
+      normalized.next = next;
+    }
   }
 
   if (animation.mask !== undefined) {
@@ -949,15 +968,6 @@ const normalizeReplacePayload = (animation, path) => {
     }
   }
 
-  if (
-    normalized.prev === undefined &&
-    normalized.next === undefined &&
-    normalized.mask === undefined &&
-    normalized.compositor === undefined
-  ) {
-    throw new Error(`${path} must define prev, next, mask, or compositor.`);
-  }
-
   return normalized;
 };
 
@@ -972,7 +982,7 @@ export const normalizeAnimations = (animations = []) => {
     throw new Error("Input error: `animations` must be an array.");
   }
 
-  const normalized = animations.map((animation, index) => {
+  const normalizedEntries = animations.map((animation, index) => {
     const path = `animations[${index}]`;
     assertPlainObject(animation, path);
     assertString(animation.id, `${path}.id`);
@@ -1053,6 +1063,11 @@ export const normalizeAnimations = (animations = []) => {
       if (animation.tween !== undefined && animation.gsap !== undefined) {
         throw new Error(`${path} cannot define both tween and gsap.`);
       }
+      if (animation.tween === undefined && animation.gsap === undefined) {
+        throw new Error(
+          `${path} must define exactly one of tween or gsap for an update animation.`,
+        );
+      }
 
       if (animation.tween !== undefined) {
         Object.assign(
@@ -1066,16 +1081,6 @@ export const normalizeAnimations = (animations = []) => {
           animation.gsap,
           `${path}.gsap`,
           "update",
-        );
-      }
-
-      if (
-        normalizedAnimation.tween === undefined &&
-        normalizedAnimation.filterTweens === undefined &&
-        normalizedAnimation.gsap === undefined
-      ) {
-        throw new Error(
-          `${path} must define exactly one of tween or gsap for an update animation.`,
         );
       }
 
@@ -1109,7 +1114,11 @@ export const normalizeAnimations = (animations = []) => {
         );
       }
 
-      return normalizedAnimation;
+      return normalizedAnimation.tween === undefined &&
+        normalizedAnimation.filterTweens === undefined &&
+        normalizedAnimation.gsap === undefined
+        ? null
+        : normalizedAnimation;
     }
 
     if (animation.tween !== undefined) {
@@ -1191,13 +1200,20 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.compositor = normalizedReplace.compositor;
     }
 
-    return normalizedAnimation;
+    return Object.keys(normalizedReplace).length === 0
+      ? null
+      : normalizedAnimation;
   });
+
+  const normalized = normalizedEntries.filter(
+    (animation) => animation !== null,
+  );
 
   const animationIds = new Map();
   const transitionTargets = new Map();
 
-  for (const [index, animation] of normalized.entries()) {
+  for (const [index, animation] of normalizedEntries.entries()) {
+    if (animation === null) continue;
     const priorIdIndex = animationIds.get(animation.id);
     if (priorIdIndex !== undefined) {
       throw new Error(
