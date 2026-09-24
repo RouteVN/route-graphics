@@ -1,4 +1,5 @@
 import { DEFAULT_TEXT_STYLE } from "../types.js";
+import { applyTextDecoration } from "./applyTextDecoration.js";
 import { toPixiTextStyle } from "./toPixiTextStyle.js";
 
 export default (element, style) => {
@@ -31,4 +32,5 @@ export default (element, style) => {
   };
 
   element.style = toPixiTextStyle(appliedStyle);
+  applyTextDecoration(element, style);
 };

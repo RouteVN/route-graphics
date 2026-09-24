@@ -68,6 +68,9 @@ $def:
         type: number
         default: 0
         description: Extra spacing between graphemes in pixels. Negative values tighten spacing.
+      textDecoration:
+        type: string
+        description: Use underline to draw a line below each text line.
       whiteSpace:
         type: string
         enum: [pre, normal, pre-line]
