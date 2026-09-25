@@ -1,0 +1,94 @@
+title: Already-finishing loop tail after sound effect cancellation
+description: >-
+  The sound leaves first, then its channel leaves. Cancelling the sound effect preserves the audible
+  tail owned by the other effect.
+durationMs: 1400
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 1320
+states:
+  - atMs: 0
+    state:
+      id: playing
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          interruption: loopEnd
+          children:
+            - id: outgoing
+              type: sound
+              src: chirp
+              loop: true
+              volume: 75
+      audioEffects: []
+  - atMs: 100
+    state:
+      id: sound-removed
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          interruption: loopEnd
+          children: []
+      audioEffects:
+        - id: child-exit
+          type: audio-transition
+          targetId: outgoing
+          properties:
+            pan:
+              exit:
+                keyframes:
+                  - value: 0.5
+                    duration: 20
+                    easing: linear
+  - atMs: 200
+    state:
+      id: channel-removed
+      elements: []
+      animations: []
+      audio: []
+      audioEffects:
+        - id: child-exit
+          type: audio-transition
+          targetId: outgoing
+          properties:
+            pan:
+              exit:
+                keyframes:
+                  - value: 0.5
+                    duration: 20
+                    easing: linear
+        - id: channel-exit
+          type: audio-transition
+          targetId: music
+          properties:
+            volume:
+              exit:
+                keyframes:
+                  - value: 0
+                    duration: 500
+                    easing: linear
+  - atMs: 250
+    state:
+      id: effect-cancelled
+      elements: []
+      animations: []
+      audio: []
+      audioEffects:
+        - id: channel-exit
+          type: audio-transition
+          targetId: music
+          properties:
+            volume:
+              exit:
+                keyframes:
+                  - value: 0
+                    duration: 500
+                    easing: linear

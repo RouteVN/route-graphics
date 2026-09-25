@@ -594,6 +594,32 @@ export const createAudioStage = () => {
     }
   };
 
+  const continueFinishingControlledReady = (instance, resolvedState) => {
+    const control = instance.control;
+    if (
+      !control?.ready ||
+      control.detached ||
+      !control.eventsSuppressed ||
+      !instance.finishing
+    ) {
+      return false;
+    }
+
+    // Readiness may settle before removal, after removal, or inside its callback.
+    // All three paths must release the pending loopEnd tail without delivering
+    // an event for an outgoing instance. Source creation keeps its normal
+    // request-token, delay and finishing-source guards.
+    const resolution =
+      resolvedState ?? resolvePendingControlledPosition(instance);
+    if (resolution.invalidPosition || control.status !== "playing") {
+      instance.sourceEnded = true;
+      instance.onSourceEnded?.();
+    } else {
+      startControlledPlayback(instance, control.remainingDelayMs);
+    }
+    return true;
+  };
+
   const scheduleControlledReady = (instance) => {
     const control = instance.control;
     if (!control || control.readyTaskQueued || control.readyAnnounced) {
@@ -603,6 +629,9 @@ export const createAudioStage = () => {
     control.readyTaskQueued = true;
     scheduleMicrotask(() => {
       control.readyTaskQueued = false;
+      if (continueFinishingControlledReady(instance)) {
+        return;
+      }
       if (
         !isCurrentControlledInstance(instance) ||
         !control.ready ||
@@ -626,7 +655,13 @@ export const createAudioStage = () => {
           commandId,
         );
       } finally {
-        if (isCurrentControlledInstance(instance)) {
+        const continuedTail =
+          instance.playRequestId === playRequestId &&
+          continueFinishingControlledReady(
+            instance,
+            control.commandId === commandId ? resolution : {},
+          );
+        if (!continuedTail && isCurrentControlledInstance(instance)) {
           if (control.commandId === commandId) {
             applyResolvedControlledState(instance, resolution);
           } else if (
@@ -664,14 +699,7 @@ export const createAudioStage = () => {
     control.ready = true;
     control.lastErrorCode = null;
 
-    if (control.eventsSuppressed && instance.finishing) {
-      const resolution = resolvePendingControlledPosition(instance);
-      if (resolution.invalidPosition || control.status !== "playing") {
-        instance.sourceEnded = true;
-        instance.onSourceEnded?.();
-        return;
-      }
-      startControlledPlayback(instance, control.remainingDelayMs);
+    if (continueFinishingControlledReady(instance)) {
       return;
     }
 
@@ -2409,6 +2437,10 @@ export const createAudioStage = () => {
               instance.channelNode === channel.gainNode &&
               instance.finishing
             ) {
+              // This tail left the previous render graph earlier, but still
+              // uses this concrete channel. Its new exit owner must share the
+              // tail just like children removed in this render transaction.
+              ownSound(id, instance);
               finishSoundForDeferredChannel(instance, entry);
             }
           }

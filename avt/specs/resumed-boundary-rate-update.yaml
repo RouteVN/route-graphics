@@ -1,0 +1,139 @@
+title: Preserve a newer rate ramp after channel resume
+description: Verifies removing a completed begin effect after pause and resume preserves the newer playback-rate update on the recreated source.
+durationMs: 2500
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  tone:
+    generator: tone
+    frequency: 330
+    durationMs: 6000
+states:
+  - atMs: 0
+    state:
+      id: begin-rate
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 1
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: tone
+              volume: 70
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0.5
+                      duration: 200
+                      easing: linear
+  - atMs: 300
+    state:
+      id: pause-after-begin
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 2
+            operation: pause
+          children:
+            - id: theme
+              type: sound
+              src: tone
+              volume: 70
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0.5
+                      duration: 200
+                      easing: linear
+  - atMs: 1000
+    state:
+      id: resume-after-begin
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 3
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: tone
+              volume: 70
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0.5
+                      duration: 200
+                      easing: linear
+  - atMs: 1100
+    state:
+      id: newer-rate-update
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 3
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: tone
+              volume: 70
+              playbackRate: 2
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0.5
+                      duration: 200
+                      easing: linear
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: theme
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear
+  - atMs: 1200
+    state:
+      id: remove-begin-during-update
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 3
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: tone
+              volume: 70
+              playbackRate: 2
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: theme
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear

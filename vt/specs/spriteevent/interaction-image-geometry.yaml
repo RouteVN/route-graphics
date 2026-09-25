@@ -1,0 +1,103 @@
+---
+title: Sprite Interaction Image Geometry
+description: |
+  Swap loaded images with native sizes 960x540, 480x270, 64x96 and 128x32
+  using real hover, primary and secondary button input. The asymmetric grayscale
+  marks identify each image and make reflection visible. The anchored, reflected,
+  rotated sprite must stay centered on the fixed crosshair. Repeat after a render
+  updates its rotation to exercise interaction rebinding.
+specs:
+  - all four images occupy the same transformed rectangle around the crosshair
+  - releasing either button restores hover and leaving restores the base image
+  - an updated sprite keeps the same geometry through subsequent image swaps
+steps:
+  - action: move
+    x: 640
+    "y": 360
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: mouseUp
+  - action: screenshot
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: move
+    x: 40
+    "y": 40
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: move
+    x: 640
+    "y": 360
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: mouseUp
+  - action: rightMouseDown
+  - action: screenshot
+  - action: rightMouseUp
+  - action: move
+    x: 40
+    "y": 40
+  - action: screenshot
+---
+states:
+  - elements:
+      - &horizontal-guide
+        id: horizontal-guide
+        type: rect
+        x: 360
+        "y": 359
+        width: 560
+        height: 2
+        fill: "#737373"
+      - &vertical-guide
+        id: vertical-guide
+        type: rect
+        x: 639
+        "y": 120
+        width: 2
+        height: 480
+        fill: "#737373"
+      - id: button
+        type: sprite
+        src: interaction-base
+        x: 640
+        "y": 360
+        width: 240
+        height: 150
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: -1.5
+        scaleY: 0.7
+        rotation: 17
+        hover:
+          src: interaction-hover
+        click:
+          src: interaction-press
+        rightClick:
+          src: interaction-right-press
+  - elements:
+      - *horizontal-guide
+      - *vertical-guide
+      - id: button
+        type: sprite
+        src: interaction-base
+        x: 640
+        "y": 360
+        width: 240
+        height: 150
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: -1.5
+        scaleY: 0.7
+        rotation: -23
+        hover:
+          src: interaction-hover
+        click:
+          src: interaction-press
+        rightClick:
+          src: interaction-right-press

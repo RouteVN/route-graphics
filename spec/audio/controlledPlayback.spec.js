@@ -1141,6 +1141,192 @@ describe("command-controlled sound playback", () => {
     expect(eventsByName(eventHandler, "soundComplete")).toEqual([]);
   });
 
+  it.each([false, true])(
+    "finishes cached controlled readiness after loopEnd removal (remove channel: %s)",
+    async (removeChannel) => {
+      const { context, eventHandler, render, stage } =
+        await setupControlledStage();
+      const channel = {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          playbackSound({
+            commandId: 1,
+            operation: "play",
+            positionMs: 0,
+            loop: true,
+          }),
+        ],
+      };
+      render([channel]);
+      // Let the cached decode settle, but not its separately queued Ready task.
+      await Promise.resolve();
+      const instance = [...stage._inspect().sounds.values()][0];
+      expect(instance.control.ready).toBe(true);
+      expect(instance.control.readyAnnounced).toBe(false);
+      expect(context.sources).toHaveLength(0);
+      render(removeChannel ? [] : [{ ...channel, children: [] }]);
+      await flushMicrotasks();
+      expect(context.sources).toHaveLength(1);
+      const source = context.sources[0];
+      expect(source.start).toHaveBeenCalledWith(10, 0, 10);
+      expect(source.stop).toHaveBeenCalledWith(20);
+      expect(source.loop).toBe(false);
+      context.currentTime = 20;
+      source.onended();
+      await flushMicrotasks();
+      expect(stage._inspect().sounds.size).toBe(0);
+      expect(stage._inspect().channels.has("music")).toBe(!removeChannel);
+      expect(eventHandler).not.toHaveBeenCalled();
+    },
+  );
+
+  it("finishes a controlled loopEnd tail removed reentrantly by soundReady", async () => {
+    const { context, eventHandler, render, stage } =
+      await setupControlledStage();
+    const channel = {
+      id: "music",
+      type: "audio-channel",
+      interruption: "loopEnd",
+      children: [
+        playbackSound({
+          commandId: 1,
+          operation: "play",
+          positionMs: 0,
+          loop: true,
+        }),
+      ],
+    };
+    eventHandler.mockImplementation((name) => {
+      if (name === "soundReady") render([]);
+    });
+    render([channel]);
+    await flushMicrotasks();
+    expect(eventsByName(eventHandler, "soundReady")).toHaveLength(1);
+    expect(context.sources).toHaveLength(1);
+    const source = context.sources[0];
+    expect(source.stop).toHaveBeenCalledWith(20);
+    context.currentTime = 20;
+    source.onended();
+    await flushMicrotasks();
+    expect(stage._inspect().sounds.size).toBe(0);
+    expect(stage._inspect().channels.has("music")).toBe(false);
+    expect(eventsByName(eventHandler, "soundComplete")).toEqual([]);
+  });
+
+  it("keeps a delayed outgoing controlled start after Ready is queued", async () => {
+    const { context, eventHandler, render, stage } =
+      await setupControlledStage();
+    render([
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          playbackSound({
+            commandId: 1,
+            operation: "play",
+            positionMs: 0,
+            startDelayMs: 1000,
+          }),
+        ],
+      },
+    ]);
+    await Promise.resolve();
+    expect([...stage._inspect().sounds.values()][0].control.ready).toBe(true);
+    render([]);
+    await flushMicrotasks();
+    expect(context.sources).toHaveLength(0);
+    context.currentTime = 11;
+    vi.advanceTimersByTime(1000);
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0].start).toHaveBeenCalledWith(11, 0, 10);
+    expect(context.sources[0].stop).toHaveBeenCalledWith(21);
+    context.currentTime = 21;
+    context.sources[0].onended();
+    await flushMicrotasks();
+    expect(stage._inspect().sounds.size).toBe(0);
+    expect(stage._inspect().channels.has("music")).toBe(false);
+    expect(eventHandler).not.toHaveBeenCalled();
+  });
+
+  it.each([10000, 20000])(
+    "cleans terminal or invalid controlled readiness without an outgoing source (%s)",
+    async (positionMs) => {
+      const { context, eventHandler, render, stage } =
+        await setupControlledStage();
+      render([
+        {
+          id: "music",
+          type: "audio-channel",
+          interruption: "loopEnd",
+          children: [
+            playbackSound({ commandId: 1, operation: "play", positionMs }),
+          ],
+        },
+      ]);
+      await Promise.resolve();
+      render([]);
+      await flushMicrotasks();
+      expect(context.sources).toHaveLength(0);
+      expect(stage._inspect().sounds.size).toBe(0);
+      expect(stage._inspect().channels.has("music")).toBe(false);
+      expect(eventHandler).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not restart a newer source created and retired inside soundReady", async () => {
+    const { context, eventHandler, render, stage } =
+      await setupControlledStage();
+    const channel = (positionMs, commandId) => ({
+      id: "music",
+      type: "audio-channel",
+      interruption: "loopEnd",
+      children: [playbackSound({ commandId, operation: "play", positionMs })],
+    });
+    eventHandler.mockImplementation((name) => {
+      if (name === "soundReady") {
+        render([channel(2000, 2)]);
+        render([]);
+      }
+    });
+    render([channel(0, 1)]);
+    await flushMicrotasks();
+    expect(context.sources).toHaveLength(1);
+    expect(context.sources[0].start).toHaveBeenCalledExactlyOnceWith(10, 2, 8);
+    expect(context.sources[0].stop).toHaveBeenCalledWith(18);
+    context.currentTime = 18;
+    context.sources[0].onended();
+    await flushMicrotasks();
+    expect(stage._inspect().sounds.size).toBe(0);
+    expect(stage._inspect().channels.has("music")).toBe(false);
+    expect(eventsByName(eventHandler, "soundComplete")).toEqual([]);
+  });
+
+  it("does not revive a retired Ready task after stage destruction", async () => {
+    const { context, eventHandler, render, stage } =
+      await setupControlledStage();
+    render([
+      {
+        id: "music",
+        type: "audio-channel",
+        interruption: "loopEnd",
+        children: [
+          playbackSound({ commandId: 1, operation: "play", positionMs: 0 }),
+        ],
+      },
+    ]);
+    await Promise.resolve();
+    render([]);
+    stage.destroy();
+    await flushMicrotasks();
+    vi.advanceTimersByTime(20000);
+    expect(context.sources).toHaveLength(0);
+    expect(stage._inspect().sounds.size).toBe(0);
+    expect(eventHandler).not.toHaveBeenCalled();
+  });
+
   it("preserves non-looping rate history when finishing at loopEnd", async () => {
     const { context, render, stage } = await setupControlledStage();
     const channel = (children) => ({
