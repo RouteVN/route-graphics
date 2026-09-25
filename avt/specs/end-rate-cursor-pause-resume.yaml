@@ -1,0 +1,102 @@
+title: End-rate cursor across channel pause
+description: Verifies playback resumes at the true media cursor after an end playback-rate fade.
+durationMs: 2100
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 880
+    durationMs: 3000
+states:
+  - atMs: 0
+    state:
+      id: playing
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 1
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: chirp
+              endAt: 2
+              playbackRate: 1
+              volume: 80
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 2
+                      duration: 500
+                      easing: linear
+              endEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0
+                      duration: 500
+                      easing: linear
+  - atMs: 1100
+    state:
+      id: paused
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 2
+            operation: pause
+          children:
+            - id: theme
+              type: sound
+              src: chirp
+              endAt: 2
+              playbackRate: 1
+              volume: 80
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 2
+                      duration: 500
+                      easing: linear
+              endEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0
+                      duration: 500
+                      easing: linear
+  - atMs: 1500
+    state:
+      id: resumed
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 3
+            operation: resume
+          children:
+            - id: theme
+              type: sound
+              src: chirp
+              endAt: 2
+              playbackRate: 1
+              volume: 80
+              beginEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 2
+                      duration: 500
+                      easing: linear
+              endEffect:
+                playbackRate:
+                  keyframes:
+                    - value: 0
+                      duration: 500
+                      easing: linear
