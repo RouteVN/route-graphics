@@ -439,34 +439,53 @@ const configureTrackRefreshResolvers = (instance, track) => {
         );
       }
       resolving.add(iteration);
-      const previousIteration = iteration - step;
-      const iterationBase = getTerminal(previousIteration);
-      const occurrenceIterations = new Map([[refreshDomainId, iteration]]);
+      let publishedCount = 0;
+      try {
+        const previousIteration = iteration - step;
+        const iterationBase = getTerminal(previousIteration);
+        const occurrenceIterations = new Map([[refreshDomainId, iteration]]);
 
-      for (const segment of segments) {
-        const captureRootTime = getRootTimeForDomainLocal(
-          instance.domains,
-          segment.domain,
-          segment.start,
-          occurrenceIterations,
-        );
-        const underlying = sampleBoundTrack(instance, track, captureRootTime, {
-          maximumPriority: segment.priority - 1,
-          baseValue: iterationBase,
-          // Capture the value immediately before this clip's overwrite takes
-          // effect. Later binding already trimmed the earlier segment at this
-          // exact boundary, but repeat-refresh must see its terminal value.
-          ignoreTrimsAtOrAfterPriority: segment.priority,
-        });
-        const values = evaluateClipValues({
-          clip: segment.refreshTemplate.clip,
-          expressionContext: segment.refreshTemplate.expressionContext,
-          underlying,
-          iteration,
-        });
-        segment.refreshTemplate.valueCache.set(iteration, values);
+        for (const segment of segments) {
+          const captureRootTime = getRootTimeForDomainLocal(
+            instance.domains,
+            segment.domain,
+            segment.start,
+            occurrenceIterations,
+          );
+          const underlying = sampleBoundTrack(
+            instance,
+            track,
+            captureRootTime,
+            {
+              maximumPriority: segment.priority - 1,
+              baseValue: iterationBase,
+              // Capture the value immediately before this clip's overwrite takes
+              // effect. Later binding already trimmed the earlier segment at this
+              // exact boundary, but repeat-refresh must see its terminal value.
+              ignoreTrimsAtOrAfterPriority: segment.priority,
+            },
+          );
+          const values = evaluateClipValues({
+            clip: segment.refreshTemplate.clip,
+            expressionContext: segment.refreshTemplate.expressionContext,
+            underlying,
+            iteration,
+          });
+          segment.refreshTemplate.valueCache.set(iteration, values);
+          publishedCount++;
+        }
+      } catch (error) {
+        // A half-published iteration must not survive: the group sentinel
+        // reads segments[0], so survivors would let retries skip evaluation
+        // and sample the failed siblings at iteration-0 endpoints. Only this
+        // iteration rolls back; completed earlier iterations stay cached.
+        for (let index = 0; index < publishedCount; index++) {
+          segments[index].refreshTemplate.valueCache.delete(iteration);
+        }
+        throw error;
+      } finally {
+        resolving.delete(iteration);
       }
-      resolving.delete(iteration);
     };
 
     const ensureIteration = (iteration) => {
