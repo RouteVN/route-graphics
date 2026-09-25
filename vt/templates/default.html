@@ -181,6 +181,7 @@
       } from "/RouteGraphics.js";
       import { parseAllDocuments } from "https://cdn.jsdelivr.net/npm/yaml@2.7.1/+esm";
       import { createManualTimeoutClock } from "/manualTimeoutClock.js";
+      import { freezeVideoFrame } from "/videoFrameSnapshot.js";
 
       const assetsObject = {
         "background-1": {
@@ -1021,8 +1022,13 @@
           } catch {}
         });
 
-        window.addEventListener("snapShotVideoFrame", (event) => {
+        let videoFrameRequest;
+        window.addEventListener("snapShotVideoFrame", async (event) => {
+          videoFrameRequest?.abort();
+          const request = new AbortController();
+          videoFrameRequest = request;
           delete document.documentElement.dataset.vtVideoFrameReady;
+          delete document.documentElement.dataset.vtVideoFrameError;
           const videoElement = app.findElementByLabel(event.detail?.elementId);
           const source = videoElement?.texture?.source;
           const video = source?.resource;
@@ -1030,118 +1036,41 @@
             return;
           }
 
-          video.pause();
-          let hasCommittedVideoFrame = false;
-          const commitVideoFrame = async () => {
-            if (hasCommittedVideoFrame) {
-              return;
-            }
-
-            if (
-              video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
-              video.videoWidth <= 0 ||
-              video.videoHeight <= 0
-            ) {
-              requestAnimationFrame(commitVideoFrame);
-              return;
-            }
-
-            hasCommittedVideoFrame = true;
-            video.pause();
+          try {
+            // Both bundled VT video assets are CFR 60 fps. Keep the selected
+            // decoded frame paused; playing until a callback can overshoot by
+            // seconds when the main thread is busy, despite a successful seek.
+            const frame = await freezeVideoFrame(video, {
+              time: Number(event.detail?.time ?? 0),
+              framesPerSecond: 60,
+              signal: request.signal,
+            });
+            if (request.signal.aborted) return;
             source.__routeGraphicsVideoTextureRuntime?.requestUpdate?.({
               force: true,
             });
             source.update?.();
-            try {
-              await app.extractBase64();
-            } finally {
-              document.documentElement.dataset.vtVideoFrameReady =
-                event.detail?.elementId ?? "ready";
+            await app.extractBase64();
+            if (request.signal.aborted) return;
+            if (
+              !video.paused ||
+              video.seeking ||
+              Math.abs(video.currentTime - frame.targetTime) > 0.000002
+            ) {
+              throw new Error("VT video frame changed during extraction");
             }
-          };
-          const playUntilVideoFrame = () => {
-            const requestedTime = Number(event.detail?.time ?? 0);
-            const targetTime = Number.isFinite(video.duration)
-              ? Math.min(
-                  Math.max(0, requestedTime),
-                  Math.max(0, video.duration - 0.05),
-                )
-              : requestedTime;
-
-            const waitForPresentedVideoFrame = () => {
-              video.muted = true;
-              if (typeof video.requestVideoFrameCallback === "function") {
-                // A paused seek can complete before Chromium presents the
-                // decoded frame. Resume until the presentation callback;
-                // commitVideoFrame pauses playback again.
-                video.requestVideoFrameCallback(commitVideoFrame);
-                void video.play().catch(() => {});
-                return;
-              }
-              void video.play().catch(() => {});
-              requestAnimationFrame(() => {
-                requestAnimationFrame(commitVideoFrame);
-              });
-            };
-            const seekableEnd =
-              video.seekable.length > 0
-                ? video.seekable.end(video.seekable.length - 1)
-                : 0;
-            const seekToTargetTime = () => {
-              if (Math.abs(video.currentTime - targetTime) < 1 / 120) {
-                waitForPresentedVideoFrame();
-              } else {
-                video.addEventListener("seeked", waitForPresentedVideoFrame, {
-                  once: true,
-                });
-                video.currentTime = targetTime;
-              }
-            };
-            if (video.currentSrc.startsWith("blob:")) {
-              if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-                seekToTargetTime();
-              } else {
-                video.addEventListener("loadeddata", seekToTargetTime, {
-                  once: true,
-                });
-              }
-              return;
-            }
-            if (seekableEnd + 1 / 120 >= targetTime) {
-              seekToTargetTime();
-              return;
-            }
-
-            if (typeof video.requestVideoFrameCallback === "function") {
-              const captureAtTargetTime = (_now, metadata) => {
-                if (metadata.mediaTime + 1 / 120 < targetTime && !video.ended) {
-                  video.requestVideoFrameCallback(captureAtTargetTime);
-                  return;
-                }
-                commitVideoFrame();
-              };
-              video.requestVideoFrameCallback(captureAtTargetTime);
-            } else {
-              const captureAtTargetTime = () => {
-                if (video.currentTime + 1 / 120 < targetTime && !video.ended) {
-                  return;
-                }
-                video.removeEventListener("timeupdate", captureAtTargetTime);
-                commitVideoFrame();
-              };
-              video.addEventListener("timeupdate", captureAtTargetTime);
-            }
-
-            video.muted = true;
-            void video.play().catch(commitVideoFrame);
-          };
-
-          if (video.readyState === 0) {
-            video.addEventListener("loadedmetadata", playUntilVideoFrame, {
-              once: true,
-            });
-          } else {
-            playUntilVideoFrame();
+            document.documentElement.dataset.vtVideoFrameTime = String(
+              frame.targetTime,
+            );
+            document.documentElement.dataset.vtVideoFrameMediaTime = String(
+              frame.mediaTime,
+            );
+            document.documentElement.dataset.vtVideoFrameReady =
+              event.detail?.elementId ?? "ready";
+          } catch (error) {
+            if (request.signal.aborted) return;
+            document.documentElement.dataset.vtVideoFrameError = String(error);
+            console.error(error);
           }
         });
 

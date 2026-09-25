@@ -133,12 +133,7 @@ const createRouteGraphics = () => {
     const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
 
     const updateSource = ({ force = false } = {}) => {
-      if (
-        source.destroyed ||
-        (force
-          ? !hasVideoDimensions(video)
-          : !isRenderableVideoFrameReady(video))
-      ) {
+      if (source.destroyed || !isRenderableVideoFrameReady(video)) {
         return false;
       }
 

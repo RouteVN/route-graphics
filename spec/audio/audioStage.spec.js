@@ -3532,6 +3532,80 @@ describe("AudioStage graph rendering", () => {
     expect(endTime).toBeCloseTo(13);
   });
 
+  it.each([true, false])(
+    "checkpoints rate supersession before hold (cancelAndHold=%s)",
+    async (supportCancelAndHold) => {
+      const { stage, context } = await setupAudioStage({
+        assetMap: new Map([["theme", { duration: 10 }]]),
+        contextOptions: {
+          supportCancelAndHold,
+          reflectScheduledAudioParamValue: false,
+        },
+      });
+      const sound = { id: "bgm", type: "sound", src: "theme", playbackRate: 1 };
+      const channel = (child, commandId = 0, operation = "resume") => [
+        {
+          id: "bus",
+          type: "audio-channel",
+          playback: { commandId, operation },
+          children: [child],
+        },
+      ];
+      const old = channel(sound),
+        next = channel({ ...sound, playbackRate: 2 });
+      const effects = (id, phase, value, initialValue) => [
+        {
+          id,
+          type: "audio-transition",
+          targetId: "bgm",
+          properties: {
+            playbackRate: {
+              [phase]: {
+                ...(initialValue === undefined ? {} : { initialValue }),
+                keyframes: [{ value, duration: 1000 }],
+              },
+            },
+          },
+        },
+      ];
+      const first = effects("old", "enter", 1, 3),
+        second = effects("new", "update", 2);
+      stage.renderGraph({ nextAudio: old, nextAudioEffects: first });
+      context.currentTime = 10.25;
+      stage.renderGraph({
+        prevAudio: old,
+        nextAudio: next,
+        prevAudioEffects: first,
+        nextAudioEffects: second,
+      });
+      const instance = findCurrentSound(stage, "bgm");
+      // Integral of 3 -> 1 during the first 250 ms: 0.6875 media seconds.
+      expect(instance.sourceStartOffset).toBeCloseTo(0.6875, 12);
+      expect(context.sources).toHaveLength(1);
+      const paused = channel({ ...sound, playbackRate: 2 }, 1, "pause");
+      context.currentTime = 10.5;
+      stage.renderGraph({
+        prevAudio: next,
+        nextAudio: paused,
+        prevAudioEffects: second,
+        nextAudioEffects: second,
+      });
+      expect(instance.channelPauseState.offset).toBeCloseTo(1.296875, 12);
+      context.currentTime = 10.8;
+      stage.renderGraph({
+        prevAudio: paused,
+        nextAudio: channel({ ...sound, playbackRate: 2 }, 2),
+        prevAudioEffects: second,
+        nextAudioEffects: second,
+      });
+      expect(context.sources).toHaveLength(2);
+      expect(context.sources[1].start.mock.calls[0][1]).toBeCloseTo(
+        1.296875,
+        12,
+      );
+    },
+  );
+
   it("reschedules endEffect when playbackRate effect ownership settles", async () => {
     const { stage, context } = await setupAudioStage({
       assetMap: new Map([["theme", { duration: 2 }]]),

@@ -135,6 +135,49 @@ describe("command-controlled sound playback", () => {
     vi.resetModules();
   });
 
+  it.each(["settle", "supersede"])(
+    "preserves controlled media progress on rate effect %s",
+    async (mode) => {
+      const { context, render, stage, eventHandler } =
+        await setupControlledStage();
+      const first = playbackSound({
+        commandId: 1,
+        operation: "play",
+        positionMs: 0,
+        playbackRate: 1,
+      });
+      const rate = (phase, value, initialValue) => ({
+        playbackRate: {
+          [phase]: {
+            ...(initialValue === undefined ? {} : { initialValue }),
+            keyframes: [{ value, duration: 1000 }],
+          },
+        },
+      });
+      render([first], audioEffect("old", rate("enter", 1, 3)));
+      await flushMicrotasks();
+      context.currentTime = 10.25;
+      const next = { ...first, playbackRate: mode === "supersede" ? 2 : 1 };
+      render(
+        [next],
+        mode === "supersede" ? audioEffect("new", rate("update", 2)) : [],
+      );
+      const instance = [...stage._inspect().sounds.values()].find(
+        (s) => s.id === "player",
+      );
+      expect(instance.control.sourceCursorMs).toBeCloseTo(687.5, 10);
+      expect(context.sources).toHaveLength(1);
+      context.currentTime = 10.5;
+      render([{ ...next, playback: { commandId: 2, operation: "pause" } }]);
+      await flushMicrotasks();
+      const expected = mode === "supersede" ? 1296.875 : 937.5;
+      expect(instance.control.cursorMs).toBeCloseTo(expected, 10);
+      expect(
+        eventsByName(eventHandler, "soundProgress").at(-1)._event.positionMs,
+      ).toBe(Math.round(expected));
+    },
+  );
+
   it("plays a decoded segment and emits soundReady under _event", async () => {
     const { context, eventHandler, render } = await setupControlledStage({
       assets: new Map([["track", { duration: 200 }]]),

@@ -2008,6 +2008,19 @@ export const createAudioStage = () => {
     }
   };
 
+  const checkpointRateEffectPosition = (instance) => {
+    if (!instance.source || instance.sourceEnded || instance.playbackPending) {
+      return;
+    }
+    // Holding/settling replaces the rate automation used for cursor integration.
+    // Preserve the media already traversed before that history is discarded.
+    if (instance.control) {
+      captureControlledPosition(instance);
+    } else {
+      checkpointLegacyPlaybackOffset(instance);
+    }
+  };
+
   const holdSoundProperty = (instance, property) => {
     instance.pendingEnterTransitions ??= {};
     instance.pendingEnterTransitions[property] = null;
@@ -2022,6 +2035,7 @@ export const createAudioStage = () => {
     }
     if (property !== "playbackRate") return;
 
+    checkpointRateEffectPosition(instance);
     if (instance.source) {
       holdParamNow(instance.source.playbackRate);
       instance.playbackRateAutomation =
@@ -2059,14 +2073,7 @@ export const createAudioStage = () => {
       return;
     }
     if (property === "playbackRate") {
-      if (
-        instance.source &&
-        !instance.control &&
-        !instance.sourceEnded &&
-        !instance.playbackPending
-      ) {
-        checkpointLegacyPlaybackOffset(instance);
-      }
+      checkpointRateEffectPosition(instance);
       instance.playbackRateAutomation = null;
       if (instance.source) {
         applyPlaybackRate({

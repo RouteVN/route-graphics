@@ -437,6 +437,7 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
         Object.assign(this, options);
         this.destroyed = false;
         this.update = vi.fn();
+        this.unload = vi.fn();
       }
 
       get isValid() {
@@ -2729,6 +2730,13 @@ describe("RouteGraphics public API", () => {
         expect(texture.source.height).toBe(metadataReady ? 1080 : 1);
         expect(texture.source.update).not.toHaveBeenCalled();
         expect(texture.source.isValid).toBe(false);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(false);
+        expect(texture.source.unload).not.toHaveBeenCalled();
+        expect(texture.source.update).not.toHaveBeenCalled();
 
         Object.defineProperty(createdVideos[0], "readyState", {
           value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
@@ -2746,6 +2754,12 @@ describe("RouteGraphics public API", () => {
         createdVideos[0].dispatchEvent(new window.Event("loadeddata"));
 
         expect(texture.source.isValid).toBe(true);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(true);
+        expect(texture.source.unload).toHaveBeenCalledTimes(1);
 
         expect(texture.source.width).toBe(1920);
         expect(texture.source.height).toBe(1080);
