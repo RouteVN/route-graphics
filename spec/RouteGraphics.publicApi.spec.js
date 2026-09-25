@@ -437,6 +437,11 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
         Object.assign(this, options);
         this.destroyed = false;
         this.update = vi.fn();
+        this.unload = vi.fn();
+      }
+
+      get isValid() {
+        return Boolean(this.resource.videoWidth && this.resource.videoHeight);
       }
 
       resize(width, height) {
@@ -2640,120 +2645,140 @@ describe("RouteGraphics public API", () => {
     }
   });
 
-  it("preserves video sprite dimensions when lazy frame data resizes the texture", async () => {
-    const { app, pixiMock } = await setupRouteGraphics({
-      pluginsFactory: async () => {
-        const { videoPlugin } = await import(
-          "../src/plugins/elements/video/index.js"
-        );
+  it.each([false, true])(
+    "waits for decoded video pixels and preserves dimensions (metadata ready: %s)",
+    async (metadataReady) => {
+      const { app, pixiMock } = await setupRouteGraphics({
+        pluginsFactory: async () => {
+          const { videoPlugin } = await import(
+            "../src/plugins/elements/video/index.js"
+          );
 
-        return {
-          elements: [videoPlugin],
-          animations: [],
-          audio: [],
-        };
-      },
-    });
-    const createdVideos = [];
-    const originalHTMLVideoElement = globalThis.HTMLVideoElement;
-    Object.defineProperty(globalThis, "HTMLVideoElement", {
-      value: window.HTMLVideoElement,
-      configurable: true,
-    });
-    const createObjectURL = vi
-      .spyOn(URL, "createObjectURL")
-      .mockReturnValue("blob:http://route-graphics/video");
-    const originalCreateElement = document.createElement.bind(document);
-    const createElement = vi
-      .spyOn(document, "createElement")
-      .mockImplementation((tagName, ...args) => {
-        const element = originalCreateElement(tagName, ...args);
-
-        if (tagName === "video") {
-          createdVideos.push(element);
-          Object.defineProperty(element, "readyState", {
-            value: 0,
-            configurable: true,
-          });
-          Object.defineProperty(element, "videoWidth", {
-            value: 0,
-            configurable: true,
-          });
-          Object.defineProperty(element, "videoHeight", {
-            value: 0,
-            configurable: true,
-          });
-          element.load = vi.fn();
-          element.pause = vi.fn();
-          element.play = vi.fn();
-        }
-
-        return element;
-      });
-
-    try {
-      await app.loadAssets({
-        introVideo: {
-          buffer: new Uint8Array([1, 2, 3]).buffer,
-          type: "video/mp4",
+          return {
+            elements: [videoPlugin],
+            animations: [],
+            audio: [],
+          };
         },
       });
-
-      app.render({
-        id: "video-state",
-        elements: [
-          {
-            id: "intro",
-            type: "video",
-            x: 0,
-            y: 0,
-            width: 320,
-            height: 180,
-            src: "introVideo",
-          },
-        ],
-      });
-
-      const sprite = app.findElementByLabel("intro");
-      const texture = pixiMock.Assets.cache.get("introVideo");
-
-      expect(sprite.width).toBe(320);
-      expect(sprite.height).toBe(180);
-      expect(texture.source.width).toBe(1);
-      expect(texture.source.height).toBe(1);
-
-      Object.defineProperty(createdVideos[0], "readyState", {
-        value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
-        configurable: true,
-      });
-      Object.defineProperty(createdVideos[0], "videoWidth", {
-        value: 1920,
-        configurable: true,
-      });
-      Object.defineProperty(createdVideos[0], "videoHeight", {
-        value: 1080,
-        configurable: true,
-      });
-
-      createdVideos[0].dispatchEvent(new window.Event("loadeddata"));
-
-      expect(texture.source.width).toBe(1920);
-      expect(texture.source.height).toBe(1080);
-      expect(texture.orig.width).toBe(1920);
-      expect(texture.orig.height).toBe(1080);
-      expect(sprite.width).toBe(320);
-      expect(sprite.height).toBe(180);
-      expect(sprite.scale.x).toBeCloseTo(320 / 1920);
-      expect(sprite.scale.y).toBeCloseTo(180 / 1080);
-    } finally {
+      const createdVideos = [];
+      const originalHTMLVideoElement = globalThis.HTMLVideoElement;
       Object.defineProperty(globalThis, "HTMLVideoElement", {
-        value: originalHTMLVideoElement,
+        value: window.HTMLVideoElement,
         configurable: true,
       });
-      createElement.mockRestore();
-      createObjectURL.mockRestore();
-    }
-  });
+      const createObjectURL = vi
+        .spyOn(URL, "createObjectURL")
+        .mockReturnValue("blob:http://route-graphics/video");
+      const originalCreateElement = document.createElement.bind(document);
+      const createElement = vi
+        .spyOn(document, "createElement")
+        .mockImplementation((tagName, ...args) => {
+          const element = originalCreateElement(tagName, ...args);
+
+          if (tagName === "video") {
+            createdVideos.push(element);
+            Object.defineProperty(element, "readyState", {
+              value: metadataReady ? window.HTMLMediaElement.HAVE_METADATA : 0,
+              configurable: true,
+            });
+            Object.defineProperty(element, "videoWidth", {
+              value: metadataReady ? 1920 : 0,
+              configurable: true,
+            });
+            Object.defineProperty(element, "videoHeight", {
+              value: metadataReady ? 1080 : 0,
+              configurable: true,
+            });
+            element.load = vi.fn();
+            element.pause = vi.fn();
+            element.play = vi.fn();
+          }
+
+          return element;
+        });
+
+      try {
+        await app.loadAssets({
+          introVideo: {
+            buffer: new Uint8Array([1, 2, 3]).buffer,
+            type: "video/mp4",
+          },
+        });
+
+        app.render({
+          id: "video-state",
+          elements: [
+            {
+              id: "intro",
+              type: "video",
+              x: 0,
+              y: 0,
+              width: 320,
+              height: 180,
+              src: "introVideo",
+            },
+          ],
+        });
+
+        const sprite = app.findElementByLabel("intro");
+        const texture = pixiMock.Assets.cache.get("introVideo");
+
+        expect(sprite.width).toBe(320);
+        expect(sprite.height).toBe(180);
+        expect(texture.source.width).toBe(metadataReady ? 1920 : 1);
+        expect(texture.source.height).toBe(metadataReady ? 1080 : 1);
+        expect(texture.source.update).not.toHaveBeenCalled();
+        expect(texture.source.isValid).toBe(false);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(false);
+        expect(texture.source.unload).not.toHaveBeenCalled();
+        expect(texture.source.update).not.toHaveBeenCalled();
+
+        Object.defineProperty(createdVideos[0], "readyState", {
+          value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        Object.defineProperty(createdVideos[0], "videoWidth", {
+          value: 1920,
+          configurable: true,
+        });
+        Object.defineProperty(createdVideos[0], "videoHeight", {
+          value: 1080,
+          configurable: true,
+        });
+
+        createdVideos[0].dispatchEvent(new window.Event("loadeddata"));
+
+        expect(texture.source.isValid).toBe(true);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(true);
+        expect(texture.source.unload).toHaveBeenCalledTimes(1);
+
+        expect(texture.source.width).toBe(1920);
+        expect(texture.source.height).toBe(1080);
+        expect(texture.orig.width).toBe(1920);
+        expect(texture.orig.height).toBe(1080);
+        expect(sprite.width).toBe(320);
+        expect(sprite.height).toBe(180);
+        expect(sprite.scale.x).toBeCloseTo(320 / 1920);
+        expect(sprite.scale.y).toBeCloseTo(180 / 1080);
+      } finally {
+        Object.defineProperty(globalThis, "HTMLVideoElement", {
+          value: originalHTMLVideoElement,
+          configurable: true,
+        });
+        createElement.mockRestore();
+        createObjectURL.mockRestore();
+      }
+    },
+  );
 
   it("updates the visible stage background graphic color", async () => {
     const { app, pixiMock } = await setupRouteGraphics();

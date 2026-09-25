@@ -1,0 +1,102 @@
+title: Controlled cursor after rate effect cancellation
+description: >-
+  Pause and resume after interrupting a rate ramp; a chirp exposes any lost media position in the
+  resumed audio.
+durationMs: 2200
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 1320
+    durationMs: 4000
+states:
+  - atMs: 0
+    state:
+      id: rate-ramp
+      elements: []
+      animations: []
+      audio:
+        - id: player
+          type: sound
+          src: chirp
+          volume: 75
+          playbackRate: 1
+          playback:
+            commandId: 1
+            operation: play
+            positionMs: 0
+      audioEffects:
+        - id: rate-enter
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              enter:
+                initialValue: 3
+                keyframes:
+                  - value: 1
+                    duration: 1000
+                    easing: linear
+  - atMs: 250
+    state:
+      id: rate-effect-changed
+      elements: []
+      animations: []
+      audio:
+        - id: player
+          type: sound
+          src: chirp
+          volume: 75
+          playbackRate: 1
+          playback:
+            commandId: 1
+            operation: play
+            positionMs: 0
+      audioEffects: []
+  - atMs: 500
+    state:
+      id: paused
+      elements: []
+      animations: []
+      audio:
+        - id: player
+          type: sound
+          src: chirp
+          volume: 75
+          playbackRate: 1
+          playback:
+            commandId: 2
+            operation: pause
+      audioEffects: []
+  - atMs: 800
+    state:
+      id: resumed
+      elements: []
+      animations: []
+      audio:
+        - id: player
+          type: sound
+          src: chirp
+          volume: 75
+          playbackRate: 1
+          playback:
+            commandId: 3
+            operation: resume
+      audioEffects: []
+  - atMs: 2000
+    state:
+      id: finished
+      elements: []
+      animations: []
+      audio:
+        - id: player
+          type: sound
+          src: chirp
+          volume: 75
+          playbackRate: 1
+          playback:
+            commandId: 4
+            operation: stop
+      audioEffects: []

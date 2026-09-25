@@ -1,24 +1,41 @@
 ---
 title: Text Revealing - Speed Scale
-description: Compares typewriter reveal progress across low, mid, high, and instant speed settings on the curved text-reveal scale.
-diffThreshold: 0.5
+description: Compares typewriter reveal progress at exactly 450ms and 1600ms across low, mid, high, and instant speed settings, using a controlled timeout clock independent of CI load.
 specs:
   - lower speeds should reveal fewer characters after the same elapsed time
   - speed 99 should finish ordinary typewriter copy quickly without using the instant speed 100 path
   - speed 100 should render complete text immediately without any reveal animation
 steps:
   - action: screenshot
+  - action: customEvent
+    name: vtInstallTimeoutClock
   - action: keypress
     key: "n"
-  - action: wait
-    ms: 450
+  - action: assert
+    type: js
+    fn: vtAssert.renderReady
+    value: true
+  - action: customEvent
+    name: vtAdvanceTimeoutClock
+    detail:
+      deltaMS: 450
+  - action: assert
+    type: js
+    fn: vtAssert.timersIdle
+    value: true
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
       deltaMS: 16
   - action: screenshot
-  - action: wait
-    ms: 1150
+  - action: customEvent
+    name: vtAdvanceTimeoutClock
+    detail:
+      deltaMS: 1150
+  - action: assert
+    type: js
+    fn: vtAssert.timersIdle
+    value: true
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:

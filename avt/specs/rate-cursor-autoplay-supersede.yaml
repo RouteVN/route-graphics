@@ -1,0 +1,155 @@
+title: Autoplay cursor after rate effect replacement
+description: >-
+  Pause and resume after interrupting a rate ramp; a chirp exposes any lost media position in the
+  resumed audio.
+durationMs: 2200
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  chirp:
+    generator: tone
+    frequency: 220
+    endFrequency: 1320
+    durationMs: 4000
+states:
+  - atMs: 0
+    state:
+      id: rate-ramp
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 1
+            operation: resume
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              volume: 75
+              playbackRate: 1
+      audioEffects:
+        - id: rate-enter
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              enter:
+                initialValue: 3
+                keyframes:
+                  - value: 1
+                    duration: 1000
+                    easing: linear
+  - atMs: 250
+    state:
+      id: rate-effect-changed
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 1
+            operation: resume
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              volume: 75
+              playbackRate: 2
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear
+  - atMs: 500
+    state:
+      id: paused
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 2
+            operation: pause
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              volume: 75
+              playbackRate: 2
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear
+  - atMs: 800
+    state:
+      id: resumed
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 3
+            operation: resume
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              volume: 75
+              playbackRate: 2
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear
+  - atMs: 2000
+    state:
+      id: finished
+      elements: []
+      animations: []
+      audio:
+        - id: music
+          type: audio-channel
+          playback:
+            commandId: 4
+            operation: pause
+          children:
+            - id: player
+              type: sound
+              src: chirp
+              volume: 75
+              playbackRate: 2
+      audioEffects:
+        - id: rate-update
+          type: audio-transition
+          targetId: player
+          properties:
+            playbackRate:
+              update:
+                keyframes:
+                  - value: 2
+                    duration: 1000
+                    easing: linear

@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "wavSha256": "10b51324ff904dab6d21f8ef04c49408c7f2f65ad51b275712035633dfad3ba7",
+  "metadata": {
+    "sampleRate": 48000,
+    "numberOfChannels": 2,
+    "frameCount": 105600,
+    "durationMs": 2200,
+    "byteLength": 422444,
+    "signal": {
+      "peak": 0.2386474609375,
+      "rms": 0.14830216891457537,
+      "nonZeroSamples": 163320
+    }
+  },
+  "events": [
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "rate-ramp",
+        "aborted": false
+      }
+    },
+    {
+      "name": "soundReady",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 1,
+          "positionMs": 0,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "rate-effect-changed",
+        "aborted": false
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 1,
+          "positionMs": 689,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "paused",
+        "aborted": false
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 2,
+          "positionMs": 1300,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "resumed",
+        "aborted": false
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 3,
+          "positionMs": 1842,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 3,
+          "positionMs": 2353,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 3,
+          "positionMs": 2854,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 3,
+          "positionMs": 3350,
+          "durationMs": 4000
+        }
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "finished",
+        "aborted": false
+      }
+    },
+    {
+      "name": "soundProgress",
+      "payload": {
+        "_event": {
+          "id": "player",
+          "commandId": 4,
+          "positionMs": 0,
+          "durationMs": 4000
+        }
+      }
+    }
+  ]
+}
