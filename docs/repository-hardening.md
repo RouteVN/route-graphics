@@ -60,3 +60,21 @@ Pixi's image-decoding workers while keeping runtime `eval` blocked.
 Composition-key behavior has automated event coverage; native IME UI and mobile
 keyboard behavior still need a supported-device pass. No visual or audio
 reference was regenerated for this change.
+
+## Renderer canvas retention
+
+RouteGraphics explicitly releases the owned renderer-view texture and its source
+after renderer teardown. Pixi 8.10.2 leaves that texture in its canvas cache,
+which otherwise keeps the canvas and its detached host subtree alive. The Pixi
+version stays pinned; shared asset textures are not affected by this cleanup.
+
+`bun run test:retention` and the browser CI job exercise the packaged browser
+bundle with real WebGL renderers. Weak references and explicit collection verify
+that all canvases and detached host subtrees from earlier batches become
+collectible across three batches of six renderers; detached plain subtrees act
+as a collection control. Pixi 8.10.2's batchable pool separately retains the
+latest few geometries and WebGL contexts (three canvases in the diagnostic
+fixture), so the test bounds retention to the current batch rather than claiming
+zero retained canvases. Without the view cleanup, every closed renderer remains
+retained. Repeated destruction is also checked. Renderer context loss alone does
+not establish that those objects have been released.

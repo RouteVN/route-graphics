@@ -284,6 +284,18 @@ const createRouteGraphics = () => {
    */
   let app;
 
+  const destroyApplication = () => {
+    if (!app) return;
+
+    // Pixi 8.10.2 leaves the view texture in its canvas cache. Release our
+    // owned view after renderer teardown so closed canvases (and their DOM
+    // ancestors) can collect without destroying shared asset textures.
+    const viewTexture = app.renderer?.view?.texture;
+    app.destroy(false, { children: true });
+    viewTexture?.destroy(true);
+    app = undefined;
+  };
+
   /**
    * @type {AudioStage}
    */
@@ -1542,7 +1554,7 @@ const createRouteGraphics = () => {
       });
       selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
       if (!rendererFallback && selectedRendererType !== rendererPreference) {
-        app.destroy();
+        destroyApplication();
         throw new Error(
           `Renderer "${rendererPreference}" is unavailable and rendererFallback is false.`,
         );
@@ -1748,7 +1760,7 @@ const createRouteGraphics = () => {
         cleanupParticlesInTree({ app, root: app.stage });
       }
 
-      if (app) app.destroy(false, { children: true });
+      destroyApplication();
       animationPlaybackMode = "auto";
       animationPlaybackTimeMS = null;
       shaderTimeMS = 0;
