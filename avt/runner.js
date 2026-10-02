@@ -193,6 +193,14 @@ const run = async () => {
       if (!isRecord(entry) || !isRecord(entry.state)) {
         throw new Error(`AVT states[${index}] must contain a state object.`);
       }
+      if (
+        entry.afterMicrotask !== undefined &&
+        !isRecord(entry.afterMicrotask)
+      ) {
+        throw new Error(
+          `AVT states[${index}].afterMicrotask must be a state object.`,
+        );
+      }
       assertFiniteNumber(entry.atMs, `states[${index}].atMs`, { min: 0 });
       if (entry.atMs >= spec.durationMs) {
         throw new Error(
@@ -200,6 +208,26 @@ const run = async () => {
         );
       }
     }
+
+    const eventRenders = spec.eventRenders ?? [];
+    if (!Array.isArray(eventRenders)) {
+      throw new Error("AVT eventRenders must be an array.");
+    }
+    for (const [index, entry] of eventRenders.entries()) {
+      if (
+        !isRecord(entry) ||
+        typeof entry.event !== "string" ||
+        typeof entry.id !== "string" ||
+        !Array.isArray(entry.states) ||
+        entry.states.length === 0 ||
+        !entry.states.every(isRecord)
+      ) {
+        throw new Error(
+          `AVT eventRenders[${index}] requires event, id, and a nonempty states array.`,
+        );
+      }
+    }
+    const pendingEventRenders = new Set(eventRenders);
 
     const routeGraphics = await import("/RouteGraphics.js");
     const {
@@ -226,7 +254,16 @@ const run = async () => {
       rendererPreference: "webgl",
       rendererFallback: true,
       plugins: { elements: [], animations: [], audio: [soundPlugin] },
-      eventHandler: (name, payload) => events.push({ name, payload }),
+      eventHandler: (name, payload) => {
+        events.push({ name, payload });
+        for (const entry of pendingEventRenders) {
+          if (entry.event !== name || entry.id !== payload?._event?.id)
+            continue;
+          // Consume before rendering, since rendering can emit nested events.
+          pendingEventRenders.delete(entry);
+          for (const state of entry.states) app.render(state);
+        }
+      },
     });
     await app.loadAssets(createAudioAssets(spec.assets, runtime.sampleRate));
 
@@ -241,12 +278,22 @@ const run = async () => {
         throw new Error("AVT state times must be unique.");
       }
     }
-    app.render(states[0].state);
+    const renderState = (entry) => {
+      app.render(entry.state);
+      if (entry.afterMicrotask) {
+        // Cached decode settles first and queues Ready behind this render.
+        runtime.queueMicrotask(() => app.render(entry.afterMicrotask));
+      }
+    };
+    renderState(states[0]);
     for (const entry of states.slice(1)) {
-      runtime.scheduleAt(entry.atMs, () => app.render(entry.state));
+      runtime.scheduleAt(entry.atMs, () => renderState(entry));
     }
 
     const rendered = await runtime.render();
+    if (pendingEventRenders.size > 0) {
+      throw new Error("AVT did not receive every eventRenders trigger.");
+    }
     const wav = toCanonicalPcm16Wav(rendered);
     const signal = summarizeSignal(wav);
     if (spec.expectSilence === true && signal.nonZeroSamples !== 0) {
