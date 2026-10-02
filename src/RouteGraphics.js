@@ -295,7 +295,10 @@ const createRouteGraphics = () => {
   const audioStage = createAudioStage();
 
   let needsReconciliation = false;
-  let audioEffectRequests = new Map();
+  // Snapshot mode's request baseline: the audio-effect requests that produced
+  // each committed state. Keyed by state, so any code that replaces `state`
+  // also drops the baseline.
+  const audioEffectRequestsByState = new WeakMap();
   /**
    * @type {RouteGraphicsState}
    */
@@ -1168,7 +1171,7 @@ const createRouteGraphics = () => {
       if (typeof appInstance.render === "function") {
         appInstance.render();
       }
-      audioEffectRequests = nextAudioEffectRequests;
+      audioEffectRequestsByState.set(state, nextAudioEffectRequests);
       renderReadiness.presentedUnchanged();
       return;
     }
@@ -1278,7 +1281,7 @@ const createRouteGraphics = () => {
       // Commit logical state only after the renderer accepts the frame.
       if (!isCurrent()) return;
       state = nextState;
-      audioEffectRequests = nextAudioEffectRequests;
+      audioEffectRequestsByState.set(state, nextAudioEffectRequests);
       if (renderOperation && typeof renderOperation.then === "function") {
         void Promise.resolve(renderOperation)
           .then(() => {
@@ -2255,7 +2258,7 @@ const createRouteGraphics = () => {
         normalizedState.audioEffects = prepareSnapshotAudioEffects({
           prevState: normalizeAudioRenderState(state),
           nextState: normalizeAudioRenderState(normalizedState),
-          previousRequests: audioEffectRequests,
+          previousRequests: audioEffectRequestsByState.get(state),
         });
       }
       const parsedElements = parseElements({

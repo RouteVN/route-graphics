@@ -465,13 +465,16 @@ and effects are omitted. An exit-only effect is also omitted when its outgoing
 target is absent from both actual graphs; missing enter/update targets still fail
 validation. Update tracks whose declared property is already at their valid
 endpoint are omitted as settled. The declared audio node values still apply, so returning
-to an entry fade can update the retained sound without restarting it.
+to an entry fade can update the retained sound without restarting it. An
+editor that wants to play that entry fade again must first render a state
+without the retained sound.
 
 Repeated requests with the same effect ID and canonical payload retain their
 previously accepted phases, including a crossfade filtered to entry-only. A
 changed payload is a new occurrence. Only successfully submitted render states
-advance this request baseline. Input shape, supported properties, targets, and
-applicable track endpoints remain validated. This option does not affect visual
+advance this request baseline, and the baseline belongs to the committed render
+state: replacing that state starts from no previous requests. Input shape,
+supported properties, targets, and applicable track endpoints remain validated. This option does not affect visual
 animations or per-sound `beginEffect`/`endEffect` behavior. Omit the option, or use
 `audioEffectsMode: "strict"`, for the normal strict contract.
 
