@@ -1100,6 +1100,15 @@ export class BaseRouteGraphics {
   }
 
   /**
+   * Clear scene runtime state, preserving the renderer, canvas, and owned assets.
+   * Renderer backend and debug options cannot change. Serialize with asset loads.
+   * @param {Partial<RouteGraphicsInitOptions>} [_options] - Runtime options to replace
+   */
+  reset(_options = {}) {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
    * Renders the state
    * @param {RouteGraphicsState<any,any>} state - State to render
    * @param {RouteGraphicsRenderOptions} [_options] - Render options

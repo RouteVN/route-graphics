@@ -323,6 +323,8 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
     }
   }
 
+  MockContainer.prototype.getChildByLabel = MockStage.prototype.getChildByLabel;
+
   class MockApplication {
     constructor() {
       lastApplication = this;
@@ -333,7 +335,7 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
       this.render = vi.fn();
       this.renderer = {
         background: { color: 0 },
-        events: {},
+        events: { cursorStyles: { default: "default", hover: "pointer" } },
         width: 0,
         height: 0,
         generateTexture: vi.fn(() => ({
@@ -598,6 +600,216 @@ const audioSnapshot = (id, source = "track-a", effectId = "fade:1") => ({
 const snapshotAudioOptions = { audioEffectsMode: "snapshot" };
 
 describe("RouteGraphics public API", () => {
+  it.each([false, true])(
+    "isolates a pending render across reset (reject=%s)",
+    async (reject) => {
+      let finish;
+      const pending = new Promise((resolve, fail) => {
+        finish = reject ? () => fail(new Error("Abandoned mount")) : resolve;
+      });
+      const oldEvents = vi.fn();
+      const newEvents = vi.fn();
+      const { app, pixiMock } = await setupRouteGraphics({
+        initOptions: { eventHandler: oldEvents },
+        pluginsFactory: async ({ pixiMock }) => ({
+          elements: [
+            (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+            {
+              type: "async-node",
+              parse: ({ state }) => state,
+              add: ({ parent, element }) => {
+                const child = new pixiMock.Container();
+                child.label = element.id;
+                parent.addChild(child);
+                return pending;
+              },
+            },
+          ],
+        }),
+      });
+      const pixiApp = pixiMock.__getLastApplication();
+      pixiApp.renderer.resize = vi.fn();
+      const renderer = pixiApp.renderer;
+      const canvas = app.canvas;
+      app.render({
+        id: "abandoned",
+        elements: [{ id: "old", type: "async-node" }],
+      });
+      const abandonedReady = app.whenRenderReady().catch(error => error.name);
+      const oldStage = pixiApp.stage;
+      await app.reset({ eventHandler: newEvents });
+      expect(await abandonedReady).toBe("AbortError");
+      app.render({
+        id: "replacement",
+        elements: [
+          { id: "box", type: "rect", width: 20, height: 20, fill: "#00ff00" },
+        ],
+      });
+      const eventCount = newEvents.mock.calls.length;
+      finish();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(pixiApp.renderer).toBe(renderer);
+      expect(app.canvas).toBe(canvas);
+      expect(oldStage.destroyed).toBe(true);
+      expect(app.findElementByLabel("old")).toBeNull();
+      expect(app.findElementByLabel("box").lastFill).toBe("#00ff00");
+      expect(newEvents).toHaveBeenCalledWith("renderComplete", {
+        id: "replacement",
+        aborted: false,
+      });
+      expect(newEvents).toHaveBeenCalledTimes(eventCount);
+      expect(oldEvents).not.toHaveBeenCalledWith(
+        "renderComplete",
+        expect.objectContaining({ aborted: false }),
+      );
+    },
+  );
+
+  it("retains owned assets across reset until explicitly unloaded", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    const texture = {
+      source: { resource: { close: vi.fn() } },
+      destroy: vi.fn(),
+    };
+    pixiMock.Assets.load.mockImplementation(async (url) => {
+      pixiMock.Assets.cache.set(url, texture);
+      return texture;
+    });
+    await app.loadAssets({
+      picture: {
+        source: "url",
+        url: "https://example.test/picture.png",
+        type: "image/png",
+      },
+    });
+    await app.reset();
+    expect(texture.destroy).not.toHaveBeenCalled();
+    expect(pixiMock.Assets.cache.get("picture")).toBe(texture);
+    await app.unloadAssets(["picture"]);
+    expect(texture.destroy).toHaveBeenCalledOnce();
+  });
+
+  it("rejects renderer configuration changes before resetting the live scene", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const stage = pixiMock.__getLastApplication().stage;
+    expect(() => app.reset({ rendererPreference: "webgpu" })).toThrow(
+      "reset cannot change rendererPreference",
+    );
+    expect(stage.destroyed).not.toBe(true);
+  });
+
+  it("rejects invalid runtime options before resetting the live scene", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const stage = pixiMock.__getLastApplication().stage;
+    expect(() => app.reset({ animationPlaybackMode: "paused" })).toThrow(
+      'Invalid animation playback mode "paused"',
+    );
+    expect(stage.destroyed).not.toBe(true);
+  });
+
+  it("aborts a render whose animation a reset interrupts", async () => {
+    const oldEvents = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: { eventHandler: oldEvents, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render({
+      id: "animating",
+      elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      animations: [
+        {
+          id: "move",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { initialValue: 0, keyframes: [{ value: 100, duration: 1000 }] },
+          },
+        },
+      ],
+    });
+    app.setAnimationTime(500);
+    await app.reset({ eventHandler: vi.fn() });
+    // Cancelling the animation must not report the render as completed.
+    expect(oldEvents).not.toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: false,
+    });
+    expect(oldEvents).toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: true,
+    });
+  });
+
+  it("replaces element plugins on reset", async () => {
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    const added = vi.fn();
+    await app.reset({
+      plugins: {
+        elements: [
+          {
+            type: "marker",
+            parse: ({ state }) => state,
+            add: ({ parent, element }) => {
+              const child = new pixiMock.Container();
+              child.label = element.id;
+              parent.addChild(child);
+              added(element.id);
+            },
+          },
+        ],
+      },
+    });
+    app.render({ id: "marker", elements: [{ id: "flag", type: "marker" }] });
+    expect(added).toHaveBeenCalledWith("flag");
+    expect(() =>
+      app.render({
+        id: "rect",
+        elements: [{ id: "box", type: "rect", width: 10, height: 10 }],
+      }),
+    ).toThrow(/rect/);
+  });
+
+  it("reports the first render again after reset", async () => {
+    const onFirstRender = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: { onFirstRender },
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render({ id: "first", elements: [] });
+    app.render({ id: "second", elements: [] });
+    expect(onFirstRender).toHaveBeenCalledOnce();
+    await app.reset();
+    app.render({ id: "after-reset", elements: [] });
+    expect(onFirstRender).toHaveBeenCalledTimes(2);
+  });
+
+  it("starts snapshot audio effects from no previous requests after reset", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app, pixiMock } = await setupRouteGraphics({ audioStage });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render(audioSnapshot("before-reset"), snapshotAudioOptions);
+    await app.reset();
+    // The same request is new to the reset renderer, so its entry applies
+    // again instead of continuing an occurrence the reset discarded.
+    app.render(audioSnapshot("after-reset"), snapshotAudioOptions);
+    const accepted =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(accepted[0].properties.volume)).toEqual(["enter"]);
+  });
+
   it("keeps strict renders strict and validates snapshot input before omission", async () => {
     const audioStage = createPlanningAudioStage();
     const { app } = await setupRouteGraphics({ audioStage });
