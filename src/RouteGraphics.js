@@ -1802,6 +1802,10 @@ const createRouteGraphics = () => {
           );
         }
       }
+      // The renderer options above match initialization, so this is the only
+      // option left that initialize can reject. Check it before the live
+      // scene is disposed.
+      assertAnimationPlaybackMode(nextOptions.animationPlaybackMode ?? "auto");
       disposeRuntime(true);
       audioStage = createAudioStage();
       return initialize(nextOptions, true);

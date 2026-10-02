@@ -646,6 +646,15 @@ describe("RouteGraphics public API", () => {
     expect(stage.destroyed).not.toBe(true);
   });
 
+  it("rejects invalid runtime options before resetting the live scene", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const stage = pixiMock.__getLastApplication().stage;
+    expect(() => app.reset({ animationPlaybackMode: "paused" })).toThrow(
+      'Invalid animation playback mode "paused"',
+    );
+    expect(stage.destroyed).not.toBe(true);
+  });
+
   it.each([
     "mount",
     "update",
