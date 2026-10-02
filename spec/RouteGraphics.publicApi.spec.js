@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { normalizeAudioRenderState } from "../src/util/normalizeAudio.js";
+import { planAudioEffects } from "../src/plugins/audio/planAudioEffects.js";
 
 const createMockBounds = (width, height) => ({
   x: 0,
@@ -472,6 +474,7 @@ const setupRouteGraphics = async ({
   realText = false,
   pluginsFactory,
   rendererOverrides,
+  audioStage,
   audioAsset = {
     load: vi.fn(),
     getAsset: vi.fn(),
@@ -499,10 +502,11 @@ const setupRouteGraphics = async ({
 
   vi.doMock("pixi.js", () => pixiMock);
   vi.doMock("../src/AudioStage.js", () => ({
-    createAudioStage: () => ({
-      tick: vi.fn(),
-      destroy: vi.fn(),
-    }),
+    createAudioStage: () =>
+      audioStage ?? {
+        tick: vi.fn(),
+        destroy: vi.fn(),
+      },
   }));
   vi.doMock("../src/AudioAsset.js", () => ({
     AudioAsset: audioAsset,
@@ -545,6 +549,55 @@ const findTransitionOverlay = (pixiMock) =>
         Array.isArray(child.children) &&
         child.children.length > 0,
     ) ?? null;
+
+const createPlanningAudioStage = () => {
+  const ownedAudioEffects = new Map();
+  const validateGraphTransition = vi.fn(
+    ({ prevAudio, nextAudio, prevAudioEffects, nextAudioEffects }) =>
+      planAudioEffects({
+        prevState: normalizeAudioRenderState({
+          audio: prevAudio,
+          audioEffects: prevAudioEffects,
+        }),
+        nextState: normalizeAudioRenderState({
+          audio: nextAudio,
+          audioEffects: nextAudioEffects,
+        }),
+        ownedAudioEffects,
+      }),
+  );
+  return {
+    tick: vi.fn(),
+    destroy: vi.fn(),
+    validateGraphTransition,
+    renderGraph: vi.fn((input) => {
+      const plan = validateGraphTransition(input);
+      for (const { effect } of [...plan.settled, ...plan.superseded])
+        ownedAudioEffects.delete(effect.id);
+      for (const entry of plan.accepted)
+        ownedAudioEffects.set(entry.effect.id, entry);
+    }),
+  };
+};
+
+const audioSnapshot = (id, source = "track-a", effectId = "fade:1") => ({
+  id,
+  audio: [{ id: "music", type: "sound", src: source, volume: 80 }],
+  audioEffects: [
+    {
+      id: effectId,
+      type: "audio-transition",
+      targetId: "music",
+      properties: {
+        volume: {
+          exit: { keyframes: [{ value: 0, duration: 100 }] },
+          enter: { initialValue: 0, keyframes: [{ value: 80, duration: 100 }] },
+        },
+      },
+    },
+  ],
+});
+const snapshotAudioOptions = { audioEffectsMode: "snapshot" };
 
 describe("RouteGraphics public API", () => {
   it.each([false, true])(
@@ -653,6 +706,101 @@ describe("RouteGraphics public API", () => {
       'Invalid animation playback mode "paused"',
     );
     expect(stage.destroyed).not.toBe(true);
+  });
+
+  it("keeps strict renders strict and validates snapshot input before omission", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({ audioStage });
+    app.render({ ...audioSnapshot("baseline"), audioEffects: [] });
+    const snapshot = audioSnapshot("selected");
+    expect(() => app.render(snapshot)).toThrow(
+      "not applicable to an audio update lifecycle",
+    );
+    expect(() => app.render(snapshot, { audioEffectsMode: "unknown" })).toThrow(
+      "unsupported audioEffectsMode",
+    );
+    const malformed = structuredClone(snapshot);
+    malformed.audioEffects[0].properties.volume.enter.keyframes[0].duration =
+      -1;
+    expect(() => app.render(malformed, snapshotAudioOptions)).toThrow();
+    app.render(snapshot, snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual([]);
+    expect(audioStage.renderGraph.mock.calls.at(-1)[0].nextAudio).toEqual(
+      snapshot.audio,
+    );
+  });
+
+  it("continues a filtered crossfade across repeated original engine requests", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({ audioStage });
+    app.render(audioSnapshot("first"), snapshotAudioOptions);
+    const accepted =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(accepted[0].properties.volume)).toEqual(["enter"]);
+    app.render(audioSnapshot("callback"), snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual(accepted);
+    expect(
+      audioStage.validateGraphTransition.mock.results.at(-1).value.continued,
+    ).toHaveLength(1);
+    const changed = audioSnapshot("edited");
+    changed.audioEffects[0].properties.volume.exit.keyframes[0].duration = 200;
+    app.render(changed, snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual([]);
+  });
+
+  it("commits snapshot request identity before synchronous render completion", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({
+      audioStage,
+      initOptions: {
+        eventHandler: (event, payload) => {
+          if (
+            event === "renderComplete" &&
+            payload.id === "first" &&
+            !payload.aborted
+          ) {
+            app.render(audioSnapshot("callback"), snapshotAudioOptions);
+          }
+        },
+      },
+    });
+    app.render(audioSnapshot("first"), snapshotAudioOptions);
+    expect(audioStage.renderGraph).toHaveBeenCalledTimes(2);
+    const continued =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(continued[0].properties.volume)).toEqual(["enter"]);
+    app.render(audioSnapshot("later"), snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual(continued);
+  });
+
+  it("does not commit snapshot request identity when renderer submission fails", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app, pixiMock } = await setupRouteGraphics({ audioStage });
+    pixiMock.__getLastApplication().render.mockImplementationOnce(() => {
+      throw new Error("submit failed");
+    });
+    const snapshot = audioSnapshot("retry");
+    expect(() => app.render(snapshot, snapshotAudioOptions)).toThrow(
+      "submit failed",
+    );
+    app.render(snapshot, snapshotAudioOptions);
+    expect(
+      Object.keys(
+        audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects[0]
+          .properties.volume,
+      ),
+    ).toEqual(["enter"]);
+    expect(
+      audioStage.validateGraphTransition.mock.results.at(-1).value.accepted,
+    ).toHaveLength(1);
   });
 
   it.each([
