@@ -1102,8 +1102,9 @@ export class BaseRouteGraphics {
   /**
    * Renders the state
    * @param {RouteGraphicsState<any,any>} state - State to render
+   * @param {RouteGraphicsRenderOptions} [_options] - Render options
    */
-  render(state) {
+  render(state, _options = {}) {
     throw new Error("Method not implemented.");
   }
 
