@@ -1530,6 +1530,9 @@ const createRouteGraphics = () => {
   };
 
   const disposeRuntime = (retainRenderer) => {
+    // Abort the pending render first, like a superseding render would.
+    // Otherwise cancelling its animations below reports it as completed.
+    completionTracker?.reset(null);
     renderReadiness.clear();
     if (renderAbortController) {
       renderAbortController.abort();

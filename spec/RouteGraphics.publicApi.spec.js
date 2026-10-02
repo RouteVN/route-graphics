@@ -708,6 +708,44 @@ describe("RouteGraphics public API", () => {
     expect(stage.destroyed).not.toBe(true);
   });
 
+  it("aborts a render whose animation a reset interrupts", async () => {
+    const oldEvents = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: { eventHandler: oldEvents, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render({
+      id: "animating",
+      elements: [{ id: "box", type: "rect", width: 20, height: 20 }],
+      animations: [
+        {
+          id: "move",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { initialValue: 0, keyframes: [{ value: 100, duration: 1000 }] },
+          },
+        },
+      ],
+    });
+    app.setAnimationTime(500);
+    await app.reset({ eventHandler: vi.fn() });
+    // Cancelling the animation must not report the render as completed.
+    expect(oldEvents).not.toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: false,
+    });
+    expect(oldEvents).toHaveBeenCalledWith("renderComplete", {
+      id: "animating",
+      aborted: true,
+    });
+  });
+
   it("replaces element plugins on reset", async () => {
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => ({
