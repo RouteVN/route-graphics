@@ -190,8 +190,15 @@ const run = async () => {
       throw new Error("AVT expectSilence must be a boolean when provided.");
     }
     for (const [index, entry] of spec.states.entries()) {
-      if (!isRecord(entry) || !isRecord(entry.state)) {
-        throw new Error(`AVT states[${index}] must contain a state object.`);
+      // A reset step replaces rendering at its time with app.reset(options).
+      const validStep =
+        entry.reset === undefined
+          ? isRecord(entry.state)
+          : isRecord(entry.reset) && entry.state === undefined;
+      if (!isRecord(entry) || !validStep) {
+        throw new Error(
+          `AVT states[${index}] must contain a state object or a reset options object.`,
+        );
       }
       if (entry.renderOptions !== undefined && !isRecord(entry.renderOptions)) {
         throw new Error(
@@ -283,7 +290,14 @@ const run = async () => {
         throw new Error("AVT state times must be unique.");
       }
     }
+    let resetFailure;
     const renderState = (entry) => {
+      if (entry.reset) {
+        app.reset(entry.reset).catch((error) => {
+          resetFailure ??= error;
+        });
+        return;
+      }
       app.render(entry.state, entry.renderOptions);
       if (entry.afterMicrotask) {
         // Cached decode settles first and queues Ready behind this render.
@@ -296,6 +310,9 @@ const run = async () => {
     }
 
     const rendered = await runtime.render();
+    if (resetFailure) {
+      throw resetFailure;
+    }
     if (pendingEventRenders.size > 0) {
       throw new Error("AVT did not receive every eventRenders trigger.");
     }
