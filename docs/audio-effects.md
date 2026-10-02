@@ -448,6 +448,33 @@ Consumers should normally generate IDs from a line-entry, action occurrence,
 or visit token. Reusing an authored resource ID as the occurrence ID would
 suppress legitimate revisits.
 
+### Editor snapshots
+
+Normal `render(state)` calls validate every new effect against the current audio
+edge. Editors that rebuild story state while retaining renderer audio can opt in
+to snapshot reconciliation:
+
+```js
+app.render(selectedLineState, { audioEffectsMode: "snapshot" });
+```
+
+Snapshot mode omits newly requested phases that do not apply to the actual
+lifecycle: add/replay accepts `enter`, removal accepts `exit`, source replacement
+accepts `enter` and `exit`, and retained nodes accept `update`. Empty properties
+and effects are omitted. An exit-only effect is also omitted when its outgoing
+target is absent from both actual graphs; missing enter/update targets still fail
+validation. Update tracks whose declared property is already at their valid
+endpoint are omitted as settled. The declared audio node values still apply, so returning
+to an entry fade can update the retained sound without restarting it.
+
+Repeated requests with the same effect ID and canonical payload retain their
+previously accepted phases, including a crossfade filtered to entry-only. A
+changed payload is a new occurrence. Only successfully submitted render states
+advance this request baseline. Input shape, supported properties, targets, and
+applicable track endpoints remain validated. This option does not affect visual
+animations or per-sound `beginEffect`/`endEffect` behavior. Omit the option, or use
+`audioEffectsMode: "strict"`, for the normal strict contract.
+
 ## Volume
 
 Channel volume and sound volume stack multiplicatively.

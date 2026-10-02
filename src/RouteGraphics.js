@@ -31,6 +31,11 @@ import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { createRenderReadiness } from "./util/renderReadiness.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
+import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
+import {
+  getAudioEffectSignature,
+  prepareSnapshotAudioEffects,
+} from "./plugins/audio/planAudioEffects.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
 import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
@@ -290,6 +295,7 @@ const createRouteGraphics = () => {
   const audioStage = createAudioStage();
 
   let needsReconciliation = false;
+  let audioEffectRequests = new Map();
   /**
    * @type {RouteGraphicsState}
    */
@@ -1151,11 +1157,18 @@ const createRouteGraphics = () => {
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = (appInstance, parent, nextState, handler) => {
+  const renderInternal = (
+    appInstance,
+    parent,
+    nextState,
+    handler,
+    nextAudioEffectRequests,
+  ) => {
     if (!needsReconciliation && isDeepEqual(state, nextState)) {
       if (typeof appInstance.render === "function") {
         appInstance.render();
       }
+      audioEffectRequests = nextAudioEffectRequests;
       renderReadiness.presentedUnchanged();
       return;
     }
@@ -1265,6 +1278,7 @@ const createRouteGraphics = () => {
       // Commit logical state only after the renderer accepts the frame.
       if (!isCurrent()) return;
       state = nextState;
+      audioEffectRequests = nextAudioEffectRequests;
       if (renderOperation && typeof renderOperation.then === "function") {
         void Promise.resolve(renderOperation)
           .then(() => {
@@ -2222,9 +2236,28 @@ const createRouteGraphics = () => {
     /**
      *
      * @param {RouteGraphicsState} stateParam
+     * @param {import("./types.js").RouteGraphicsRenderOptions} [options]
      */
-    render: (stateParam) => {
+    render: (stateParam, { audioEffectsMode = "strict" } = {}) => {
+      if (audioEffectsMode !== "strict" && audioEffectsMode !== "snapshot") {
+        throw new Error(
+          `Input error: unsupported audioEffectsMode "${audioEffectsMode}". Expected "strict" or "snapshot".`,
+        );
+      }
       const normalizedState = normalizeRenderState(stateParam);
+      const nextAudioEffectRequests = new Map(
+        normalizedState.audioEffects.map((effect) => [
+          effect.id,
+          getAudioEffectSignature(effect),
+        ]),
+      );
+      if (audioEffectsMode === "snapshot") {
+        normalizedState.audioEffects = prepareSnapshotAudioEffects({
+          prevState: normalizeAudioRenderState(state),
+          nextState: normalizeAudioRenderState(normalizedState),
+          previousRequests: audioEffectRequests,
+        });
+      }
       const parsedElements = parseElements({
         JSONObject: normalizedState.elements,
         parserPlugins: plugins.parsers,
@@ -2235,7 +2268,13 @@ const createRouteGraphics = () => {
         renderer: app.renderer,
         state: parsedState,
       });
-      renderInternal(app, app.stage, parsedState, eventHandler);
+      renderInternal(
+        app,
+        app.stage,
+        parsedState,
+        eventHandler,
+        nextAudioEffectRequests,
+      );
     },
 
     /**

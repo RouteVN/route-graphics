@@ -1024,6 +1024,11 @@ export const DEFAULT_TEXT_STYLE = {
  */
 
 /**
+ * @typedef {Object} RouteGraphicsRenderOptions
+ * @property {"strict" | "snapshot"} [audioEffectsMode="strict"] - Snapshot mode omits new audio-effect phases that do not apply to the current audio lifecycle; continuing occurrences retain their accepted phases.
+ */
+
+/**
  * @typedef {Object} RouteGraphicsInitOptions
  * @property {number} width - Width of the renderer
  * @property {number} height - Height of the renderer
