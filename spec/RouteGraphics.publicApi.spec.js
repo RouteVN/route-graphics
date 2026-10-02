@@ -708,6 +708,70 @@ describe("RouteGraphics public API", () => {
     expect(stage.destroyed).not.toBe(true);
   });
 
+  it("replaces element plugins on reset", async () => {
+    const { app, pixiMock } = await setupRouteGraphics({
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    const added = vi.fn();
+    await app.reset({
+      plugins: {
+        elements: [
+          {
+            type: "marker",
+            parse: ({ state }) => state,
+            add: ({ parent, element }) => {
+              const child = new pixiMock.Container();
+              child.label = element.id;
+              parent.addChild(child);
+              added(element.id);
+            },
+          },
+        ],
+      },
+    });
+    app.render({ id: "marker", elements: [{ id: "flag", type: "marker" }] });
+    expect(added).toHaveBeenCalledWith("flag");
+    expect(() =>
+      app.render({
+        id: "rect",
+        elements: [{ id: "box", type: "rect", width: 10, height: 10 }],
+      }),
+    ).toThrow(/rect/);
+  });
+
+  it("reports the first render again after reset", async () => {
+    const onFirstRender = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: { onFirstRender },
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render({ id: "first", elements: [] });
+    app.render({ id: "second", elements: [] });
+    expect(onFirstRender).toHaveBeenCalledOnce();
+    await app.reset();
+    app.render({ id: "after-reset", elements: [] });
+    expect(onFirstRender).toHaveBeenCalledTimes(2);
+  });
+
+  it("starts snapshot audio effects from no previous requests after reset", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app, pixiMock } = await setupRouteGraphics({ audioStage });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render(audioSnapshot("before-reset"), snapshotAudioOptions);
+    await app.reset();
+    // The same request is new to the reset renderer, so its entry applies
+    // again instead of continuing an occurrence the reset discarded.
+    app.render(audioSnapshot("after-reset"), snapshotAudioOptions);
+    const accepted =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(accepted[0].properties.volume)).toEqual(["enter"]);
+  });
+
   it("keeps strict renders strict and validates snapshot input before omission", async () => {
     const audioStage = createPlanningAudioStage();
     const { app } = await setupRouteGraphics({ audioStage });
