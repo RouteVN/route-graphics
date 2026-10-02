@@ -11,6 +11,7 @@ import {
 import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXPositionInATextObject";
 import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import {
   getSoftWipeEdgeWidth,
@@ -611,6 +612,7 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
     x: Math.round(part.x),
     y: Math.round(part.y),
   });
+  applyTextDecoration(text, part.textStyle);
 
   let furiganaText = null;
 
@@ -625,6 +627,7 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
       x: Math.round(part.furigana.x),
       y: Math.round(part.furigana.y),
     });
+    applyTextDecoration(furiganaText, part.furigana.textStyle);
   }
 
   return { text, furiganaText };

@@ -1,5 +1,6 @@
 import { Container, Rectangle, Text, TextStyle } from "pixi.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
+import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { resolveInteractiveTextStyle } from "./textLayout.js";
 import { setElementHitTestBounds } from "../elementRenderState.js";
@@ -34,13 +35,16 @@ const destroyChildren = (container) => {
   });
 };
 
-const createTextObject = ({ text, style, x, y }) =>
-  new Text({
+const createTextObject = ({ text, style, x, y }) => {
+  const display = new Text({
     text,
     style: new TextStyle(toPixiTextStyle(style)),
     x: Math.round(x),
     y: Math.round(y),
   });
+  applyTextDecoration(display, style);
+  return display;
+};
 
 const applyOverrideStyle = (style, overrideStyle) =>
   overrideStyle ? resolveInteractiveTextStyle(style, overrideStyle) : style;
