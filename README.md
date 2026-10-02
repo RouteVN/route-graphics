@@ -83,7 +83,10 @@ either backend.
 For scene/editor/preview handoffs, use `await app.reset({ eventHandler })`
 instead of destroying and recreating the renderer. Reset clears the display tree,
 animations, audio playback, keyboard bindings, DOM input controls, cursor state,
-and pending render callbacks while preserving the same canvas and GPU context.
+snapshot audio-effect requests, and pending render callbacks while preserving the
+same canvas and GPU context. A render that reset interrupts is reported to the
+previous `eventHandler` as `renderComplete` with `aborted: true`, and the first
+render after a reset calls `onFirstRender` again.
 It accepts runtime initialization overrides, including width/height and plugins;
 renderer backend, fallback policy, and debug mode must remain unchanged.
 Loaded assets stay owned by the instance: use `unloadAssets()` for media no longer
@@ -94,7 +97,9 @@ accounting even after explicit context loss ([WebKit bug 218305](https://bugs.we
 
 Run `bun run build && node scripts/testRendererReset.mjs` to verify 40 resets in
 Chromium and WebKit reuse one context, clear runtime state, and release the context
-on final destruction.
+on final destruction, and that reset removes input controls and keyboard
+bindings, stops animations, and keeps pointer events working. CI runs it in the
+browser suite; the `reset-stops-audio` AVT spec covers audio.
 
 `createAssetBufferManager()` may keep image and video assets as direct source
 URLs when possible, while audio and font assets remain buffer-backed.

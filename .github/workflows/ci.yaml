@@ -50,6 +50,9 @@ jobs:
       - name: Install Chromium
         if: matrix.suite != 'visual'
         run: bunx playwright install --with-deps chromium
+      - name: Install WebKit
+        if: matrix.suite == 'browser'
+        run: bunx playwright install --with-deps webkit
       - name: Unit and CLI tests
         if: matrix.suite == 'unit'
         env:
@@ -62,6 +65,7 @@ jobs:
         if: matrix.suite == 'browser'
         run: |
           node scripts/testRuntimeLifecycle.mjs
+          node scripts/testRendererReset.mjs
           node scripts/testVideoPlayback.mjs
           node scripts/testLayoutReport.mjs
       - name: WebGPU integration

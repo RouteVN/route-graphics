@@ -131,6 +131,144 @@ try {
       console.log(
         `${name}: 40 scene resets reuse one renderer/context; runtime state cleared; final destroy releases context`,
       );
+
+      // Each runtime behavior is observed before the reset, so the checks after
+      // it cannot pass trivially.
+      const behaviorPage = await browser.newPage();
+      const behaviorErrors = [];
+      behaviorPage.on("pageerror", (error) =>
+        behaviorErrors.push(error.message),
+      );
+      await behaviorPage.goto(`http://127.0.0.1:${server.address().port}`);
+      const before = await behaviorPage.evaluate(async () => {
+        const m = await import("/bundle.js");
+        const runtime = m.default();
+        window.runtime = runtime;
+        window.events = [];
+        await runtime.init({
+          width: 64,
+          height: 64,
+          plugins: { elements: [m.rectPlugin, m.inputPlugin] },
+          eventHandler: (...args) => window.events.push(["before", ...args]),
+        });
+        document.body.style.margin = "0";
+        document.body.append(runtime.canvas);
+        runtime.render({
+          id: "before-reset",
+          elements: [
+            {
+              id: "moving",
+              type: "rect",
+              width: 20,
+              height: 20,
+              fill: "#00ff00",
+            },
+            {
+              id: "field",
+              type: "input",
+              y: 30,
+              width: 40,
+              height: 20,
+              value: "old value",
+            },
+          ],
+          animations: [
+            {
+              id: "move",
+              targetId: "moving",
+              type: "update",
+              tween: {
+                x: {
+                  initialValue: 0,
+                  keyframes: [{ value: 40, duration: 2000 }],
+                },
+              },
+            },
+          ],
+          global: {
+            keyboard: { a: { keydown: { payload: { binding: "a" } } } },
+          },
+        });
+        return {
+          inputs: document.querySelectorAll("input, textarea").length,
+        };
+      });
+      await behaviorPage.keyboard.press("a");
+      const after = await behaviorPage.evaluate(async () => {
+        const keydownBeforeReset = window.events.some(
+          ([, event]) => event === "keydown",
+        );
+        const animatingAtReset = !window.events.some(
+          ([, event, payload]) =>
+            event === "renderComplete" && payload?.id === "before-reset",
+        );
+        await window.runtime.reset({
+          eventHandler: (...args) => window.events.push(["after", ...args]),
+        });
+        return {
+          keydownBeforeReset,
+          animatingAtReset,
+          inputs: document.querySelectorAll("input, textarea").length,
+          eventCount: window.events.length,
+        };
+      });
+      await behaviorPage.keyboard.press("a");
+      // Outlast the 2 s animation that the reset interrupted.
+      await behaviorPage.waitForTimeout(2300);
+      await behaviorPage.evaluate(() => {
+        window.runtime.render({
+          id: "after-reset",
+          elements: [
+            {
+              id: "button",
+              type: "rect",
+              width: 40,
+              height: 40,
+              fill: "#0000ff",
+              click: { payload: { clicked: true } },
+            },
+          ],
+        });
+      });
+      await behaviorPage.mouse.click(10, 10);
+      const events = await behaviorPage.evaluate(() =>
+        window.events.map(([handler, event, payload]) => ({
+          handler,
+          event,
+          id: payload?.id ?? payload?._event?.id,
+          aborted: payload?.aborted,
+        })),
+      );
+      const eventsAfterReset = events.slice(after.eventCount);
+      assert.ok(before.inputs > 0, "input DOM control was created");
+      assert.equal(after.inputs, 0, "reset removes input DOM controls");
+      assert.ok(
+        after.keydownBeforeReset,
+        "keyboard binding fired before reset",
+      );
+      assert.ok(
+        !eventsAfterReset.some(({ event }) => event === "keydown"),
+        "reset removes keyboard bindings",
+      );
+      assert.ok(after.animatingAtReset, "the animation was running at reset");
+      assert.ok(
+        !events.some(
+          ({ id, aborted }) => id === "before-reset" && aborted === false,
+        ),
+        "the interrupted animation never completes its render",
+      );
+      assert.ok(
+        eventsAfterReset.some(
+          ({ handler, event, id }) =>
+            handler === "after" && event === "click" && id === "button",
+        ),
+        "clicks reach elements rendered after reset",
+      );
+      assert.deepEqual(behaviorErrors, []);
+      await behaviorPage.evaluate(() => window.runtime.destroy());
+      console.log(
+        `${name}: reset removes input controls and keyboard bindings, stops animations, and keeps pointer events working`,
+      );
     } finally {
       await browser.close();
     }
