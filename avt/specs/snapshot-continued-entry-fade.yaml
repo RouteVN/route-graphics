@@ -1,0 +1,49 @@
+title: Snapshot continues an accepted entry fade
+description: An editor snapshot starts an entry fade from silence, then repeats the same request in a follow-up render. The fade continues instead of restarting or jumping to its endpoint.
+durationMs: 2500
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  tone440:
+    generator: tone
+    frequency: 440
+states:
+  - atMs: 0
+    renderOptions:
+      audioEffectsMode: snapshot
+    state:
+      id: silent-line
+      elements: []
+      animations: []
+      audio: []
+  - atMs: 250
+    renderOptions:
+      audioEffectsMode: snapshot
+    state: &fadeLine
+      id: fade-line
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone440
+          loop: true
+          volume: 100
+      audioEffects:
+        - id: fade-line-entry:1
+          type: audio-transition
+          targetId: bgm
+          properties:
+            volume:
+              enter:
+                initialValue: 0
+                keyframes:
+                  - value: 100
+                    duration: 1500
+                    easing: linear
+  - atMs: 1000
+    renderOptions:
+      audioEffectsMode: snapshot
+    state:
+      <<: *fadeLine
+      id: fade-line-follow-up
