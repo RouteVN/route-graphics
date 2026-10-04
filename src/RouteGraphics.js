@@ -27,6 +27,7 @@ import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { clearPendingSounds } from "./plugins/audio/sound/addSound.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
+import { PIXI_ACCESSIBILITY_OPTIONS } from "./util/pixiAccessibility.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { createRenderReadiness } from "./util/renderReadiness.js";
@@ -1556,6 +1557,7 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: rendererPreference,
         preserveDrawingBuffer: debug === true,
+        accessibilityOptions: PIXI_ACCESSIBILITY_OPTIONS,
       });
       selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
       if (!rendererFallback && selectedRendererType !== rendererPreference) {
