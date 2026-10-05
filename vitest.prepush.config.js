@@ -5,10 +5,8 @@ import baseConfig from './vitest.config.js'
 // depends on the machine, so a push is never refused for a reason that is not
 // in the change. CI runs the full suite on Linux with `bun run test`.
 //
-// - parseText and parseTextRevealing assert text heights that Pixi measures by
-//   scanning rendered pixels. macOS and Linux differ by 1px there.
-// - renderPngCli renders through Chromium and compares against fixtures in Git
-//   LFS.
+// parseText and parseTextRevealing assert text heights that Pixi measures by
+// scanning rendered pixels. macOS and Linux differ by 1px there.
 export default mergeConfig(
   baseConfig,
   defineConfig({
@@ -16,8 +14,7 @@ export default mergeConfig(
       exclude: [
         ...configDefaults.exclude,
         'spec/parser/parseText.test.yaml',
-        'spec/parser/parseTextRevealing.test.yaml',
-        'spec/cli/renderPngCli.spec.js'
+        'spec/parser/parseTextRevealing.test.yaml'
       ]
     }
   })
