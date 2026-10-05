@@ -2,7 +2,7 @@
 set -e
 
 bun run lint
-bun run test:prepush
+bun run test:container
 
 if command -v git-lfs >/dev/null 2>&1; then
   git lfs pre-push "$@"

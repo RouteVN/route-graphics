@@ -286,12 +286,12 @@ Useful MP4 flags:
 ## Development
 
 ```bash
-# Run the full test suite (this is what CI runs, on Linux)
+# Run the tests on this machine
 bun run test
 
-# Run what the pre-push hook runs: the same suite without the specs whose
-# result depends on the machine (see vitest.prepush.config.js)
-bun run test:prepush
+# Run the tests the way CI does, in a Linux container (what the pre-push hook
+# runs; needs Docker, and runs them directly on Linux)
+bun run test:container
 
 # Render a YAML file into a PNG or MP4
 route-graphics render ./examples/hello.yaml -o ./out/hello.png

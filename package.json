@@ -46,7 +46,7 @@
     "vt:report": "bun run build:visual && bun run vt:report:built",
     "vt:accept": "docker run --rm --user $(id -u):$(id -g) -e RTGL_VT_DEBUG=true -v \"$PWD:/workspace\" docker.io/han4wluc/rtgl:playwright-v1.57.0-rtgl-v1.1.0 rtgl vt accept",
     "test": "vitest run",
-    "test:prepush": "vitest run --config vitest.prepush.config.js",
+    "test:container": "node scripts/testInContainer.mjs",
     "test:layout-report": "node esbuild.js && node scripts/testLayoutReport.mjs",
     "test:webgpu": "bun run build && node ./scripts/testWebGPUShaders.mjs",
     "test:coverage": "vitest run --coverage",
