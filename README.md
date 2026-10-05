@@ -286,8 +286,12 @@ Useful MP4 flags:
 ## Development
 
 ```bash
-# Run tests
+# Run the full test suite (this is what CI runs, on Linux)
 bun run test
+
+# Run what the pre-push hook runs: the same suite without the specs whose
+# result depends on the machine (see vitest.prepush.config.js)
+bun run test:prepush
 
 # Render a YAML file into a PNG or MP4
 route-graphics render ./examples/hello.yaml -o ./out/hello.png
@@ -304,6 +308,8 @@ bun run build
 ```
 
 The docs site and playground source live under `playground/`.
+
+The tests use fonts and fixtures stored in Git LFS. After cloning, run `git lfs install --skip-repo` and `git lfs pull` once; otherwise every spec fails with `Could not parse font file`.
 
 Visual regression assets under `vt/static/public` and `vt/reference` are stored in Git LFS. If those files are not checked out, VT pages will render blank and browser logs will show image/audio decode errors.
 
