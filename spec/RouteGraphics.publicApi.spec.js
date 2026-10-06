@@ -1278,6 +1278,20 @@ describe("RouteGraphics public API", () => {
     vi.resetModules();
   });
 
+  it("creates the Pixi application with its accessibility layer off", async () => {
+    const { pixiMock } = await setupRouteGraphics();
+
+    // Left on, Pixi's accessibility listeners outlive destroy() and throw on the
+    // next Tab press and mouse move (see src/util/pixiAccessibility.js).
+    expect(
+      pixiMock.__getLastApplication().initOptions.accessibilityOptions,
+    ).toEqual({
+      enabledByDefault: false,
+      activateOnTab: false,
+      deactivateOnMouseMove: false,
+    });
+  });
+
   it("returns null for missing labels without throwing", async () => {
     const { app } = await setupRouteGraphics();
 
