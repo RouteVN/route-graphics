@@ -19,7 +19,10 @@ import {
   setElementRenderState,
 } from "../../elements/elementRenderState.js";
 import { getElementTransformTargetState } from "../../elements/util/transform.js";
-import { copyTextDecoration } from "../../../util/applyTextDecoration.js";
+import {
+  copyTextDecoration,
+  hasTextUnderline,
+} from "../../../util/applyTextDecoration.js";
 import {
   CanvasTextMetrics,
   Container,
@@ -210,7 +213,6 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
       style: textElement.style,
       label: `__timeline-text-unit:${query.elementId}:${index}`,
     });
-    copyTextDecoration(child, textElement);
     child.x =
       (bounds.x ?? 0) +
       getLineAlignmentOffset(line) +
@@ -222,6 +224,8 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
     container.addChild(child);
     return {
       handle: child,
+      decorationLine: line,
+      decorationRegions: [],
       identity: `${query.elementId}:${fingerprint}:${unit.start}-${unit.end}`,
       stableId: `${query.elementId}:${unit.start}-${unit.end}`,
       targetState: {
@@ -243,11 +247,51 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
     };
   });
 
+  // Give each unit the underline through the next unit's origin. This assigns
+  // inter-word spaces and grapheme letter spacing to the preceding target;
+  // leading/trailing whitespace belongs to the first/last target on the line.
+  // A whitespace-only line follows the closest preceding target (or the first
+  // target when it precedes all words), without adding animation targets.
+  for (let line = 0; line < textMetrics.lines.length; line++) {
+    const lineTargets = targets
+      .filter((target) => target.decorationLine === line)
+      .sort((a, b) => a.subject.x - b.subject.x);
+    if (lineTargets.length === 0) {
+      const owner =
+        targets.findLast((target) => target.decorationLine < line) ??
+        targets[0];
+      if (owner)
+        owner.decorationRegions.push({
+          line,
+          start: -Infinity,
+          end: Infinity,
+          x: owner.subject.x,
+          y: owner.subject.y,
+        });
+    } else {
+      lineTargets.forEach((target, index) =>
+        target.decorationRegions.push({
+          line,
+          start: index === 0 ? -Infinity : target.subject.x,
+          end: lineTargets[index + 1]?.subject.x ?? Infinity,
+          x: target.subject.x,
+          y: target.subject.y,
+        }),
+      );
+    }
+  }
+  for (const target of targets) {
+    copyTextDecoration(target.handle, textElement, target.decorationRegions);
+    target.targetState.width = target.subject.width = target.handle.width;
+    target.targetState.height = target.subject.height = target.handle.height;
+  }
+
   let committed = false;
   let sourceDestroy = null;
   let destroyWithTextUnits = null;
   const originalRenderable = textElement.renderable;
   const originalFilters = textElement.filters;
+  const transfersFilters = originalFilters?.length > 0 && targets.length > 0;
   const syncSemanticProxy = () => {
     if (
       committed &&
@@ -256,6 +300,10 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
     ) {
       preparation.destroy();
       return;
+    }
+    if (committed && targets.length === 0) {
+      textElement.renderable =
+        originalRenderable && hasTextUnderline(textElement);
     }
     copyDisplayTransform(textElement, container);
     container.eventMode = textElement.eventMode;
@@ -268,7 +316,11 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
         target.handle.style = textElement.style;
       }
       if (!target.handle.destroyed) {
-        copyTextDecoration(target.handle, textElement);
+        copyTextDecoration(
+          target.handle,
+          textElement,
+          target.decorationRegions,
+        );
       }
     }
     const renderState = getElementRenderState(textElement);
@@ -292,8 +344,11 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
       const originalIndex = parent.getChildIndex
         ? parent.getChildIndex(textElement)
         : parent.children.indexOf(textElement);
-      textElement.renderable = false;
-      if (originalFilters?.length) {
+      textElement.renderable =
+        targets.length === 0 && hasTextUnderline(textElement)
+          ? originalRenderable
+          : false;
+      if (transfersFilters) {
         textElement.filters = [];
         container.filters = originalFilters;
       }
@@ -336,7 +391,7 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
       if (textElement.destroy === destroyWithTextUnits && sourceDestroy) {
         textElement.destroy = sourceDestroy;
       }
-      if (originalFilters?.length) container.filters = [];
+      if (transfersFilters) container.filters = [];
       if (!container.destroyed) container.destroy({ children: true });
       if (textElement[PIXI_TIMELINE_TEXT_UNITS] === preparation) {
         delete textElement[PIXI_TIMELINE_TEXT_UNITS];
@@ -346,7 +401,7 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
       }
       if (!textElement.destroyed) {
         if (!sourceDestroying) textElement.renderable = originalRenderable;
-        if (originalFilters?.length) textElement.filters = originalFilters;
+        if (transfersFilters) textElement.filters = originalFilters;
       }
     },
   };

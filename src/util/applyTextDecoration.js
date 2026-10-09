@@ -1,22 +1,21 @@
 import { CanvasTextMetrics, Graphics } from "pixi.js";
 
 const TEXT_UNDERLINE = Symbol("textUnderline");
+const underlineGeometry = new WeakMap();
+
+export const hasTextUnderline = (text) => Boolean(text[TEXT_UNDERLINE]);
 
 const hasUnderline = (decoration) =>
   typeof decoration === "string" &&
   decoration.split(/\s+/).includes("underline");
 
-const drawUnderline = (text, state) => {
+const getUnderlineRectangles = (text) => {
+  if (!text.text) return [];
   const style = text.style;
-  const styleKey = style.styleKey;
-
-  if (state.text === text.text && state.styleKey === styleKey) return;
-
-  state.text = text.text;
-  state.styleKey = styleKey;
-  state.graphics.clear();
-
-  if (!text.text) return;
+  const cached = underlineGeometry.get(text);
+  if (cached?.text === text.text && cached.styleKey === style.styleKey) {
+    return cached.rectangles;
+  }
 
   const metrics = CanvasTextMetrics.measureText(text.text, style);
   const strokeWidth = style._stroke?.width ?? 0;
@@ -26,8 +25,8 @@ const drawUnderline = (text, state) => {
     (metrics.lineHeight - metrics.fontProperties.fontSize) / 2,
   );
 
-  metrics.lineWidths.forEach((lineWidth, index) => {
-    if (lineWidth <= 0) return;
+  const rectangles = metrics.lineWidths.flatMap((lineWidth, index) => {
+    if (lineWidth <= 0) return [];
 
     const alignmentOffset =
       style.align === "right"
@@ -48,13 +47,45 @@ const drawUnderline = (text, state) => {
       ),
     );
 
-    state.graphics
-      .rect(x, y, Math.min(lineWidth, metrics.width - x), lineThickness)
-      .fill(style.fill);
+    return [
+      {
+        line: index,
+        x,
+        y,
+        width: Math.min(lineWidth, metrics.width - x),
+        height: lineThickness,
+      },
+    ];
   });
+  underlineGeometry.set(text, {
+    text: text.text,
+    styleKey: style.styleKey,
+    rectangles,
+  });
+  return rectangles;
 };
 
-export const applyTextDecoration = (text, style) => {
+const drawUnderline = (text, state) => {
+  const styleKey = text.style.styleKey;
+  if (
+    state.text === text.text &&
+    state.styleKey === styleKey &&
+    state.drawnRectangles === state.rectangles
+  )
+    return;
+
+  state.text = text.text;
+  state.styleKey = styleKey;
+  state.drawnRectangles = state.rectangles;
+  state.graphics.clear();
+  for (const rect of state.rectangles ?? getUnderlineRectangles(text)) {
+    state.graphics
+      .rect(rect.x, rect.y, rect.width, rect.height)
+      .fill(text.style.fill);
+  }
+};
+
+export const applyTextDecoration = (text, style, rectangles = null) => {
   const existing = text[TEXT_UNDERLINE];
 
   if (!hasUnderline(style?.textDecoration)) {
@@ -70,6 +101,8 @@ export const applyTextDecoration = (text, style) => {
   }
 
   if (existing) {
+    if (JSON.stringify(existing.rectangles) !== JSON.stringify(rectangles))
+      existing.rectangles = rectangles;
     drawUnderline(text, existing);
     return;
   }
@@ -80,6 +113,8 @@ export const applyTextDecoration = (text, style) => {
     previousOnRender: text.onRender,
     text: null,
     styleKey: null,
+    rectangles,
+    drawnRectangles: undefined,
   };
 
   text[TEXT_UNDERLINE] = state;
@@ -93,8 +128,37 @@ export const applyTextDecoration = (text, style) => {
   drawUnderline(text, state);
 };
 
-export const copyTextDecoration = (target, source) => {
-  applyTextDecoration(target, {
-    textDecoration: source[TEXT_UNDERLINE] ? "underline" : "none",
-  });
+// Partition the source line's decoration instead of measuring each unit again.
+// Spaces and letter spacing have visible underline pixels, even when they do
+// not create an authored animation target. Regions stay in the unit's original
+// local coordinates so its alpha, movement and scale transform its own span.
+export const copyTextDecoration = (target, source, regions) => {
+  let rectangles = null;
+  if (source[TEXT_UNDERLINE] && regions) {
+    const sourceRectangles = getUnderlineRectangles(source);
+    rectangles = regions.flatMap((region) =>
+      sourceRectangles.flatMap((rect) => {
+        if (rect.line !== region.line) return [];
+        const left = Math.max(rect.x, region.start);
+        const right = Math.min(rect.x + rect.width, region.end);
+        return right > left
+          ? [
+              {
+                x: left - region.x,
+                y: rect.y - region.y,
+                width: right - left,
+                height: rect.height,
+              },
+            ]
+          : [];
+      }),
+    );
+  }
+  applyTextDecoration(
+    target,
+    {
+      textDecoration: source[TEXT_UNDERLINE] ? "underline" : "none",
+    },
+    rectangles,
+  );
 };
