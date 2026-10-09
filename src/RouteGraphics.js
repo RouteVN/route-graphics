@@ -27,10 +27,16 @@ import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { clearPendingSounds } from "./plugins/audio/sound/addSound.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
+import { PIXI_ACCESSIBILITY_OPTIONS } from "./util/pixiAccessibility.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { createRenderReadiness } from "./util/renderReadiness.js";
 import { normalizeRenderState } from "./util/normalizeRenderState.js";
+import { normalizeAudioRenderState } from "./util/normalizeAudio.js";
+import {
+  getAudioEffectSignature,
+  prepareSnapshotAudioEffects,
+} from "./plugins/audio/planAudioEffects.js";
 import { isDeepEqual } from "./util/isDeepEqual.js";
 import { createInputDomBridge } from "./util/inputDomBridge.js";
 import { buildAnimationContinuityPlan } from "./plugins/animations/planAnimations.js";
@@ -133,12 +139,7 @@ const createRouteGraphics = () => {
     const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
 
     const updateSource = ({ force = false } = {}) => {
-      if (
-        source.destroyed ||
-        (force
-          ? !hasVideoDimensions(video)
-          : !isRenderableVideoFrameReady(video))
-      ) {
+      if (source.destroyed || !isRenderableVideoFrameReady(video)) {
         return false;
       }
 
@@ -295,6 +296,10 @@ const createRouteGraphics = () => {
   const audioStage = createAudioStage();
 
   let needsReconciliation = false;
+  // Snapshot mode's request baseline: the audio-effect requests that produced
+  // each committed state. Keyed by state, so any code that replaces `state`
+  // also drops the baseline.
+  const audioEffectRequestsByState = new WeakMap();
   /**
    * @type {RouteGraphicsState}
    */
@@ -1156,11 +1161,18 @@ const createRouteGraphics = () => {
    * @param {RouteGraphicsState} nextState
    * @param {Function} handler
    */
-  const renderInternal = (appInstance, parent, nextState, handler) => {
+  const renderInternal = (
+    appInstance,
+    parent,
+    nextState,
+    handler,
+    nextAudioEffectRequests,
+  ) => {
     if (!needsReconciliation && isDeepEqual(state, nextState)) {
       if (typeof appInstance.render === "function") {
         appInstance.render();
       }
+      audioEffectRequestsByState.set(state, nextAudioEffectRequests);
       renderReadiness.presentedUnchanged();
       return;
     }
@@ -1270,6 +1282,7 @@ const createRouteGraphics = () => {
       // Commit logical state only after the renderer accepts the frame.
       if (!isCurrent()) return;
       state = nextState;
+      audioEffectRequestsByState.set(state, nextAudioEffectRequests);
       if (renderOperation && typeof renderOperation.then === "function") {
         void Promise.resolve(renderOperation)
           .then(() => {
@@ -1306,6 +1319,25 @@ const createRouteGraphics = () => {
       failRender(error);
       throw error;
     }
+  };
+
+  // Draws the current frame and returns what to extract from it: the stage,
+  // or the element with `label`, framed to the renderer.
+  const prepareExtract = (label) => {
+    if (typeof app.render === "function") {
+      setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
+      app.render();
+    }
+
+    const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
+    if (!label) {
+      return { target: app.stage, frame };
+    }
+    const element = app.stage.getChildByLabel(label, true);
+    if (!element) {
+      throw new Error(`Element with label '${label}' not found`);
+    }
+    return { target: element, frame };
   };
 
   const routeGraphicsInstance = {
@@ -1362,27 +1394,16 @@ const createRouteGraphics = () => {
       }),
 
     /** @param {string} [label] @returns {Promise<string>} */
-    extractBase64: async (label) => {
-      if (typeof app.render === "function") {
-        setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-        app.render();
-      }
+    extractBase64: async (label) =>
+      await app.renderer.extract.base64(prepareExtract(label)),
 
-      const frame = new Rectangle(
-        0,
-        0,
-        app.renderer.width,
-        app.renderer.height,
-      );
-      if (!label) {
-        return await app.renderer.extract.base64({ target: app.stage, frame });
-      }
-      const element = app.stage.getChildByLabel(label, true);
-      if (!element) {
-        throw new Error(`Element with label '${label}' not found`);
-      }
-      return await app.renderer.extract.base64({ target: element, frame });
-    },
+    /**
+     * The pixels extractBase64 encodes, as a canvas, so a caller that scales
+     * or re-encodes them skips encoding and decoding a full-size PNG.
+     * @param {string} [label] @returns {Promise<HTMLCanvasElement>}
+     */
+    extractCanvas: async (label) =>
+      app.renderer.extract.canvas(prepareExtract(label)),
 
     assignStageEvent: (eventType, callback) => {
       app.stage.eventMode = "static";
@@ -1544,6 +1565,7 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: rendererPreference,
         preserveDrawingBuffer: debug === true,
+        accessibilityOptions: PIXI_ACCESSIBILITY_OPTIONS,
       });
       selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
       if (!rendererFallback && selectedRendererType !== rendererPreference) {
@@ -2227,9 +2249,28 @@ const createRouteGraphics = () => {
     /**
      *
      * @param {RouteGraphicsState} stateParam
+     * @param {import("./types.js").RouteGraphicsRenderOptions} [options]
      */
-    render: (stateParam) => {
+    render: (stateParam, { audioEffectsMode = "strict" } = {}) => {
+      if (audioEffectsMode !== "strict" && audioEffectsMode !== "snapshot") {
+        throw new Error(
+          `Input error: unsupported audioEffectsMode "${audioEffectsMode}". Expected "strict" or "snapshot".`,
+        );
+      }
       const normalizedState = normalizeRenderState(stateParam);
+      const nextAudioEffectRequests = new Map(
+        normalizedState.audioEffects.map((effect) => [
+          effect.id,
+          getAudioEffectSignature(effect),
+        ]),
+      );
+      if (audioEffectsMode === "snapshot") {
+        normalizedState.audioEffects = prepareSnapshotAudioEffects({
+          prevState: normalizeAudioRenderState(state),
+          nextState: normalizeAudioRenderState(normalizedState),
+          previousRequests: audioEffectRequestsByState.get(state),
+        });
+      }
       const parsedElements = parseElements({
         JSONObject: normalizedState.elements,
         parserPlugins: plugins.parsers,
@@ -2240,7 +2281,13 @@ const createRouteGraphics = () => {
         renderer: app.renderer,
         state: parsedState,
       });
-      renderInternal(app, app.stage, parsedState, eventHandler);
+      renderInternal(
+        app,
+        app.stage,
+        parsedState,
+        eventHandler,
+        nextAudioEffectRequests,
+      );
     },
 
     /**

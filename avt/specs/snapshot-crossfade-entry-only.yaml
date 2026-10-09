@@ -1,0 +1,54 @@
+title: Snapshot keeps only the entry of a crossfade from silence
+description: An editor snapshot requests a crossfade while no outgoing music is playing. Only the incoming fade applies, and a repeated request continues it.
+durationMs: 2500
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  tone880:
+    generator: tone
+    frequency: 880
+states:
+  - atMs: 0
+    renderOptions:
+      audioEffectsMode: snapshot
+    state:
+      id: silent-line
+      elements: []
+      animations: []
+      audio: []
+  - atMs: 250
+    renderOptions:
+      audioEffectsMode: snapshot
+    state: &crossfadeLine
+      id: crossfade-line
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone880
+          loop: true
+          volume: 100
+      audioEffects:
+        - id: crossfade-line-handoff:1
+          type: audio-transition
+          targetId: bgm
+          properties:
+            volume:
+              exit:
+                keyframes:
+                  - value: 0
+                    duration: 1000
+                    easing: linear
+              enter:
+                initialValue: 0
+                keyframes:
+                  - value: 100
+                    duration: 1500
+                    easing: linear
+  - atMs: 1000
+    renderOptions:
+      audioEffectsMode: snapshot
+    state:
+      <<: *crossfadeLine
+      id: crossfade-line-follow-up

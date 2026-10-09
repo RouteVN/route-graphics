@@ -36,6 +36,8 @@ import {
   hasSameSoundSourceIdentity,
   normalizeDirectVolume,
   getTransitionPhase,
+  getLegacyPlaybackOffset,
+  checkpointLegacyPlaybackOffset,
   getRemainingIterationMediaSeconds,
   getPlaybackRateAutomationValue,
   startPlaybackRateAutomation,
@@ -1003,68 +1005,6 @@ export const createAudioStage = () => {
     return Math.max(0, sound.delayDeadlineMs - getAudioNowMs());
   };
 
-  const getLegacyPlaybackOffset = (sound, context = getAudioContext()) => {
-    const source = sound.source;
-    const segmentStart = Math.max(0, toFiniteParamValue(sound.startAt, 0));
-    if (!source || sound.sourceStartedAt === null) {
-      return Math.max(
-        segmentStart,
-        toFiniteParamValue(sound.sourceStartOffset, segmentStart),
-      );
-    }
-
-    const startedAt = toFiniteParamValue(
-      sound.sourceStartedAt,
-      context.currentTime,
-    );
-    const elapsedSourceSeconds = integrateAudioParamValue(
-      source.playbackRate,
-      startedAt,
-      context.currentTime,
-    );
-    const startOffset = toFiniteParamValue(
-      sound.sourceStartOffset,
-      segmentStart,
-    );
-    const configuredEnd =
-      sound.endAt === null || sound.endAt === undefined
-        ? Number.NaN
-        : toFiniteParamValue(sound.endAt, Number.NaN);
-    const bufferEnd = toFiniteParamValue(
-      source.buffer?.duration,
-      Number.POSITIVE_INFINITY,
-    );
-    const segmentEnd = Number.isFinite(configuredEnd)
-      ? configuredEnd
-      : bufferEnd;
-    const absoluteOffset = startOffset + elapsedSourceSeconds;
-
-    if (source.loop && Number.isFinite(segmentEnd)) {
-      const loopStart = Math.max(0, toFiniteParamValue(source.loopStart, 0));
-      const configuredLoopEnd = toFiniteParamValue(source.loopEnd, 0);
-      const loopEnd =
-        configuredLoopEnd > loopStart ? configuredLoopEnd : segmentEnd;
-      const loopDuration = loopEnd - loopStart;
-      if (loopDuration > 0) {
-        const relativeOffset =
-          (((absoluteOffset - loopStart) % loopDuration) + loopDuration) %
-          loopDuration;
-        return loopStart + relativeOffset;
-      }
-      return loopStart;
-    }
-
-    return Math.max(segmentStart, Math.min(absoluteOffset, segmentEnd));
-  };
-
-  const checkpointLegacyPlaybackOffset = (
-    sound,
-    context = getAudioContext(),
-  ) => {
-    sound.sourceStartOffset = getLegacyPlaybackOffset(sound, context);
-    sound.sourceStartedAt = context.currentTime;
-  };
-
   const stopLegacySourceForChannelPause = (sound) => {
     const source = sound.source;
     cancelSoundEndEffect(sound);
@@ -2008,6 +1948,19 @@ export const createAudioStage = () => {
     }
   };
 
+  const checkpointRateEffectPosition = (instance) => {
+    if (!instance.source || instance.sourceEnded || instance.playbackPending) {
+      return;
+    }
+    // Holding/settling replaces the rate automation used for cursor integration.
+    // Preserve the media already traversed before that history is discarded.
+    if (instance.control) {
+      captureControlledPosition(instance);
+    } else {
+      checkpointLegacyPlaybackOffset(instance);
+    }
+  };
+
   const holdSoundProperty = (instance, property) => {
     instance.pendingEnterTransitions ??= {};
     instance.pendingEnterTransitions[property] = null;
@@ -2022,6 +1975,7 @@ export const createAudioStage = () => {
     }
     if (property !== "playbackRate") return;
 
+    checkpointRateEffectPosition(instance);
     if (instance.source) {
       holdParamNow(instance.source.playbackRate);
       instance.playbackRateAutomation =
@@ -2059,14 +2013,7 @@ export const createAudioStage = () => {
       return;
     }
     if (property === "playbackRate") {
-      if (
-        instance.source &&
-        !instance.control &&
-        !instance.sourceEnded &&
-        !instance.playbackPending
-      ) {
-        checkpointLegacyPlaybackOffset(instance);
-      }
+      checkpointRateEffectPosition(instance);
       instance.playbackRateAutomation = null;
       if (instance.source) {
         applyPlaybackRate({
