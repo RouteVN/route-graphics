@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { normalizeAudioRenderState } from "../src/util/normalizeAudio.js";
+import { planAudioEffects } from "../src/plugins/audio/planAudioEffects.js";
 
 const createMockBounds = (width, height) => ({
   x: 0,
@@ -455,6 +457,7 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
         Object.assign(this, options);
         this.destroyed = false;
         this.update = vi.fn();
+        this.unload = vi.fn();
       }
 
       get isValid() {
@@ -487,6 +490,7 @@ const setupRouteGraphics = async ({
   realText = false,
   pluginsFactory,
   rendererOverrides,
+  audioStage,
   audioAsset = {
     load: vi.fn(),
     getAsset: vi.fn(),
@@ -514,10 +518,11 @@ const setupRouteGraphics = async ({
 
   vi.doMock("pixi.js", () => pixiMock);
   vi.doMock("../src/AudioStage.js", () => ({
-    createAudioStage: () => ({
-      tick: vi.fn(),
-      destroy: vi.fn(),
-    }),
+    createAudioStage: () =>
+      audioStage ?? {
+        tick: vi.fn(),
+        destroy: vi.fn(),
+      },
   }));
   vi.doMock("../src/AudioAsset.js", () => ({
     AudioAsset: audioAsset,
@@ -530,9 +535,8 @@ const setupRouteGraphics = async ({
         animations: [],
         audio: [],
       };
-  const { default: createRouteGraphics } = await import(
-    "../src/RouteGraphics.js"
-  );
+  const { default: createRouteGraphics } =
+    await import("../src/RouteGraphics.js");
 
   const app = createRouteGraphics();
   await app.init({
@@ -561,7 +565,151 @@ const findTransitionOverlay = (pixiMock) =>
         child.children.length > 0,
     ) ?? null;
 
+const createPlanningAudioStage = () => {
+  const ownedAudioEffects = new Map();
+  const validateGraphTransition = vi.fn(
+    ({ prevAudio, nextAudio, prevAudioEffects, nextAudioEffects }) =>
+      planAudioEffects({
+        prevState: normalizeAudioRenderState({
+          audio: prevAudio,
+          audioEffects: prevAudioEffects,
+        }),
+        nextState: normalizeAudioRenderState({
+          audio: nextAudio,
+          audioEffects: nextAudioEffects,
+        }),
+        ownedAudioEffects,
+      }),
+  );
+  return {
+    tick: vi.fn(),
+    destroy: vi.fn(),
+    validateGraphTransition,
+    renderGraph: vi.fn((input) => {
+      const plan = validateGraphTransition(input);
+      for (const { effect } of [...plan.settled, ...plan.superseded])
+        ownedAudioEffects.delete(effect.id);
+      for (const entry of plan.accepted)
+        ownedAudioEffects.set(entry.effect.id, entry);
+    }),
+  };
+};
+
+const audioSnapshot = (id, source = "track-a", effectId = "fade:1") => ({
+  id,
+  audio: [{ id: "music", type: "sound", src: source, volume: 80 }],
+  audioEffects: [
+    {
+      id: effectId,
+      type: "audio-transition",
+      targetId: "music",
+      properties: {
+        volume: {
+          exit: { keyframes: [{ value: 0, duration: 100 }] },
+          enter: { initialValue: 0, keyframes: [{ value: 80, duration: 100 }] },
+        },
+      },
+    },
+  ],
+});
+const snapshotAudioOptions = { audioEffectsMode: "snapshot" };
+
 describe("RouteGraphics public API", () => {
+  it("keeps strict renders strict and validates snapshot input before omission", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({ audioStage });
+    app.render({ ...audioSnapshot("baseline"), audioEffects: [] });
+    const snapshot = audioSnapshot("selected");
+    expect(() => app.render(snapshot)).toThrow(
+      "not applicable to an audio update lifecycle",
+    );
+    expect(() => app.render(snapshot, { audioEffectsMode: "unknown" })).toThrow(
+      "unsupported audioEffectsMode",
+    );
+    const malformed = structuredClone(snapshot);
+    malformed.audioEffects[0].properties.volume.enter.keyframes[0].duration =
+      -1;
+    expect(() => app.render(malformed, snapshotAudioOptions)).toThrow();
+    app.render(snapshot, snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual([]);
+    expect(audioStage.renderGraph.mock.calls.at(-1)[0].nextAudio).toEqual(
+      snapshot.audio,
+    );
+  });
+
+  it("continues a filtered crossfade across repeated original engine requests", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({ audioStage });
+    app.render(audioSnapshot("first"), snapshotAudioOptions);
+    const accepted =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(accepted[0].properties.volume)).toEqual(["enter"]);
+    app.render(audioSnapshot("callback"), snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual(accepted);
+    expect(
+      audioStage.validateGraphTransition.mock.results.at(-1).value.continued,
+    ).toHaveLength(1);
+    const changed = audioSnapshot("edited");
+    changed.audioEffects[0].properties.volume.exit.keyframes[0].duration = 200;
+    app.render(changed, snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual([]);
+  });
+
+  it("commits snapshot request identity before synchronous render completion", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app } = await setupRouteGraphics({
+      audioStage,
+      initOptions: {
+        eventHandler: (event, payload) => {
+          if (
+            event === "renderComplete" &&
+            payload.id === "first" &&
+            !payload.aborted
+          ) {
+            app.render(audioSnapshot("callback"), snapshotAudioOptions);
+          }
+        },
+      },
+    });
+    app.render(audioSnapshot("first"), snapshotAudioOptions);
+    expect(audioStage.renderGraph).toHaveBeenCalledTimes(2);
+    const continued =
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects;
+    expect(Object.keys(continued[0].properties.volume)).toEqual(["enter"]);
+    app.render(audioSnapshot("later"), snapshotAudioOptions);
+    expect(
+      audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects,
+    ).toEqual(continued);
+  });
+
+  it("does not commit snapshot request identity when renderer submission fails", async () => {
+    const audioStage = createPlanningAudioStage();
+    const { app, pixiMock } = await setupRouteGraphics({ audioStage });
+    pixiMock.__getLastApplication().render.mockImplementationOnce(() => {
+      throw new Error("submit failed");
+    });
+    const snapshot = audioSnapshot("retry");
+    expect(() => app.render(snapshot, snapshotAudioOptions)).toThrow(
+      "submit failed",
+    );
+    app.render(snapshot, snapshotAudioOptions);
+    expect(
+      Object.keys(
+        audioStage.renderGraph.mock.calls.at(-1)[0].nextAudioEffects[0]
+          .properties.volume,
+      ),
+    ).toEqual(["enter"]);
+    expect(
+      audioStage.validateGraphTransition.mock.results.at(-1).value.accepted,
+    ).toHaveLength(1);
+  });
+
   it.each([
     "mount",
     "update",
@@ -678,9 +826,8 @@ describe("RouteGraphics public API", () => {
         },
       },
       pluginsFactory: async () => {
-        const { rectPlugin } = await import(
-          "../src/plugins/elements/rect/index.js"
-        );
+        const { rectPlugin } =
+          await import("../src/plugins/elements/rect/index.js");
         return {
           elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
         };
@@ -712,9 +859,8 @@ describe("RouteGraphics public API", () => {
       });
       const { app, pixiMock } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { rectPlugin } = await import(
-            "../src/plugins/elements/rect/index.js"
-          );
+          const { rectPlugin } =
+            await import("../src/plugins/elements/rect/index.js");
           return {
             elements: [
               {
@@ -753,9 +899,8 @@ describe("RouteGraphics public API", () => {
     });
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => {
-        const { rectPlugin } = await import(
-          "../src/plugins/elements/rect/index.js"
-        );
+        const { rectPlugin } =
+          await import("../src/plugins/elements/rect/index.js");
         return {
           elements: [
             {
@@ -797,9 +942,8 @@ describe("RouteGraphics public API", () => {
     async (action) => {
       const { app } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { rectPlugin } = await import(
-            "../src/plugins/elements/rect/index.js"
-          );
+          const { rectPlugin } =
+            await import("../src/plugins/elements/rect/index.js");
           return {
             elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
           };
@@ -836,9 +980,8 @@ describe("RouteGraphics public API", () => {
           },
         },
         pluginsFactory: async () => {
-          const { rectPlugin } = await import(
-            "../src/plugins/elements/rect/index.js"
-          );
+          const { rectPlugin } =
+            await import("../src/plugins/elements/rect/index.js");
           return {
             elements: [
               {
@@ -986,9 +1129,8 @@ describe("RouteGraphics public API", () => {
       const { app } = await setupRouteGraphics({
         initOptions: { eventHandler: events },
         pluginsFactory: async () => {
-          const { rectPlugin } = await import(
-            "../src/plugins/elements/rect/index.js"
-          );
+          const { rectPlugin } =
+            await import("../src/plugins/elements/rect/index.js");
           return {
             elements: [
               {
@@ -1013,9 +1155,8 @@ describe("RouteGraphics public API", () => {
         id: "initial",
         elements: [{ ...fallback.elements[0], fill: "#ff0000" }],
       });
-      const surfaces = await import(
-        "../src/plugins/animations/replace/transitionSurfaces.js"
-      );
+      const surfaces =
+        await import("../src/plugins/animations/replace/transitionSurfaces.js");
       const failure = new Error("overlay construction failed");
       let prepared;
       let failedReady;
@@ -1147,6 +1288,20 @@ describe("RouteGraphics public API", () => {
     vi.resetModules();
   });
 
+  it("creates the Pixi application with its accessibility layer off", async () => {
+    const { pixiMock } = await setupRouteGraphics();
+
+    // Left on, Pixi's accessibility listeners outlive destroy() and throw on the
+    // next Tab press and mouse move (see src/util/pixiAccessibility.js).
+    expect(
+      pixiMock.__getLastApplication().initOptions.accessibilityOptions,
+    ).toEqual({
+      enabledByDefault: false,
+      activateOnTab: false,
+      deactivateOnMouseMove: false,
+    });
+  });
+
   it("returns null for missing labels without throwing", async () => {
     const { app } = await setupRouteGraphics();
 
@@ -1158,6 +1313,42 @@ describe("RouteGraphics public API", () => {
     const { app } = await setupRouteGraphics();
 
     expect(app.hitTestElementBounds({ x: 10, y: 10 })).toEqual([]);
+  });
+
+  it("extracts the frame as a canvas or a PNG, of the stage or one element", async () => {
+    const frameCanvas = document.createElement("canvas");
+    const { app, pixiMock } = await setupRouteGraphics({
+      rendererOverrides: {
+        extract: {
+          base64: vi.fn(async () => "data:image/png;base64,AA=="),
+          canvas: vi.fn(() => frameCanvas),
+        },
+      },
+    });
+    const application = pixiMock.__getLastApplication();
+    const { extract } = application.renderer;
+    const element = application.stage.addChild(new pixiMock.Container("story"));
+
+    await expect(app.extractCanvas()).resolves.toBe(frameCanvas);
+    await expect(app.extractCanvas("story")).resolves.toBe(frameCanvas);
+    await expect(app.extractBase64("story")).resolves.toBe(
+      "data:image/png;base64,AA==",
+    );
+
+    // Each draws the current frame first, framed to the renderer.
+    expect(application.render).toHaveBeenCalledTimes(3);
+    expect(extract.canvas.mock.calls).toEqual([
+      [{ target: application.stage, frame: expect.any(pixiMock.Rectangle) }],
+      [{ target: element, frame: expect.any(pixiMock.Rectangle) }],
+    ]);
+    expect(extract.base64).toHaveBeenCalledWith({
+      target: element,
+      frame: expect.any(pixiMock.Rectangle),
+    });
+    await expect(app.extractCanvas("missing")).rejects.toThrow(
+      "Element with label 'missing' not found",
+    );
+    expect(extract.canvas).toHaveBeenCalledTimes(2);
   });
 
   it("selects the requested renderer backend and exposes the result", async () => {
@@ -1204,9 +1395,8 @@ describe("RouteGraphics public API", () => {
     const { app } = await setupRouteGraphics({
       rendererOverrides: { gl },
       pluginsFactory: async () => {
-        const { rectPlugin } = await import(
-          "../src/plugins/elements/rect/index.js"
-        );
+        const { rectPlugin } =
+          await import("../src/plugins/elements/rect/index.js");
         return {
           elements: [rectPlugin],
           animations: [],
@@ -1323,9 +1513,8 @@ describe("RouteGraphics public API", () => {
       const { app } = await setupRouteGraphics({
         rendererOverrides: { gl },
         pluginsFactory: async () => {
-          const { rectPlugin } = await import(
-            "../src/plugins/elements/rect/index.js"
-          );
+          const { rectPlugin } =
+            await import("../src/plugins/elements/rect/index.js");
           return {
             elements: [rectPlugin],
             animations: [],
@@ -1378,9 +1567,8 @@ describe("RouteGraphics public API", () => {
     const { app } = await setupRouteGraphics({
       rendererOverrides: { gl },
       pluginsFactory: async () => {
-        const { rectPlugin } = await import(
-          "../src/plugins/elements/rect/index.js"
-        );
+        const { rectPlugin } =
+          await import("../src/plugins/elements/rect/index.js");
         return {
           elements: [rectPlugin],
           animations: [],
@@ -2463,9 +2651,8 @@ describe("RouteGraphics public API", () => {
         eventHandler,
       },
       pluginsFactory: async () => {
-        const { videoPlugin } = await import(
-          "../src/plugins/elements/video/index.js"
-        );
+        const { videoPlugin } =
+          await import("../src/plugins/elements/video/index.js");
 
         return {
           elements: [videoPlugin],
@@ -2558,9 +2745,8 @@ describe("RouteGraphics public API", () => {
   it("updates lazy video texture when first mounted after frame data is ready", async () => {
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => {
-        const { videoPlugin } = await import(
-          "../src/plugins/elements/video/index.js"
-        );
+        const { videoPlugin } =
+          await import("../src/plugins/elements/video/index.js");
 
         return {
           elements: [videoPlugin],
@@ -2667,9 +2853,8 @@ describe("RouteGraphics public API", () => {
     async (metadataReady) => {
       const { app, pixiMock } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { videoPlugin } = await import(
-            "../src/plugins/elements/video/index.js"
-          );
+          const { videoPlugin } =
+            await import("../src/plugins/elements/video/index.js");
 
           return {
             elements: [videoPlugin],
@@ -2747,6 +2932,13 @@ describe("RouteGraphics public API", () => {
         expect(texture.source.height).toBe(metadataReady ? 1080 : 1);
         expect(texture.source.update).not.toHaveBeenCalled();
         expect(texture.source.isValid).toBe(false);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(false);
+        expect(texture.source.unload).not.toHaveBeenCalled();
+        expect(texture.source.update).not.toHaveBeenCalled();
 
         Object.defineProperty(createdVideos[0], "readyState", {
           value: window.HTMLMediaElement.HAVE_CURRENT_DATA,
@@ -2764,6 +2956,12 @@ describe("RouteGraphics public API", () => {
         createdVideos[0].dispatchEvent(new window.Event("loadeddata"));
 
         expect(texture.source.isValid).toBe(true);
+        expect(
+          texture.source.__routeGraphicsVideoTextureRuntime.requestUpdate({
+            force: true,
+          }),
+        ).toBe(true);
+        expect(texture.source.unload).toHaveBeenCalledTimes(1);
 
         expect(texture.source.width).toBe(1920);
         expect(texture.source.height).toBe(1080);
@@ -4804,9 +5002,8 @@ describe("RouteGraphics public API", () => {
 
       const { app } = await setupRouteGraphics({
         pluginsFactory: async ({ pixiMock }) => {
-          const { containerPlugin } = await import(
-            "../src/plugins/elements/container/index.js"
-          );
+          const { containerPlugin } =
+            await import("../src/plugins/elements/container/index.js");
           const createChild = (parent, element) => {
             const child = new pixiMock.Container();
             child.label = element.id;

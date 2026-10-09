@@ -102,6 +102,20 @@ Use `renderComplete` when playback completion is required. The PNG CLI waits
 for scene readiness before applying `--time`; `--wait-for-render-complete`
 retains its separate playback-completion meaning.
 
+`extractBase64()` encodes the frame as a PNG data URL. To scale or re-encode
+the frame instead, such as for a thumbnail, take the same pixels as a canvas
+and skip encoding and decoding a full-size PNG:
+
+```javascript
+const frame = await app.extractCanvas();
+const thumbnail = document.createElement("canvas");
+thumbnail.width = 400;
+thumbnail.height = 225;
+thumbnail.getContext("2d").drawImage(frame, 0, 0, 400, 225);
+```
+
+Both take an optional element label to extract that element alone.
+
 Assets loaded by an app instance can be released after no rendered or
 transitioning element still references them:
 

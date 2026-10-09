@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "wavSha256": "c114ba732229ed892bc1ed3b62d5681f2378bf251f26a98da96779d44f8522cb",
+  "metadata": {
+    "sampleRate": 48000,
+    "numberOfChannels": 2,
+    "frameCount": 67200,
+    "durationMs": 1400,
+    "byteLength": 268844,
+    "signal": {
+      "peak": 0.311798095703125,
+      "rms": 0.14226261411458976,
+      "nonZeroSamples": 95980
+    }
+  },
+  "events": [
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "playing",
+        "aborted": false
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "sound-removed",
+        "aborted": false
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "channel-removed",
+        "aborted": false
+      }
+    },
+    {
+      "name": "renderComplete",
+      "payload": {
+        "id": "effect-cancelled",
+        "aborted": false
+      }
+    }
+  ]
+}
