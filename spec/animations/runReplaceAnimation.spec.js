@@ -46,22 +46,9 @@ const createDisplayObject = (label) => {
   return displayObject;
 };
 
-const createParent = (...children) => ({
-  children: [...children],
-  addChild(child) {
-    child.parent = this;
-    this.children.push(child);
-    return child;
-  },
-  removeChild(child) {
-    this.children = this.children.filter((item) => item !== child);
-    if (child) {
-      child.parent = null;
-    }
-
-    return child;
-  },
-});
+// Snapshot staging uses Pixi's public reparent/index bookkeeping. Keep the
+// real container contract here instead of a partial add/remove-only double.
+const createParent = (...children) => new Container({ children });
 
 const createDeferred = () => {
   let resolve;
@@ -426,8 +413,10 @@ describe("runReplaceAnimation", () => {
     const app = {
       renderer: {
         generateTexture: vi.fn(({ target }) => {
+          expect(target.children).toEqual([nextDisplayObject]);
           snapshotTime =
-            target.filters[0].resources.shaderUniforms.uniforms.uTime;
+            target.children[0].filters[0].resources.shaderUniforms.uniforms
+              .uTime;
           return Texture.EMPTY;
         }),
       },
@@ -935,12 +924,14 @@ describe("runReplaceAnimation", () => {
         width: 1280,
         height: 720,
         generateTexture: vi.fn(({ target }) => {
+          expect(target.children).toHaveLength(1);
+          const captured = target.children[0];
           snapshotCalls.push({
-            x: target.x,
-            y: target.y,
-            scaleX: target.scale.x,
-            scaleY: target.scale.y,
-            alpha: target.alpha,
+            x: captured.x,
+            y: captured.y,
+            scaleX: captured.scale.x,
+            scaleY: captured.scale.y,
+            alpha: captured.alpha,
           });
           return Texture.EMPTY;
         }),
