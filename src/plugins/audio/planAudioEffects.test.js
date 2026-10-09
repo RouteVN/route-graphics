@@ -3,6 +3,7 @@ import { normalizeAudioRenderState } from "../../util/normalizeAudio.js";
 import {
   getAudioEffectSignature,
   planAudioEffects,
+  prepareSnapshotAudioEffects,
 } from "./planAudioEffects.js";
 
 const sound = (src = "track-a", overrides = {}) => ({
@@ -332,5 +333,186 @@ describe("planAudioEffects", () => {
     expect(getAudioEffectSignature(omitted)).toBe(
       getAudioEffectSignature(explicit),
     );
+  });
+});
+
+describe("snapshot audio effects", () => {
+  const crossfade = () =>
+    effect("fade:1", {
+      volume: { exit: phase(0), enter: phase(80) },
+    });
+  const snapshot = (previous, next, previousRequests) =>
+    prepareSnapshotAudioEffects({
+      prevState: previous,
+      nextState: next,
+      previousRequests,
+    });
+
+  it("omits entry and exit phases for retained sounds without changing settled values", () => {
+    const next = state([sound("track-a", { volume: 40 })], [crossfade()]);
+    expect(snapshot(state([sound()]), next)).toEqual([]);
+    expect(next.sounds[0].volume).toBe(40);
+    expect(next.audioEffects[0]).toEqual(crossfade());
+    expect(() =>
+      planAudioEffects({ prevState: state([sound()]), nextState: next }),
+    ).toThrow("not applicable to an audio update lifecycle");
+  });
+
+  it.each([
+    ["add", [], [sound()], ["enter"]],
+    ["replace", [sound("old")], [sound()], ["exit", "enter"]],
+    ["remove", [sound()], [], ["exit"]],
+    [
+      "replay",
+      [
+        sound("track-a", {
+          playback: { commandId: 1, operation: "play", positionMs: 0 },
+        }),
+      ],
+      [
+        sound("track-a", {
+          playback: { commandId: 2, operation: "play", positionMs: 0 },
+        }),
+      ],
+      ["enter"],
+    ],
+  ])(
+    "preserves applicable fade phases for %s",
+    (lifecycle, previous, next, phases) => {
+      const audioEffects = snapshot(
+        state(previous),
+        state(next, [crossfade()]),
+      );
+      const plan = planAudioEffects({
+        prevState: state(previous),
+        nextState: state(next, audioEffects),
+      });
+      expect(plan.accepted[0].lifecycle).toBe(lifecycle);
+      expect(Object.keys(audioEffects[0].properties.volume)).toEqual(phases);
+    },
+  );
+
+  it("continues the accepted subset when the original request is repeated", () => {
+    const requested = crossfade();
+    const accepted = snapshot(state(), state([sound()], [requested]));
+    const previousRequests = new Map([
+      [requested.id, getAudioEffectSignature(requested)],
+    ]);
+    const previous = state([sound()], accepted);
+    const repeated = snapshot(
+      previous,
+      state([sound()], [structuredClone(requested)]),
+      previousRequests,
+    );
+    expect(repeated).toEqual(accepted);
+    const plan = planAudioEffects({
+      prevState: previous,
+      nextState: state([sound()], repeated),
+      ownedAudioEffects: new Map([
+        [
+          requested.id,
+          {
+            signature: getAudioEffectSignature(accepted[0]),
+            targetType: "sound",
+          },
+        ],
+      ]),
+    });
+    expect(plan.continued).toHaveLength(1);
+    expect(plan.accepted).toEqual([]);
+  });
+
+  it("treats a changed original signature under the same ID as a new occurrence", () => {
+    const original = crossfade();
+    const changed = structuredClone(original);
+    changed.properties.volume.exit.keyframes[0].duration = 200;
+    const previous = state(
+      [sound()],
+      snapshot(state(), state([sound()], [original])),
+    );
+    expect(
+      snapshot(
+        previous,
+        state([sound()], [changed]),
+        new Map([[original.id, getAudioEffectSignature(original)]]),
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not resurrect an omitted occurrence on a later graph edge", () => {
+    const original = crossfade();
+    expect(
+      snapshot(
+        state([sound()]),
+        state([sound("replacement")], [original]),
+        new Map([[original.id, getAudioEffectSignature(original)]]),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps applicable updates subject to normal endpoint validation", () => {
+    const update = effect("update:1", { volume: { update: phase(40) } });
+    const previous = state([sound()]);
+    const next = state([sound("track-a", { volume: 40 })], [update]);
+    expect(snapshot(previous, next)).toEqual([update]);
+    expect(() =>
+      planAudioEffects({
+        prevState: previous,
+        nextState: state(
+          [sound()],
+          snapshot(previous, state([sound()], [update])),
+        ),
+      }),
+    ).toThrow("must end at the next audio node");
+  });
+
+  it("omits settled update properties without omitting remaining automation", () => {
+    const update = effect("update:1", {
+      volume: { update: phase(40) },
+      pan: { update: phase(0) },
+    });
+    const previous = state([sound()]);
+    const next = state([sound("track-a", { volume: 40 })], [update]);
+    expect(snapshot(previous, next)[0].properties).toEqual({
+      volume: update.properties.volume,
+    });
+    expect(snapshot(state(next.audio), next)).toEqual([]);
+    expect(() =>
+      planAudioEffects({ prevState: state(next.audio), nextState: next }),
+    ).toThrow("requires the declared volume value to change");
+    const malformed = effect("invalid-update", {
+      volume: { update: phase(80, { relative: true }) },
+    });
+    expect(() =>
+      planAudioEffects({
+        prevState: previous,
+        nextState: state(
+          previous.audio,
+          snapshot(previous, state(previous.audio, [malformed])),
+        ),
+      }),
+    ).toThrow("must end with an absolute value");
+  });
+
+  it("omits an exit-only request for an already absent outgoing target", () => {
+    const exit = effect("outgoing", { volume: { exit: phase(0) } });
+    expect(snapshot(state(), state([], [exit]))).toEqual([]);
+    const update = effect("missing", { volume: { update: phase(40) } });
+    expect(() => snapshot(state(), state([], [update]))).toThrow(
+      "does not resolve to an audio node",
+    );
+  });
+
+  it("rejects unresolved targets and unsupported target properties before filtering", () => {
+    expect(() => snapshot(state(), state([], [crossfade()]))).toThrow(
+      "does not resolve to an audio node",
+    );
+    const channel = { id: "bgm", type: "audio-channel", children: [] };
+    const unsupported = effect("invalid", {
+      playbackRate: { enter: phase(1) },
+    });
+    expect(() =>
+      snapshot(state([channel]), state([channel], [unsupported])),
+    ).toThrow("not supported for target type");
   });
 });
