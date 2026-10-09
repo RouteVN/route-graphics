@@ -1,13 +1,34 @@
 // Real WebGL regression for transition snapshots of source-mounted elements.
 // No server, downloads, mocked renderer, or pre-recorded expected image.
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { chromium } from "playwright";
+import { PNG } from "pngjs";
 import { getRendererBrowserLaunchOptions } from "../src/cli/browserLaunch.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
+const args = process.argv.slice(2);
+assert(
+  args.length === 0 ||
+    (args.length === 2 && args[0] === "--out-dir" && args[1]),
+  "usage: testTransitionSnapshots.mjs [--out-dir <fresh directory>]",
+);
+const directory = args[1] ? path.resolve(args[1]) : null;
+if (directory) {
+  await mkdir(path.dirname(directory), { recursive: true });
+  await mkdir(directory);
+}
+const write = async (name, value) => {
+  if (!directory) return;
+  await writeFile(
+    path.join(directory, name),
+    Buffer.isBuffer(value) ? value : JSON.stringify(value, null, 2) + "\n",
+    { flag: "wx" },
+  );
+};
 const family = "TransitionSnapshotTestSans";
 const font = await readFile(
   new URL("../spec/assets/fonts/NotoSans-Regular.ttf", import.meta.url),
@@ -350,6 +371,20 @@ try {
       }
     }
     const checks = [];
+    await write(`${fixture.id}-fixture.json`, fixture);
+    for (const [index, observation] of observations.entries()) {
+      for (const [captureIndex, capture] of observation.captures.entries()) {
+        const png = new PNG({
+          width: capture.size[0],
+          height: capture.size[1],
+        });
+        png.data = Buffer.from(capture.pixels);
+        await write(
+          `${fixture.id}-${index === 0 ? "fresh" : "presented"}-${captureIndex + 1}.png`,
+          PNG.sync.write(png),
+        );
+      }
+    }
     const check = (name, fn) => {
       try {
         fn();
@@ -425,10 +460,12 @@ try {
       presented: summarize(observations[1]),
     };
     results.push(result);
+    await write(`${fixture.id}-result.json`, result);
     console.log(JSON.stringify(result));
   }
 } finally {
   await browser.close();
+  await write("results.json", results);
 }
 console.log(
   JSON.stringify({
