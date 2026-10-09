@@ -2977,6 +2977,171 @@ describe("RouteGraphics public API", () => {
     expect(appInstance.renderer.background.color).toBe(0xff0000);
   });
 
+  it("renders empty timelines immediately without applying their initial values", async () => {
+    const events = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: { eventHandler: events, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    const box = {
+      id: "box",
+      type: "rect",
+      x: 40,
+      y: 20,
+      width: 80,
+      height: 60,
+      fill: "#00ff00",
+    };
+    app.render({ id: "before-empty", elements: [box] });
+    events.mockClear();
+    const next = {
+      id: "empty-scene",
+      elements: [{ ...box, x: 180 }],
+      animations: [
+        { id: "empty-map", targetId: "box", type: "update", tween: {} },
+        {
+          id: "empty-tracks",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { initialValue: 999, keyframes: [] },
+            width: { initialValue: 999, keyframes: [] },
+            fill: { color: { initialValue: "#ff0000", keyframes: [] } },
+            filters: { unused: { progress: { keyframes: [] } } },
+          },
+        },
+        {
+          id: "empty-transition",
+          targetId: "box",
+          type: "transition",
+          prev: {},
+          next: { tween: {} },
+        },
+      ],
+    };
+    const authored = structuredClone(next);
+    app.render(next);
+    await app.whenRenderReady();
+    expect(app.findElementByLabel("box").x).toBe(180);
+    expect(
+      events.mock.calls.filter(([name]) => name === "renderComplete"),
+    ).toEqual([["renderComplete", { id: "empty-scene", aborted: false }]]);
+    app.setAnimationTime(1000);
+    expect(app.findElementByLabel("box").x).toBe(180);
+    expect(
+      events.mock.calls.filter(([name]) => name === "renderComplete"),
+    ).toHaveLength(1);
+    expect(next).toEqual(authored);
+  });
+
+  it("keeps a mixed live track's samples and completion timing when empty tracks are removed", async () => {
+    const events = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: { eventHandler: events, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    const box = {
+      id: "box",
+      type: "rect",
+      x: 40,
+      y: 20,
+      width: 80,
+      height: 60,
+      fill: "#00ff00",
+    };
+    app.render({ id: "base", elements: [box] });
+    events.mockClear();
+    app.render({
+      id: "mixed",
+      elements: [{ ...box, x: 240 }],
+      animations: [
+        { id: "omitted", targetId: "box", type: "update", tween: {} },
+        {
+          id: "move",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { keyframes: [{ value: 240, duration: 400 }] },
+            y: { initialValue: 999, keyframes: [] },
+            width: { keyframes: [] },
+          },
+        },
+      ],
+    });
+    await app.whenRenderReady();
+    app.setAnimationTime(200);
+    expect(app.findElementByLabel("box").x).toBeCloseTo(140);
+    expect(app.findElementByLabel("box").y).toBe(20);
+    expect(events).not.toHaveBeenCalledWith("renderComplete", {
+      id: "mixed",
+      aborted: false,
+    });
+    app.setAnimationTime(400);
+    expect(app.findElementByLabel("box").x).toBe(240);
+    expect(
+      events.mock.calls.filter(([name]) => name === "renderComplete"),
+    ).toEqual([["renderComplete", { id: "mixed", aborted: false }]]);
+  });
+
+  it("aborts a live render when it is superseded by a scene with only empty timelines", async () => {
+    const events = vi.fn();
+    const { app } = await setupRouteGraphics({
+      initOptions: { eventHandler: events, animationPlaybackMode: "manual" },
+      pluginsFactory: async () => ({
+        elements: [
+          (await import("../src/plugins/elements/rect/index.js")).rectPlugin,
+        ],
+      }),
+    });
+    const box = {
+      id: "box",
+      type: "rect",
+      x: 300,
+      y: 20,
+      width: 80,
+      height: 60,
+      fill: "#00ff00",
+    };
+    app.render({
+      id: "interrupted",
+      elements: [box],
+      animations: [
+        {
+          id: "move",
+          targetId: "box",
+          type: "update",
+          tween: {
+            x: { initialValue: 0, keyframes: [{ value: 300, duration: 600 }] },
+          },
+        },
+      ],
+    });
+    app.setAnimationTime(200);
+    expect(app.findElementByLabel("box").x).toBeCloseTo(100);
+    app.render({
+      id: "replacement",
+      elements: [{ ...box, x: 40 }],
+      animations: [{ id: "empty", targetId: "box", type: "update", tween: {} }],
+    });
+    await app.whenRenderReady();
+    app.setAnimationTime(1000);
+    expect(app.findElementByLabel("box").x).toBe(40);
+    expect(
+      events.mock.calls.filter(([name]) => name === "renderComplete"),
+    ).toEqual([
+      ["renderComplete", { id: "interrupted", aborted: true }],
+      ["renderComplete", { id: "replacement", aborted: false }],
+    ]);
+  });
+
   it("supports manual animation playback time sampling", async () => {
     const { app } = await setupRouteGraphics({
       pluginsFactory: async () => {

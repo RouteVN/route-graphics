@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { loadRenderDefinition } from "./renderConfig.js";
 import { normalizeRenderState } from "../util/normalizeRenderState.js";
+import { normalizeAnimations } from "../util/normalizeAnimations.js";
 import {
   compileAnimationTimelineProgram,
   inspectTimelineProgram,
@@ -25,10 +26,15 @@ export const inspectTimelineDefinition = ({
     );
   }
   const state = normalizeRenderState(rawState);
-  const indexedAnimations = state.animations.map((animation, index) => ({
-    animation,
-    index,
-  }));
+  // Validate the complete state above, including conflicts between animations.
+  // Normalize each authored entry here to retain its source location when an
+  // earlier empty animation is omitted (even if it shares the same id).
+  const indexedAnimations = (rawState.animations ?? []).flatMap(
+    (raw, index) => {
+      const [animation] = normalizeAnimations([raw]);
+      return animation ? [{ animation, index }] : [];
+    },
+  );
   const selected = animationId
     ? indexedAnimations.filter(({ animation }) => animation.id === animationId)
     : indexedAnimations;

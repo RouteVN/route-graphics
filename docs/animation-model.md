@@ -695,7 +695,22 @@ The complete shader contract is in `docs/shader-interface.md`.
 
 ## Validation Rules
 
-- `update` requires `tween`
+Generated empty tween data is accepted as a no-op. An empty update `tween`,
+empty `prev`/`next` transition sides, and manual tracks with `keyframes: []`
+are omitted during normalization. This applies to ordinary properties,
+rectangle styles, and update filter parameters. Empty grouping maps and an
+empty rectangle gradient-stop list also contribute no tracks. A valid
+`initialValue` on an empty track is ignored; it never writes to the element.
+An animation with no remaining tracks is omitted and does not delay
+`renderComplete`. Mixed animations retain the timing of their live tracks.
+
+Empty tracks still undergo shape and value validation. Invalid initial values,
+reserved shader names, simultaneous `auto` and `keyframes`, and conflicting
+`x`/`translateX` or `y`/`translateY` aliases remain errors. Required mask and
+compositor progress tracks, mask frame lists, and portable GSAP programs retain
+their existing validation rules.
+
+- `update` requires exactly one of `tween` or `gsap`
 - `update` may optionally define `playback.continuity: render | persistent`
 - `update` and `transition` may define a positive `playback.speed`
 - `update` may define `playback.loop: true`
