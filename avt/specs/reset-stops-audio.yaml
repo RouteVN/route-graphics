@@ -1,0 +1,34 @@
+title: Reset stops audio and keeps the audio runtime usable
+description: Looping music plays until a renderer-preserving reset, stays silent after it, and plays again when the next state requests it.
+durationMs: 2250
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  tone440:
+    generator: tone
+    frequency: 440
+states:
+  - atMs: 0
+    state:
+      id: before-reset
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone440
+          loop: true
+          volume: 100
+  - atMs: 750
+    reset: {}
+  - atMs: 1500
+    state:
+      id: after-reset
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone440
+          loop: true
+          volume: 100
