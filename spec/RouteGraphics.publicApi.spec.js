@@ -335,7 +335,17 @@ const createPixiModuleMock = ({ rendererOverrides = {} } = {}) => {
       this.render = vi.fn();
       this.renderer = {
         background: { color: 0 },
-        events: { cursorStyles: { default: "default", hover: "pointer" } },
+        events: {
+          cursorStyles: { default: "default", hover: "pointer" },
+          _currentCursor: null,
+          setCursor: vi.fn((mode) => {
+            const events = this.renderer.events;
+            mode ||= "default";
+            if (events._currentCursor === mode) return;
+            events._currentCursor = mode;
+            this.canvas.style.cursor = events.cursorStyles[mode] ?? mode;
+          }),
+        },
         width: 0,
         height: 0,
         generateTexture: vi.fn(() => ({
@@ -793,6 +803,75 @@ describe("RouteGraphics public API", () => {
     await app.reset();
     app.render({ id: "after-reset", elements: [] });
     expect(onFirstRender).toHaveBeenCalledTimes(2);
+  });
+
+  it.each(["pointer", "default"])(
+    "resets the Pixi cursor cache and CSS after a %s cursor",
+    async (cursor) => {
+      const { app, pixiMock } = await setupRouteGraphics();
+      const pixiApp = pixiMock.__getLastApplication();
+      pixiApp.renderer.resize = vi.fn();
+      const events = pixiApp.renderer.events;
+      app.render({
+        id: "old-cursor",
+        elements: [],
+        global: { cursorStyles: { default: "crosshair" } },
+      });
+      events.setCursor(cursor);
+      expect(app.canvas.style.cursor).toBe(
+        cursor === "default" ? "crosshair" : "pointer",
+      );
+
+      await app.reset();
+      expect(events._currentCursor).toBe("default");
+      expect(app.canvas.style.cursor).toBe("default");
+      expect(events.cursorStyles).toEqual({
+        default: "default",
+        hover: "pointer",
+      });
+
+      // The first pointer movement over the same kind of target must update
+      // the CSS instead of being discarded as an already-applied cursor.
+      events.setCursor("pointer");
+      expect(app.canvas.style.cursor).toBe("pointer");
+    },
+  );
+
+  it("does not consume the replacement first render inside renderComplete", async () => {
+    let resetPromise;
+    const oldFirstRender = vi.fn();
+    const newFirstRender = vi.fn();
+    const replacementEvents = vi.fn();
+    const { app, pixiMock } = await setupRouteGraphics({
+      initOptions: {
+        onFirstRender: oldFirstRender,
+        eventHandler: (event, payload) => {
+          if (event === "renderComplete" && payload.id === "old-session") {
+            resetPromise = app.reset({
+              onFirstRender: newFirstRender,
+              eventHandler: replacementEvents,
+            });
+          }
+        },
+      },
+    });
+    pixiMock.__getLastApplication().renderer.resize = vi.fn();
+    app.render({ id: "old-session", elements: [] });
+    expect(resetPromise).toBeDefined();
+    await resetPromise;
+    expect(oldFirstRender).not.toHaveBeenCalled();
+    expect(newFirstRender).not.toHaveBeenCalled();
+    expect(replacementEvents).not.toHaveBeenCalled();
+
+    app.render({ id: "replacement-session", elements: [] });
+    await app.whenRenderReady();
+    expect(newFirstRender).toHaveBeenCalledOnce();
+    expect(replacementEvents).toHaveBeenCalledWith("renderComplete", {
+      id: "replacement-session",
+      aborted: false,
+    });
+    app.render({ id: "another-scene", elements: [] });
+    expect(newFirstRender).toHaveBeenCalledOnce();
   });
 
   it("starts snapshot audio effects from no previous requests after reset", async () => {

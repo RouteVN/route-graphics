@@ -1310,6 +1310,9 @@ const createRouteGraphics = () => {
 
       // Fire stateComplete immediately if no animations/reveals to track
       completionTracker.completeIfEmpty();
+      // A completion handler may synchronously reset or render another scene.
+      // The abandoned render must not consume that session's first callback.
+      if (!isCurrent()) return;
 
       if (!hasRenderedOnce) {
         hasRenderedOnce = true;
@@ -1611,9 +1614,11 @@ const createRouteGraphics = () => {
     if (app && retainRenderer) {
       app.stage.destroy({ children: true });
       app.stage = new Container();
-      app.canvas.style.cursor = "default";
       app.renderer.events.cursorStyles.default = "default";
       app.renderer.events.cursorStyles.hover = "pointer";
+      app.renderer.events.setCursor("default");
+      // The cached mode may already be default while its old style was custom.
+      app.canvas.style.cursor = "default";
     } else if (app) {
       app.destroy(false, { children: true });
       app = undefined;

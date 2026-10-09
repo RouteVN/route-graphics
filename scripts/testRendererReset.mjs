@@ -54,8 +54,32 @@ try {
           const canvas = runtime.canvas;
           const gl = app.renderer.gl;
           document.body.append(canvas);
+          // Compare every pixel with a simple geometric oracle. This detects
+          // blank output, stale scene content, wrong colors, and bad resizing.
+          const matchesFrame = async (width, height, rect, color) => {
+            const frame = await runtime.extractCanvas();
+            if (frame.width !== width || frame.height !== height) return false;
+            const pixels = frame
+              .getContext("2d")
+              .getImageData(0, 0, width, height).data;
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                const expected =
+                  x < rect.width && y < rect.height ? color : [0, 0, 0];
+                const offset = (y * width + x) * 4;
+                if (
+                  pixels[offset] !== expected[0] ||
+                  pixels[offset + 1] !== expected[1] ||
+                  pixels[offset + 2] !== expected[2] ||
+                  pixels[offset + 3] !== 255
+                )
+                  return false;
+              }
+            }
+            return true;
+          };
           for (let index = 0; index < 40; index++) {
-            runtime.render({
+            const oldScene = {
               elements: [
                 {
                   id: "box",
@@ -64,15 +88,29 @@ try {
                   height: 20,
                   fill: "#00ff00",
                 },
+              ],
+              global: { cursorStyles: { default: "crosshair" } },
+            };
+            runtime.render(oldScene);
+            const oldFrameCorrect = await matchesFrame(
+              app.renderer.width,
+              app.renderer.height,
+              { width: 20, height: 20 },
+              [0, 255, 0],
+            );
+            runtime.render({
+              ...oldScene,
+              elements: [
+                ...oldScene.elements,
                 {
                   id: "field",
                   type: "input",
+                  y: 30,
                   width: 40,
                   height: 20,
                   value: "old value",
                 },
               ],
-              global: { cursorStyles: { default: "crosshair" } },
             });
             const oldBox = runtime.findElementByLabel("box");
             const oldInput = runtime.findElementByLabel("field");
@@ -92,6 +130,13 @@ try {
               oldAudioEmpty: oldAudio._inspect().sounds.size === 0,
               cursorReset: canvas.style.cursor === "default",
               resized: app.renderer.width === 80 && app.renderer.height === 60,
+              oldFrameCorrect,
+              clearedFrameCorrect: await matchesFrame(
+                80,
+                60,
+                { width: 0, height: 0 },
+                [0, 0, 0],
+              ),
             });
             runtime.render({
               elements: [
@@ -104,8 +149,12 @@ try {
                 },
               ],
             });
-            // A real frame also exercises shader compilation after the resets.
-            await runtime.extractBase64();
+            checks.at(-1).newFrameCorrect = await matchesFrame(
+              80,
+              60,
+              { width: 30, height: 10 },
+              [255, 0, 0],
+            );
           }
           const activeBeforeDestroy = !gl.isContextLost();
           runtime.destroy();
@@ -130,6 +179,105 @@ try {
       assert.deepEqual(errors, []);
       console.log(
         `${name}: 40 scene resets reuse one renderer/context; runtime state cleared; final destroy releases context`,
+      );
+
+      const cursorPage = await browser.newPage();
+      const cursorErrors = [];
+      cursorPage.on("pageerror", (error) => cursorErrors.push(error.message));
+      await cursorPage.goto(`http://127.0.0.1:${server.address().port}`);
+      await cursorPage.evaluate(async () => {
+        const m = await import("/bundle.js");
+        window.runtime = m.default();
+        await window.runtime.init({
+          width: 64,
+          height: 64,
+          plugins: { elements: [m.rectPlugin] },
+        });
+        document.body.style.margin = "0";
+        document.body.append(window.runtime.canvas);
+        window.cursorScene = {
+          elements: [
+            {
+              id: "button",
+              type: "rect",
+              width: 40,
+              height: 40,
+              fill: "#00ff00",
+              hover: { cursor: "pointer" },
+            },
+          ],
+          global: { cursorStyles: { default: "crosshair" } },
+        };
+        window.runtime.render(window.cursorScene);
+      });
+      for (const [position, cursor] of [
+        [10, "pointer"],
+        [55, "crosshair"],
+      ]) {
+        await cursorPage.mouse.move(position, position);
+        assert.equal(
+          await cursorPage.evaluate(() => window.runtime.canvas.style.cursor),
+          cursor,
+        );
+        await cursorPage.evaluate(async () => {
+          await window.runtime.reset();
+        });
+        assert.equal(
+          await cursorPage.evaluate(() => window.runtime.canvas.style.cursor),
+          "default",
+        );
+        await cursorPage.evaluate(() =>
+          window.runtime.render(window.cursorScene),
+        );
+        // Stay inside the canvas: leaving it would mask the stale cursor cache.
+        await cursorPage.mouse.move(12, 12);
+        assert.equal(
+          await cursorPage.evaluate(() => window.runtime.canvas.style.cursor),
+          "pointer",
+        );
+      }
+      const firstRender = await cursorPage.evaluate(async () => {
+        window.runtime.destroy();
+        const m = await import("/bundle.js");
+        const runtime = m.default();
+        const calls = [];
+        const events = [];
+        let resetPromise;
+        await runtime.init({
+          width: 64,
+          height: 64,
+          onFirstRender: () => calls.push("old"),
+          eventHandler: (event, payload) => {
+            if (event === "renderComplete" && payload.id === "old") {
+              resetPromise = runtime.reset({
+                onFirstRender: () => calls.push("new"),
+                eventHandler: (event, payload) => events.push([event, payload]),
+              });
+            }
+          },
+        });
+        runtime.render({ id: "old", elements: [] });
+        await resetPromise;
+        const beforeNewScene = [...calls];
+        runtime.render({ id: "new", elements: [] });
+        await runtime.whenRenderReady();
+        const afterNewScene = [...calls];
+        runtime.render({ id: "another", elements: [] });
+        const afterAnotherScene = [...calls];
+        runtime.destroy();
+        return { beforeNewScene, afterNewScene, afterAnotherScene, events };
+      });
+      assert.deepEqual(firstRender.beforeNewScene, []);
+      assert.deepEqual(firstRender.afterNewScene, ["new"]);
+      assert.deepEqual(firstRender.afterAnotherScene, ["new"]);
+      assert.deepEqual(firstRender.events, [
+        ["renderComplete", { id: "new", aborted: false }],
+        ["renderComplete", { id: "another", aborted: false }],
+      ]);
+      assert.deepEqual(cursorErrors, []);
+      await cursorPage.close();
+      console.log(
+        `${name}: hover survives reset; renderComplete reset preserves the replacement first-render callback`,
       );
 
       // Each runtime behavior is observed before the reset, so the checks after
