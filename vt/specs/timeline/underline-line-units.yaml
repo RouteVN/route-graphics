@@ -1,0 +1,167 @@
+---
+title: Underline Line Timeline Lifecycle
+description: >-
+  A no-op line animation must retain the exact original underline. Underline spans follow unit
+  movement and fade, and disappear after restyling or source removal. Word/grapheme whitespace
+  coverage is exercised by production-adapter unit tests because the pinned VT browser lacks Unicode
+  17 data.
+specs:
+  - identity line animation preserves all original decoration pixels
+  - line transforms affect glyphs and their decoration together
+  - restyling retained units removes underline
+  - removing the source destroys retained units and decoration
+steps:
+  - action: keypress
+    key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+---
+states:
+  - id: static
+    elements:
+      - id: root
+        type: container
+        x: 0
+        'y': 0
+        width: 1280
+        height: 720
+        children:
+          - id: lines
+            type: text
+            x: 100
+            'y': 100
+            content: |-
+              FIRST LINE
+              SECOND
+            textStyle:
+              fontFamily: Courier New
+              fontSize: 48
+              fill: '#FFFFFF'
+              textDecoration: underline
+              lineHeight: 1.25
+              align: center
+  - id: identity
+    elements:
+      - id: root
+        type: container
+        x: 0
+        'y': 0
+        width: 1280
+        height: 720
+        children:
+          - id: lines
+            type: text
+            x: 100
+            'y': 100
+            content: |-
+              FIRST LINE
+              SECOND
+            textStyle:
+              fontFamily: Courier New
+              fontSize: 48
+              fill: '#FFFFFF'
+              textDecoration: underline
+              lineHeight: 1.25
+              align: center
+    animations:
+      - id: line-animation
+        targetId: root
+        type: update
+        gsap:
+          profile: portable-v1
+          targets:
+            lines:
+              textUnits:
+                elementId: lines
+                unit: line
+                order: logical
+          steps:
+            - kind: to
+              targets: lines
+              values:
+                alpha: 1
+              duration: 1000
+  - id: moving
+    elements:
+      - id: root
+        type: container
+        x: 0
+        'y': 0
+        width: 1280
+        height: 720
+        children:
+          - id: lines
+            type: text
+            x: 100
+            'y': 100
+            content: |-
+              FIRST LINE
+              SECOND
+            textStyle:
+              fontFamily: Courier New
+              fontSize: 48
+              fill: '#FFFFFF'
+              textDecoration: underline
+              lineHeight: 1.25
+              align: center
+    animations:
+      - id: line-animation
+        targetId: root
+        type: update
+        gsap:
+          profile: portable-v1
+          targets:
+            lines:
+              textUnits:
+                elementId: lines
+                unit: line
+                order: logical
+          steps:
+            - kind: to
+              targets: lines
+              values:
+                x:
+                  by: 80
+                alpha: 0.5
+              duration: 1000
+  - id: no-underline
+    elements:
+      - id: root
+        type: container
+        x: 0
+        'y': 0
+        width: 1280
+        height: 720
+        children:
+          - id: lines
+            type: text
+            x: 100
+            'y': 100
+            content: |-
+              FIRST LINE
+              SECOND
+            textStyle:
+              fontFamily: Courier New
+              fontSize: 48
+              fill: '#FFFFFF'
+              textDecoration: none
+              lineHeight: 1.25
+              align: center
+  - id: removed
+    elements: []

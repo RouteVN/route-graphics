@@ -3,7 +3,8 @@ import { createAnimationBus } from "../animationBus.js";
 import { dispatchUpdateAnimationsNow } from "../updateAnimationDispatch.js";
 import { createCompletionTracker } from "../../../util/completionTracker.js";
 import { normalizeAnimations } from "../../../util/normalizeAnimations.js";
-import { Container, Text } from "pixi.js";
+import { Container, Graphics, Text } from "pixi.js";
+import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import {
   getElementRenderState,
   setElementRenderState,
@@ -1046,6 +1047,7 @@ describe("portable GSAP update runtime integration", () => {
       text: "e\u0301👨‍👩‍👧‍👦!",
       style: { fontSize: 20 },
     });
+    applyTextDecoration(title, { textDecoration: "underline" });
     const foreground = new Container({ label: "foreground" });
     root.addChild(background, title, foreground);
     const semanticState = {
@@ -1152,6 +1154,11 @@ describe("portable GSAP update runtime integration", () => {
       "👨‍👩‍👧‍👦",
       "!",
     ]);
+    expect(
+      unitContainer.children.every((child) =>
+        child.children.some((decoration) => decoration instanceof Graphics),
+      ),
+    ).toBe(true);
     expect(unitContainer.children.every((child) => child.alpha === 0)).toBe(
       true,
     );

@@ -1,0 +1,110 @@
+---
+title: Underline Revealing Text
+description: >-
+  Typewriter decoration follows the visible prefix and soft-wipe decoration stays inside the text
+  mask. Both complete and are removed with their source.
+specs:
+  - typewriter underlines only revealed characters
+  - soft-wipe masks glyphs and underline together
+  - completed underlines span all words and spaces
+  - removing revealing text removes its underline
+steps:
+  - action: keypress
+    key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+---
+states:
+  - id: blank
+    elements: []
+  - id: revealing
+    elements:
+      - id: typewriter
+        type: text-revealing
+        x: 64
+        'y': 80
+        width: 1050
+        speed: 16
+        revealEffect: typewriter
+        textStyle:
+          fontFamily: Arial
+          fontSize: 32
+          fill: '#FFFFFF'
+          textDecoration: underline
+        content:
+          - text: Underlined words reveal together.
+            textStyle:
+              fontFamily: Arial
+              fontSize: 32
+              fill: '#FFFFFF'
+              textDecoration: underline
+      - id: wipe
+        type: text-revealing
+        x: 64
+        'y': 250
+        width: 1050
+        speed: 16
+        revealEffect: softWipe
+        textStyle:
+          fontFamily: Arial
+          fontSize: 32
+          fill: '#FFFFFF'
+          textDecoration: underline
+        content:
+          - text: Underlined words reveal together.
+            textStyle:
+              fontFamily: Arial
+              fontSize: 32
+              fill: '#FFFFFF'
+              textDecoration: underline
+  - id: complete
+    elements:
+      - id: typewriter
+        type: text-revealing
+        x: 64
+        'y': 80
+        width: 1050
+        speed: 100
+        revealEffect: typewriter
+        textStyle:
+          fontFamily: Arial
+          fontSize: 32
+          fill: '#FFFFFF'
+          textDecoration: underline
+        content:
+          - text: Underlined words reveal together.
+            textStyle:
+              fontFamily: Arial
+              fontSize: 32
+              fill: '#FFFFFF'
+              textDecoration: underline
+      - id: wipe
+        type: text-revealing
+        x: 64
+        'y': 250
+        width: 1050
+        speed: 100
+        revealEffect: softWipe
+        textStyle:
+          fontFamily: Arial
+          fontSize: 32
+          fill: '#FFFFFF'
+          textDecoration: underline
+        content:
+          - text: Underlined words reveal together.
+            textStyle:
+              fontFamily: Arial
+              fontSize: 32
+              fill: '#FFFFFF'
+              textDecoration: underline
+  - id: removed
+    elements: []
