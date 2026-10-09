@@ -118,6 +118,68 @@ states:
     );
   });
 
+  it.each([undefined, "move"])(
+    "preserves authored indexes after dropping empty animations (selection: %s)",
+    (animationId) => {
+      const definition = {
+        states: [
+          { id: "unused" },
+          {
+            id: "with-empty-tracks",
+            animations: [
+              // A dropped duplicate id must not steal the live entry's index.
+              { id: "move", targetId: "box", type: "update", tween: {} },
+              {
+                id: "empty-transition",
+                targetId: "box",
+                type: "transition",
+                prev: {},
+                next: { tween: {} },
+              },
+              {
+                id: "move",
+                targetId: "box",
+                type: "update",
+                tween: {
+                  x: { keyframes: [{ value: 100, duration: 200 }] },
+                  y: { keyframes: [] },
+                },
+              },
+            ],
+          },
+        ],
+      };
+      const original = structuredClone(definition);
+      const result = inspectTimelineDefinition({
+        definition,
+        stateIndex: 1,
+        animationId,
+      });
+
+      expect(result.animations).toHaveLength(1);
+      expect(result.animations[0].visualization.lanes[0].sourcePath).toContain(
+        "states[1].animations[2]",
+      );
+      expect(result.animations[0].summary.duration).toBe(200);
+      expect(definition).toEqual(original);
+    },
+  );
+
+  it("returns an empty inspection when every authored animation is a no-op", () => {
+    const result = inspectTimelineDefinition({
+      definition: {
+        states: [
+          {
+            animations: [
+              { id: "empty", targetId: "box", type: "update", tween: {} },
+            ],
+          },
+        ],
+      },
+    });
+    expect(result.animations).toEqual([]);
+  });
+
   it("compiles the checked-in portable GSAP example", () => {
     const example = fs.readFileSync(
       `${process.cwd()}/examples/portable-gsap.yaml`,

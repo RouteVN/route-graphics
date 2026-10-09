@@ -72,7 +72,7 @@ $defs:
     additionalProperties: false
   tweenProperty:
     oneOf:
-      - $ref: "#/$defs/manualTweenProperty"
+      - $ref: "#/$defs/surfaceManualTweenProperty"
       - $ref: "#/$defs/autoTweenProperty"
   colorKeyframe:
     type: object
@@ -133,6 +133,7 @@ $defs:
     additionalProperties: false
   manualColorTweenProperty:
     type: object
+    description: Manual color track; an empty keyframes array authors no animation and is dropped during normalization.
     required:
       - keyframes
     properties:
@@ -140,7 +141,6 @@ $defs:
         type: string
       keyframes:
         type: array
-        minItems: 1
         items:
           $ref: "#/$defs/colorKeyframe"
     additionalProperties: false
@@ -150,6 +150,7 @@ $defs:
       - $ref: "#/$defs/autoTweenProperty"
   manualTweenProperty:
     type: object
+    description: Manual track that keeps a non-empty timeline; used by surfaces with their own required-content contract such as mask progress.
     properties:
       initialValue:
         type: number
@@ -157,6 +158,20 @@ $defs:
       keyframes:
         type: array
         minItems: 1
+        items:
+          $ref: "#/$defs/keyframe"
+    required:
+      - keyframes
+    additionalProperties: false
+  surfaceManualTweenProperty:
+    type: object
+    description: Manual track on an update/transition surface (element property, rect style field, or replace-side tween); an empty keyframes array authors no animation and is dropped during normalization without writing initialValue.
+    properties:
+      initialValue:
+        type: number
+        description: Optional initial value before the first keyframe.
+      keyframes:
+        type: array
         items:
           $ref: "#/$defs/keyframe"
     required:
@@ -224,15 +239,14 @@ $defs:
     additionalProperties: false
   filterTweens:
     type: object
-    minProperties: 1
-    description: Shader parameter timelines grouped by inline filter id.
+    description: Shader parameter timelines grouped by inline filter id. Empty maps, empty parameter maps, and empty manual keyframes author no animation and are dropped during normalization.
     patternProperties:
       "^.+$":
-        $ref: "../shader-config.yaml#/definitions/shaderTween"
+        $ref: "../shader-config.yaml#/definitions/filterTween"
     additionalProperties: false
   rectPointTween:
     type: object
-    minProperties: 1
+    description: Gradient point tween; an empty map authors no animation.
     additionalProperties: false
     properties:
       x:
@@ -255,7 +269,7 @@ $defs:
         $ref: "#/$defs/colorTweenProperty"
   rectFillTween:
     type: object
-    minProperties: 1
+    description: Rect fill tween; an empty map (or one whose tracks are all empty) authors no animation.
     additionalProperties: false
     properties:
       color:
@@ -274,7 +288,7 @@ $defs:
         $ref: "#/$defs/tweenProperty"
       stops:
         type: array
-        minItems: 1
+        description: Gradient stop tweens; an empty array authors no animation.
         items:
           $ref: "#/$defs/rectFillStopTween"
       scale:
@@ -283,7 +297,7 @@ $defs:
         $ref: "#/$defs/tweenProperty"
   rectBorderTween:
     type: object
-    minProperties: 1
+    description: Rect border tween; an empty map authors no animation.
     additionalProperties: false
     properties:
       width:
@@ -296,7 +310,7 @@ $defs:
     oneOf:
       - $ref: "#/$defs/tweenProperty"
       - type: object
-        minProperties: 1
+        description: Per-corner map; an empty map authors no animation.
         additionalProperties: false
         properties:
           topLeft:
@@ -309,6 +323,7 @@ $defs:
             $ref: "#/$defs/tweenProperty"
   updateTween:
     type: object
+    description: Update tween map; an empty map (or one whose tracks all prune) authors no animation and the whole animation is dropped during normalization.
     properties:
       alpha:
         $ref: "#/$defs/tweenProperty"
@@ -352,9 +367,9 @@ $defs:
             - y
             - translateY
     additionalProperties: false
-    minProperties: 1
   transitionTween:
     type: object
+    description: Transition side tween map; an empty map (or one whose tracks all prune) drops the side during normalization.
     properties:
       x:
         $ref: "#/$defs/tweenProperty"
@@ -382,17 +397,18 @@ $defs:
             - y
             - translateY
     additionalProperties: false
-    minProperties: 1
   transitionSide:
     type: object
-    required:
-      - tween
+    description: Transition side; an empty side or an empty tween map authors no animation and the side is dropped during normalization.
     properties:
       tween:
         $ref: "#/$defs/transitionTween"
     additionalProperties: false
   maskProgress:
-    $ref: "#/$defs/tweenProperty"
+    description: Mask reveal progress keeps a non-empty manual timeline; empty manual tracks are not accepted here.
+    oneOf:
+      - $ref: "#/$defs/manualTweenProperty"
+      - $ref: "#/$defs/autoTweenProperty"
   sequenceMaskFrame:
     type: object
     required:

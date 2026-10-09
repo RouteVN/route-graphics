@@ -200,6 +200,42 @@ definitions:
       "^(?!progress$|uProgress$|uTime$|time$)[a-z][A-Za-z0-9]*$":
         $ref: "#/definitions/shaderTweenProperty"
     additionalProperties: false
+  filterTweenProperty:
+    type: object
+    description: Manual filter parameter timeline; an empty keyframes array authors no animation and is dropped during normalization without writing initialValue.
+    required: [keyframes]
+    additionalProperties: false
+    properties:
+      initialValue:
+        oneOf:
+          - type: number
+          - $ref: "#/definitions/numericArray"
+      keyframes:
+        type: array
+        items:
+          $ref: "#/definitions/shaderTweenKeyframe"
+  filterProgressProperty:
+    type: object
+    description: Manual filter progress timeline; an empty keyframes array authors no animation and is dropped during normalization.
+    required: [keyframes]
+    additionalProperties: false
+    properties:
+      initialValue:
+        type: number
+      keyframes:
+        type: array
+        items:
+          $ref: "#/definitions/shaderProgressKeyframe"
+  filterTween:
+    type: object
+    description: Shader parameter timelines for one element filter; an empty parameter map (or one whose parameters all prune) authors no animation. Compositor tweens keep the stricter shaderTween contract.
+    properties:
+      progress:
+        $ref: "#/definitions/filterProgressProperty"
+    patternProperties:
+      "^(?!progress$|uProgress$|uTime$|time$)[a-z][A-Za-z0-9]*$":
+        $ref: "#/definitions/filterTweenProperty"
+    additionalProperties: false
   compositorTween:
     allOf:
       - $ref: "#/definitions/shaderTween"

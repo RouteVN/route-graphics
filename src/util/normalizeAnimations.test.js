@@ -1,6 +1,244 @@
 import { describe, expect, it } from "vitest";
 import { normalizeAnimations } from "./normalizeAnimations.js";
 
+describe("normalizeAnimations empty timelines", () => {
+  it("omits empty update tweens and keyframe tracks", () => {
+    expect(
+      normalizeAnimations([
+        { id: "empty-tween", targetId: "panel", type: "update", tween: {} },
+        {
+          id: "empty-keyframes",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+        {
+          id: "mixed-tracks",
+          targetId: "panel",
+          type: "update",
+          tween: {
+            x: { keyframes: [] },
+            y: { keyframes: [{ value: 10, duration: 100 }] },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "mixed-tracks",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          y: {
+            keyframes: [{ value: 10, duration: 100, easing: "linear" }],
+          },
+        },
+      },
+    ]);
+  });
+
+  it("omits empty transition sides and keeps the active side", () => {
+    expect(
+      normalizeAnimations([
+        {
+          id: "empty-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: { tween: {} },
+          next: {},
+        },
+        {
+          id: "mixed-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: { tween: { alpha: { keyframes: [] } } },
+          next: {
+            tween: {
+              alpha: { keyframes: [{ value: 1, duration: 100 }] },
+            },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "mixed-transition",
+        targetId: "panel",
+        type: "transition",
+        next: {
+          tween: {
+            alpha: {
+              keyframes: [{ value: 1, duration: 100, easing: "linear" }],
+            },
+          },
+        },
+      },
+    ]);
+  });
+
+  it("drops rect style animations whose manual tracks are all empty", () => {
+    expect(
+      normalizeAnimations(
+        [
+          { width: { keyframes: [] }, height: { keyframes: [] } },
+          { fill: {} },
+          { fill: { color: { keyframes: [] } } },
+          { fill: { start: {} } },
+          { fill: { end: { y: { keyframes: [] } } } },
+          { fill: { innerRadius: { keyframes: [] } } },
+          { fill: { outerRadius: { keyframes: [] } } },
+          { fill: { scale: { keyframes: [] }, rotation: { keyframes: [] } } },
+          { fill: { stops: [] } },
+          {
+            fill: { stops: [{ index: 0, offset: { keyframes: [] } }] },
+          },
+          {
+            fill: {
+              stops: [{ index: 2, color: { keyframes: [] } }],
+            },
+          },
+          { border: {} },
+          { border: { width: { keyframes: [] } } },
+          { border: { color: { keyframes: [] } } },
+          { border: { alpha: { keyframes: [] } } },
+          { cornerRadius: {} },
+          { cornerRadius: { topLeft: { keyframes: [] } } },
+          { cornerRadius: { keyframes: [] } },
+        ].map((tween, index) => ({
+          id: `empty-rect-${index}`,
+          targetId: "panel",
+          type: "update",
+          tween,
+        })),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps nonempty rect tracks beside empty sibling tracks", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "mixed-rect",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          width: { keyframes: [] },
+          height: { keyframes: [{ value: 120, duration: 300 }] },
+          fill: {
+            color: { keyframes: [] },
+            start: { x: { keyframes: [] } },
+            stops: [
+              { index: 0, offset: { keyframes: [] } },
+              {
+                index: 1,
+                color: { keyframes: [{ value: "#0000ff", duration: 300 }] },
+              },
+            ],
+          },
+          border: {
+            width: { keyframes: [] },
+            alpha: { keyframes: [{ value: 0.5, duration: 100 }] },
+          },
+          cornerRadius: {
+            topLeft: { keyframes: [] },
+            bottomRight: { auto: { duration: 300 } },
+          },
+        },
+      },
+    ]);
+
+    expect(Object.keys(animation.tween)).toEqual([
+      "rect.height",
+      "rect.fill.stops.1.color",
+      "rect.border.alpha",
+      "rect.cornerRadius.bottomRight",
+    ]);
+    expect(
+      animation.tween["rect.fill.stops.1.color"].keyframes[0].value,
+    ).toEqual([0, 0, 1, 1]);
+  });
+
+  it("drops update animations whose filter authoring is empty", () => {
+    expect(
+      normalizeAnimations(
+        [
+          { filters: {} },
+          { filters: { glow: {} } },
+          { filters: { glow: { amount: { keyframes: [] } } } },
+          { filters: { glow: { progress: { keyframes: [] } } } },
+          {
+            filters: {
+              glow: { amount: { keyframes: [] } },
+              grade: { tint: { keyframes: [] } },
+            },
+          },
+          {
+            filters: {
+              glow: { amount: { keyframes: [] }, strength: { keyframes: [] } },
+            },
+          },
+        ].map((tween, index) => ({
+          id: `empty-filters-${index}`,
+          targetId: "panel",
+          type: "update",
+          tween,
+        })),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps nonempty filter tracks when sibling filters or parameters prune", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "mixed-filters",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          filters: {
+            glow: {
+              strength: { keyframes: [{ value: 0.8, duration: 100 }] },
+              amount: { keyframes: [] },
+            },
+            empty: {},
+            grade: { progress: { keyframes: [] } },
+          },
+        },
+      },
+    ]);
+
+    expect(animation.filterTweens).toEqual({
+      glow: {
+        strength: {
+          keyframes: [{ value: 0.8, duration: 100, easing: "linear" }],
+        },
+      },
+    });
+  });
+
+  it("keeps element tracks when rect and filter authoring prune", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "mixed-surfaces",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          x: { keyframes: [] },
+          y: { keyframes: [{ value: 10, duration: 100 }] },
+          fill: {},
+          filters: { glow: {} },
+        },
+      },
+    ]);
+
+    expect(animation).toEqual({
+      id: "mixed-surfaces",
+      targetId: "panel",
+      type: "update",
+      tween: {
+        y: { keyframes: [{ value: 10, duration: 100, easing: "linear" }] },
+      },
+    });
+    expect(animation).not.toHaveProperty("filterTweens");
+  });
+});
+
 const compositorSource = {
   webgl: {
     fragment: `
@@ -754,20 +992,7 @@ describe("normalizeAnimations shader support", () => {
     });
   });
 
-  it("rejects an empty filter target map", () => {
-    expect(() =>
-      normalizeAnimations([
-        {
-          id: "empty-filters",
-          targetId: "scene",
-          type: "update",
-          tween: { filters: {} },
-        },
-      ]),
-    ).toThrow(/filters must target at least one filter/);
-  });
-
-  it("rejects an empty filter id", () => {
+  it("rejects an empty filter id even when its tween map is empty", () => {
     expect(() =>
       normalizeAnimations([
         {
@@ -776,11 +1001,7 @@ describe("normalizeAnimations shader support", () => {
           type: "update",
           tween: {
             filters: {
-              "": {
-                amount: {
-                  keyframes: [{ duration: 100, value: 1 }],
-                },
-              },
+              "": {},
             },
           },
         },
@@ -1143,11 +1364,10 @@ describe("normalizeAnimations rect style support", () => {
       { fill: { opacity: { auto: { duration: 100 } } } },
       "animations[0].tween.fill.opacity is not supported",
     ],
-    ["empty fill", { fill: {} }, "animations[0].tween.fill must define"],
     [
-      "empty gradient point",
-      { fill: { start: {} } },
-      "animations[0].tween.fill.start must define x or y",
+      "unknown fill field with empty keyframes",
+      { fill: { opacity: { keyframes: [] } } },
+      "animations[0].tween.fill.opacity is not supported",
     ],
     [
       "unknown gradient point field",
@@ -1161,11 +1381,10 @@ describe("normalizeAnimations rect style support", () => {
       "animations[0].tween.fill.start.z is not supported",
     ],
     [
-      "empty stops",
-      { fill: { stops: [] } },
+      "non-array stops",
+      { fill: { stops: { index: 0 } } },
       "animations[0].tween.fill.stops must be a non-empty array",
     ],
-    ["empty border", { border: {} }, "animations[0].tween.border must define"],
     [
       "unknown border field",
       { border: { placement: { auto: { duration: 100 } } } },
@@ -1184,6 +1403,15 @@ describe("normalizeAnimations rect style support", () => {
         },
       },
       "index must be a non-negative integer",
+    ],
+    [
+      "missing stop index beside an empty offset track",
+      {
+        fill: {
+          stops: [{ offset: { keyframes: [] } }],
+        },
+      },
+      "animations[0].tween.fill.stops[0].index must be a non-negative integer",
     ],
     [
       "non-integer stop index",
@@ -1209,11 +1437,11 @@ describe("normalizeAnimations rect style support", () => {
       "must define offset or color",
     ],
     [
-      "duplicate stop index",
+      "duplicate stop index beside empty keyframes",
       {
         fill: {
           stops: [
-            { index: 0, offset: { auto: { duration: 100 } } },
+            { index: 0, offset: { keyframes: [] } },
             { index: 0, color: { auto: { duration: 100 } } },
           ],
         },
@@ -1241,11 +1469,6 @@ describe("normalizeAnimations rect style support", () => {
         },
       },
       "relative is not supported for colors",
-    ],
-    [
-      "empty per-corner map",
-      { cornerRadius: {} },
-      "animations[0].tween.cornerRadius must define at least one corner",
     ],
     [
       "unknown corner",
@@ -1433,5 +1656,585 @@ describe("normalizeAnimations keyframe start values", () => {
         },
       ]),
     ).toThrow(/startValue must be a finite number or a numeric array/);
+  });
+});
+
+describe("normalizeAnimations empty track validation", () => {
+  it.each([
+    [
+      "missing keyframes",
+      { x: {} },
+      /animations\[0\]\.tween\.x must define keyframes or auto/,
+    ],
+    [
+      "keyframes and auto together",
+      { x: { keyframes: [], auto: { duration: 100 } } },
+      /animations\[0\]\.tween\.x cannot define both keyframes and auto/,
+    ],
+    [
+      "invalid numeric initialValue",
+      { x: { initialValue: "fast", keyframes: [] } },
+      /animations\[0\]\.tween\.x\.initialValue must be a number/,
+    ],
+    [
+      "non-object config",
+      { x: null },
+      /animations\[0\]\.tween\.x must be an object/,
+    ],
+    [
+      "invalid color initialValue",
+      { fill: { color: { initialValue: "invalid()", keyframes: [] } } },
+      /animations\[0\]\.tween\.fill\.color\.initialValue must be a valid color/,
+    ],
+    [
+      "invalid shader vector initialValue",
+      {
+        filters: {
+          glow: { tint: { initialValue: [1], keyframes: [] } },
+        },
+      },
+      /finite number or a numeric array with length 2, 3, 4, 9, or 16/,
+    ],
+    [
+      "invalid filter progress initialValue",
+      {
+        filters: {
+          glow: { progress: { initialValue: [0, 1], keyframes: [] } },
+        },
+      },
+      /animations\[0\]\.tween\.filters\.glow\.progress\.initialValue must be a finite number/,
+    ],
+    [
+      "missing filter parameter keyframes",
+      { filters: { glow: { amount: {} } } },
+      /animations\[0\]\.tween\.filters\.glow\.amount\.keyframes must be a non-empty array/,
+    ],
+  ])(
+    "still validates authored shape before pruning: %s",
+    (_name, tween, message) => {
+      expect(() =>
+        normalizeAnimations([
+          { id: "invalid-empty", targetId: "panel", type: "update", tween },
+        ]),
+      ).toThrow(message);
+    },
+  );
+
+  it("does not write a valid initialValue that accompanies empty keyframes", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "silent-initial",
+        targetId: "panel",
+        type: "update",
+        tween: {
+          x: { initialValue: 5, keyframes: [] },
+          y: { initialValue: 0, keyframes: [{ value: 1, duration: 100 }] },
+        },
+      },
+    ]);
+
+    expect(animation.tween).toEqual({
+      y: {
+        initialValue: 0,
+        keyframes: [{ value: 1, duration: 100, easing: "linear" }],
+      },
+    });
+  });
+
+  it("drops a filter track with a valid initialValue and empty keyframes", () => {
+    expect(
+      normalizeAnimations([
+        {
+          id: "silent-filter-initial",
+          targetId: "panel",
+          type: "update",
+          tween: {
+            filters: { glow: { amount: { initialValue: 0.5, keyframes: [] } } },
+          },
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it.each([
+    [
+      "unsupported ordinary property",
+      { bogus: { keyframes: [] } },
+      /animations\[0\]\.tween\.bogus is not a supported animation property/,
+    ],
+    [
+      "reserved shader clock",
+      { filters: { glow: { uTime: { keyframes: [] } } } },
+      /uTime is read-only/,
+    ],
+    [
+      "legacy shader progress",
+      { filters: { glow: { uProgress: { keyframes: [] } } } },
+      /uProgress is no longer supported/,
+    ],
+    [
+      "invalid shader parameter key",
+      { filters: { glow: { "edge-width": { keyframes: [] } } } },
+      /must be progress or match/,
+    ],
+  ])("still rejects %s on empty tracks", (_name, tween, message) => {
+    expect(() =>
+      normalizeAnimations([
+        { id: "invalid-empty", targetId: "panel", type: "update", tween },
+      ]),
+    ).toThrow(message);
+  });
+
+  it("still rejects transition-only properties on empty side tracks", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "bad-side-property",
+          targetId: "panel",
+          type: "transition",
+          prev: { tween: { blurX: { keyframes: [] } } },
+          next: {
+            tween: { alpha: { keyframes: [{ value: 1, duration: 100 }] } },
+          },
+        },
+      ]),
+    ).toThrow(/prev\.tween\.blurX is not a supported animation property/);
+  });
+
+  it("keeps auto timelines and their conflicts unchanged", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "auto-kept",
+        targetId: "panel",
+        type: "update",
+        tween: { x: { auto: { duration: 100 } } },
+      },
+    ]);
+    expect(animation.tween.x.auto).toEqual({ duration: 100, easing: "linear" });
+
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "auto-initial",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { auto: { duration: 100 }, initialValue: 5 } },
+        },
+      ]),
+    ).toThrow(/initialValue is not valid when auto is defined/);
+  });
+});
+
+describe("normalizeAnimations alias conflicts on empty tracks", () => {
+  it.each([
+    [
+      "one empty track",
+      {
+        x: { keyframes: [] },
+        translateX: { keyframes: [{ value: 1, duration: 100 }] },
+      },
+    ],
+    [
+      "both empty tracks",
+      { x: { keyframes: [] }, translateX: { keyframes: [] } },
+    ],
+    [
+      "empty track beside auto",
+      { y: { keyframes: [] }, translateY: { auto: { duration: 100 } } },
+    ],
+  ])("rejects update %s", (_name, tween) => {
+    expect(() =>
+      normalizeAnimations([
+        { id: "alias", targetId: "panel", type: "update", tween },
+      ]),
+    ).toThrow(/cannot define both/);
+  });
+
+  it("rejects transition side alias conflicts when one track is empty", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "side-alias",
+          targetId: "panel",
+          type: "transition",
+          prev: {
+            tween: {
+              x: { keyframes: [] },
+              translateX: { keyframes: [] },
+            },
+          },
+          next: {
+            tween: { alpha: { keyframes: [{ value: 1, duration: 100 }] } },
+          },
+        },
+      ]),
+    ).toThrow("animations[0].prev.tween cannot define both x and translateX.");
+  });
+});
+
+describe("normalizeAnimations independent non-empty contracts", () => {
+  it("still rejects empty mask progress keyframes", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-mask-progress",
+          targetId: "scene",
+          type: "transition",
+          mask: [
+            {
+              kind: "single",
+              texture: "wipe",
+              progress: { keyframes: [] },
+            },
+          ],
+        },
+      ]),
+    ).toThrow(
+      "animations[0].mask[0].progress.keyframes must be a non-empty array.",
+    );
+  });
+
+  it("still rejects an invalid mask progress initialValue before emptiness", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "bad-mask-progress-initial",
+          targetId: "scene",
+          type: "transition",
+          mask: [
+            {
+              kind: "single",
+              texture: "wipe",
+              progress: { initialValue: "half", keyframes: [] },
+            },
+          ],
+        },
+      ]),
+    ).toThrow("animations[0].mask[0].progress.initialValue must be a number.");
+  });
+
+  it("still injects default mask progress for masks without one", () => {
+    const [animation] = normalizeAnimations([
+      {
+        id: "default-mask-progress",
+        targetId: "scene",
+        type: "transition",
+        mask: [{ kind: "single", texture: "wipe" }],
+      },
+    ]);
+
+    expect(animation.mask[0].progress).toEqual({
+      initialValue: 0,
+      keyframes: [{ duration: 0, value: 1, easing: "linear" }],
+    });
+  });
+
+  it("still rejects empty sequence mask frames", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-mask-frames",
+          targetId: "scene",
+          type: "transition",
+          mask: [{ kind: "sequence", frames: [] }],
+        },
+      ]),
+    ).toThrow(
+      "animations[0].mask[0].frames must be an array with at least two frames.",
+    );
+  });
+
+  it("still rejects empty compositor tween maps and keyframes", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-compositor-map",
+          targetId: "scene",
+          type: "transition",
+          compositor: createCompositor({ tween: {} }),
+        },
+      ]),
+    ).toThrow(
+      "animations[0].compositor.tween must define at least one parameter.",
+    );
+
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-compositor-param",
+          targetId: "scene",
+          type: "transition",
+          compositor: createCompositor({
+            tween: {
+              ...progressTween,
+              edgeWidth: { keyframes: [] },
+            },
+          }),
+        },
+      ]),
+    ).toThrow(
+      "animations[0].compositor.tween.edgeWidth.keyframes must be a non-empty array.",
+    );
+
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-compositor-progress",
+          targetId: "scene",
+          type: "transition",
+          compositor: createCompositor({
+            tween: { progress: { keyframes: [] } },
+          }),
+        },
+      ]),
+    ).toThrow(
+      "animations[0].compositor.tween.progress.keyframes must be a non-empty array.",
+    );
+  });
+
+  it("still rejects empty gsap step arrays", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "empty-gsap",
+          targetId: "scene",
+          type: "update",
+          gsap: {
+            profile: "portable-v1",
+            targets: { panel: { element: "panel" } },
+            steps: [],
+          },
+        },
+      ]),
+    ).toThrow("animations[0].gsap.steps must be a non-empty array.");
+  });
+});
+
+describe("normalizeAnimations pruned animation bookkeeping", () => {
+  it("reports authored indexes for duplicate ids after empty animations drop", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "dropped",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+        {
+          id: "dup",
+          targetId: "first",
+          type: "update",
+          tween: { x: { auto: { duration: 100 } } },
+        },
+        {
+          id: "dup",
+          targetId: "second",
+          type: "update",
+          tween: { y: { auto: { duration: 100 } } },
+        },
+      ]),
+    ).toThrow(
+      'animations[2].id duplicates animations[1].id "dup". Animation ids must be unique within one state.',
+    );
+  });
+
+  it.each([
+    [
+      "dropped duplicate first",
+      [
+        {
+          id: "dup",
+          targetId: "first",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+        {
+          id: "dup",
+          targetId: "second",
+          type: "update",
+          tween: { y: { auto: { duration: 100 } } },
+        },
+      ],
+    ],
+    [
+      "dropped duplicate second",
+      [
+        {
+          id: "dup",
+          targetId: "first",
+          type: "update",
+          tween: { y: { auto: { duration: 100 } } },
+        },
+        {
+          id: "dup",
+          targetId: "second",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+      ],
+    ],
+  ])(
+    "ignores duplicate ids when one duplicate fully drops: %s",
+    (_name, animations) => {
+      expect(normalizeAnimations(animations)).toEqual([
+        {
+          id: "dup",
+          targetId: expect.any(String),
+          type: "update",
+          tween: { y: { auto: { duration: 100, easing: "linear" } } },
+        },
+      ]);
+    },
+  );
+
+  it("reports authored indexes for duplicate transition targets after pruning", () => {
+    const transitionSide = {
+      tween: { alpha: { keyframes: [{ duration: 100, value: 0 }] } },
+    };
+
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "dropped-update",
+          targetId: "panel",
+          type: "update",
+          tween: {},
+        },
+        {
+          id: "first-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: transitionSide,
+        },
+        {
+          id: "second-transition",
+          targetId: "panel",
+          type: "transition",
+          next: transitionSide,
+        },
+      ]),
+    ).toThrow(
+      'animations[2] defines a second transition for target "panel"; animations[1] already owns that transition target.',
+    );
+  });
+
+  it("allows a fully dropped update beside a transition for the same target", () => {
+    expect(
+      normalizeAnimations([
+        {
+          id: "dropped-update",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { keyframes: [] } },
+        },
+        {
+          id: "kept-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: {
+            tween: { alpha: { keyframes: [{ duration: 100, value: 0 }] } },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "kept-transition",
+        targetId: "panel",
+        type: "transition",
+        prev: {
+          tween: {
+            alpha: {
+              keyframes: [{ duration: 100, value: 0, easing: "linear" }],
+            },
+          },
+        },
+      },
+    ]);
+  });
+
+  it("still rejects surviving mixed update and transition types for one target", () => {
+    expect(() =>
+      normalizeAnimations([
+        {
+          id: "kept-update",
+          targetId: "panel",
+          type: "update",
+          tween: { x: { auto: { duration: 100 } } },
+        },
+        {
+          id: "kept-transition",
+          targetId: "panel",
+          type: "transition",
+          prev: {
+            tween: { alpha: { keyframes: [{ duration: 100, value: 0 }] } },
+          },
+        },
+      ]),
+    ).toThrow(
+      'Animations targeting "panel" cannot mix update and transition types in the same state.',
+    );
+  });
+
+  it("ignores filter channel conflicts when one side fully drops", () => {
+    expect(
+      normalizeAnimations([
+        {
+          id: "kept-channel",
+          targetId: "scene",
+          type: "update",
+          tween: {
+            filters: {
+              glow: { amount: { keyframes: [{ duration: 100, value: 1 }] } },
+            },
+          },
+        },
+        {
+          id: "dropped-channel",
+          targetId: "scene",
+          type: "update",
+          tween: {
+            filters: { glow: { amount: { keyframes: [] } } },
+          },
+        },
+      ]),
+    ).toHaveLength(1);
+  });
+});
+
+describe("normalizeAnimations input immutability", () => {
+  it("does not mutate authored animations while pruning empty tracks", () => {
+    const input = [
+      {
+        id: "immutable",
+        targetId: "panel",
+        type: "update",
+        playback: { speed: 2 },
+        tween: {
+          x: { keyframes: [] },
+          y: { initialValue: 0, keyframes: [{ value: 10, duration: 100 }] },
+          fill: {
+            color: { keyframes: [{ value: "#00ff00", duration: 100 }] },
+            stops: [],
+          },
+          filters: {
+            glow: { tint: { initialValue: [1, 0, 0], keyframes: [] } },
+            grade: {
+              amount: {
+                keyframes: [{ value: [0.2, 0.4], duration: 100 }],
+              },
+            },
+          },
+        },
+      },
+    ];
+    const snapshot = structuredClone(input);
+    const [animation] = normalizeAnimations(input);
+
+    expect(input).toEqual(snapshot);
+    expect(animation.tween.y.keyframes).not.toBe(input[0].tween.y.keyframes);
+    expect(animation.filterTweens.grade.amount.keyframes[0].value).not.toBe(
+      input[0].tween.filters.grade.amount.keyframes[0].value,
+    );
+    expect(Object.keys(animation.filterTweens)).toEqual(["grade"]);
   });
 });

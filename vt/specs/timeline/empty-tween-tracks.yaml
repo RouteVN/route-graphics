@@ -1,0 +1,123 @@
+---
+title: Empty tween tracks preserve rendering and live animations
+description: Generated empty tracks have no visible effect, while surviving update and transition tracks still reach their sampled positions and opacity.
+specs:
+  - empty update maps, rect/filter tracks and transition sides preserve the initial frame
+  - initial values on empty tracks never overwrite the authored element values
+  - a live position track interpolates alongside empty tracks
+  - an empty previous transition side does not discard the live next side
+  - navigating back to the empty scene restores the original frame
+steps:
+  - action: keypress
+    key: n
+  - action: screenshot
+  - action: keypress
+    key: n
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 200
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 200
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - id: baseline
+    elements:
+      - id: panel
+        type: rect
+        x: 80
+        y: 160
+        width: 120
+        height: 100
+        fill: "#22c55e"
+      - id: transition-panel
+        type: rect
+        x: 800
+        y: 160
+        width: 120
+        height: 100
+        fill: "#3b82f6"
+  - id: empty-only
+    elements:
+      - id: panel
+        type: rect
+        x: 80
+        y: 160
+        width: 120
+        height: 100
+        fill: "#22c55e"
+      - id: transition-panel
+        type: rect
+        x: 800
+        y: 160
+        width: 120
+        height: 100
+        fill: "#3b82f6"
+    animations:
+      - id: empty-map
+        targetId: panel
+        type: update
+        tween: {}
+      - id: empty-properties
+        targetId: panel
+        type: update
+        tween:
+          x: { initialValue: 999, keyframes: [] }
+          width: { initialValue: 999, keyframes: [] }
+          fill:
+            color: { initialValue: "#ff0000", keyframes: [] }
+          border: {}
+          cornerRadius: {}
+          filters:
+            unused:
+              progress: { keyframes: [] }
+      - id: empty-transition
+        targetId: panel
+        type: transition
+        prev: {}
+        next: { tween: {} }
+  - id: mixed-live-and-empty
+    elements:
+      - id: panel
+        type: rect
+        x: 480
+        y: 160
+        width: 200
+        height: 100
+        fill: "#22c55e"
+      - id: transition-panel
+        type: rect
+        x: 800
+        y: 160
+        width: 120
+        height: 100
+        fill: "#f97316"
+    animations:
+      - id: empty-before-live
+        targetId: panel
+        type: update
+        tween: {}
+      - id: move
+        targetId: panel
+        type: update
+        tween:
+          x:
+            keyframes: [{ value: 480, duration: 400, easing: linear }]
+          y: { initialValue: 999, keyframes: [] }
+          width: { initialValue: 999, keyframes: [] }
+      - id: fade-next
+        targetId: transition-panel
+        type: transition
+        prev: { tween: {} }
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes: [{ value: 1, duration: 400, easing: linear }]

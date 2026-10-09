@@ -45,6 +45,17 @@ const RECT_STYLE_TWEEN_FIELDS = new Set([
   "border",
   "cornerRadius",
 ]);
+// Manual tracks on update/transition surfaces (element properties, rect style
+// fields, update filter parameters, replace-side tweens) whose authored
+// keyframes array is empty animate nothing: the authored shape and
+// initialValue are validated first, then the track prunes to this sentinel so
+// grouping normalizers can drop it. A pruning track writes nothing, including
+// its initialValue. Surfaces with their own non-empty contract - mask
+// progress, compositor tweens, gsap programs, sequence frames - never request
+// this policy and keep rejecting empty timelines.
+const NO_TRACKS = Symbol("no animation tracks");
+const EMPTY_MANUAL_TRACKS = { allowEmptyKeyframes: true };
+const MANUAL_TRACK_FIELDS = new Set(["initialValue", "keyframes"]);
 
 const assertPlainObject = (value, path) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -240,6 +251,7 @@ const normalizeKeyframes = (
   path,
   assertValue = assertNumber,
   normalizeValue = (value) => (Array.isArray(value) ? [...value] : value),
+  { allowEmptyKeyframes = false } = {},
 ) => {
   assertPlainObject(propertyConfig, path);
 
@@ -250,11 +262,18 @@ const normalizeKeyframes = (
     normalized.initialValue = normalizeValue(propertyConfig.initialValue);
   }
 
-  if (
-    !Array.isArray(propertyConfig.keyframes) ||
-    propertyConfig.keyframes.length === 0
-  ) {
+  if (!Array.isArray(propertyConfig.keyframes)) {
     throw new Error(`${path}.keyframes must be a non-empty array.`);
+  }
+
+  if (propertyConfig.keyframes.length === 0) {
+    if (!allowEmptyKeyframes) {
+      throw new Error(`${path}.keyframes must be a non-empty array.`);
+    }
+    // Newly accepted empty tracks must not hide typos or incompatible auto
+    // configuration when their callers use the manual-only normalizer.
+    assertKnownFields(propertyConfig, MANUAL_TRACK_FIELDS, path);
+    return NO_TRACKS;
   }
 
   normalized.keyframes = propertyConfig.keyframes.map((keyframe, index) => {
@@ -313,15 +332,19 @@ const normalizeKeyframes = (
   return normalized;
 };
 
-const normalizeShaderTweenMap = (tween, path) => {
+// Update filter parameter maps accept empty authoring (empty map, parameters
+// with empty keyframes); compositor tweens intentionally keep the strict
+// non-empty contract by not passing options here.
+const normalizeShaderTweenMap = (tween, path, options = {}) => {
   assertPlainObject(tween, path);
+  const { allowEmptyMap = false, ...keyframeOptions } = options;
   const entries = Object.entries(tween);
-  if (entries.length === 0) {
+  if (entries.length === 0 && !allowEmptyMap) {
     throw new Error(`${path} must define at least one parameter.`);
   }
 
   return Object.fromEntries(
-    entries.map(([parameter, config]) => {
+    entries.flatMap(([parameter, config]) => {
       if (parameter === "uTime" || parameter === "time") {
         throw new Error(
           `${path}.${parameter} is read-only. Animate a custom parameter instead.`,
@@ -341,21 +364,23 @@ const normalizeShaderTweenMap = (tween, path) => {
         );
       }
 
-      return [
-        parameter === "progress" ? "uProgress" : parameter,
-        normalizeKeyframes(
-          config,
-          `${path}.${parameter}`,
-          parameter === "progress"
-            ? assertShaderProgressValue
-            : assertShaderTweenValue,
-        ),
-      ];
+      const normalized = normalizeKeyframes(
+        config,
+        `${path}.${parameter}`,
+        parameter === "progress"
+          ? assertShaderProgressValue
+          : assertShaderTweenValue,
+        undefined,
+        keyframeOptions,
+      );
+      return normalized === NO_TRACKS
+        ? []
+        : [[parameter === "progress" ? "uProgress" : parameter, normalized]];
     }),
   );
 };
 
-const normalizeUpdatePropertyConfig = (propertyConfig, path) => {
+const normalizeUpdatePropertyConfig = (propertyConfig, path, options = {}) => {
   assertPlainObject(propertyConfig, path);
 
   const hasKeyframes = propertyConfig.keyframes !== undefined;
@@ -381,7 +406,13 @@ const normalizeUpdatePropertyConfig = (propertyConfig, path) => {
     };
   }
 
-  return normalizeKeyframes(propertyConfig, path);
+  return normalizeKeyframes(
+    propertyConfig,
+    path,
+    undefined,
+    undefined,
+    options,
+  );
 };
 
 const normalizeColorValue = (value, path) => {
@@ -396,11 +427,11 @@ const normalizeColorValue = (value, path) => {
   }
 };
 
-const normalizeColorPropertyConfig = (propertyConfig, path) => {
+const normalizeColorPropertyConfig = (propertyConfig, path, options = {}) => {
   assertPlainObject(propertyConfig, path);
 
   if (propertyConfig.auto !== undefined) {
-    return normalizeUpdatePropertyConfig(propertyConfig, path);
+    return normalizeUpdatePropertyConfig(propertyConfig, path, options);
   }
 
   for (const [index, keyframe] of (propertyConfig.keyframes ?? []).entries()) {
@@ -418,29 +449,35 @@ const normalizeColorPropertyConfig = (propertyConfig, path) => {
       normalizeColorValue(value, valuePath);
     },
     normalizeColorValue,
+    options,
   );
 };
 
 const normalizeRectPointTween = (point, path, prefix) => {
   assertPlainObject(point, path);
   assertKnownFields(point, new Set(["x", "y"]), path);
-  const entries = Object.entries(point);
-  if (entries.length === 0) {
-    throw new Error(`${path} must define x or y.`);
-  }
+  // An empty point map (or one whose axes all prune) authors no tracks.
   return Object.fromEntries(
-    entries.map(([axis, config]) => [
-      `${prefix}.${axis}`,
-      normalizeUpdatePropertyConfig(config, `${path}.${axis}`),
-    ]),
+    Object.entries(point).flatMap(([axis, config]) => {
+      const normalized = normalizeUpdatePropertyConfig(
+        config,
+        `${path}.${axis}`,
+        EMPTY_MANUAL_TRACKS,
+      );
+      return normalized === NO_TRACKS
+        ? []
+        : [[`${prefix}.${axis}`, normalized]];
+    }),
   );
 };
 
 const normalizeRectFillStopsTween = (stops, path) => {
-  if (!Array.isArray(stops) || stops.length === 0) {
+  if (!Array.isArray(stops)) {
     throw new Error(`${path} must be a non-empty array.`);
   }
 
+  // An empty stops array authors no tracks; every remaining stop still
+  // validates its index and channels in full before its tracks can prune.
   const indices = new Set();
   return Object.assign(
     {},
@@ -459,23 +496,28 @@ const normalizeRectFillStopsTween = (stops, path) => {
         throw new Error(`${itemPath} must define offset or color.`);
       }
 
-      return {
-        ...(stop.offset === undefined
-          ? {}
-          : {
-              [`rect.fill.stops.${stop.index}.offset`]:
-                normalizeUpdatePropertyConfig(
-                  stop.offset,
-                  `${itemPath}.offset`,
-                ),
-            }),
-        ...(stop.color === undefined
-          ? {}
-          : {
-              [`rect.fill.stops.${stop.index}.color`]:
-                normalizeColorPropertyConfig(stop.color, `${itemPath}.color`),
-            }),
-      };
+      const stopTracks = {};
+      if (stop.offset !== undefined) {
+        const offset = normalizeUpdatePropertyConfig(
+          stop.offset,
+          `${itemPath}.offset`,
+          EMPTY_MANUAL_TRACKS,
+        );
+        if (offset !== NO_TRACKS) {
+          stopTracks[`rect.fill.stops.${stop.index}.offset`] = offset;
+        }
+      }
+      if (stop.color !== undefined) {
+        const color = normalizeColorPropertyConfig(
+          stop.color,
+          `${itemPath}.color`,
+          EMPTY_MANUAL_TRACKS,
+        );
+        if (color !== NO_TRACKS) {
+          stopTracks[`rect.fill.stops.${stop.index}.color`] = color;
+        }
+      }
+      return stopTracks;
     }),
   );
 };
@@ -498,72 +540,81 @@ const normalizeRectFillTween = (fill, path) => {
     ]),
     path,
   );
-  if (Object.keys(fill).length === 0) {
-    throw new Error(`${path} must define at least one property.`);
+
+  // An empty fill map (or one whose properties all prune) authors no tracks.
+  const normalized = {};
+
+  if (fill.color !== undefined) {
+    const color = normalizeColorPropertyConfig(
+      fill.color,
+      `${path}.color`,
+      EMPTY_MANUAL_TRACKS,
+    );
+    if (color !== NO_TRACKS) {
+      normalized["rect.fill.color"] = color;
+    }
   }
 
-  return {
-    ...(fill.color === undefined
-      ? {}
-      : {
-          "rect.fill.color": normalizeColorPropertyConfig(
-            fill.color,
-            `${path}.color`,
-          ),
-        }),
-    ...(fill.start === undefined
-      ? {}
-      : normalizeRectPointTween(
-          fill.start,
-          `${path}.start`,
-          "rect.fill.start",
-        )),
-    ...(fill.end === undefined
-      ? {}
-      : normalizeRectPointTween(fill.end, `${path}.end`, "rect.fill.end")),
-    ...(fill.innerCenter === undefined
-      ? {}
-      : normalizeRectPointTween(
-          fill.innerCenter,
-          `${path}.innerCenter`,
-          "rect.fill.innerCenter",
-        )),
-    ...(fill.outerCenter === undefined
-      ? {}
-      : normalizeRectPointTween(
-          fill.outerCenter,
-          `${path}.outerCenter`,
-          "rect.fill.outerCenter",
-        )),
-    ...Object.fromEntries(
-      ["innerRadius", "outerRadius", "scale", "rotation"]
-        .filter((property) => fill[property] !== undefined)
-        .map((property) => [
-          `rect.fill.${property}`,
-          normalizeUpdatePropertyConfig(fill[property], `${path}.${property}`),
-        ]),
-    ),
-    ...(fill.stops === undefined
-      ? {}
-      : normalizeRectFillStopsTween(fill.stops, `${path}.stops`)),
-  };
+  for (const [point, prefix] of [
+    ["start", "rect.fill.start"],
+    ["end", "rect.fill.end"],
+    ["innerCenter", "rect.fill.innerCenter"],
+    ["outerCenter", "rect.fill.outerCenter"],
+  ]) {
+    if (fill[point] !== undefined) {
+      Object.assign(
+        normalized,
+        normalizeRectPointTween(fill[point], `${path}.${point}`, prefix),
+      );
+    }
+  }
+
+  for (const property of ["innerRadius", "outerRadius", "scale", "rotation"]) {
+    if (fill[property] === undefined) {
+      continue;
+    }
+    const tracks = normalizeUpdatePropertyConfig(
+      fill[property],
+      `${path}.${property}`,
+      EMPTY_MANUAL_TRACKS,
+    );
+    if (tracks !== NO_TRACKS) {
+      normalized[`rect.fill.${property}`] = tracks;
+    }
+  }
+
+  if (fill.stops !== undefined) {
+    Object.assign(
+      normalized,
+      normalizeRectFillStopsTween(fill.stops, `${path}.stops`),
+    );
+  }
+
+  return normalized;
 };
 
 const normalizeRectBorderTween = (border, path) => {
   assertPlainObject(border, path);
   assertKnownFields(border, new Set(["width", "color", "alpha"]), path);
-  const entries = Object.entries(border);
-  if (entries.length === 0) {
-    throw new Error(`${path} must define width, color, or alpha.`);
-  }
-
+  // An empty border map (or one whose properties all prune) authors no tracks.
   return Object.fromEntries(
-    entries.map(([property, config]) => [
-      `rect.border.${property}`,
-      property === "color"
-        ? normalizeColorPropertyConfig(config, `${path}.${property}`)
-        : normalizeUpdatePropertyConfig(config, `${path}.${property}`),
-    ]),
+    Object.entries(border).flatMap(([property, config]) => {
+      const normalized =
+        property === "color"
+          ? normalizeColorPropertyConfig(
+              config,
+              `${path}.${property}`,
+              EMPTY_MANUAL_TRACKS,
+            )
+          : normalizeUpdatePropertyConfig(
+              config,
+              `${path}.${property}`,
+              EMPTY_MANUAL_TRACKS,
+            );
+      return normalized === NO_TRACKS
+        ? []
+        : [[`rect.border.${property}`, normalized]];
+    }),
   );
 };
 
@@ -579,38 +630,49 @@ const normalizeRectCornerRadiusTween = (cornerRadius, path) => {
       new Set(["initialValue", "keyframes", "auto"]),
       path,
     );
-    const normalized = normalizeUpdatePropertyConfig(cornerRadius, path);
+    const normalized = normalizeUpdatePropertyConfig(
+      cornerRadius,
+      path,
+      EMPTY_MANUAL_TRACKS,
+    );
+    if (normalized === NO_TRACKS) {
+      return {};
+    }
     return Object.fromEntries(
       cornerNames.map((corner) => [`rect.cornerRadius.${corner}`, normalized]),
     );
   }
 
   assertKnownFields(cornerRadius, new Set(cornerNames), path);
-  const entries = Object.entries(cornerRadius);
-  if (entries.length === 0) {
-    throw new Error(`${path} must define at least one corner.`);
-  }
+  // An empty per-corner map (or one whose corners all prune) authors no tracks.
   return Object.fromEntries(
-    entries.map(([corner, config]) => [
-      `rect.cornerRadius.${corner}`,
-      normalizeUpdatePropertyConfig(config, `${path}.${corner}`),
-    ]),
+    Object.entries(cornerRadius).flatMap(([corner, config]) => {
+      const normalized = normalizeUpdatePropertyConfig(
+        config,
+        `${path}.${corner}`,
+        EMPTY_MANUAL_TRACKS,
+      );
+      return normalized === NO_TRACKS
+        ? []
+        : [[`rect.cornerRadius.${corner}`, normalized]];
+    }),
   );
 };
 
 const normalizeRectStyleTween = (rectTween, path) => {
   const normalized = {};
-  if (rectTween.width !== undefined) {
-    normalized["rect.width"] = normalizeUpdatePropertyConfig(
-      rectTween.width,
-      `${path}.width`,
+  for (const property of ["width", "height"]) {
+    if (rectTween[property] === undefined) {
+      continue;
+    }
+    const tracks = normalizeUpdatePropertyConfig(
+      rectTween[property],
+      `${path}.${property}`,
+      EMPTY_MANUAL_TRACKS,
     );
-  }
-  if (rectTween.height !== undefined) {
-    normalized["rect.height"] = normalizeUpdatePropertyConfig(
-      rectTween.height,
-      `${path}.height`,
-    );
+    if (tracks !== NO_TRACKS) {
+      normalized[`rect.${property}`] = tracks;
+    }
   }
   if (rectTween.fill !== undefined) {
     Object.assign(
@@ -636,50 +698,67 @@ const normalizeRectStyleTween = (rectTween, path) => {
   return normalized;
 };
 
+// Replace-side (transition surface) tracks share the empty-manual-track
+// policy; this adapter lets normalizeTweenMap hand track options to either
+// property normalizer uniformly.
+const normalizeSurfacePropertyConfig = (propertyConfig, path, options) =>
+  normalizeKeyframes(propertyConfig, path, undefined, undefined, options);
+
 const normalizeTweenMap = (
   tween,
   path,
   allowedProperties,
-  propertyNormalizer = normalizeKeyframes,
+  propertyNormalizer = normalizeSurfacePropertyConfig,
+  options = EMPTY_MANUAL_TRACKS,
 ) => {
   assertPlainObject(tween, path);
 
+  // Alias conflicts are authored-shape errors, so they are rejected before any
+  // empty track prunes: defining x alongside translateX (or y alongside
+  // translateY) stays invalid even when one of the two timelines is empty.
   if (tween.x !== undefined && tween.translateX !== undefined) {
     throw new Error(`${path} cannot define both x and translateX.`);
   }
-
   if (tween.y !== undefined && tween.translateY !== undefined) {
     throw new Error(`${path} cannot define both y and translateY.`);
   }
 
-  const normalizedEntries = Object.entries(tween).map(([property, config]) => {
-    if (!allowedProperties.has(property)) {
-      throw new Error(
-        `${path}.${property} is not a supported animation property.`,
+  return Object.fromEntries(
+    Object.entries(tween).flatMap(([property, config]) => {
+      if (!allowedProperties.has(property)) {
+        throw new Error(
+          `${path}.${property} is not a supported animation property.`,
+        );
+      }
+
+      const normalizedProperty = propertyNormalizer(
+        config,
+        `${path}.${property}`,
+        options,
       );
-    }
-
-    return [property, propertyNormalizer(config, `${path}.${property}`)];
-  });
-
-  if (normalizedEntries.length === 0) {
-    throw new Error(`${path} must define at least one property.`);
-  }
-
-  return Object.fromEntries(normalizedEntries);
+      return normalizedProperty === NO_TRACKS
+        ? []
+        : [[property, normalizedProperty]];
+    }),
+  );
 };
 
 const normalizeFilterTweens = (filters, path) => {
   assertPlainObject(filters, path);
-  const entries = Object.entries(filters);
-  if (entries.length === 0) {
-    throw new Error(`${path} must target at least one filter.`);
-  }
 
+  // An empty filter map (or one whose filters all prune) authors no tracks;
+  // filter ids still validate before any pruning.
   return Object.fromEntries(
-    entries.map(([filterId, tween]) => {
+    Object.entries(filters).flatMap(([filterId, tween]) => {
       assertString(filterId, `${path} filter id`);
-      return [filterId, normalizeShaderTweenMap(tween, `${path}.${filterId}`)];
+      const tweenTracks = normalizeShaderTweenMap(
+        tween,
+        `${path}.${filterId}`,
+        { allowEmptyMap: true, allowEmptyKeyframes: true },
+      );
+      return Object.keys(tweenTracks).length === 0
+        ? []
+        : [[filterId, tweenTracks]];
     }),
   );
 };
@@ -698,29 +777,37 @@ const normalizeUpdateTween = (tween, path) => {
       ([property]) => !RECT_STYLE_TWEEN_FIELDS.has(property),
     ),
   );
-  const normalized = {};
+  const tracks = {};
 
   if (Object.keys(elementTween).length > 0) {
-    normalized.tween = normalizeTweenMap(
-      elementTween,
-      path,
-      UPDATE_TWEEN_PROPERTIES,
-      normalizeUpdatePropertyConfig,
+    Object.assign(
+      tracks,
+      normalizeTweenMap(
+        elementTween,
+        path,
+        UPDATE_TWEEN_PROPERTIES,
+        normalizeUpdatePropertyConfig,
+        EMPTY_MANUAL_TRACKS,
+      ),
     );
   }
   if (Object.keys(rectTween).length > 0) {
-    normalized.tween = {
-      ...normalized.tween,
-      ...normalizeRectStyleTween(rectTween, path),
-    };
+    Object.assign(tracks, normalizeRectStyleTween(rectTween, path));
+  }
+
+  const normalized = {};
+
+  // Never emit an empty tween map: an update whose tracks all prune carries no
+  // active content and the whole animation drops.
+  if (Object.keys(tracks).length > 0) {
+    normalized.tween = tracks;
   }
 
   if (filters !== undefined) {
-    normalized.filterTweens = normalizeFilterTweens(filters, `${path}.filters`);
-  }
-
-  if (normalized.tween === undefined && normalized.filterTweens === undefined) {
-    throw new Error(`${path} must define an element property or filters.`);
+    const filterTweens = normalizeFilterTweens(filters, `${path}.filters`);
+    if (Object.keys(filterTweens).length > 0) {
+      normalized.filterTweens = filterTweens;
+    }
   }
 
   return normalized;
@@ -895,6 +982,9 @@ const normalizeReplaceSide = (side, path) => {
   if (side.mask !== undefined) {
     throw new Error(`${path}.mask is not valid. Define mask on ${path}.`);
   }
+  if (side.tween === undefined && Object.keys(side).length > 0) {
+    throw new Error(`${path} must define tween.`);
+  }
 
   const normalized = {};
 
@@ -906,22 +996,37 @@ const normalizeReplaceSide = (side, path) => {
     );
   }
 
-  if (Object.keys(normalized).length === 0) {
-    throw new Error(`${path} must define tween.`);
+  if (!normalized.tween || Object.keys(normalized.tween).length === 0) {
+    assertKnownFields(side, new Set(["tween"]), path);
   }
 
   return normalized;
 };
 
 const normalizeReplacePayload = (animation, path) => {
+  if (
+    animation.prev === undefined &&
+    animation.next === undefined &&
+    animation.mask === undefined &&
+    animation.compositor === undefined
+  ) {
+    throw new Error(`${path} must define prev, next, mask, or compositor.`);
+  }
+
   const normalized = {};
 
   if (animation.prev !== undefined) {
-    normalized.prev = normalizeReplaceSide(animation.prev, `${path}.prev`);
+    const prev = normalizeReplaceSide(animation.prev, `${path}.prev`);
+    if (prev.tween && Object.keys(prev.tween).length > 0) {
+      normalized.prev = prev;
+    }
   }
 
   if (animation.next !== undefined) {
-    normalized.next = normalizeReplaceSide(animation.next, `${path}.next`);
+    const next = normalizeReplaceSide(animation.next, `${path}.next`);
+    if (next.tween && Object.keys(next.tween).length > 0) {
+      normalized.next = next;
+    }
   }
 
   if (animation.mask !== undefined) {
@@ -938,6 +1043,9 @@ const normalizeReplacePayload = (animation, path) => {
         `${path}.compositor.tween.progress is required when compositor is defined.`,
       );
     }
+    // Compositor tweens keep their own contract: the parameter map stays
+    // non-empty and progress keyframes stay required, so no empty-track
+    // options are passed here.
     normalized.compositor.tween = normalizeShaderTweenMap(
       animation.compositor.tween,
       `${path}.compositor.tween`,
@@ -947,15 +1055,6 @@ const normalizeReplacePayload = (animation, path) => {
         `${path}.compositor.tween.progress is required when compositor is defined.`,
       );
     }
-  }
-
-  if (
-    normalized.prev === undefined &&
-    normalized.next === undefined &&
-    normalized.mask === undefined &&
-    normalized.compositor === undefined
-  ) {
-    throw new Error(`${path} must define prev, next, mask, or compositor.`);
   }
 
   return normalized;
@@ -972,7 +1071,7 @@ export const normalizeAnimations = (animations = []) => {
     throw new Error("Input error: `animations` must be an array.");
   }
 
-  const normalized = animations.map((animation, index) => {
+  const normalizedEntries = animations.map((animation, index) => {
     const path = `animations[${index}]`;
     assertPlainObject(animation, path);
     assertString(animation.id, `${path}.id`);
@@ -1053,6 +1152,11 @@ export const normalizeAnimations = (animations = []) => {
       if (animation.tween !== undefined && animation.gsap !== undefined) {
         throw new Error(`${path} cannot define both tween and gsap.`);
       }
+      if (animation.tween === undefined && animation.gsap === undefined) {
+        throw new Error(
+          `${path} must define exactly one of tween or gsap for an update animation.`,
+        );
+      }
 
       if (animation.tween !== undefined) {
         Object.assign(
@@ -1066,16 +1170,6 @@ export const normalizeAnimations = (animations = []) => {
           animation.gsap,
           `${path}.gsap`,
           "update",
-        );
-      }
-
-      if (
-        normalizedAnimation.tween === undefined &&
-        normalizedAnimation.filterTweens === undefined &&
-        normalizedAnimation.gsap === undefined
-      ) {
-        throw new Error(
-          `${path} must define exactly one of tween or gsap for an update animation.`,
         );
       }
 
@@ -1109,7 +1203,11 @@ export const normalizeAnimations = (animations = []) => {
         );
       }
 
-      return normalizedAnimation;
+      return normalizedAnimation.tween === undefined &&
+        normalizedAnimation.filterTweens === undefined &&
+        normalizedAnimation.gsap === undefined
+        ? null
+        : normalizedAnimation;
     }
 
     if (animation.tween !== undefined) {
@@ -1191,13 +1289,20 @@ export const normalizeAnimations = (animations = []) => {
       normalizedAnimation.compositor = normalizedReplace.compositor;
     }
 
-    return normalizedAnimation;
+    return Object.keys(normalizedReplace).length === 0
+      ? null
+      : normalizedAnimation;
   });
+
+  const normalized = normalizedEntries.filter(
+    (animation) => animation !== null,
+  );
 
   const animationIds = new Map();
   const transitionTargets = new Map();
 
-  for (const [index, animation] of normalized.entries()) {
+  for (const [index, animation] of normalizedEntries.entries()) {
+    if (animation === null) continue;
     const priorIdIndex = animationIds.get(animation.id);
     if (priorIdIndex !== undefined) {
       throw new Error(
