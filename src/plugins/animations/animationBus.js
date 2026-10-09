@@ -494,18 +494,24 @@ export const createAnimationBus = () => {
 
     let sharedTimeline;
     try {
+      // A prepared null means the dispatcher already pruned every group as a
+      // no-op auto tween. Recompiling here would re-read element state that
+      // queued siblings may have advanced with their first frame, so the
+      // prepared result stays authoritative; only an absent preparedTimeline
+      // compiles from the caller's live state.
       sharedTimeline =
-        payload.preparedTimeline ??
-        createLegacyTimelineContext({
-          id,
-          targetId: normalizedPayload.targetId,
-          propertyGroups,
-          playbackSpeed: normalizedPayload.playbackSpeed,
-          loop: normalizedPayload.loop,
-          repeat: normalizedPayload.repeat,
-          repeatDelay: normalizedPayload.repeatDelay,
-          yoyo: normalizedPayload.yoyo,
-        });
+        payload.preparedTimeline === undefined
+          ? createLegacyTimelineContext({
+              id,
+              targetId: normalizedPayload.targetId,
+              propertyGroups,
+              playbackSpeed: normalizedPayload.playbackSpeed,
+              loop: normalizedPayload.loop,
+              repeat: normalizedPayload.repeat,
+              repeatDelay: normalizedPayload.repeatDelay,
+              yoyo: normalizedPayload.yoyo,
+            })
+          : payload.preparedTimeline;
     } catch (error) {
       if (
         normalizedPayload.loop &&

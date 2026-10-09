@@ -36,6 +36,8 @@ import {
   hasSameSoundSourceIdentity,
   normalizeDirectVolume,
   getTransitionPhase,
+  getLegacyPlaybackOffset,
+  checkpointLegacyPlaybackOffset,
   getRemainingIterationMediaSeconds,
   getPlaybackRateAutomationValue,
   startPlaybackRateAutomation,
@@ -594,6 +596,32 @@ export const createAudioStage = () => {
     }
   };
 
+  const continueFinishingControlledReady = (instance, resolvedState) => {
+    const control = instance.control;
+    if (
+      !control?.ready ||
+      control.detached ||
+      !control.eventsSuppressed ||
+      !instance.finishing
+    ) {
+      return false;
+    }
+
+    // Readiness may settle before removal, after removal, or inside its callback.
+    // All three paths must release the pending loopEnd tail without delivering
+    // an event for an outgoing instance. Source creation keeps its normal
+    // request-token, delay and finishing-source guards.
+    const resolution =
+      resolvedState ?? resolvePendingControlledPosition(instance);
+    if (resolution.invalidPosition || control.status !== "playing") {
+      instance.sourceEnded = true;
+      instance.onSourceEnded?.();
+    } else {
+      startControlledPlayback(instance, control.remainingDelayMs);
+    }
+    return true;
+  };
+
   const scheduleControlledReady = (instance) => {
     const control = instance.control;
     if (!control || control.readyTaskQueued || control.readyAnnounced) {
@@ -603,6 +631,9 @@ export const createAudioStage = () => {
     control.readyTaskQueued = true;
     scheduleMicrotask(() => {
       control.readyTaskQueued = false;
+      if (continueFinishingControlledReady(instance)) {
+        return;
+      }
       if (
         !isCurrentControlledInstance(instance) ||
         !control.ready ||
@@ -626,7 +657,13 @@ export const createAudioStage = () => {
           commandId,
         );
       } finally {
-        if (isCurrentControlledInstance(instance)) {
+        const continuedTail =
+          instance.playRequestId === playRequestId &&
+          continueFinishingControlledReady(
+            instance,
+            control.commandId === commandId ? resolution : {},
+          );
+        if (!continuedTail && isCurrentControlledInstance(instance)) {
           if (control.commandId === commandId) {
             applyResolvedControlledState(instance, resolution);
           } else if (
@@ -664,14 +701,7 @@ export const createAudioStage = () => {
     control.ready = true;
     control.lastErrorCode = null;
 
-    if (control.eventsSuppressed && instance.finishing) {
-      const resolution = resolvePendingControlledPosition(instance);
-      if (resolution.invalidPosition || control.status !== "playing") {
-        instance.sourceEnded = true;
-        instance.onSourceEnded?.();
-        return;
-      }
-      startControlledPlayback(instance, control.remainingDelayMs);
+    if (continueFinishingControlledReady(instance)) {
       return;
     }
 
@@ -973,68 +1003,6 @@ export const createAudioStage = () => {
     }
 
     return Math.max(0, sound.delayDeadlineMs - getAudioNowMs());
-  };
-
-  const getLegacyPlaybackOffset = (sound, context = getAudioContext()) => {
-    const source = sound.source;
-    const segmentStart = Math.max(0, toFiniteParamValue(sound.startAt, 0));
-    if (!source || sound.sourceStartedAt === null) {
-      return Math.max(
-        segmentStart,
-        toFiniteParamValue(sound.sourceStartOffset, segmentStart),
-      );
-    }
-
-    const startedAt = toFiniteParamValue(
-      sound.sourceStartedAt,
-      context.currentTime,
-    );
-    const elapsedSourceSeconds = integrateAudioParamValue(
-      source.playbackRate,
-      startedAt,
-      context.currentTime,
-    );
-    const startOffset = toFiniteParamValue(
-      sound.sourceStartOffset,
-      segmentStart,
-    );
-    const configuredEnd =
-      sound.endAt === null || sound.endAt === undefined
-        ? Number.NaN
-        : toFiniteParamValue(sound.endAt, Number.NaN);
-    const bufferEnd = toFiniteParamValue(
-      source.buffer?.duration,
-      Number.POSITIVE_INFINITY,
-    );
-    const segmentEnd = Number.isFinite(configuredEnd)
-      ? configuredEnd
-      : bufferEnd;
-    const absoluteOffset = startOffset + elapsedSourceSeconds;
-
-    if (source.loop && Number.isFinite(segmentEnd)) {
-      const loopStart = Math.max(0, toFiniteParamValue(source.loopStart, 0));
-      const configuredLoopEnd = toFiniteParamValue(source.loopEnd, 0);
-      const loopEnd =
-        configuredLoopEnd > loopStart ? configuredLoopEnd : segmentEnd;
-      const loopDuration = loopEnd - loopStart;
-      if (loopDuration > 0) {
-        const relativeOffset =
-          (((absoluteOffset - loopStart) % loopDuration) + loopDuration) %
-          loopDuration;
-        return loopStart + relativeOffset;
-      }
-      return loopStart;
-    }
-
-    return Math.max(segmentStart, Math.min(absoluteOffset, segmentEnd));
-  };
-
-  const checkpointLegacyPlaybackOffset = (
-    sound,
-    context = getAudioContext(),
-  ) => {
-    sound.sourceStartOffset = getLegacyPlaybackOffset(sound, context);
-    sound.sourceStartedAt = context.currentTime;
   };
 
   const stopLegacySourceForChannelPause = (sound) => {
@@ -1980,6 +1948,19 @@ export const createAudioStage = () => {
     }
   };
 
+  const checkpointRateEffectPosition = (instance) => {
+    if (!instance.source || instance.sourceEnded || instance.playbackPending) {
+      return;
+    }
+    // Holding/settling replaces the rate automation used for cursor integration.
+    // Preserve the media already traversed before that history is discarded.
+    if (instance.control) {
+      captureControlledPosition(instance);
+    } else {
+      checkpointLegacyPlaybackOffset(instance);
+    }
+  };
+
   const holdSoundProperty = (instance, property) => {
     instance.pendingEnterTransitions ??= {};
     instance.pendingEnterTransitions[property] = null;
@@ -1994,6 +1975,7 @@ export const createAudioStage = () => {
     }
     if (property !== "playbackRate") return;
 
+    checkpointRateEffectPosition(instance);
     if (instance.source) {
       holdParamNow(instance.source.playbackRate);
       instance.playbackRateAutomation =
@@ -2031,14 +2013,7 @@ export const createAudioStage = () => {
       return;
     }
     if (property === "playbackRate") {
-      if (
-        instance.source &&
-        !instance.control &&
-        !instance.sourceEnded &&
-        !instance.playbackPending
-      ) {
-        checkpointLegacyPlaybackOffset(instance);
-      }
+      checkpointRateEffectPosition(instance);
       instance.playbackRateAutomation = null;
       if (instance.source) {
         applyPlaybackRate({
@@ -2402,6 +2377,10 @@ export const createAudioStage = () => {
               instance.channelNode === channel.gainNode &&
               instance.finishing
             ) {
+              // This tail left the previous render graph earlier, but still
+              // uses this concrete channel. Its new exit owner must share the
+              // tail just like children removed in this render transaction.
+              ownSound(id, instance);
               finishSoundForDeferredChannel(instance, entry);
             }
           }

@@ -186,6 +186,77 @@ const validateAcceptedEffect = ({
   return lifecycle;
 };
 
+// Snapshot hosts can keep the audio graph while replacing their story runtime.
+// Preserve the accepted form of continuing requests; only new occurrences are
+// reconciled against the current graph edge. Inputs have already been validated
+// by normalizeAudioRenderState, including tracks that will be omitted.
+export const prepareSnapshotAudioEffects = ({
+  prevState,
+  nextState,
+  previousRequests = new Map(),
+}) => {
+  const prevNodes = getNodeMaps(prevState);
+  const nextNodes = getNodeMaps(nextState);
+  const prevEffects = prevState.effectById;
+  const audioEffects = [];
+
+  for (const [index, effect] of nextState.audioEffects.entries()) {
+    if (previousRequests.get(effect.id) === getAudioEffectSignature(effect)) {
+      const previous = prevEffects.get(effect.id);
+      if (previous) audioEffects.push(previous);
+      continue;
+    }
+
+    const prevNode = prevNodes.byId.get(effect.targetId);
+    const nextNode = nextNodes.byId.get(effect.targetId);
+    const path = `audioEffects[${index}]`;
+    // A reconstructed outgoing sound may already be absent from the renderer.
+    // Only its exit-only request is inapplicable; missing enter/update targets
+    // remain input errors.
+    if (
+      !prevNode &&
+      !nextNode &&
+      Object.values(effect.properties).every((phases) =>
+        Object.keys(phases).every((phase) => phase === "exit"),
+      )
+    ) {
+      continue;
+    }
+    validatePropertiesForTarget({
+      effect,
+      targetType: nextNode?.type ?? prevNode?.type,
+      path,
+    });
+    const allowedPhases = PHASES_BY_LIFECYCLE[getLifecycle(prevNode, nextNode)];
+    const properties = {};
+    for (const [property, phases] of Object.entries(effect.properties)) {
+      const applicable = Object.fromEntries(
+        Object.entries(phases).filter(([phase, track]) => {
+          if (!allowedPhases.has(phase)) return false;
+          if (phase !== "update") return true;
+          const previousValue =
+            prevNode[property] ?? PROPERTY_DEFAULTS[property];
+          const nextValue = nextNode[property] ?? PROPERTY_DEFAULTS[property];
+          const endpoint = track.keyframes.at(-1);
+          // Omit settled updates, while retaining invalid endpoints so the
+          // normal planner still reports malformed applicable tracks.
+          return (
+            previousValue !== nextValue ||
+            endpoint.relative === true ||
+            endpoint.value !== nextValue
+          );
+        }),
+      );
+      if (Object.keys(applicable).length > 0) properties[property] = applicable;
+    }
+    if (Object.keys(properties).length > 0) {
+      audioEffects.push({ ...effect, properties });
+    }
+  }
+
+  return audioEffects;
+};
+
 export const planAudioEffects = ({
   prevState,
   nextState,

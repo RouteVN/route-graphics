@@ -1,9 +1,6 @@
 import { Container, Graphics, Rectangle, RenderTexture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
-import {
-  extractSnapshotBase64,
-  generateSnapshotTexture,
-} from "./snapshotTexture.js";
+import { extractSnapshot, generateSnapshotTexture } from "./snapshotTexture.js";
 
 const fixture = ({ group = false, detached = false } = {}) => {
   const parent = new Container();
@@ -118,80 +115,121 @@ describe("shared snapshot texture owner", () => {
     check();
   });
 
-  it("restores before awaiting encoding and releases only generated texture", async () => {
-    const { node, frame, check } = fixture();
-    const texture = RenderTexture.create({ width: 160, height: 100 });
-    const destroy = vi.spyOn(texture, "destroy");
-    let resolve;
-    const renderer = {
-      generateTexture: () => texture,
-      extract: {
-        base64: vi.fn(({ target }) => {
-          check();
-          expect(target).toBe(texture);
-          return new Promise((done) => {
-            resolve = done;
-          });
-        }),
-      },
-    };
-    const pending = extractSnapshotBase64({
-      renderer,
-      displayObject: node,
-      frame,
+  describe.each(["base64", "canvas"])("%s extraction", (format) => {
+    it("restores before awaiting encoding and releases only generated texture", async () => {
+      const { node, frame, check } = fixture();
+      const texture = RenderTexture.create({ width: 160, height: 100 });
+      const destroy = vi.spyOn(texture, "destroy");
+      let resolve;
+      const renderer = {
+        generateTexture: () => texture,
+        extract: {
+          [format]: vi.fn(({ target }) => {
+            check();
+            expect(target).toBe(texture);
+            return new Promise((done) => {
+              resolve = done;
+            });
+          }),
+        },
+      };
+      const pending = extractSnapshot({
+        renderer,
+        format,
+        displayObject: node,
+        frame,
+      });
+      check();
+      expect(destroy).not.toHaveBeenCalled();
+      resolve("data:image/png;base64,example");
+      await expect(pending).resolves.toBe("data:image/png;base64,example");
+      expect(destroy).toHaveBeenCalledExactlyOnceWith(true);
+      check();
     });
-    check();
-    expect(destroy).not.toHaveBeenCalled();
-    resolve("data:image/png;base64,example");
-    await expect(pending).resolves.toBe("data:image/png;base64,example");
-    expect(destroy).toHaveBeenCalledExactlyOnceWith(true);
-    check();
-  });
 
-  it("releases generated texture on asynchronous encoding rejection", async () => {
-    const { node, frame, check } = fixture();
-    const texture = RenderTexture.create({ width: 160, height: 100 });
-    const destroy = vi.spyOn(texture, "destroy");
-    const error = Error("encoding failed");
-    const renderer = {
-      generateTexture: () => texture,
-      extract: {
-        base64: async () => {
-          throw error;
+    it("releases generated texture on asynchronous encoding rejection", async () => {
+      const { node, frame, check } = fixture();
+      const texture = RenderTexture.create({ width: 160, height: 100 });
+      const destroy = vi.spyOn(texture, "destroy");
+      const error = Error("encoding failed");
+      const renderer = {
+        generateTexture: () => texture,
+        extract: {
+          [format]: async () => {
+            throw error;
+          },
         },
-      },
-    };
-    await expect(
-      extractSnapshotBase64({ renderer, displayObject: node, frame }),
-    ).rejects.toBe(error);
-    expect(destroy).toHaveBeenCalledExactlyOnceWith(true);
-    check();
-  });
+      };
+      await expect(
+        extractSnapshot({ renderer, displayObject: node, frame, format }),
+      ).rejects.toBe(error);
+      expect(destroy).toHaveBeenCalledExactlyOnceWith(true);
+      check();
+    });
 
-  it("keeps encoding and cleanup errors without losing original ownership", async () => {
-    const { node, frame, check } = fixture();
-    const encode = Error("encode"),
-      cleanup = Error("cleanup");
-    const renderer = {
-      generateTexture: () => ({
-        destroy: () => {
-          throw cleanup;
+    it("keeps encoding and cleanup errors without losing original ownership", async () => {
+      const { node, frame, check } = fixture();
+      const encode = Error("encode"),
+        cleanup = Error("cleanup");
+      const renderer = {
+        generateTexture: () => ({
+          destroy: () => {
+            throw cleanup;
+          },
+        }),
+        extract: {
+          [format]: async () => {
+            throw encode;
+          },
         },
-      }),
-      extract: {
-        base64: async () => {
-          throw encode;
+      };
+      const error = await extractSnapshot({
+        renderer,
+        format,
+        displayObject: node,
+        frame,
+      }).catch((value) => value);
+      expect(error).toBeInstanceOf(AggregateError);
+      expect(error.errors).toEqual([encode, cleanup]);
+      check();
+    });
+
+    it("releases generated texture after synchronous extraction failure", async () => {
+      const { node, frame, check } = fixture();
+      const texture = RenderTexture.create({ width: 160, height: 100 });
+      const destroy = vi.spyOn(texture, "destroy");
+      const error = Error("extract failed");
+      const renderer = {
+        generateTexture: () => texture,
+        extract: {
+          [format]: () => {
+            throw error;
+          },
         },
-      },
-    };
-    const error = await extractSnapshotBase64({
-      renderer,
-      displayObject: node,
-      frame,
-    }).catch((value) => value);
-    expect(error).toBeInstanceOf(AggregateError);
-    expect(error.errors).toEqual([encode, cleanup]);
-    check();
+      };
+      await expect(
+        extractSnapshot({ renderer, displayObject: node, frame, format }),
+      ).rejects.toBe(error);
+      expect(destroy).toHaveBeenCalledExactlyOnceWith(true);
+      check();
+    });
+
+    it("reports cleanup failure after successful extraction", async () => {
+      const { node, frame, check } = fixture();
+      const error = Error("cleanup failed");
+      const renderer = {
+        generateTexture: () => ({
+          destroy: () => {
+            throw error;
+          },
+        }),
+        extract: { [format]: () => "result" },
+      };
+      await expect(
+        extractSnapshot({ renderer, displayObject: node, frame, format }),
+      ).rejects.toBe(error);
+      check();
+    });
   });
 
   it("restores after observable added listener failure without destroying source", () => {

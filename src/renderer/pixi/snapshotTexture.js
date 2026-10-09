@@ -155,10 +155,11 @@ export const generateSnapshotTexture = ({
   return texture;
 };
 
-export const extractSnapshotBase64 = async ({
+export const extractSnapshot = async ({
   renderer,
   displayObject,
   frame,
+  format = "base64",
 }) => {
   const texture = generateSnapshotTexture({
     renderer,
@@ -169,7 +170,7 @@ export const extractSnapshotBase64 = async ({
   const failures = [];
   let result;
   try {
-    result = await renderer.extract.base64({ target: texture });
+    result = await renderer.extract[format]({ target: texture });
   } catch (error) {
     failures.push(error);
   } finally {
@@ -181,7 +182,7 @@ export const extractSnapshotBase64 = async ({
   }
   if (failures.length === 1) throw failures[0];
   if (failures.length > 1) {
-    throw new AggregateError(failures, "Snapshot encoding or cleanup failed");
+    throw new AggregateError(failures, "Snapshot extraction or cleanup failed");
   }
   return result;
 };

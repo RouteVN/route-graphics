@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { build } from "esbuild";
 import { chromium } from "playwright";
 import { PNG } from "pngjs";
+import { getRendererBrowserLaunchOptions } from "../src/cli/browserLaunch.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const options = {};
@@ -181,7 +182,24 @@ async function observe({ code, fixture, font }) {
       stageAfter = await app.extractBase64();
     const repeated = await app.extractBase64("story"),
       stageAfterRepeat = await app.extractBase64();
-    const afterState = state(),
+    const afterState = state();
+    // Use Pixi's PNG encoding path for both outputs. Chromium's toDataURL
+    // path can round partially transparent RGB differently from toBlob.
+    const encodeCanvas = (canvas) =>
+      new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return reject(Error("canvas PNG encoding failed"));
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }, "image/png");
+      });
+    const canvas = await encodeCanvas(await app.extractCanvas("story")),
+      stageAfterCanvas = await app.extractBase64();
+    const canvasRepeated = await encodeCanvas(await app.extractCanvas("story")),
+      stageAfterCanvasRepeat = await app.extractBase64();
+    const canvasState = state(),
       failures = [];
     // True renderer failure happens inside staging; finally must restore owner.
     const generate = pixi.renderer.textureGenerator.generateTexture;
@@ -189,10 +207,14 @@ async function observe({ code, fixture, font }) {
       throw Error("intentional-generate-failure");
     };
     try {
-      await app.extractBase64("story");
-      failures.push("generate did not reject");
-    } catch (error) {
-      failures.push(error.message);
+      for (const method of ["extractBase64", "extractCanvas"]) {
+        try {
+          await app[method]("story");
+          failures.push(`${method}: generate did not reject`);
+        } catch (error) {
+          failures.push(error.message);
+        }
+      }
     } finally {
       pixi.renderer.textureGenerator.generateTexture = generate;
     }
@@ -201,7 +223,7 @@ async function observe({ code, fixture, font }) {
     // Encoding may reject asynchronously after the generated texture exists.
     let generated = 0,
       destroyed = 0;
-    pixi.renderer.textureGenerator.generateTexture = function (...args) {
+    const trackedGenerate = function (...args) {
       const texture = generate.apply(this, args);
       generated++;
       const destroy = texture.destroy;
@@ -211,6 +233,7 @@ async function observe({ code, fixture, font }) {
       };
       return texture;
     };
+    pixi.renderer.textureGenerator.generateTexture = trackedGenerate;
     const base64 = pixi.renderer.extract.base64;
     pixi.renderer.extract.base64 = async () => {
       throw Error("intentional-encode-failure");
@@ -221,14 +244,32 @@ async function observe({ code, fixture, font }) {
     } catch (error) {
       failures.push(error.message);
     } finally {
-      pixi.renderer.textureGenerator.generateTexture = generate;
       pixi.renderer.extract.base64 = base64;
+      pixi.renderer.textureGenerator.generateTexture = generate;
     }
     const stageAfterEncodeFailure = await app.extractBase64(),
       encodeFailureState = state();
+    pixi.renderer.textureGenerator.generateTexture = trackedGenerate;
+    const extractCanvas = pixi.renderer.extract.canvas;
+    pixi.renderer.extract.canvas = () => {
+      throw Error("intentional-canvas-failure");
+    };
+    try {
+      await app.extractCanvas("story");
+      failures.push("canvas did not reject");
+    } catch (error) {
+      failures.push(error.message);
+    } finally {
+      pixi.renderer.extract.canvas = extractCanvas;
+      pixi.renderer.textureGenerator.generateTexture = generate;
+    }
+    const stageAfterCanvasFailure = await app.extractBase64(),
+      canvasFailureState = state();
     return {
       beforeState,
       afterState,
+      canvasState,
+      canvasFailureState,
       generateFailureState,
       encodeFailureState,
       originalIndex: index,
@@ -236,6 +277,11 @@ async function observe({ code, fixture, font }) {
       extracted,
       stageAfter,
       repeated,
+      canvas,
+      canvasRepeated,
+      stageAfterCanvas,
+      stageAfterCanvasRepeat,
+      stageAfterCanvasFailure,
       stageAfterRepeat,
       stageAfterGenerateFailure,
       stageAfterEncodeFailure,
@@ -248,8 +294,11 @@ async function observe({ code, fixture, font }) {
   }
 }
 const browser = await chromium.launch({
-  executablePath: options["--browser"],
-  headless: true,
+  ...getRendererBrowserLaunchOptions(
+    options["--browser"] ??
+      process.env.ROUTE_GRAPHICS_TEST_BROWSER ??
+      chromium.executablePath(),
+  ),
   args: [
     "--use-gl=angle",
     "--use-angle=swiftshader",
@@ -280,6 +329,11 @@ try {
         "extracted",
         "stageAfter",
         "repeated",
+        "canvas",
+        "canvasRepeated",
+        "stageAfterCanvas",
+        "stageAfterCanvasRepeat",
+        "stageAfterCanvasFailure",
         "stageAfterRepeat",
         "stageAfterGenerateFailure",
         "stageAfterEncodeFailure",
@@ -306,6 +360,9 @@ try {
       });
       for (const field of [
         "stageAfter",
+        "stageAfterCanvas",
+        "stageAfterCanvasRepeat",
+        "stageAfterCanvasFailure",
         "stageAfterRepeat",
         "stageAfterGenerateFailure",
         "stageAfterEncodeFailure",
@@ -317,8 +374,16 @@ try {
           ),
         );
       check("repeat", () => assert(pixels.extracted.equals(pixels.repeated)));
+      check("canvas-repeat", () =>
+        assert(pixels.canvas.equals(pixels.canvasRepeated)),
+      );
+      check("canvas-and-base64-pixel-parity", () =>
+        assert(pixels.canvas.equals(pixels.extracted)),
+      );
       for (const field of [
         "afterState",
+        "canvasState",
+        "canvasFailureState",
         "generateFailureState",
         "encodeFailureState",
       ])
@@ -328,10 +393,12 @@ try {
       check("generate-and-encoding-failure", () => {
         assert.deepEqual(observation.failures, [
           "intentional-generate-failure",
+          "intentional-generate-failure",
           "intentional-encode-failure",
+          "intentional-canvas-failure",
         ]);
-        assert.equal(observation.generated, 1);
-        assert.equal(observation.destroyed, 1);
+        assert.equal(observation.generated, 2);
+        assert.equal(observation.destroyed, 2);
       });
       check("root-alpha-not-ancestor-alpha", () => {
         const maxAlpha = pixels.extracted.reduce(

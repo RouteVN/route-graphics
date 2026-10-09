@@ -55,6 +55,7 @@ properties:
       oneOf:
         - $ref: "./sprite.computed.yaml"
         - $ref: "./text.computed.yaml"
+        - $ref: "./text-revealing.computed.yaml"
         - $ref: "./rect.computed.yaml"
         - $ref: "./container.computed.yaml"
   direction:

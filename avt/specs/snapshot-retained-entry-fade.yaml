@@ -1,0 +1,46 @@
+title: Snapshot omits an entry fade for retained music
+description: An editor snapshot returns to a line whose entry fade targets music that is already playing. The music continues at its declared volume without restarting or dipping.
+durationMs: 2000
+sampleRate: 48000
+numberOfChannels: 2
+assets:
+  tone440:
+    generator: tone
+    frequency: 440
+states:
+  - atMs: 0
+    state:
+      id: later-line
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone440
+          loop: true
+          volume: 100
+  - atMs: 750
+    renderOptions:
+      audioEffectsMode: snapshot
+    state:
+      id: fade-line
+      elements: []
+      animations: []
+      audio:
+        - id: bgm
+          type: sound
+          src: tone440
+          loop: true
+          volume: 100
+      audioEffects:
+        - id: fade-line-entry:1
+          type: audio-transition
+          targetId: bgm
+          properties:
+            volume:
+              enter:
+                initialValue: 0
+                keyframes:
+                  - value: 100
+                    duration: 1000
+                    easing: linear
