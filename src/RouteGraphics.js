@@ -1326,6 +1326,25 @@ const createRouteGraphics = () => {
     }
   };
 
+  // Draws the current frame and returns what to extract from it: the stage,
+  // or the element with `label`, framed to the renderer.
+  const prepareExtract = (label) => {
+    if (typeof app.render === "function") {
+      setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
+      app.render();
+    }
+
+    const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
+    if (!label) {
+      return { target: app.stage, frame };
+    }
+    const element = app.stage.getChildByLabel(label, true);
+    if (!element) {
+      throw new Error(`Element with label '${label}' not found`);
+    }
+    return { target: element, frame };
+  };
+
   const initialize = async (options, reuseRenderer = false) => {
     const {
       eventHandler: handler,
@@ -1632,25 +1651,6 @@ const createRouteGraphics = () => {
     rendererPreference = "webgl";
     selectedRendererType = "webgl";
     backgroundGraphic = undefined;
-  };
-
-  // Draws the current frame and returns what to extract from it: the stage,
-  // or the element with `label`, framed to the renderer.
-  const prepareExtract = (label) => {
-    if (typeof app.render === "function") {
-      setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-      app.render();
-    }
-
-    const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
-    if (!label) {
-      return { target: app.stage, frame };
-    }
-    const element = app.stage.getChildByLabel(label, true);
-    if (!element) {
-      throw new Error(`Element with label '${label}' not found`);
-    }
-    return { target: element, frame };
   };
 
   const routeGraphicsInstance = {
