@@ -1626,16 +1626,23 @@ describe("RouteGraphics public API", () => {
       "data:image/png;base64,AA==",
     );
 
-    // Each draws the current frame first, framed to the renderer.
+    // Both output APIs draw first. Labelled extraction owns a temporary texture
+    // and restores the live element before handing it to either output path.
     expect(application.render).toHaveBeenCalledTimes(3);
+    const textures = application.renderer.generateTexture.mock.results.map(
+      ({ value }) => value,
+    );
+    expect(textures).toHaveLength(2);
     expect(extract.canvas.mock.calls).toEqual([
       [{ target: application.stage, frame: expect.any(pixiMock.Rectangle) }],
-      [{ target: element, frame: expect.any(pixiMock.Rectangle) }],
+      [{ target: textures[0] }],
     ]);
-    expect(extract.base64).toHaveBeenCalledWith({
-      target: element,
-      frame: expect.any(pixiMock.Rectangle),
-    });
+    expect(extract.base64).toHaveBeenCalledWith({ target: textures[1] });
+    for (const texture of textures) {
+      expect(texture.destroy).toHaveBeenCalledExactlyOnceWith(true);
+    }
+    expect(element.parent).toBe(application.stage);
+    expect(element.destroyed).not.toBe(true);
     await expect(app.extractCanvas("missing")).rejects.toThrow(
       "Element with label 'missing' not found",
     );

@@ -9,6 +9,7 @@ import {
   detectVideoAlphaMode,
 } from "pixi.js";
 import "./renderer/pixi/cspCompatibility.js";
+import { extractSnapshot } from "./renderer/pixi/snapshotTexture.js";
 import {
   sharedTextureAssetOwners,
   sharedTextureAliasOwners,
@@ -1326,9 +1327,9 @@ const createRouteGraphics = () => {
     }
   };
 
-  // Draws the current frame and returns what to extract from it: the stage,
-  // or the element with `label`, framed to the renderer.
-  const prepareExtract = (label) => {
+  // Both public outputs share framing and snapshot ownership. The live stage
+  // remains the direct target; labelled elements use an isolated texture.
+  const extractFrame = async (label, format) => {
     if (typeof app.render === "function") {
       setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
       app.render();
@@ -1336,13 +1337,18 @@ const createRouteGraphics = () => {
 
     const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
     if (!label) {
-      return { target: app.stage, frame };
+      return await app.renderer.extract[format]({ target: app.stage, frame });
     }
     const element = app.stage.getChildByLabel(label, true);
     if (!element) {
       throw new Error(`Element with label '${label}' not found`);
     }
-    return { target: element, frame };
+    return await extractSnapshot({
+      renderer: app.renderer,
+      displayObject: element,
+      frame,
+      format,
+    });
   };
 
   const initialize = async (options, reuseRenderer = false) => {
@@ -1707,16 +1713,14 @@ const createRouteGraphics = () => {
       }),
 
     /** @param {string} [label] @returns {Promise<string>} */
-    extractBase64: async (label) =>
-      await app.renderer.extract.base64(prepareExtract(label)),
+    extractBase64: async (label) => extractFrame(label, "base64"),
 
     /**
      * The pixels extractBase64 encodes, as a canvas, so a caller that scales
      * or re-encodes them skips encoding and decoding a full-size PNG.
      * @param {string} [label] @returns {Promise<HTMLCanvasElement>}
      */
-    extractCanvas: async (label) =>
-      app.renderer.extract.canvas(prepareExtract(label)),
+    extractCanvas: async (label) => extractFrame(label, "canvas"),
 
     assignStageEvent: (eventType, callback) => {
       app.stage.eventMode = "static";
