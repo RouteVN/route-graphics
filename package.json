@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "1.45.2",
+  "version": "1.47.0",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -71,6 +71,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.8",
+    "ajv": "8.17.1",
     "canvas": "3.2.0",
     "esbuild": "^0.25.6",
     "husky": "^9.1.7",

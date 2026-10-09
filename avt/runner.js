@@ -193,6 +193,11 @@ const run = async () => {
       if (!isRecord(entry) || !isRecord(entry.state)) {
         throw new Error(`AVT states[${index}] must contain a state object.`);
       }
+      if (entry.renderOptions !== undefined && !isRecord(entry.renderOptions)) {
+        throw new Error(
+          `AVT states[${index}].renderOptions must be an object.`,
+        );
+      }
       if (
         entry.afterMicrotask !== undefined &&
         !isRecord(entry.afterMicrotask)
@@ -279,7 +284,7 @@ const run = async () => {
       }
     }
     const renderState = (entry) => {
-      app.render(entry.state);
+      app.render(entry.state, entry.renderOptions);
       if (entry.afterMicrotask) {
         // Cached decode settles first and queues Ready behind this render.
         runtime.queueMicrotask(() => app.render(entry.afterMicrotask));

@@ -272,8 +272,9 @@ properties:
       frames:
         type: array
         items:
-          type: string
-        description: Ordered frame names for playback
+          type: [string, integer]
+          minimum: 0
+        description: Ordered frame names or zero-based atlas frame indexes for playback
         example: [idle-0, idle-1, idle-2]
       fps:
         type: number
