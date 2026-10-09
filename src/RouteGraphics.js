@@ -28,6 +28,7 @@ import { renderAudio } from "./plugins/audio/renderAudio.js";
 import { clearPendingSounds } from "./plugins/audio/sound/addSound.js";
 import { createParserPlugin } from "./plugins/elements/parserPlugin.js";
 import { createKeyboardManager } from "./util/keyboardManager.js";
+import { PIXI_ACCESSIBILITY_OPTIONS } from "./util/pixiAccessibility.js";
 import { createAnimationBus } from "./plugins/animations/animationBus.js";
 import { createCompletionTracker } from "./util/completionTracker.js";
 import { createRenderReadiness } from "./util/renderReadiness.js";
@@ -1388,6 +1389,7 @@ const createRouteGraphics = () => {
         backgroundColor,
         preference: rendererPreference,
         preserveDrawingBuffer: debug === true,
+        accessibilityOptions: PIXI_ACCESSIBILITY_OPTIONS,
       });
     } else {
       app.renderer.resize(width, height);
@@ -1627,6 +1629,25 @@ const createRouteGraphics = () => {
     backgroundGraphic = undefined;
   };
 
+  // Draws the current frame and returns what to extract from it: the stage,
+  // or the element with `label`, framed to the renderer.
+  const prepareExtract = (label) => {
+    if (typeof app.render === "function") {
+      setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
+      app.render();
+    }
+
+    const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
+    if (!label) {
+      return { target: app.stage, frame };
+    }
+    const element = app.stage.getChildByLabel(label, true);
+    if (!element) {
+      throw new Error(`Element with label '${label}' not found`);
+    }
+    return { target: element, frame };
+  };
+
   const routeGraphicsInstance = {
     rendererName: "pixi",
 
@@ -1681,27 +1702,16 @@ const createRouteGraphics = () => {
       }),
 
     /** @param {string} [label] @returns {Promise<string>} */
-    extractBase64: async (label) => {
-      if (typeof app.render === "function") {
-        setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-        app.render();
-      }
+    extractBase64: async (label) =>
+      await app.renderer.extract.base64(prepareExtract(label)),
 
-      const frame = new Rectangle(
-        0,
-        0,
-        app.renderer.width,
-        app.renderer.height,
-      );
-      if (!label) {
-        return await app.renderer.extract.base64({ target: app.stage, frame });
-      }
-      const element = app.stage.getChildByLabel(label, true);
-      if (!element) {
-        throw new Error(`Element with label '${label}' not found`);
-      }
-      return await app.renderer.extract.base64({ target: element, frame });
-    },
+    /**
+     * The pixels extractBase64 encodes, as a canvas, so a caller that scales
+     * or re-encodes them skips encoding and decoding a full-size PNG.
+     * @param {string} [label] @returns {Promise<HTMLCanvasElement>}
+     */
+    extractCanvas: async (label) =>
+      app.renderer.extract.canvas(prepareExtract(label)),
 
     assignStageEvent: (eventType, callback) => {
       app.stage.eventMode = "static";
