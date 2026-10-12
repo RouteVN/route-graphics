@@ -11,6 +11,10 @@ import {
 } from "../../elements/elementRenderState.js";
 import { hitTestElementBounds } from "../../../util/hitTestElementBounds.js";
 import {
+  isHoverPassThrough,
+  setHoverPassThrough,
+} from "../../elements/util/hoverPassThrough.js";
+import {
   bindTimelineProgram,
   compilePortableGsapAnimation,
   createPixiTimelineBindingContext,
@@ -1062,6 +1066,7 @@ describe("portable GSAP update runtime integration", () => {
     };
     setElementRenderState(title, semanticState);
     title.eventMode = "static";
+    setHoverPassThrough(title, true);
     const forwardedEvents = [
       "pointerover",
       "pointerout",
@@ -1131,6 +1136,7 @@ describe("portable GSAP update runtime integration", () => {
     expect(root.getChildIndex(foreground)).toBe(3);
     expect(getElementRenderState(unitContainer)).toBe(semanticState);
     expect(unitContainer.eventMode).toBe("static");
+    expect(isHoverPassThrough(unitContainer)).toBe(true);
     expect(
       hitTestElementBounds({
         stage: root,
