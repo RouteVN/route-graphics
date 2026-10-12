@@ -271,6 +271,12 @@ export const addInput = ({
 
     if (runtime.element.disabled === true) return;
 
+    // After a touch, the browser sends compatibility mouse events to the
+    // canvas once the pointer is up. Their mousedown would move focus from
+    // the hidden DOM input to the page and close the on-screen keyboard
+    // right after it opened. Cancelling pointerdown stops those mouse events.
+    event?.preventDefault?.();
+
     const localPoint = container.toLocal(event.global);
     const index = getInputIndexFromLocalPoint(runtime, localPoint);
     const extendSelection = Boolean(event.shiftKey) && runtime.focused;

@@ -495,6 +495,54 @@ describe("input plugin", () => {
     expect(rightClickEvent.stopPropagation).toHaveBeenCalledTimes(1);
   });
 
+  it("cancels pointerdown on a field so a touch's compatibility mousedown cannot take its focus", () => {
+    const createInput = (state) => {
+      const parent = new Container();
+      const { app } = createApp();
+      addInput({
+        app,
+        parent,
+        element: parseInput({ state }),
+        eventHandler: vi.fn(),
+        zIndex: 0,
+      });
+      return { app, input: parent.getChildByLabel(state.id) };
+    };
+    const createPointerDownEvent = () => ({
+      global: { x: 10, y: 10 },
+      shiftKey: false,
+      stopPropagation: vi.fn(),
+      preventDefault: vi.fn(),
+    });
+
+    const field = createInput({
+      id: "name",
+      type: "input",
+      width: 200,
+      height: 44,
+    });
+    const pointerDownEvent = createPointerDownEvent();
+    field.input.emit("pointerdown", pointerDownEvent);
+
+    expect(pointerDownEvent.preventDefault).toHaveBeenCalledTimes(1);
+    expect(field.app.inputDomBridge.focus).toHaveBeenCalledTimes(1);
+
+    // A disabled field takes no focus, so the browser keeps its default.
+    const disabledField = createInput({
+      id: "locked",
+      type: "input",
+      width: 200,
+      height: 44,
+      disabled: true,
+    });
+    const disabledPointerDownEvent = createPointerDownEvent();
+    disabledField.input.emit("pointerdown", disabledPointerDownEvent);
+
+    expect(disabledPointerDownEvent.stopPropagation).toHaveBeenCalledTimes(1);
+    expect(disabledPointerDownEvent.preventDefault).not.toHaveBeenCalled();
+    expect(disabledField.app.inputDomBridge.focus).not.toHaveBeenCalled();
+  });
+
   it("re-adopts an external value after input changes during an update tween", () => {
     const parent = new Container();
     const eventHandler = vi.fn();

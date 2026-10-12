@@ -65,6 +65,7 @@ jobs:
         if: matrix.suite == 'browser'
         run: |
           node scripts/testRuntimeLifecycle.mjs
+          node scripts/testInputTouchFocus.mjs
           node scripts/testRendererReset.mjs
           node scripts/testVideoPlayback.mjs
           node scripts/testLayoutReport.mjs
