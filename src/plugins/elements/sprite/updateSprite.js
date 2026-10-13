@@ -26,6 +26,10 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import {
+  isHoverOnlyInteraction,
+  setHoverPassThrough,
+} from "../util/hoverPassThrough.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { createInteractionTextureSetter } from "./interactionTextures.js";
 import {
@@ -110,6 +114,7 @@ export const updateSprite = ({
     clearInheritedHoverTarget(spriteElement);
     clearInheritedPressTarget(spriteElement);
     clearInheritedRightPressTarget(spriteElement);
+    setHoverPassThrough(spriteElement, isHoverOnlyInteraction(nextElement));
 
     const hoverEvents = nextElement?.hover;
     const clickEvents = nextElement?.click;

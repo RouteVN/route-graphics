@@ -8,6 +8,10 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import {
+  isHoverOnlyInteraction,
+  setHoverPassThrough,
+} from "../util/hoverPassThrough.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 
 export const clearTextInteractions = (displayObject) => {
@@ -25,6 +29,7 @@ export const clearTextInteractions = (displayObject) => {
   clearInheritedHoverTarget(displayObject);
   clearInheritedPressTarget(displayObject);
   clearInheritedRightPressTarget(displayObject);
+  setHoverPassThrough(displayObject, false);
   displayObject.cursor = "auto";
   displayObject.eventMode = "auto";
 };
@@ -45,6 +50,8 @@ export const bindTextInteractions = ({
   let hoverController = null;
   let pressController = null;
   let rightPressController = null;
+
+  setHoverPassThrough(displayObject, isHoverOnlyInteraction(textComputedNode));
 
   const updateTextStyle = () => {
     const isHovering = hoverController?.isHovering() ?? false;

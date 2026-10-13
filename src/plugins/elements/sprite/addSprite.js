@@ -17,6 +17,10 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import {
+  isHoverOnlyInteraction,
+  setHoverPassThrough,
+} from "../util/hoverPassThrough.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { createInteractionTextureSetter } from "./interactionTextures.js";
 import {
@@ -73,6 +77,7 @@ export const addSprite = ({
   let pressController = null;
   let rightPressController = null;
   const setInteractionTexture = createInteractionTextureSetter(sprite, texture);
+  setHoverPassThrough(sprite, isHoverOnlyInteraction(element));
 
   const updateTexture = () => {
     const isHovering = hoverController?.isHovering() ?? false;

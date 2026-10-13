@@ -50,6 +50,7 @@ import {
 } from "./plugins/elements/video/managedVideoTextureSizing.js";
 import { hitTestElementBounds as hitTestElementBoundsInTree } from "./util/hitTestElementBounds.js";
 import { setShaderTimeInTree } from "./plugins/elements/util/shaderFilterEffect.js";
+import { installHoverPassThrough } from "./plugins/elements/util/hoverPassThrough.js";
 import { validateShaderAnimationBindings } from "./plugins/elements/util/shaderStateValidation.js";
 import { validateShaderProgramsForRenderer } from "./renderer/pixi/shaderProgramValidation.js";
 import { createLayoutReport } from "./util/layoutReport.js";
@@ -1424,6 +1425,7 @@ const createRouteGraphics = () => {
       app.renderer.background.color = backgroundColor ?? 0x000000;
     }
     app.audioStage = audioStage;
+    installHoverPassThrough(app.renderer?.events?.rootBoundary);
     selectedRendererType = app.renderer?.gpu != null ? "webgpu" : "webgl";
     if (!rendererFallback && selectedRendererType !== rendererPreference) {
       app.destroy();

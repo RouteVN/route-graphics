@@ -157,6 +157,15 @@ WebGPU device loss emits `rendererContextLost`; because a lost WebGPU device is
 not restorable, consumers must recreate the Route Graphics instance rather than
 wait for `rendererContextRestored`.
 
+### Hover-only elements
+
+A text, sprite or rect whose only pointer binding is `hover` keeps tracking
+hover, but presses, releases and wheel input pass through it to the element
+beneath. A hover-styled label drawn over a clickable button therefore does not
+block the button. To make such an element catch presses itself, give it a
+`click`, `rightClick`, `scrollUp`, `scrollDown` or `drag` binding. Containers
+are not affected.
+
 ### Semantic bounds hit testing
 
 `hitTestElementBounds({ x, y })` accepts renderer-space coordinates and returns
