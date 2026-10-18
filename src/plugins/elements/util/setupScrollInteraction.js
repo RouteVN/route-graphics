@@ -83,8 +83,10 @@ export const setupScrollInteraction = ({
     isPointerOver = false;
   };
 
+  // Pixi observes wheel on the canvas with a passive listener, where
+  // preventDefault() has no effect and the browser logs an error. Keeping the
+  // page from scrolling is left to the non-passive canvas listener below.
   const pixiWheelListener = (event) => {
-    event.preventDefault?.();
     emitScrollEvent(event.deltaY, event.nativeEvent);
   };
 

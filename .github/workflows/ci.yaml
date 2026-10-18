@@ -66,6 +66,7 @@ jobs:
         run: |
           node scripts/testRuntimeLifecycle.mjs
           node scripts/testInputTouchFocus.mjs
+          node scripts/testWheelPassive.mjs
           node scripts/testRendererReset.mjs
           node scripts/testVideoPlayback.mjs
           node scripts/testLayoutReport.mjs

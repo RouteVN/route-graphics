@@ -550,9 +550,10 @@ export const setupScrolling = ({
         element.height || totalHeight,
       );
 
+      // Pixi delivers wheel from a passive canvas listener, where
+      // preventDefault() has no effect and the browser logs an error, so this
+      // handler does not call it.
       container.on("wheel", (e) => {
-        e.preventDefault(); // Prevent page scrolling
-
         // Handle vertical scrolling
         if (hasVerticalOverflow && e.deltaY !== 0) {
           controller.setScrollOffsets({
