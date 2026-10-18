@@ -5,6 +5,10 @@ import {
   createPressStateController,
   createRightPressStateController,
 } from "../util/hoverInheritance.js";
+import {
+  isHoverOnlyInteraction,
+  setHoverPassThrough,
+} from "../util/hoverPassThrough.js";
 import { setupScrollInteraction } from "../util/setupScrollInteraction.js";
 import { setRectInteractionActive } from "./rectAppearanceRuntime.js";
 
@@ -211,6 +215,7 @@ const syncBinding = (binding, { app, element, eventHandler }) => {
 
   binding.rect._cleanupScrollInteraction?.();
   binding.rect.eventMode = "static";
+  setHoverPassThrough(binding.rect, isHoverOnlyInteraction(element));
 
   if (element.scrollUp || element.scrollDown) {
     setupScrollInteraction({
@@ -238,6 +243,7 @@ export const cleanupRectInteractions = (rect) => {
   setRectInteractionActive(rect, "hover", false);
   setRectInteractionActive(rect, "click", false);
   setRectInteractionActive(rect, "rightClick", false);
+  setHoverPassThrough(rect, false);
   rect.eventMode = "auto";
   rect.cursor = "auto";
   rect.hitArea = null;

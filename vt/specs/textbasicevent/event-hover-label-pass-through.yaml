@@ -1,0 +1,60 @@
+---
+title: Hover-Only Label Over a Clickable Sprite
+description: A choice-like button is a clickable sprite with a text label above it whose only binding is a hover text style. A press and release inside the label's glyph area must reach the sprite, while the label keeps tracking hover. textStyle.fill variation is intentional for hover style-state validation (guideline exception); the sprite uses the grayscale interaction assets.
+specs:
+  - the label shows its hover style while the pointer is over it
+  - a press inside the label shows the sprite's click image
+  - a release inside the label emits the sprite's click event
+  - the label keeps its hover style through the press and release
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: move
+    x: 630
+    "y": 360
+  - action: screenshot
+  - action: mouseDown
+  - action: screenshot
+  - action: mouseUp
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - click
+    value:
+      - _event:
+          id: choice-button
+        choice: first
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: choice-button
+        type: sprite
+        x: 440
+        "y": 300
+        width: 400
+        height: 120
+        src: interaction-base
+        hover:
+          src: interaction-hover
+        click:
+          src: interaction-press
+          payload:
+            choice: first
+      - id: choice-label
+        type: text
+        x: 630
+        "y": 360
+        anchorX: 0.5
+        anchorY: 0.5
+        content: First option
+        textStyle:
+          fontFamily: Arial
+          fontSize: 36
+          fill: "#737373"
+        hover:
+          textStyle:
+            fontFamily: Arial
+            fontSize: 36
+            fill: "#000000"

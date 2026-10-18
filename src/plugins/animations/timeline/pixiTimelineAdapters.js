@@ -15,6 +15,10 @@ import {
 } from "../../elements/util/shaderFilterEffect.js";
 import { getBlurTargetState } from "../../elements/util/blurEffect.js";
 import {
+  isHoverPassThrough,
+  setHoverPassThrough,
+} from "../../elements/util/hoverPassThrough.js";
+import {
   getElementRenderState,
   setElementRenderState,
 } from "../../elements/elementRenderState.js";
@@ -308,6 +312,7 @@ const createPixiTextUnitPreparation = (textTarget, query) => {
     copyDisplayTransform(textElement, container);
     container.eventMode = textElement.eventMode;
     container.cursor = textElement.cursor;
+    setHoverPassThrough(container, isHoverPassThrough(textElement));
     for (const target of targets) {
       if (
         !target.handle.destroyed &&
