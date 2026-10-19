@@ -110,7 +110,7 @@ export const updateVideo = ({
   );
 
   const syncVideoResource = () => {
-    let activeVideo = videoElement.texture.source.resource;
+    let activeVideo = videoElement.texture?.source?.resource;
     const srcChanged = currentSrc !== nextElement.src;
 
     if (srcChanged) {
@@ -125,20 +125,24 @@ export const updateVideo = ({
         oldVideo.pause();
       }
 
-      const newTexture = Texture.from(nextElement.src);
-      videoElement.texture = newTexture;
+      // A src that is not in the cache has no video: the element shows
+      // nothing, as addVideo does.
+      const cachedTexture = Texture.from(nextElement.src);
+      activeVideo = cachedTexture?.source?.resource;
+      videoElement.texture = activeVideo ? cachedTexture : Texture.EMPTY;
       applyElementScaleAndPivot(videoElement, managedTransformElement, {
         preserveScaleMagnitude: true,
       });
       unregisterManagedVideoSprite(videoElement, oldSource);
-      registerManagedVideoSprite(videoElement);
-      activeVideo = newTexture.source.resource;
-
-      activeVideo.muted = false;
-      activeVideo.pause();
-      activeVideo.currentTime = 0;
       currentSrc = nextElement.src;
-      requestManagedVideoTextureUpdate(videoElement);
+
+      if (activeVideo) {
+        registerManagedVideoSprite(videoElement);
+        activeVideo.muted = false;
+        activeVideo.pause();
+        activeVideo.currentTime = 0;
+        requestManagedVideoTextureUpdate(videoElement);
+      }
     }
 
     syncVideoPlaybackTracking({
@@ -147,6 +151,10 @@ export const updateVideo = ({
       loop: nextElement.loop,
       completionTracker,
     });
+
+    if (!activeVideo) {
+      return;
+    }
 
     activeVideo.volume = normalizeVolume(nextElement.volume);
     activeVideo.loop = nextElement.loop ?? false;
@@ -288,7 +296,9 @@ export const updateVideo = ({
 
   requestManagedVideoTextureUpdate(videoElement);
 
+  // Without a video, no texture dimensions will come to wait for.
   if (
+    activeVideo &&
     needsStableAutoScaleTarget &&
     !hasManagedVideoTextureDimensions(videoElement)
   ) {
