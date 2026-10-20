@@ -61,6 +61,40 @@ const createDeferred = () => {
   return { promise, reject, resolve };
 };
 
+const fadeTween = (from, to) => ({
+  tween: {
+    alpha: {
+      initialValue: from,
+      keyframes: [{ duration: 300, value: to, easing: "linear" }],
+    },
+  },
+});
+
+const createTracker = () => ({
+  getVersion: () => 11,
+  track: vi.fn(),
+  complete: vi.fn(),
+  fail: vi.fn(),
+});
+
+// Mounts the given display object on add and removes the labelled child on
+// delete, as element plugins do.
+const createLabelPlugin = (nextDisplayObject) => ({
+  add: vi.fn(({ parent: targetParent, element }) => {
+    nextDisplayObject.label = element.id;
+    targetParent.addChild(nextDisplayObject);
+  }),
+  delete: vi.fn(({ parent: targetParent, element }) => {
+    const child = targetParent.children.find(
+      (item) => item.label === element.id,
+    );
+    if (child) {
+      child.removeFromParent();
+      child.destroy();
+    }
+  }),
+});
+
 const passthroughCompositor = {
   type: "shader",
   uniforms: [],
@@ -1649,6 +1683,298 @@ describe("runReplaceAnimation", () => {
       pendingCount: 0,
     });
     animationBus.destroy();
+  });
+
+  it("releases the overlay of a persistent masked transition whose first frame fails", () => {
+    const prevDisplayObject = createDisplayObject("scene-root");
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const parent = createParent(prevDisplayObject);
+    const maskTexture = document.createElement("canvas");
+    maskTexture.width = 1;
+    maskTexture.height = 1;
+    const plugin = createLabelPlugin(nextDisplayObject);
+    const animationBus = createAnimationBus();
+    let overlay;
+
+    expect(() =>
+      runReplaceAnimation({
+        app: {
+          renderer: {
+            width: 1280,
+            height: 720,
+            generateTexture: vi.fn(() => Texture.EMPTY),
+            // Snapshot preparation renders before the overlay is installed.
+            render: vi.fn(() => {
+              overlay = parent.children.find((child) => !child.label);
+              if (overlay) throw new Error("first frame failed");
+            }),
+          },
+        },
+        parent,
+        prevElement: { id: "scene-root", type: "container" },
+        nextElement: { id: "scene-root", type: "container", children: [] },
+        animation: {
+          id: "scene-mask-replace",
+          targetId: "scene-root",
+          type: "transition",
+          playback: { continuity: "persistent" },
+          mask: [
+            {
+              kind: "single",
+              texture: maskTexture,
+              channel: "red",
+              progress: {
+                initialValue: 0,
+                keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+              },
+            },
+          ],
+        },
+        animations: new Map(),
+        animationBus,
+        completionTracker: createTracker(),
+        eventHandler: vi.fn(),
+        elementPlugins: [],
+        plugin,
+        zIndex: 0,
+        signal: new AbortController().signal,
+      }),
+    ).toThrow("first frame failed");
+
+    expect(overlay?.destroyed).toBe(true);
+    expect(parent.children).toHaveLength(0);
+    expect(plugin.delete).toHaveBeenCalledTimes(1);
+    expect(nextDisplayObject.destroyed).toBe(true);
+    expect(animationBus.getState()).toMatchObject({
+      activeCount: 0,
+      pendingCount: 0,
+    });
+    animationBus.destroy();
+  });
+
+  it("releases the overlay of a persistent live delete-only transition whose first frame fails", () => {
+    const prevDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    prevDisplayObject.label = "scene-root";
+    const parent = createParent(prevDisplayObject);
+    const plugin = createLabelPlugin(null);
+    const animationBus = createAnimationBus();
+    let overlay;
+
+    expect(() =>
+      runReplaceAnimation({
+        app: {
+          renderer: {
+            width: 1280,
+            height: 720,
+            render: vi.fn(() => {
+              overlay ??= parent.children.find((child) => !child.label);
+              throw new Error("first frame failed");
+            }),
+          },
+        },
+        parent,
+        prevElement: { id: "scene-root", type: "container" },
+        nextElement: null,
+        animation: {
+          id: "scene-exit",
+          targetId: "scene-root",
+          type: "transition",
+          playback: { continuity: "persistent" },
+          prev: fadeTween(1, 0),
+        },
+        animations: new Map(),
+        animationBus,
+        completionTracker: createTracker(),
+        eventHandler: vi.fn(),
+        elementPlugins: [],
+        plugin,
+        zIndex: 0,
+        signal: new AbortController().signal,
+      }),
+    ).toThrow("first frame failed");
+
+    expect(overlay?.destroyed).toBe(true);
+    expect(parent.children).toHaveLength(0);
+    expect(prevDisplayObject.destroyed).toBe(true);
+    expect(animationBus.getState()).toMatchObject({
+      activeCount: 0,
+      pendingCount: 0,
+    });
+    animationBus.destroy();
+  });
+
+  it("reports the first frame failure and still releases the overlay when the previous plugin delete throws", () => {
+    const prevDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    prevDisplayObject.label = "scene-root";
+    const nextDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    const parent = createParent(prevDisplayObject);
+    const plugin = {
+      ...createLabelPlugin(nextDisplayObject),
+      delete: vi.fn(() => {
+        throw new Error("delete failed");
+      }),
+    };
+    const animationBus = createAnimationBus();
+    let overlay;
+
+    expect(() =>
+      runReplaceAnimation({
+        app: {
+          renderer: {
+            width: 1280,
+            height: 720,
+            render: vi.fn(() => {
+              overlay ??= parent.children.find((child) => !child.label);
+              throw new Error("first frame failed");
+            }),
+          },
+        },
+        parent,
+        prevElement: { id: "scene-root", type: "container" },
+        nextElement: { id: "scene-root", type: "container" },
+        animation: {
+          id: "scene-transition",
+          targetId: "scene-root",
+          type: "transition",
+          playback: { continuity: "persistent" },
+          prev: fadeTween(1, 0),
+          next: fadeTween(0, 1),
+        },
+        animations: new Map(),
+        animationBus,
+        completionTracker: createTracker(),
+        eventHandler: vi.fn(),
+        elementPlugins: [],
+        plugin,
+        zIndex: 0,
+        signal: new AbortController().signal,
+      }),
+    ).toThrow("first frame failed");
+
+    expect(plugin.delete).toHaveBeenCalledTimes(1);
+    expect(overlay?.destroyed).toBe(true);
+    expect(parent.children).toHaveLength(0);
+    expect(nextDisplayObject.destroyed).toBe(true);
+    animationBus.destroy();
+  });
+
+  it("fails then completes an async live transition whose first frame fails", async () => {
+    const prevDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    prevDisplayObject.label = "scene-root";
+    const nextDisplayObject = new AnimatedSprite([Texture.EMPTY]);
+    const parent = createParent(prevDisplayObject);
+    const plugin = {
+      ...createLabelPlugin(nextDisplayObject),
+      add: vi.fn(({ parent: targetParent, element }) => {
+        nextDisplayObject.label = element.id;
+        targetParent.addChild(nextDisplayObject);
+        return Promise.resolve();
+      }),
+    };
+    const tracker = createTracker();
+    const animationBus = createAnimationBus();
+    let overlay;
+
+    await expect(
+      runReplaceAnimation({
+        app: {
+          renderer: {
+            width: 1280,
+            height: 720,
+            render: vi.fn(() => {
+              overlay ??= parent.children.find((child) => !child.label);
+              throw new Error("first frame failed");
+            }),
+          },
+        },
+        parent,
+        prevElement: { id: "scene-root", type: "container" },
+        nextElement: { id: "scene-root", type: "container" },
+        animation: {
+          id: "scene-transition",
+          targetId: "scene-root",
+          type: "transition",
+          prev: fadeTween(1, 0),
+          next: fadeTween(0, 1),
+        },
+        animations: new Map(),
+        animationBus,
+        completionTracker: tracker,
+        eventHandler: vi.fn(),
+        elementPlugins: [],
+        plugin,
+        zIndex: 0,
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toThrow("first frame failed");
+
+    expect(overlay?.destroyed).toBe(true);
+    expect(parent.children).toHaveLength(0);
+    expect(prevDisplayObject.destroyed).toBe(true);
+    expect(nextDisplayObject.destroyed).toBe(true);
+    expect(tracker.track).toHaveBeenCalledTimes(1);
+    expect(tracker.fail).toHaveBeenCalledWith(
+      11,
+      expect.objectContaining({ message: "first frame failed" }),
+    );
+    expect(tracker.complete).toHaveBeenCalledTimes(1);
+    expect(tracker.fail.mock.invocationCallOrder[0]).toBeLessThan(
+      tracker.complete.mock.invocationCallOrder[0],
+    );
+    expect(animationBus.getState()).toMatchObject({
+      activeCount: 0,
+      pendingCount: 0,
+    });
+    animationBus.destroy();
+  });
+
+  it("presents the next element when a transition run as an enter is cancelled", () => {
+    const parent = createParent();
+    const nextDisplayObject = createDisplayObject("scene-root");
+    const plugin = createLabelPlugin(nextDisplayObject);
+    const tracker = createTracker();
+    const animationBus = { dispatch: vi.fn() };
+
+    runReplaceAnimation({
+      app: {
+        renderer: {
+          width: 1280,
+          height: 720,
+          generateTexture: vi.fn(() => Texture.EMPTY),
+        },
+      },
+      parent,
+      prevElement: { id: "scene-root", type: "container", x: 0 },
+      nextElement: { id: "scene-root", type: "container", x: 5 },
+      animation: {
+        id: "scene-transition",
+        targetId: "scene-root",
+        type: "transition",
+        prev: fadeTween(1, 0),
+        next: fadeTween(0, 1),
+      },
+      animations: new Map(),
+      animationBus,
+      completionTracker: tracker,
+      eventHandler: vi.fn(),
+      elementPlugins: [],
+      plugin,
+      zIndex: 3,
+      signal: new AbortController().signal,
+    });
+
+    const { payload } = animationBus.dispatch.mock.calls[0][0];
+    payload.applyFrame(100);
+    payload.onCancel();
+    payload.onComplete();
+
+    expect(parent.children).toEqual([nextDisplayObject]);
+    expect(nextDisplayObject.visible).toBe(true);
+    expect(nextDisplayObject.zIndex).toBe(3);
+    expect(getElementRenderState(nextDisplayObject)?.x).toBe(5);
+    expect(plugin.delete).not.toHaveBeenCalled();
+    expect(tracker.track).toHaveBeenCalledTimes(1);
+    expect(tracker.complete).toHaveBeenCalledTimes(1);
   });
 
   it.each([false, true])(
