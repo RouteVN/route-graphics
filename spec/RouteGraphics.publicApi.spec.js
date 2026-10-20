@@ -5136,6 +5136,104 @@ describe("RouteGraphics public API", () => {
     },
   );
 
+  it("renders a container again after its persistent transition fails to draw its first frame", async () => {
+    let failLiveFrame = false;
+    const { app, pixiMock } = await setupRouteGraphics({
+      rendererOverrides: {
+        render: vi.fn(() => {
+          if (failLiveFrame) throw new Error("live frame failed");
+        }),
+      },
+      pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+        // A spritesheet keeps the transition live: its subjects are drawn
+        // into render textures every frame instead of being snapshotted.
+        activePixiMock.RenderTexture = {
+          create: () => new activePixiMock.Texture(),
+        };
+        activePixiMock.Matrix = class MockMatrix {};
+        const { containerPlugin } =
+          await import("../src/plugins/elements/container/index.js");
+        const spritesheetPlugin = {
+          type: "spritesheet-node",
+          parse: ({ state }) => state,
+          add: ({ parent, element }) => {
+            const sprite = new activePixiMock.AnimatedSprite();
+            sprite.label = element.id;
+            parent.addChild(sprite);
+          },
+          update: vi.fn(),
+          delete: vi.fn(),
+        };
+
+        return {
+          elements: [containerPlugin, spritesheetPlugin],
+          animations: [],
+          audio: [],
+        };
+      },
+    });
+    const frameTick = getAutoAnimationTick(pixiMock);
+    const createScreen = (x) => ({
+      id: "screen",
+      type: "container",
+      x,
+      y: 0,
+      width: 100,
+      height: 100,
+      children: [{ id: "character", type: "spritesheet-node" }],
+    });
+    const createScreenTransition = (continuity) => ({
+      id: "screen-transition",
+      targetId: "screen",
+      type: "transition",
+      playback: { continuity },
+      prev: {
+        tween: {
+          alpha: {
+            initialValue: 1,
+            keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+          },
+        },
+      },
+      next: {
+        tween: {
+          alpha: {
+            initialValue: 0,
+            keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+          },
+        },
+      },
+    });
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+
+    failLiveFrame = true;
+    expect(() =>
+      app.render({
+        id: "line-2",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).toThrow("live frame failed");
+    failLiveFrame = false;
+
+    // The failed transition leaves no overlay to stand in for the container.
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+
+    expect(() =>
+      app.render({
+        id: "line-3",
+        elements: [createScreen(20)],
+        animations: [createScreenTransition("render")],
+      }),
+    ).not.toThrow();
+
+    frameTick({ deltaMS: 300 });
+
+    expect(app.findElementByLabel("screen")?.x).toBe(20);
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+  });
+
   it("applies remembered manual time to transitions that start asynchronously", async () => {
     let resolveAdd;
     const addPromise = new Promise((resolve) => {

@@ -166,10 +166,11 @@ export const runReplaceAnimation = ({
     ? (parent.children.find((child) => child.label === prevElement.id) ?? null)
     : null;
 
-  if (prevElement && !prevDisplayObject) {
-    throw new Error(
-      `Transition animation "${animation.id}" could not find the previous element "${prevElement.id}".`,
-    );
+  // An unmounted previous element has nothing to animate out, as plugins skip
+  // a delete or update whose element is not mounted. The next element still
+  // enters, as an added element would.
+  if (prevElement && !prevDisplayObject && !nextElement) {
+    return;
   }
 
   const isPersistent = animation.playback?.continuity === "persistent";
@@ -471,6 +472,20 @@ export const runReplaceAnimation = ({
     const cleanupPreparedTransition = () => {
       cleanupPendingTransition();
       clearDeferredMountOperations(hiddenMountContext);
+      // An installed overlay that failed to start still stands in for the
+      // element and holds live subjects off stage. Finish it like a cancelled
+      // transition, or later renders take it for the element.
+      if (replaceOverlayRef.value) {
+        try {
+          const operation = finalize({ flushDeferredEffects: false });
+          if (operation && typeof operation.then === "function") {
+            void operation.catch(() => {});
+          }
+        } catch {
+          // Finalization releases the overlay before it rethrows; the
+          // preparation failure is the one reported.
+        }
+      }
       destroySubjectSnapshot(overlaySubjects.prevSubject, app);
       destroySubjectSnapshot(overlaySubjects.nextSubject, app);
 
