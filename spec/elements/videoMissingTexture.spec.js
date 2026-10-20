@@ -190,4 +190,153 @@ describe("video element with a src that is not in the cache", () => {
     expect(Texture.EMPTY.destroyed).toBe(false);
     expect(Texture.EMPTY.source.destroyed).toBe(false);
   });
+
+  it("keeps showing nothing when other properties change on the same missing src", () => {
+    const parent = new Container();
+    const element = createElement(MISSING_SRC);
+    addVideo({ parent, element, animations: [], zIndex: 0 });
+    const sprite = parent.getChildByLabel("video-1");
+
+    const { completionTracker, finish } = startRender();
+    expect(() =>
+      updateVideo({
+        parent,
+        prevElement: element,
+        nextElement: createElement(MISSING_SRC, { x: 10, alpha: 0.5 }),
+        animations: [],
+        animationBus: { dispatch: vi.fn() },
+        completionTracker,
+        zIndex: 0,
+      }),
+    ).not.toThrow();
+
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    expect(sprite.x).toBe(10);
+    expect(sprite.alpha).toBe(0.5);
+    expect(finish()).toEqual([
+      { name: "renderComplete", payload: { id: "state-1", aborted: false } },
+    ]);
+  });
+
+  it("keeps the element size on the empty texture and across src swaps", () => {
+    cacheVideo();
+    const parent = new Container();
+    const missingElement = createElement(MISSING_SRC);
+    const cachedElement = createElement(CACHED_SRC);
+    addVideo({ parent, element: missingElement, animations: [], zIndex: 0 });
+    const sprite = parent.getChildByLabel("video-1");
+    expect([sprite.width, sprite.height]).toEqual([320, 180]);
+
+    const swap = (prevElement, nextElement) =>
+      updateVideo({
+        parent,
+        prevElement,
+        nextElement,
+        animations: [],
+        animationBus: { dispatch: vi.fn() },
+        completionTracker: createCompletionTracker(),
+        zIndex: 0,
+      });
+
+    swap(missingElement, cachedElement);
+    expect([sprite.width, sprite.height]).toEqual([320, 180]);
+    swap(cachedElement, missingElement);
+    expect([sprite.width, sprite.height]).toEqual([320, 180]);
+  });
+
+  it("is updated to a missing src under a live tween and completes when the tween ends", () => {
+    const { video } = cacheVideo();
+    const parent = new Container();
+    const cachedElement = createElement(CACHED_SRC, { loop: true });
+    addVideo({ parent, element: cachedElement, animations: [], zIndex: 0 });
+    const sprite = parent.getChildByLabel("video-1");
+    const commands = [];
+    const { completionTracker, finish } = startRender();
+
+    expect(() =>
+      updateVideo({
+        parent,
+        prevElement: cachedElement,
+        nextElement: createElement(MISSING_SRC, { loop: true, alpha: 0.4 }),
+        animations: [
+          {
+            id: "video-fade",
+            targetId: "video-1",
+            type: "update",
+            tween: { alpha: { keyframes: [{ duration: 100, value: 0.4 }] } },
+          },
+        ],
+        animationBus: { dispatch: (command) => commands.push(command) },
+        completionTracker,
+        zIndex: 0,
+      }),
+    ).not.toThrow();
+
+    // The src is swapped before the tween starts.
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    expect(video.pause).toHaveBeenCalled();
+    const start = commands.find((command) => command.type === "START");
+    expect(start).toBeDefined();
+    start.payload.onComplete();
+    expect([sprite.width, sprite.height]).toEqual([320, 180]);
+    expect(finish()).toEqual([
+      { name: "renderComplete", payload: { id: "state-1", aborted: false } },
+    ]);
+  });
+
+  it("starts an auto scale tween at once when updated to a missing src", () => {
+    cacheVideo();
+    const parent = new Container();
+    const cachedElement = createElement(CACHED_SRC, {
+      loop: true,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    addVideo({ parent, element: cachedElement, animations: [], zIndex: 0 });
+    const animationBus = { dispatch: vi.fn() };
+
+    updateVideo({
+      parent,
+      prevElement: cachedElement,
+      nextElement: createElement(MISSING_SRC, {
+        loop: true,
+        scaleX: 1,
+        scaleY: 1,
+      }),
+      animations: [AUTO_SCALE_ANIMATION],
+      animationBus,
+      completionTracker: createCompletionTracker(),
+      zIndex: 0,
+    });
+
+    expect(animationBus.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "START" }),
+    );
+  });
+
+  it("holds the render while a video that replaces a missing src plays to its end", () => {
+    const { video } = cacheVideo();
+    const parent = new Container();
+    const missingElement = createElement(MISSING_SRC);
+    addVideo({ parent, element: missingElement, animations: [], zIndex: 0 });
+    const { completionTracker, finish } = startRender();
+
+    updateVideo({
+      parent,
+      prevElement: missingElement,
+      nextElement: createElement(CACHED_SRC),
+      animations: [],
+      animationBus: { dispatch: vi.fn() },
+      completionTracker,
+      zIndex: 0,
+    });
+
+    expect(video.play).toHaveBeenCalledTimes(1);
+    const events = finish();
+    expect(events).toEqual([]);
+    video.dispatchEvent(new Event("ended"));
+    expect(events).toEqual([
+      { name: "renderComplete", payload: { id: "state-1", aborted: false } },
+    ]);
+  });
 });

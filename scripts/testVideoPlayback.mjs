@@ -169,6 +169,142 @@ try {
     );
     await page.close();
   }
+
+  // A video whose src was never loaded shows nothing and lets renders complete.
+  {
+    const page = await browser.newPage({
+      viewport: { width: 320, height: 180 },
+    });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => {
+      if (/GL_INVALID|WebGL.*INVALID/.test(message.text()))
+        errors.push(message.text());
+    });
+    await page.goto(`http://127.0.0.1:${server.address().port}/`);
+    const result = await page.evaluate(async () => {
+      const m = await import("/bundle.js");
+      const app = m.default();
+      const completions = [];
+      await app.init({
+        width: 320,
+        height: 180,
+        rendererPreference: "webgl",
+        rendererFallback: false,
+        animationPlaybackMode: "manual",
+        plugins: {
+          elements: [m.rectPlugin, m.videoPlugin],
+          animations: [m.tweenPlugin],
+        },
+        eventHandler: (name, payload) => {
+          if (name === "renderComplete") completions.push(payload);
+        },
+      });
+      document.body.append(app.canvas);
+      window.missingVideoTest = { app, completions };
+      const backdrop = {
+        id: "backdrop",
+        type: "rect",
+        x: 0,
+        y: 0,
+        width: 320,
+        height: 180,
+        fill: "#ff0000",
+      };
+      let renderError = null;
+      try {
+        app.render({
+          id: "with-missing-video",
+          elements: [
+            backdrop,
+            {
+              id: "clip",
+              type: "video",
+              src: "never-loaded",
+              x: 0,
+              y: 0,
+              width: 320,
+              height: 180,
+              volume: 0,
+              loop: false,
+              alpha: 0.5,
+            },
+          ],
+          animations: [
+            {
+              id: "fade",
+              type: "update",
+              targetId: "clip",
+              tween: { alpha: { auto: { duration: 100 } } },
+            },
+          ],
+        });
+        app.setAnimationTime(100);
+      } catch (error) {
+        renderError = error.message;
+      }
+      return { renderError, completions: [...completions] };
+    });
+    assert.equal(result.renderError, null, "missing video: render threw");
+    assert.deepEqual(
+      result.completions,
+      [{ id: "with-missing-video", aborted: false }],
+      "missing video: render did not complete",
+    );
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
+    const frame = PNG.sync.read(await page.locator("canvas").screenshot());
+    let backdropPixels = 0;
+    for (let i = 0; i < frame.data.length; i += 4) {
+      if (
+        frame.data[i] > 200 &&
+        frame.data[i + 1] < 40 &&
+        frame.data[i + 2] < 40
+      )
+        backdropPixels += 1;
+    }
+    assert.equal(
+      backdropPixels,
+      320 * 180,
+      "missing video: the empty video must not cover the backdrop",
+    );
+    const finalCompletions = await page.evaluate(() => {
+      const { app, completions } = window.missingVideoTest;
+      app.render({
+        id: "without-video",
+        elements: [
+          {
+            id: "backdrop",
+            type: "rect",
+            x: 0,
+            y: 0,
+            width: 320,
+            height: 180,
+            fill: "#ff0000",
+          },
+        ],
+      });
+      app.destroy();
+      return completions;
+    });
+    assert.deepEqual(
+      finalCompletions,
+      [
+        { id: "with-missing-video", aborted: false },
+        { id: "without-video", aborted: false },
+      ],
+      "missing video: removing it did not complete",
+    );
+    assert.deepEqual(errors, [], "missing video: browser errors");
+    console.log(
+      "PASS missing src: video without a texture draws nothing and completes",
+    );
+    await page.close();
+  }
 } finally {
   await browser.close();
   await new Promise((resolve) => server.close(resolve));
