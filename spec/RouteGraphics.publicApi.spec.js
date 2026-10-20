@@ -577,6 +577,102 @@ const findTransitionOverlay = (pixiMock) =>
         child.children.length > 0,
     ) ?? null;
 
+const countLabelled = (pixiMock, label) =>
+  pixiMock
+    .__getLastApplication()
+    .stage.children.filter((child) => child.label === label && !child.destroyed)
+    .length;
+
+const createScreen = (x) => ({
+  id: "screen",
+  type: "container",
+  x,
+  y: 0,
+  width: 100,
+  height: 100,
+  children: [{ id: "character", type: "spritesheet-node" }],
+});
+
+const createScreenTransition = (continuity, { next = true } = {}) => ({
+  id: "screen-transition",
+  targetId: "screen",
+  type: "transition",
+  playback: { continuity },
+  prev: {
+    tween: {
+      alpha: {
+        initialValue: 1,
+        keyframes: [{ duration: 300, value: 0, easing: "linear" }],
+      },
+    },
+  },
+  ...(next
+    ? {
+        next: {
+          tween: {
+            alpha: {
+              initialValue: 0,
+              keyframes: [{ duration: 300, value: 1, easing: "linear" }],
+            },
+          },
+        },
+      }
+    : {}),
+});
+
+// Mounts containers that hold a spritesheet node. The spritesheet keeps a
+// persistent transition live: its subjects are drawn into render textures every
+// frame instead of being snapshotted. Drawing a frame throws while
+// `setFailLiveFrame(true)` is in effect.
+const setupLiveScreen = async ({ asyncAdd = false } = {}) => {
+  let failLiveFrame = false;
+  const { app, pixiMock } = await setupRouteGraphics({
+    rendererOverrides: {
+      render: vi.fn(() => {
+        if (failLiveFrame) throw new Error("live frame failed");
+      }),
+    },
+    pluginsFactory: async ({ pixiMock: activePixiMock }) => {
+      activePixiMock.RenderTexture = {
+        create: () => new activePixiMock.Texture(),
+      };
+      activePixiMock.Matrix = class MockMatrix {};
+      const { containerPlugin } =
+        await import("../src/plugins/elements/container/index.js");
+      const spritesheetPlugin = {
+        type: "spritesheet-node",
+        parse: ({ state }) => state,
+        add: ({ parent, element }) => {
+          const sprite = new activePixiMock.AnimatedSprite();
+          sprite.label = element.id;
+          parent.addChild(sprite);
+          return asyncAdd ? Promise.resolve() : undefined;
+        },
+        update: vi.fn(),
+        delete: ({ parent, element }) => {
+          parent.children
+            .find((child) => child.label === element.id)
+            ?.destroy();
+        },
+      };
+
+      return {
+        elements: [containerPlugin, spritesheetPlugin],
+        animations: [],
+        audio: [],
+      };
+    },
+  });
+
+  return {
+    app,
+    pixiMock,
+    setFailLiveFrame: (value) => {
+      failLiveFrame = value;
+    },
+  };
+};
+
 const createPlanningAudioStage = () => {
   const ownedAudioEffects = new Map();
   const validateGraphTransition = vi.fn(
@@ -5135,6 +5231,175 @@ describe("RouteGraphics public API", () => {
       expect(overlay?.children[0].alpha).toBeCloseTo(0.2);
     },
   );
+
+  it("renders a container again after its persistent transition fails to draw its first frame", async () => {
+    const warn = vi.spyOn(console, "warn");
+    const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+
+    setFailLiveFrame(true);
+    expect(() =>
+      app.render({
+        id: "line-2",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).toThrow("live frame failed");
+    setFailLiveFrame(false);
+
+    // The failed transition leaves no overlay to stand in for the container.
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+
+    expect(() =>
+      app.render({
+        id: "line-3",
+        elements: [createScreen(20)],
+        animations: [createScreenTransition("render")],
+      }),
+    ).not.toThrow();
+
+    frameTick({ deltaMS: 300 });
+
+    expect(app.findElementByLabel("screen")?.x).toBe(20);
+    expect(countLabelled(pixiMock, "screen")).toBe(1);
+    expect(app.findElementByLabel("character")).not.toBeNull();
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+
+    // The failed transition is cleaned up, so no later render needs the
+    // missing-element fallback.
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("could not find the previous element"),
+    );
+  });
+
+  it("renders a container again without a transition after its persistent transition fails to draw its first frame", async () => {
+    const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+
+    setFailLiveFrame(true);
+    expect(() =>
+      app.render({
+        id: "line-2",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).toThrow("live frame failed");
+    setFailLiveFrame(false);
+
+    expect(() =>
+      app.render({ id: "line-3", elements: [createScreen(20)] }),
+    ).not.toThrow();
+
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+    expect(countLabelled(pixiMock, "screen")).toBe(1);
+    expect(app.findElementByLabel("screen")?.x).toBe(20);
+    expect(app.findElementByLabel("character")).not.toBeNull();
+  });
+
+  it("renders a container again after its async persistent transition fails to draw its first frame", async () => {
+    const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen({
+      asyncAdd: true,
+    });
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+    await app.whenRenderReady();
+
+    setFailLiveFrame(true);
+    app.render({
+      id: "line-2",
+      elements: [createScreen(10)],
+      animations: [createScreenTransition("persistent")],
+    });
+    await expect(app.whenRenderReady()).rejects.toThrow("live frame failed");
+    setFailLiveFrame(false);
+
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+
+    app.render({
+      id: "line-3",
+      elements: [createScreen(20)],
+      animations: [createScreenTransition("render")],
+    });
+    await app.whenRenderReady();
+    frameTick({ deltaMS: 300 });
+
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+    expect(countLabelled(pixiMock, "screen")).toBe(1);
+    expect(app.findElementByLabel("screen")?.x).toBe(20);
+  });
+
+  it("removes a container with a delete-only transition after its persistent transition fails to draw its first frame", async () => {
+    const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+
+    setFailLiveFrame(true);
+    expect(() =>
+      app.render({
+        id: "line-2",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).toThrow("live frame failed");
+    setFailLiveFrame(false);
+
+    expect(() =>
+      app.render({
+        id: "line-3",
+        elements: [],
+        animations: [createScreenTransition("render", { next: false })],
+      }),
+    ).not.toThrow();
+
+    frameTick({ deltaMS: 300 });
+
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+    expect(countLabelled(pixiMock, "screen")).toBe(0);
+  });
+
+  it("plays a persistent transition again after it fails to draw its first frame", async () => {
+    const warn = vi.spyOn(console, "warn");
+    const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
+    const frameTick = getAutoAnimationTick(pixiMock);
+
+    app.render({ id: "line-1", elements: [createScreen(0)] });
+
+    setFailLiveFrame(true);
+    expect(() =>
+      app.render({
+        id: "line-2",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).toThrow("live frame failed");
+    setFailLiveFrame(false);
+
+    expect(() =>
+      app.render({
+        id: "line-2-retry",
+        elements: [createScreen(10)],
+        animations: [createScreenTransition("persistent")],
+      }),
+    ).not.toThrow();
+    expect(findTransitionOverlay(pixiMock)).not.toBeNull();
+
+    frameTick({ deltaMS: 300 });
+
+    expect(findTransitionOverlay(pixiMock)).toBeNull();
+    expect(countLabelled(pixiMock, "screen")).toBe(1);
+    expect(app.findElementByLabel("screen")?.x).toBe(10);
+
+    // The failed transition is cleaned up, so no later render needs the
+    // missing-element fallback.
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("could not find the previous element"),
+    );
+  });
 
   it("applies remembered manual time to transitions that start asynchronously", async () => {
     let resolveAdd;
