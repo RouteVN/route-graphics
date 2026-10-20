@@ -3146,6 +3146,109 @@ describe("RouteGraphics public API", () => {
     }
   });
 
+  it.each([true, false])(
+    "allocates a video texture again on every upload until a decoded frame is presented (frame callbacks: %s)",
+    async (hasFrameCallbacks) => {
+      const { app, pixiMock } = await setupRouteGraphics({
+        pluginsFactory: async () => {
+          const { videoPlugin } =
+            await import("../src/plugins/elements/video/index.js");
+
+          return {
+            elements: [videoPlugin],
+            animations: [],
+            audio: [],
+          };
+        },
+      });
+      const createdVideos = [];
+      let presentFrame;
+      // Without frame callbacks, playback updates on animation frames.
+      const originalRequestAnimationFrame = window.requestAnimationFrame;
+      window.requestAnimationFrame = vi.fn(() => 1);
+      const originalHTMLVideoElement = globalThis.HTMLVideoElement;
+      Object.defineProperty(globalThis, "HTMLVideoElement", {
+        value: window.HTMLVideoElement,
+        configurable: true,
+      });
+      const createObjectURL = vi
+        .spyOn(URL, "createObjectURL")
+        .mockReturnValue("blob:http://route-graphics/video");
+      const originalCreateElement = document.createElement.bind(document);
+      const createElement = vi
+        .spyOn(document, "createElement")
+        .mockImplementation((tagName, ...args) => {
+          const element = originalCreateElement(tagName, ...args);
+
+          if (tagName === "video") {
+            createdVideos.push(element);
+            Object.defineProperty(element, "readyState", {
+              value: 0,
+              configurable: true,
+            });
+            element.load = vi.fn();
+            element.pause = vi.fn();
+            element.play = vi.fn();
+            element.requestVideoFrameCallback = hasFrameCallbacks
+              ? vi.fn((callback) => {
+                  presentFrame = callback;
+                  return 1;
+                })
+              : undefined;
+          }
+
+          return element;
+        });
+
+      try {
+        await app.loadAssets({
+          introVideo: {
+            buffer: new Uint8Array([1, 2, 3]).buffer,
+            type: "video/mp4",
+          },
+        });
+        const { source } = pixiMock.Assets.cache.get("introVideo");
+        const [video] = createdVideos;
+        Object.defineProperty(video, "readyState", {
+          value: window.HTMLMediaElement.HAVE_ENOUGH_DATA,
+          configurable: true,
+        });
+        Object.defineProperty(video, "videoWidth", {
+          value: 640,
+          configurable: true,
+        });
+        Object.defineProperty(video, "videoHeight", {
+          value: 360,
+          configurable: true,
+        });
+
+        // Decoded data and playback arrive before the first presented frame.
+        video.dispatchEvent(new Event("loadeddata"));
+        video.dispatchEvent(new Event("canplay"));
+        video.dispatchEvent(new Event("play"));
+
+        expect(source.update).toHaveBeenCalledTimes(3);
+        expect(source.unload).toHaveBeenCalledTimes(hasFrameCallbacks ? 3 : 0);
+
+        presentFrame?.();
+        video.dispatchEvent(new Event("timeupdate"));
+        video.dispatchEvent(new Event("timeupdate"));
+
+        // After the first presented frame, frames update the storage in place.
+        expect(source.update).toHaveBeenCalledTimes(hasFrameCallbacks ? 6 : 5);
+        expect(source.unload).toHaveBeenCalledTimes(hasFrameCallbacks ? 4 : 0);
+      } finally {
+        window.requestAnimationFrame = originalRequestAnimationFrame;
+        Object.defineProperty(globalThis, "HTMLVideoElement", {
+          value: originalHTMLVideoElement,
+          configurable: true,
+        });
+        createElement.mockRestore();
+        createObjectURL.mockRestore();
+      }
+    },
+  );
+
   it.each([false, true])(
     "waits for decoded video pixels and preserves dimensions (metadata ready: %s)",
     async (metadataReady) => {
