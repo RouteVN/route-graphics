@@ -49,14 +49,20 @@ export const addVideo = ({
 }) => {
   const { id, width, height, src, volume, loop, alpha } = element;
 
-  const texture = Texture.from(src);
-  const video = texture.source.resource;
+  // A src that is not in the cache, because its file did not load or its
+  // texture was unloaded, has no video. Like a sprite without a texture, the
+  // element then shows nothing instead of stopping the render.
+  const cachedTexture = Texture.from(src);
+  const video = cachedTexture?.source?.resource;
+  const texture = video ? cachedTexture : Texture.EMPTY;
 
-  video.pause();
-  video.currentTime = 0;
-  video.loop = loop ?? false;
-  video.volume = normalizeVolume(volume);
-  video.muted = false;
+  if (video) {
+    video.pause();
+    video.currentTime = 0;
+    video.loop = loop ?? false;
+    video.volume = normalizeVolume(volume);
+    video.muted = false;
+  }
 
   const sprite = new Sprite(texture);
   sprite.label = id;
@@ -142,7 +148,9 @@ export const addVideo = ({
       dispatchAnimations();
     }
   });
-  registerManagedVideoSprite(sprite);
+  if (video) {
+    registerManagedVideoSprite(sprite);
+  }
   sprite.alpha = alpha ?? 1;
   const shouldForceBlur = hasBlurUpdateAnimation(animations, id);
   syncBlurEffect(sprite, element.blur, { force: shouldForceBlur });
@@ -164,8 +172,10 @@ export const addVideo = ({
   });
 
   parent.addChild(sprite);
-  requestManagedVideoTextureUpdate(sprite);
-  queueDeferredVideoPlay(renderContext, video);
+  if (video) {
+    requestManagedVideoTextureUpdate(sprite);
+    queueDeferredVideoPlay(renderContext, video);
+  }
 
   const needsStableAutoScaleTarget = getLiveAnimations(animations, id).some(
     (animation) =>
@@ -173,7 +183,12 @@ export const addVideo = ({
       animation.tween?.scaleY?.auto !== undefined,
   );
 
-  if (needsStableAutoScaleTarget && !hasManagedVideoTextureDimensions(sprite)) {
+  // Without a video, no texture dimensions will come to wait for.
+  if (
+    video &&
+    needsStableAutoScaleTarget &&
+    !hasManagedVideoTextureDimensions(sprite)
+  ) {
     waitingForTextureDimensions = true;
     textureWaitVersion = completionTracker?.getVersion?.();
     completionTracker?.track?.(textureWaitVersion);
