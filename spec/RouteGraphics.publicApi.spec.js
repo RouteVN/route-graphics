@@ -5233,6 +5233,7 @@ describe("RouteGraphics public API", () => {
   );
 
   it("renders a container again after its persistent transition fails to draw its first frame", async () => {
+    const warn = vi.spyOn(console, "warn");
     const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
     const frameTick = getAutoAnimationTick(pixiMock);
 
@@ -5265,6 +5266,12 @@ describe("RouteGraphics public API", () => {
     expect(countLabelled(pixiMock, "screen")).toBe(1);
     expect(app.findElementByLabel("character")).not.toBeNull();
     expect(findTransitionOverlay(pixiMock)).toBeNull();
+
+    // The failed transition is cleaned up, so no later render needs the
+    // missing-element fallback.
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("could not find the previous element"),
+    );
   });
 
   it("renders a container again without a transition after its persistent transition fails to draw its first frame", async () => {
@@ -5356,6 +5363,7 @@ describe("RouteGraphics public API", () => {
   });
 
   it("plays a persistent transition again after it fails to draw its first frame", async () => {
+    const warn = vi.spyOn(console, "warn");
     const { app, pixiMock, setFailLiveFrame } = await setupLiveScreen();
     const frameTick = getAutoAnimationTick(pixiMock);
 
@@ -5385,6 +5393,12 @@ describe("RouteGraphics public API", () => {
     expect(findTransitionOverlay(pixiMock)).toBeNull();
     expect(countLabelled(pixiMock, "screen")).toBe(1);
     expect(app.findElementByLabel("screen")?.x).toBe(10);
+
+    // The failed transition is cleaned up, so no later render needs the
+    // missing-element fallback.
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("could not find the previous element"),
+    );
   });
 
   it("applies remembered manual time to transitions that start asynchronously", async () => {

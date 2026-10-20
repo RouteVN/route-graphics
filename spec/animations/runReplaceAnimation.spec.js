@@ -1482,6 +1482,7 @@ describe("runReplaceAnimation", () => {
   });
 
   it("runs a transition as an enter when its previous element is no longer mounted", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const parent = createParent();
     const nextDisplayObject = createDisplayObject("scene-root");
     const plugin = {
@@ -1557,9 +1558,15 @@ describe("runReplaceAnimation", () => {
     expect(parent.children).toEqual([nextDisplayObject]);
     expect(nextDisplayObject.visible).toBe(true);
     expect(tracker.complete).toHaveBeenCalledWith(11);
+
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      'Transition animation "scene-transition" could not find the previous element "scene-root"; running it as an enter.',
+    );
+    warn.mockRestore();
   });
 
   it("skips a delete-only transition whose previous element is no longer mounted", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const parent = createParent();
     const plugin = { add: vi.fn(), delete: vi.fn() };
     const tracker = {
@@ -1602,6 +1609,11 @@ describe("runReplaceAnimation", () => {
     expect(plugin.delete).not.toHaveBeenCalled();
     expect(animationBus.dispatch).not.toHaveBeenCalled();
     expect(tracker.track).not.toHaveBeenCalled();
+
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      'Transition animation "scene-exit" could not find the previous element "scene-root"; skipping it.',
+    );
+    warn.mockRestore();
   });
 
   it("releases the overlay of a persistent live transition that fails to start", () => {
@@ -1929,6 +1941,7 @@ describe("runReplaceAnimation", () => {
   });
 
   it("presents the next element when a transition run as an enter is cancelled", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const parent = createParent();
     const nextDisplayObject = createDisplayObject("scene-root");
     const plugin = createLabelPlugin(nextDisplayObject);
@@ -1975,6 +1988,11 @@ describe("runReplaceAnimation", () => {
     expect(plugin.delete).not.toHaveBeenCalled();
     expect(tracker.track).toHaveBeenCalledTimes(1);
     expect(tracker.complete).toHaveBeenCalledTimes(1);
+
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      'Transition animation "scene-transition" could not find the previous element "scene-root"; running it as an enter.',
+    );
+    warn.mockRestore();
   });
 
   it.each([false, true])(

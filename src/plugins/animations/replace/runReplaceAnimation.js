@@ -168,9 +168,15 @@ export const runReplaceAnimation = ({
 
   // An unmounted previous element has nothing to animate out, as plugins skip
   // a delete or update whose element is not mounted. The next element still
-  // enters, as an added element would.
-  if (prevElement && !prevDisplayObject && !nextElement) {
-    return;
+  // enters, as an added element would. The render state said the element was
+  // mounted, so warn: something else lost it.
+  if (prevElement && !prevDisplayObject) {
+    console.warn(
+      `Transition animation "${animation.id}" could not find the previous element "${prevElement.id}"; ${nextElement ? "running it as an enter" : "skipping it"}.`,
+    );
+    if (!nextElement) {
+      return;
+    }
   }
 
   const isPersistent = animation.playback?.continuity === "persistent";
