@@ -256,6 +256,9 @@ x:
 
 `auto.delay` holds the current live value before its generated segment starts.
 
+When the next state does not set `scaleX` or `scaleY`, `auto` on that property
+ends at the element's unscaled size.
+
 `keyframes` and `auto` are mutually exclusive on the same property.
 
 ## Update Example

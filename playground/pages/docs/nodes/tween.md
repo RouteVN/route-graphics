@@ -241,6 +241,9 @@ animations:
 supported on `prev.tween` or `next.tween`. `auto.delay` holds the current live
 value before moving toward the next render state's value.
 
+When the next render state does not set `scaleX` or `scaleY`, `auto` on that
+property ends at the element's unscaled size.
+
 ## Easing
 
 Supported easing names are:

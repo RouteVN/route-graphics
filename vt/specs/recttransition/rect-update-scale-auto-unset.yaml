@@ -1,0 +1,53 @@
+---
+title: Rect Update Scale Auto To Unset Scale
+description: A rect whose next state sets no scale, scaling with tween auto shorthand for scaleX and scaleY.
+specs:
+  - rect should start at scale 0.5 on both axes
+  - the next state sets no scale, so auto should resolve to scale 1
+  - rect should be at scale 0.75 halfway and at scale 1 when the animation ends
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 400
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: rect1
+        type: rect
+        x: 360
+        "y": 220
+        width: 220
+        height: 180
+        fill: "#737373"
+        scaleX: 0.5
+        scaleY: 0.5
+  - elements:
+      - id: rect1
+        type: rect
+        x: 360
+        "y": 220
+        width: 220
+        height: 180
+        fill: "#737373"
+    animations:
+      - id: rect-scale-auto-unset
+        targetId: rect1
+        type: update
+        tween:
+          scaleX:
+            auto:
+              duration: 800
+              easing: linear
+          scaleY:
+            auto:
+              duration: 800
+              easing: linear
