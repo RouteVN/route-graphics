@@ -2,6 +2,7 @@ import { Texture } from "pixi.js";
 import { isDeepEqual } from "../../../util/isDeepEqual.js";
 import {
   clearVideoPlaybackTracking,
+  playVideo,
   syncVideoPlaybackTracking,
 } from "./playbackTracking.js";
 import {
@@ -152,7 +153,7 @@ export const updateVideo = ({
     activeVideo.loop = nextElement.loop ?? false;
 
     if (srcChanged) {
-      activeVideo.play();
+      playVideo(activeVideo);
     }
   };
 

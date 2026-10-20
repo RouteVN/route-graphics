@@ -1,5 +1,6 @@
 import { dispatchUpdateAnimationsNow } from "../animations/updateAnimationDispatch.js";
 import { runTextReveal } from "./text-revealing/textRevealingRuntime.js";
+import { playVideo } from "./video/playbackTracking.js";
 
 export const createRenderContext = ({
   suppressAnimations = false,
@@ -17,7 +18,9 @@ const executeDeferredMountOperation = (operation) => {
       }
       return;
     case "play-video":
-      operation.video?.play();
+      if (operation.video) {
+        playVideo(operation.video);
+      }
       return;
     case "start-particles":
       if (operation.app?.debug) {

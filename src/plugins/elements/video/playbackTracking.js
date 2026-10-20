@@ -1,3 +1,7 @@
+// Elements with the same src share one video, so a video can hold the
+// playback completions of several elements.
+const playbackCompletionsByVideo = new WeakMap();
+
 const hasVideoPlaybackSettled = (video) => {
   if (!video) return true;
   if (video.ended) return true;
@@ -19,6 +23,9 @@ const hasVideoPlaybackSettled = (video) => {
 export const clearVideoPlaybackTracking = ({ videoElement, video }) => {
   if (video && videoElement?._videoEndedListener) {
     video.removeEventListener("ended", videoElement._videoEndedListener);
+    playbackCompletionsByVideo
+      .get(video)
+      ?.delete(videoElement._videoEndedListener);
   }
 
   if (video && videoElement?._videoErrorListener) {
@@ -67,6 +74,9 @@ export const syncVideoPlaybackTracking = ({
   completionTracker.track(playbackStateVersion);
 
   const completePlayback = () => {
+    // Complete once: a source that fails to load fires error and also
+    // rejects play().
+    clearVideoPlaybackTracking({ videoElement, video });
     completionTracker.complete(playbackStateVersion);
   };
 
@@ -75,5 +85,29 @@ export const syncVideoPlaybackTracking = ({
   videoElement._videoEndedListener = completePlayback;
   videoElement._videoErrorListener = completePlayback;
   videoElement._playbackStateVersion = playbackStateVersion;
+  const completions = playbackCompletionsByVideo.get(video) ?? new Set();
+  completions.add(completePlayback);
+  playbackCompletionsByVideo.set(video, completions);
+};
+
+/**
+ * Start a video. The browser rejects play() when it does not allow playback,
+ * such as autoplay with sound outside a user gesture (NotAllowedError), and
+ * when a pause() or a new load interrupts the start (AbortError).
+ * @param {HTMLVideoElement} video
+ */
+export const playVideo = (video) => {
+  video.play()?.catch((error) => {
+    // Whatever paused or reloaded the video decides its playback.
+    if (error?.name === "AbortError") return;
+
+    // A video that does not play never ends: complete its playback as for a
+    // video that fails to load, so the render does not wait forever. Each
+    // completion removes itself from the set.
+    const completions = playbackCompletionsByVideo.get(video) ?? [];
+    for (const completePlayback of completions) {
+      completePlayback();
+    }
+  });
 };
 import { unregisterManagedVideoSprite } from "./managedVideoTextureSizing.js";
