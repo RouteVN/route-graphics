@@ -69,6 +69,7 @@ jobs:
           node scripts/testWheelPassive.mjs
           node scripts/testRendererReset.mjs
           node scripts/testVideoPlayback.mjs
+          node scripts/testVideoAutoplayRefusal.mjs
           node scripts/testLayoutReport.mjs
           node scripts/testTransitionSnapshots.mjs --out-dir .rettangoli/transition-snapshots
           node scripts/testStoryExtraction.mjs --out-dir .rettangoli/story-extraction

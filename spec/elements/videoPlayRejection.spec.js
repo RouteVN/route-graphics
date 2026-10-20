@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { addVideo } from "../../src/plugins/elements/video/addVideo.js";
 import { deleteVideo } from "../../src/plugins/elements/video/deleteVideo.js";
 import { updateVideo } from "../../src/plugins/elements/video/updateVideo.js";
+import {
+  createRenderContext,
+  flushDeferredMountOperations,
+} from "../../src/plugins/elements/renderContext.js";
 import { createCompletionTracker } from "../../src/util/completionTracker.js";
 
 // A video whose play() promises the test settles. Like a browser, pause()
@@ -100,10 +104,21 @@ describe("video play() rejection", () => {
       )
       .map(([, payload]) => payload.id);
 
-  const mountVideo = (element) =>
+  const mountVideo = (element, renderContext) =>
     addVideo({
       parent: root,
       element,
+      animations: [],
+      renderContext,
+      completionTracker,
+      zIndex: 0,
+    });
+
+  const changeVideo = (prevElement, nextElement) =>
+    updateVideo({
+      parent: root,
+      prevElement,
+      nextElement,
       animations: [],
       completionTracker,
       zIndex: 0,
@@ -252,5 +267,182 @@ describe("video play() rejection", () => {
     video.dispatchEvent(new Event("ended"));
     expect(completedRenderIds()).toEqual(["scene-1"]);
     expect(unhandledRejections).toEqual([]);
+  });
+
+  it("completes a later render that changes a video the browser refused to play", async () => {
+    const { video, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    const element = createVideoElement();
+    const movedElement = createVideoElement({ x: 50 });
+
+    render("scene-1", () => mountVideo(element));
+    refusePlay();
+    await flushPlayback();
+    expect(completedRenderIds()).toEqual(["scene-1"]);
+
+    // Nothing plays the video again, so it must not wait for its end.
+    render("scene-2", () => changeVideo(element, movedElement));
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1", "scene-2"]);
+    expect(unhandledRejections).toEqual([]);
+  });
+
+  it("waits again for a refused video that a new mount plays", async () => {
+    const { video, startPlay, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    const element = createVideoElement();
+
+    render("scene-1", () => mountVideo(element));
+    refusePlay();
+    await flushPlayback();
+
+    render("scene-2", () => {
+      deleteVideo({ parent: root, element, animations: [], completionTracker });
+      mountVideo(createVideoElement({ id: "video-2" }));
+    });
+    startPlay();
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1"]);
+    video.dispatchEvent(new Event("ended"));
+    expect(completedRenderIds()).toEqual(["scene-1", "scene-2"]);
+  });
+
+  it("waits again for a refused video that a source change plays", async () => {
+    const first = createVideo();
+    const second = createVideo();
+    cacheVideo("video-a.mp4", first.video);
+    cacheVideo("video-b.mp4", second.video);
+    const firstElement = createVideoElement();
+    const secondElement = createVideoElement({
+      src: "video-b.mp4",
+      loop: true,
+    });
+
+    render("scene-1", () => mountVideo(firstElement));
+    first.refusePlay();
+    await flushPlayback();
+    render("scene-2", () => changeVideo(firstElement, secondElement));
+    render("scene-3", () => changeVideo(secondElement, firstElement));
+    first.startPlay();
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1", "scene-2"]);
+    first.video.dispatchEvent(new Event("ended"));
+    expect(completedRenderIds()).toEqual(["scene-1", "scene-2", "scene-3"]);
+    expect(unhandledRejections).toEqual([]);
+  });
+
+  it("does not complete a render that a renderComplete handler starts on the same video", async () => {
+    const { video, startPlay, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    onEvent.mockImplementation((event, payload) => {
+      if (event === "renderComplete" && payload.id === "scene-1") {
+        render("scene-2", () =>
+          mountVideo(createVideoElement({ id: "video-2" })),
+        );
+      }
+    });
+
+    render("scene-1", () => mountVideo(createVideoElement()));
+    refusePlay();
+    await flushPlayback();
+    startPlay();
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1"]);
+    video.dispatchEvent(new Event("ended"));
+    expect(completedRenderIds()).toEqual(["scene-1", "scene-2"]);
+  });
+
+  it("completes the render when the browser refuses a deferred play()", async () => {
+    const { video, getPlayCount, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    // Replace transitions mount with animations suppressed and play the video
+    // when the deferred mount operations run.
+    const renderContext = createRenderContext({ suppressAnimations: true });
+
+    render("scene-1", () => mountVideo(createVideoElement(), renderContext));
+    expect(getPlayCount()).toBe(0);
+
+    flushDeferredMountOperations(renderContext);
+    expect(getPlayCount()).toBe(1);
+    refusePlay();
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1"]);
+    expect(unhandledRejections).toEqual([]);
+  });
+
+  it("leaves no unhandled rejection when the browser refuses a looping video", async () => {
+    const { video, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+
+    render("scene-1", () => mountVideo(createVideoElement({ loop: true })));
+    refusePlay();
+    await flushPlayback();
+
+    expect(completedRenderIds()).toEqual(["scene-1"]);
+    expect(unhandledRejections).toEqual([]);
+  });
+
+  it("completes the newest render once when a refusal follows an update", async () => {
+    const { video, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    const element = createVideoElement();
+    const movedElement = createVideoElement({ x: 50 });
+    let animationVersion;
+
+    render("scene-1", () => mountVideo(element));
+    render("scene-2", () => {
+      changeVideo(element, movedElement);
+      animationVersion = completionTracker.getVersion();
+      completionTracker.track(animationVersion);
+    });
+    refusePlay();
+    await flushPlayback();
+
+    // Another item still holds scene-2: a second completion would release it.
+    expect(completedRenderIds()).toEqual([]);
+    completionTracker.complete(animationVersion);
+    expect(completedRenderIds()).toEqual(["scene-2"]);
+
+    // No stale tracking is left: removing the element must not release a
+    // later render early.
+    let laterVersion;
+    render("scene-3", () => {
+      laterVersion = completionTracker.getVersion();
+      completionTracker.track(laterVersion);
+      deleteVideo({
+        parent: root,
+        element: movedElement,
+        animations: [],
+        completionTracker,
+      });
+    });
+    expect(completedRenderIds()).toEqual(["scene-2"]);
+    completionTracker.complete(laterVersion);
+    expect(completedRenderIds()).toEqual(["scene-2", "scene-3"]);
+    expect(unhandledRejections).toEqual([]);
+  });
+
+  it("completes the playback of a refused video that then fails to load only once", async () => {
+    const { video, refusePlay } = createVideo();
+    cacheVideo("video-a.mp4", video);
+    let animationVersion;
+
+    render("scene-1", () => {
+      mountVideo(createVideoElement());
+      animationVersion = completionTracker.getVersion();
+      completionTracker.track(animationVersion);
+    });
+    refusePlay();
+    await flushPlayback();
+    video.dispatchEvent(new Event("error"));
+
+    expect(completedRenderIds()).toEqual([]);
+    completionTracker.complete(animationVersion);
+    expect(completedRenderIds()).toEqual(["scene-1"]);
   });
 });

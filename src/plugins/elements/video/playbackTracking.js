@@ -2,10 +2,15 @@
 // playback completions of several elements.
 const playbackCompletionsByVideo = new WeakMap();
 
+// Videos whose last play() the browser refused. They stay paused, and only a
+// mount or a source change plays them again.
+const refusedVideos = new WeakSet();
+
 const hasVideoPlaybackSettled = (video) => {
   if (!video) return true;
   if (video.ended) return true;
   if (video.error) return true;
+  if (refusedVideos.has(video)) return true;
   if (
     typeof video.NETWORK_NO_SOURCE === "number" &&
     video.networkState === video.NETWORK_NO_SOURCE
@@ -59,8 +64,14 @@ export const syncVideoPlaybackTracking = ({
   video,
   loop,
   completionTracker,
+  willPlay = false,
 }) => {
   clearVideoPlaybackTracking({ videoElement, video });
+
+  // A video that is about to be played again may play this time.
+  if (willPlay && video) {
+    refusedVideos.delete(video);
+  }
 
   if (loop ?? false) {
     return;
@@ -102,9 +113,11 @@ export const playVideo = (video) => {
     if (error?.name === "AbortError") return;
 
     // A video that does not play never ends: complete its playback as for a
-    // video that fails to load, so the render does not wait forever. Each
-    // completion removes itself from the set.
-    const completions = playbackCompletionsByVideo.get(video) ?? [];
+    // video that fails to load, so the render does not wait forever, and
+    // treat it as settled until it is played again. Iterate a copy: a
+    // completion can start a render that tracks this video anew.
+    refusedVideos.add(video);
+    const completions = [...(playbackCompletionsByVideo.get(video) ?? [])];
     for (const completePlayback of completions) {
       completePlayback();
     }

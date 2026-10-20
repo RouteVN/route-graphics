@@ -161,6 +161,7 @@ export const addVideo = ({
     video,
     loop,
     completionTracker,
+    willPlay: true,
   });
 
   parent.addChild(sprite);

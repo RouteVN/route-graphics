@@ -147,6 +147,7 @@ export const updateVideo = ({
       video: activeVideo,
       loop: nextElement.loop,
       completionTracker,
+      willPlay: srcChanged,
     });
 
     activeVideo.volume = normalizeVolume(nextElement.volume);
