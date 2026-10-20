@@ -59,6 +59,30 @@ const animationsUseTranslate = (animations = []) =>
     Object.keys(animation.tween ?? {}).some(isTranslateAnimationProperty),
   );
 
+const SCALE_PROPERTIES = ["scaleX", "scaleY"];
+
+// Element plugins add scaleX/scaleY to the target state only when the element
+// authors them; sprite, animated-sprite and video always add their
+// texture-backed scale. Any other element without an authored scale is drawn at
+// scale 1, so an Auto scale tween on it resolves to 1 instead of failing to
+// find its end value.
+const withUnsetAutoScaleTargetState = (targetState, animations) => {
+  if (!targetState) return targetState;
+
+  const unsetAutoScaleProperties = SCALE_PROPERTIES.filter(
+    (property) =>
+      !Object.prototype.hasOwnProperty.call(targetState, property) &&
+      animations.some((animation) => animation.tween?.[property]?.auto),
+  );
+  if (unsetAutoScaleProperties.length === 0) return targetState;
+
+  const resolvedTargetState = { ...targetState };
+  for (const property of unsetAutoScaleProperties) {
+    resolvedTargetState[property] = 1;
+  }
+  return resolvedTargetState;
+};
+
 const findElementMatchById = (elements = [], targetId, ancestorIds = []) => {
   for (const element of elements) {
     if (element?.id === targetId) {
@@ -272,6 +296,11 @@ export const dispatchUpdateAnimations = ({
     return true;
   }
 
+  const resolvedTargetState = withUnsetAutoScaleTargetState(
+    targetState,
+    animationsToStart,
+  );
+
   if (renderContext?.suppressAnimations) {
     if (onComplete) {
       throw new Error(
@@ -288,7 +317,7 @@ export const dispatchUpdateAnimations = ({
       animationsToStart,
       undefined,
       animationBaseState,
-      targetState,
+      resolvedTargetState,
       targetStates,
     );
 
@@ -297,7 +326,7 @@ export const dispatchUpdateAnimations = ({
       animationBus,
       completionTracker,
       element,
-      targetState,
+      targetState: resolvedTargetState,
       targetStates,
       animationBaseState,
       preparedGsap,
@@ -311,7 +340,7 @@ export const dispatchUpdateAnimations = ({
     animationBus,
     completionTracker,
     element,
-    targetState,
+    targetState: resolvedTargetState,
     targetStates,
     onComplete,
     animationBaseState: animationsUseTranslate(animationsToStart)
