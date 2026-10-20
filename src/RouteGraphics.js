@@ -139,6 +139,8 @@ const createRouteGraphics = () => {
     let videoFrameCallbackId;
     let lastUpdateTime = 0;
     let hasUploadedVideoFrame = false;
+    const reportsPresentedFrames =
+      typeof video.requestVideoFrameCallback === "function";
     const frameIntervalMS = 1000 / VIDEO_TEXTURE_UPDATE_FPS;
 
     const updateSource = ({ force = false } = {}) => {
@@ -146,11 +148,14 @@ const createRouteGraphics = () => {
         return false;
       }
 
-      // A metadata-only upload can leave placeholder GPU storage behind. Once
-      // a decoded frame is presented, allocate it again at the real dimensions.
-      if (force && !hasUploadedVideoFrame) {
+      // A metadata-only upload can leave placeholder GPU storage behind, and
+      // until a decoded frame is presented, Chromium can reject an in-place
+      // update of that storage (texSubImage2D: "Offset overflows texture
+      // dimensions"). Allocate it again on every upload until a presented
+      // frame forces one, where the browser reports presented frames.
+      if (!hasUploadedVideoFrame && (force || reportsPresentedFrames)) {
         source.unload();
-        hasUploadedVideoFrame = true;
+        hasUploadedVideoFrame = force;
       }
 
       syncVideoTextureSourceSize(source, video);
