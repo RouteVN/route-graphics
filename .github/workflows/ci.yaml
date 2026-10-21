@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [unit, audio, browser, visual, webgpu]
+        suite: [unit, audio, browser, webgpu]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,7 +48,6 @@ jobs:
           name: build
           path: .
       - name: Install Chromium
-        if: matrix.suite != 'visual'
         run: bunx playwright install --with-deps chromium
       - name: Install WebKit
         if: matrix.suite == 'browser'
@@ -75,12 +74,6 @@ jobs:
       - name: WebGPU integration
         if: matrix.suite == 'webgpu'
         run: node scripts/testWebGPUShaders.mjs
-      - name: Visual regression
-        if: matrix.suite == 'visual'
-        env:
-          RTGL_VT_DEBUG: true
-          RTGL_VT_CONCURRENCY: 4
-        run: bun run vt:report:built
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -88,5 +81,40 @@ jobs:
           path: |
             avt/output/
             .rettangoli/
+          include-hidden-files: true
+          retention-days: 14
+  visual:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: .
+      # Each shard captures and compares only its own specs; adding a shard
+      # to the matrix rebalances them automatically.
+      - name: Visual regression
+        env:
+          RTGL_VT_DEBUG: true
+          RTGL_VT_CONCURRENCY: 4
+        run: |
+          selectors="$(node scripts/vtShard.mjs ${{ strategy.job-index }} ${{ strategy.job-total }})"
+          bun run vt:screenshot:built $selectors
+          bun run vt:compare $selectors
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: failures-visual-${{ matrix.shard }}-${{ github.run_number }}
+          path: .rettangoli/
           include-hidden-files: true
           retention-days: 14
