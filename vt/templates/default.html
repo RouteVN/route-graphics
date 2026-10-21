@@ -415,6 +415,19 @@
         });
       }
 
+      // Decoding every audio fixture slows down each page that plays none of
+      // them, so load only the audio assets this spec names.
+      const vtStateSourceText =
+        document.getElementById("vt-state")?.textContent ?? "";
+      for (const [key, asset] of Object.entries(assetsObject)) {
+        if (
+          asset.type.startsWith("audio/") &&
+          !vtStateSourceText.includes(key)
+        ) {
+          delete assetsObject[key];
+        }
+      }
+
       const assetBufferManager = createAssetBufferManager();
       await assetBufferManager.load(assetsObject);
 
