@@ -250,3 +250,69 @@ describe("sprite interaction texture geometry", () => {
     expect(over.source.listenerCount("resize")).toBe(listeners);
   });
 });
+
+// A src is missing from the cache when its file did not load or its texture
+// was unloaded. Texture.from then returns undefined.
+describe("sprite images that are not in the cache", () => {
+  const interactions = [
+    ["pointerover", {}],
+    ["pointerdown", { button: 0 }],
+    ["rightdown", {}],
+    ["rightup", {}],
+    ["pointerup", { button: 0 }],
+    ["pointerout", {}],
+  ];
+
+  it("shows the hover and press images over a base image that is not in the cache", () => {
+    texture("over", 480, 270);
+    texture("down", 64, 96);
+    texture("right", 128, 32);
+    const { sprite, parent } = mount({ src: "missing-base" });
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    const before = corners(sprite);
+    sprite.emit("pointerover", {});
+    expect(sprite.texture).not.toBe(Texture.EMPTY);
+    for (const [event, payload] of interactions) {
+      sprite.emit(event, payload);
+      expectCorners(sprite, before);
+    }
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    parent.destroy({ children: true });
+  });
+
+  it("keeps the base image when a hover or press image is not in the cache", () => {
+    const base = texture("base", 960, 540);
+    const { sprite, parent } = mount({
+      hover: { src: "missing-over" },
+      click: { src: "missing-down" },
+      rightClick: { src: "missing-right" },
+    });
+    const before = corners(sprite);
+    for (const [event, payload] of interactions) {
+      sprite.emit(event, payload);
+      expect(sprite.texture).toBe(base);
+      expectCorners(sprite, before);
+    }
+    parent.destroy({ children: true });
+  });
+
+  it("binds interactions to the empty image after an update to a src that is not in the cache", () => {
+    texture("base", 960, 540);
+    texture("over", 480, 270);
+    const options = mount();
+    const { sprite, parent, element } = options;
+    updateSprite({
+      ...options,
+      prevElement: element,
+      nextElement: { ...element, src: "missing-base" },
+    });
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    const before = corners(sprite);
+    sprite.emit("pointerover", {});
+    expectCorners(sprite, before);
+    sprite.emit("pointerout", {});
+    expect(sprite.texture).toBe(Texture.EMPTY);
+    expectCorners(sprite, before);
+    parent.destroy({ children: true });
+  });
+});
