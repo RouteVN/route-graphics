@@ -33,6 +33,7 @@ import {
 } from "../util/transform.js";
 import { setElementRenderState } from "../elementRenderState.js";
 import {
+  getContainerChildAnimations,
   getContainerLiveScaleAnimations,
   getContainerLiveScaleFactor,
   getContainerLiveScaleTargetState,
@@ -207,7 +208,7 @@ export const updateContainer = ({
         prevComputedTree: prevElement.children,
         eventHandler,
         elementPlugins,
-        animations,
+        animations: getContainerChildAnimations(animations, nextElement),
         animationBus,
         completionTracker,
         renderContext,
@@ -239,7 +240,7 @@ export const updateContainer = ({
 
   // Until onComplete renders the next state, the previous geometry is on
   // screen, so scale tweens are converted for it.
-  const liveScaleFactor = getContainerLiveScaleFactor(prevElement);
+  const liveScaleFactor = getContainerLiveScaleFactor(prevElement, nextElement);
   const dispatched = dispatchLiveAnimations({
     animations: getContainerLiveScaleAnimations(
       animations,

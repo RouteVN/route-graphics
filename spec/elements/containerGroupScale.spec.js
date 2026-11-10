@@ -2,12 +2,18 @@ import { Container } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { createAnimationBus } from "../../src/plugins/animations/animationBus.js";
+import {
+  buildAnimationContinuityPlan,
+  getAnimationContinuitySignature,
+} from "../../src/plugins/animations/planAnimations.js";
 import { containerPlugin } from "../../src/plugins/elements/container/index.js";
+import { getContainerChildAnimations } from "../../src/plugins/elements/container/util/liveContainerScale.js";
 import { rectPlugin } from "../../src/plugins/elements/rect/index.js";
 import { renderElements } from "../../src/plugins/elements/renderElements.js";
 import { refreshElementPivot } from "../../src/plugins/elements/util/transform.js";
 import { createCompletionTracker } from "../../src/util/completionTracker.js";
 import { hitTestElementBounds } from "../../src/util/hitTestElementBounds.js";
+import { normalizeAnimations } from "../../src/util/normalizeAnimations.js";
 import { parseContainerForTesting } from "../support/parseContainer.js";
 
 const elementPlugins = [containerPlugin, rectPlugin];
@@ -438,7 +444,8 @@ describe("container group scale", () => {
           parent: stage,
           prevComputedTree: prev,
           nextComputedTree: next,
-          animations,
+          // RouteGraphics normalizes animations before rendering.
+          animations: normalizeAnimations(animations),
           animationBus,
           completionTracker: createCompletionTracker(),
           eventHandler: vi.fn(),
@@ -539,6 +546,334 @@ describe("container group scale", () => {
       animationBus.tick(500);
       await operation;
       expectSameBounds(stage, renderTree(outer(0.5)), ids);
+    });
+
+    it("ends a nested scale tween on the next layout when the parent's scale changes too", async () => {
+      const outer = (outerScale, innerScale) =>
+        parseContainerForTesting({
+          state: {
+            id: "outer",
+            type: "container",
+            x: 0,
+            y: 0,
+            scaleX: outerScale,
+            scaleY: outerScale,
+            children: [canvas({ scaleX: innerScale, scaleY: innerScale })],
+          },
+        });
+      const { stage, animationBus, render } = createRun();
+      await render([], [outer(0.5, 1)]);
+      const operation = render(
+        [outer(0.5, 1)],
+        [outer(1, 0.5)],
+        scaleTween({ keyframes: [linear(0.5)] }),
+      );
+
+      // The last tween frame already has the next layout's size, so the render
+      // that follows does not resize the group. Its position, which this
+      // update does not tween, moves on completion like any other property.
+      animationBus.tick(999);
+      const expected = renderTree(outer(1, 0.5));
+      for (const id of ids) {
+        const actual = roundedBounds(stage, id);
+        const target = roundedBounds(expected, id);
+        expect(Math.abs(actual.width - target.width)).toBeLessThanOrEqual(1);
+        expect(Math.abs(actual.height - target.height)).toBeLessThanOrEqual(1);
+      }
+
+      animationBus.tick(1);
+      await operation;
+      expectSameBounds(stage, renderTree(outer(1, 0.5)), ids);
+    });
+
+    it("continues a persistent scale loop on a scaled container across renders", () => {
+      const { animationBus, render } = createRun();
+      const pulse = {
+        ...scaleTween({ keyframes: [linear(0.6, 500), linear(0.5, 500)] })[0],
+        playback: { continuity: "persistent", loop: true },
+      };
+      const state = {
+        elements: [parsedCanvas(0.5)],
+        animations: normalizeAnimations([pulse]),
+      };
+
+      render([], state.elements, [pulse]);
+      animationBus.tick(200);
+
+      const plan = buildAnimationContinuityPlan({
+        prevState: state,
+        nextState: state,
+        activeAnimations: animationBus.getContinuableAnimations(),
+      });
+
+      expect(plan.continuedAnimationIds.has(pulse.id)).toBe(true);
+    });
+  });
+
+  describe("child tweens", () => {
+    const linear = (value, duration = 1000) => ({
+      duration,
+      value,
+      easing: "linear",
+    });
+    const createRun = () => {
+      const stage = new Container();
+      const animationBus = createAnimationBus();
+      const render = (prev, next, animations = []) =>
+        renderElements({
+          app: { render: vi.fn(), renderer: { width: 1280, height: 720 } },
+          parent: stage,
+          prevComputedTree: prev,
+          nextComputedTree: next,
+          // RouteGraphics normalizes animations before rendering.
+          animations: normalizeAnimations(animations),
+          animationBus,
+          completionTracker: createCompletionTracker(),
+          eventHandler: vi.fn(),
+          elementPlugins,
+          signal: new AbortController().signal,
+        });
+
+      return { stage, animationBus, render };
+    };
+    const ids = ["top-left", "bottom-right"];
+    const canvasAt = (scale, topLeft, overrides = {}) =>
+      canvas({
+        scaleX: scale,
+        scaleY: scale,
+        children: [topLeft, rect("bottom-right", 880, 520, 320, 180)],
+        ...overrides,
+      });
+    const parsed = (state) => parseContainerForTesting({ state });
+    const topLeftTween = {
+      id: "top-left-tween",
+      targetId: "top-left",
+      type: "update",
+      tween: {
+        x: { keyframes: [linear(400)] },
+        y: {
+          keyframes: [{ ...linear(80), relative: true }],
+        },
+        width: { keyframes: [linear(160)] },
+        height: { initialValue: 90, keyframes: [linear(360)] },
+      },
+    };
+
+    it("moves and resizes a child in the container's unscaled units", async () => {
+      const from = parsed(canvasAt(0.5, rect("top-left", 80, 80, 320, 180)));
+      const to = parsed(canvasAt(0.5, rect("top-left", 400, 160, 160, 360)));
+      const { stage, animationBus, render } = createRun();
+      await render([], [from]);
+      const operation = render([from], [to], [topLeftTween]);
+
+      animationBus.tick(500);
+      expectSameBounds(
+        stage,
+        renderTree(parsed(canvasAt(0.5, rect("top-left", 240, 120, 240, 225)))),
+        ids,
+      );
+
+      animationBus.tick(500);
+      await operation;
+      expectSameBounds(stage, renderTree(to), ids);
+    });
+
+    it("converts a grandchild's tween by the scale of every ancestor", async () => {
+      const outer = (topLeft) =>
+        parsed({
+          id: "outer",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children: [canvasAt(1, topLeft)],
+        });
+      const from = outer(rect("top-left", 80, 80, 320, 180));
+      const to = outer(rect("top-left", 400, 160, 160, 360));
+      const { stage, animationBus, render } = createRun();
+      await render([], [from]);
+      const operation = render([from], [to], [topLeftTween]);
+
+      animationBus.tick(500);
+      expectSameBounds(
+        stage,
+        renderTree(outer(rect("top-left", 240, 120, 240, 225))),
+        ids,
+      );
+
+      animationBus.tick(500);
+      await operation;
+      expectSameBounds(stage, renderTree(to), ids);
+    });
+
+    it("moves a container nested in a scaled group in its parent's units", async () => {
+      const outer = (x) =>
+        parsed({
+          id: "outer",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children: [canvasAt(1, rect("top-left", 80, 80, 320, 180), { x })],
+        });
+      const { stage, animationBus, render } = createRun();
+      await render([], [outer(640)]);
+      const operation = render(
+        [outer(640)],
+        [outer(960)],
+        [
+          {
+            id: "canvas-move",
+            targetId: "canvas",
+            type: "update",
+            tween: { x: { keyframes: [linear(960)] } },
+          },
+        ],
+      );
+
+      animationBus.tick(500);
+      expectSameBounds(stage, renderTree(outer(800)), ids);
+
+      animationBus.tick(500);
+      await operation;
+      expectSameBounds(stage, renderTree(outer(960)), ids);
+    });
+
+    it("continues a persistent child tween in a scaled container across renders", () => {
+      const { animationBus, render } = createRun();
+      const drift = {
+        ...topLeftTween,
+        id: "top-left-drift",
+        tween: { x: topLeftTween.tween.x },
+        playback: { continuity: "persistent", loop: true },
+      };
+      const state = {
+        elements: [parsed(canvasAt(0.5, rect("top-left", 80, 80, 320, 180)))],
+        animations: normalizeAnimations([drift]),
+      };
+
+      render([], state.elements, [drift]);
+      animationBus.tick(200);
+
+      const plan = buildAnimationContinuityPlan({
+        prevState: state,
+        nextState: state,
+        activeAnimations: animationBus.getContinuableAnimations(),
+      });
+
+      expect(plan.continuedAnimationIds.has(drift.id)).toBe(true);
+    });
+  });
+
+  describe("getContainerChildAnimations", () => {
+    const element = parseContainerForTesting({
+      state: {
+        id: "outer",
+        type: "container",
+        scaleX: 0.5,
+        scaleY: 2,
+        children: [canvas()],
+      },
+    });
+    const update = (id, targetId, tween) => ({
+      id,
+      targetId,
+      type: "update",
+      tween,
+    });
+
+    it("converts only its direct children's position and size tracks", () => {
+      const animations = [
+        update("own", "outer", { x: { keyframes: [{ value: 10 }] } }),
+        update("child", "canvas", {
+          x: { initialValue: 2, keyframes: [{ value: 10, startValue: 4 }] },
+          "rect.height": { keyframes: [{ value: 10 }] },
+          "rect.border.width": { keyframes: [{ value: 10 }] },
+          alpha: { keyframes: [{ value: 0.5 }] },
+          scaleX: { keyframes: [{ value: 3 }] },
+          translateX: { keyframes: [{ value: 0.5 }] },
+          y: { auto: { duration: 100 } },
+        }),
+        update("grandchild", "top-left", {
+          x: { keyframes: [{ value: 10 }] },
+        }),
+        {
+          id: "child-transition",
+          targetId: "canvas",
+          type: "transition",
+          prev: { tween: { alpha: { keyframes: [{ value: 0 }] } } },
+          next: {
+            tween: {
+              y: { initialValue: 4, keyframes: [{ value: 10 }] },
+              translateY: { keyframes: [{ value: 1 }] },
+            },
+          },
+          mask: { progress: { keyframes: [{ value: 1 }] } },
+        },
+        {
+          id: "child-gsap",
+          targetId: "canvas",
+          type: "update",
+          gsap: { to: { x: 10 } },
+        },
+      ];
+      const original = structuredClone(animations);
+
+      const converted = getContainerChildAnimations(animations, element);
+      const [childUpdate, childTransition, childGsap] = converted.get("canvas");
+
+      expect(childUpdate.tween.x).toEqual({
+        initialValue: 1,
+        keyframes: [{ value: 5, startValue: 2 }],
+      });
+      expect(childUpdate.tween["rect.height"].keyframes[0].value).toBe(20);
+      expect(childUpdate.tween["rect.border.width"]).toBe(
+        animations[1].tween["rect.border.width"],
+      );
+      expect(childUpdate.tween.alpha).toBe(animations[1].tween.alpha);
+      expect(childUpdate.tween.scaleX).toBe(animations[1].tween.scaleX);
+      expect(childUpdate.tween.translateX).toBe(animations[1].tween.translateX);
+      expect(childUpdate.tween.y).toBe(animations[1].tween.y);
+      expect(childUpdate.signature).toBe(
+        getAnimationContinuitySignature(animations[1]),
+      );
+      expect(childTransition.next.tween.y).toEqual({
+        initialValue: 8,
+        keyframes: [{ value: 20 }],
+      });
+      expect(childTransition.next.tween.translateY).toBe(
+        animations[3].next.tween.translateY,
+      );
+      expect(childTransition.prev).toBe(animations[3].prev);
+      expect(childTransition.mask).toBe(animations[3].mask);
+      expect(childTransition.signature).toBe(
+        getAnimationContinuitySignature(animations[3]),
+      );
+      expect(childGsap).toBe(animations[4]);
+      expect(converted.get("outer")[0]).toBe(animations[0]);
+      expect(converted.get("top-left")[0]).toBe(animations[2]);
+      expect(animations).toEqual(original);
+    });
+
+    it("returns the animations unchanged when nothing needs converting", () => {
+      const animations = [
+        update("child", "canvas", { x: { keyframes: [{ value: 10 }] } }),
+      ];
+      const unscaled = parseContainerForTesting({ state: canvas() });
+
+      expect(getContainerChildAnimations(animations, unscaled)).toBe(
+        animations,
+      );
+      expect(
+        getContainerChildAnimations(
+          [update("own", "outer", { x: { keyframes: [{ value: 10 }] } })],
+          element,
+        ),
+      ).toEqual([
+        update("own", "outer", { x: { keyframes: [{ value: 10 }] } }),
+      ]);
     });
   });
 });

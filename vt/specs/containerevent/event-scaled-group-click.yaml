@@ -1,0 +1,73 @@
+---
+title: "Clicks In A Scaled Container Group"
+description: "A clickable 1280x720 container at scale 0.5, anchored at the canvas centre, holds a clickable child authored at (880, 520) 320x180. The group draws the child at (760, 460) 160x90 and covers (320, 180) to (960, 540). Clicks land on the child where it is drawn, on empty space inside the drawn group, at the child's unscaled position and outside the drawn group. Only the first two hit."
+specs:
+  - "clicking where the scaled child is drawn should fire the child and the container"
+  - "clicking empty space inside the drawn group should fire the container"
+  - "clicking the child's unscaled position, outside the drawn group, should fire nothing"
+  - "clicking inside the unscaled bounds but outside the drawn group should fire nothing"
+steps:
+  - action: customEvent
+    name: clearEvents
+  - action: click
+    x: 840
+    "y": 485
+  - action: click
+    x: 1040
+    "y": 610
+  - action: click
+    x: 400
+    "y": 200
+  - action: click
+    x: 100
+    "y": 100
+  - action: screenshot
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - click
+    value:
+      - _event:
+          id: target
+        type: child-click
+      - _event:
+          id: screen
+        type: group-click
+      - _event:
+          id: screen
+        type: group-click
+---
+states:
+  - elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        click:
+          payload:
+            type: group-click
+        children:
+          - id: backdrop
+            type: rect
+            x: 0
+            "y": 0
+            width: 1280
+            height: 720
+            fill: "#4D4D4D"
+          - id: target
+            type: rect
+            x: 880
+            "y": 520
+            width: 320
+            height: 180
+            fill: "#FFFFFF"
+            click:
+              payload:
+                type: child-click

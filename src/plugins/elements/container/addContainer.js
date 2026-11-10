@@ -4,6 +4,7 @@ import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
 import { renderElements } from "../renderElements.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
+  getContainerChildAnimations,
   getContainerLiveScaleAnimations,
   getContainerLiveScaleFactor,
   getContainerLiveScaleTargetState,
@@ -156,7 +157,7 @@ export const addContainer = ({
         parent: container,
         prevComputedTree: [],
         nextComputedTree: children,
-        animations,
+        animations: getContainerChildAnimations(animations, element),
         animationBus,
         completionTracker,
         eventHandler,
