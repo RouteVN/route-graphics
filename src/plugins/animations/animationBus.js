@@ -76,23 +76,27 @@ const removeNoopAutoProperties = (group, animationId, preserveNoopAuto) => ({
   properties: Object.fromEntries(
     Object.entries(group.properties).filter(([property, config]) => {
       if (!config.auto || preserveNoopAuto) return true;
-      // Authored Auto tracks cannot set initialValue, but a renderer may give
-      // one a start value; the timeline then starts there.
-      const currentValue =
-        config.initialValue ??
-        getTimelineInitialValue({
-          object: group.element,
-          property,
-          propertyPathMap: group.propertyPathMap,
-          subjectState: group.subjectState,
-          defaultValue: 0,
-        });
+      const currentValue = getTimelineInitialValue({
+        object: group.element,
+        property,
+        propertyPathMap: group.propertyPathMap,
+        subjectState: group.subjectState,
+        defaultValue: 0,
+      });
       const targetValue = resolveAutoTargetValue(
         group.targetState,
         property,
         animationId,
       );
-      return currentValue !== targetValue;
+      // Authored Auto tracks cannot set initialValue, but a renderer may give
+      // one a start value; the timeline then starts there. A dropped track
+      // never runs, so it is only a no-op if the live value is at the target
+      // too.
+      return (
+        currentValue !== targetValue ||
+        (config.initialValue !== undefined &&
+          config.initialValue !== targetValue)
+      );
     }),
   ),
 });

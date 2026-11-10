@@ -340,6 +340,41 @@ describe("animationBus auto tween shorthand", () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
+  it("runs an auto tween whose start value is its target when the current state differs", () => {
+    const animationBus = createAnimationBus();
+    const onComplete = vi.fn();
+    const element = {
+      x: 5,
+      scale: { x: 1, y: 1 },
+    };
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "auto-start-at-target",
+        element,
+        properties: {
+          x: {
+            initialValue: 20,
+            auto: {
+              duration: 400,
+              easing: "linear",
+            },
+          },
+        },
+        targetState: { x: 20 },
+        onComplete,
+      },
+    });
+
+    animationBus.flush();
+    expect(element.x).toBe(20);
+
+    animationBus.tick(400);
+    expect(element.x).toBe(20);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps a no-op auto loop active without completing", () => {
     const animationBus = createAnimationBus();
     const onComplete = vi.fn();

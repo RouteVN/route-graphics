@@ -4,7 +4,6 @@ import {
   groupAnimationsByTarget,
 } from "../../../animations/planAnimations.js";
 import { isInfiniteUpdateAnimation } from "../../../animations/updateAnimationDispatch.js";
-import { collectAllElementIds } from "../../../../util/collectElementIds.js";
 
 /**
  * A container's scale magnitude is baked into its computed geometry (see
@@ -220,12 +219,15 @@ const convertTransitionSide = (side, trackFactors) => {
  * @param {boolean} [parts.update] - An update tween
  * @param {boolean} [parts.prev] - A transition's prev side
  * @param {boolean} [parts.next] - A transition's next side
+ * @param {Object} [source] - The animation the converted parts are read
+ * from; the other parts are kept from `animation`
  * @returns {Object} The animation, or a converted copy
  */
 const convertAnimation = (
   animation,
   trackFactors,
   parts = { update: true, prev: true, next: true },
+  source = animation,
 ) => {
   if (animation.gsap) {
     return animation;
@@ -235,7 +237,7 @@ const convertAnimation = (
 
   if (animation.type === "update") {
     const tween = parts.update
-      ? convertTween(animation.tween, trackFactors)
+      ? convertTween(source.tween, trackFactors)
       : animation.tween;
 
     if (tween !== animation.tween) {
@@ -243,10 +245,10 @@ const convertAnimation = (
     }
   } else if (animation.type === "transition") {
     const prev = parts.prev
-      ? convertTransitionSide(animation.prev, trackFactors)
+      ? convertTransitionSide(source.prev, trackFactors)
       : animation.prev;
     const next = parts.next
-      ? convertTransitionSide(animation.next, trackFactors)
+      ? convertTransitionSide(source.next, trackFactors)
       : animation.next;
 
     if (prev !== animation.prev || next !== animation.next) {
@@ -261,10 +263,13 @@ const convertAnimation = (
   // Persistent continuity compares the running animation with the authored
   // one, so the converted copy keeps the authored signature.
   converted.signature =
-    animation.signature ?? getAnimationContinuitySignature(animation);
+    animation.signature ?? getAnimationContinuitySignature(source);
 
   return converted;
 };
+
+// The authored animation of each copy getContainerChildAnimations makes.
+const authoredChildAnimations = new WeakMap();
 
 /**
  * Gives an update tween's scale tracks that set no start value the start
@@ -343,11 +348,14 @@ export const getContainerLiveScaleAnimations = (
  *
  * Each part is converted by the container that draws it: a transition's prev
  * side if the child was in this container before, its next side if the child
- * is in it now, and update tweens if the child is in it now or is being
- * removed from it (a removed element runs its update tweens before it is
- * deleted). A child that moves deeper into this container is converted there
- * instead. Children are rendered in the next state's geometry, so its scale
- * is used for every part.
+ * is in it now, and update tweens in both cases (a removed element runs its
+ * update tweens before it is deleted). Children are rendered in the next
+ * state's geometry, so its scale is used for every part.
+ *
+ * A child that moves to another container in one render has a copy in each,
+ * and one container may be inside the other. Each container therefore
+ * converts the parts it draws from the authored animation, not from the copy
+ * an ancestor made for its own copy of the child.
  * @param {Array|Map} animations
  * @param {Object} element - Computed container whose children are rendered
  * @param {Object} [prevElement] - The same container in the previous state
@@ -360,7 +368,14 @@ export const getContainerChildAnimations = (
 ) => {
   const contentScale = getContainerContentScale(element);
 
-  if (!animations || (contentScale.scaleX === 1 && contentScale.scaleY === 1)) {
+  // Converted copies only come in a Map this function returned, so an
+  // unscaled container has nothing to convert or undo in any other input.
+  if (
+    !animations ||
+    (contentScale.scaleX === 1 &&
+      contentScale.scaleY === 1 &&
+      !(animations instanceof Map))
+  ) {
     return animations;
   }
 
@@ -375,7 +390,6 @@ export const getContainerChildAnimations = (
   const nextChildIds = new Set(
     (element.children ?? []).map((child) => child.id),
   );
-  let nextDescendantIds;
   let converted;
 
   for (const childId of new Set([...prevChildIds, ...nextChildIds])) {
@@ -385,22 +399,26 @@ export const getContainerChildAnimations = (
       continue;
     }
 
-    const isChild = nextChildIds.has(childId);
-
-    if (!isChild) {
-      nextDescendantIds ??= collectAllElementIds({
-        children: element.children,
-      });
-    }
-
     const parts = {
-      update: isChild || !nextDescendantIds.has(childId),
+      update: true,
       prev: prevChildIds.has(childId),
-      next: isChild,
+      next: nextChildIds.has(childId),
     };
-    const convertedChildAnimations = childAnimations.map((animation) =>
-      convertAnimation(animation, trackFactors, parts),
-    );
+    const convertedChildAnimations = childAnimations.map((animation) => {
+      const authored = authoredChildAnimations.get(animation) ?? animation;
+      const convertedAnimation = convertAnimation(
+        animation,
+        trackFactors,
+        parts,
+        authored,
+      );
+
+      if (convertedAnimation !== animation) {
+        authoredChildAnimations.set(convertedAnimation, authored);
+      }
+
+      return convertedAnimation;
+    });
 
     if (
       convertedChildAnimations.some(
