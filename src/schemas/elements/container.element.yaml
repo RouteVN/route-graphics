@@ -40,10 +40,10 @@ properties:
     description: Vertical transform origin in rendered pixels from the container's top edge, after scaleY is applied, as for other elements. Defaults to the anchor-derived Y origin.
   scaleX:
     type: number
-    description: Horizontal scale for the whole container as one group. Child sizes, child positions, gapX, the wrap width and the container width all scale, and the anchor point stays at x. Negative values mirror the group and zero collapses it. Children's x and width tween values use the container's unscaled units, like their authored values.
+    description: Horizontal scale for the whole container as one group. Child sizes, child positions, gapX, the wrap width and the container width all scale, and the anchor point stays at x. Negative values mirror the group. Zero collapses it to its transform origin, where it takes no width in a parent's layout, like a collapsed rect. Children's x and width tween values use the container's unscaled units, like their authored values.
   scaleY:
     type: number
-    description: Vertical scale for the whole container as one group. Child sizes, child positions, gapY, the wrap height and the container height all scale, and the anchor point stays at y. Negative values mirror the group and zero collapses it. Children's y and height tween values use the container's unscaled units, like their authored values.
+    description: Vertical scale for the whole container as one group. Child sizes, child positions, gapY, the wrap height and the container height all scale, and the anchor point stays at y. Negative values mirror the group. Zero collapses it to its transform origin, where it takes no height in a parent's layout, like a collapsed rect. Children's y and height tween values use the container's unscaled units, like their authored values.
   alpha:
     type: number
     description: Opacity/transparency of the container (0-1)

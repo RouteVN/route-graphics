@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Container, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { createAnimationBus } from "../../src/plugins/animations/animationBus.js";
@@ -339,6 +339,74 @@ describe("container group scale", () => {
     });
   });
 
+  it.each(["horizontal", "vertical"])(
+    "gives a collapsed container no space in a %s flow, like a collapsed rect",
+    (direction) => {
+      const flow = (collapsed) =>
+        parseContainerForTesting({
+          state: {
+            id: "flow",
+            type: "container",
+            direction,
+            gapX: 10,
+            gapY: 10,
+            children: [
+              rect("a", 0, 0, 100, 100),
+              collapsed,
+              rect("b", 0, 0, 100, 100),
+            ],
+          },
+        });
+      const withContainer = flow({
+        id: "collapsed",
+        type: "container",
+        scaleX: 0,
+        scaleY: 0,
+        children: [rect("inner", 0, 0, 100, 100)],
+      });
+      const withRect = flow(
+        rect("collapsed", 0, 0, 100, 100, { scaleX: 0, scaleY: 0 }),
+      );
+      const [axis, size] =
+        direction === "horizontal" ? ["x", "width"] : ["y", "height"];
+
+      expect(withContainer.children[2][axis]).toBe(120);
+      expect(withContainer[size]).toBe(220);
+      expect(withRect.children[2][axis]).toBe(120);
+      expect(withRect[size]).toBe(220);
+      // Its own geometry is kept, so a tween can grow it again.
+      expect(withContainer.children[1]).toMatchObject({
+        width: 100,
+        height: 100,
+      });
+    },
+  );
+
+  it("sizes a parent up to the point a collapsed container collapses to", () => {
+    const parent = parseContainerForTesting({
+      state: {
+        id: "parent",
+        type: "container",
+        children: [
+          rect("a", 0, 0, 100, 100),
+          {
+            id: "collapsed",
+            type: "container",
+            x: 300,
+            y: 200,
+            anchorX: 0.5,
+            anchorY: 0.5,
+            scaleX: 0,
+            scaleY: 0,
+            children: [rect("inner", 0, 0, 400, 400)],
+          },
+        ],
+      },
+    });
+
+    expect(parent).toMatchObject({ width: 300, height: 200 });
+  });
+
   it("keeps an explicit container origin in rendered pixels like other elements", () => {
     const result = parseContainerForTesting({
       state: canvas({ scaleX: 0.5, scaleY: 0.5, originX: 100, originY: 50 }),
@@ -379,6 +447,42 @@ describe("container group scale", () => {
       startButton: { src: "up", size: 20, step: 80 },
       endButton: { src: "down", size: 24 },
     });
+  });
+
+  it("scales a scrollbar button's default size and step along the scrollbar", () => {
+    const scroller = (scaleX, scaleY) =>
+      parseContainerForTesting({
+        state: {
+          id: "scroller",
+          type: "container",
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 100,
+          scroll: true,
+          scaleX,
+          scaleY,
+          scrollbar: {
+            vertical: {
+              thickness: 20,
+              track: { src: "track" },
+              thumb: { src: "thumb" },
+              startButton: { src: "up" },
+            },
+          },
+          children: [rect("row", 0, 0, 200, 300)],
+        },
+      }).scrollbar.vertical;
+
+    // A button without a size is as long as the scrollbar is thick, and
+    // without a step it scrolls 24 units.
+    expect(scroller(0.5, 2)).toMatchObject({
+      thickness: 10,
+      startButton: { src: "up", size: 40, step: 48 },
+    });
+    // Under a uniform scale the thickness fallback is already scaled.
+    expect(scroller(2, 2).startButton).toEqual({ src: "up", step: 48 });
+    expect(scroller(1, 1).startButton).toEqual({ src: "up" });
   });
 
   it("hit-tests a clickable child where the scaled group draws it", () => {
@@ -586,6 +690,38 @@ describe("container group scale", () => {
       expectSameBounds(stage, renderTree(outer(1, 0.5)), ids);
     });
 
+    it.each([
+      ["grows", 0.5, 1],
+      ["shrinks", 1, 0.5],
+    ])(
+      "%s the base of a scale loop with the authored scale on every frame",
+      async (_name, from, to) => {
+        const { stage, animationBus, render } = createRun();
+        await render([], [parsedCanvas(from)]);
+        render(
+          [parsedCanvas(from)],
+          [parsedCanvas(to)],
+          [
+            {
+              ...scaleTween({
+                keyframes: [linear(to * 1.2, 500), linear(to, 500)],
+              })[0],
+              playback: { loop: true },
+            },
+          ],
+        );
+
+        // A loop never completes, so the next state is drawn before it starts.
+        expectSameBounds(stage, staticStage(to), ids);
+        animationBus.tick(500);
+        expectSameBounds(stage, staticStage(to * 1.2), ids);
+        animationBus.tick(500);
+        expectSameBounds(stage, staticStage(to), ids);
+        animationBus.tick(250);
+        expectSameBounds(stage, staticStage(to * 1.1), ids);
+      },
+    );
+
     it("continues a persistent scale loop on a scaled container across renders", () => {
       const { animationBus, render } = createRun();
       const pulse = {
@@ -741,6 +877,80 @@ describe("container group scale", () => {
       expectSameBounds(stage, renderTree(outer(960)), ids);
     });
 
+    it("slides a removed child out in the container's unscaled units, like an added one in", async () => {
+      const stage = new Container();
+      const animationBus = createAnimationBus();
+      const render = (prev, next, animations = []) =>
+        renderElements({
+          app: {
+            render: vi.fn(),
+            renderer: {
+              width: 1280,
+              height: 720,
+              generateTexture: vi.fn(() => Texture.WHITE),
+            },
+          },
+          parent: stage,
+          prevComputedTree: prev,
+          nextComputedTree: next,
+          animations: normalizeAnimations(animations),
+          animationBus,
+          completionTracker: createCompletionTracker(),
+          eventHandler: vi.fn(),
+          elementPlugins,
+          signal: new AbortController().signal,
+        });
+      const group = (children) =>
+        parsed({
+          id: "group",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children,
+        });
+      const slide = (side, value, initialValue) => ({
+        type: "transition",
+        [side]: {
+          tween: {
+            x: {
+              initialValue,
+              keyframes: [linear(value)],
+            },
+          },
+        },
+      });
+      const before = group([
+        rect("stay", 0, 0, 100, 100),
+        rect("leaving", 200, 0, 100, 100),
+      ]);
+      const after = group([
+        rect("stay", 0, 0, 100, 100),
+        rect("entering", 200, 200, 100, 100),
+      ]);
+
+      await render([], [before]);
+      render(
+        [before],
+        [after],
+        [
+          { id: "exit", targetId: "leaving", ...slide("prev", 800) },
+          { id: "entry", targetId: "entering", ...slide("next", 200, 800) },
+        ],
+      );
+      animationBus.tick(500);
+
+      // Each transition draws its subject through an unlabelled surface whose
+      // first child carries the tweened x. Halfway through 200 -> 800 and
+      // 800 -> 200 in the group's units, both are at 500 * 0.5 = 250.
+      const surfaceXs = findByLabel(stage, "group")
+        .children.filter((child) => !child.label)
+        .map((surface) => Math.round(surface.children[0].x));
+
+      expect(surfaceXs).toEqual([250, 250]);
+    });
+
     it("continues a persistent child tween in a scaled container across renders", () => {
       const { animationBus, render } = createRun();
       const drift = {
@@ -855,6 +1065,49 @@ describe("container group scale", () => {
       expect(converted.get("outer")[0]).toBe(animations[0]);
       expect(converted.get("top-left")[0]).toBe(animations[2]);
       expect(animations).toEqual(original);
+    });
+
+    it("converts each side of a transition in the container that draws it", () => {
+      const outer = (children) =>
+        parseContainerForTesting({
+          state: {
+            id: "outer",
+            type: "container",
+            scaleX: 0.5,
+            scaleY: 2,
+            children,
+          },
+        });
+      const prevElement = outer([canvas(), rect("leaving", 0, 0, 10, 10)]);
+      const nextElement = outer([canvas(), rect("entering", 0, 0, 10, 10)]);
+      // A child that leaves or enters this container may come from or go to
+      // another one, which converts the other side.
+      const slide = (targetId) => ({
+        id: `${targetId}-slide`,
+        targetId,
+        type: "transition",
+        prev: { tween: { x: { keyframes: [{ value: 800 }] } } },
+        next: { tween: { x: { keyframes: [{ value: 600 }] } } },
+      });
+      const animations = [slide("canvas"), slide("leaving"), slide("entering")];
+
+      const converted = getContainerChildAnimations(
+        animations,
+        nextElement,
+        prevElement,
+      );
+      const slideValues = (targetId) => {
+        const [{ prev, next }] = converted.get(targetId);
+        return [prev, next].map((side) => side.tween.x.keyframes[0].value);
+      };
+
+      expect(slideValues("canvas")).toEqual([400, 300]);
+      expect(slideValues("leaving")).toEqual([400, 600]);
+      expect(slideValues("entering")).toEqual([800, 300]);
+      // Without the previous state, a removed child is not one of the children.
+      expect(
+        getContainerChildAnimations([slide("leaving")], nextElement),
+      ).toEqual([slide("leaving")]);
     });
 
     it("returns the animations unchanged when nothing needs converting", () => {

@@ -37,6 +37,7 @@ import {
   getContainerLiveScaleAnimations,
   getContainerLiveScaleFactor,
   getContainerLiveScaleTargetState,
+  getContainerTweenedElement,
 } from "./util/liveContainerScale.js";
 import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
@@ -208,7 +209,11 @@ export const updateContainer = ({
         prevComputedTree: prevElement.children,
         eventHandler,
         elementPlugins,
-        animations: getContainerChildAnimations(animations, nextElement),
+        animations: getContainerChildAnimations(
+          animations,
+          nextElement,
+          prevElement,
+        ),
         animationBus,
         completionTracker,
         renderContext,
@@ -238,9 +243,16 @@ export const updateContainer = ({
     commit();
   };
 
-  // Until onComplete renders the next state, the previous geometry is on
-  // screen, so scale tweens are converted for it.
-  const liveScaleFactor = getContainerLiveScaleFactor(prevElement, nextElement);
+  // Scale tweens are converted for the geometry on screen while they run.
+  const liveScaleFactor = getContainerLiveScaleFactor(
+    getContainerTweenedElement({
+      animations,
+      animationBus,
+      prevElement,
+      nextElement,
+    }),
+    nextElement,
+  );
   const dispatched = dispatchLiveAnimations({
     animations: getContainerLiveScaleAnimations(
       animations,

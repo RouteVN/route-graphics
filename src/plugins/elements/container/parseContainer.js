@@ -1,5 +1,70 @@
 import { parseCommonObject } from "../util/parseCommonObject.js";
 import { normalizeBlurConfig } from "../util/blurEffect.js";
+import { ComputedNodeType } from "../../../types.js";
+import { DEFAULT_SCROLLBAR_BUTTON_STEP } from "./util/scrollbarDefaults.js";
+
+/**
+ * Scales a vertical scrollbar's sizes with its container's group scale. The
+ * thickness runs across the viewport (x); the thumb length and the buttons'
+ * sizes and steps run along it (y).
+ */
+const scaleScrollbar = (scrollbar, scaleX, scaleY) => {
+  const scaled = structuredClone(scrollbar);
+  const vertical = scaled.vertical;
+
+  if (!vertical) {
+    return scaled;
+  }
+
+  const thickness = vertical.thickness;
+
+  if (typeof thickness === "number") {
+    vertical.thickness = thickness * scaleX;
+  }
+  if (typeof vertical.thumb?.length === "number") {
+    vertical.thumb.length *= scaleY;
+  }
+  for (const button of [vertical.startButton, vertical.endButton]) {
+    if (!button) {
+      continue;
+    }
+
+    if (typeof button.size === "number") {
+      button.size *= scaleY;
+    } else if (typeof thickness === "number" && scaleX !== scaleY) {
+      // A button without a size falls back to the thickness, which is
+      // scaled by scaleX.
+      button.size = thickness * scaleY;
+    }
+    if (typeof button.step === "number") {
+      button.step *= scaleY;
+    } else if (scaleY !== 1) {
+      button.step = DEFAULT_SCROLLBAR_BUTTON_STEP * scaleY;
+    }
+  }
+
+  return scaled;
+};
+
+// A collapsed (zero-scale) container keeps its geometry so a tween can grow it
+// again, but like a collapsed rect it takes no space in its parent's layout:
+// on that axis its layout box is the point it collapses to.
+const isCollapsedContainer = (child, scaleKey) =>
+  child.type === ComputedNodeType.CONTAINER && child[scaleKey] === 0;
+
+const getLayoutWidth = (child) =>
+  isCollapsedContainer(child, "scaleX") ? 0 : child.width;
+
+const getLayoutHeight = (child) =>
+  isCollapsedContainer(child, "scaleY") ? 0 : child.height;
+
+const getLayoutRight = (child) =>
+  child.x +
+  (isCollapsedContainer(child, "scaleX") ? child.originX : child.width);
+
+const getLayoutBottom = (child) =>
+  child.y +
+  (isCollapsedContainer(child, "scaleY") ? child.originY : child.height);
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -27,34 +92,9 @@ import { normalizeBlurConfig } from "../util/blurEffect.js";
  *
  * A zero scale is left to the renderer, which collapses the group, and the
  * geometry keeps the scale inherited from ancestor containers. A tween from
- * zero can then grow the group (see util/liveContainerScale.js).
+ * zero can then grow the group (see util/liveContainerScale.js). A collapsed
+ * child container takes no space in this container's layout.
  */
-const scaleScrollbar = (scrollbar, scaleX, scaleY) => {
-  const scaled = structuredClone(scrollbar);
-  const vertical = scaled.vertical;
-
-  if (!vertical) {
-    return scaled;
-  }
-
-  if (typeof vertical.thickness === "number") {
-    vertical.thickness *= scaleX;
-  }
-  if (typeof vertical.thumb?.length === "number") {
-    vertical.thumb.length *= scaleY;
-  }
-  for (const button of [vertical.startButton, vertical.endButton]) {
-    if (typeof button?.size === "number") {
-      button.size *= scaleY;
-    }
-    if (typeof button?.step === "number") {
-      button.step *= scaleY;
-    }
-  }
-
-  return scaled;
-};
-
 export const parseContainer = ({
   state,
   parserPlugins = [],
@@ -149,7 +189,7 @@ export const parseContainer = ({
 
       if (
         state.width &&
-        child.width + currentRowWidth > scaledWidth &&
+        getLayoutWidth(child) + currentRowWidth > scaledWidth &&
         !scroll &&
         !state.anchorToBottom
       ) {
@@ -157,23 +197,23 @@ export const parseContainer = ({
         currentX = 0;
         currentRowWidth = 0;
         lastRowHeight += maxRowHeight + scaledGapY;
-        maxRowHeight = child.height;
+        maxRowHeight = getLayoutHeight(child);
 
         child.x = 0;
         child.y = lastRowHeight;
       } else {
-        maxRowHeight = Math.max(maxRowHeight, child.height);
+        maxRowHeight = Math.max(maxRowHeight, getLayoutHeight(child));
       }
-      currentX += child.width + gapValue;
-      currentRowWidth = child.x + child.width;
+      currentX += getLayoutWidth(child) + gapValue;
+      currentRowWidth = getLayoutRight(child);
       containerWidth = Math.max(currentX, containerWidth);
-      containerHeight = Math.max(child.height + child.y, containerHeight);
+      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
     } else if (direction === "vertical") {
       const gapValue = i < children.length - 1 ? scaledGapY : 0;
 
       if (
         state.height &&
-        child.height + currentColHeight > scaledHeight &&
+        getLayoutHeight(child) + currentColHeight > scaledHeight &&
         !scroll &&
         !state.anchorToBottom
       ) {
@@ -181,20 +221,20 @@ export const parseContainer = ({
         currentY = 0;
         currentColHeight = 0;
         lastColWidth += maxColWidth + scaledGapX;
-        maxColWidth = child.width;
+        maxColWidth = getLayoutWidth(child);
 
         child.x = lastColWidth;
         child.y = 0;
       } else {
-        maxColWidth = Math.max(maxColWidth, child.width);
+        maxColWidth = Math.max(maxColWidth, getLayoutWidth(child));
       }
-      currentY += child.height + gapValue;
-      currentColHeight = child.y + child.height;
-      containerWidth = Math.max(child.width + child.x, containerWidth);
+      currentY += getLayoutHeight(child) + gapValue;
+      currentColHeight = getLayoutBottom(child);
+      containerWidth = Math.max(getLayoutRight(child), containerWidth);
       containerHeight = Math.max(currentY, containerHeight);
     } else {
-      containerWidth = Math.max(child.width + child.x, containerWidth);
-      containerHeight = Math.max(child.height + child.y, containerHeight);
+      containerWidth = Math.max(getLayoutRight(child), containerWidth);
+      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
     }
 
     parsedChildren.push(child);

@@ -3,6 +3,7 @@ import {
   getUpdateAnimations,
   groupAnimationsByTarget,
 } from "../../../animations/planAnimations.js";
+import { isInfiniteUpdateAnimation } from "../../../animations/updateAnimationDispatch.js";
 
 /**
  * A container's scale magnitude is baked into its computed geometry (see
@@ -48,6 +49,39 @@ export const getContainerContentScale = (element) => ({
   scaleX: getBakedScale(element, "scaleX", "inheritedScaleX"),
   scaleY: getBakedScale(element, "scaleY", "inheritedScaleY"),
 });
+
+/**
+ * The computed container whose geometry is on screen while its own update
+ * animations run. That is the previous one, since the next state is rendered
+ * when they complete, unless one of them never ends: dispatching it renders
+ * the next state first.
+ * @param {Object} params
+ * @param {Array|Map} params.animations
+ * @param {Object} [params.animationBus]
+ * @param {Object} params.prevElement
+ * @param {Object} params.nextElement
+ * @returns {Object}
+ */
+export const getContainerTweenedElement = ({
+  animations,
+  animationBus,
+  prevElement,
+  nextElement,
+}) => {
+  // Animations that continue from an earlier render are not dispatched again.
+  const rendersNextStateFirst = getUpdateAnimations(
+    animations,
+    prevElement.id,
+  ).some(
+    (animation) =>
+      !(
+        typeof animationBus?.hasContext === "function" &&
+        animationBus.hasContext(animation.id)
+      ) && isInfiniteUpdateAnimation(animation),
+  );
+
+  return rendersNextStateFirst ? nextElement : prevElement;
+};
 
 /**
  * Display scale per authored unit of the container's own scale, for the
@@ -145,13 +179,20 @@ const convertTransitionSide = (side, trackFactors) => {
 };
 
 /**
- * Converts the tracks of an update tween, or of both sides of a transition.
+ * Converts the tracks of an update tween, or of the sides of a transition.
  * Portable GSAP timelines are left as authored.
  * @param {Object} animation
  * @param {Array<[string, number]>} trackFactors - Tween property and factor
+ * @param {Object} [sides] - Which parts to convert
+ * @param {boolean} [sides.prev] - A transition's prev side
+ * @param {boolean} [sides.next] - A transition's next side, or an update tween
  * @returns {Object} The animation, or a converted copy
  */
-const convertAnimation = (animation, trackFactors) => {
+const convertAnimation = (
+  animation,
+  trackFactors,
+  sides = { prev: true, next: true },
+) => {
   if (animation.gsap) {
     return animation;
   }
@@ -159,14 +200,20 @@ const convertAnimation = (animation, trackFactors) => {
   let converted;
 
   if (animation.type === "update") {
-    const tween = convertTween(animation.tween, trackFactors);
+    const tween = sides.next
+      ? convertTween(animation.tween, trackFactors)
+      : animation.tween;
 
     if (tween !== animation.tween) {
       converted = { ...animation, tween };
     }
   } else if (animation.type === "transition") {
-    const prev = convertTransitionSide(animation.prev, trackFactors);
-    const next = convertTransitionSide(animation.next, trackFactors);
+    const prev = sides.prev
+      ? convertTransitionSide(animation.prev, trackFactors)
+      : animation.prev;
+    const next = sides.next
+      ? convertTransitionSide(animation.next, trackFactors)
+      : animation.next;
 
     if (prev !== animation.prev || next !== animation.next) {
       converted = { ...animation, prev, next };
@@ -214,11 +261,23 @@ export const getContainerLiveScaleAnimations = (
  * and height tracks of a rect child, are converted from the container's
  * unscaled space into rendered pixels. Deeper descendants are converted by
  * their own parent container.
+ *
+ * Each part is converted by the container that draws it: a transition's prev
+ * side if the child was in this container before, and its next side and
+ * update tweens if the child is in it now. A removed child's exit transition
+ * is therefore converted here, and a child that moves to another container is
+ * converted once on each side. Children are rendered in the next state's
+ * geometry, so its scale is used for both sides.
  * @param {Array|Map} animations
  * @param {Object} element - Computed container whose children are rendered
+ * @param {Object} [prevElement] - The same container in the previous state
  * @returns {Array|Map} The same collection, or a converted copy as a Map
  */
-export const getContainerChildAnimations = (animations, element) => {
+export const getContainerChildAnimations = (
+  animations,
+  element,
+  prevElement,
+) => {
   const contentScale = getContainerContentScale(element);
 
   if (!animations || (contentScale.scaleX === 1 && contentScale.scaleY === 1)) {
@@ -230,17 +289,27 @@ export const getContainerChildAnimations = (animations, element) => {
     contentScale[scaleKey],
   ]);
   const animationsByTarget = groupAnimationsByTarget(animations);
+  const prevChildIds = new Set(
+    (prevElement?.children ?? []).map((child) => child.id),
+  );
+  const nextChildIds = new Set(
+    (element.children ?? []).map((child) => child.id),
+  );
   let converted;
 
-  for (const child of element.children ?? []) {
-    const childAnimations = animationsByTarget.get(child.id);
+  for (const childId of new Set([...prevChildIds, ...nextChildIds])) {
+    const childAnimations = animationsByTarget.get(childId);
 
     if (!childAnimations) {
       continue;
     }
 
+    const sides = {
+      prev: prevChildIds.has(childId),
+      next: nextChildIds.has(childId),
+    };
     const convertedChildAnimations = childAnimations.map((animation) =>
-      convertAnimation(animation, trackFactors),
+      convertAnimation(animation, trackFactors, sides),
     );
 
     if (
@@ -249,7 +318,7 @@ export const getContainerChildAnimations = (animations, element) => {
       )
     ) {
       converted ??= new Map(animationsByTarget);
-      converted.set(child.id, convertedChildAnimations);
+      converted.set(childId, convertedChildAnimations);
     }
   }
 
