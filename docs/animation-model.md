@@ -241,9 +241,9 @@ Position tweens support two addressing modes in both `update` and `transition`:
 Inside a scaled container, the parent coordinate space is the container's
 unscaled space, the same units as its children's authored `x` and `y`: the
 container's scale applies on top, so a tween ends where the next state draws
-the child. A rect's `width` and `height` tweens use the same units. A
-container's own `scaleX` and `scaleY` tweens use its authored scale, like its
-state.
+the child. A rect's `width` and `height` tweens use the same units, and so do
+the update tweens a removed child runs before it is deleted. A container's own
+`scaleX` and `scaleY` tweens use its authored scale, like its state.
 
 For example, `translateX: -1` moves the subject left by one subject width, and
 `translateY: 0.5` moves it down by half its height. A single tween cannot define

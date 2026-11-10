@@ -1,0 +1,353 @@
+---
+title: "Update Tweens On Removed Elements In Scaled Containers"
+description: "Two 600x320 containers at scale 0.5, anchored at their centres. In the second state the left one loses its darker box, which runs an update tween moving x from 40 to 360 in the container's unscaled units before it is deleted; the lighter box stays. The right container is removed and runs its own scale tween from 0.5 to 0.25 before it is deleted. Both are linear over 1 second. Grey frames mark the 500ms frame (the darker box at x 200, the right group at 0.375); the white frame marks the box that stays. At 1000ms both removed elements are gone."
+specs:
+  - "a removed child's update tween should use its container's unscaled units"
+  - "a removed container's own scale tween should use its authored scale"
+  - "at 500ms the moving box and the shrinking group should sit inside the grey frames"
+  - "at 1000ms only the lighter box of the left group should remain"
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: start
+    elements:
+      - id: holder
+        type: container
+        x: 330
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: leaving
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: staying
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: dropped
+        type: container
+        x: 950
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: dropped-a
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: dropped-b
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: start-leaving-top
+            type: rect
+            x: 192
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-leaving-bottom
+            type: rect
+            x: 192
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-leaving-left
+            type: rect
+            x: 192
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-leaving-right
+            type: rect
+            x: 305
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-staying-top
+            type: rect
+            x: 352
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-staying-bottom
+            type: rect
+            x: 352
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-staying-left
+            type: rect
+            x: 352
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-staying-right
+            type: rect
+            x: 465
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-dropped-a-top
+            type: rect
+            x: 812
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-dropped-a-bottom
+            type: rect
+            x: 812
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-dropped-a-left
+            type: rect
+            x: 812
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-dropped-a-right
+            type: rect
+            x: 925
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-dropped-b-top
+            type: rect
+            x: 972
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-dropped-b-bottom
+            type: rect
+            x: 972
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-dropped-b-left
+            type: rect
+            x: 972
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-dropped-b-right
+            type: rect
+            x: 1085
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+  - id: end
+    elements:
+      - id: holder
+        type: container
+        x: 330
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: staying
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: mid-leaving-top
+            type: rect
+            x: 272
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#737373"
+          - id: mid-leaving-bottom
+            type: rect
+            x: 272
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#737373"
+          - id: mid-leaving-left
+            type: rect
+            x: 272
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: mid-leaving-right
+            type: rect
+            x: 385
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: mid-dropped-a-top
+            type: rect
+            x: 844
+            "y": 307
+            width: 92
+            height: 3
+            fill: "#737373"
+          - id: mid-dropped-a-bottom
+            type: rect
+            x: 844
+            "y": 361
+            width: 92
+            height: 3
+            fill: "#737373"
+          - id: mid-dropped-a-left
+            type: rect
+            x: 844
+            "y": 307
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-dropped-a-right
+            type: rect
+            x: 933
+            "y": 307
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-dropped-b-top
+            type: rect
+            x: 964
+            "y": 356
+            width: 92
+            height: 3
+            fill: "#737373"
+          - id: mid-dropped-b-bottom
+            type: rect
+            x: 964
+            "y": 410
+            width: 92
+            height: 3
+            fill: "#737373"
+          - id: mid-dropped-b-left
+            type: rect
+            x: 964
+            "y": 356
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-dropped-b-right
+            type: rect
+            x: 1053
+            "y": 356
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: end-staying-top
+            type: rect
+            x: 352
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-staying-bottom
+            type: rect
+            x: 352
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-staying-left
+            type: rect
+            x: 352
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: end-staying-right
+            type: rect
+            x: 465
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+    animations:
+      - id: leaving-move
+        targetId: leaving
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 360
+                easing: linear
+      - id: dropped-scale
+        targetId: dropped
+        type: update
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 1000
+                value: 0.25
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 1000
+                value: 0.25
+                easing: linear

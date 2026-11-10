@@ -48,7 +48,9 @@ const scaleScrollbar = (scrollbar, scaleX, scaleY) => {
 
 // A collapsed (zero-scale) container keeps its geometry so a tween can grow it
 // again, but like a collapsed rect it takes no space in its parent's layout:
-// on that axis its layout box is the point it collapses to.
+// on that axis its layout box is its anchor point, where a collapsed rect
+// would sit. Computed nodes drop the anchor, so it is read from the authored
+// child.
 const isCollapsedContainer = (child, scaleKey) =>
   child.type === ComputedNodeType.CONTAINER && child[scaleKey] === 0;
 
@@ -58,13 +60,17 @@ const getLayoutWidth = (child) =>
 const getLayoutHeight = (child) =>
   isCollapsedContainer(child, "scaleY") ? 0 : child.height;
 
-const getLayoutRight = (child) =>
+const getLayoutRight = (child, authored) =>
   child.x +
-  (isCollapsedContainer(child, "scaleX") ? child.originX : child.width);
+  (isCollapsedContainer(child, "scaleX")
+    ? (authored.anchorX ?? 0) * child.width
+    : child.width);
 
-const getLayoutBottom = (child) =>
+const getLayoutBottom = (child, authored) =>
   child.y +
-  (isCollapsedContainer(child, "scaleY") ? child.originY : child.height);
+  (isCollapsedContainer(child, "scaleY")
+    ? (authored.anchorY ?? 0) * child.height
+    : child.height);
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -205,9 +211,12 @@ export const parseContainer = ({
         maxRowHeight = Math.max(maxRowHeight, getLayoutHeight(child));
       }
       currentX += getLayoutWidth(child) + gapValue;
-      currentRowWidth = getLayoutRight(child);
+      currentRowWidth = getLayoutRight(child, children[i]);
       containerWidth = Math.max(currentX, containerWidth);
-      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
+      containerHeight = Math.max(
+        getLayoutBottom(child, children[i]),
+        containerHeight,
+      );
     } else if (direction === "vertical") {
       const gapValue = i < children.length - 1 ? scaledGapY : 0;
 
@@ -229,12 +238,21 @@ export const parseContainer = ({
         maxColWidth = Math.max(maxColWidth, getLayoutWidth(child));
       }
       currentY += getLayoutHeight(child) + gapValue;
-      currentColHeight = getLayoutBottom(child);
-      containerWidth = Math.max(getLayoutRight(child), containerWidth);
+      currentColHeight = getLayoutBottom(child, children[i]);
+      containerWidth = Math.max(
+        getLayoutRight(child, children[i]),
+        containerWidth,
+      );
       containerHeight = Math.max(currentY, containerHeight);
     } else {
-      containerWidth = Math.max(getLayoutRight(child), containerWidth);
-      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
+      containerWidth = Math.max(
+        getLayoutRight(child, children[i]),
+        containerWidth,
+      );
+      containerHeight = Math.max(
+        getLayoutBottom(child, children[i]),
+        containerHeight,
+      );
     }
 
     parsedChildren.push(child);

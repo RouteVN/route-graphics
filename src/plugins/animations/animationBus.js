@@ -76,13 +76,17 @@ const removeNoopAutoProperties = (group, animationId, preserveNoopAuto) => ({
   properties: Object.fromEntries(
     Object.entries(group.properties).filter(([property, config]) => {
       if (!config.auto || preserveNoopAuto) return true;
-      const currentValue = getTimelineInitialValue({
-        object: group.element,
-        property,
-        propertyPathMap: group.propertyPathMap,
-        subjectState: group.subjectState,
-        defaultValue: 0,
-      });
+      // Authored Auto tracks cannot set initialValue, but a renderer may give
+      // one a start value; the timeline then starts there.
+      const currentValue =
+        config.initialValue ??
+        getTimelineInitialValue({
+          object: group.element,
+          property,
+          propertyPathMap: group.propertyPathMap,
+          subjectState: group.subjectState,
+          defaultValue: 0,
+        });
       const targetValue = resolveAutoTargetValue(
         group.targetState,
         property,

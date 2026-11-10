@@ -38,6 +38,7 @@ import {
   getContainerLiveScaleFactor,
   getContainerLiveScaleTargetState,
   getContainerTweenedElement,
+  getContainerTweenStartScale,
 } from "./util/liveContainerScale.js";
 import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
@@ -244,20 +245,28 @@ export const updateContainer = ({
   };
 
   // Scale tweens are converted for the geometry on screen while they run.
+  const tweenedElement = getContainerTweenedElement({
+    animations,
+    animationBus,
+    prevElement,
+    nextElement,
+  });
   const liveScaleFactor = getContainerLiveScaleFactor(
-    getContainerTweenedElement({
-      animations,
-      animationBus,
-      prevElement,
-      nextElement,
-    }),
+    tweenedElement,
     nextElement,
   );
+  // When a loop draws the next state first, other scale tweens still start
+  // from the size on screen.
+  const tweenStartScale =
+    tweenedElement === nextElement
+      ? getContainerTweenStartScale(containerElement, prevElement, nextElement)
+      : undefined;
   const dispatched = dispatchLiveAnimations({
     animations: getContainerLiveScaleAnimations(
       animations,
       prevElement.id,
       liveScaleFactor,
+      tweenStartScale,
     ),
     targetId: prevElement.id,
     animationBus,

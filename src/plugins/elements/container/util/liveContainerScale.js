@@ -4,6 +4,7 @@ import {
   groupAnimationsByTarget,
 } from "../../../animations/planAnimations.js";
 import { isInfiniteUpdateAnimation } from "../../../animations/updateAnimationDispatch.js";
+import { collectAllElementIds } from "../../../../util/collectElementIds.js";
 
 /**
  * A container's scale magnitude is baked into its computed geometry (see
@@ -104,6 +105,38 @@ export const getContainerLiveScaleFactor = (element, nextElement = element) => {
 };
 
 /**
+ * Where scale tweens start when the next state is drawn before they run (see
+ * getContainerTweenedElement): the size on screen, as a display scale for the
+ * next state's geometry. Without it a tween that sets no start value would
+ * start from the next state's size.
+ * @param {Object} displayObject - The container's Pixi display object
+ * @param {Object} prevElement - Computed container on screen
+ * @param {Object} nextElement - Computed container drawn next
+ * @returns {{ scaleX: number, scaleY: number } | undefined} Undefined when
+ * the geometry keeps its size
+ */
+export const getContainerTweenStartScale = (
+  displayObject,
+  prevElement,
+  nextElement,
+) => {
+  const prevScale = getContainerContentScale(prevElement);
+  const nextScale = getContainerContentScale(nextElement);
+
+  if (
+    prevScale.scaleX === nextScale.scaleX &&
+    prevScale.scaleY === nextScale.scaleY
+  ) {
+    return undefined;
+  }
+
+  return {
+    scaleX: displayObject.scale.x * (prevScale.scaleX / nextScale.scaleX),
+    scaleY: displayObject.scale.y * (prevScale.scaleY / nextScale.scaleY),
+  };
+};
+
+/**
  * Target state for Auto scale tweens: the next authored scale, as a display
  * scale for the geometry on screen.
  * @param {Object} nextElement
@@ -183,15 +216,16 @@ const convertTransitionSide = (side, trackFactors) => {
  * Portable GSAP timelines are left as authored.
  * @param {Object} animation
  * @param {Array<[string, number]>} trackFactors - Tween property and factor
- * @param {Object} [sides] - Which parts to convert
- * @param {boolean} [sides.prev] - A transition's prev side
- * @param {boolean} [sides.next] - A transition's next side, or an update tween
+ * @param {Object} [parts] - Which parts to convert
+ * @param {boolean} [parts.update] - An update tween
+ * @param {boolean} [parts.prev] - A transition's prev side
+ * @param {boolean} [parts.next] - A transition's next side
  * @returns {Object} The animation, or a converted copy
  */
 const convertAnimation = (
   animation,
   trackFactors,
-  sides = { prev: true, next: true },
+  parts = { update: true, prev: true, next: true },
 ) => {
   if (animation.gsap) {
     return animation;
@@ -200,7 +234,7 @@ const convertAnimation = (
   let converted;
 
   if (animation.type === "update") {
-    const tween = sides.next
+    const tween = parts.update
       ? convertTween(animation.tween, trackFactors)
       : animation.tween;
 
@@ -208,10 +242,10 @@ const convertAnimation = (
       converted = { ...animation, tween };
     }
   } else if (animation.type === "transition") {
-    const prev = sides.prev
+    const prev = parts.prev
       ? convertTransitionSide(animation.prev, trackFactors)
       : animation.prev;
-    const next = sides.next
+    const next = parts.next
       ? convertTransitionSide(animation.next, trackFactors)
       : animation.next;
 
@@ -233,26 +267,71 @@ const convertAnimation = (
 };
 
 /**
+ * Gives an update tween's scale tracks that set no start value the start
+ * scale, keeping the authored animation's continuity signature.
+ * @param {Object} animation - The animation, possibly already converted
+ * @param {Object} authored - The authored animation
+ * @param {{ scaleX: number, scaleY: number }} startScale
+ * @returns {Object} The animation, or a copy with start values
+ */
+const withScaleStart = (animation, authored, startScale) => {
+  const scaleKeys = SCALE_AXES.map(([scaleKey]) => scaleKey).filter(
+    (scaleKey) =>
+      animation.tween?.[scaleKey] &&
+      animation.tween[scaleKey].initialValue === undefined,
+  );
+
+  if (animation.gsap || scaleKeys.length === 0) {
+    return animation;
+  }
+
+  const tween = { ...animation.tween };
+
+  for (const scaleKey of scaleKeys) {
+    tween[scaleKey] = {
+      ...tween[scaleKey],
+      initialValue: startScale[scaleKey],
+    };
+  }
+
+  return {
+    ...animation,
+    tween,
+    signature: authored.signature ?? getAnimationContinuitySignature(authored),
+  };
+};
+
+/**
  * Returns the container's own update animations with their scale tracks
  * converted to display scales. Other targets' animations are left out, since
  * dispatching only reads the container's own animations.
  * @param {Array|Map} animations
  * @param {string} targetId
  * @param {{ scaleX: number, scaleY: number }} factor
+ * @param {{ scaleX: number, scaleY: number }} [startScale] - Start value for
+ * scale tracks that set none, except in animations that never end (see
+ * getContainerTweenStartScale)
  */
 export const getContainerLiveScaleAnimations = (
   animations,
   targetId,
   factor,
+  startScale,
 ) => {
   const trackFactors = SCALE_AXES.map(([scaleKey]) => [
     scaleKey,
     factor[scaleKey],
   ]);
 
-  return getUpdateAnimations(animations, targetId).map((animation) =>
-    convertAnimation(animation, trackFactors),
-  );
+  return getUpdateAnimations(animations, targetId).map((animation) => {
+    const converted = convertAnimation(animation, trackFactors);
+
+    // A loop starts each cycle from where it started, so it starts from the
+    // next state's size and keeps no start value.
+    return startScale && !isInfiniteUpdateAnimation(animation)
+      ? withScaleStart(converted, animation, startScale)
+      : converted;
+  });
 };
 
 /**
@@ -263,11 +342,12 @@ export const getContainerLiveScaleAnimations = (
  * their own parent container.
  *
  * Each part is converted by the container that draws it: a transition's prev
- * side if the child was in this container before, and its next side and
- * update tweens if the child is in it now. A removed child's exit transition
- * is therefore converted here, and a child that moves to another container is
- * converted once on each side. Children are rendered in the next state's
- * geometry, so its scale is used for both sides.
+ * side if the child was in this container before, its next side if the child
+ * is in it now, and update tweens if the child is in it now or is being
+ * removed from it (a removed element runs its update tweens before it is
+ * deleted). A child that moves deeper into this container is converted there
+ * instead. Children are rendered in the next state's geometry, so its scale
+ * is used for every part.
  * @param {Array|Map} animations
  * @param {Object} element - Computed container whose children are rendered
  * @param {Object} [prevElement] - The same container in the previous state
@@ -295,6 +375,7 @@ export const getContainerChildAnimations = (
   const nextChildIds = new Set(
     (element.children ?? []).map((child) => child.id),
   );
+  let nextDescendantIds;
   let converted;
 
   for (const childId of new Set([...prevChildIds, ...nextChildIds])) {
@@ -304,12 +385,21 @@ export const getContainerChildAnimations = (
       continue;
     }
 
-    const sides = {
+    const isChild = nextChildIds.has(childId);
+
+    if (!isChild) {
+      nextDescendantIds ??= collectAllElementIds({
+        children: element.children,
+      });
+    }
+
+    const parts = {
+      update: isChild || !nextDescendantIds.has(childId),
       prev: prevChildIds.has(childId),
-      next: nextChildIds.has(childId),
+      next: isChild,
     };
     const convertedChildAnimations = childAnimations.map((animation) =>
-      convertAnimation(animation, trackFactors, sides),
+      convertAnimation(animation, trackFactors, parts),
     );
 
     if (

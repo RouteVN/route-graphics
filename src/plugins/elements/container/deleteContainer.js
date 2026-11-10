@@ -1,6 +1,10 @@
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import { cleanupParticlesInTree } from "../particles/particleRuntime.js";
 import { cleanupScrollInteractionsInTree } from "../util/setupScrollInteraction.js";
+import {
+  getContainerLiveScaleAnimations,
+  getContainerLiveScaleFactor,
+} from "./util/liveContainerScale.js";
 
 /**
  * Delete container element (synchronous)
@@ -30,8 +34,13 @@ export const deleteContainer = ({
     }
   };
 
+  // Scale tweens are converted for the geometry on screen, as on update.
   const dispatched = dispatchLiveAnimations({
-    animations,
+    animations: getContainerLiveScaleAnimations(
+      animations,
+      element.id,
+      getContainerLiveScaleFactor(element),
+    ),
     targetId: element.id,
     animationBus,
     completionTracker,
