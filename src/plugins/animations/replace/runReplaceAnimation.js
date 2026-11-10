@@ -4,6 +4,7 @@ import {
   clearDeferredMountOperations,
   createRenderContext,
   flushDeferredMountOperations,
+  startDeferredPlaybackOperations,
 } from "../../elements/renderContext.js";
 import {
   setElementHitTestBounds,
@@ -309,11 +310,29 @@ export const runReplaceAnimation = ({
     }
   };
 
-  const releaseTransitionResources = ({ flushDeferredEffects }) => {
+  const isNextDisplayObjectLive = () =>
+    Boolean(
+      nextDisplayObjectRef.value &&
+        !nextDisplayObjectRef.value.destroyed &&
+        nextDisplayObjectRef.value.parent,
+    );
+
+  const releaseTransitionResources = ({
+    flushDeferredEffects,
+    keepPlayback = false,
+  }) => {
     replaceOverlayRef.value?.destroy();
 
     if (flushDeferredEffects) {
       flushDeferredMountOperations(hiddenMountContext);
+      return;
+    }
+
+    // A cancelled transition still leaves its next element on stage. A later
+    // render that keeps the element unchanged does not mount it again, so its
+    // particles, animated sprites and videos have to start here.
+    if (keepPlayback && isNextDisplayObjectLive()) {
+      startDeferredPlaybackOperations(hiddenMountContext);
       return;
     }
 
@@ -339,12 +358,16 @@ export const runReplaceAnimation = ({
     presentNextDisplayObject();
 
     if (!deleteOperation || typeof deleteOperation.then !== "function") {
-      releaseTransitionResources({ flushDeferredEffects });
+      releaseTransitionResources({ flushDeferredEffects, keepPlayback: true });
       return undefined;
     }
 
     finalizationOperation = deleteOperation.then(
-      () => releaseTransitionResources({ flushDeferredEffects }),
+      () =>
+        releaseTransitionResources({
+          flushDeferredEffects,
+          keepPlayback: true,
+        }),
       (error) => {
         releaseTransitionResources({ flushDeferredEffects: false });
         throw error;
