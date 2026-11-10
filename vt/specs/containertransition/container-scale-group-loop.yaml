@@ -1,0 +1,517 @@
+---
+title: "Container Group Scale Loop On A New Base Scale"
+description: "Two 600x320 containers anchored at their centres start a looping scale pulse in the same render that changes their scale. The left one goes from 0.5 to 1 and pulses 1 to 1.1 and back; the right one goes from 1 to 0.5 and pulses 0.5 to 0.6 and back. Each cycle is linear over 1 second. A loop never completes, so it runs on the next state's layout. Grey frames mark the peak at 500ms (1.1 and 0.6) and white frames mark the new base scale (1 and 0.5) at 1000ms."
+specs:
+  - "a scale loop that starts with a new base scale should pulse around the new scale"
+  - "at 500ms both groups should be at their peak, every box inside a grey frame"
+  - "at 1000ms both groups should be back at their new base scale inside the white frames"
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: start
+    elements:
+      - id: grow
+        type: container
+        x: 330
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: grow-a
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: grow-b
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: shrink
+        type: container
+        x: 950
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 1
+        scaleY: 1
+        children:
+          - id: shrink-a
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: shrink-b
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: start-grow-a-top
+            type: rect
+            x: 192
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-grow-a-bottom
+            type: rect
+            x: 192
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-grow-a-left
+            type: rect
+            x: 192
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-grow-a-right
+            type: rect
+            x: 305
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-grow-b-top
+            type: rect
+            x: 352
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-grow-b-bottom
+            type: rect
+            x: 352
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-grow-b-left
+            type: rect
+            x: 352
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-grow-b-right
+            type: rect
+            x: 465
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-shrink-a-top
+            type: rect
+            x: 682
+            "y": 232
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-a-bottom
+            type: rect
+            x: 682
+            "y": 355
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-a-left
+            type: rect
+            x: 682
+            "y": 232
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: start-shrink-a-right
+            type: rect
+            x: 895
+            "y": 232
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: start-shrink-b-top
+            type: rect
+            x: 1002
+            "y": 362
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-b-bottom
+            type: rect
+            x: 1002
+            "y": 485
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-b-left
+            type: rect
+            x: 1002
+            "y": 362
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: start-shrink-b-right
+            type: rect
+            x: 1215
+            "y": 362
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+  - id: looping
+    elements:
+      - id: grow
+        type: container
+        x: 330
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 1
+        scaleY: 1
+        children:
+          - id: grow-a
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: grow-b
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: shrink
+        type: container
+        x: 950
+        "y": 360
+        width: 600
+        height: 320
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: shrink-a
+            type: rect
+            x: 40
+            "y": 40
+            width: 200
+            height: 110
+            fill: "#A6A6A6"
+          - id: shrink-b
+            type: rect
+            x: 360
+            "y": 170
+            width: 200
+            height: 110
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: peak-grow-a-top
+            type: rect
+            x: 36
+            "y": 220
+            width: 236
+            height: 3
+            fill: "#737373"
+          - id: peak-grow-a-bottom
+            type: rect
+            x: 36
+            "y": 354
+            width: 236
+            height: 3
+            fill: "#737373"
+          - id: peak-grow-a-left
+            type: rect
+            x: 36
+            "y": 220
+            width: 3
+            height: 137
+            fill: "#737373"
+          - id: peak-grow-a-right
+            type: rect
+            x: 269
+            "y": 220
+            width: 3
+            height: 137
+            fill: "#737373"
+          - id: peak-grow-b-top
+            type: rect
+            x: 388
+            "y": 363
+            width: 236
+            height: 3
+            fill: "#737373"
+          - id: peak-grow-b-bottom
+            type: rect
+            x: 388
+            "y": 497
+            width: 236
+            height: 3
+            fill: "#737373"
+          - id: peak-grow-b-left
+            type: rect
+            x: 388
+            "y": 363
+            width: 3
+            height: 137
+            fill: "#737373"
+          - id: peak-grow-b-right
+            type: rect
+            x: 621
+            "y": 363
+            width: 3
+            height: 137
+            fill: "#737373"
+          - id: peak-shrink-a-top
+            type: rect
+            x: 786
+            "y": 280
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: peak-shrink-a-bottom
+            type: rect
+            x: 786
+            "y": 359
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: peak-shrink-a-left
+            type: rect
+            x: 786
+            "y": 280
+            width: 3
+            height: 82
+            fill: "#737373"
+          - id: peak-shrink-a-right
+            type: rect
+            x: 919
+            "y": 280
+            width: 3
+            height: 82
+            fill: "#737373"
+          - id: peak-shrink-b-top
+            type: rect
+            x: 978
+            "y": 358
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: peak-shrink-b-bottom
+            type: rect
+            x: 978
+            "y": 437
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: peak-shrink-b-left
+            type: rect
+            x: 978
+            "y": 358
+            width: 3
+            height: 82
+            fill: "#737373"
+          - id: peak-shrink-b-right
+            type: rect
+            x: 1111
+            "y": 358
+            width: 3
+            height: 82
+            fill: "#737373"
+          - id: base-grow-a-top
+            type: rect
+            x: 62
+            "y": 232
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-grow-a-bottom
+            type: rect
+            x: 62
+            "y": 355
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-grow-a-left
+            type: rect
+            x: 62
+            "y": 232
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: base-grow-a-right
+            type: rect
+            x: 275
+            "y": 232
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: base-grow-b-top
+            type: rect
+            x: 382
+            "y": 362
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-grow-b-bottom
+            type: rect
+            x: 382
+            "y": 485
+            width: 216
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-grow-b-left
+            type: rect
+            x: 382
+            "y": 362
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: base-grow-b-right
+            type: rect
+            x: 595
+            "y": 362
+            width: 3
+            height: 126
+            fill: "#FFFFFF"
+          - id: base-shrink-a-top
+            type: rect
+            x: 812
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-shrink-a-bottom
+            type: rect
+            x: 812
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-shrink-a-left
+            type: rect
+            x: 812
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: base-shrink-a-right
+            type: rect
+            x: 925
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: base-shrink-b-top
+            type: rect
+            x: 972
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-shrink-b-bottom
+            type: rect
+            x: 972
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: base-shrink-b-left
+            type: rect
+            x: 972
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: base-shrink-b-right
+            type: rect
+            x: 1085
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+    animations:
+      - id: grow-loop
+        targetId: grow
+        type: update
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 500
+                value: 1.1
+                easing: linear
+              - duration: 500
+                value: 1
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 500
+                value: 1.1
+                easing: linear
+              - duration: 500
+                value: 1
+                easing: linear
+        playback:
+          loop: true
+      - id: shrink-loop
+        targetId: shrink
+        type: update
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 500
+                value: 0.6
+                easing: linear
+              - duration: 500
+                value: 0.5
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 500
+                value: 0.6
+                easing: linear
+              - duration: 500
+                value: 0.5
+                easing: linear
+        playback:
+          loop: true

@@ -1,0 +1,206 @@
+---
+title: "Collapsed Container In A Scaled Flow"
+description: "A 1280x720 container at scale 0.5 holds a horizontal row and a vertical column, each with gap 40: a darker box, a container at scale 0 holding a white box, and a lighter box. Like a rect at scale 0, the collapsed container draws nothing and takes no space, so the lighter box follows the darker one after the two gaps around the collapsed container (80 units, 40 px). White frames from an unscaled container mark where each box must land."
+specs:
+  - "a collapsed container should draw nothing"
+  - "a collapsed container should take no space in a horizontal or vertical flow, apart from the gap after it"
+  - "every box should sit inside its white frame"
+---
+states:
+  - elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: row
+            type: container
+            x: 80
+            "y": 80
+            direction: horizontal
+            gapX: 40
+            gapY: 40
+            children:
+              - id: row-a
+                type: rect
+                x: 0
+                "y": 0
+                width: 160
+                height: 120
+                fill: "#A6A6A6"
+              - id: row-collapsed
+                type: container
+                scaleX: 0
+                scaleY: 0
+                children:
+                  - id: row-collapsed-box
+                    type: rect
+                    x: 0
+                    "y": 0
+                    width: 160
+                    height: 120
+                    fill: "#FFFFFF"
+              - id: row-b
+                type: rect
+                x: 0
+                "y": 0
+                width: 160
+                height: 120
+                fill: "#D9D9D9"
+          - id: column
+            type: container
+            x: 80
+            "y": 320
+            direction: vertical
+            gapX: 40
+            gapY: 40
+            children:
+              - id: column-a
+                type: rect
+                x: 0
+                "y": 0
+                width: 160
+                height: 120
+                fill: "#A6A6A6"
+              - id: column-collapsed
+                type: container
+                scaleX: 0
+                scaleY: 0
+                children:
+                  - id: column-collapsed-box
+                    type: rect
+                    x: 0
+                    "y": 0
+                    width: 160
+                    height: 120
+                    fill: "#FFFFFF"
+              - id: column-b
+                type: rect
+                x: 0
+                "y": 0
+                width: 160
+                height: 120
+                fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: row-a-top
+            type: rect
+            x: 352
+            "y": 212
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: row-a-bottom
+            type: rect
+            x: 352
+            "y": 285
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: row-a-left
+            type: rect
+            x: 352
+            "y": 212
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: row-a-right
+            type: rect
+            x: 445
+            "y": 212
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: row-b-top
+            type: rect
+            x: 472
+            "y": 212
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: row-b-bottom
+            type: rect
+            x: 472
+            "y": 285
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: row-b-left
+            type: rect
+            x: 472
+            "y": 212
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: row-b-right
+            type: rect
+            x: 565
+            "y": 212
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: column-a-top
+            type: rect
+            x: 352
+            "y": 332
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: column-a-bottom
+            type: rect
+            x: 352
+            "y": 405
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: column-a-left
+            type: rect
+            x: 352
+            "y": 332
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: column-a-right
+            type: rect
+            x: 445
+            "y": 332
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: column-b-top
+            type: rect
+            x: 352
+            "y": 432
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: column-b-bottom
+            type: rect
+            x: 352
+            "y": 505
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: column-b-left
+            type: rect
+            x: 352
+            "y": 432
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: column-b-right
+            type: rect
+            x: 445
+            "y": 432
+            width: 3
+            height: 76
+            fill: "#FFFFFF"

@@ -182,7 +182,7 @@ describe("negative scale parsing", () => {
     });
   });
 
-  it("bakes a container magnitude into children but keeps its sign on the group", () => {
+  it("bakes a container magnitude into its size and children but keeps its sign on the group", () => {
     const result = parseContainerForTesting({
       state: {
         id: "group",
@@ -210,16 +210,18 @@ describe("negative scale parsing", () => {
     });
 
     expect(result).toMatchObject({
-      width: 200,
-      height: 100,
-      x: 400,
-      y: 150,
-      originX: -100,
-      originY: 50,
+      width: 400,
+      height: 300,
+      x: 500,
+      y: 50,
+      originX: -200,
+      originY: 150,
       scaleX: -2,
       scaleY: 3,
     });
     expect(result.children[0]).toMatchObject({
+      x: 40,
+      y: 30,
       width: 60,
       height: 60,
       scaleX: 2,

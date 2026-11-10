@@ -180,7 +180,10 @@ export const runReplaceAnimation = ({
   }
 
   const isPersistent = animation.playback?.continuity === "persistent";
-  const continuitySignature = getAnimationContinuitySignature(animation);
+  // A container converts its children's transition tracks for its scale and
+  // keeps the authored signature on the converted copy.
+  const continuitySignature =
+    animation.signature ?? getAnimationContinuitySignature(animation);
   const transitionSignalController = isPersistent
     ? new AbortController()
     : null;

@@ -32,6 +32,13 @@ import {
   getElementTransformTargetState,
 } from "../util/transform.js";
 import { setElementRenderState } from "../elementRenderState.js";
+import {
+  getContainerChildAnimations,
+  getContainerLiveScaleAnimations,
+  getContainerLiveScaleFactor,
+  getContainerLiveScaleTargetState,
+  getContainerTweenedElement,
+} from "./util/liveContainerScale.js";
 import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
 const collectDescendantTargetStates = (elements, result = new Map()) => {
@@ -202,7 +209,11 @@ export const updateContainer = ({
         prevComputedTree: prevElement.children,
         eventHandler,
         elementPlugins,
-        animations,
+        animations: getContainerChildAnimations(
+          animations,
+          nextElement,
+          prevElement,
+        ),
         animationBus,
         completionTracker,
         renderContext,
@@ -232,14 +243,29 @@ export const updateContainer = ({
     commit();
   };
 
+  // Scale tweens are converted for the geometry on screen while they run.
+  const liveScaleFactor = getContainerLiveScaleFactor(
+    getContainerTweenedElement({
+      animations,
+      animationBus,
+      prevElement,
+      nextElement,
+    }),
+    nextElement,
+  );
   const dispatched = dispatchLiveAnimations({
-    animations,
+    animations: getContainerLiveScaleAnimations(
+      animations,
+      prevElement.id,
+      liveScaleFactor,
+    ),
     targetId: prevElement.id,
     animationBus,
     completionTracker,
     element: containerElement,
     targetState: {
       ...getElementTransformTargetState(nextElement, { alpha }),
+      ...getContainerLiveScaleTargetState(nextElement, liveScaleFactor),
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
       }),

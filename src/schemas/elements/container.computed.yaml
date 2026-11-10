@@ -26,10 +26,10 @@ properties:
     description: Element type, must be 'container'
   width:
     type: number
-    description: Width of the container (calculated from children if not provided)
+    description: Rendered width of the container, including the scale magnitude unless scaleX is zero (calculated from children if not provided)
   height:
     type: number
-    description: Height of the container (calculated from children if not provided)
+    description: Rendered height of the container, including the scale magnitude unless scaleY is zero (calculated from children if not provided)
   x:
     type: number
     description: X position adjusted for anchor point
@@ -48,6 +48,12 @@ properties:
   scaleY:
     type: number
     description: Authored vertical scale when a live sign transform is required
+  inheritedScaleX:
+    type: number
+    description: Horizontal scale magnitude baked in by ancestor containers. Omitted when 1. A zero scaleX keeps the geometry at this scale and the renderer collapses the group.
+  inheritedScaleY:
+    type: number
+    description: Vertical scale magnitude baked in by ancestor containers. Omitted when 1. A zero scaleY keeps the geometry at this scale and the renderer collapses the group.
   children:
     type: array
     description: Parsed child elements with positions adjusted based on direction, gapX, and gapY

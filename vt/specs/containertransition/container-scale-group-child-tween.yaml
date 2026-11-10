@@ -1,0 +1,327 @@
+---
+title: "Child Tweens In A Scaled Container"
+description: "A 1280x720 container at scale 0.5. Inside it, one box runs an update tween of x, y (relative), width and height, and a box added in the second state enters with a transition tweening x from 1200 to 880. All values are authored in the container's unscaled units and linear over 1 second. A third box stays still. Grey frames mark the 500ms frame and white frames the end of each step."
+specs:
+  - "child x, y, width and height tweens should use the container's unscaled units"
+  - "a child transition's absolute x should use the container's unscaled units"
+  - "at 500ms the moving and entering boxes should sit inside the grey frames"
+  - "at 1000ms every box should sit inside its white frame without a jump"
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: start
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: mover
+            type: rect
+            x: 80
+            "y": 80
+            width: 320
+            height: 180
+            fill: "#A6A6A6"
+          - id: still
+            type: rect
+            x: 80
+            "y": 480
+            width: 320
+            height: 180
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: start-mover-top
+            type: rect
+            x: 352
+            "y": 212
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mover-bottom
+            type: rect
+            x: 352
+            "y": 315
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mover-left
+            type: rect
+            x: 352
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: start-mover-right
+            type: rect
+            x: 525
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: start-still-top
+            type: rect
+            x: 352
+            "y": 412
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-still-bottom
+            type: rect
+            x: 352
+            "y": 515
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-still-left
+            type: rect
+            x: 352
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: start-still-right
+            type: rect
+            x: 525
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+  - id: end
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: mover
+            type: rect
+            x: 560
+            "y": 120
+            width: 160
+            height: 360
+            fill: "#A6A6A6"
+          - id: still
+            type: rect
+            x: 80
+            "y": 480
+            width: 320
+            height: 180
+            fill: "#D9D9D9"
+          - id: enterer
+            type: rect
+            x: 880
+            "y": 480
+            width: 320
+            height: 180
+            fill: "#A6A6A6"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: mid-mover-top
+            type: rect
+            x: 472
+            "y": 222
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: mid-mover-bottom
+            type: rect
+            x: 472
+            "y": 370
+            width: 136
+            height: 3
+            fill: "#737373"
+          - id: mid-mover-left
+            type: rect
+            x: 472
+            "y": 222
+            width: 3
+            height: 151
+            fill: "#737373"
+          - id: mid-mover-right
+            type: rect
+            x: 605
+            "y": 222
+            width: 3
+            height: 151
+            fill: "#737373"
+          - id: mid-enterer-top
+            type: rect
+            x: 832
+            "y": 412
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-enterer-bottom
+            type: rect
+            x: 832
+            "y": 515
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-enterer-left
+            type: rect
+            x: 832
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: mid-enterer-right
+            type: rect
+            x: 1005
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: end-mover-top
+            type: rect
+            x: 592
+            "y": 232
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mover-bottom
+            type: rect
+            x: 592
+            "y": 425
+            width: 96
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mover-left
+            type: rect
+            x: 592
+            "y": 232
+            width: 3
+            height: 196
+            fill: "#FFFFFF"
+          - id: end-mover-right
+            type: rect
+            x: 685
+            "y": 232
+            width: 3
+            height: 196
+            fill: "#FFFFFF"
+          - id: end-still-top
+            type: rect
+            x: 352
+            "y": 412
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-still-bottom
+            type: rect
+            x: 352
+            "y": 515
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-still-left
+            type: rect
+            x: 352
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: end-still-right
+            type: rect
+            x: 525
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: end-enterer-top
+            type: rect
+            x: 752
+            "y": 412
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-enterer-bottom
+            type: rect
+            x: 752
+            "y": 515
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-enterer-left
+            type: rect
+            x: 752
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: end-enterer-right
+            type: rect
+            x: 925
+            "y": 412
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+    animations:
+      - id: mover-tween
+        targetId: mover
+        type: update
+        tween:
+          x:
+            keyframes:
+              - duration: 1000
+                value: 560
+                easing: linear
+          "y":
+            keyframes:
+              - duration: 1000
+                value: 40
+                easing: linear
+                relative: true
+          width:
+            keyframes:
+              - duration: 1000
+                value: 160
+                easing: linear
+          height:
+            keyframes:
+              - duration: 1000
+                value: 360
+                easing: linear
+      - id: enterer-enter
+        targetId: enterer
+        type: transition
+        next:
+          tween:
+            x:
+              initialValue: 1200
+              keyframes:
+                - duration: 1000
+                  value: 880
+                  easing: linear

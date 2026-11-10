@@ -1,0 +1,187 @@
+---
+title: Container Group Scale
+description: >-
+  A 1280x720 container anchored at the canvas centre is drawn at scale 0.5 and
+  scales as one group, like a zoomed picture. Child positions, the horizontal
+  row's gaps and the child sizes all scale around the anchor point. White
+  frames, drawn by an unscaled container, mark where each box must land, 8 px
+  outside it. In a correct capture every box, and the row of three boxes, sits
+  centred inside its frame.
+specs:
+  - container scale should move child positions toward the anchor point
+  - gaps in a horizontal row should scale with the group
+  - child sizes should scale with the group
+---
+states:
+  - elements:
+      - id: canvas
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: box-a
+            type: rect
+            x: 80
+            "y": 80
+            width: 320
+            height: 180
+            fill: "#A6A6A6"
+          - id: box-b
+            type: rect
+            x: 880
+            "y": 80
+            width: 320
+            height: 180
+            fill: "#737373"
+          - id: row
+            type: container
+            x: 80
+            "y": 440
+            direction: horizontal
+            gapX: 40
+            children:
+              - id: row-1
+                type: rect
+                width: 200
+                height: 160
+                fill: "#4D4D4D"
+              - id: row-2
+                type: rect
+                width: 200
+                height: 160
+                fill: "#4D4D4D"
+              - id: row-3
+                type: rect
+                width: 200
+                height: 160
+                fill: "#4D4D4D"
+          - id: box-d
+            type: rect
+            x: 960
+            "y": 560
+            width: 240
+            height: 120
+            fill: "#A6A6A6"
+      - id: frames
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: frame-a-top
+            type: rect
+            x: 352
+            "y": 212
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-a-bottom
+            type: rect
+            x: 352
+            "y": 315
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-a-left
+            type: rect
+            x: 352
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: frame-a-right
+            type: rect
+            x: 525
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: frame-b-top
+            type: rect
+            x: 752
+            "y": 212
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-b-bottom
+            type: rect
+            x: 752
+            "y": 315
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-b-left
+            type: rect
+            x: 752
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: frame-b-right
+            type: rect
+            x: 925
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: frame-d-top
+            type: rect
+            x: 792
+            "y": 452
+            width: 136
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-d-bottom
+            type: rect
+            x: 792
+            "y": 525
+            width: 136
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-d-left
+            type: rect
+            x: 792
+            "y": 452
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: frame-d-right
+            type: rect
+            x: 925
+            "y": 452
+            width: 3
+            height: 76
+            fill: "#FFFFFF"
+          - id: frame-row-top
+            type: rect
+            x: 352
+            "y": 392
+            width: 356
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-row-bottom
+            type: rect
+            x: 352
+            "y": 485
+            width: 356
+            height: 3
+            fill: "#FFFFFF"
+          - id: frame-row-left
+            type: rect
+            x: 352
+            "y": 392
+            width: 3
+            height: 96
+            fill: "#FFFFFF"
+          - id: frame-row-right
+            type: rect
+            x: 705
+            "y": 392
+            width: 3
+            height: 96
+            fill: "#FFFFFF"

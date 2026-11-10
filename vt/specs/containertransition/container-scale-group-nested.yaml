@@ -1,0 +1,524 @@
+---
+title: "Nested Container Group Scale Tween"
+description: "A 1280x720 container at scale 0.5 holds two 560x320 groups. The left group tweens its own scale from 1 to 0.5; the right group mirrors horizontally, tweening scaleX from 1 to -0.5 while scaleY stays 1. Both are linear over 1 second. Every value is the group's own scale; the outer 0.5 applies on top. Grey frames mark the 500ms frame (left 0.75, right scaleX 0.25) and white frames mark the end of each step. In the mirrored end state the darker box is on the right and the lighter box on the left."
+specs:
+  - "a nested group should tween by its own scale inside a scaled parent"
+  - "a mirroring tween should flip the group about its anchor point"
+  - "at 500ms every box should sit inside its grey frame"
+  - "at 1000ms every box should sit inside its white frame"
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: start
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: shrink
+            type: container
+            x: 330
+            "y": 360
+            width: 560
+            height: 320
+            anchorX: 0.5
+            anchorY: 0.5
+            scaleX: 1
+            scaleY: 1
+            children:
+              - id: shrink-a
+                type: rect
+                x: 40
+                "y": 40
+                width: 200
+                height: 110
+                fill: "#A6A6A6"
+              - id: shrink-b
+                type: rect
+                x: 320
+                "y": 170
+                width: 200
+                height: 110
+                fill: "#D9D9D9"
+          - id: mirror
+            type: container
+            x: 950
+            "y": 360
+            width: 560
+            height: 320
+            anchorX: 0.5
+            anchorY: 0.5
+            scaleX: 1
+            scaleY: 1
+            children:
+              - id: mirror-a
+                type: rect
+                x: 40
+                "y": 40
+                width: 200
+                height: 110
+                fill: "#A6A6A6"
+              - id: mirror-b
+                type: rect
+                x: 320
+                "y": 170
+                width: 200
+                height: 110
+                fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: start-shrink-a-top
+            type: rect
+            x: 357
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-a-bottom
+            type: rect
+            x: 357
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-a-left
+            type: rect
+            x: 357
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-shrink-a-right
+            type: rect
+            x: 470
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-shrink-b-top
+            type: rect
+            x: 497
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-b-bottom
+            type: rect
+            x: 497
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-shrink-b-left
+            type: rect
+            x: 497
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-shrink-b-right
+            type: rect
+            x: 610
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-mirror-a-top
+            type: rect
+            x: 667
+            "y": 292
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mirror-a-bottom
+            type: rect
+            x: 667
+            "y": 360
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mirror-a-left
+            type: rect
+            x: 667
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-mirror-a-right
+            type: rect
+            x: 780
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-mirror-b-top
+            type: rect
+            x: 807
+            "y": 357
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mirror-b-bottom
+            type: rect
+            x: 807
+            "y": 425
+            width: 116
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-mirror-b-left
+            type: rect
+            x: 807
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: start-mirror-b-right
+            type: rect
+            x: 920
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+  - id: end
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: shrink
+            type: container
+            x: 330
+            "y": 360
+            width: 560
+            height: 320
+            anchorX: 0.5
+            anchorY: 0.5
+            scaleX: 0.5
+            scaleY: 0.5
+            children:
+              - id: shrink-a
+                type: rect
+                x: 40
+                "y": 40
+                width: 200
+                height: 110
+                fill: "#A6A6A6"
+              - id: shrink-b
+                type: rect
+                x: 320
+                "y": 170
+                width: 200
+                height: 110
+                fill: "#D9D9D9"
+          - id: mirror
+            type: container
+            x: 950
+            "y": 360
+            width: 560
+            height: 320
+            anchorX: 0.5
+            anchorY: 0.5
+            scaleX: -0.5
+            scaleY: 1
+            children:
+              - id: mirror-a
+                type: rect
+                x: 40
+                "y": 40
+                width: 200
+                height: 110
+                fill: "#A6A6A6"
+              - id: mirror-b
+                type: rect
+                x: 320
+                "y": 170
+                width: 200
+                height: 110
+                fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: mid-shrink-a-top
+            type: rect
+            x: 387
+            "y": 307
+            width: 91
+            height: 3
+            fill: "#737373"
+          - id: mid-shrink-a-bottom
+            type: rect
+            x: 387
+            "y": 361
+            width: 91
+            height: 3
+            fill: "#737373"
+          - id: mid-shrink-a-left
+            type: rect
+            x: 387
+            "y": 307
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-shrink-a-right
+            type: rect
+            x: 475
+            "y": 307
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-shrink-b-top
+            type: rect
+            x: 492
+            "y": 356
+            width: 91
+            height: 3
+            fill: "#737373"
+          - id: mid-shrink-b-bottom
+            type: rect
+            x: 492
+            "y": 410
+            width: 91
+            height: 3
+            fill: "#737373"
+          - id: mid-shrink-b-left
+            type: rect
+            x: 492
+            "y": 356
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-shrink-b-right
+            type: rect
+            x: 580
+            "y": 356
+            width: 3
+            height: 57
+            fill: "#737373"
+          - id: mid-mirror-a-top
+            type: rect
+            x: 757
+            "y": 292
+            width: 41
+            height: 3
+            fill: "#737373"
+          - id: mid-mirror-a-bottom
+            type: rect
+            x: 757
+            "y": 360
+            width: 41
+            height: 3
+            fill: "#737373"
+          - id: mid-mirror-a-left
+            type: rect
+            x: 757
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: mid-mirror-a-right
+            type: rect
+            x: 795
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: mid-mirror-b-top
+            type: rect
+            x: 792
+            "y": 357
+            width: 41
+            height: 3
+            fill: "#737373"
+          - id: mid-mirror-b-bottom
+            type: rect
+            x: 792
+            "y": 425
+            width: 41
+            height: 3
+            fill: "#737373"
+          - id: mid-mirror-b-left
+            type: rect
+            x: 792
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: mid-mirror-b-right
+            type: rect
+            x: 830
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#737373"
+          - id: end-shrink-a-top
+            type: rect
+            x: 417
+            "y": 322
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-shrink-a-bottom
+            type: rect
+            x: 417
+            "y": 363
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-shrink-a-left
+            type: rect
+            x: 417
+            "y": 322
+            width: 3
+            height: 44
+            fill: "#FFFFFF"
+          - id: end-shrink-a-right
+            type: rect
+            x: 480
+            "y": 322
+            width: 3
+            height: 44
+            fill: "#FFFFFF"
+          - id: end-shrink-b-top
+            type: rect
+            x: 487
+            "y": 354
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-shrink-b-bottom
+            type: rect
+            x: 487
+            "y": 395
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-shrink-b-left
+            type: rect
+            x: 487
+            "y": 354
+            width: 3
+            height: 44
+            fill: "#FFFFFF"
+          - id: end-shrink-b-right
+            type: rect
+            x: 550
+            "y": 354
+            width: 3
+            height: 44
+            fill: "#FFFFFF"
+          - id: end-mirror-a-top
+            type: rect
+            x: 797
+            "y": 292
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mirror-a-bottom
+            type: rect
+            x: 797
+            "y": 360
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mirror-a-left
+            type: rect
+            x: 797
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: end-mirror-a-right
+            type: rect
+            x: 860
+            "y": 292
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: end-mirror-b-top
+            type: rect
+            x: 727
+            "y": 357
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mirror-b-bottom
+            type: rect
+            x: 727
+            "y": 425
+            width: 66
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-mirror-b-left
+            type: rect
+            x: 727
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+          - id: end-mirror-b-right
+            type: rect
+            x: 790
+            "y": 357
+            width: 3
+            height: 71
+            fill: "#FFFFFF"
+    animations:
+      - id: shrink-scale
+        targetId: shrink
+        type: update
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 1000
+                value: 0.5
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 1000
+                value: 0.5
+                easing: linear
+      - id: mirror-scale
+        targetId: mirror
+        type: update
+        tween:
+          scaleX:
+            keyframes:
+              - duration: 1000
+                value: -0.5
+                easing: linear
+          scaleY:
+            keyframes:
+              - duration: 1000
+                value: 1
+                easing: linear

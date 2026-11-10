@@ -1450,7 +1450,7 @@ out:
   direction: horizontal
   gapX: 5
   gapY: 5
-  width: 605
+  width: 610
   height: 300
   x: 0
   "y": 0
@@ -1479,7 +1479,7 @@ out:
       type: rect
       width: 400
       height: 300
-      x: 205
+      x: 210
       "y": 0
       originX: 0
       originY: 0
@@ -1522,7 +1522,7 @@ out:
   direction: horizontal
   gapX: 5
   gapY: 5
-  width: 1205
+  width: 1210
   height: 600
   x: 0
   "y": 0
@@ -1551,7 +1551,7 @@ out:
       type: rect
       width: 800
       height: 600
-      x: 405
+      x: 410
       "y": 0
       originX: 0
       originY: 0

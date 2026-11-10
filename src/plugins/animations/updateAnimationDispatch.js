@@ -287,6 +287,33 @@ const applyBoundTimelineTargetStates = (instance) => {
   }
 };
 
+/**
+ * Whether an update animation never ends. Dispatching one renders the next
+ * state first (see settleLoopingUpdateState), so it runs on that state.
+ * @param {Object} animation
+ * @param {Map<string, Object>} [compiledGsapPrograms] - Already compiled
+ * portable GSAP programs by animation id
+ * @returns {boolean}
+ */
+export const isInfiniteUpdateAnimation = (animation, compiledGsapPrograms) => {
+  if (
+    animation.playback?.loop === true ||
+    animation.playback?.repeat === "infinite"
+  ) {
+    return true;
+  }
+
+  if (!animation.gsap) {
+    return false;
+  }
+
+  const program =
+    compiledGsapPrograms?.get(animation.id) ??
+    compilePortableGsapAnimation(animation);
+
+  return program.duration === "infinite";
+};
+
 const settleLoopingUpdateState = ({
   animations,
   element,
@@ -489,9 +516,7 @@ export const dispatchUpdateAnimationsNow = ({
     onComplete,
     compiledGsapPrograms,
     isInfiniteAnimation: (animation) =>
-      animation.playback?.loop === true ||
-      animation.playback?.repeat === "infinite" ||
-      compiledGsapPrograms.get(animation.id)?.duration === "infinite",
+      isInfiniteUpdateAnimation(animation, compiledGsapPrograms),
   });
   const dispatchElement = settlement.element;
   const dispatchAnimationBaseState =

@@ -1,6 +1,6 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { DEFAULT_SCROLLBAR_BUTTON_STEP } from "./scrollbarDefaults.js";
 
-const DEFAULT_SCROLLBAR_BUTTON_STEP = 24;
 const DEFAULT_MIN_THUMB_SIZE = 24;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

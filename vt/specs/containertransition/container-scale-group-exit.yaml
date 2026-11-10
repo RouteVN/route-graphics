@@ -1,0 +1,206 @@
+---
+title: "Exit And Entry Slides In A Scaled Container"
+description: "A 1280x720 container at scale 0.5. In the second state the top box is removed with a transition sliding it from x 80 to 720, and a new bottom box enters sliding from x 720 to 80. Both are authored in the container's unscaled units and linear over 1 second, so at 500ms both are at x 400, one above the other. Grey frames mark the 500ms frame; the white frame marks the entering box at the end. The leaving box is gone at the end."
+specs:
+  - "a removed child's exit transition should use the container's unscaled units"
+  - "at 500ms the leaving and entering boxes should be aligned inside the grey frames"
+  - "at 1000ms only the entering box should remain, inside the white frame"
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+---
+states:
+  - id: start
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: leaver
+            type: rect
+            x: 80
+            "y": 80
+            width: 320
+            height: 180
+            fill: "#A6A6A6"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: start-leaver-top
+            type: rect
+            x: 352
+            "y": 212
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-leaver-bottom
+            type: rect
+            x: 352
+            "y": 315
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: start-leaver-left
+            type: rect
+            x: 352
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: start-leaver-right
+            type: rect
+            x: 525
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+  - id: end
+    elements:
+      - id: screen
+        type: container
+        x: 640
+        "y": 360
+        width: 1280
+        height: 720
+        anchorX: 0.5
+        anchorY: 0.5
+        scaleX: 0.5
+        scaleY: 0.5
+        children:
+          - id: enterer
+            type: rect
+            x: 80
+            "y": 400
+            width: 320
+            height: 180
+            fill: "#D9D9D9"
+      - id: guides
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - id: mid-leaver-top
+            type: rect
+            x: 512
+            "y": 212
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-leaver-bottom
+            type: rect
+            x: 512
+            "y": 315
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-leaver-left
+            type: rect
+            x: 512
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: mid-leaver-right
+            type: rect
+            x: 685
+            "y": 212
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: mid-enterer-top
+            type: rect
+            x: 512
+            "y": 372
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-enterer-bottom
+            type: rect
+            x: 512
+            "y": 475
+            width: 176
+            height: 3
+            fill: "#737373"
+          - id: mid-enterer-left
+            type: rect
+            x: 512
+            "y": 372
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: mid-enterer-right
+            type: rect
+            x: 685
+            "y": 372
+            width: 3
+            height: 106
+            fill: "#737373"
+          - id: end-enterer-top
+            type: rect
+            x: 352
+            "y": 372
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-enterer-bottom
+            type: rect
+            x: 352
+            "y": 475
+            width: 176
+            height: 3
+            fill: "#FFFFFF"
+          - id: end-enterer-left
+            type: rect
+            x: 352
+            "y": 372
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+          - id: end-enterer-right
+            type: rect
+            x: 525
+            "y": 372
+            width: 3
+            height: 106
+            fill: "#FFFFFF"
+    animations:
+      - id: leaver-exit
+        targetId: leaver
+        type: transition
+        prev:
+          tween:
+            x:
+              keyframes:
+                - duration: 1000
+                  value: 720
+                  easing: linear
+      - id: enterer-entry
+        targetId: enterer
+        type: transition
+        next:
+          tween:
+            x:
+              initialValue: 720
+              keyframes:
+                - duration: 1000
+                  value: 80
+                  easing: linear
