@@ -30,7 +30,10 @@ jobs:
             vt/static/RouteGraphics.js*
   test:
     needs: build
-    runs-on: ubuntu-latest
+    # Playwright 1.57 cannot install its browser dependencies on Ubuntu 26.04,
+    # which ubuntu-latest now points to. Move to ubuntu-latest again with a
+    # Playwright upgrade.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
