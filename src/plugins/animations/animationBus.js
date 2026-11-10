@@ -88,7 +88,15 @@ const removeNoopAutoProperties = (group, animationId, preserveNoopAuto) => ({
         property,
         animationId,
       );
-      return currentValue !== targetValue;
+      // Authored Auto tracks cannot set initialValue, but a renderer may give
+      // one a start value; the timeline then starts there. A dropped track
+      // never runs, so it is only a no-op if the live value is at the target
+      // too.
+      return (
+        currentValue !== targetValue ||
+        (config.initialValue !== undefined &&
+          config.initialValue !== targetValue)
+      );
     }),
   ),
 });

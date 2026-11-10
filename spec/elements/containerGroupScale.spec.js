@@ -382,7 +382,98 @@ describe("container group scale", () => {
     },
   );
 
-  it("sizes a parent up to the point a collapsed container collapses to", () => {
+  it.each(["horizontal", "vertical"])(
+    "keeps a collapsed container with an explicit origin at its anchor point in a wrapping %s flow, like a collapsed rect",
+    (direction) => {
+      const [axis, size, crossAxis, crossSize] =
+        direction === "horizontal"
+          ? ["x", "width", "y", "height"]
+          : ["y", "height", "x", "width"];
+      const flow = (collapsed) =>
+        parseContainerForTesting({
+          state: {
+            id: "flow",
+            type: "container",
+            direction,
+            [size]: 250,
+            gapX: 10,
+            gapY: 10,
+            children: [
+              rect("a", 0, 0, 100, 100),
+              collapsed,
+              rect("b", 0, 0, 100, 100),
+            ],
+          },
+        });
+      // The origin is where the group collapses to. It is not the point the
+      // flow places, so it must not push the next child onto a new line.
+      const collapsedTransform = {
+        anchorX: 0.5,
+        anchorY: 0.5,
+        originX: 200,
+        originY: 200,
+        scaleX: 0,
+        scaleY: 0,
+      };
+      const withContainer = flow({
+        id: "collapsed",
+        type: "container",
+        ...collapsedTransform,
+        children: [rect("inner", 0, 0, 100, 100)],
+      });
+      const withRect = flow(
+        rect("collapsed", 0, 0, 100, 100, collapsedTransform),
+      );
+
+      // b stays on the first line.
+      for (const result of [withContainer, withRect]) {
+        expect(result.children[2]).toMatchObject({
+          [axis]: 120,
+          [crossAxis]: 0,
+        });
+        expect(result[crossSize]).toBe(100);
+      }
+    },
+  );
+
+  it("places a collapsed container of odd width at the same pixel as a collapsed rect", () => {
+    // Half of 101 is 50.5, but a collapsed rect has no size to offset, so it
+    // sits exactly where the flow places it. A 150-wide box then just fits.
+    const flow = (collapsed) =>
+      parseContainerForTesting({
+        state: {
+          id: "flow",
+          type: "container",
+          direction: "horizontal",
+          width: 250,
+          children: [
+            rect("a", 0, 0, 100, 100),
+            collapsed,
+            rect("b", 0, 0, 150, 100),
+          ],
+        },
+      });
+    const collapsedTransform = {
+      anchorX: 0.5,
+      anchorY: 0.5,
+      scaleX: 0,
+      scaleY: 0,
+    };
+
+    for (const collapsed of [
+      rect("collapsed", 0, 0, 101, 100, collapsedTransform),
+      {
+        id: "collapsed",
+        type: "container",
+        ...collapsedTransform,
+        children: [rect("inner", 0, 0, 101, 100)],
+      },
+    ]) {
+      expect(flow(collapsed).children[2]).toMatchObject({ x: 100, y: 0 });
+    }
+  });
+
+  it("sizes a parent up to a collapsed container's anchor point", () => {
     const parent = parseContainerForTesting({
       state: {
         id: "parent",
@@ -722,6 +813,60 @@ describe("container group scale", () => {
       },
     );
 
+    it.each([
+      ["grows", 0.5, 1, { keyframes: [linear(1)] }],
+      ["shrinks", 1, 0.5, { keyframes: [linear(0.5)] }],
+      ["runs an Auto tween", 0.5, 1, { auto: { duration: 1000 } }],
+    ])(
+      "%s from the size on screen while a loop draws the next state first",
+      async (_name, from, to, track) => {
+        const { stage, animationBus, render } = createRun();
+        await render([], [parsedCanvas(from)]);
+        render(
+          [parsedCanvas(from)],
+          [parsedCanvas(to)],
+          [
+            ...scaleTween(track),
+            {
+              id: "alpha-pulse",
+              targetId: "canvas",
+              type: "update",
+              playback: { loop: true },
+              tween: {
+                alpha: { keyframes: [linear(0.5, 500), linear(1, 500)] },
+              },
+            },
+          ],
+        );
+
+        // The bus starts queued tweens before the next frame is drawn.
+        animationBus.flush();
+        expectSameBounds(stage, staticStage(from), ids);
+        animationBus.tick(500);
+        expectSameBounds(stage, staticStage((from + to) / 2), ids);
+        animationBus.tick(500);
+        expectSameBounds(stage, staticStage(to), ids);
+        animationBus.tick(500);
+        expectSameBounds(stage, staticStage(to), ids);
+      },
+    );
+
+    it("tweens a removed scaled container by its own scale", async () => {
+      const { stage, animationBus, render } = createRun();
+      await render([], [parsedCanvas(0.5)]);
+      render(
+        [parsedCanvas(0.5)],
+        [],
+        scaleTween({ keyframes: [linear(0.25)] }),
+      );
+
+      animationBus.tick(500);
+      expectSameBounds(stage, staticStage(0.375), ids);
+
+      animationBus.tick(499);
+      expectSameBounds(stage, staticStage(0.25), ids);
+    });
+
     it("continues a persistent scale loop on a scaled container across renders", () => {
       const { animationBus, render } = createRun();
       const pulse = {
@@ -951,6 +1096,155 @@ describe("container group scale", () => {
       expect(surfaceXs).toEqual([250, 250]);
     });
 
+    it("moves a removed child in the container's unscaled units before deleting it", async () => {
+      const group = (children) =>
+        parsed({
+          id: "group",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children,
+        });
+      const { stage, animationBus, render } = createRun();
+      const before = group([
+        rect("stay", 0, 0, 100, 100),
+        rect("leaving", 200, 0, 100, 100),
+      ]);
+      await render([], [before]);
+      const operation = render(
+        [before],
+        [group([rect("stay", 0, 0, 100, 100)])],
+        [
+          {
+            id: "leaving-move",
+            targetId: "leaving",
+            type: "update",
+            tween: { x: { keyframes: [linear(800)] } },
+          },
+        ],
+      );
+
+      // Halfway through 200 -> 800 in the group's units: 500 * 0.5 = 250.
+      animationBus.tick(500);
+      expect(roundedBounds(stage, "leaving").x).toBe(250);
+
+      animationBus.tick(500);
+      await operation;
+      expect(findByLabel(stage, "leaving")).toBeUndefined();
+    });
+
+    it("moves the old copy of a child that moved deeper in the old container's units", () => {
+      const group = (children) =>
+        parsed({
+          id: "group",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children,
+        });
+      // The inner container renders its children when its own fade ends, so
+      // until then the group runs the moving child's tween on its old copy.
+      const inner = (alpha, children) => ({
+        id: "inner",
+        type: "container",
+        alpha,
+        children,
+      });
+      const { stage, animationBus, render } = createRun();
+      const before = group([
+        inner(1, [rect("stay", 0, 0, 100, 100)]),
+        rect("moving", 200, 0, 100, 100),
+      ]);
+      render([], [before]);
+      render(
+        [before],
+        [
+          group([
+            inner(0.5, [
+              rect("stay", 0, 0, 100, 100),
+              rect("moving", 200, 0, 100, 100),
+            ]),
+          ]),
+        ],
+        [
+          {
+            id: "inner-fade",
+            targetId: "inner",
+            type: "update",
+            tween: { alpha: { keyframes: [linear(0.5)] } },
+          },
+          {
+            id: "moving-move",
+            targetId: "moving",
+            type: "update",
+            tween: { x: { keyframes: [linear(800)] } },
+          },
+        ],
+      );
+
+      // Halfway through 200 -> 800 in the group's units: 500 * 0.5 = 250.
+      animationBus.tick(500);
+      const oldCopy = findByLabel(stage, "group").children.find(
+        (child) => child.label === "moving",
+      );
+      expect(Math.round(oldCopy.x)).toBe(250);
+    });
+
+    it("moves the old copy of a child that moved up in the inner container's units", () => {
+      // The group's content scale is 0.5 and the inner container's 0.25.
+      const group = (children) =>
+        parsed({
+          id: "group",
+          type: "container",
+          x: 0,
+          y: 0,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          children,
+        });
+      const inner = (children) => ({
+        id: "inner",
+        type: "container",
+        scaleX: 0.5,
+        scaleY: 0.5,
+        children,
+      });
+      const { stage, animationBus, render } = createRun();
+      const before = group([
+        inner([rect("stay", 0, 0, 100, 100), rect("moving", 200, 0, 100, 100)]),
+      ]);
+      render([], [before]);
+      render(
+        [before],
+        [
+          group([
+            inner([rect("stay", 0, 0, 100, 100)]),
+            rect("moving", 200, 0, 100, 100),
+          ]),
+        ],
+        [
+          {
+            id: "moving-move",
+            targetId: "moving",
+            type: "update",
+            tween: { x: { keyframes: [linear(800)] } },
+          },
+        ],
+      );
+
+      // Halfway through 200 -> 800 in the inner container's units:
+      // 500 * 0.25 = 125, not converted again by the group's 0.5.
+      animationBus.tick(500);
+      const oldCopy = findByLabel(stage, "inner").children.find(
+        (child) => child.label === "moving",
+      );
+      expect(Math.round(oldCopy.x)).toBe(125);
+    });
+
     it("continues a persistent child tween in a scaled container across renders", () => {
       const { animationBus, render } = createRun();
       const drift = {
@@ -1108,6 +1402,80 @@ describe("container group scale", () => {
       expect(
         getContainerChildAnimations([slide("leaving")], nextElement),
       ).toEqual([slide("leaving")]);
+    });
+
+    it("converts every copy of a removed or moved child from the authored tween", () => {
+      // outer's content scale is 0.5 on x, the canvas's 0.25, and the plain
+      // container's 1 (its own 2 undoes outer's 0.5).
+      const outer = (canvasChildren, plainChildren, children) =>
+        parseContainerForTesting({
+          state: {
+            id: "outer",
+            type: "container",
+            scaleX: 0.5,
+            scaleY: 2,
+            children: [
+              canvas({ scaleX: 0.5, scaleY: 1, children: canvasChildren }),
+              {
+                id: "plain",
+                type: "container",
+                scaleX: 2,
+                scaleY: 0.5,
+                children: plainChildren,
+              },
+              ...children,
+            ],
+          },
+        });
+      const box = (id) => rect(id, 0, 0, 10, 10);
+      const prevElement = outer(
+        [box("top-left"), box("rising")],
+        [box("stay")],
+        [box("removed"), box("sinking"), box("sinking-unscaled")],
+      );
+      const nextElement = outer(
+        [box("top-left"), box("sinking")],
+        [box("stay"), box("sinking-unscaled")],
+        [box("rising")],
+      );
+      const ids = ["removed", "sinking", "rising", "sinking-unscaled"];
+      const animations = ids.map((id) =>
+        update(`${id}-move`, id, { x: { keyframes: [{ value: 800 }] } }),
+      );
+      const xValue = (collection, id) =>
+        collection.get(id)[0].tween.x.keyframes[0].value;
+      const childOf = (element, id) =>
+        element.children.find((child) => child.id === id);
+
+      const fromOuter = getContainerChildAnimations(
+        animations,
+        nextElement,
+        prevElement,
+      );
+      const fromCanvas = getContainerChildAnimations(
+        fromOuter,
+        childOf(nextElement, "canvas"),
+        childOf(prevElement, "canvas"),
+      );
+      const fromPlain = getContainerChildAnimations(
+        fromOuter,
+        childOf(nextElement, "plain"),
+        childOf(prevElement, "plain"),
+      );
+
+      // outer runs the tween on its copy of each: the removed child, the old
+      // copies of the children that moved deeper, and the new copy of the one
+      // that moved up.
+      for (const id of ids) {
+        expect(xValue(fromOuter, id)).toBe(400);
+      }
+      // The inner containers convert their copies from 800, not from 400.
+      expect(xValue(fromCanvas, "sinking")).toBe(200);
+      expect(xValue(fromCanvas, "rising")).toBe(200);
+      expect(xValue(fromPlain, "sinking-unscaled")).toBe(800);
+      expect(fromPlain.get("sinking-unscaled")[0].signature).toBe(
+        getAnimationContinuitySignature(animations[3]),
+      );
     });
 
     it("returns the animations unchanged when nothing needs converting", () => {

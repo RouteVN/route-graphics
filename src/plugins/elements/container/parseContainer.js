@@ -48,7 +48,8 @@ const scaleScrollbar = (scrollbar, scaleX, scaleY) => {
 
 // A collapsed (zero-scale) container keeps its geometry so a tween can grow it
 // again, but like a collapsed rect it takes no space in its parent's layout:
-// on that axis its layout box is the point it collapses to.
+// on that axis its layout box is the point it is placed at (its anchor point),
+// where a collapsed rect would sit.
 const isCollapsedContainer = (child, scaleKey) =>
   child.type === ComputedNodeType.CONTAINER && child[scaleKey] === 0;
 
@@ -58,13 +59,13 @@ const getLayoutWidth = (child) =>
 const getLayoutHeight = (child) =>
   isCollapsedContainer(child, "scaleY") ? 0 : child.height;
 
-const getLayoutRight = (child) =>
-  child.x +
-  (isCollapsedContainer(child, "scaleX") ? child.originX : child.width);
+const getLayoutRight = (child, layoutPoint) =>
+  isCollapsedContainer(child, "scaleX") ? layoutPoint.x : child.x + child.width;
 
-const getLayoutBottom = (child) =>
-  child.y +
-  (isCollapsedContainer(child, "scaleY") ? child.originY : child.height);
+const getLayoutBottom = (child, layoutPoint) =>
+  isCollapsedContainer(child, "scaleY")
+    ? layoutPoint.y
+    : child.y + child.height;
 
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
@@ -156,6 +157,9 @@ export const parseContainer = ({
       child.y = 0;
     }
 
+    // The point the child is placed at, rounded as a rect's position is.
+    const layoutPoint = { x: Math.round(child.x), y: Math.round(child.y) };
+
     if (typeof child.originX === "number") {
       child.originX *= scaleMagnitudeX;
     }
@@ -201,13 +205,18 @@ export const parseContainer = ({
 
         child.x = 0;
         child.y = lastRowHeight;
+        layoutPoint.x = child.x;
+        layoutPoint.y = child.y;
       } else {
         maxRowHeight = Math.max(maxRowHeight, getLayoutHeight(child));
       }
       currentX += getLayoutWidth(child) + gapValue;
-      currentRowWidth = getLayoutRight(child);
+      currentRowWidth = getLayoutRight(child, layoutPoint);
       containerWidth = Math.max(currentX, containerWidth);
-      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
+      containerHeight = Math.max(
+        getLayoutBottom(child, layoutPoint),
+        containerHeight,
+      );
     } else if (direction === "vertical") {
       const gapValue = i < children.length - 1 ? scaledGapY : 0;
 
@@ -225,16 +234,27 @@ export const parseContainer = ({
 
         child.x = lastColWidth;
         child.y = 0;
+        layoutPoint.x = child.x;
+        layoutPoint.y = child.y;
       } else {
         maxColWidth = Math.max(maxColWidth, getLayoutWidth(child));
       }
       currentY += getLayoutHeight(child) + gapValue;
-      currentColHeight = getLayoutBottom(child);
-      containerWidth = Math.max(getLayoutRight(child), containerWidth);
+      currentColHeight = getLayoutBottom(child, layoutPoint);
+      containerWidth = Math.max(
+        getLayoutRight(child, layoutPoint),
+        containerWidth,
+      );
       containerHeight = Math.max(currentY, containerHeight);
     } else {
-      containerWidth = Math.max(getLayoutRight(child), containerWidth);
-      containerHeight = Math.max(getLayoutBottom(child), containerHeight);
+      containerWidth = Math.max(
+        getLayoutRight(child, layoutPoint),
+        containerWidth,
+      );
+      containerHeight = Math.max(
+        getLayoutBottom(child, layoutPoint),
+        containerHeight,
+      );
     }
 
     parsedChildren.push(child);
