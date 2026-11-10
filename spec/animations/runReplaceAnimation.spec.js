@@ -19,6 +19,9 @@ import { normalizeElementShaderFilters } from "../../src/plugins/elements/util/s
 import {
   queueDeferredAnimatedSpritePlay,
   queueDeferredParticlesStart,
+  queueDeferredTextRevealAutoplay,
+  queueDeferredUpdateAnimationStart,
+  queueDeferredVideoPlay,
 } from "../../src/plugins/elements/renderContext.js";
 import { addContainer } from "../../src/plugins/elements/container/addContainer.js";
 
@@ -3960,19 +3963,56 @@ describe("runReplaceAnimation", () => {
     ).toBeCloseTo(0.5);
   });
 
-  it("does not flush deferred activation when a transition is cancelled", () => {
+  // Mounts a next element whose hidden mount queues every kind of deferred
+  // work, then hands back the dispatched transition and the spies.
+  const runTransitionWithDeferredWork = ({
+    resolveParent,
+    parent,
+    withTextReveal = true,
+  } = {}) => {
     const prevDisplayObject = createDisplayObject("scene-root");
     const nextDisplayObject = createDisplayObject("scene-root");
-    const parent = createParent(prevDisplayObject);
-    prevDisplayObject.parent = parent;
-    const deferredEffect = vi.fn();
+    const stageParent = parent ?? createParent(prevDisplayObject);
+    const animatedSprite = { destroyed: false, play: vi.fn() };
+    const video = { play: vi.fn(() => Promise.resolve()) };
+    const emitter = { destroyed: false };
+    const tickerCallback = vi.fn();
+    const rollback = vi.fn();
+    const textRevealTracker = { getVersion: vi.fn(), track: vi.fn() };
+    const app = {
+      renderer: {
+        width: 1280,
+        height: 720,
+        generateTexture: vi.fn(() => Texture.EMPTY),
+      },
+      ticker: { add: vi.fn(), remove: vi.fn() },
+    };
 
     const plugin = {
       add: vi.fn(({ parent: targetParent, element, renderContext }) => {
-        queueDeferredAnimatedSpritePlay(renderContext, {
-          destroyed: false,
-          play: deferredEffect,
+        queueDeferredAnimatedSpritePlay(renderContext, animatedSprite);
+        queueDeferredVideoPlay(renderContext, video);
+        queueDeferredParticlesStart(renderContext, {
+          app,
+          emitter,
+          container: nextDisplayObject,
+          tickerCallback,
         });
+        queueDeferredUpdateAnimationStart(renderContext, {
+          animations: [],
+          animationBus: { dispatch: vi.fn() },
+          completionTracker: createTracker(),
+          element: nextDisplayObject,
+          preparedGsap: new Map([["enter", { bindingContext: { rollback } }]]),
+        });
+        if (withTextReveal) {
+          queueDeferredTextRevealAutoplay(renderContext, {
+            container: nextDisplayObject,
+            element: { id: "line" },
+            completionTracker: textRevealTracker,
+            animationBus: { dispatch: vi.fn() },
+          });
+        }
         nextDisplayObject.label = element.id;
         targetParent.addChild(nextDisplayObject);
       }),
@@ -3986,33 +4026,14 @@ describe("runReplaceAnimation", () => {
       }),
     };
 
-    const tracker = {
-      getVersion: () => 11,
-      track: vi.fn(),
-      complete: vi.fn(),
-    };
-
-    const animationBus = {
-      dispatch: vi.fn(),
-    };
-
-    const app = {
-      renderer: {
-        width: 1280,
-        height: 720,
-        generateTexture: vi.fn(() => Texture.EMPTY),
-      },
-    };
+    const tracker = createTracker();
+    const animationBus = { dispatch: vi.fn() };
 
     runReplaceAnimation({
       app,
-      parent,
+      parent: stageParent,
       prevElement: { id: "scene-root", type: "container" },
-      nextElement: {
-        id: "scene-root",
-        type: "container",
-        children: [],
-      },
+      nextElement: { id: "scene-root", type: "container", children: [] },
       animation: {
         id: "scene-transition",
         targetId: "scene-root",
@@ -4024,17 +4045,111 @@ describe("runReplaceAnimation", () => {
       eventHandler: vi.fn(),
       elementPlugins: [],
       plugin,
+      resolveParent,
       zIndex: 0,
       signal: new AbortController().signal,
     });
 
-    const dispatched = animationBus.dispatch.mock.calls[0][0];
+    return {
+      app,
+      animatedSprite,
+      emitter,
+      nextDisplayObject,
+      payload: animationBus.dispatch.mock.calls[0][0].payload,
+      rollback,
+      textRevealTracker,
+      tickerCallback,
+      tracker,
+      video,
+    };
+  };
 
-    dispatched.payload.applyTargetState();
-    dispatched.payload.onCancel();
+  const expectPlaybackStartedOnce = (run) => {
+    expect(run.app.ticker.add).toHaveBeenCalledExactlyOnceWith(
+      run.tickerCallback,
+    );
+    expect(run.animatedSprite.play).toHaveBeenCalledOnce();
+    expect(run.video.play).toHaveBeenCalledOnce();
+  };
 
-    expect(nextDisplayObject.visible).toBe(true);
-    expect(deferredEffect).not.toHaveBeenCalled();
-    expect(tracker.complete).toHaveBeenCalledWith(11);
+  const expectPlaybackNotStarted = (run) => {
+    expect(run.app.ticker.add).not.toHaveBeenCalled();
+    expect(run.animatedSprite.play).not.toHaveBeenCalled();
+    expect(run.video.play).not.toHaveBeenCalled();
+  };
+
+  it("keeps playback deferred while the transition is running", () => {
+    const run = runTransitionWithDeferredWork();
+
+    run.payload.applyFrame(100);
+
+    expectPlaybackNotStarted(run);
+    expect(run.rollback).not.toHaveBeenCalled();
+  });
+
+  it("starts playback of the next element when a transition is cancelled", () => {
+    const run = runTransitionWithDeferredWork();
+
+    run.payload.applyTargetState();
+    run.payload.onCancel();
+
+    expect(run.nextDisplayObject.visible).toBe(true);
+    expectPlaybackStartedOnce(run);
+    expect(run.tracker.complete).toHaveBeenCalledExactlyOnceWith(11);
+  });
+
+  it("starts playback when a transition is cancelled without settling", () => {
+    const run = runTransitionWithDeferredWork();
+
+    run.payload.onCancel();
+
+    expect(run.nextDisplayObject.visible).toBe(true);
+    expectPlaybackStartedOnce(run);
+  });
+
+  it("starts playback once when cancellation and completion both arrive", () => {
+    const run = runTransitionWithDeferredWork();
+
+    run.payload.applyTargetState();
+    run.payload.onCancel();
+    run.payload.onCancel();
+    run.payload.onComplete();
+
+    expectPlaybackStartedOnce(run);
+  });
+
+  it("drops the superseded render's animations and reveals when a transition is cancelled", () => {
+    const run = runTransitionWithDeferredWork();
+
+    run.payload.applyTargetState();
+    run.payload.onCancel();
+
+    expect(run.rollback).toHaveBeenCalledOnce();
+    // A reveal reads the completion version as its first step.
+    expect(run.textRevealTracker.getVersion).not.toHaveBeenCalled();
+  });
+
+  it("does not start playback when the cancelled transition has no stage to return to", () => {
+    const parent = createParent(createDisplayObject("scene-root"));
+    const run = runTransitionWithDeferredWork({
+      parent,
+      resolveParent: () => (parent.destroyed ? null : parent),
+    });
+
+    parent.destroyed = true;
+    run.payload.applyTargetState();
+    run.payload.onCancel();
+
+    expect(run.nextDisplayObject.destroy).toHaveBeenCalled();
+    expectPlaybackNotStarted(run);
+    expect(run.rollback).toHaveBeenCalledOnce();
+  });
+
+  it("starts all deferred work when the transition completes", () => {
+    const run = runTransitionWithDeferredWork({ withTextReveal: false });
+
+    run.payload.onComplete();
+
+    expectPlaybackStartedOnce(run);
   });
 });

@@ -399,6 +399,15 @@ render-scoped behavior:
 - a later changed render cancels the in-flight transition
 - if the same transition appears again in that later render, it starts again
 
+A cancelled transition settles on its next element: the element is shown in
+its final state and stays on stage for the cancelling render to reconcile. The
+element's own continuous playback (particle emission, animated sprite playback,
+video playback) starts at that point, exactly as it would have when the
+transition completed, because a render that leaves the element unchanged does
+not mount it again. Update animations and text reveals that the cancelled
+render queued for the element are dropped; they belong to the superseded
+render.
+
 With `playback.continuity: persistent`, the runtime lets the same in-flight
 transition continue across later renders instead of restarting, as long as all
 of these remain true:

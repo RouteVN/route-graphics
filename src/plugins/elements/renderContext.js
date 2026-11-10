@@ -23,6 +23,9 @@ const executeDeferredMountOperation = (operation) => {
       }
       return;
     case "start-particles":
+      if (operation.emitter?.destroyed) {
+        return;
+      }
       if (operation.app?.debug) {
         const customTickerHandler = (event) => {
           if (operation.emitter.destroyed) {
@@ -105,6 +108,28 @@ export const clearDeferredMountOperations = (renderContext) => {
   for (const operation of operations) {
     rollbackPreparedUpdateAnimations(operation);
   }
+};
+
+// Operations that start an element's own continuous playback. Unlike a reveal
+// or an update animation they belong to the mounted element, not to the render
+// that mounted it, and nothing else starts them once the element is live.
+const PLAYBACK_START_OPERATION_TYPES = new Set([
+  "play-animated-sprite",
+  "play-video",
+  "start-particles",
+]);
+
+/**
+ * Settle deferred work for a hidden mount whose element stays on stage although
+ * its transition did not complete. Playback starts, because a later render that
+ * leaves the element unchanged never mounts it again. Everything else belongs
+ * to the superseded render and is dropped.
+ */
+export const startDeferredPlaybackOperations = (renderContext) => {
+  flushDeferredMountOperations(renderContext, (operation) =>
+    PLAYBACK_START_OPERATION_TYPES.has(operation?.type),
+  );
+  clearDeferredMountOperations(renderContext);
 };
 
 export const queueDeferredAnimatedSpritePlay = (

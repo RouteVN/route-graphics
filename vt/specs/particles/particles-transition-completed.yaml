@@ -1,0 +1,174 @@
+---
+title: Particles Transition Completed
+description: Control for the cancelled particle transitions. The same enter transition runs to completion before the next state.
+specs:
+  - the particle field should start emitting when its enter transition completes
+  - the field should keep advancing across later states that leave it unchanged
+skipInitialScreenshot: true
+useBrowserScreenshot: true
+steps:
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 300
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.particleCount
+    args:
+      - weather-particles
+    value: 0
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 700
+  - action: wait
+    ms: 50
+  - action: keypress
+    key: "n"
+  - action: assert
+    type: js
+    fn: vtAssert.particleCount
+    args:
+      - weather-particles
+    value: 0
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: customEvent
+    name: "primeVtScreenshot"
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.particleCount
+    args:
+      - weather-particles
+    value: 30
+  - action: screenshot
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.particleCount
+    args:
+      - weather-particles
+    value: 60
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 500
+  - action: wait
+    ms: 50
+  - action: assert
+    type: js
+    fn: vtAssert.particleCount
+    args:
+      - weather-particles
+    value: 90
+  - action: screenshot
+---
+states:
+  - id: empty
+    elements:
+      - &bg
+        id: stage-bg
+        type: rect
+        x: 0
+        "y": 0
+        width: 1280
+        height: 720
+        fill: "#000000"
+  - id: weather-entering
+    elements:
+      - *bg
+      - &weather
+        id: weather
+        type: container
+        x: 0
+        "y": 0
+        children:
+          - &field
+            id: weather-particles
+            type: particles
+            x: 0
+            "y": 0
+            width: 1280
+            height: 720
+            alpha: 1
+            seed: 12345
+            modules:
+              emission:
+                mode: continuous
+                rate: 60
+                maxActive: 120
+                duration: infinite
+                particleLifetime:
+                  min: 4
+                  max: 6
+                source:
+                  kind: rect
+                  data:
+                    x: 80
+                    "y": 60
+                    width: 1120
+                    height: 360
+              movement:
+                velocity:
+                  kind: directional
+                  direction: 90
+                  speed:
+                    min: 60
+                    max: 120
+              appearance:
+                texture:
+                  shape: circle
+                  radius: 8
+                  color: "#FFFFFF"
+    animations:
+      - id: weather-enter
+        targetId: weather
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 1000
+                  value: 1
+                  easing: linear
+  - id: line-two
+    elements:
+      - *bg
+      - *weather
+      - id: line-marker
+        type: rect
+        x: 160
+        "y": 620
+        width: 160
+        height: 40
+        fill: "#A6A6A6"
+  - id: line-three
+    elements:
+      - *bg
+      - *weather
+      - id: line-marker
+        type: rect
+        x: 960
+        "y": 620
+        width: 160
+        height: 40
+        fill: "#A6A6A6"

@@ -756,6 +756,10 @@
           app.findElementByLabel(elementId)?.__vtElementPluginType ?? null,
         elementAlpha: (elementId) =>
           app.findElementByLabel(elementId)?.alpha ?? null,
+        // Live particles of a mounted particles element: 0 while its emitter
+        // is not running, null when the element is not mounted.
+        particleCount: (elementId) =>
+          app.findElementByLabel(elementId)?.emitter?.particleCount ?? null,
         rendererType: () => app.rendererType,
         pluginDispatchMismatches: () =>
           structuredClone(vtPluginDispatchMismatches),
