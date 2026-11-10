@@ -4,6 +4,11 @@ import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
 import { renderElements } from "../renderElements.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
+  getContainerLiveScaleAnimations,
+  getContainerLiveScaleFactor,
+  getContainerLiveScaleTargetState,
+} from "./util/liveContainerScale.js";
+import {
   getBlurTargetState,
   hasBlurUpdateAnimation,
   syncBlurEffect,
@@ -181,15 +186,21 @@ export const addContainer = ({
     eventHandler,
   });
 
+  const liveScaleFactor = getContainerLiveScaleFactor(element);
   const dispatchContainerAnimations = () =>
     dispatchLiveAnimations({
-      animations,
+      animations: getContainerLiveScaleAnimations(
+        animations,
+        id,
+        liveScaleFactor,
+      ),
       targetId: id,
       animationBus,
       completionTracker,
       element: container,
       targetState: {
         ...getElementTransformTargetState(element, { alpha }),
+        ...getContainerLiveScaleTargetState(element, liveScaleFactor),
         ...getBlurTargetState(element, { force: shouldForceBlur }),
         ...getShaderFilterTargetState(element, {
           force: shouldForceShaderProgress,

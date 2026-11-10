@@ -14,10 +14,10 @@ properties:
     description: Element type, must be 'container'
   width:
     type: number
-    description: Width of the container in pixels. If not set, will be calculated from children.
+    description: Width of the container in pixels before scaleX is applied. If not set, will be calculated from children.
   height:
     type: number
-    description: Height of the container in pixels. If not set, will be calculated from children.
+    description: Height of the container in pixels before scaleY is applied. If not set, will be calculated from children.
   x:
     type: number
     description: X position of the container
@@ -34,16 +34,16 @@ properties:
     default: 0
   originX:
     type: number
-    description: Horizontal transform origin in pixels from the container's left edge. Defaults to the anchor-derived X origin.
+    description: Horizontal transform origin in rendered pixels from the container's left edge, after scaleX is applied, as for other elements. Defaults to the anchor-derived X origin.
   originY:
     type: number
-    description: Vertical transform origin in pixels from the container's top edge. Defaults to the anchor-derived Y origin.
+    description: Vertical transform origin in rendered pixels from the container's top edge, after scaleY is applied, as for other elements. Defaults to the anchor-derived Y origin.
   scaleX:
     type: number
-    description: Horizontal scale for the container subtree. Negative values mirror the group and zero collapses it.
+    description: Horizontal scale for the whole container as one group. Child sizes, child positions, gapX, the wrap width and the container width all scale, and the anchor point stays at x. Negative values mirror the group and zero collapses it.
   scaleY:
     type: number
-    description: Vertical scale for the container subtree. Negative values mirror the group and zero collapses it.
+    description: Vertical scale for the whole container as one group. Child sizes, child positions, gapY, the wrap height and the container height all scale, and the anchor point stays at y. Negative values mirror the group and zero collapses it.
   alpha:
     type: number
     description: Opacity/transparency of the container (0-1)

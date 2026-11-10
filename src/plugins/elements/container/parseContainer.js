@@ -17,8 +17,50 @@ import { normalizeBlurConfig } from "../util/blurEffect.js";
  * If it doesn't have width/height it will expand the width/height based on the position x/y and the dimensions of the children
  * If the direction has horizontal/vertical, it will reposition the children to be horizontal/vertical
  * If direction is set and the width/height is set than the container will wrap the element based on the setted width/height
+ *
+ * Container scale scales the whole group. Its magnitude is baked into the
+ * computed tree: child sizes, child positions, child transform origins, gaps,
+ * the wrap size, scrollbar sizes and the container's own width and height are
+ * all multiplied by it, so the computed values are rendered pixels. The anchor
+ * and the default origin then use the scaled size, like any other element.
+ * Only the sign is left for the renderer, which mirrors the group.
+ *
+ * A zero scale is left to the renderer, which collapses the group, and the
+ * geometry keeps the scale inherited from ancestor containers. A tween from
+ * zero can then grow the group (see util/liveContainerScale.js).
  */
-export const parseContainer = ({ state, parserPlugins = [] }) => {
+const scaleScrollbar = (scrollbar, scaleX, scaleY) => {
+  const scaled = structuredClone(scrollbar);
+  const vertical = scaled.vertical;
+
+  if (!vertical) {
+    return scaled;
+  }
+
+  if (typeof vertical.thickness === "number") {
+    vertical.thickness *= scaleX;
+  }
+  if (typeof vertical.thumb?.length === "number") {
+    vertical.thumb.length *= scaleY;
+  }
+  for (const button of [vertical.startButton, vertical.endButton]) {
+    if (typeof button?.size === "number") {
+      button.size *= scaleY;
+    }
+    if (typeof button?.step === "number") {
+      button.step *= scaleY;
+    }
+  }
+
+  return scaled;
+};
+
+export const parseContainer = ({
+  state,
+  parserPlugins = [],
+  inheritedScaleX = 1,
+  inheritedScaleY = 1,
+}) => {
   // Treat missing or legacy empty direction as explicit absolute positioning.
   const direction =
     state.direction === "horizontal" || state.direction === "vertical"
@@ -27,6 +69,13 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
   const scroll = state.scroll ? true : false;
   const gapX = state.gapX ?? 0;
   const gapY = state.gapY ?? 0;
+  // state.scaleX already includes the ancestors' scale.
+  const scaleMagnitudeX = Math.abs(state.scaleX ?? 1) || inheritedScaleX;
+  const scaleMagnitudeY = Math.abs(state.scaleY ?? 1) || inheritedScaleY;
+  const scaledGapX = gapX * scaleMagnitudeX;
+  const scaledGapY = gapY * scaleMagnitudeY;
+  const scaledWidth = state.width ? state.width * scaleMagnitudeX : 0;
+  const scaledHeight = state.height ? state.height * scaleMagnitudeY : 0;
   const children = structuredClone(state.children || []);
   const parsedChildren = [];
 
@@ -50,17 +99,28 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
   for (let i = 0; i < children.length; i++) {
     let child = children[i];
 
-    if (i > 0) {
+    if (direction === "absolute") {
+      // Absolute children are authored in the container's unscaled space.
+      child.x = (child.x ?? 0) * scaleMagnitudeX;
+      child.y = (child.y ?? 0) * scaleMagnitudeY;
+    } else if (i > 0) {
       if (direction === "horizontal") {
         child.x = currentX;
         child.y = lastRowHeight;
-      } else if (direction === "vertical") {
+      } else {
         child.x = lastColWidth;
         child.y = currentY;
       }
-    } else if (direction === "horizontal" || direction === "vertical") {
+    } else {
       child.x = 0;
       child.y = 0;
+    }
+
+    if (typeof child.originX === "number") {
+      child.originX *= scaleMagnitudeX;
+    }
+    if (typeof child.originY === "number") {
+      child.originY *= scaleMagnitudeY;
     }
 
     const plugin = parserPlugins.find((p) => p.type === child.type);
@@ -69,8 +129,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
         child.scaleX !== undefined || state.scaleX !== undefined;
       const hasScaleY =
         child.scaleY !== undefined || state.scaleY !== undefined;
-      const childScaleX = (child.scaleX ?? 1) * Math.abs(state.scaleX ?? 1);
-      const childScaleY = (child.scaleY ?? 1) * Math.abs(state.scaleY ?? 1);
+      const childScaleX = (child.scaleX ?? 1) * scaleMagnitudeX;
+      const childScaleY = (child.scaleY ?? 1) * scaleMagnitudeY;
 
       child = plugin.parse({
         state: {
@@ -79,22 +139,24 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
           ...(hasScaleY ? { scaleY: childScaleY } : {}),
         },
         parserPlugins,
+        inheritedScaleX: scaleMagnitudeX,
+        inheritedScaleY: scaleMagnitudeY,
       });
     }
 
     if (direction === "horizontal") {
-      const gapValue = i < children.length - 1 ? gapX : 0;
+      const gapValue = i < children.length - 1 ? scaledGapX : 0;
 
       if (
         state.width &&
-        child.width + currentRowWidth > state.width &&
+        child.width + currentRowWidth > scaledWidth &&
         !scroll &&
         !state.anchorToBottom
       ) {
         //Wrap the child
         currentX = 0;
         currentRowWidth = 0;
-        lastRowHeight += maxRowHeight + gapY;
+        lastRowHeight += maxRowHeight + scaledGapY;
         maxRowHeight = child.height;
 
         child.x = 0;
@@ -107,18 +169,18 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
       containerWidth = Math.max(currentX, containerWidth);
       containerHeight = Math.max(child.height + child.y, containerHeight);
     } else if (direction === "vertical") {
-      const gapValue = i < children.length - 1 ? gapY : 0;
+      const gapValue = i < children.length - 1 ? scaledGapY : 0;
 
       if (
         state.height &&
-        child.height + currentColHeight > state.height &&
+        child.height + currentColHeight > scaledHeight &&
         !scroll &&
         !state.anchorToBottom
       ) {
         //Wrap the child
         currentY = 0;
         currentColHeight = 0;
-        lastColWidth += maxColWidth + gapX;
+        lastColWidth += maxColWidth + scaledGapX;
         maxColWidth = child.width;
 
         child.x = lastColWidth;
@@ -140,8 +202,8 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
 
   const containerComputed = parseCommonObject({
     ...state,
-    width: state.width ? state.width : containerWidth,
-    height: state.height ? state.height : containerHeight,
+    width: state.width ? scaledWidth : containerWidth,
+    height: state.height ? scaledHeight : containerHeight,
   });
 
   const finalContainer = {
@@ -152,12 +214,26 @@ export const parseContainer = ({ state, parserPlugins = [] }) => {
     gapY,
     scroll,
     ...(state.anchorToBottom && { anchorToBottom: true }),
-    ...(state.scrollbar && { scrollbar: structuredClone(state.scrollbar) }),
+    ...(state.scrollbar && {
+      scrollbar: scaleScrollbar(
+        state.scrollbar,
+        scaleMagnitudeX,
+        scaleMagnitudeY,
+      ),
+    }),
     ...(state.blur !== undefined && {
       blur: normalizeBlurConfig(state.blur),
     }),
     rotation: state.rotation ?? 0,
   };
+
+  // Lets the renderer convert this container's own scale tweens.
+  if (inheritedScaleX !== 1) {
+    finalContainer.inheritedScaleX = inheritedScaleX;
+  }
+  if (inheritedScaleY !== 1) {
+    finalContainer.inheritedScaleY = inheritedScaleY;
+  }
 
   if (state.rightClick) {
     finalContainer.rightClick = state.rightClick;

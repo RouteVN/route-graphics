@@ -32,6 +32,11 @@ import {
   getElementTransformTargetState,
 } from "../util/transform.js";
 import { setElementRenderState } from "../elementRenderState.js";
+import {
+  getContainerLiveScaleAnimations,
+  getContainerLiveScaleFactor,
+  getContainerLiveScaleTargetState,
+} from "./util/liveContainerScale.js";
 import { hasResumableTextRevealInTree } from "../text-revealing/resumableTree.js";
 
 const collectDescendantTargetStates = (elements, result = new Map()) => {
@@ -232,14 +237,22 @@ export const updateContainer = ({
     commit();
   };
 
+  // Until onComplete renders the next state, the previous geometry is on
+  // screen, so scale tweens are converted for it.
+  const liveScaleFactor = getContainerLiveScaleFactor(prevElement);
   const dispatched = dispatchLiveAnimations({
-    animations,
+    animations: getContainerLiveScaleAnimations(
+      animations,
+      prevElement.id,
+      liveScaleFactor,
+    ),
     targetId: prevElement.id,
     animationBus,
     completionTracker,
     element: containerElement,
     targetState: {
       ...getElementTransformTargetState(nextElement, { alpha }),
+      ...getContainerLiveScaleTargetState(nextElement, liveScaleFactor),
       ...getBlurTargetState(nextElement, {
         force: shouldForceBlur,
       }),

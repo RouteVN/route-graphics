@@ -40,14 +40,18 @@ export const parseCommonObject = (state, { scaleMode = "baked" } = {}) => {
   let anchorWidth = Math.sign(scaleX) * widthAfterScale;
   let anchorHeight = Math.sign(scaleY) * heightAfterScale;
 
-  // Container scale magnitudes are baked into descendants. Only the sign is
-  // applied to the container itself so a negative scale mirrors the subtree as
-  // one group instead of mirroring every child around its own origin.
+  // Container scale magnitudes are baked into the computed tree:
+  // parseContainer passes a width and height that already include them and
+  // scales the children's sizes and positions. Only the sign is applied to the
+  // container itself so a negative scale mirrors the subtree as one group
+  // instead of mirroring every child around its own origin.
   if (state.type === ComputedNodeType.CONTAINER) {
     widthAfterScale = Math.abs(state.width);
     heightAfterScale = Math.abs(state.height);
-    anchorWidth = Math.sign(scaleX) * widthAfterScale;
-    anchorHeight = Math.sign(scaleY) * heightAfterScale;
+    // A zero scale collapses the group around its anchor point, so the anchor
+    // still uses the full size.
+    anchorWidth = (Math.sign(scaleX) || 1) * widthAfterScale;
+    anchorHeight = (Math.sign(scaleY) || 1) * heightAfterScale;
   } else if (scaleMode === "live") {
     // Particle dimensions describe the emitter's local area, so its complete
     // scale (magnitude and sign) remains a live transform.
