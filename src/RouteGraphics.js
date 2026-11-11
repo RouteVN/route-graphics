@@ -48,6 +48,7 @@ import {
   clearManagedVideoSprites,
   restoreManagedVideoSpriteSizes,
 } from "./plugins/elements/video/managedVideoTextureSizing.js";
+import { createBoundedVideoAlphaModeDetector } from "./plugins/elements/video/videoAlphaMode.js";
 import { hitTestElementBounds as hitTestElementBoundsInTree } from "./util/hitTestElementBounds.js";
 import { setShaderTimeInTree } from "./plugins/elements/util/shaderFilterEffect.js";
 import { installHoverPassThrough } from "./plugins/elements/util/hoverPassThrough.js";
@@ -68,6 +69,10 @@ import { createLayoutReport } from "./util/layoutReport.js";
  * @property {ReturnType<typeof createInputDomBridge>} [inputDomBridge]
  * @typedef {Application & ApplicationWithAudioStageOptions} ApplicationWithAudioStage
  */
+
+// Shared by every instance, like the cache inside Pixi's probe.
+const detectBoundedVideoAlphaMode =
+  createBoundedVideoAlphaModeDetector(detectVideoAlphaMode);
 
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
@@ -1106,7 +1111,7 @@ const createRouteGraphics = () => {
     video.appendChild(sourceElement);
     video.load();
 
-    const alphaMode = await detectVideoAlphaMode();
+    const alphaMode = await detectBoundedVideoAlphaMode();
     const texture = new Texture({
       source: createVideoTextureSource(video, alphaMode),
       // Lazy video metadata changes the frame and the sprite's geometry.
