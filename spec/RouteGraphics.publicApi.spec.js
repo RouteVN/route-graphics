@@ -2844,6 +2844,56 @@ describe("RouteGraphics public API", () => {
     }
   });
 
+  it("loads video textures when the alpha mode probe never settles", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    // WebKit on iPadOS 27 can leave Pixi's probe video at loadedmetadata.
+    pixiMock.detectVideoAlphaMode.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi
+      .spyOn(document, "createElement")
+      .mockImplementation((tagName, ...args) => {
+        const element = originalCreateElement(tagName, ...args);
+        if (tagName === "video") {
+          element.load = vi.fn();
+          element.pause = vi.fn();
+        }
+        return element;
+      });
+    const asset = (name) => ({
+      source: "url",
+      url: `https://route-graphics.test/${name}.mp4`,
+      type: "video/mp4",
+    });
+
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      let firstLoaded = false;
+      const firstLoad = app.loadAssets({ first: asset("first") }).then(() => {
+        firstLoaded = true;
+      });
+      await vi.advanceTimersByTimeAsync(999);
+      expect(firstLoaded).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await firstLoad;
+
+      // A later video does not wait for the probe again.
+      await app.loadAssets({ second: asset("second") });
+
+      for (const key of ["first", "second"]) {
+        const texture = pixiMock.Assets.cache.set.mock.calls.find(
+          ([cacheKey]) => cacheKey === key,
+        )?.[1];
+        expect(texture.source.alphaMode).toBe("premultiply-alpha-on-upload");
+      }
+      expect(pixiMock.detectVideoAlphaMode).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+      createElement.mockRestore();
+    }
+  });
+
   it("awaits audio asset decoding during loadAssets", async () => {
     let resolveAudioLoad;
     const audioLoadPromise = new Promise((resolve) => {
