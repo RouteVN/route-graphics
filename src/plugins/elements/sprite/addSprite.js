@@ -45,7 +45,9 @@ export const addSprite = ({
   zIndex,
 }) => {
   const { id, width, height, src, alpha } = element;
-  const texture = src ? Texture.from(src) : Texture.EMPTY;
+  // A src that is not in the cache, because its file did not load or its
+  // texture was unloaded, draws nothing, as an empty src does.
+  const texture = (src && Texture.from(src)) || Texture.EMPTY;
   const sprite = new Sprite(texture);
   sprite.label = id;
   sprite.zIndex = zIndex;
