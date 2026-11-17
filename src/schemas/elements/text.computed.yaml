@@ -116,6 +116,9 @@ $def:
       inlineSize:
         type: number
         description: Length of the column's text (vertical chunks only)
+      blockDirection:
+        type: number
+        description: Horizontal step to the next column, -1 leftwards or 1 rightwards (vertical chunks only)
       lineParts:
         type: array
         description: Array of rich text parts in this line
@@ -203,7 +206,8 @@ properties:
     enum:
       - horizontal-tb
       - vertical-rl
-    description: Present as `vertical-rl` when the text is laid out in vertical columns
+      - vertical-lr
+    description: Present as `vertical-rl` or `vertical-lr` when the text is laid out in vertical columns
   width:
     type: number
     description: Layout width of the text box. When input width is provided, this matches that fixed width.

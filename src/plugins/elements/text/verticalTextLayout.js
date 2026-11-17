@@ -13,8 +13,13 @@ import {
 } from "../../../util/verticalFonts.js";
 
 export const HORIZONTAL_WRITING_MODE = "horizontal-tb";
-export const VERTICAL_WRITING_MODE = "vertical-rl";
-export const WRITING_MODES = [HORIZONTAL_WRITING_MODE, VERTICAL_WRITING_MODE];
+export const VERTICAL_RL_WRITING_MODE = "vertical-rl";
+export const VERTICAL_LR_WRITING_MODE = "vertical-lr";
+export const WRITING_MODES = [
+  HORIZONTAL_WRITING_MODE,
+  VERTICAL_RL_WRITING_MODE,
+  VERTICAL_LR_WRITING_MODE,
+];
 
 const WRITING_MODE_SET = new Set(WRITING_MODES);
 
@@ -33,7 +38,8 @@ export const normalizeWritingMode = (writingMode, path = "writingMode") => {
 };
 
 export const isVerticalWritingMode = (node) =>
-  node?.writingMode === VERTICAL_WRITING_MODE;
+  node?.writingMode === VERTICAL_RL_WRITING_MODE ||
+  node?.writingMode === VERTICAL_LR_WRITING_MODE;
 
 // CJK fonts design their glyphs inside an em square whose bottom edge sits
 // 0.12em below the alphabetic baseline.
@@ -748,14 +754,23 @@ const createColumnParts = ({ column, centerX, inlineStart }) => {
  * @param {number} [options.columnLength] - Maximum column length; unset means
  * columns only break at explicit newlines
  * @param {number} [options.width] - Fixed box width; columns start at its
- * right edge
+ * right edge, or at its left edge for `vertical-lr`
+ * @param {string} [options.writingMode] - `vertical-rl` (default) flows
+ * columns right to left, `vertical-lr` left to right. Only the order of the
+ * columns differs; each column is set identically in both modes.
  * @param {string} [options.align] - Alignment along the column
  * @returns {{ chunks: Array, width: number, height: number }}
  */
 export const createVerticalTextChunks = (
   segments,
-  { columnLength, width, align = "left" } = {},
+  {
+    columnLength,
+    width,
+    align = "left",
+    writingMode = VERTICAL_RL_WRITING_MODE,
+  } = {},
 ) => {
+  const leftToRight = writingMode === VERTICAL_LR_WRITING_MODE;
   const fixedColumnLength =
     typeof columnLength === "number" && Number.isFinite(columnLength)
       ? Math.max(0, columnLength)
@@ -772,24 +787,29 @@ export const createVerticalTextChunks = (
   const boxWidth = typeof width === "number" ? width : measuredWidth;
   const alignLength = fixedColumnLength ?? measuredHeight;
   const chunks = [];
-  let right = boxWidth;
+  // Left edge of the next column.
+  let left = leftToRight ? 0 : boxWidth;
 
   for (const column of columns) {
-    const centerX = right - column.blockSize / 2;
+    if (!leftToRight) left -= column.blockSize;
+
+    const centerX = left + column.blockSize / 2;
     const inlineStart = getAlignOffset(align, alignLength, column.inkLength);
 
     chunks.push({
       vertical: true,
       lineParts: createColumnParts({ column, centerX, inlineStart }),
-      x: right - column.blockSize,
+      x: left,
       y: 0,
       lineMaxHeight: column.blockSize,
       centerX,
       inlineStart,
       inlineSize: column.inkLength,
+      // Horizontal step to the next column: -1 leftwards, 1 rightwards.
+      blockDirection: leftToRight ? 1 : -1,
     });
 
-    right -= column.blockSize;
+    if (leftToRight) left += column.blockSize;
   }
 
   return {
@@ -812,8 +832,3 @@ export const applyTextPartTransform = (display, part) => {
     display.scale.x = part.scaleX;
   }
 };
-
-export const getTextPartDecorationOptions = (part) => ({
-  rectangles: part?.decorationRectangles ?? null,
-  line: part?.decorationLine ?? null,
-});

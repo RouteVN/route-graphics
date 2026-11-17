@@ -15,29 +15,29 @@ Try it in the [Playground](/playground/?template=interactive-elements).
 
 ## Field Reference
 
-| Field         | Type            | Required            | Default         | Notes                                                                                      |
-| ------------- | --------------- | ------------------- | --------------- | ------------------------------------------------------------------------------------------ |
-| `id`          | string          | Yes                 | -               | Element id.                                                                                |
-| `type`        | string          | Yes                 | -               | Must be `text`.                                                                            |
-| `x`           | number          | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                          |
-| `y`           | number          | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                          |
-| `content`     | string \| array | No                  | `""`            | Strings render as one Pixi text object. Arrays render static rich text segments.           |
-| `width`       | number          | No                  | auto            | Fixed layout box width. Also enables wrapping (`wordWrapWidth = width`).                   |
-| `writingMode` | string          | No                  | `horizontal-tb` | `vertical-rl` sets the text in top-to-bottom columns. See [Vertical Text](#vertical-text). |
-| `height`      | number          | No                  | auto            | Column length for `writingMode: vertical-rl`. Ignored for horizontal text.                 |
-| `anchorX`     | number          | No                  | `0`             | Can be outside `0..1`.                                                                     |
-| `anchorY`     | number          | No                  | `0`             | Can be outside `0..1`.                                                                     |
-| `originX`     | number          | No                  | anchor          | Transform origin X in pixels from the layout box.                                          |
-| `originY`     | number          | No                  | anchor          | Transform origin Y in pixels from the layout box.                                          |
-| `rotation`    | number          | No                  | `0`             | Degrees.                                                                                   |
-| `alpha`       | number          | No                  | `1`             | Opacity `0..1`.                                                                            |
-| `textStyle`   | object          | No                  | engine defaults | See table below.                                                                           |
-| `filters`     | array           | No                  | `[]`            | Ordered custom shader filters applied after text rendering.                                |
-| `hover`       | object          | No                  | -               | Hover style, cursor, sound, payload.                                                       |
-| `click`       | object          | No                  | -               | Press style, sound, payload.                                                               |
-| `rightClick`  | object          | No                  | -               | Right-press style, sound, payload.                                                         |
-| `scrollUp`    | object          | No                  | -               | Wheel-up payload hook.                                                                     |
-| `scrollDown`  | object          | No                  | -               | Wheel-down payload hook.                                                                   |
+| Field         | Type            | Required            | Default         | Notes                                                                                                       |
+| ------------- | --------------- | ------------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `id`          | string          | Yes                 | -               | Element id.                                                                                                 |
+| `type`        | string          | Yes                 | -               | Must be `text`.                                                                                             |
+| `x`           | number          | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                                           |
+| `y`           | number          | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                                           |
+| `content`     | string \| array | No                  | `""`            | Strings render as one Pixi text object. Arrays render static rich text segments.                            |
+| `width`       | number          | No                  | auto            | Fixed layout box width. Also enables wrapping (`wordWrapWidth = width`).                                    |
+| `writingMode` | string          | No                  | `horizontal-tb` | `vertical-rl` or `vertical-lr` sets the text in top-to-bottom columns. See [Vertical Text](#vertical-text). |
+| `height`      | number          | No                  | auto            | Column length for vertical writing modes. Ignored for horizontal text.                                      |
+| `anchorX`     | number          | No                  | `0`             | Can be outside `0..1`.                                                                                      |
+| `anchorY`     | number          | No                  | `0`             | Can be outside `0..1`.                                                                                      |
+| `originX`     | number          | No                  | anchor          | Transform origin X in pixels from the layout box.                                                           |
+| `originY`     | number          | No                  | anchor          | Transform origin Y in pixels from the layout box.                                                           |
+| `rotation`    | number          | No                  | `0`             | Degrees.                                                                                                    |
+| `alpha`       | number          | No                  | `1`             | Opacity `0..1`.                                                                                             |
+| `textStyle`   | object          | No                  | engine defaults | See table below.                                                                                            |
+| `filters`     | array           | No                  | `[]`            | Ordered custom shader filters applied after text rendering.                                                 |
+| `hover`       | object          | No                  | -               | Hover style, cursor, sound, payload.                                                                        |
+| `click`       | object          | No                  | -               | Press style, sound, payload.                                                                                |
+| `rightClick`  | object          | No                  | -               | Right-press style, sound, payload.                                                                          |
+| `scrollUp`    | object          | No                  | -               | Wheel-up payload hook.                                                                                      |
+| `scrollDown`  | object          | No                  | -               | Wheel-down payload hook.                                                                                    |
 
 Text shadows are rendered before `filters`. See
 [Shaders](/docs/guides/shaders/) for the shader interface.
@@ -103,14 +103,16 @@ Array content uses the same static rich text segment shape as `text-revealing`, 
 
 Set `writingMode: vertical-rl` to lay text out in columns that run top to bottom and flow from right to left, as used for Japanese and Chinese. It is the only property you need; everything else keeps its name and adapts as below.
 
-| Property                              | Horizontal (default)         | `vertical-rl`                                                |
-| ------------------------------------- | ---------------------------- | ------------------------------------------------------------ |
-| `height`                              | Measured                     | Wrap dimension: columns break when they reach it.            |
-| `width`                               | Wrap dimension               | Measured. If set, the first column starts at its right edge. |
-| `textStyle.align`                     | Along the line               | Along the column: `left` = top, `center`, `right` = bottom.  |
-| `textStyle.lineHeight`                | Distance between lines       | Distance between columns.                                    |
-| `textStyle.textDecoration: underline` | Line under the text          | Sideline on the right of the column.                         |
-| furigana `placement`                  | `top` / `bottom` of the base | `top` = right of the column, `bottom` = left.                |
+`writingMode: vertical-lr` is identical except that columns flow from left to right: the first column is on the left and, with a fixed `width`, starts at its left edge. Characters, punctuation, furigana and sidelines are set the same way in both modes.
+
+| Property                              | Horizontal (default)         | `vertical-rl` / `vertical-lr`                                                              |
+| ------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------ |
+| `height`                              | Measured                     | Wrap dimension: columns break when they reach it.                                          |
+| `width`                               | Wrap dimension               | Measured. If set, the first column starts at its right edge (left edge for `vertical-lr`). |
+| `textStyle.align`                     | Along the line               | Along the column: `left` = top, `center`, `right` = bottom.                                |
+| `textStyle.lineHeight`                | Distance between lines       | Distance between columns.                                                                  |
+| `textStyle.textDecoration: underline` | Line under the text          | Sideline on the right of the column.                                                       |
+| furigana `placement`                  | `top` / `bottom` of the base | `top` = right of the column, `bottom` = left.                                              |
 
 How characters are set:
 
@@ -121,7 +123,7 @@ How characters are set:
 - Columns never start with closing punctuation or small kana and never end with an opening bracket.
 - Newlines start a new column. Without `height`, columns only break at newlines.
 
-Vertical text always renders through the rich text path, including string content. As with other rich text, timeline animations that target individual text units (graphemes, words, lines) are not available on it; animate the element as a whole instead. With `anchorX: 1`, `x` is the right edge of the first column, which is usually the most convenient way to place a vertical block.
+Vertical text always renders through the rich text path, including string content. As with other rich text, timeline animations that target individual text units (graphemes, words, lines) are not available on it; animate the element as a whole instead. With `vertical-rl` and `anchorX: 1`, `x` is the right edge of the first column, which is usually the most convenient way to place a vertical block.
 
 ## Emitted Events
 

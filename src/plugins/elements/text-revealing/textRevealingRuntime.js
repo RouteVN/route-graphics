@@ -500,7 +500,7 @@ const getIndicatorLineY = (indicatorSprite, chunk) => {
 
 // In a vertical column the indicator follows the text downwards, centred on
 // the column. `offsetX` keeps meaning "along the text" (down) and `offsetY`
-// "towards the next line" (left).
+// "towards the next column" (left for vertical-rl, right for vertical-lr).
 const positionIndicatorForChunk = (
   indicatorSprite,
   chunk,
@@ -509,8 +509,8 @@ const positionIndicatorForChunk = (
   if (chunk?.vertical) {
     indicatorSprite.x =
       chunk.centerX -
-      Math.max(0, indicatorSprite?.width ?? 0) / 2 -
-      indicatorOffsets.y;
+      Math.max(0, indicatorSprite?.width ?? 0) / 2 +
+      (chunk.blockDirection ?? -1) * indicatorOffsets.y;
     indicatorSprite.y = chunk.inlineStart + indicatorOffsets.x;
     return;
   }

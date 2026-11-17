@@ -605,7 +605,7 @@
  * @property {TextClick} [rightClick]
  * @property {ScrollProps} [scrollUp]
  * @property {ScrollProps} [scrollDown]
- * @property {'vertical-rl'} [writingMode] - Present when the text is laid out in vertical columns
+ * @property {'vertical-rl' | 'vertical-lr'} [writingMode] - Present when the text is laid out in vertical columns
  * @typedef {ComputedNode & TextComputedProps} TextComputedNode
  */
 
@@ -661,7 +661,7 @@
  * @typedef {Object} TextRevealingComputedProps
  * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
- * @property {'vertical-rl'} [writingMode] - Present when the text is laid out in vertical columns
+ * @property {'vertical-rl' | 'vertical-lr'} [writingMode] - Present when the text is laid out in vertical columns
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed on a curved 0-100 scale; 100 renders instantly
@@ -708,6 +708,7 @@
  * @property {boolean} [vertical] - True when the chunk is a vertical column
  * @property {number} [x] - Left edge of the column (vertical chunks only)
  * @property {number} [centerX] - Horizontal centre of the column (vertical chunks only)
+ * @property {-1 | 1} [blockDirection] - Horizontal step to the next column (vertical chunks only)
  * @property {number} [inlineStart] - Y position where the column's text starts (vertical chunks only)
  * @property {number} [inlineSize] - Length of the column's text (vertical chunks only)
  */

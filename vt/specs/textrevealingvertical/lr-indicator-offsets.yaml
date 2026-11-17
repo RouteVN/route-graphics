@@ -1,0 +1,82 @@
+---
+title: Vertical Text Revealing LR - Indicator Offsets
+description: In vertical-lr the indicator offsetY moves towards the next column, which is to the right; colored indicator assets are intentional.
+specs:
+- the first indicator should sit directly below the last character
+- the second should be pushed further down by offsetX
+- the third should be shifted right by offsetY
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text-revealing
+    writingMode: vertical-lr
+    x: 200
+    "y": 100
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 0
+    content:
+    - text: 基準の位置
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+  - id: b
+    type: text-revealing
+    writingMode: vertical-lr
+    x: 500
+    "y": 100
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 40
+    content:
+    - text: 下へずらす
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+  - id: c
+    type: text-revealing
+    writingMode: vertical-lr
+    x: 800
+    "y": 100
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 0
+      offsetY: 30
+    content:
+    - text: 右へずらす
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8

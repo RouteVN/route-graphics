@@ -107,6 +107,32 @@ describe("runTextReveal with vertical text", () => {
     expect(indicator.x + indicator.width / 2).toBeCloseTo(lastChunk.centerX, 5);
   });
 
+  it("moves the indicator towards the next column with offsetY", async () => {
+    const indicator = {
+      revealing: { src: "", width: 10, height: 10 },
+      complete: { src: "", width: 10, height: 10 },
+      offsetX: 0,
+      offsetY: 6,
+    };
+    const positions = {};
+
+    for (const writingMode of ["vertical-rl", "vertical-lr"]) {
+      const element = createElement({
+        revealEffect: "none",
+        writingMode,
+        indicator,
+      });
+      const container = await reveal(element);
+      const sprite = findIndicator(container);
+      const lastChunk = element.content[element.content.length - 1];
+
+      positions[writingMode] = sprite.x + sprite.width / 2 - lastChunk.centerX;
+    }
+
+    expect(positions["vertical-rl"]).toBeCloseTo(-6, 5);
+    expect(positions["vertical-lr"]).toBeCloseTo(6, 5);
+  });
+
   it("types down the columns one cell at a time", async () => {
     vi.useFakeTimers();
 

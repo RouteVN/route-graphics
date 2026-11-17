@@ -1,0 +1,62 @@
+---
+title: Vertical Text LR - Wrapped Columns
+description: writingMode vertical-lr flows columns from left to right; a vertical-rl block with the same content is shown for comparison.
+specs:
+- the left block should start in its left-most column and continue to the right
+- the right block (vertical-rl) should start in its right-most column and continue to the left
+- characters and punctuation should be set identically in both blocks
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 80
+    "y": 40
+    content: vertical-lr
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: l2
+    type: text
+    x: 1100
+    "y": 40
+    content: vertical-rl
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: g1
+    type: rect
+    x: 80
+    "y": 78
+    width: 1120
+    height: 2
+    fill: '#737373'
+  - id: a
+    type: text
+    writingMode: vertical-lr
+    x: 80
+    "y": 80
+    height: 520
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+  - id: b
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 80
+    height: 520
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。

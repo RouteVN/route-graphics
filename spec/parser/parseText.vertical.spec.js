@@ -334,3 +334,98 @@ describe("parseTextRevealing with writingMode vertical-rl", () => {
     expect(node.writingMode).toBeUndefined();
   });
 });
+
+describe("parseText with writingMode vertical-lr", () => {
+  const stripPositions = (node) =>
+    node.content.map((chunk) =>
+      chunk.lineParts.map((part) => ({
+        ...part,
+        x: part.x - chunk.x,
+        ...(part.furigana && {
+          furigana: { ...part.furigana, x: part.furigana.x - chunk.x },
+        }),
+      })),
+    );
+
+  it("flows columns from left to right", () => {
+    const node = parseVertical({
+      writingMode: "vertical-lr",
+      height: 60,
+      content: "あいうえおかき",
+    });
+
+    expect(node.writingMode).toBe("vertical-lr");
+    expect(columnTexts(node)).toEqual(["あいう", "えおか", "き"]);
+    expect(node.content.map((chunk) => chunk.x)).toEqual([
+      0,
+      COLUMN_WIDTH,
+      COLUMN_WIDTH * 2,
+    ]);
+    expect(node.content.every((chunk) => chunk.blockDirection === 1)).toBe(
+      true,
+    );
+  });
+
+  it("starts at the left edge of a fixed width box", () => {
+    const node = parseVertical({
+      writingMode: "vertical-lr",
+      width: 300,
+      height: 60,
+      content: "あいうえ",
+    });
+
+    expect(node.width).toBe(300);
+    expect(node.content.map((chunk) => chunk.x)).toEqual([0, COLUMN_WIDTH]);
+  });
+
+  it("sets each column exactly as vertical-rl does", () => {
+    const content = [
+      { text: "「図書館" },
+      { text: "漢字", furigana: { text: "かんじ" } },
+      {
+        text: "でRouteVNを12回読む。」",
+        textStyle: { textDecoration: "underline" },
+      },
+    ];
+    const rl = parseVertical({ height: 120, content });
+    const lr = parseVertical({
+      writingMode: "vertical-lr",
+      height: 120,
+      content,
+    });
+
+    // Column-relative positions only differ by floating point noise.
+    const rounded = (value) =>
+      JSON.parse(
+        JSON.stringify(value, (key, entry) =>
+          typeof entry === "number" ? Math.round(entry * 1000) / 1000 : entry,
+        ),
+      );
+
+    expect(rounded(stripPositions(lr))).toEqual(rounded(stripPositions(rl)));
+    expect(lr.width).toBe(rl.width);
+    expect(lr.height).toBe(rl.height);
+  });
+
+  it("is accepted by text-revealing", () => {
+    const node = parseTextRevealing({
+      state: {
+        id: "reveal",
+        type: "text-revealing",
+        x: 0,
+        y: 0,
+        height: 60,
+        writingMode: "vertical-lr",
+        content: [
+          {
+            text: "あいうえお",
+            textStyle: { fontSize: FONT_SIZE, lineHeight: LINE_HEIGHT },
+          },
+        ],
+      },
+    });
+
+    expect(node.writingMode).toBe("vertical-lr");
+    expect(node.content.map((chunk) => chunk.x)).toEqual([0, COLUMN_WIDTH]);
+  });
+});

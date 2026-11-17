@@ -651,6 +651,7 @@ export const parseTextRevealing = ({ state }) => {
         columnLength: state.height || undefined,
         width: state.width || undefined,
         align: defaultTextStyle.align,
+        writingMode,
       })
     : createTextChunks(processedContent, wordWrapWidth);
 

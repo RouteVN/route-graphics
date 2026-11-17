@@ -1,0 +1,172 @@
+---
+title: Vertical Text Revealing LR - Typewriter
+description: Typewriter reveal in vertical-lr walks down each column and continues in the next column to the right; colored indicator assets are intentional.
+specs:
+- first state should be blank before the reveal starts
+- characters should appear from the top of the left-most column
+- the indicator should follow below the last revealed character
+- the complete indicator should replace it at the end
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 400
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 1200
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements: []
+- id: typing
+  elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-lr
+    x: 160
+    "y": 60
+    height: 440
+    speed: 45
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 「
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 今日
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: きょう
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: はいい
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 天気
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: てんき
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: ですね。」と、
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 彼女
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: かのじょ
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: は
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 笑
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: わら
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: った。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#D9D9D9'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: の第12話、午後3時のことである。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
