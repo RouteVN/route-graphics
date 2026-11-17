@@ -121,7 +121,7 @@ How characters are set:
 - Columns never start with closing punctuation or small kana and never end with an opening bracket.
 - Newlines start a new column. Without `height`, columns only break at newlines.
 
-Vertical text always renders through the rich text path, including string content. With `anchorX: 1`, `x` is the right edge of the first column, which is usually the most convenient way to place a vertical block.
+Vertical text always renders through the rich text path, including string content. As with other rich text, timeline animations that target individual text units (graphemes, words, lines) are not available on it; animate the element as a whole instead. With `anchorX: 1`, `x` is the right edge of the first column, which is usually the most convenient way to place a vertical block.
 
 ## Emitted Events
 

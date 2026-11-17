@@ -119,6 +119,30 @@ const measure = (text, style) => {
   };
 };
 
+// A column is mostly single characters that repeat (kana, punctuation), and
+// every one of them shares its segment's style. Measuring each distinct
+// character once per segment keeps long passages cheap to lay out.
+const measurementCache = new WeakMap();
+
+const measureForSegment = (segmentStyle, text, style) => {
+  let cache = measurementCache.get(segmentStyle);
+
+  if (!cache) {
+    cache = new Map();
+    measurementCache.set(segmentStyle, cache);
+  }
+
+  const key = `${style.letterSpacing}\u0000${String(style.fontFamily)}\u0000${text}`;
+  let result = cache.get(key);
+
+  if (!result) {
+    result = measure(text, style);
+    cache.set(key, result);
+  }
+
+  return result;
+};
+
 const getLetterSpacing = (style) =>
   typeof style?.letterSpacing === "number" ? style.letterSpacing : 0;
 
@@ -486,7 +510,7 @@ const createUprightPart = ({ unit, centerX, position }) => {
     style,
     useVerticalGlyph ? verticalFamily : style.fontFamily,
   );
-  const { width, baseline } = measure(unit.text, textStyle);
+  const { width, baseline } = measureForSegment(style, unit.text, textStyle);
   const emTop = baseline - EM_BOX_ASCENT * fontSize;
   const part = {
     text: unit.text,
@@ -562,7 +586,7 @@ const createCombinePart = ({ unit, centerX, position }) => {
   const style = unit.segment.textStyle;
   const fontSize = style.fontSize;
   const textStyle = createUprightStyle(style, style.fontFamily);
-  const { width, baseline } = measure(unit.text, textStyle);
+  const { width, baseline } = measureForSegment(style, unit.text, textStyle);
   const scaleX = width > fontSize ? fontSize / width : 1;
   const part = {
     text: unit.text,
