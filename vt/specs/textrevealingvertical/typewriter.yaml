@@ -1,0 +1,89 @@
+---
+title: Vertical Text Revealing - Typewriter
+description: Typewriter reveal walks down each column and continues in the next column to the left; colored indicator assets are intentional.
+specs:
+- first state should be blank before the reveal starts
+- characters should appear one at a time from the top of the right-most column
+- the indicator should follow below the last revealed character
+- the complete indicator should replace it at the end
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 400
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 1200
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements: []
+- id: typing
+  elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 1160
+    "y": 60
+    height: 520
+    anchorX: 1
+    speed: 50
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8

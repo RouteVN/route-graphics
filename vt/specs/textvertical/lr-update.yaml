@@ -1,0 +1,80 @@
+---
+title: Vertical Text LR - Switching Writing Modes
+description: Updating one element from vertical-rl to vertical-lr to horizontal-tb re-lays it out in place.
+specs:
+- first state should flow right to left
+- second state should flow left to right in the same box
+- third state should be ordinary horizontal text
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: b
+    type: rect
+    x: 400
+    "y": 80
+    width: 480
+    height: 480
+    fill: '#333333'
+  - id: t
+    type: text
+    writingMode: vertical-rl
+    x: 400
+    "y": 80
+    width: 480
+    height: 480
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
+- elements:
+  - id: b
+    type: rect
+    x: 400
+    "y": 80
+    width: 480
+    height: 480
+    fill: '#333333'
+  - id: t
+    type: text
+    writingMode: vertical-lr
+    x: 400
+    "y": 80
+    width: 480
+    height: 480
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
+- elements:
+  - id: b
+    type: rect
+    x: 400
+    "y": 80
+    width: 480
+    height: 480
+    fill: '#333333'
+  - id: t
+    type: text
+    x: 400
+    "y": 80
+    width: 480
+    content: メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+      wordWrap: true
+      breakWords: true

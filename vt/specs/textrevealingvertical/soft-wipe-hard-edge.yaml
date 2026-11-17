@@ -1,0 +1,47 @@
+---
+title: Vertical Text Revealing - Soft Wipe Parameters
+description: softWipe with zero softness and a held initial reveal shows a hard horizontal edge part way down a column; colored indicator assets are intentional.
+specs:
+- columns before the reveal point should be fully visible
+- the active column should be cut by a hard horizontal edge
+- the revealing indicator should sit at the edge
+steps:
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- id: blank
+  elements: []
+- id: held
+  elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 1100
+    "y": 60
+    height: 440
+    anchorX: 1
+    speed: 8
+    initialRevealedCharacters: 17
+    revealEffect: softWipe
+    softWipe:
+      easing: linear
+      softness: 0
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+      textStyle:
+        fontSize: 36
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8

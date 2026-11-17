@@ -1,0 +1,122 @@
+---
+title: Vertical Text Revealing - Updates
+description: Content, height and writing mode updates rebuild the vertical layout; colored indicator assets are intentional.
+specs:
+- updating content should replace the columns
+- updating height should rewrap the columns
+- switching to horizontal should lay the same content out in lines
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 900
+    "y": 80
+    height: 400
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 最初の内容です。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+- elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 900
+    "y": 80
+    height: 400
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 更新された内容です。列が増えるほど長い文章になりました。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+- elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 900
+    "y": 80
+    height: 200
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 更新された内容です。列が増えるほど長い文章になりました。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+- elements:
+  - id: r
+    type: text-revealing
+    x: 200
+    "y": 80
+    width: 700
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 更新された内容です。列が増えるほど長い文章になりました。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8

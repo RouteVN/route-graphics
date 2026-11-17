@@ -22,6 +22,9 @@ vt:
         - title: "Text Basic Events"
           files: "textbasicevent"
           description: "Text event interaction tests"
+        - title: "Text Vertical"
+          files: "textvertical"
+          description: "Vertical (top-to-bottom, right-to-left) text layout tests"
     - title: "Container Group"
       type: "groupLabel"
       items:
@@ -85,6 +88,9 @@ vt:
         - title: "Text Revealing"
           files: "textrevealing"
           description: "Using textrevealing"
+        - title: "Text Revealing Vertical"
+          files: "textrevealingvertical"
+          description: "Vertical text reveal effects, indicator and furigana tests"
     - title: "Render Complete Group"
       type: "groupLabel"
       items:

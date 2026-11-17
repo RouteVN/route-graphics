@@ -1,0 +1,106 @@
+---
+title: Vertical Text - Inside Containers
+description: Vertical text reports its measured width and height, so container layouts can place it like any other element.
+specs:
+- a horizontal container should place vertical texts side by side with the gap
+- a vertical container should stack vertical texts
+- sibling rects should line up with the text boxes
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: row
+    type: container
+    direction: horizontal
+    x: 60
+    "y": 60
+    gapX: 32
+    children:
+    - id: r-a
+      type: text
+      writingMode: vertical-rl
+      x: 0
+      "y": 0
+      textStyle:
+        fontSize: 40
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.6
+      content: 一番目
+    - id: r-b
+      type: rect
+      x: 0
+      "y": 0
+      width: 12
+      height: 120
+      fill: '#737373'
+    - id: r-c
+      type: text
+      writingMode: vertical-rl
+      x: 0
+      "y": 0
+      textStyle:
+        fontSize: 40
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.6
+      content: '二番目の
+
+        縦書き'
+    - id: r-d
+      type: rect
+      x: 0
+      "y": 0
+      width: 12
+      height: 160
+      fill: '#737373'
+    - id: r-e
+      type: text
+      writingMode: vertical-rl
+      x: 0
+      "y": 0
+      textStyle:
+        fontSize: 40
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.6
+      content: 三番目ABC
+  - id: col
+    type: container
+    direction: vertical
+    x: 760
+    "y": 60
+    gapY: 24
+    children:
+    - id: c-a
+      type: text
+      writingMode: vertical-rl
+      x: 0
+      "y": 0
+      textStyle:
+        fontSize: 40
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.6
+      content: 上の段
+    - id: c-b
+      type: rect
+      x: 0
+      "y": 0
+      width: 200
+      height: 8
+      fill: '#737373'
+    - id: c-c
+      type: text
+      writingMode: vertical-rl
+      x: 0
+      "y": 0
+      textStyle:
+        fontSize: 40
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.6
+      content: '下の段
+
+        二列'

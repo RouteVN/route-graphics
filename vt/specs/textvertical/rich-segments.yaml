@@ -1,0 +1,132 @@
+---
+title: Vertical Text - Rich Segments
+description: Content arrays mix fills, weights, sizes, strokes and shadows inside vertical columns; grayscale fills are intentional.
+specs:
+- segments should continue down the same column
+- larger and smaller characters should stay centred on the column
+- stroke and shadow should apply to upright and sideways parts alike
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: r1
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    anchorX: 1
+    height: 560
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 白い文字と
+    - text: 灰色の文字
+      textStyle:
+        fill: '#A6A6A6'
+    - text: と
+    - text: 太字
+      textStyle:
+        fontWeight: bold
+    - text: です。
+  - id: r2
+    type: text
+    writingMode: vertical-rl
+    x: 1040
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.4
+    content:
+    - text: 大きさを
+    - text: 大
+      textStyle:
+        fontSize: 64
+    - text: 中
+      textStyle:
+        fontSize: 44
+    - text: 小
+      textStyle:
+        fontSize: 22
+    - text: と変える。
+  - id: r3
+    type: text
+    writingMode: vertical-rl
+    x: 880
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 縁取り文字Stroke
+      textStyle:
+        strokeColor: '#737373'
+        strokeWidth: 6
+  - id: r4
+    type: text
+    writingMode: vertical-rl
+    x: 740
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 影付き文字Shadow
+      textStyle:
+        shadow:
+          color: '#737373'
+          offsetX: 4
+          offsetY: 4
+          blur: 2
+  - id: r5
+    type: text
+    writingMode: vertical-rl
+    x: 600
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 斜体Italic
+      textStyle:
+        fontStyle: italic
+    - text: と
+    - text: Georgia
+      textStyle:
+        fontFamily: Georgia
+    - text: 混在
+  - id: r6
+    type: text
+    writingMode: vertical-rl
+    x: 440
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.0
+    content:
+    - text: 第
+    - text: '7'
+      textStyle:
+        fill: '#A6A6A6'
+    - text: 章　
+    - text: 旅立ち
+      textStyle:
+        fontSize: 48

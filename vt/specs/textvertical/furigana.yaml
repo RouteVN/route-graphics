@@ -1,0 +1,208 @@
+---
+title: Vertical Text - Furigana
+description: 'Furigana runs beside its base text: placement top is the right side of the column, bottom is the left side.'
+specs:
+- default furigana should sit on the right of the base text
+- bottom placement should move furigana to the left of the column
+- gap should move furigana farther from the base text
+- furigana longer than its base should widen the base instead of overlapping neighbours
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 1040
+    "y": 30
+    content: default (right)
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f1
+    type: text
+    writingMode: vertical-rl
+    x: 1160
+    "y": 70
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+    content:
+    - text: 漢字
+      furigana:
+        text: かんじ
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: に
+    - text: 振
+      furigana:
+        text: ふ
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: り
+    - text: 仮名
+      furigana:
+        text: がな
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: を付ける。
+  - id: l2
+    type: text
+    x: 800
+    "y": 30
+    content: 'placement: bottom (left)'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f2
+    type: text
+    writingMode: vertical-rl
+    x: 920
+    "y": 70
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+    content:
+    - text: 東京
+      furigana:
+        text: とうきょう
+        placement: bottom
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: と
+    - text: 大阪
+      furigana:
+        text: おおさか
+        placement: bottom
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+  - id: l3
+    type: text
+    x: 620
+    "y": 30
+    content: gap 12
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f3
+    type: text
+    writingMode: vertical-rl
+    x: 700
+    "y": 70
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.6
+    content:
+    - text: 珈琲
+      furigana:
+        text: コーヒー
+        gap: 12
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: を飲む。
+  - id: l4
+    type: text
+    x: 320
+    "y": 30
+    content: long furigana widens base
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f4
+    type: text
+    writingMode: vertical-rl
+    x: 480
+    "y": 70
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+    content:
+    - text: 私
+      furigana:
+        text: わたくし
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: は
+    - text: 志
+      furigana:
+        text: こころざし
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: を持つ。
+  - id: l5
+    type: text
+    x: 60
+    "y": 30
+    content: wrap keeps base together
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: g
+    type: rect
+    x: 60
+    "y": 68
+    width: 200
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 60
+    "y": 310
+    width: 200
+    height: 2
+    fill: '#737373'
+  - id: f5
+    type: text
+    writingMode: vertical-rl
+    x: 240
+    "y": 70
+    anchorX: 1
+    height: 240
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+    content:
+    - text: 今日は
+    - text: 図書館
+      furigana:
+        text: としょかん
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: へ行く。

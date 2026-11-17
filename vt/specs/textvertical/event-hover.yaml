@@ -1,0 +1,38 @@
+---
+title: Vertical Text - Hover Style
+description: Hover textStyle overrides restyle every part of a vertical text; grayscale fills are intentional.
+specs:
+- hovering the column should apply the hover fill to all characters
+- leaving the column should restore the base fill
+steps:
+- action: screenshot
+- action: move
+  x: 640
+  "y": 200
+- action: wait
+  ms: 80
+- action: screenshot
+- action: move
+  x: 100
+  "y": 600
+- action: wait
+  ms: 80
+- action: screenshot
+---
+states:
+- elements:
+  - id: hov
+    type: text
+    writingMode: vertical-rl
+    x: 680
+    "y": 60
+    anchorX: 1
+    hover:
+      textStyle:
+        fill: '#737373'
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 重ねると色が変わるText

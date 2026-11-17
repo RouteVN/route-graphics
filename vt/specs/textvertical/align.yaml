@@ -1,0 +1,108 @@
+---
+title: Vertical Text - Align Along Column
+description: 'textStyle.align aligns each column along its length inside a fixed height: left = top, center, right = bottom.'
+specs:
+- left should start every column at the top of the box
+- center should centre every column in the box
+- right should end every column at the bottom of the box
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b-left
+    type: rect
+    x: 120
+    "y": 80
+    width: 160
+    height: 480
+    fill: '#333333'
+  - id: l-left
+    type: text
+    x: 120
+    "y": 40
+    content: 'align: left'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t-left
+    type: text
+    writingMode: vertical-rl
+    x: 120
+    "y": 80
+    width: 160
+    height: 480
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+      align: left
+    content: '長い方の列です
+
+      短い列'
+  - id: b-center
+    type: rect
+    x: 520
+    "y": 80
+    width: 160
+    height: 480
+    fill: '#333333'
+  - id: l-center
+    type: text
+    x: 520
+    "y": 40
+    content: 'align: center'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t-center
+    type: text
+    writingMode: vertical-rl
+    x: 520
+    "y": 80
+    width: 160
+    height: 480
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+      align: center
+    content: '長い方の列です
+
+      短い列'
+  - id: b-right
+    type: rect
+    x: 920
+    "y": 80
+    width: 160
+    height: 480
+    fill: '#333333'
+  - id: l-right
+    type: text
+    x: 920
+    "y": 40
+    content: 'align: right'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t-right
+    type: text
+    writingMode: vertical-rl
+    x: 920
+    "y": 80
+    width: 160
+    height: 480
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.2
+      align: right
+    content: '長い方の列です
+
+      短い列'

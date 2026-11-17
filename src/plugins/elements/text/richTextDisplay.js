@@ -3,6 +3,10 @@ import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import { DEFAULT_TEXT_STYLE } from "../../../types.js";
 import { resolveInteractiveTextStyle } from "./textLayout.js";
+import {
+  applyTextPartTransform,
+  isVerticalWritingMode,
+} from "./verticalTextLayout.js";
 import { setElementHitTestBounds } from "../elementRenderState.js";
 import {
   applyElementPivot,
@@ -35,14 +39,20 @@ const destroyChildren = (container) => {
   });
 };
 
-const createTextObject = ({ text, style, x, y }) => {
+const createTextObject = ({ text, style, x, y, part }) => {
   const display = new Text({
     text,
     style: new TextStyle(toPixiTextStyle(style)),
     x: Math.round(x),
     y: Math.round(y),
   });
-  applyTextDecoration(display, style);
+  applyTextPartTransform(display, part);
+  applyTextDecoration(
+    display,
+    style,
+    part?.decorationRectangles ?? null,
+    part?.decorationLine ?? null,
+  );
   return display;
 };
 
@@ -108,17 +118,22 @@ export const renderRichTextDisplayObject = (
           style: applyOverrideStyle(part.textStyle, overrideStyle),
           x: part.x,
           y: part.y,
+          part,
         }),
       );
     }
 
-    const lineBounds = lineContainer.getLocalBounds();
+    // Vertical columns are aligned by the parser; their parts already carry
+    // final positions.
+    if (!isVerticalWritingMode(element)) {
+      const lineBounds = lineContainer.getLocalBounds();
 
-    lineContainer.x = getHorizontalOffset(
-      layoutWidth,
-      lineBounds,
-      getTextAlign(element.textStyle),
-    );
+      lineContainer.x = getHorizontalOffset(
+        layoutWidth,
+        lineBounds,
+        getTextAlign(element.textStyle),
+      );
+    }
 
     container.addChild(lineContainer);
   }

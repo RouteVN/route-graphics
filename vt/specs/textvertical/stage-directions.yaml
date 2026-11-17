@@ -1,0 +1,93 @@
+---
+title: Vertical Text - Script Page
+description: 'A stage script page: speaker names as short columns above indented lines, mixing sizes and alignments.'
+specs:
+- speaker names should sit at the top of their columns
+- speech should be indented with ideographic spaces
+- bottom-aligned notes should end at the bottom guide
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: g1
+    type: rect
+    x: 60
+    "y": 58
+    width: 1160
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 60
+    "y": 600
+    width: 1160
+    height: 2
+    fill: '#737373'
+  - id: s1
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    height: 540
+    anchorX: 1
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content:
+    - text: 太郎
+      textStyle:
+        fill: '#A6A6A6'
+    - text: '
+
+        　「おはよう。今日は早いね。」
+
+        '
+    - text: 花子
+      textStyle:
+        fill: '#A6A6A6'
+    - text: '
+
+        　「うん、7時に起きたの。」
+
+        '
+    - text: 太郎
+      textStyle:
+        fill: '#A6A6A6'
+    - text: '
+
+        　「えっ、本当に!?」'
+  - id: s2
+    type: text
+    writingMode: vertical-rl
+    x: 400
+    "y": 60
+    height: 540
+    anchorX: 1
+    textStyle:
+      fontSize: 28
+      fill: '#A6A6A6'
+      fontFamily: NotoSansJP
+      lineHeight: 1.8
+      align: right
+    content: '（二人、笑う）
+
+      （幕）'
+  - id: s3
+    type: text
+    writingMode: vertical-rl
+    x: 200
+    "y": 60
+    height: 540
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+      align: center
+    content: '第一幕
+
+      第二場'

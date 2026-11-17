@@ -1,0 +1,98 @@
+---
+title: Vertical Text - Fixed Width Box
+description: With an explicit width the first column starts at the right edge of the box; extra columns overflow to the left.
+specs:
+- the first column should sit against the right edge of the box
+- an unset width should shrink the box to the columns
+- columns that do not fit should overflow past the left edge
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 80
+    "y": 30
+    content: 'width 360: columns start at the right edge'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b1
+    type: rect
+    x: 80
+    "y": 70
+    width: 360
+    height: 300
+    fill: '#333333'
+  - id: t1
+    type: text
+    writingMode: vertical-rl
+    x: 80
+    "y": 70
+    width: 360
+    height: 300
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 右端から始まる縦書きの文章です。
+  - id: l2
+    type: text
+    x: 520
+    "y": 30
+    content: 'no width: box shrinks to the columns'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b2
+    type: rect
+    x: 520
+    "y": 70
+    width: 144
+    height: 300
+    fill: '#333333'
+  - id: t2
+    type: text
+    writingMode: vertical-rl
+    x: 520
+    "y": 70
+    height: 300
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 右端から始まる縦書きの文章です。
+  - id: l3
+    type: text
+    x: 860
+    "y": 30
+    content: 'width 96: overflow to the left'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b3
+    type: rect
+    x: 1000
+    "y": 70
+    width: 96
+    height: 300
+    fill: '#333333'
+  - id: t3
+    type: text
+    writingMode: vertical-rl
+    x: 1000
+    "y": 70
+    width: 96
+    height: 300
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 右端から始まる縦書きの文章です。

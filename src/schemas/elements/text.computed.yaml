@@ -101,6 +101,24 @@ $def:
       y:
         type: number
         description: Y position of the line
+      vertical:
+        type: boolean
+        description: Present and true when the chunk is a vertical column
+      x:
+        type: number
+        description: Left edge of the column (vertical chunks only)
+      centerX:
+        type: number
+        description: Horizontal centre of the column (vertical chunks only)
+      inlineStart:
+        type: number
+        description: Y position where the column's text starts (vertical chunks only)
+      inlineSize:
+        type: number
+        description: Length of the column's text (vertical chunks only)
+      blockDirection:
+        type: number
+        description: Horizontal step to the next column, -1 leftwards or 1 rightwards (vertical chunks only)
       lineParts:
         type: array
         description: Array of rich text parts in this line
@@ -118,6 +136,29 @@ $def:
             y:
               type: number
               description: Vertical position
+            rotation:
+              type: number
+              description: Rotation in degrees for sideways parts of vertical text
+            scaleX:
+              type: number
+              description: Horizontal squeeze for combined upright cells of vertical text
+            atomic:
+              type: boolean
+              description: True when the part is a single cell that reveals as a whole
+            inlineStart:
+              type: number
+              description: Y position where the part starts along its column (vertical text only)
+            inlineEnd:
+              type: number
+              description: Y position where the part ends along its column (vertical text only)
+            decorationRectangles:
+              type: array
+              description: Underline rectangles in the part's local space (vertical text only)
+              items:
+                type: object
+            decorationLine:
+              type: object
+              description: Underline placement override for sideways parts (vertical text only)
             furigana:
               type: object
               properties:
@@ -160,6 +201,13 @@ properties:
         items:
           "$ref": "#/$def/textChunk"
     description: The text content to display. String content stays a single text object; array content is parsed into rich text lines.
+  writingMode:
+    type: string
+    enum:
+      - horizontal-tb
+      - vertical-rl
+      - vertical-lr
+    description: Present as `vertical-rl` or `vertical-lr` when the text is laid out in vertical columns
   width:
     type: number
     description: Layout width of the text box. When input width is provided, this matches that fixed width.

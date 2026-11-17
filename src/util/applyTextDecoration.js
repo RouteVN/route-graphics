@@ -9,11 +9,15 @@ const hasUnderline = (decoration) =>
   typeof decoration === "string" &&
   decoration.split(/\s+/).includes("underline");
 
-const getUnderlineRectangles = (text) => {
+const getUnderlineRectangles = (text, line = null) => {
   if (!text.text) return [];
   const style = text.style;
   const cached = underlineGeometry.get(text);
-  if (cached?.text === text.text && cached.styleKey === style.styleKey) {
+  if (
+    cached?.text === text.text &&
+    cached.styleKey === style.styleKey &&
+    cached.line === line
+  ) {
     return cached.rectangles;
   }
 
@@ -51,15 +55,18 @@ const getUnderlineRectangles = (text) => {
       {
         line: index,
         x,
-        y,
+        // A caller-supplied line replaces the underline's vertical placement
+        // (vertical text draws its sideline above a sideways run).
+        y: line ? line.y + index * metrics.lineHeight : y,
         width: Math.min(lineWidth, metrics.width - x),
-        height: lineThickness,
+        height: line ? line.height : lineThickness,
       },
     ];
   });
   underlineGeometry.set(text, {
     text: text.text,
     styleKey: style.styleKey,
+    line,
     rectangles,
   });
   return rectangles;
@@ -78,14 +85,22 @@ const drawUnderline = (text, state) => {
   state.styleKey = styleKey;
   state.drawnRectangles = state.rectangles;
   state.graphics.clear();
-  for (const rect of state.rectangles ?? getUnderlineRectangles(text)) {
+  const rectangles = text.text
+    ? (state.rectangles ?? getUnderlineRectangles(text, state.line))
+    : [];
+  for (const rect of rectangles) {
     state.graphics
       .rect(rect.x, rect.y, rect.width, rect.height)
       .fill(text.style.fill);
   }
 };
 
-export const applyTextDecoration = (text, style, rectangles = null) => {
+export const applyTextDecoration = (
+  text,
+  style,
+  rectangles = null,
+  line = null,
+) => {
   const existing = text[TEXT_UNDERLINE];
 
   if (!hasUnderline(style?.textDecoration)) {
@@ -103,6 +118,10 @@ export const applyTextDecoration = (text, style, rectangles = null) => {
   if (existing) {
     if (JSON.stringify(existing.rectangles) !== JSON.stringify(rectangles))
       existing.rectangles = rectangles;
+    if (JSON.stringify(existing.line) !== JSON.stringify(line)) {
+      existing.line = line;
+      existing.styleKey = null;
+    }
     drawUnderline(text, existing);
     return;
   }
@@ -114,6 +133,7 @@ export const applyTextDecoration = (text, style, rectangles = null) => {
     text: null,
     styleKey: null,
     rectangles,
+    line,
     drawnRectangles: undefined,
   };
 

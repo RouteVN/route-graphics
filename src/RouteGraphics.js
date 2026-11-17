@@ -55,6 +55,10 @@ import { installHoverPassThrough } from "./plugins/elements/util/hoverPassThroug
 import { validateShaderAnimationBindings } from "./plugins/elements/util/shaderStateValidation.js";
 import { validateShaderProgramsForRenderer } from "./renderer/pixi/shaderProgramValidation.js";
 import { createLayoutReport } from "./util/layoutReport.js";
+import {
+  loadVerticalFontFace,
+  unregisterVerticalFontFamily,
+} from "./util/verticalFonts.js";
 
 /**
  * @typedef {import('./types.js').RouteGraphicsInitOptions} RouteGraphicsInitOptions
@@ -1090,6 +1094,10 @@ const createRouteGraphics = () => {
       await releaseSharedAsset(record.sharedOwnership);
     } else if (record.category === "font") {
       document.fonts?.delete?.(record.value);
+      if (record.verticalFontFace) {
+        document.fonts?.delete?.(record.verticalFontFace);
+        unregisterVerticalFontFamily(key);
+      }
     } else if (record.category === "texture" || record.category === "video") {
       await releaseTextureRecord(key, record);
     }
@@ -1931,9 +1939,16 @@ const createRouteGraphics = () => {
                 try {
                   await fontFace.load();
                   document.fonts.add(fontFace);
+                  // Vertical text draws punctuation with a second face of
+                  // the same font that has vertical glyph forms enabled.
+                  const verticalFontFace = await loadVerticalFontFace({
+                    family: key,
+                    source: `url(${url})`,
+                  });
                   return recordLoadedAsset(key, {
                     category: "font",
                     value: fontFace,
+                    verticalFontFace,
                   });
                 } finally {
                   URL.revokeObjectURL(url);

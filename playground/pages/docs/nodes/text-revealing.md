@@ -15,29 +15,31 @@ Try it in the [Playground](/playground/?template=text-revealing).
 
 ## Field Reference
 
-| Field                       | Type                                 | Required            | Default        | Notes                                                                                                                           |
-| --------------------------- | ------------------------------------ | ------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                        | string                               | Yes                 | -              | Element id.                                                                                                                     |
-| `type`                      | string                               | Yes                 | -              | Must be `text-revealing`.                                                                                                       |
-| `x`                         | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                               |
-| `y`                         | number                               | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                                                               |
-| `content`                   | array                                | No                  | `[]`           | Array of rich text segments.                                                                                                    |
-| `width`                     | number                               | No                  | auto           | If omitted, parser uses a 500px wrap basis for layout measurement.                                                              |
-| `anchorX`                   | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                            |
-| `anchorY`                   | number                               | No                  | `0`            | Anchor offset ratio.                                                                                                            |
-| `originX`                   | number                               | No                  | anchor         | Transform origin X in pixels from the layout box.                                                                               |
-| `originY`                   | number                               | No                  | anchor         | Transform origin Y in pixels from the layout box.                                                                               |
-| `rotation`                  | number                               | No                  | `0`            | Degrees.                                                                                                                        |
-| `alpha`                     | number                               | No                  | `1`            | Opacity `0..1`.                                                                                                                 |
-| `filters`                   | array                                | No                  | `[]`           | Ordered inline shader effects applied to the revealed text container.                                                           |
-| `textStyle`                 | object                               | No                  | text defaults  | Base style for segments. `fontFamily` accepts a string or an ordered string array.                                              |
-| `speed`                     | number                               | No                  | `50`           | Uses a curved `0..100` scale. `0..99` gets progressively faster with extra control in the upper range; `100` renders instantly. |
-| `initialRevealedCharacters` | number                               | No                  | `0`            | Leading characters to paint as already revealed before the animation starts.                                                    |
-| `revealEffect`              | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`   | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.     |
-| `softWipe`                  | object                               | No                  | see below      | Parameters used when `revealEffect: softWipe`.                                                                                  |
-| `revealSound`               | object                               | No                  | -              | Sound played while text reveals. By default, it stops at the end of the active loop iteration.                                  |
-| `indicator`                 | object                               | No                  | -              | Revealing/complete visual config + offset. Supports static images and spritesheets.                                             |
-| `complete`                  | object                               | No                  | -              | Parsed and kept in computed node.                                                                                               |
+| Field                       | Type                                 | Required            | Default         | Notes                                                                                                                                                      |
+| --------------------------- | ------------------------------------ | ------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                        | string                               | Yes                 | -               | Element id.                                                                                                                                                |
+| `type`                      | string                               | Yes                 | -               | Must be `text-revealing`.                                                                                                                                  |
+| `x`                         | number                               | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                                                                                          |
+| `y`                         | number                               | Yes (public schema) | `0` at runtime  | Position before anchor transform.                                                                                                                          |
+| `content`                   | array                                | No                  | `[]`            | Array of rich text segments.                                                                                                                               |
+| `width`                     | number                               | No                  | auto            | If omitted, parser uses a 500px wrap basis for layout measurement.                                                                                         |
+| `writingMode`               | string                               | No                  | `horizontal-tb` | `vertical-rl` sets the text in top-to-bottom columns that flow right to left; `vertical-lr` flows them left to right. See [Vertical Text](#vertical-text). |
+| `height`                    | number                               | No                  | auto            | Column length for vertical writing modes. If omitted, columns only break at newlines. Ignored for horizontal text.                                         |
+| `anchorX`                   | number                               | No                  | `0`             | Anchor offset ratio.                                                                                                                                       |
+| `anchorY`                   | number                               | No                  | `0`             | Anchor offset ratio.                                                                                                                                       |
+| `originX`                   | number                               | No                  | anchor          | Transform origin X in pixels from the layout box.                                                                                                          |
+| `originY`                   | number                               | No                  | anchor          | Transform origin Y in pixels from the layout box.                                                                                                          |
+| `rotation`                  | number                               | No                  | `0`             | Degrees.                                                                                                                                                   |
+| `alpha`                     | number                               | No                  | `1`             | Opacity `0..1`.                                                                                                                                            |
+| `filters`                   | array                                | No                  | `[]`            | Ordered inline shader effects applied to the revealed text container.                                                                                      |
+| `textStyle`                 | object                               | No                  | text defaults   | Base style for segments. `fontFamily` accepts a string or an ordered string array.                                                                         |
+| `speed`                     | number                               | No                  | `50`            | Uses a curved `0..100` scale. `0..99` gets progressively faster with extra control in the upper range; `100` renders instantly.                            |
+| `initialRevealedCharacters` | number                               | No                  | `0`             | Leading characters to paint as already revealed before the animation starts.                                                                               |
+| `revealEffect`              | `typewriter` \| `softWipe` \| `none` | No                  | `typewriter`    | `softWipe` reveals pre-laid-out text with a soft left-to-right mask, one laid-out line at a time. `none` renders instantly.                                |
+| `softWipe`                  | object                               | No                  | see below       | Parameters used when `revealEffect: softWipe`.                                                                                                             |
+| `revealSound`               | object                               | No                  | -               | Sound played while text reveals. By default, it stops at the end of the active loop iteration.                                                             |
+| `indicator`                 | object                               | No                  | -               | Revealing/complete visual config + offset. Supports static images and spritesheets.                                                                        |
+| `complete`                  | object                               | No                  | -               | Parsed and kept in computed node.                                                                                                                          |
 
 `filters` process the currently revealed text, furigana, and indicator as one
 surface. See [Shaders](/docs/guides/shaders/).
@@ -140,9 +142,69 @@ revealSound:
 - `initialRevealedCharacters` is useful when an upstream engine appends to an existing line: keep the full combined `content`, set the count to the already-visible prefix length, and only the remaining suffix animates.
 - `softWipe` lays out the full text immediately and reveals it line by line with a moving soft mask. Defaults match the original soft wipe behavior: linear motion, no overlap, and a feather width clamped to the legacy range.
 - `revealEffect: none` skips animation and paints text immediately.
-- Furigana currently supports `placement: top` and `placement: bottom`. `gap` is intentionally direction-neutral so future vertical text can add `left` and `right` without renaming the field.
+- Furigana supports `placement: top` and `placement: bottom`. In vertical text these mean the right and left side of the column; `gap` is the distance from the base text in either mode.
 - Completion contributes to global `renderComplete` tracking.
 - `complete.payload` is currently parsed but no dedicated per-node event is emitted from this plugin.
+
+## Vertical Text
+
+`writingMode: vertical-rl` (or `vertical-lr`, with columns flowing left to right) lays the content out exactly as the [`text` node](/docs/nodes/text/#vertical-text) does: `height` wraps, columns flow right to left, punctuation uses vertical glyphs, and Latin runs are set sideways. The reveal effects follow the columns:
+
+- `typewriter` reveals character by character down each column, then continues at the top of the next column. A sideways Latin word types in letter by letter; an upright cell (including combined digits) appears whole.
+- `softWipe` wipes each column from top to bottom, one column after another. `softWipe` parameters apply per column.
+- The indicator sits below the last revealed character, centred on its column. `offsetX` moves it along the text (down) and `offsetY` towards the next column (left for `vertical-rl`, right for `vertical-lr`).
+- Furigana appears together with the first character of its base text.
+
+```yaml
+elements:
+  - id: dialogue-vertical
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 1100
+    y: 80
+    anchorX: 1
+    height: 480
+    speed: 50
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 12
+        height: 12
+      complete:
+        src: circle-green
+        width: 12
+        height: 12
+      offsetX: 12
+    content:
+      - text: "「"
+        textStyle:
+          {
+            fontSize: 34,
+            lineHeight: 1.8,
+            fill: "#ffffff",
+            fontFamily: NotoSansJP,
+          }
+      - text: "今日"
+        textStyle:
+          {
+            fontSize: 34,
+            lineHeight: 1.8,
+            fill: "#ffffff",
+            fontFamily: NotoSansJP,
+          }
+        furigana:
+          text: "きょう"
+          textStyle: { fontSize: 14, fill: "#d9d9d9", fontFamily: NotoSansJP }
+      - text: "はいい天気ですね。」"
+        textStyle:
+          {
+            fontSize: 34,
+            lineHeight: 1.8,
+            fill: "#ffffff",
+            fontFamily: NotoSansJP,
+          }
+```
 
 ## Example: Minimal
 

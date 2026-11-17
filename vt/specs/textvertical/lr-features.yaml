@@ -1,0 +1,148 @@
+---
+title: Vertical Text LR - Rich Content
+description: vertical-lr with furigana, underline sidelines, sideways Latin, combined digits, alignment and a fixed width box.
+specs:
+- furigana should stay on the right of its base text
+- underline sidelines should stay on the right of the column
+- Latin words should be rotated a quarter turn clockwise, as in vertical-rl
+- in the fixed width box the first column should sit at the left edge
+- centre and bottom aligned columns should flow left to right
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    writingMode: vertical-lr
+    x: 60
+    "y": 60
+    height: 420
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.0
+    content:
+    - text: 「
+    - text: 返事
+      furigana:
+        text: へんじ
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: は
+    - text: '12'
+      textStyle:
+        fill: '#A6A6A6'
+    - text: 時に
+    - text: RouteVN
+      textStyle:
+        fontWeight: bold
+    - text: で！」と
+    - text: 答
+      furigana:
+        text: こた
+        placement: bottom
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: えた。
+    - text: 下線付きの文
+      textStyle:
+        textDecoration: underline
+  - id: b
+    type: rect
+    x: 460
+    "y": 60
+    width: 300
+    height: 420
+    fill: '#333333'
+  - id: c
+    type: text
+    writingMode: vertical-lr
+    x: 460
+    "y": 60
+    width: 300
+    height: 420
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: '固定幅の箱では
+
+      左端から始まる。'
+  - id: g2
+    type: rect
+    x: 840
+    "y": 58
+    width: 380
+    height: 2
+    fill: '#737373'
+  - id: g3
+    type: rect
+    x: 840
+    "y": 480
+    width: 380
+    height: 2
+    fill: '#737373'
+  - id: d
+    type: text
+    writingMode: vertical-lr
+    x: 840
+    "y": 60
+    height: 420
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+      align: center
+    content: '中央
+
+      揃えの列
+
+      三列目です'
+  - id: e
+    type: text
+    writingMode: vertical-lr
+    x: 1040
+    "y": 60
+    height: 420
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+      align: right
+    content: '下
+
+      揃えの列
+
+      三列目です'
+  - id: l1
+    type: text
+    x: 840
+    "y": 520
+    content: anchorX 1 at x=1220
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f
+    type: text
+    writingMode: vertical-lr
+    x: 1220
+    "y": 560
+    anchorX: 1
+    textStyle:
+      fontSize: 28
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: '右端
+
+      基準'

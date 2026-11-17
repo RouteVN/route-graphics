@@ -1,0 +1,145 @@
+---
+title: Vertical Text Revealing - Indicator Offsets
+description: offsetX moves the indicator along the column (down); offsetY moves it towards the next column (left); colored indicator assets are intentional.
+specs:
+- offsetX should move the indicator farther below the text
+- offsetY should move the indicator to the left of the column centre
+- per-visual offsets should override the shared offsets
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 1040
+    "y": 30
+    content: default offsets
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: a
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 1100
+    "y": 70
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+    content:
+    - text: 既定の位置
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+  - id: l2
+    type: text
+    x: 800
+    "y": 30
+    content: offsetX 48
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 860
+    "y": 70
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 48
+    content:
+    - text: 下へ離す
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+  - id: l3
+    type: text
+    x: 560
+    "y": 30
+    content: offsetY 40
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: c
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 620
+    "y": 70
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+      offsetY: 40
+    content:
+    - text: 左へずらす
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+  - id: l4
+    type: text
+    x: 280
+    "y": 30
+    content: complete visual offsets
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: d
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 380
+    "y": 70
+    anchorX: 1
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+        offsetX: 30
+        offsetY: -30
+    content:
+    - text: 個別の指定
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
