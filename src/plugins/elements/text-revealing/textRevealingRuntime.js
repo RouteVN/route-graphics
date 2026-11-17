@@ -13,6 +13,10 @@ import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import { applyTextPartTransform } from "../text/verticalTextLayout.js";
+import {
+  getTextPartLeadingEdge,
+  setTextPartText,
+} from "../text/bidiTextLayout.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import {
   getSoftWipeEdgeWidth,
@@ -515,7 +519,14 @@ const positionIndicatorForChunk = (
     return;
   }
 
-  indicatorSprite.x = indicatorOffsets.x;
+  // A right-to-left line starts at its right end and the indicator runs
+  // ahead of the text, to its left.
+  indicatorSprite.x =
+    chunk?.direction === "rtl"
+      ? chunk.inlineStartX -
+        Math.max(0, indicatorSprite?.width ?? 0) -
+        indicatorOffsets.x
+      : indicatorOffsets.x;
   indicatorSprite.y =
     getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
 };
@@ -554,6 +565,18 @@ const positionIndicatorAtCharacter = (
   if (verticalPart) {
     indicatorSprite.y =
       getVerticalTextEnd(textObject, verticalPart, characterIndex + 1) +
+      indicatorOffsets.x;
+    return;
+  }
+
+  const part = textObject?.[TEXT_REVEAL_PART];
+
+  // Parts of a right-to-left element sit in fixed slots, and the indicator
+  // leads the text on its left.
+  if (part?.direction) {
+    indicatorSprite.x =
+      getTextPartLeadingEdge(textObject, part) -
+      Math.max(0, indicatorSprite?.width ?? 0) -
       indicatorOffsets.x;
     return;
   }
@@ -674,6 +697,7 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
   });
   text[TEXT_REVEAL_PART] = part;
   applyTextPartTransform(text, part);
+  setTextPartText(text, part, textValue);
   applyTextDecoration(
     text,
     part.textStyle,
@@ -754,6 +778,8 @@ const buildFullTextContent = (contentContainer, element) => {
         totalCharacters: lineCharacterCount,
         // A wipe travels along the text: across a line, or down a column.
         vertical,
+        // A right-to-left line is wiped from its right end.
+        reversed: !vertical && chunk.direction === "rtl",
         inlineSize: vertical ? lineBounds.height : lineBounds.width,
         blockSize: vertical ? lineBounds.width : lineBounds.height,
         bounds: {
@@ -980,7 +1006,7 @@ const runTypewriterReveal = async ({
           ? Math.round((prefilledCharacters / fullText.length) * furiganaLength)
           : 0;
 
-      text.text = fullText.substring(0, prefilledCharacters);
+      setTextPartText(text, part, fullText.substring(0, prefilledCharacters));
       if (furiganaText) {
         furiganaText.text = fullFurigana.substring(0, prefilledFuriganaLength);
       }
@@ -1008,7 +1034,7 @@ const runTypewriterReveal = async ({
           : Math.min(fullText.length, charIndex + charactersPerStep);
         const lastRevealedCharIndex = nextCharIndex - 1;
 
-        text.text = fullText.substring(0, nextCharIndex);
+        setTextPartText(text, part, fullText.substring(0, nextCharIndex));
         positionIndicatorAtCharacter(
           indicatorSprite,
           text,
@@ -1253,6 +1279,11 @@ const createSoftWipeLineMasks = ({
       sprite.rotation = Math.PI / 2;
       sprite.x = Math.ceil(line.bounds.x + line.bounds.width);
       sprite.y = Math.floor(line.bounds.y - edgeWidth);
+    } else if (line.reversed) {
+      // The same mask, mirrored, so it travels from right to left.
+      sprite.scale.x = -1;
+      sprite.x = Math.ceil(line.bounds.x + line.bounds.width + edgeWidth);
+      sprite.y = Math.floor(line.bounds.y);
     } else {
       sprite.x = Math.floor(line.bounds.x - edgeWidth);
       sprite.y = Math.floor(line.bounds.y);
@@ -1289,7 +1320,9 @@ const applySoftWipeFrame = ({
   let activeLine = timedLines[0];
   let activeLineLeadingEdge = activeLine.vertical
     ? activeLine.bounds.y
-    : activeLine.bounds.x;
+    : activeLine.reversed
+      ? activeLine.bounds.x + activeLine.bounds.width
+      : activeLine.bounds.x;
 
   for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
     const line = timedLines[lineIndex];
@@ -1351,9 +1384,14 @@ const applySoftWipeFrame = ({
 
     texture.source.update();
     activeLine = line;
-    activeLineLeadingEdge =
-      (line.vertical ? line.bounds.y : line.bounds.x) +
-      Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
+    const travelled = Math.min(
+      lineTravelDistance,
+      Math.max(0, lineLeadingEdge - lineStart),
+    );
+
+    activeLineLeadingEdge = line.reversed
+      ? line.bounds.x + line.bounds.width - travelled
+      : (line.vertical ? line.bounds.y : line.bounds.x) + travelled;
   }
 
   positionIndicatorForChunk(
@@ -1364,6 +1402,11 @@ const applySoftWipeFrame = ({
 
   if (activeLine.vertical) {
     indicatorSprite.y = activeLineLeadingEdge + indicatorOffsets.x;
+  } else if (activeLine.reversed) {
+    indicatorSprite.x =
+      activeLineLeadingEdge -
+      Math.max(0, indicatorSprite?.width ?? 0) -
+      indicatorOffsets.x;
   } else {
     indicatorSprite.x = activeLineLeadingEdge + indicatorOffsets.x;
   }

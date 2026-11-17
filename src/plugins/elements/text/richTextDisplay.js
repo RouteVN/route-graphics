@@ -7,6 +7,7 @@ import {
   applyTextPartTransform,
   isVerticalWritingMode,
 } from "./verticalTextLayout.js";
+import { isRtlDirection, setTextPartText } from "./bidiTextLayout.js";
 import { setElementHitTestBounds } from "../elementRenderState.js";
 import {
   applyElementPivot,
@@ -47,6 +48,7 @@ const createTextObject = ({ text, style, x, y, part }) => {
     y: Math.round(y),
   });
   applyTextPartTransform(display, part);
+  if (part) setTextPartText(display, part, text);
   applyTextDecoration(
     display,
     style,
@@ -123,9 +125,9 @@ export const renderRichTextDisplayObject = (
       );
     }
 
-    // Vertical columns are aligned by the parser; their parts already carry
-    // final positions.
-    if (!isVerticalWritingMode(element)) {
+    // Vertical columns and right-to-left lines are aligned by the parser;
+    // their parts already carry final positions.
+    if (!isVerticalWritingMode(element) && !isRtlDirection(element)) {
       const lineBounds = lineContainer.getLocalBounds();
 
       lineContainer.x = getHorizontalOffset(

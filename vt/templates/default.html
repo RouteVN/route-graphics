@@ -393,6 +393,15 @@
           url: "/public/NotoSansJP-Regular.subset.woff2",
           type: "font/woff2",
         },
+        // Arabic and Hebrew fonts, for right-to-left text specs.
+        NotoSansArabic: {
+          url: "/public/NotoSansArabic-Regular.subset.woff2",
+          type: "font/woff2",
+        },
+        NotoSansHebrew: {
+          url: "/public/NotoSansHebrew-Regular.subset.woff2",
+          type: "font/woff2",
+        },
       };
 
       const isVtDebug =
@@ -436,6 +445,12 @@
       // The Japanese font is large; only specs that name it download it.
       if (!vtStateSourceText.includes("NotoSansJP")) {
         delete assetsObject.NotoSansJP;
+      }
+
+      for (const family of ["NotoSansArabic", "NotoSansHebrew"]) {
+        if (!vtStateSourceText.includes(family)) {
+          delete assetsObject[family];
+        }
       }
 
       const assetBufferManager = createAssetBufferManager();

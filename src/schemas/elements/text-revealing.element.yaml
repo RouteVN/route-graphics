@@ -239,6 +239,18 @@ properties:
       (left = top, center, right = bottom), furigana `placement` top/bottom
       means the right/left side of the column, and the reveal indicator sits
       below the last revealed character.
+  direction:
+    type: string
+    enum:
+      - ltr
+      - rtl
+    default: ltr
+    description: >-
+      Base direction of horizontal text. `rtl` is for Arabic, Hebrew and
+      other right-to-left scripts: lines start at the right, mixed
+      right-to-left and left-to-right runs are ordered with the Unicode
+      Bidirectional Algorithm, and `textStyle.align` defaults to `right`.
+      Ignored by vertical writing modes.
   height:
     type: number
     description: >-

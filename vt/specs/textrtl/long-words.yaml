@@ -1,0 +1,79 @@
+---
+title: RTL Text - Long Words And Narrow Boxes
+description: Words longer than the box and very narrow boxes still lay out from the right.
+specs:
+- a word longer than the box should be broken and continue on the next line from the right
+- one-word lines should sit at the right edge
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b1
+    type: rect
+    x: 80
+    "y": 80
+    width: 200
+    height: 400
+    fill: '#333333'
+  - id: a
+    type: text
+    x: 80
+    "y": 80
+    direction: rtl
+    width: 200
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      breakWords: true
+      wordWrap: true
+    content: المستشفيات والمستوصفات الحكومية
+  - id: b2
+    type: rect
+    x: 400
+    "y": 80
+    width: 120
+    height: 400
+    fill: '#333333'
+  - id: b
+    type: text
+    x: 400
+    "y": 80
+    direction: rtl
+    width: 120
+    textStyle:
+      fontSize: 22
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.
+  - id: b3
+    type: rect
+    x: 640
+    "y": 80
+    width: 560
+    height: 400
+    fill: '#333333'
+  - id: c
+    type: text
+    x: 640
+    "y": 80
+    direction: rtl
+    width: 560
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'https://example.com/path كتب الرابط ثم ضغط Enter. والنتيجة: 100%!'

@@ -1,0 +1,122 @@
+---
+title: RTL Text Revealing - Indicator Offsets
+description: In right-to-left text the indicator offsetX moves along the text, which is to the left; offsetY moves down; colored indicator assets are intentional.
+specs:
+- the first indicator should sit just left of the last character
+- the second should be pushed further left by offsetX
+- the third should be shifted down by offsetY
+- the fourth line ends in a Latin word; its indicator should still sit at the left end of the line
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text-revealing
+    x: 300
+    "y": 80
+    direction: rtl
+    width: 600
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 0
+    content:
+    - text: الموضع الأساسي
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b
+    type: text-revealing
+    x: 300
+    "y": 200
+    direction: rtl
+    width: 600
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 60
+    content:
+    - text: إزاحة إلى اليسار
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: c
+    type: text-revealing
+    x: 300
+    "y": 320
+    direction: rtl
+    width: 600
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 0
+      offsetY: 30
+    content:
+    - text: إزاحة إلى الأسفل
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: d
+    type: text-revealing
+    x: 300
+    "y": 440
+    direction: rtl
+    width: 600
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 0
+    content:
+    - text: ينتهي السطر بكلمة RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

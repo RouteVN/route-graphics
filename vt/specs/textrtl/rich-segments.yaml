@@ -1,0 +1,167 @@
+---
+title: RTL Text - Rich Segments
+description: Rich segments with different colours, sizes, weights and underlines inside right-to-left lines.
+specs:
+- segments should follow each other from right to left
+- an Arabic word coloured in the middle should stay joined
+- underlines should sit under their own segment only
+- a Latin phrase split over two segments should stay in left-to-right order
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    x: 1200
+    "y": 60
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'هذا '
+    - text: نص ملون
+      textStyle:
+        fill: '#ffd166'
+    - text: ' وهذا '
+    - text: نص كبير
+      textStyle:
+        fontSize: 52
+    - text: ' في سطر واحد.'
+  - id: b
+    type: text
+    x: 1200
+    "y": 170
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 64
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مر
+    - text: حب
+      textStyle:
+        fill: '#ef476f'
+    - text: ا بال
+    - text: عا
+      textStyle:
+        fill: '#06d6a0'
+    - text: لم
+  - id: c
+    type: text
+    x: 1200
+    "y": 290
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'זה '
+    - text: טקסט עם קו
+      textStyle:
+        textDecoration: underline
+    - text: ' ועוד '
+    - text: מודגש
+      textStyle:
+        fontWeight: bold
+    - text: ' בסוף.'
+  - id: d
+    type: text
+    x: 1200
+    "y": 380
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'اضغط '
+    - text: 'Start '
+      textStyle:
+        fill: '#ffd166'
+    - text: Game
+      textStyle:
+        fill: '#06d6a0'
+        textDecoration: underline
+    - text: ' للبدء'
+  - id: e
+    type: text
+    x: 1200
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'ظل '
+      textStyle:
+        shadow:
+          color: '#ef476f'
+          offsetX: 4
+          offsetY: 4
+          blur: 0
+    - text: وحد
+      textStyle:
+        strokeColor: '#118ab2'
+        strokeWidth: 4
+    - text: ' معا'
+  - id: bx
+    type: rect
+    x: 80
+    "y": 560
+    width: 500
+    height: 130
+    fill: '#333333'
+  - id: f
+    type: text
+    x: 80
+    "y": 560
+    direction: rtl
+    width: 500
+    textStyle:
+      fontSize: 28
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'فقرة '
+    - text: طويلة
+      textStyle:
+        fill: '#ffd166'
+    - text: ' تلتف داخل الصندوق '
+    - text: with English words
+      textStyle:
+        fill: '#06d6a0'
+    - text: ' ثم تستمر.'

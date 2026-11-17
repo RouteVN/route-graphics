@@ -219,6 +219,12 @@ properties:
         blockDirection:
           type: number
           description: Horizontal step to the next column, -1 leftwards or 1 rightwards (vertical chunks only)
+        direction:
+          type: string
+          description: Base direction of the line (right-to-left chunks only)
+        inlineStartX:
+          type: number
+          description: X position where the line starts in reading order (right-to-left chunks only)
         lineParts:
           type: array
           description: Array of text and furigana parts in this line
@@ -252,6 +258,11 @@ properties:
         lineMaxHeight:
           type: number
           description: Maximum height of text in this line
+  direction:
+    type: string
+    enum:
+      - rtl
+    description: Present as `rtl` when the text is laid out right to left
   writingMode:
     type: string
     enum:

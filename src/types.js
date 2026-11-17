@@ -606,6 +606,7 @@
  * @property {ScrollProps} [scrollUp]
  * @property {ScrollProps} [scrollDown]
  * @property {'vertical-rl' | 'vertical-lr'} [writingMode] - Present when the text is laid out in vertical columns
+ * @property {'rtl'} [direction] - Present when the text is laid out right to left
  * @typedef {ComputedNode & TextComputedProps} TextComputedNode
  */
 
@@ -662,6 +663,7 @@
  * @property {Array<TextChunk>} content - Array of processed text chunks (lines)
  * @property {number} [width] - Width constraint for text wrapping
  * @property {'vertical-rl' | 'vertical-lr'} [writingMode] - Present when the text is laid out in vertical columns
+ * @property {'rtl'} [direction] - Present when the text is laid out right to left
  * @property {number} alpha - Opacity/transparency (0-1)
  * @property {Object} textStyle - Default text style
  * @property {number} [speed=50] - Animation speed on a curved 0-100 scale; 100 renders instantly
@@ -709,6 +711,8 @@
  * @property {number} [x] - Left edge of the column (vertical chunks only)
  * @property {number} [centerX] - Horizontal centre of the column (vertical chunks only)
  * @property {-1 | 1} [blockDirection] - Horizontal step to the next column (vertical chunks only)
+ * @property {'rtl'} [direction] - Base direction of the line (right-to-left chunks only)
+ * @property {number} [inlineStartX] - Where the line starts in reading order (right-to-left chunks only)
  * @property {number} [inlineStart] - Y position where the column's text starts (vertical chunks only)
  * @property {number} [inlineSize] - Length of the column's text (vertical chunks only)
  */

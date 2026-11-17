@@ -14,6 +14,12 @@ import {
   isVerticalWritingMode,
   normalizeWritingMode,
 } from "../text/verticalTextLayout.js";
+import {
+  applyBidiLayout,
+  isRtlDirection,
+  normalizeDirection,
+  resolveDirectionalAlign,
+} from "../text/bidiTextLayout.js";
 
 const normalizeInitialRevealedCharacters = (value) => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -631,6 +637,9 @@ export const parseTextRevealing = ({ state }) => {
 
   const writingMode = normalizeWritingMode(state.writingMode);
   const vertical = isVerticalWritingMode({ writingMode });
+  const direction = normalizeDirection(state.direction);
+  // Vertical text ignores `direction`.
+  const rtl = !vertical && isRtlDirection({ direction });
 
   const processedContent = prepareRichTextSegments({
     content: state.content,
@@ -642,11 +651,7 @@ export const parseTextRevealing = ({ state }) => {
   const wordWrapWidth = state.width || 500;
   // Vertical text wraps on `height`; without one, columns only break at
   // explicit newlines.
-  const {
-    chunks,
-    width: calculatedWidth,
-    height: calculatedHeight,
-  } = vertical
+  const logicalLayout = vertical
     ? createVerticalTextChunks(processedContent, {
         columnLength: state.height || undefined,
         width: state.width || undefined,
@@ -654,8 +659,17 @@ export const parseTextRevealing = ({ state }) => {
         writingMode,
       })
     : createTextChunks(processedContent, wordWrapWidth);
-
+  const { width: calculatedWidth, height: calculatedHeight } = logicalLayout;
   const finalWidth = state.width || calculatedWidth;
+  // Right-to-left lines start at the right edge of the text box.
+  const chunks = rtl
+    ? applyBidiLayout(logicalLayout.chunks, {
+        direction,
+        width: finalWidth,
+        align: resolveDirectionalAlign(direction, state.textStyle?.align),
+      }).chunks
+    : logicalLayout.chunks;
+
   const finalHeight = vertical
     ? state.height || calculatedHeight
     : calculatedHeight;
@@ -695,6 +709,7 @@ export const parseTextRevealing = ({ state }) => {
     ...computedObj,
     content: chunks,
     ...(vertical && { writingMode }),
+    ...(rtl && { direction }),
     textStyle: {
       ...defaultTextStyle,
     },

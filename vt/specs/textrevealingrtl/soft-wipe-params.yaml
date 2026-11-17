@@ -1,0 +1,88 @@
+---
+title: RTL Text Revealing - Soft Wipe Parameters
+description: softWipe easing, overlap and a hard edge apply to right-to-left lines; colored indicator assets are intentional.
+specs:
+- with overlap the next line should start before the previous one finishes
+- the hard-edged box should show a sharp vertical edge moving left
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 900
+- action: screenshot
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 1400
+- action: screenshot
+---
+states:
+- id: blank
+  elements: []
+- id: wipe
+  elements:
+  - id: a
+    type: text-revealing
+    x: 80
+    "y": 80
+    direction: rtl
+    width: 520
+    speed: 30
+    revealEffect: softWipe
+    softWipe:
+      easing: easeOutCubic
+      lineOverlap: 0.5
+      softness: 2
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.
+      textStyle:
+        fontSize: 30
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b
+    type: text-revealing
+    x: 680
+    "y": 80
+    direction: rtl
+    width: 520
+    speed: 30
+    revealEffect: softWipe
+    softWipe:
+      softness: 0
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+      textStyle:
+        fontSize: 30
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

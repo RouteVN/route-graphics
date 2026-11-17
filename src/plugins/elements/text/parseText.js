@@ -12,6 +12,12 @@ import {
   isVerticalWritingMode,
   normalizeWritingMode,
 } from "./verticalTextLayout.js";
+import {
+  applyBidiLayout,
+  isRtlDirection,
+  normalizeDirection,
+  resolveDirectionalAlign,
+} from "./bidiTextLayout.js";
 
 const RICH_TEXT_NO_WRAP_WIDTH = 100000;
 
@@ -155,7 +161,11 @@ const parseVerticalText = ({
  */
 export const parseText = ({ state }) => {
   const writingMode = normalizeWritingMode(state.writingMode);
-  const contentIsRich = Array.isArray(state.content);
+  const direction = normalizeDirection(state.direction);
+  // Right-to-left text is placed run by run, so it always takes the rich
+  // layout; a plain string is one segment. Vertical text ignores `direction`.
+  const rtl = isRtlDirection({ direction });
+  const contentIsRich = Array.isArray(state.content) || rtl;
   const baseTextStyle = mergeTextStyle(DEFAULT_TEXT_STYLE, state.textStyle);
   const textStyle = { ...baseTextStyle };
 
@@ -174,17 +184,23 @@ export const parseText = ({ state }) => {
   if (contentIsRich) {
     const wordWrapWidth = getRichTextWordWrapWidth(state, baseTextStyle);
     const processedContent = prepareRichTextSegments({
-      content: state.content,
+      content: Array.isArray(state.content)
+        ? state.content
+        : [{ text: String(state.content ?? "") }],
       defaultTextStyle: baseTextStyle,
       width: typeof state.width === "number" ? state.width : undefined,
     });
-    const {
-      chunks,
-      width: calculatedWidth,
-      height: calculatedHeight,
-    } = createTextChunks(processedContent, wordWrapWidth, {
+    const logicalLayout = createTextChunks(processedContent, wordWrapWidth, {
       minimumWidth: 0,
     });
+    const calculatedHeight = logicalLayout.height;
+    const { chunks, width: calculatedWidth } = rtl
+      ? applyBidiLayout(logicalLayout.chunks, {
+          direction,
+          width: typeof state.width === "number" ? state.width : undefined,
+          align: resolveDirectionalAlign(direction, state.textStyle?.align),
+        })
+      : logicalLayout;
     const roundedMeasuredWidth = Math.round(calculatedWidth);
     const roundedHeight = Math.round(calculatedHeight);
     const layoutWidth =
@@ -201,6 +217,7 @@ export const parseText = ({ state }) => {
     const computedText = {
       ...computedObj,
       content: chunks,
+      ...(rtl && { direction }),
       measuredWidth: roundedMeasuredWidth,
       textStyle: {
         ...textStyle,

@@ -1,6 +1,6 @@
 {
   "name": "route-graphics",
-  "version": "1.51.0",
+  "version": "1.52.0",
   "description": "A 2D graphics rendering interface that takes JSON input and renders pixels using PixiJS",
   "main": "dist/RouteGraphics.js",
   "type": "module",
@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "@wasm-audio-decoders/ogg-vorbis": "^0.1.20",
+    "bidi-js": "1.0.3",
     "gsap": "3.15.0",
     "hotkeys-js": "^4.0.0-beta.7",
     "js-yaml": "^4.1.0",

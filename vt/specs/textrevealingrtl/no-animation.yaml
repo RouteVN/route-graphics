@@ -1,0 +1,185 @@
+---
+title: RTL Text Revealing - No Animation
+description: revealEffect none shows right-to-left text at once with the complete indicator after the last character, on its left; colored indicator assets are intentional.
+specs:
+- all lines should be visible and start at the right edge of the box
+- the complete indicator should sit to the left of the last character
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b1
+    type: rect
+    x: 100
+    "y": 60
+    width: 500
+    height: 280
+    fill: '#333333'
+  - id: a
+    type: text-revealing
+    x: 100
+    "y": 60
+    direction: rtl
+    width: 500
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'قالت ليلى: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: «مرحبا!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' هل تريد أن تلعب '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' معي اليوم؟ الفصل 12 جاهز.»'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b2
+    type: rect
+    x: 680
+    "y": 60
+    width: 500
+    height: 280
+    fill: '#333333'
+  - id: b
+    type: text-revealing
+    x: 680
+    "y": 60
+    direction: rtl
+    width: 500
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'דנה אמרה: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: שלום!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' רוצה לשחק ב-'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' איתי היום? פרק 3 מוכן.'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b3
+    type: rect
+    x: 100
+    "y": 400
+    width: 1080
+    height: 240
+    fill: '#333333'
+  - id: c
+    type: text-revealing
+    x: 100
+    "y": 400
+    direction: rtl
+    width: 1080
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+      textStyle:
+        fontSize: 30
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

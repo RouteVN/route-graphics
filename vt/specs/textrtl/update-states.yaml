@@ -1,0 +1,85 @@
+---
+title: RTL Text - Updates
+description: Updating direction, content and width re-lays the text out in place.
+specs:
+- first state should be left-to-right layout of mixed text
+- second state should be the same content right to left
+- third state should show new content in a narrower box
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: b
+    type: rect
+    x: 340
+    "y": 120
+    width: 600
+    height: 360
+    fill: '#333333'
+  - id: t
+    type: text
+    x: 340
+    "y": 120
+    width: 600
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'اضغط على زر Start للبدء في RouteVN الآن. الفصل 12: العودة إلى المدينة (2024)'
+- elements:
+  - id: b
+    type: rect
+    x: 340
+    "y": 120
+    width: 600
+    height: 360
+    fill: '#333333'
+  - id: t
+    type: text
+    x: 340
+    "y": 120
+    direction: rtl
+    width: 600
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'اضغط على زر Start للبدء في RouteVN الآن. الفصل 12: العودة إلى المدينة (2024)'
+- elements:
+  - id: b
+    type: rect
+    x: 340
+    "y": 120
+    width: 360
+    height: 360
+    fill: '#333333'
+  - id: t
+    type: text
+    x: 340
+    "y": 120
+    direction: rtl
+    width: 360
+    textStyle:
+      fontSize: 28
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.

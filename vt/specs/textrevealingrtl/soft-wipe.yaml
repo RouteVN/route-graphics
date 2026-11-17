@@ -1,0 +1,111 @@
+---
+title: RTL Text Revealing - Soft Wipe
+description: softWipe reveals each right-to-left line from its right end towards the left with a soft edge; colored indicator assets are intentional.
+specs:
+- first state should be blank before the reveal starts
+- the wipe should travel from right to left along the first line
+- later lines should stay hidden until the wipe reaches them
+- the complete indicator should appear after the last line
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 700
+- action: screenshot
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 1600
+- action: screenshot
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 12000
+- action: screenshot
+---
+states:
+- id: blank
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+- id: wipe
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    direction: rtl
+    width: 800
+    speed: 22
+    revealEffect: softWipe
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'قالت ليلى: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: «مرحبا!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' هل تريد أن تلعب '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' معي اليوم؟ الفصل 12 جاهز.»'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

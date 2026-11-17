@@ -1,0 +1,105 @@
+---
+title: RTL Text Revealing - Typewriter
+description: Typewriter reveal types Arabic from the right edge; each word grows leftwards; colored indicator assets are intentional.
+specs:
+- first state should be blank before the reveal starts
+- text should appear from the right edge of the box
+- the indicator should lead the text on its left
+- the complete indicator should replace it at the end
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 400
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 1200
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 360
+    fill: '#333333'
+- id: typing
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 360
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    direction: rtl
+    width: 800
+    speed: 50
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

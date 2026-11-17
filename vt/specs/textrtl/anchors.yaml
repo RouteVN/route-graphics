@@ -1,0 +1,219 @@
+---
+title: RTL Text - Anchors And Transforms
+description: Anchors, rotation and alpha apply to right-to-left text boxes like any other text.
+specs:
+- each text should be positioned by its anchor relative to the cross
+- the rotated text should turn around its anchor
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: h0
+    type: rect
+    x: 180
+    "y": 200
+    width: 40
+    height: 2
+    fill: '#737373'
+  - id: v0
+    type: rect
+    x: 200
+    "y": 180
+    width: 2
+    height: 40
+    fill: '#737373'
+  - id: t0
+    type: text
+    x: 200
+    "y": 200
+    direction: rtl
+    anchorX: 0
+    anchorY: 0
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם
+  - id: l0
+    type: text
+    x: 140
+    "y": 120
+    content: anchor 0,0
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: h1
+    type: rect
+    x: 500
+    "y": 200
+    width: 40
+    height: 2
+    fill: '#737373'
+  - id: v1
+    type: rect
+    x: 520
+    "y": 180
+    width: 2
+    height: 40
+    fill: '#737373'
+  - id: t1
+    type: text
+    x: 520
+    "y": 200
+    direction: rtl
+    anchorX: 0.5
+    anchorY: 0.5
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם
+  - id: l1
+    type: text
+    x: 460
+    "y": 120
+    content: anchor 0.5,0.5
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: h2
+    type: rect
+    x: 820
+    "y": 200
+    width: 40
+    height: 2
+    fill: '#737373'
+  - id: v2
+    type: rect
+    x: 840
+    "y": 180
+    width: 2
+    height: 40
+    fill: '#737373'
+  - id: t2
+    type: text
+    x: 840
+    "y": 200
+    direction: rtl
+    anchorX: 1
+    anchorY: 1
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם
+  - id: l2
+    type: text
+    x: 780
+    "y": 120
+    content: anchor 1,1
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: h3
+    type: rect
+    x: 1100
+    "y": 200
+    width: 40
+    height: 2
+    fill: '#737373'
+  - id: v3
+    type: rect
+    x: 1120
+    "y": 180
+    width: 2
+    height: 40
+    fill: '#737373'
+  - id: t3
+    type: text
+    x: 1120
+    "y": 200
+    direction: rtl
+    anchorX: 1
+    anchorY: 0
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם
+  - id: l3
+    type: text
+    x: 1060
+    "y": 120
+    content: anchor 1,0
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: r1
+    type: text
+    x: 300
+    "y": 500
+    direction: rtl
+    anchorX: 0.5
+    anchorY: 0.5
+    rotation: -20
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: مرحبا بالعالم
+  - id: r2
+    type: text
+    x: 700
+    "y": 500
+    direction: rtl
+    anchorX: 0.5
+    anchorY: 0.5
+    alpha: 0.4
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: مرحبا بالعالم
+  - id: r3
+    type: text
+    x: 1100
+    "y": 500
+    direction: rtl
+    anchorX: 0.5
+    anchorY: 0.5
+    rotation: 10
+    width: 300
+    textStyle:
+      fontSize: 20
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.

@@ -24,6 +24,7 @@ Try it in the [Playground](/playground/?template=text-revealing).
 | `content`                   | array                                | No                  | `[]`            | Array of rich text segments.                                                                                                                               |
 | `width`                     | number                               | No                  | auto            | If omitted, parser uses a 500px wrap basis for layout measurement.                                                                                         |
 | `writingMode`               | string                               | No                  | `horizontal-tb` | `vertical-rl` sets the text in top-to-bottom columns that flow right to left; `vertical-lr` flows them left to right. See [Vertical Text](#vertical-text). |
+| `direction`                 | string                               | No                  | `ltr`           | `rtl` lays horizontal text out right to left. See [Right-To-Left Text](#right-to-left-text).                                                               |
 | `height`                    | number                               | No                  | auto            | Column length for vertical writing modes. If omitted, columns only break at newlines. Ignored for horizontal text.                                         |
 | `anchorX`                   | number                               | No                  | `0`             | Anchor offset ratio.                                                                                                                                       |
 | `anchorY`                   | number                               | No                  | `0`             | Anchor offset ratio.                                                                                                                                       |
@@ -204,6 +205,34 @@ elements:
             fill: "#ffffff",
             fontFamily: NotoSansJP,
           }
+```
+
+## Right-To-Left Text
+
+`direction: rtl` lays the content out as the [`text` node](/docs/nodes/text/#right-to-left-text) does: lines start at the right edge of the box and mixed-direction runs are ordered with the Unicode Bidirectional Algorithm. Set `width`; without it lines are aligned inside the 500px wrap basis. The reveal effects follow the text:
+
+- `typewriter` reveals in reading order. Text appears from the right edge and grows leftwards; a Latin word or number inside the line types left to right in its final position, so revealed text never moves.
+- `softWipe` wipes each line from its right end towards the left.
+- The indicator leads the text on its left. `offsetX` moves it along the text (left) and `offsetY` down.
+- `initialRevealedCharacters` counts characters in reading order, as for left-to-right text.
+
+```yaml
+elements:
+  - id: dialogue-rtl
+    type: text-revealing
+    direction: rtl
+    x: 170
+    y: 445
+    width: 940
+    speed: 50
+    revealEffect: typewriter
+    content:
+      - text: "مرحبا! "
+        textStyle:
+          { fontSize: 34, fill: "#ffd166", fontFamily: [NotoSansArabic, Arial] }
+      - text: "قرأت 3 فصول من RouteVN البارحة."
+        textStyle:
+          { fontSize: 34, fill: "#ffffff", fontFamily: [NotoSansArabic, Arial] }
 ```
 
 ## Example: Minimal

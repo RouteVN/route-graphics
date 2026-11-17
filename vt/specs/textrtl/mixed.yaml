@@ -1,0 +1,133 @@
+---
+title: RTL Text - Mixed Direction
+description: Latin words, numbers and brackets inside right-to-left text are ordered with the Unicode bidirectional algorithm.
+specs:
+- Latin words should read left to right inside the right-to-left line
+- numbers should read left to right
+- brackets should be mirrored so they still enclose their content
+- the sentence-final full stop should be at the left end
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    x: 1200
+    "y": 60
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: اضغط على زر Start للبدء في RouteVN الآن.
+  - id: b
+    type: text
+    x: 1200
+    "y": 140
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: לחץ על Start כדי להתחיל את RouteVN עכשיו.
+  - id: c
+    type: text
+    x: 1200
+    "y": 220
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'الفصل 12: العودة إلى المدينة (2024)'
+  - id: d
+    type: text
+    x: 1200
+    "y": 300
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'פרק 3: הדרך הביתה (2024)'
+  - id: e
+    type: text
+    x: 1200
+    "y": 380
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'السعر: 1,250.50 دولار (تقريبا)'
+  - id: f
+    type: text
+    x: 1200
+    "y": 460
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: נכתב ב-JavaScript וב-PixiJS 8, גרסה 1.52.0
+  - id: g
+    type: text
+    x: 1200
+    "y": 540
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: «مرحبا» [1] {2} <3>
+  - id: h
+    type: text
+    x: 1200
+    "y": 620
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#A6A6A6'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: RouteVN Engine

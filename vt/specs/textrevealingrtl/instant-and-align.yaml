@@ -1,0 +1,132 @@
+---
+title: RTL Text Revealing - Instant Speed And Alignment
+description: speed 100 paints right-to-left text immediately; textStyle.align overrides the default right alignment; colored indicator assets are intentional.
+specs:
+- all three boxes should be complete on the first frame
+- the boxes should be right, centre and left aligned in that order
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b1
+    type: rect
+    x: 60
+    "y": 100
+    width: 360
+    height: 300
+    fill: '#333333'
+  - id: a
+    type: text-revealing
+    x: 60
+    "y": 100
+    direction: rtl
+    width: 360
+    speed: 100
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'سطر قصير
+
+        ثم سطر أطول منه
+
+        שורה אחרונה'
+      textStyle:
+        fontSize: 28
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b2
+    type: rect
+    x: 460
+    "y": 100
+    width: 360
+    height: 300
+    fill: '#333333'
+  - id: b
+    type: text-revealing
+    x: 460
+    "y": 100
+    direction: rtl
+    width: 360
+    speed: 100
+    revealEffect: softWipe
+    textStyle:
+      align: center
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'سطر قصير
+
+        ثم سطر أطول منه
+
+        שורה אחרונה'
+      textStyle:
+        fontSize: 28
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: b3
+    type: rect
+    x: 860
+    "y": 100
+    width: 360
+    height: 300
+    fill: '#333333'
+  - id: c
+    type: text-revealing
+    x: 860
+    "y": 100
+    direction: rtl
+    width: 360
+    speed: 100
+    revealEffect: typewriter
+    textStyle:
+      align: left
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'سطر قصير
+
+        ثم سطر أطول منه
+
+        שורה אחרונה'
+      textStyle:
+        fontSize: 28
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
