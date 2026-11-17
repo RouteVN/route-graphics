@@ -135,7 +135,7 @@ const parseVerticalText = ({
 
   defineLayoutProperties(computedText, state, {
     layoutWidth,
-    layoutHeight: layoutHeight,
+    layoutHeight,
   });
 
   return computedText;
