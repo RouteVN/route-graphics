@@ -201,6 +201,21 @@ properties:
         y:
           type: number
           description: Y position of the line
+        vertical:
+          type: boolean
+          description: Present and true when the chunk is a vertical column
+        x:
+          type: number
+          description: Left edge of the column (vertical chunks only)
+        centerX:
+          type: number
+          description: Horizontal centre of the column (vertical chunks only)
+        inlineStart:
+          type: number
+          description: Y position where the column's text starts (vertical chunks only)
+        inlineSize:
+          type: number
+          description: Length of the column's text (vertical chunks only)
         lineParts:
           type: array
           description: Array of text and furigana parts in this line
@@ -234,6 +249,12 @@ properties:
         lineMaxHeight:
           type: number
           description: Maximum height of text in this line
+  writingMode:
+    type: string
+    enum:
+      - horizontal-tb
+      - vertical-rl
+    description: Present as `vertical-rl` when the text is laid out in vertical columns
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.

@@ -9,6 +9,11 @@ import {
   normalizeAnimatedSpritePlayback,
 } from "../animated-sprite/animatedSpriteConfig.js";
 import { normalizeSoftWipeConfig } from "./softWipeConfig.js";
+import {
+  createVerticalTextChunks,
+  isVerticalWritingMode,
+  normalizeWritingMode,
+} from "../text/verticalTextLayout.js";
 
 const normalizeInitialRevealedCharacters = (value) => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -624,22 +629,35 @@ export const parseTextRevealing = ({ state }) => {
     state.textStyle,
   );
 
+  const writingMode = normalizeWritingMode(state.writingMode);
+  const vertical = isVerticalWritingMode({ writingMode });
+
   const processedContent = prepareRichTextSegments({
     content: state.content,
     defaultTextStyle,
-    width: state.width || undefined,
+    width: vertical ? undefined : state.width || undefined,
   });
 
   // Calculate text dimensions using unified chunk approach
   const wordWrapWidth = state.width || 500;
+  // Vertical text wraps on `height`; without one, columns only break at
+  // explicit newlines.
   const {
     chunks,
     width: calculatedWidth,
     height: calculatedHeight,
-  } = createTextChunks(processedContent, wordWrapWidth);
+  } = vertical
+    ? createVerticalTextChunks(processedContent, {
+        columnLength: state.height || undefined,
+        width: state.width || undefined,
+        align: defaultTextStyle.align,
+      })
+    : createTextChunks(processedContent, wordWrapWidth);
 
   const finalWidth = state.width || calculatedWidth;
-  const finalHeight = calculatedHeight;
+  const finalHeight = vertical
+    ? state.height || calculatedHeight
+    : calculatedHeight;
 
   let computedObj = parseCommonObject({
     ...state,
@@ -675,6 +693,7 @@ export const parseTextRevealing = ({ state }) => {
   return {
     ...computedObj,
     content: chunks,
+    ...(vertical && { writingMode }),
     textStyle: {
       ...defaultTextStyle,
     },

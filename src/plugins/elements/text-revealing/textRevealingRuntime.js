@@ -12,6 +12,7 @@ import { getCharacterXPositionInATextObject } from "../../../util/getCharacterXP
 import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
+import { applyTextPartTransform } from "../text/verticalTextLayout.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import {
   getSoftWipeEdgeWidth,
@@ -34,6 +35,7 @@ const TEXT_REVEAL_RUNTIME = Symbol("textRevealRuntime");
 const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
 const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
+const TEXT_REVEAL_PART = Symbol("textRevealPart");
 const TEXT_REVEAL_SOUND_ID_PREFIX = "__route_graphics_text_reveal_sound__";
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
@@ -496,14 +498,69 @@ const getIndicatorLineY = (indicatorSprite, chunk) => {
   return chunk.y + Math.max(0, lineHeight - indicatorHeight);
 };
 
+// In a vertical column the indicator follows the text downwards, centred on
+// the column. `offsetX` keeps meaning "along the text" (down) and `offsetY`
+// "towards the next line" (left).
 const positionIndicatorForChunk = (
   indicatorSprite,
   chunk,
   indicatorOffsets,
 ) => {
+  if (chunk?.vertical) {
+    indicatorSprite.x =
+      chunk.centerX -
+      Math.max(0, indicatorSprite?.width ?? 0) / 2 -
+      indicatorOffsets.y;
+    indicatorSprite.y = chunk.inlineStart + indicatorOffsets.x;
+    return;
+  }
+
   indicatorSprite.x = indicatorOffsets.x;
   indicatorSprite.y =
     getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
+};
+
+const getVerticalPart = (textObject) => {
+  const part = textObject?.[TEXT_REVEAL_PART];
+
+  return typeof part?.inlineStart === "number" ? part : null;
+};
+
+// Where the revealed text of a vertical part ends, along its column.
+const getVerticalTextEnd = (textObject, part, characterCount) => {
+  if (characterCount <= 0) {
+    return part.inlineStart;
+  }
+
+  if (part.atomic || characterCount >= part.text.length) {
+    return part.inlineEnd;
+  }
+
+  return (
+    part.inlineStart +
+    getCharacterXPositionInATextObject(textObject, characterCount) -
+    textObject.x
+  );
+};
+
+const positionIndicatorAtCharacter = (
+  indicatorSprite,
+  textObject,
+  characterIndex,
+  indicatorOffsets,
+) => {
+  const verticalPart = getVerticalPart(textObject);
+
+  if (verticalPart) {
+    indicatorSprite.y =
+      getVerticalTextEnd(textObject, verticalPart, characterIndex + 1) +
+      indicatorOffsets.x;
+    return;
+  }
+
+  indicatorSprite.x =
+    getCharacterXPositionInATextObject(textObject, characterIndex) +
+    indicatorOffsets.x;
 };
 
 const positionIndicatorAtTextEnd = (
@@ -512,15 +569,18 @@ const positionIndicatorAtTextEnd = (
   indicatorOffsets,
 ) => {
   if (!lastTextObject || lastTextObject.text.length === 0) {
-    indicatorSprite.x = indicatorOffsets.x;
+    if (!getVerticalPart(lastTextObject)) {
+      indicatorSprite.x = indicatorOffsets.x;
+    }
     return;
   }
 
-  indicatorSprite.x =
-    getCharacterXPositionInATextObject(
-      lastTextObject,
-      lastTextObject.text.length - 1,
-    ) + indicatorOffsets.x;
+  positionIndicatorAtCharacter(
+    indicatorSprite,
+    lastTextObject,
+    lastTextObject.text.length - 1,
+    indicatorOffsets,
+  );
 };
 
 const completeIndicatorAtTextEnd = (
@@ -612,7 +672,14 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
     x: Math.round(part.x),
     y: Math.round(part.y),
   });
-  applyTextDecoration(text, part.textStyle);
+  text[TEXT_REVEAL_PART] = part;
+  applyTextPartTransform(text, part);
+  applyTextDecoration(
+    text,
+    part.textStyle,
+    part.decorationRectangles ?? null,
+    part.decorationLine ?? null,
+  );
 
   let furiganaText = null;
 
@@ -678,11 +745,17 @@ const buildFullTextContent = (contentContainer, element) => {
     if (lineObjects.length > 0) {
       const lineBounds = lineContainer.getLocalBounds();
 
+      const vertical = chunk.vertical === true;
+
       lines.push({
         chunk,
         container: lineContainer,
         lastTextObject: lineLastTextObject,
         totalCharacters: lineCharacterCount,
+        // A wipe travels along the text: across a line, or down a column.
+        vertical,
+        inlineSize: vertical ? lineBounds.height : lineBounds.width,
+        blockSize: vertical ? lineBounds.width : lineBounds.height,
         bounds: {
           x: lineBounds.x,
           y: lineBounds.y,
@@ -861,6 +934,9 @@ const runTypewriterReveal = async ({
   let revealedAnyNewCharacters = false;
   let lastVisibleTextObject = null;
   let lastVisibleChunk = null;
+  // Vertical columns are made of many one-character parts, so the pause
+  // between steps has to happen between parts as well as inside them.
+  let charactersSinceStep = 0;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -912,26 +988,34 @@ const runTypewriterReveal = async ({
       remainingStartCharacters -= prefilledCharacters;
 
       if (prefilledCharacters > 0) {
-        indicatorSprite.x =
-          getCharacterXPositionInATextObject(text, prefilledCharacters - 1) +
-          indicatorOffsets.x;
+        positionIndicatorAtCharacter(
+          indicatorSprite,
+          text,
+          prefilledCharacters - 1,
+          indicatorOffsets,
+        );
       }
 
       let charIndex = prefilledCharacters;
+      let revealedNewCharactersInPart = false;
 
       while (charIndex < fullText.length) {
         if (signal?.aborted || contentContainer.destroyed) return false;
 
-        const nextCharIndex = Math.min(
-          fullText.length,
-          charIndex + charactersPerStep,
-        );
+        // An atomic part is a single cell; never show half of it.
+        const nextCharIndex = part.atomic
+          ? fullText.length
+          : Math.min(fullText.length, charIndex + charactersPerStep);
         const lastRevealedCharIndex = nextCharIndex - 1;
 
         text.text = fullText.substring(0, nextCharIndex);
-        indicatorSprite.x =
-          getCharacterXPositionInATextObject(text, lastRevealedCharIndex) +
-          indicatorOffsets.x;
+        positionIndicatorAtCharacter(
+          indicatorSprite,
+          text,
+          lastRevealedCharIndex,
+          indicatorOffsets,
+        );
+        revealedNewCharactersInPart = true;
         revealedNewCharactersInChunk = true;
         revealedAnyNewCharacters = true;
 
@@ -950,6 +1034,20 @@ const runTypewriterReveal = async ({
         charIndex = nextCharIndex;
 
         if (charIndex < fullText.length) {
+          await abortableSleep(stepDelay, signal);
+        }
+      }
+
+      if (chunk.vertical && revealedNewCharactersInPart) {
+        charactersSinceStep += part.atomic
+          ? fullText.length
+          : charactersPerStep;
+
+        if (
+          charactersSinceStep >= charactersPerStep &&
+          partIndex < chunk.lineParts.length - 1
+        ) {
+          charactersSinceStep = 0;
           await abortableSleep(stepDelay, signal);
         }
       }
@@ -991,7 +1089,7 @@ const createSoftWipeLineTimings = ({
 }) => {
   const lineWeights = lines.map((line) => {
     const baseWeight = Math.max(1, line.totalCharacters);
-    const tailFactor = 1 + edgeWidth / Math.max(1, line.bounds.width);
+    const tailFactor = 1 + edgeWidth / Math.max(1, line.inlineSize);
 
     return baseWeight * tailFactor;
   });
@@ -1137,8 +1235,8 @@ const createSoftWipeLineMasks = ({
   const lineMasks = timedLines.map((line) => {
     const canvas = document.createElement("canvas");
 
-    canvas.width = Math.max(1, Math.ceil(line.bounds.width + edgeWidth));
-    canvas.height = Math.max(1, Math.ceil(line.bounds.height));
+    canvas.width = Math.max(1, Math.ceil(line.inlineSize + edgeWidth));
+    canvas.height = Math.max(1, Math.ceil(line.blockSize));
 
     const context = canvas.getContext("2d");
 
@@ -1149,8 +1247,16 @@ const createSoftWipeLineMasks = ({
     const texture = getCanvasTexture(canvas);
     const sprite = new Sprite(texture);
 
-    sprite.x = Math.floor(line.bounds.x - edgeWidth);
-    sprite.y = Math.floor(line.bounds.y);
+    if (line.vertical) {
+      // The mask is drawn as a horizontal wipe and turned a quarter
+      // clockwise so it travels down the column.
+      sprite.rotation = Math.PI / 2;
+      sprite.x = Math.ceil(line.bounds.x + line.bounds.width);
+      sprite.y = Math.floor(line.bounds.y - edgeWidth);
+    } else {
+      sprite.x = Math.floor(line.bounds.x - edgeWidth);
+      sprite.y = Math.floor(line.bounds.y);
+    }
     line.container.mask = sprite;
     contentContainer.addChild(sprite);
 
@@ -1181,7 +1287,9 @@ const applySoftWipeFrame = ({
   currentTime,
 }) => {
   let activeLine = timedLines[0];
-  let activeLineLeadingEdgeX = activeLine.bounds.x;
+  let activeLineLeadingEdge = activeLine.vertical
+    ? activeLine.bounds.y
+    : activeLine.bounds.x;
 
   for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
     const line = timedLines[lineIndex];
@@ -1201,7 +1309,7 @@ const applySoftWipeFrame = ({
     }
 
     const lineY = 0;
-    const lineTravelDistance = line.bounds.width + lineMask.edgeWidth;
+    const lineTravelDistance = line.inlineSize + lineMask.edgeWidth;
     const lineStart = lineMask.edgeWidth;
     const lineLeadingEdge = lineStart + lineProgress * lineTravelDistance;
     const hardEnd = Math.max(lineStart, lineLeadingEdge - lineMask.edgeWidth);
@@ -1211,8 +1319,8 @@ const applySoftWipeFrame = ({
       context.fillRect(
         lineStart,
         lineY,
-        Math.min(hardEnd - lineStart, line.bounds.width),
-        line.bounds.height,
+        Math.min(hardEnd - lineStart, line.inlineSize),
+        line.blockSize,
       );
     }
 
@@ -1220,10 +1328,7 @@ const applySoftWipeFrame = ({
       lineStart,
       lineLeadingEdge - lineMask.edgeWidth,
     );
-    const gradientEnd = Math.min(
-      lineStart + line.bounds.width,
-      lineLeadingEdge,
-    );
+    const gradientEnd = Math.min(lineStart + line.inlineSize, lineLeadingEdge);
 
     if (gradientEnd > gradientStart) {
       const gradient = context.createLinearGradient(
@@ -1240,14 +1345,14 @@ const applySoftWipeFrame = ({
         gradientStart,
         lineY,
         gradientEnd - gradientStart,
-        line.bounds.height,
+        line.blockSize,
       );
     }
 
     texture.source.update();
     activeLine = line;
-    activeLineLeadingEdgeX =
-      line.bounds.x +
+    activeLineLeadingEdge =
+      (line.vertical ? line.bounds.y : line.bounds.x) +
       Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
   }
 
@@ -1256,7 +1361,12 @@ const applySoftWipeFrame = ({
     activeLine.chunk,
     indicatorOffsets,
   );
-  indicatorSprite.x = activeLineLeadingEdgeX + indicatorOffsets.x;
+
+  if (activeLine.vertical) {
+    indicatorSprite.y = activeLineLeadingEdge + indicatorOffsets.x;
+  } else {
+    indicatorSprite.x = activeLineLeadingEdge + indicatorOffsets.x;
+  }
 };
 
 const runSoftWipePausedInitialReveal = ({

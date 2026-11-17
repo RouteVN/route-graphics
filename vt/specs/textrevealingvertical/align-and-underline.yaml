@@ -1,0 +1,56 @@
+---
+title: Vertical Text Revealing - Align And Underline
+description: Column alignment and underline sidelines work in text-revealing; colored indicator assets are intentional.
+specs:
+- centre alignment should centre each column in the fixed height
+- underlined segments should show a sideline on the right
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b
+    type: rect
+    x: 700
+    "y": 80
+    width: 260
+    height: 480
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 700
+    "y": 80
+    width: 260
+    height: 480
+    revealEffect: none
+    textStyle:
+      align: center
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: '中央に揃える
+
+        短い列
+
+        '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 下線付き
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+        textDecoration: underline

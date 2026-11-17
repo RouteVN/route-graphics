@@ -1,0 +1,71 @@
+---
+title: Vertical Text - Chinese
+description: Classical Chinese poems set vertically with full-width punctuation.
+specs:
+- each poem line should be one column, read right to left
+- full-width commas and full stops should use vertical forms
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: c1t
+    type: text
+    writingMode: vertical-rl
+    x: 1180
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 34
+      fill: '#A6A6A6'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 靜夜思　李白
+  - id: c1
+    type: text
+    writingMode: vertical-rl
+    x: 1080
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 52
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: '床前明月光，
+
+      疑是地上霜。
+
+      舉頭望明月，
+
+      低頭思故郷。'
+  - id: c2t
+    type: text
+    writingMode: vertical-rl
+    x: 620
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 34
+      fill: '#A6A6A6'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 春曉　孟浩然
+  - id: c2
+    type: text
+    writingMode: vertical-rl
+    x: 520
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 52
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.7
+    content: '春眠不覺曉，
+
+      處處聞啼鳥。
+
+      夜來風雨聲，
+
+      花落知多少。'

@@ -1,0 +1,101 @@
+---
+title: Vertical Text - Wrap On Height
+description: height is the wrap dimension in vertical mode; columns flow from right to left. Guide lines mark the wrap height.
+specs:
+- columns should never extend past the configured height
+- new columns should be added to the left of the previous one
+- changing height should reflow the same text into more or fewer columns
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: g1
+    type: rect
+    x: 40
+    "y": 58
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 40
+    "y": 480
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: p
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    height: 420
+    anchorX: 1
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+- elements:
+  - id: g1
+    type: rect
+    x: 40
+    "y": 58
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 40
+    "y": 300
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: p
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    height: 240
+    anchorX: 1
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+- elements:
+  - id: g1
+    type: rect
+    x: 40
+    "y": 58
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 40
+    "y": 660
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: p
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    height: 600
+    anchorX: 1
+    textStyle:
+      fontSize: 30
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。

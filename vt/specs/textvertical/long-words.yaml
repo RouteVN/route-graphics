@@ -1,0 +1,51 @@
+---
+title: Vertical Text - Long Sideways Words
+description: A sideways word longer than the column breaks between characters; shorter words move to the next column whole.
+specs:
+- a word longer than a whole column should break across columns
+- words that fit should not be split
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: g1
+    type: rect
+    x: 40
+    "y": 58
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: g2
+    type: rect
+    x: 40
+    "y": 300
+    width: 1200
+    height: 2
+    fill: '#737373'
+  - id: w1
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    height: 240
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: Supercalifragilisticexpialidocious
+  - id: w2
+    type: text
+    writingMode: vertical-rl
+    x: 700
+    "y": 60
+    height: 240
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 短い語Shortと長い語Internationalizationの混在。

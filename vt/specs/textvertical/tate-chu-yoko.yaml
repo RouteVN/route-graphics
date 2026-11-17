@@ -1,0 +1,145 @@
+---
+title: Vertical Text - Combined Digits
+description: One or two digits, !? pairs and single Latin letters standing alone are set upright in a single cell; longer numbers and words stay sideways.
+specs:
+- one and two digit numbers should sit upright inside one cell
+- numbers of three or more digits should be set sideways
+- paired exclamation and question marks should share one cell
+- a single Latin letter should stand upright while words stay sideways
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: c0
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 12月25日
+  - id: c1
+    type: text
+    writingMode: vertical-rl
+    x: 1090
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 第3話
+  - id: c2
+    type: text
+    writingMode: vertical-rl
+    x: 980
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 令和8年
+  - id: c3
+    type: text
+    writingMode: vertical-rl
+    x: 870
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 午後10時30分
+  - id: c4
+    type: text
+    writingMode: vertical-rl
+    x: 760
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 100パーセント
+  - id: c5
+    type: text
+    writingMode: vertical-rl
+    x: 650
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: え!?
+  - id: c6
+    type: text
+    writingMode: vertical-rl
+    x: 540
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: すごい!!
+  - id: c7
+    type: text
+    writingMode: vertical-rl
+    x: 430
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 3年B組
+  - id: c8
+    type: text
+    writingMode: vertical-rl
+    x: 320
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 1234年5月6日
+  - id: c9
+    type: text
+    writingMode: vertical-rl
+    x: 210
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 99.5点
+  - id: c10
+    type: text
+    writingMode: vertical-rl
+    x: 100
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: Xさん

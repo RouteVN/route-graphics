@@ -99,6 +99,7 @@ putting the full list in the alert.
 - Audio assets are loaded into the internal audio stage and can be used by `sound` nodes or interaction props such as `soundSrc`. Audio remains buffer-backed because the runtime still needs decoded audio data.
 - Video assets are loaded through Pixi's video loader. When possible, Route Graphics passes the original source URL directly; blob URLs are only used as a fallback for buffer-backed video inputs.
 - Font assets are registered with `FontFace`; use the alias key as `textStyle.fontFamily` or as an entry in its ordered fallback array.
+- Each font asset is also registered a second time with its vertical glyph forms enabled, when the font has them. Vertical text (`writingMode: vertical-rl`) uses that face for punctuation automatically; no extra asset or family name is needed.
 
 ## Practical Notes
 

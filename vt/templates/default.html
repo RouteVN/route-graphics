@@ -388,6 +388,11 @@
           url: "/public/mr-de-haviland.ttf",
           type: "font/ttf",
         },
+        // Japanese font with vertical glyph forms, for vertical text specs.
+        NotoSansJP: {
+          url: "/public/NotoSansJP-Regular.subset.woff2",
+          type: "font/woff2",
+        },
       };
 
       const isVtDebug =
@@ -426,6 +431,11 @@
         ) {
           delete assetsObject[key];
         }
+      }
+
+      // The Japanese font is large; only specs that name it download it.
+      if (!vtStateSourceText.includes("NotoSansJP")) {
+        delete assetsObject.NotoSansJP;
       }
 
       const assetBufferManager = createAssetBufferManager();

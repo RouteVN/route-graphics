@@ -1,0 +1,118 @@
+---
+title: Vertical Text - Punctuation Large Comparison
+description: Large side-by-side comparison of vertical glyphs and the fallback, with cell guides.
+specs:
+- both renderings should place punctuation in the same part of the cell
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 200
+    "y": 20
+    content: NotoSansJP
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b1
+    type: rect
+    x: 160
+    "y": 60
+    width: 96
+    height: 576
+    fill: '#333333'
+  - id: a
+    type: text
+    writingMode: vertical-rl
+    x: 160
+    "y": 60
+    textStyle:
+      fontSize: 96
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.0
+    content: 「あ、ー。」
+  - id: l2
+    type: text
+    x: 520
+    "y": 20
+    content: fallback
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b2
+    type: rect
+    x: 480
+    "y": 60
+    width: 96
+    height: 576
+    fill: '#333333'
+  - id: b
+    type: text
+    writingMode: vertical-rl
+    x: 480
+    "y": 60
+    textStyle:
+      fontSize: 96
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.0
+    content: 「あ、ー。」
+  - id: l3
+    type: text
+    x: 840
+    "y": 20
+    content: NotoSansJP
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b3
+    type: rect
+    x: 800
+    "y": 60
+    width: 96
+    height: 576
+    fill: '#333333'
+  - id: c
+    type: text
+    writingMode: vertical-rl
+    x: 800
+    "y": 60
+    textStyle:
+      fontSize: 96
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.0
+    content: （っ〜…）
+  - id: l4
+    type: text
+    x: 1080
+    "y": 20
+    content: fallback
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: b4
+    type: rect
+    x: 1040
+    "y": 60
+    width: 96
+    height: 576
+    fill: '#333333'
+  - id: d
+    type: text
+    writingMode: vertical-rl
+    x: 1040
+    "y": 60
+    textStyle:
+      fontSize: 96
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.0
+    content: （っ〜…）

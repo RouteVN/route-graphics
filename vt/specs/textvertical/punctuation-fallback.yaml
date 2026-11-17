@@ -1,0 +1,174 @@
+---
+title: Vertical Text - Punctuation Fallback
+description: 'A font without a usable vertical face falls back to rotating and shifting horizontal glyphs. Left: system font fallback. Right: NotoSansJP vertical glyphs.'
+specs:
+- fallback punctuation should still read correctly in a column
+- fallback brackets and long vowel marks should be rotated a quarter turn
+- fallback commas and full stops should move to the upper right
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: l1
+    type: text
+    x: 60
+    "y": 30
+    content: Arial / system fallback (rotate + shift)
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: f0
+    type: text
+    writingMode: vertical-rl
+    x: 560
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: 「こんにちは」、と言った。
+  - id: f1
+    type: text
+    writingMode: vertical-rl
+    x: 480
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: （注）ー〜…‥
+  - id: f2
+    type: text
+    writingMode: vertical-rl
+    x: 400
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: 『二重』【隅付】〈山〉《二重》
+  - id: f3
+    type: text
+    writingMode: vertical-rl
+    x: 320
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: えーっと、スーパー！？
+  - id: f4
+    type: text
+    writingMode: vertical-rl
+    x: 240
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: ちょっと待って。きゃっ。
+  - id: f5
+    type: text
+    writingMode: vertical-rl
+    x: 160
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: Arial
+      lineHeight: 1.6
+    content: Ａ：Ｂ；Ｃ＝Ｄ〔亀甲〕
+  - id: l2
+    type: text
+    x: 700
+    "y": 30
+    content: NotoSansJP (vertical glyphs)
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: n0
+    type: text
+    writingMode: vertical-rl
+    x: 1200
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 「こんにちは」、と言った。
+  - id: n1
+    type: text
+    writingMode: vertical-rl
+    x: 1120
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: （注）ー〜…‥
+  - id: n2
+    type: text
+    writingMode: vertical-rl
+    x: 1040
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 『二重』【隅付】〈山〉《二重》
+  - id: n3
+    type: text
+    writingMode: vertical-rl
+    x: 960
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: えーっと、スーパー！？
+  - id: n4
+    type: text
+    writingMode: vertical-rl
+    x: 880
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: ちょっと待って。きゃっ。
+  - id: n5
+    type: text
+    writingMode: vertical-rl
+    x: 800
+    "y": 80
+    anchorX: 1
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: Ａ：Ｂ；Ｃ＝Ｄ〔亀甲〕

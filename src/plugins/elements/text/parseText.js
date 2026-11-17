@@ -7,6 +7,11 @@ import {
   createTextChunks,
   prepareRichTextSegments,
 } from "../text-revealing/parseTextRevealing.js";
+import {
+  createVerticalTextChunks,
+  isVerticalWritingMode,
+  normalizeWritingMode,
+} from "./verticalTextLayout.js";
 
 const RICH_TEXT_NO_WRAP_WIDTH = 100000;
 
@@ -28,6 +33,97 @@ const getRichTextWordWrapWidth = (state, textStyle) => {
 };
 
 /**
+ * Vertical text always goes through the rich layout: columns are positioned
+ * part by part, so a plain string is treated as a single segment. Here
+ * `height` is the wrap dimension and `width` is measured.
+ */
+const parseVerticalText = ({
+  state,
+  baseTextStyle,
+  textStyle,
+  writingMode,
+}) => {
+  const content = Array.isArray(state.content)
+    ? state.content
+    : [{ text: String(state.content ?? "") }];
+  const {
+    chunks,
+    width: measuredWidth,
+    height: measuredHeight,
+  } = createVerticalTextChunks(
+    prepareRichTextSegments({ content, defaultTextStyle: baseTextStyle }),
+    {
+      columnLength: typeof state.height === "number" ? state.height : undefined,
+      width: typeof state.width === "number" ? state.width : undefined,
+      align: baseTextStyle.align,
+    },
+  );
+  const roundedMeasuredWidth = Math.round(measuredWidth);
+  const layoutWidth =
+    typeof state.width === "number"
+      ? Math.round(state.width)
+      : roundedMeasuredWidth;
+  const layoutHeight = Math.round(
+    typeof state.height === "number" ? state.height : measuredHeight,
+  );
+  const computedText = {
+    ...parseCommonObject({
+      ...state,
+      width: layoutWidth,
+      height: layoutHeight,
+    }),
+    content: chunks,
+    writingMode,
+    measuredWidth: roundedMeasuredWidth,
+    textStyle: {
+      ...textStyle,
+    },
+    ...(state.hover && { hover: state.hover }),
+    ...(state.click && { click: state.click }),
+    ...(state.rightClick && { rightClick: state.rightClick }),
+    ...(state.scrollUp && { scrollUp: state.scrollUp }),
+    ...(state.scrollDown && { scrollDown: state.scrollDown }),
+  };
+
+  Object.defineProperties(computedText, {
+    __anchorXRatio: {
+      value: state.anchorX ?? 0,
+      enumerable: false,
+    },
+    __anchorYRatio: {
+      value: state.anchorY ?? 0,
+      enumerable: false,
+    },
+    __fixedWidth: {
+      value: typeof state.width === "number",
+      enumerable: false,
+    },
+    __layoutWidth: {
+      value: layoutWidth,
+      enumerable: false,
+    },
+    __layoutHeight: {
+      value: layoutHeight,
+      enumerable: false,
+    },
+    ...(typeof state.originX === "number" && {
+      __explicitOriginX: {
+        value: true,
+        enumerable: true,
+      },
+    }),
+    ...(typeof state.originY === "number" && {
+      __explicitOriginY: {
+        value: true,
+        enumerable: true,
+      },
+    }),
+  });
+
+  return computedText;
+};
+
+/**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').TextComputedNode} TextComputedNode
  */
@@ -40,11 +136,16 @@ const getRichTextWordWrapWidth = (state, textStyle) => {
  * @returns {TextComputedNode}
  */
 export const parseText = ({ state }) => {
+  const writingMode = normalizeWritingMode(state.writingMode);
   const contentIsRich = Array.isArray(state.content);
   const baseTextStyle = mergeTextStyle(DEFAULT_TEXT_STYLE, state.textStyle);
   const textStyle = { ...baseTextStyle };
 
   textStyle.lineHeight = Math.round(textStyle.fontSize * textStyle.lineHeight);
+
+  if (isVerticalWritingMode({ writingMode })) {
+    return parseVerticalText({ state, baseTextStyle, textStyle, writingMode });
+  }
 
   // Handle word wrap width based on element width
   if (typeof state.width === "number") {

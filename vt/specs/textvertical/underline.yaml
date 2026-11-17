@@ -1,0 +1,98 @@
+---
+title: Vertical Text - Underline
+description: textDecoration underline is drawn as a sideline on the right of the column.
+specs:
+- the line should run down the right side of underlined characters
+- the line should continue across upright, combined and sideways parts
+- characters without the decoration should have no line
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: u1
+    type: text
+    writingMode: vertical-rl
+    x: 1160
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: ここが
+    - text: 重要な語句
+      textStyle:
+        textDecoration: underline
+    - text: です。
+  - id: u2
+    type: text
+    writingMode: vertical-rl
+    x: 980
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 締切は
+    - text: 12月25日
+      textStyle:
+        textDecoration: underline
+    - text: まで。
+  - id: u3
+    type: text
+    writingMode: vertical-rl
+    x: 800
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 商品名
+    - text: Route Graphics
+      textStyle:
+        textDecoration: underline
+    - text: 発売
+  - id: u4
+    type: text
+    writingMode: vertical-rl
+    x: 620
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content:
+    - text: 全部に下線、「括弧」も。
+      textStyle:
+        textDecoration: underline
+  - id: u5
+    type: text
+    writingMode: vertical-rl
+    x: 420
+    "y": 60
+    anchorX: 1
+    textStyle:
+      fontSize: 44
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 2.0
+    content:
+    - text: 小さい
+      textStyle:
+        textDecoration: underline
+        fontSize: 24
+    - text: 大きい
+      textStyle:
+        textDecoration: underline
+        fontSize: 60

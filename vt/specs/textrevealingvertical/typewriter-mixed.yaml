@@ -1,0 +1,172 @@
+---
+title: Vertical Text Revealing - Typewriter With Furigana And Latin
+description: Typewriter reveal over furigana, sideways Latin and combined digits; colored indicator assets are intentional.
+specs:
+- furigana should appear together with its base text
+- a sideways word should type in letter by letter down the column
+- combined digits should appear as one cell
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 300
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 900
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements: []
+- id: typing
+  elements:
+  - id: r
+    type: text-revealing
+    writingMode: vertical-rl
+    x: 1100
+    "y": 60
+    height: 440
+    anchorX: 1
+    speed: 45
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 12
+    content:
+    - text: 「
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 今日
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: きょう
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: はいい
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 天気
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: てんき
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: ですね。」と、
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 彼女
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: かのじょ
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: は
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: 笑
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+      furigana:
+        text: わら
+        textStyle:
+          fontSize: 14
+          fill: '#D9D9D9'
+          fontFamily: NotoSansJP
+    - text: った。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#D9D9D9'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8
+    - text: の第12話、午後3時のことである。
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily: NotoSansJP
+        lineHeight: 1.8

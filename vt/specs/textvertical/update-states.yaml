@@ -1,0 +1,87 @@
+---
+title: Vertical Text - Updates
+description: Switching writing mode, content and height between states replaces the layout cleanly.
+specs:
+- horizontal text should switch to vertical columns on update
+- content updates should reflow the columns
+- height updates should rewrap the columns
+- switching back to horizontal should restore a normal line
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: u
+    type: text
+    x: 640
+    "y": 80
+    content: 縦書きに切り替える文章です。
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+- elements:
+  - id: u
+    type: text
+    writingMode: vertical-rl
+    x: 640
+    "y": 80
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: 縦書きに切り替える文章です。
+- elements:
+  - id: u
+    type: text
+    writingMode: vertical-rl
+    x: 640
+    "y": 80
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: '内容を更新しました。二列目も
+
+      増えています。'
+- elements:
+  - id: u
+    type: text
+    writingMode: vertical-rl
+    x: 640
+    "y": 80
+    height: 220
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6
+    content: '内容を更新しました。二列目も
+
+      増えています。'
+- elements:
+  - id: u
+    type: text
+    x: 640
+    "y": 80
+    content: 横書きに戻りました。
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily: NotoSansJP
+      lineHeight: 1.6

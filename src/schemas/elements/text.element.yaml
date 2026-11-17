@@ -144,6 +144,25 @@ properties:
   width:
     type: number
     description: Width constraint for text wrapping. When set, enables word wrap.
+  writingMode:
+    type: string
+    enum:
+      - horizontal-tb
+      - vertical-rl
+    default: horizontal-tb
+    description: >-
+      Direction the text is laid out in. `vertical-rl` sets the text in
+      columns that run top to bottom and flow from right to left, as used for
+      Japanese and Chinese. In vertical mode `height` is the wrap dimension,
+      `width` is measured, `textStyle.align` aligns along the column
+      (left = top, center, right = bottom) and furigana `placement` top/bottom
+      means the right/left side of the column.
+  height:
+    type: number
+    description: >-
+      Column length for `writingMode: vertical-rl`. When set, columns wrap at
+      this height; when omitted, columns only break at explicit newlines.
+      Ignored for horizontal text, whose height is always measured.
   x:
     type: number
     description: X position of the text
