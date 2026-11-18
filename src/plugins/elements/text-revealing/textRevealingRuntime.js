@@ -40,6 +40,7 @@ const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
 const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
 const TEXT_REVEAL_PART = Symbol("textRevealPart");
+const TEXT_REVEAL_INDICATOR_LINE = Symbol("textRevealIndicatorLine");
 const TEXT_REVEAL_SOUND_ID_PREFIX = "__route_graphics_text_reveal_sound__";
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
@@ -509,7 +510,14 @@ const positionIndicatorForChunk = (
   indicatorSprite,
   chunk,
   indicatorOffsets,
+  element,
 ) => {
+  // Remembered for positionIndicatorAtCharacter, which is always called for
+  // the line the indicator was last placed on.
+  const rtl = chunk ? chunk.direction === "rtl" : element?.direction === "rtl";
+
+  indicatorSprite[TEXT_REVEAL_INDICATOR_LINE] = { chunk, rtl };
+
   if (chunk?.vertical) {
     indicatorSprite.x =
       chunk.centerX -
@@ -521,14 +529,37 @@ const positionIndicatorForChunk = (
 
   // A right-to-left line starts at its right end and the indicator runs
   // ahead of the text, to its left.
-  indicatorSprite.x =
-    chunk?.direction === "rtl"
-      ? chunk.inlineStartX -
-        Math.max(0, indicatorSprite?.width ?? 0) -
-        indicatorOffsets.x
-      : indicatorOffsets.x;
+  if (rtl) {
+    // Without any text the first line would start at the right edge.
+    indicatorSprite.x =
+      (chunk ? chunk.inlineStartX : Math.max(0, element.width ?? 0)) -
+      Math.max(0, indicatorSprite?.width ?? 0) -
+      indicatorOffsets.x;
+  } else {
+    indicatorSprite.x = indicatorOffsets.x;
+  }
+
   indicatorSprite.y =
     getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
+};
+
+// Left edge of the text revealed so far on a right-to-left line. Parts are
+// revealed in logical order, so everything before `part` is fully shown;
+// several left-to-right runs in a row (two styled Latin words) put the
+// newest one to the right of the older ones.
+const getRevealedLineLeft = (indicatorSprite, textObject, part) => {
+  const lineParts =
+    indicatorSprite[TEXT_REVEAL_INDICATOR_LINE]?.chunk?.lineParts ?? [];
+  const partIndex = lineParts.indexOf(part);
+  let left = getTextPartLeadingEdge(textObject, part);
+
+  for (let index = 0; index < partIndex; index++) {
+    if ((lineParts[index].text ?? "").length > 0) {
+      left = Math.min(left, Math.round(lineParts[index].x));
+    }
+  }
+
+  return left;
 };
 
 const getVerticalPart = (textObject) => {
@@ -575,7 +606,7 @@ const positionIndicatorAtCharacter = (
   // leads the text on its left.
   if (part?.direction) {
     indicatorSprite.x =
-      getTextPartLeadingEdge(textObject, part) -
+      getRevealedLineLeft(indicatorSprite, textObject, part) -
       Math.max(0, indicatorSprite?.width ?? 0) -
       indicatorOffsets.x;
     return;
@@ -592,7 +623,12 @@ const positionIndicatorAtTextEnd = (
   indicatorOffsets,
 ) => {
   if (!lastTextObject || lastTextObject.text.length === 0) {
-    if (!getVerticalPart(lastTextObject)) {
+    // Nothing is shown; a vertical column and a right-to-left line keep the
+    // indicator at their start, where positionIndicatorForChunk put it.
+    if (
+      !getVerticalPart(lastTextObject) &&
+      !indicatorSprite[TEXT_REVEAL_INDICATOR_LINE]?.rtl
+    ) {
       indicatorSprite.x = indicatorOffsets.x;
     }
     return;
@@ -614,7 +650,7 @@ const completeIndicatorAtTextEnd = (
 ) => {
   applyCompleteIndicator(indicatorSprite);
   const indicatorOffsets = getIndicatorOffsets(element, "complete");
-  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
+  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets, element);
   positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
 };
 
@@ -835,7 +871,12 @@ const runTypewriterPrefixReveal = ({
   let lastVisibleChunk = null;
 
   if (remainingCharacters <= 0) {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
     return;
   }
 
@@ -898,7 +939,12 @@ const runTypewriterPrefixReveal = ({
       indicatorOffsets,
     );
   } else {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
   }
 
   if (revealedCharacters >= totalCharacters) {
@@ -922,7 +968,12 @@ const runPausedInitialReveal = ({
     const indicatorOffsets = getIndicatorOffsets(element);
     const firstChunk = element.content[0] ?? null;
 
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
     return;
   }
 

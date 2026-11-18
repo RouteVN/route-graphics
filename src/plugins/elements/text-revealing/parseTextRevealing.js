@@ -321,12 +321,16 @@ const consumeMeasuredLineFromSource = (
  * Creates text chunks (lines) from content segments
  * @param {Array} segments - Text segments with styles
  * @param {number} wordWrapWidth - Maximum width for wrapping
+ * @param {Object} [options]
+ * @param {number} [options.minimumWidth] - Smallest width to report
+ * @param {boolean} [options.trackSource] - Give every part a `sourceStart`,
+ * its offset in the concatenated text of all segments
  * @returns {Object} Object containing chunks and dimensions
  */
 export const createTextChunks = (
   segments,
   wordWrapWidth,
-  { minimumWidth = wordWrapWidth } = {},
+  { minimumWidth = wordWrapWidth, trackSource = false } = {},
 ) => {
   const chunks = [];
   let lineParts = [];
@@ -338,6 +342,16 @@ export const createTextChunks = (
 
   const segmentCopy = [...segments];
   const segmentFuriganaAdded = new WeakSet();
+  const sourceStarts = new Map();
+
+  if (trackSource) {
+    let sourceLength = 0;
+
+    for (const segment of segments) {
+      sourceStarts.set(segment, sourceLength);
+      sourceLength += segment?.text?.length ?? 0;
+    }
+  }
   const maxIterations = Math.max(
     10,
     segments.reduce((sum, segment) => sum + (segment?.text?.length ?? 0), 0) *
@@ -468,6 +482,16 @@ export const createTextChunks = (
       y,
     };
 
+    if (trackSource) {
+      const sourceStart = sourceStarts.get(segment);
+
+      newTextPart.sourceStart = sourceStart;
+      sourceStarts.set(
+        segment,
+        sourceStart + originalText.length - remainingText.length,
+      );
+    }
+
     // Add furigana if present and not already added for this segment
     if (segment.furigana && !segmentFuriganaAdded.has(segment)) {
       segmentFuriganaAdded.add(segment);
@@ -564,6 +588,13 @@ export const createTextChunks = (
   };
 };
 
+/**
+ * The authored text of rich content, one character for every character of
+ * the segments prepareRichTextSegments returns.
+ */
+export const getRichTextSourceText = (content) =>
+  (content || []).map((item) => String(item.text)).join("");
+
 export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
   (content || []).map((item, itemIndex) => {
     const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
@@ -646,6 +677,9 @@ export const parseTextRevealing = ({ state }) => {
     defaultTextStyle,
     width: vertical ? undefined : state.width || undefined,
   });
+  // Line breaking consumes the segments, so the text is kept for the bidi
+  // layout, which resolves directions across line breaks.
+  const sourceText = rtl ? getRichTextSourceText(state.content) : undefined;
 
   // Calculate text dimensions using unified chunk approach
   const wordWrapWidth = state.width || 500;
@@ -658,15 +692,19 @@ export const parseTextRevealing = ({ state }) => {
         align: defaultTextStyle.align,
         writingMode,
       })
-    : createTextChunks(processedContent, wordWrapWidth);
+    : createTextChunks(processedContent, wordWrapWidth, {
+        trackSource: rtl,
+      });
   const { width: calculatedWidth, height: calculatedHeight } = logicalLayout;
   const finalWidth = state.width || calculatedWidth;
   // Right-to-left lines start at the right edge of the text box.
+  const align = resolveDirectionalAlign(direction, state.textStyle?.align);
   const chunks = rtl
     ? applyBidiLayout(logicalLayout.chunks, {
         direction,
         width: finalWidth,
-        align: resolveDirectionalAlign(direction, state.textStyle?.align),
+        align,
+        sourceText,
       }).chunks
     : logicalLayout.chunks;
 
@@ -712,6 +750,7 @@ export const parseTextRevealing = ({ state }) => {
     ...(rtl && { direction }),
     textStyle: {
       ...defaultTextStyle,
+      ...(rtl && { align }),
     },
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",

@@ -211,9 +211,9 @@ elements:
 
 `direction: rtl` lays the content out as the [`text` node](/docs/nodes/text/#right-to-left-text) does: lines start at the right edge of the box and mixed-direction runs are ordered with the Unicode Bidirectional Algorithm. Set `width`; without it lines are aligned inside the 500px wrap basis. The reveal effects follow the text:
 
-- `typewriter` reveals in reading order. Text appears from the right edge and grows leftwards; a Latin word or number inside the line types left to right in its final position, so revealed text never moves.
+- `typewriter` reveals in reading order. Text appears from the right edge and grows leftwards; a Latin word or number inside the line types left to right in its final position, so revealed text never moves. A half-revealed Arabic word already uses the joined letter shapes of the complete word.
 - `softWipe` wipes each line from its right end towards the left.
-- The indicator leads the text on its left. `offsetX` moves it along the text (left) and `offsetY` down.
+- The indicator leads the text on its left, at the left end of what the line shows so far. `offsetX` moves it along the text (left) and `offsetY` down. With no content it sits at the right edge of the box.
 - `initialRevealedCharacters` counts characters in reading order, as for left-to-right text.
 
 ```yaml

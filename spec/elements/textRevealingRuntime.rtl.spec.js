@@ -105,6 +105,32 @@ describe("runTextReveal with right-to-left text", () => {
     expect(indicator.x + indicator.width).toBeCloseTo(lineLeft - 6, 0);
   });
 
+  it("keeps the indicator clear of several left-to-right runs", async () => {
+    const element = createElement({
+      revealEffect: "none",
+      content: [
+        { text: "שלום ", textStyle: { fontSize: 20 } },
+        { text: "Hello ", textStyle: { fontSize: 20, fill: "red" } },
+        { text: "World", textStyle: { fontSize: 20 } },
+      ],
+    });
+    const container = await reveal(element);
+    const indicator = findIndicator(container);
+    const parts = element.content[0].lineParts;
+    const lineLeft = Math.min(...parts.map((part) => part.x));
+
+    expect(parts.at(-1).x).toBeGreaterThan(lineLeft);
+    expect(indicator.x + indicator.width).toBeCloseTo(lineLeft - 6, 0);
+  });
+
+  it("starts the indicator at the right edge when there is no text", async () => {
+    const element = createElement({ revealEffect: "none", content: [] });
+    const container = await reveal(element);
+    const indicator = findIndicator(container);
+
+    expect(indicator.x + indicator.width).toBeCloseTo(400 - 6, 0);
+  });
+
   it("keeps a partly revealed run against its right edge", async () => {
     const element = createElement({
       revealEffect: "typewriter",

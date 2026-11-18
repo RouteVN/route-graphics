@@ -242,6 +242,18 @@ properties:
               y:
                 type: number
                 description: Vertical position
+              direction:
+                type: string
+                description: Direction of the run, `ltr` or `rtl` (right-to-left text only)
+              width:
+                type: number
+                description: Width of the run's slot in its line (right-to-left text only)
+              joinBefore:
+                type: boolean
+                description: True when the run continues a joined word from the previous run
+              joinAfter:
+                type: boolean
+                description: True when the next run continues this run's joined word
               furigana:
                 type: object
                 properties:

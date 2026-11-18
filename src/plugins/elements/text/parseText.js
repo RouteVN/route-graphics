@@ -5,6 +5,7 @@ import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 import {
   createTextChunks,
+  getRichTextSourceText,
   prepareRichTextSegments,
 } from "../text-revealing/parseTextRevealing.js";
 import {
@@ -183,22 +184,29 @@ export const parseText = ({ state }) => {
 
   if (contentIsRich) {
     const wordWrapWidth = getRichTextWordWrapWidth(state, baseTextStyle);
+    const content = Array.isArray(state.content)
+      ? state.content
+      : [{ text: String(state.content ?? "") }];
     const processedContent = prepareRichTextSegments({
-      content: Array.isArray(state.content)
-        ? state.content
-        : [{ text: String(state.content ?? "") }],
+      content,
       defaultTextStyle: baseTextStyle,
       width: typeof state.width === "number" ? state.width : undefined,
     });
+    // Line breaking consumes the segments, so the text is kept for the bidi
+    // layout, which resolves directions across line breaks.
+    const sourceText = rtl ? getRichTextSourceText(content) : undefined;
     const logicalLayout = createTextChunks(processedContent, wordWrapWidth, {
       minimumWidth: 0,
+      trackSource: rtl,
     });
     const calculatedHeight = logicalLayout.height;
+    const align = resolveDirectionalAlign(direction, state.textStyle?.align);
     const { chunks, width: calculatedWidth } = rtl
       ? applyBidiLayout(logicalLayout.chunks, {
           direction,
           width: typeof state.width === "number" ? state.width : undefined,
-          align: resolveDirectionalAlign(direction, state.textStyle?.align),
+          align,
+          sourceText,
         })
       : logicalLayout;
     const roundedMeasuredWidth = Math.round(calculatedWidth);
@@ -221,6 +229,8 @@ export const parseText = ({ state }) => {
       measuredWidth: roundedMeasuredWidth,
       textStyle: {
         ...textStyle,
+        // The alignment the lines were laid out with; right unless authored.
+        ...(rtl && { align }),
       },
       ...getInteractionProps(state),
     };

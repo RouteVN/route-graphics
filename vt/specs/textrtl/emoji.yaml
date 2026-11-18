@@ -1,0 +1,116 @@
+---
+title: RTL Text - Emoji
+description: 'Emoji are neutral characters: they take their place in the right-to-left order instead of attaching to Latin words or numbers.'
+specs:
+- 'line 1: from the right, the first word, abc, the face, the last word'
+- 'line 2: from the right, the letters, the face, 5, the letters'
+- 'line 3: the grinning face should be to the right of the sunglasses face'
+- 'line 4: the sunglasses face should be at the far left, after 2024'
+- 'line 5: from the right, the Arabic word, the larger face, red abc'
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: e0
+    type: text
+    x: 1200
+    "y": 40
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום abc 😀 שלום
+  - id: e1
+    type: text
+    x: 1200
+    "y": 160
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: אבג 😀 5 דהו
+  - id: e2
+    type: text
+    x: 1200
+    "y": 280
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: مرحبا 😀😎 بالعالم
+  - id: e3
+    type: text
+    x: 1200
+    "y": 400
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום 😀 עולם 2024 😎
+  - id: e4
+    type: text
+    x: 1200
+    "y": 520
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'مرحبا '
+      textStyle:
+        fontSize: 48
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: '😀 '
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: abc
+      textStyle:
+        fontSize: 48
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5

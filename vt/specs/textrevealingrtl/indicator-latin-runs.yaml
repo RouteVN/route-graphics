@@ -1,0 +1,191 @@
+---
+title: RTL Text Revealing - Indicator After Left-To-Right Runs
+description: The indicator sits at the left end of the line even when the line ends in several differently styled Latin runs; colored indicator assets are intentional.
+specs:
+- lines 1 and 2 end in Latin words of different colours; the indicator should be left of the whole Latin phrase, not on top of it
+- line 3 ends in a Hebrew word; the indicator should be left of that word
+- the empty text in the grey box should have its indicator at the right edge of the box
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: i0
+    type: text-revealing
+    x: 300
+    "y": 60
+    direction: rtl
+    width: 700
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'שלום '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: 'Hello '
+      textStyle:
+        fontSize: 34
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: World
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: i1
+    type: text-revealing
+    x: 300
+    "y": 180
+    direction: rtl
+    width: 700
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'اضغط على '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: 'Start '
+      textStyle:
+        fontSize: 34
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: 'Game '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: '2024'
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: i2
+    type: text-revealing
+    x: 300
+    "y": 300
+    direction: rtl
+    width: 700
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'שלום '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: 'Hello '
+      textStyle:
+        fontSize: 34
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: World
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' עולם'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: i3b
+    type: rect
+    x: 300
+    "y": 420
+    width: 700
+    height: 60
+    fill: '#333333'
+  - id: i3
+    type: text-revealing
+    x: 300
+    "y": 420
+    direction: rtl
+    width: 700
+    height: 60
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content: []

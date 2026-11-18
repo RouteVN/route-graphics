@@ -1,0 +1,55 @@
+---
+title: RTL Text - Hover Style That Changes Size
+description: A hover textStyle that changes the font size places the runs of the line again.
+specs:
+- first screenshot should show both lines at the idle size
+- second screenshot should show the first line larger, its words in the same order, not overlapping and still ending at the same right edge
+steps:
+- action: screenshot
+- action: move
+  x: 1000
+  "y": 150
+- action: wait
+  ms: 200
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    x: 1200
+    "y": 120
+    direction: rtl
+    anchorX: 1
+    hover:
+      textStyle:
+        fontSize: 60
+        fill: '#ffd166'
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום Start עולם 2024
+  - id: b
+    type: text
+    x: 1200
+    "y": 320
+    direction: rtl
+    anchorX: 1
+    hover:
+      textStyle:
+        fontSize: 60
+        fill: '#ffd166'
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: اضغط على Start للبدء الآن

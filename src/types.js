@@ -728,6 +728,10 @@
  * @property {boolean} [atomic] - True when the part is a single cell that reveals as a whole
  * @property {number} [inlineStart] - Y position where the part starts along its column (vertical text only)
  * @property {number} [inlineEnd] - Y position where the part ends along its column (vertical text only)
+ * @property {'ltr' | 'rtl'} [direction] - Direction of the run (right-to-left text only)
+ * @property {number} [width] - Width of the run's slot in its line (right-to-left text only)
+ * @property {boolean} [joinBefore] - True when the run continues a joined word from the previous run
+ * @property {boolean} [joinAfter] - True when the next run continues this run's joined word
  * @property {FuriganaPart} furigana
  */
 

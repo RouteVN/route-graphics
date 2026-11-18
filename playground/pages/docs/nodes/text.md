@@ -139,8 +139,9 @@ Set `direction: rtl` for Arabic, Hebrew and other right-to-left scripts. It is t
 
 What `rtl` does:
 
-- Mixed text is ordered with the Unicode Bidirectional Algorithm. Latin words and numbers inside a right-to-left line read left to right, brackets are mirrored, and sentence punctuation ends up on the left.
-- Rich segments follow each other from right to left. A word split across segments (for example one coloured letter) stays joined.
+- Mixed text is ordered with the Unicode Bidirectional Algorithm. Latin words and numbers inside a right-to-left line read left to right, brackets are mirrored, and sentence punctuation ends up on the left. Directions are resolved for the whole paragraph before it is wrapped, so the result does not depend on where lines break. Emoji take their place in the right-to-left order.
+- Rich segments follow each other from right to left. A word split across segments (for example one coloured letter) is shaped like the unsplit word: its letters join wherever the script joins them.
+- `hover`, `click` and `rightClick` text styles that change the size of the text place the words of each line again. Lines are not wrapped again, so a much larger interaction style can extend past `width`.
 - `textStyle.letterSpacing` is ignored on right-to-left runs, because spacing letters apart breaks Arabic joining. Left-to-right runs keep it.
 - Use a font that covers the script. Load it through assets and put it first in `textStyle.fontFamily`, with a Latin font after it if the text mixes scripts.
 
