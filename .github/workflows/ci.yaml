@@ -52,9 +52,9 @@ jobs:
           path: .
       - name: Install Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Install WebKit
+      - name: Install WebKit and Firefox
         if: matrix.suite == 'browser'
-        run: bunx playwright install --with-deps webkit
+        run: bunx playwright install --with-deps webkit firefox
       - name: Unit and CLI tests
         if: matrix.suite == 'unit'
         env:
@@ -75,6 +75,8 @@ jobs:
           node scripts/testLayoutReport.mjs
           node scripts/testTransitionSnapshots.mjs --out-dir .rettangoli/transition-snapshots
           node scripts/testStoryExtraction.mjs --out-dir .rettangoli/story-extraction
+          # Firefox only has WebGL with a window, so this one runs in a virtual display.
+          xvfb-run -a node scripts/testRtlShaping.mjs --out-dir .rettangoli/rtl-shaping
       - name: WebGPU integration
         if: matrix.suite == 'webgpu'
         run: node scripts/testWebGPUShaders.mjs

@@ -1,0 +1,291 @@
+---
+title: RTL Text - Marks And Ligatures Across Style Segments
+description: 'A colour change inside one shape does not break it: marks stay on their letter and lam-alef stays one ligature.'
+specs:
+- every word in a row should have the same shapes as the white word on the right, only the colours differ
+- vowel marks should sit on their letters in the colour of the letter, never on a dotted circle or beside the word
+- in the middle row lam and alef should form one ligature in the colour of the lam
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: m0
+    type: text
+    x: 1200
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مَرْحَبًا
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: m1
+    type: text
+    x: 800
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مَرْحَب
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ًا
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: m2
+    type: text
+    x: 400
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مَر
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ْحَبًا
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: l0
+    type: text
+    x: 1200
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: سلام
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: l1
+    type: text
+    x: 800
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: سل
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ام
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: l2
+    type: text
+    x: 400
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: س
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ل
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ام
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: h0
+    type: text
+    x: 1200
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: שָׁלוֹם
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: h1
+    type: text
+    x: 800
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: ש
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ָׁלוֹם
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: h2
+    type: text
+    x: 400
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: שָׁלו
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ֹם
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5

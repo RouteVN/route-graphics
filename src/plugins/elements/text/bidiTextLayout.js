@@ -1,5 +1,10 @@
 import bidiFactory from "bidi-js";
-import { CanvasTextMetrics, TextStyle } from "pixi.js";
+import {
+  CanvasTextMetrics,
+  DOMAdapter,
+  TextStyle,
+  fontStringFromTextStyle,
+} from "pixi.js";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { joinsAcross } from "../../../util/joiningType.js";
 
@@ -32,12 +37,20 @@ const ZERO_WIDTH_JOINER = "‍";
 // A canvas moves whitespace at the very end of a string to the end of its
 // own left-to-right paragraph (rule L1), whatever override it sits in. A
 // right-to-left run that ends in a space is closed with this invisible
-// strong character so the space stays where the run puts it. Chromium also
-// ignores a zero width joiner that is the last character of a run, so a run
-// that joins the next one is closed the same way.
+// strong character so the space stays where the run puts it. Chromium and
+// Firefox also ignore a zero width joiner that is the last character of a
+// run, so a run that joins the next one is closed the same way.
 const RIGHT_TO_LEFT_MARK = "‏";
+// Firefox ignores a joiner that directly follows the override character at
+// the start of an Arabic run. This invisible Arabic letter in front of the
+// joiner makes it take effect. It is kept to Arabic: before a Syriac letter
+// it changes the shape Firefox picks for the letter.
+const ARABIC_LETTER_MARK = "\u061C";
+const ARABIC_LETTER_MARK_SCRIPT_PATTERN =
+  /^[\p{Mn}\p{Me}\p{Cf}]*\p{Script=Arabic}/u;
 
 const WHITESPACE_PATTERN = /\s/u;
+const LINE_BREAK_PATTERN = /\r\n|\r|\n/;
 const SURROGATE_PAIR_PATTERN = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
 const NO_BREAK_SPACE_PATTERN = /\u00A0/g;
 
@@ -103,6 +116,11 @@ const getStrokeWidth = (textStyle) =>
 const drawsCharacterByCharacter = (part, textStyle) =>
   part.direction === LTR_DIRECTION && Boolean(textStyle?.letterSpacing);
 
+const getLeadingJoiner = (value) =>
+  ARABIC_LETTER_MARK_SCRIPT_PATTERN.test(value)
+    ? ARABIC_LETTER_MARK + ZERO_WIDTH_JOINER
+    : ZERO_WIDTH_JOINER;
+
 /**
  * The string to draw for a bidi part showing `value`, a prefix of its text.
  * Horizontal LTR parts and vertical parts are drawn as they are.
@@ -121,7 +139,7 @@ export const getTextPartDisplayText = (part, value = part?.text ?? "") => {
 
   return [
     rtl ? RIGHT_TO_LEFT_OVERRIDE : LEFT_TO_RIGHT_OVERRIDE,
-    part.joinBefore ? ZERO_WIDTH_JOINER : "",
+    part.joinBefore ? getLeadingJoiner(value) : "",
     value,
     joinAfter ? ZERO_WIDTH_JOINER : "",
     rtl && (joinAfter || WHITESPACE_PATTERN.test(value.at(-1)))
@@ -135,6 +153,14 @@ const measureWidth = (text, style) => {
   if (text.length === 0) return 0;
 
   return CanvasTextMetrics.measureText(text, style, undefined, false).width;
+};
+
+let advanceContext = null;
+
+const getAdvanceContext = () => {
+  advanceContext ??= DOMAdapter.get().createCanvas(1, 1).getContext("2d");
+
+  return advanceContext;
 };
 
 const measurementStyles = new WeakMap();
@@ -151,6 +177,43 @@ const createMeasurementStyle = (textStyle) => {
 };
 
 /**
+ * Width of the slot a bidi part needs to show `value`: the advance of the
+ * string plus the stroke around it.
+ *
+ * Pixi measures the larger of a string's advance and its ink box. A joined
+ * Arabic letter reaches past its advance into its neighbour on purpose, so a
+ * run placed by Pixi's width would sit a few pixels away from the letter it
+ * connects to.
+ */
+const measurePartWidth = (part, value = part.text) => {
+  const text = getTextPartDisplayText(part, value);
+
+  if (text.length === 0) return 0;
+
+  const style = createMeasurementStyle(part.textStyle);
+  const metrics = CanvasTextMetrics.measureText(text, style, undefined, false);
+
+  // Spaced text is drawn one character at a time; Pixi's arithmetic for it
+  // is the width it will take.
+  if (style.letterSpacing) return metrics.width;
+
+  const context = getAdvanceContext();
+
+  // The font is the one Pixi measured with.
+  context.font = fontStringFromTextStyle(metrics.style);
+
+  // A canvas measures a line break as a space. Pixi draws the text after it
+  // on a line of its own, so a break takes no width.
+  const advance = Math.max(
+    ...text
+      .split(LINE_BREAK_PATTERN)
+      .map((line) => context.measureText(line).width),
+  );
+
+  return advance + (metrics.style._stroke?.width ?? 0);
+};
+
+/**
  * Show `value` in the text object of a part and keep it in its slot. A
  * right-to-left run grows leftwards from its right edge, so its position
  * depends on how much of it is visible.
@@ -163,9 +226,7 @@ export const setTextPartText = (display, part, value = part?.text ?? "") => {
   if (part?.direction !== RTL_DIRECTION) return;
 
   const complete = value.length >= part.text.length;
-  const width = complete
-    ? part.width
-    : measureWidth(displayText, createMeasurementStyle(part.textStyle));
+  const width = complete ? part.width : measurePartWidth(part, value);
 
   display.x = Math.round(part.x + part.width - width);
 };
@@ -284,6 +345,56 @@ const createRunStyle = (textStyle, direction) => ({
   ...(direction === RTL_DIRECTION && { letterSpacing: 0 }),
 });
 
+// A style can change in the middle of something that is drawn as one shape:
+// between a letter and its marks, or inside the lam-alef ligature that
+// Arabic requires. Drawn as two runs the marks lose their letter and the
+// ligature does not form, so the rest of the shape moves into the part it
+// started in and takes that part's style.
+const LEADING_MARKS_PATTERN = /^\p{M}+/u;
+// Lam and the lams with added marks that Kurdish and other languages use.
+const TRAILING_LAM_PATTERN = /[\u0644\u06B5-\u06B8\u076A\u08A6\u08C7]\p{M}*$/u;
+const LEADING_ALEF_PATTERN =
+  /^[\u0622\u0623\u0625\u0627\u0671-\u0673\u0675]\p{M}*/u;
+
+const getSharedShapeLength = (before, after) => {
+  let length = after.match(LEADING_MARKS_PATTERN)?.[0].length ?? 0;
+
+  if (TRAILING_LAM_PATTERN.test(before + after.slice(0, length))) {
+    length += after.slice(length).match(LEADING_ALEF_PATTERN)?.[0].length ?? 0;
+  }
+
+  return length;
+};
+
+// The text of all parts together stays the same, so embedding levels
+// resolved before this still line up with it.
+const keepShapesWhole = (lineParts) => {
+  const parts = [];
+
+  for (const part of lineParts) {
+    const previous = parts.at(-1);
+    const length = previous
+      ? getSharedShapeLength(previous.text, part.text)
+      : 0;
+
+    if (length === 0) {
+      parts.push(part);
+      continue;
+    }
+
+    parts[parts.length - 1] = {
+      ...previous,
+      text: previous.text + part.text.slice(0, length),
+    };
+
+    if (length < part.text.length) {
+      parts.push({ ...part, text: part.text.slice(length) });
+    }
+  }
+
+  return parts;
+};
+
 const createLineRuns = (lineParts, levels) => {
   const runs = [];
   let offset = 0;
@@ -338,15 +449,9 @@ const createLineRuns = (lineParts, levels) => {
   return runs;
 };
 
-const measurePart = (part) =>
-  measureWidth(
-    getTextPartDisplayText(part),
-    createMeasurementStyle(part.textStyle),
-  );
-
-// A measured width includes the stroke, half of it on each side of the
-// glyphs. Neighbouring runs overlap by that margin, so a stroked line is as
-// tight as the same text drawn in one piece.
+// A slot includes the stroke, half of it on each side of the glyphs.
+// Neighbouring runs overlap by that margin, so a stroked line is as tight
+// as the same text drawn in one piece.
 const getAdvance = (part) =>
   Math.max(0, part.width - getStrokeWidth(part.textStyle));
 
@@ -430,16 +535,15 @@ export const applyBidiLayout = (
       ? getEmbeddingLevels(sourceText, direction)
       : null;
   const lines = chunks.map((chunk) => {
-    const lineParts = (chunk.lineParts ?? []).filter(
+    const authoredParts = (chunk.lineParts ?? []).filter(
       (part) => (part.text ?? "").length > 0,
     );
-    const runs = createLineRuns(
-      lineParts,
-      getLineLevels(lineParts, { direction, sourceLevels }),
-    );
+    const levels = getLineLevels(authoredParts, { direction, sourceLevels });
+    const lineParts = keepShapesWhole(authoredParts);
+    const runs = createLineRuns(lineParts, levels);
 
     for (const run of runs) {
-      run.part.width = measurePart(run.part);
+      run.part.width = measurePartWidth(run.part);
     }
 
     return {
@@ -498,7 +602,7 @@ export const restyleBidiChunks = (
         textStyle: createRunStyle(restyle(part.textStyle), part.direction),
       };
 
-      restyled.width = measurePart(restyled);
+      restyled.width = measurePartWidth(restyled);
 
       return { before: part, part: restyled };
     }),

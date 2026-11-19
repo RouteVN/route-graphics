@@ -11,6 +11,7 @@ const LRO = "‭";
 const PDF = "‬";
 const ZWJ = "‍";
 const RLM = "\u200F";
+const ALM = "\u061C";
 
 const parseRtl = (overrides = {}) =>
   parseText({
@@ -162,7 +163,110 @@ describe("parseText with direction rtl", () => {
     expect(first.joinAfter).toBe(true);
     expect(second.joinBefore).toBe(true);
     expect(getTextPartDisplayText(first)).toBe(`${RLO}مرح${ZWJ}${RLM}${PDF}`);
-    expect(getTextPartDisplayText(second)).toBe(`${RLO}${ZWJ}با${PDF}`);
+    // The joiner at the start follows an Arabic letter mark, which keeps it
+    // in the same script run as the letter in Firefox.
+    expect(getTextPartDisplayText(second)).toBe(`${RLO}${ALM}${ZWJ}با${PDF}`);
+  });
+
+  it("uses the Arabic letter mark for Arabic script only", () => {
+    const split = (before, after) =>
+      parseRtl({
+        content: [
+          { text: before },
+          { text: after, textStyle: { fill: "red" } },
+        ],
+      }).content[0].lineParts;
+    const [, persian] = split("پ", "چ");
+    const [, syriac] = split("ܒ", "ܒ");
+    const [, adlam] = split("𞤀", "𞤁");
+
+    expect(getTextPartDisplayText(persian)).toBe(`${RLO}${ALM}${ZWJ}چ${PDF}`);
+    // Before a Syriac letter the mark changes the shape Firefox picks.
+    expect(getTextPartDisplayText(syriac)).toBe(`${RLO}${ZWJ}ܒ${PDF}`);
+    expect(getTextPartDisplayText(adlam)).toBe(`${RLO}${ZWJ}𞤁${PDF}`);
+  });
+
+  it("keeps a letter and its marks in one run", () => {
+    const node = parseRtl({
+      content: [
+        { text: "مَرْحَب" },
+        { text: "ًا", textStyle: { fill: "red" } },
+      ],
+    });
+    const [first, second] = node.content[0].lineParts;
+
+    // The tanwin belongs to the ب before it and takes its style.
+    expect(first.text).toBe("مَرْحَبً");
+    expect(first.textStyle.fill).not.toBe("red");
+    expect(second.text).toBe("ا");
+    expect(second.textStyle.fill).toBe("red");
+    expect(first.joinAfter).toBe(true);
+    expect(second.joinBefore).toBe(true);
+  });
+
+  it("gathers marks that are spread over several segments", () => {
+    const node = parseRtl({
+      content: [
+        { text: "ل" },
+        { text: "ُ", textStyle: { fill: "red" } },
+        { text: "ّ", textStyle: { fill: "blue" } },
+        { text: "غ" },
+      ],
+    });
+
+    expect(lineTexts(node)).toEqual([["لُّ", "غ"]]);
+  });
+
+  it("keeps the lam-alef ligature in one run", () => {
+    const split = (before, after) =>
+      lineTexts(
+        parseRtl({
+          content: [
+            { text: before },
+            { text: after, textStyle: { fill: "red" } },
+          ],
+        }),
+      )[0];
+
+    expect(split("سل", "ام")).toEqual(["سلا", "م"]);
+    expect(split("ل", "ا")).toEqual(["لا"]);
+    expect(split("ال", "آن")).toEqual(["الآ", "ن"]);
+    // Kurdish lam with a small v.
+    expect(split("ڵ", "او")).toEqual(["ڵا", "و"]);
+    // A marked lam and a marked alef still form the ligature.
+    expect(split("لَ", "اً")).toEqual(["لَاً"]);
+    // Alef then lam is two ordinary letters.
+    expect(split("ا", "ل")).toEqual(["ا", "ل"]);
+    expect(split("ك", "ا")).toEqual(["ك", "ا"]);
+  });
+
+  it("keeps marks with their letter in a left-to-right run too", () => {
+    const node = parseRtl({
+      content: [
+        { text: "שלום e" },
+        { text: "\u0301t", textStyle: { fill: "red" } },
+      ],
+    });
+
+    expect(
+      node.content[0].lineParts.map((part) => part.text.replace("\u00A0", " ")),
+    ).toEqual(["שלום ", "e\u0301", "t"]);
+  });
+
+  it("places runs by their advance, so a split word keeps its width", () => {
+    // Pixi measures the larger of advance and ink box, which grows with
+    // every extra run; K has ink past its advance in the test font.
+    const whole = parseRtl({ content: "KKKK" });
+    const split = parseRtl({
+      content: [{ text: "KK" }, { text: "KK", textStyle: { fill: "red" } }],
+    });
+    const width = (node) =>
+      node.content[0].lineParts.reduce((sum, part) => sum + part.width, 0);
+    const [first, second] = split.content[0].lineParts;
+
+    expect(width(split)).toBeCloseTo(width(whole), 5);
+    expect(split.measuredWidth).toBe(whole.measuredWidth);
+    expect(second.x).toBeCloseTo(first.x + first.width, 5);
   });
 
   it.each([
