@@ -45,15 +45,20 @@ const INK_LIMIT = 0.03;
 const WIDTH_LIMIT = 3;
 
 const ARABIC_PATTERN = /\p{Script=Arabic}/u;
+const ASTRAL_PATTERN = /[\uD800-\uDBFF]/;
 
-// WebKit's Linux build places the marks of an Arabic run (in Noto Sans
-// Arabic the dots are marks) at a height that depends on the rest of the
-// run, and its own measureText disagrees with what it draws. A word drawn
-// in several runs can therefore not match the word drawn in one. Its canvas
-// text also leaves out the bracket pairing of the bidirectional algorithm
-// (UAX #9 rule N0). Lines with Arabic are compared by width there.
+// WebKit's own canvas text is not a reliable reference for some lines, so
+// they are compared by width only there:
+// - Its Linux build draws Arabic glyphs a few pixels above or below where
+//   its measureText puts them, by an amount that depends on the rest of the
+//   run, so a word drawn in several runs cannot match the word drawn in one.
+// - It leaves out the bracket pairing of the bidirectional algorithm (UAX #9
+//   rule N0) and gives characters outside the Basic Multilingual Plane, such
+//   as emoji, the direction of their UTF-16 halves (left to right). Inside a
+//   directional override it orders them correctly, as route-graphics does.
 const SKIP_INK = {
-  webkit: (line) => ARABIC_PATTERN.test(line.text),
+  webkit: (line) =>
+    ARABIC_PATTERN.test(line.text) || ASTRAL_PATTERN.test(line.text),
 };
 
 const LINES = [
@@ -85,6 +90,8 @@ const LINES = [
   "الرقم ١٢٣ و ٤٥٦",
   "البريد user@example.com هنا",
   "(abc (def)) نص",
+  "שלום 😀🎉 עולם",
+  "مرحبا 👍🏽 بالعالم",
 ];
 
 // Each word is cut at every position into two segments, and around every
@@ -107,6 +114,13 @@ const HIGHLIGHT = { fill: "#ff6666" };
 
 const createLines = () => {
   const lines = LINES.map((text) => ({ name: text, text, content: text }));
+
+  // Two emoji in a row, split by a style change.
+  lines.push({
+    name: "שלום 😀|🎉 עולם",
+    text: "שלום 😀🎉 עולם",
+    content: [{ text: "שלום 😀" }, { text: "🎉 עולם", textStyle: HIGHLIGHT }],
+  });
 
   for (const word of SPLIT_WORDS) {
     for (let index = 1; index < word.length; index++) {
