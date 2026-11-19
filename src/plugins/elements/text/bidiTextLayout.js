@@ -52,7 +52,9 @@ const ARABIC_LETTER_MARK_SCRIPT_PATTERN =
 const WHITESPACE_PATTERN = /\s/u;
 const LINE_BREAK_PATTERN = /\r\n|\r|\n/;
 const SURROGATE_PAIR_PATTERN = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
-const NO_BREAK_SPACE_PATTERN = /\u00A0/g;
+// Embeddings, overrides and isolates have already contributed to the run
+// levels. Replaying them inside an individual draw call can reorder its ink.
+const EXPLICIT_BIDI_FORMATTING = /[\u202A-\u202E\u2066-\u2069]/g;
 
 // bidi-js reads text one UTF-16 unit at a time and takes both halves of a
 // surrogate pair for left-to-right letters. Levels are therefore resolved on
@@ -127,7 +129,9 @@ const getLeadingJoiner = (value) =>
  */
 export const getTextPartDisplayText = (part, value = part?.text ?? "") => {
   if (!isBidiPart(part) || value.length === 0) return value;
-  if (drawsCharacterByCharacter(part, part.textStyle)) return value;
+  const visible = value.replace(EXPLICIT_BIDI_FORMATTING, "");
+  if (!visible || drawsCharacterByCharacter(part, part.textStyle))
+    return visible;
 
   const rtl = part.direction === RTL_DIRECTION;
   // A partly revealed word is shaped as if the rest of it were there, so its
@@ -139,10 +143,10 @@ export const getTextPartDisplayText = (part, value = part?.text ?? "") => {
 
   return [
     rtl ? RIGHT_TO_LEFT_OVERRIDE : LEFT_TO_RIGHT_OVERRIDE,
-    part.joinBefore ? getLeadingJoiner(value) : "",
-    value,
+    part.joinBefore ? getLeadingJoiner(visible) : "",
+    visible,
     joinAfter ? ZERO_WIDTH_JOINER : "",
-    rtl && (joinAfter || WHITESPACE_PATTERN.test(value.at(-1)))
+    rtl && (joinAfter || WHITESPACE_PATTERN.test(visible.at(-1)))
       ? RIGHT_TO_LEFT_MARK
       : "",
     POP_DIRECTIONAL_FORMATTING,
@@ -250,16 +254,14 @@ const getAlignOffset = (align, boxWidth, lineWidth) => {
 };
 
 const toBidiText = (text) =>
-  text
-    .replace(NO_BREAK_SPACE_PATTERN, " ")
-    .replace(SURROGATE_PAIR_PATTERN, (pair) =>
-      (
-        BIDI_CLASS_STAND_INS[getBidi().getBidiCharTypeName(pair)] ??
-        BIDI_CLASS_STAND_INS.ON
-      ).repeat(2),
-    );
+  text.replace(SURROGATE_PAIR_PATTERN, (pair) =>
+    (
+      BIDI_CLASS_STAND_INS[getBidi().getBidiCharTypeName(pair)] ??
+      BIDI_CLASS_STAND_INS.ON
+    ).repeat(2),
+  );
 
-const getEmbeddingLevels = (text, direction) =>
+export const getEmbeddingLevels = (text, direction) =>
   getBidi().getEmbeddingLevels(toBidiText(text), direction).levels;
 
 /**
@@ -270,7 +272,10 @@ const getEmbeddingLevels = (text, direction) =>
  * Whitespace at the end of the line takes the paragraph level (rule L1), so
  * it trails the text instead of sitting between it and the line start.
  */
-const getLineLevels = (lineParts, { direction, sourceLevels }) => {
+const getLineLevels = (
+  lineParts,
+  { direction, sourceLevels, endsLine = true },
+) => {
   const lineText = lineParts.map((part) => part.text).join("");
   const baseLevel = direction === RTL_DIRECTION ? 1 : 0;
   const located =
@@ -290,9 +295,11 @@ const getLineLevels = (lineParts, { direction, sourceLevels }) => {
     levels = getEmbeddingLevels(lineText, direction);
   }
 
-  for (let index = lineText.length - 1; index >= 0; index--) {
-    if (!WHITESPACE_PATTERN.test(lineText[index])) break;
-    levels[index] = baseLevel;
+  if (endsLine) {
+    for (let index = lineText.length - 1; index >= 0; index--) {
+      if (!WHITESPACE_PATTERN.test(lineText[index])) break;
+      levels[index] = baseLevel;
+    }
   }
 
   return levels;
@@ -395,7 +402,7 @@ const keepShapesWhole = (lineParts) => {
   return parts;
 };
 
-const createLineRuns = (lineParts, levels) => {
+const measureLineRuns = (lineParts, levels) => {
   const runs = [];
   let offset = 0;
 
@@ -446,6 +453,9 @@ const createLineRuns = (lineParts, levels) => {
     }
   }
 
+  for (const run of runs) {
+    run.part.width = measurePartWidth(run.part);
+  }
   return runs;
 };
 
@@ -458,6 +468,72 @@ const getAdvance = (part) =>
 const getLineWidth = (visualParts) =>
   visualParts.reduce((sum, part) => sum + getAdvance(part), 0) +
   getStrokeWidth(visualParts.at(-1)?.textStyle);
+
+// Pixi wraps a whole segment with one letterSpacing. A spaced bidi segment
+// needs the widths of the runs it will actually draw. Try ordinary word
+// boundaries first, and split an oversized word only when breakWords allows it.
+export const measureSpacedBidiLine = (
+  text,
+  textStyle,
+  sourceStart,
+  sourceLevels,
+) => {
+  const measure = (end, endsLine = true) => {
+    const part = { text: text.slice(0, end), textStyle, sourceStart };
+    const levels = getLineLevels([part], {
+      direction: RTL_DIRECTION,
+      sourceLevels,
+      endsLine,
+    });
+    const runs = measureLineRuns([part], levels);
+    // All runs here have the same stroke.
+    return getLineWidth(runs.map((run) => run.part));
+  };
+
+  const newline = text.search(LINE_BREAK_PATTERN);
+  const lineEnd = newline < 0 ? text.length : newline;
+  let end = lineEnd;
+  let width = measure(end);
+  if (textStyle.wordWrap && width > textStyle.wordWrapWidth) {
+    let lastFit = 0;
+    for (let i = 1; i <= lineEnd; i++) {
+      if (CanvasTextMetrics.isBreakingSpace(text[i - 1])) continue;
+      if (i < lineEnd && !CanvasTextMetrics.isBreakingSpace(text[i])) continue;
+      const candidateWidth = measure(i);
+      if (candidateWidth <= textStyle.wordWrapWidth) {
+        lastFit = i;
+        continue;
+      }
+      end = lastFit || i;
+      if (!lastFit && textStyle.breakWords) {
+        let offset = 0;
+        for (const char of CanvasTextMetrics.wordWrapSplit(text.slice(0, i))) {
+          const next = offset + char.length;
+          if (offset && measure(next) > textStyle.wordWrapWidth) break;
+          offset = next;
+        }
+        end = offset;
+      }
+      break;
+    }
+    width = measure(end);
+  }
+
+  // A trailing space between two styled Latin words still belongs to their
+  // LTR phrase. Reserve its spaced advance when fitting the next segment.
+  const continues =
+    end === text.length && sourceStart + end < sourceLevels.length;
+  const advance =
+    continues && WHITESPACE_PATTERN.test(text.at(-1))
+      ? measure(end, false)
+      : width;
+  return {
+    text: text.slice(0, end),
+    width,
+    advance,
+    hasMoreLines: end < text.length,
+  };
+};
 
 /**
  * Give the parts of every line their `x`, from the left, in visual order.
@@ -520,31 +596,22 @@ const getInlineStartX = (direction, { lineLeft, lineWidth }) =>
  * @param {"ltr" | "rtl"} options.direction - Base direction of the text
  * @param {number} options.width - Width of the box lines are aligned in
  * @param {string} [options.align] - `left`, `center` or `right`
- * @param {string} [options.sourceText] - The whole text the chunks were
- * broken from. With it, and a `sourceStart` on every part, embedding levels
- * are resolved across line breaks.
+ * @param {Uint8Array} [options.sourceLevels] - Paragraph embedding levels indexed
+ * by each part’s offset in the original text.
  * @returns {{ chunks: Array, width: number }} Chunks with visual positions and
  * the width of the widest line
  */
 export const applyBidiLayout = (
   chunks,
-  { direction = RTL_DIRECTION, width, align = "right", sourceText } = {},
+  { direction = RTL_DIRECTION, width, align = "right", sourceLevels } = {},
 ) => {
-  const sourceLevels =
-    typeof sourceText === "string"
-      ? getEmbeddingLevels(sourceText, direction)
-      : null;
   const lines = chunks.map((chunk) => {
     const authoredParts = (chunk.lineParts ?? []).filter(
       (part) => (part.text ?? "").length > 0,
     );
     const levels = getLineLevels(authoredParts, { direction, sourceLevels });
     const lineParts = keepShapesWhole(authoredParts);
-    const runs = createLineRuns(lineParts, levels);
-
-    for (const run of runs) {
-      run.part.width = measurePartWidth(run.part);
-    }
+    const runs = measureLineRuns(lineParts, levels);
 
     return {
       chunk,

@@ -5,7 +5,7 @@ import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { mergeTextStyle } from "../../../util/mergeTextStyle.js";
 import {
   createTextChunks,
-  getRichTextSourceText,
+  getRichTextSourceLevels,
   prepareRichTextSegments,
 } from "../text-revealing/parseTextRevealing.js";
 import {
@@ -190,14 +190,16 @@ export const parseText = ({ state }) => {
     const processedContent = prepareRichTextSegments({
       content,
       defaultTextStyle: baseTextStyle,
+      rtl,
       width: typeof state.width === "number" ? state.width : undefined,
     });
-    // Line breaking consumes the segments, so the text is kept for the bidi
-    // layout, which resolves directions across line breaks.
-    const sourceText = rtl ? getRichTextSourceText(content) : undefined;
+    // Use the same paragraph levels for line breaking and run placement.
+    const sourceLevels = rtl
+      ? getRichTextSourceLevels(processedContent, direction)
+      : undefined;
     const logicalLayout = createTextChunks(processedContent, wordWrapWidth, {
       minimumWidth: 0,
-      trackSource: rtl,
+      sourceLevels,
     });
     const calculatedHeight = logicalLayout.height;
     const align = resolveDirectionalAlign(direction, state.textStyle?.align);
@@ -206,7 +208,7 @@ export const parseText = ({ state }) => {
           direction,
           width: typeof state.width === "number" ? state.width : undefined,
           align,
-          sourceText,
+          sourceLevels,
         })
       : logicalLayout;
     const roundedMeasuredWidth = Math.round(calculatedWidth);

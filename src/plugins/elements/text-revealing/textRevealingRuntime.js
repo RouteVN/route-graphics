@@ -1011,9 +1011,6 @@ const runTypewriterReveal = async ({
   let revealedAnyNewCharacters = false;
   let lastVisibleTextObject = null;
   let lastVisibleChunk = null;
-  // Vertical columns are made of many one-character parts, so the pause
-  // between steps has to happen between parts as well as inside them.
-  let charactersSinceStep = 0;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -1025,6 +1022,10 @@ const runTypewriterReveal = async ({
 
     const chunk = element.content[chunkIndex];
     let revealedNewCharactersInChunk = false;
+    // A direction change or a vertical cell can split a single authored
+    // segment. Carry the unused part of a reveal step across those runs.
+    const paceAcrossParts = chunk.vertical || chunk.direction === "rtl";
+    let charactersLeftInStep = charactersPerStep;
 
     positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
 
@@ -1074,7 +1075,7 @@ const runTypewriterReveal = async ({
       }
 
       let charIndex = prefilledCharacters;
-      let revealedNewCharactersInPart = false;
+      if (!paceAcrossParts) charactersLeftInStep = charactersPerStep;
 
       while (charIndex < fullText.length) {
         if (signal?.aborted || contentContainer.destroyed) return false;
@@ -1082,7 +1083,7 @@ const runTypewriterReveal = async ({
         // An atomic part is a single cell; never show half of it.
         const nextCharIndex = part.atomic
           ? fullText.length
-          : Math.min(fullText.length, charIndex + charactersPerStep);
+          : Math.min(fullText.length, charIndex + charactersLeftInStep);
         const lastRevealedCharIndex = nextCharIndex - 1;
 
         setTextPartText(text, part, fullText.substring(0, nextCharIndex));
@@ -1092,7 +1093,6 @@ const runTypewriterReveal = async ({
           lastRevealedCharIndex,
           indicatorOffsets,
         );
-        revealedNewCharactersInPart = true;
         revealedNewCharactersInChunk = true;
         revealedAnyNewCharacters = true;
 
@@ -1108,24 +1108,16 @@ const runTypewriterReveal = async ({
           furiganaText.text = fullFurigana.substring(0, furiganaProgress);
         }
 
+        charactersLeftInStep -= nextCharIndex - charIndex;
         charIndex = nextCharIndex;
 
-        if (charIndex < fullText.length) {
-          await abortableSleep(stepDelay, signal);
-        }
-      }
-
-      if (chunk.vertical && revealedNewCharactersInPart) {
-        charactersSinceStep += part.atomic
-          ? fullText.length
-          : charactersPerStep;
-
         if (
-          charactersSinceStep >= charactersPerStep &&
-          partIndex < chunk.lineParts.length - 1
+          charactersLeftInStep <= 0 &&
+          (charIndex < fullText.length ||
+            (paceAcrossParts && partIndex < chunk.lineParts.length - 1))
         ) {
-          charactersSinceStep = 0;
           await abortableSleep(stepDelay, signal);
+          charactersLeftInStep = charactersPerStep;
         }
       }
     }

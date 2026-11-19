@@ -16,6 +16,8 @@ import {
 } from "../text/verticalTextLayout.js";
 import {
   applyBidiLayout,
+  getEmbeddingLevels,
+  measureSpacedBidiLine,
   isRtlDirection,
   normalizeDirection,
   resolveDirectionalAlign,
@@ -317,20 +319,35 @@ const consumeMeasuredLineFromSource = (
   };
 };
 
+const measureFirstLine = (text, textStyle, sourceStart, sourceLevels) => {
+  if (sourceLevels && textStyle.letterSpacing) {
+    return measureSpacedBidiLine(text, textStyle, sourceStart, sourceLevels);
+  }
+
+  const metrics = CanvasTextMetrics.measureText(
+    text,
+    new TextStyle(toPixiTextStyle(textStyle, { includeShadow: false })),
+  );
+  return {
+    text: metrics.lines[0] ?? "",
+    width: metrics.lineWidths[0],
+    hasMoreLines: metrics.lines.length > 1,
+  };
+};
+
 /**
  * Creates text chunks (lines) from content segments
  * @param {Array} segments - Text segments with styles
  * @param {number} wordWrapWidth - Maximum width for wrapping
  * @param {Object} [options]
  * @param {number} [options.minimumWidth] - Smallest width to report
- * @param {boolean} [options.trackSource] - Give every part a `sourceStart`,
- * its offset in the concatenated text of all segments
+ * @param {Uint8Array} [options.sourceLevels] - Paragraph embedding levels for RTL layout
  * @returns {Object} Object containing chunks and dimensions
  */
 export const createTextChunks = (
   segments,
   wordWrapWidth,
-  { minimumWidth = wordWrapWidth, trackSource = false } = {},
+  { minimumWidth = wordWrapWidth, sourceLevels } = {},
 ) => {
   const chunks = [];
   let lineParts = [];
@@ -344,7 +361,7 @@ export const createTextChunks = (
   const segmentFuriganaAdded = new WeakSet();
   const sourceStarts = new Map();
 
-  if (trackSource) {
+  if (sourceLevels) {
     let sourceLength = 0;
 
     for (const segment of segments) {
@@ -395,29 +412,25 @@ export const createTextChunks = (
         }
       : segment.textStyle;
 
-    const measurements = CanvasTextMetrics.measureText(
-      segment.text,
-      new TextStyle(
-        toPixiTextStyle(styleWithWordWrap, { includeShadow: false }),
-      ),
+    const line = measureFirstLine(
+      originalText,
+      styleWithWordWrap,
+      sourceStarts.get(segment),
+      sourceLevels,
     );
-
-    // Check if text fits on current line
-    if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {
-      // Wrap to next line
+    if (line.width > remainingWidth && lineParts.length > 0) {
       pushCurrentLine();
-      continue; // Try again with full width
+      continue;
     }
 
-    // Extract text that fits on this line
-    let textPart = measurements.lines[0] ?? "";
-    const wrappedToAdditionalLines = measurements.lines.length > 1;
+    let textPart = line.text;
+    const wrappedToAdditionalLines = line.hasMoreLines;
     let remainingText = "";
     let consumedExplicitNewline = false;
 
     // Preserve trailing spaces that might get trimmed by measureText
     if (
-      measurements.lines.length === 1 &&
+      !wrappedToAdditionalLines &&
       segment.text.endsWith(" ") &&
       !textPart.endsWith(" ")
     ) {
@@ -469,7 +482,7 @@ export const createTextChunks = (
     const partWidth = Math.max(
       0,
       Math.round(
-        measurementsWithNoWrapping.width ?? measurements.lineWidths[0] ?? 0,
+        line.advance ?? measurementsWithNoWrapping.width ?? line.width ?? 0,
       ),
     );
 
@@ -482,7 +495,7 @@ export const createTextChunks = (
       y,
     };
 
-    if (trackSource) {
+    if (sourceLevels) {
       const sourceStart = sourceStarts.get(segment);
 
       newTextPart.sourceStart = sourceStart;
@@ -588,14 +601,19 @@ export const createTextChunks = (
   };
 };
 
-/**
- * The authored text of rich content, one character for every character of
- * the segments prepareRichTextSegments returns.
- */
-export const getRichTextSourceText = (content) =>
-  (content || []).map((item) => String(item.text)).join("");
+// Resolve the paragraph using the original kind of space at segment ends.
+export const getRichTextSourceLevels = (segments, direction) =>
+  getEmbeddingLevels(
+    segments.map((segment) => segment.sourceText).join(""),
+    direction,
+  );
 
-export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
+export const prepareRichTextSegments = ({
+  content,
+  defaultTextStyle,
+  width,
+  rtl = false,
+}) =>
   (content || []).map((item, itemIndex) => {
     const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
 
@@ -638,12 +656,32 @@ export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
       };
     }
 
-    const convertedText = String(item.text).replace(/ +$/, (match) =>
-      "\u00A0".repeat(match.length),
+    let sourceText = String(item.text);
+    let text = sourceText.replace(/ +$/, (spaces) =>
+      "\u00A0".repeat(spaces.length),
     );
+    // Let Pixi apply the authored whitespace policy before choosing line
+    // breaks by run width. The resulting offsets also index the bidi levels.
+    if (
+      rtl &&
+      itemTextStyle.letterSpacing &&
+      itemTextStyle.wordWrap &&
+      ["normal", "pre-line"].includes(itemTextStyle.whiteSpace)
+    ) {
+      const style = new TextStyle({
+        ...toPixiTextStyle(itemTextStyle, { includeShadow: false }),
+        wordWrapWidth: Infinity,
+        letterSpacing: 0,
+      });
+      text = CanvasTextMetrics.measureText(text, style).lines.join("\n");
+      const trailingSpaces = sourceText.match(/ +$/)?.[0] ?? "";
+      sourceText =
+        text.slice(0, text.length - trailingSpaces.length) + trailingSpaces;
+    }
 
     return {
-      text: convertedText,
+      text,
+      ...(rtl && { sourceText }),
       textStyle: itemTextStyle,
       ...(furigana && { furigana }),
     };
@@ -675,11 +713,13 @@ export const parseTextRevealing = ({ state }) => {
   const processedContent = prepareRichTextSegments({
     content: state.content,
     defaultTextStyle,
+    rtl,
     width: vertical ? undefined : state.width || undefined,
   });
-  // Line breaking consumes the segments, so the text is kept for the bidi
-  // layout, which resolves directions across line breaks.
-  const sourceText = rtl ? getRichTextSourceText(state.content) : undefined;
+  // Use the same paragraph levels for line breaking and run placement.
+  const sourceLevels = rtl
+    ? getRichTextSourceLevels(processedContent, direction)
+    : undefined;
 
   // Calculate text dimensions using unified chunk approach
   const wordWrapWidth = state.width || 500;
@@ -693,7 +733,7 @@ export const parseTextRevealing = ({ state }) => {
         writingMode,
       })
     : createTextChunks(processedContent, wordWrapWidth, {
-        trackSource: rtl,
+        sourceLevels,
       });
   const { width: calculatedWidth, height: calculatedHeight } = logicalLayout;
   const finalWidth = state.width || calculatedWidth;
@@ -704,7 +744,7 @@ export const parseTextRevealing = ({ state }) => {
         direction,
         width: finalWidth,
         align,
-        sourceText,
+        sourceLevels,
       }).chunks
     : logicalLayout.chunks;
 

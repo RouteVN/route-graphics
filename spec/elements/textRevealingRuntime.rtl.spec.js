@@ -176,4 +176,45 @@ describe("runTextReveal with right-to-left text", () => {
     expect(visibleText(container)).toBe(TEXT);
     expect(completionTracker.complete).toHaveBeenCalledTimes(1);
   });
+
+  it.each([10, 99])(
+    "paces direction changes like one run at speed %i",
+    async (speed) => {
+      vi.useFakeTimers();
+      const mixed = "א1ב2ג3ד4".repeat(3);
+      const plain = "א".repeat(mixed.length);
+      const render = (text) => {
+        const container = new Container();
+        const finished = runTextReveal({
+          container,
+          element: createElement({
+            content: [{ text }],
+            revealEffect: "typewriter",
+            speed,
+            initialRevealedCharacters: 2,
+          }),
+          completionTracker: createCompletionTracker(),
+          animationBus: { dispatch: vi.fn() },
+          zIndex: 0,
+          signal: new AbortController().signal,
+          playback: "autoplay",
+        });
+        return { container, finished };
+      };
+      const alternating = render(mixed);
+      const single = render(plain);
+      await vi.advanceTimersByTimeAsync(0);
+      const first = visibleText(alternating.container);
+      expect(first.length).toBeGreaterThan(2);
+      expect(first.length).toBeLessThan(mixed.length);
+      while (visibleText(single.container).length < plain.length) {
+        const count = visibleText(single.container).length;
+        expect(visibleText(alternating.container)).toBe(mixed.slice(0, count));
+        await vi.advanceTimersToNextTimerAsync();
+      }
+      await vi.runAllTimersAsync();
+      await Promise.all([alternating.finished, single.finished]);
+      expect(visibleText(alternating.container)).toBe(mixed);
+    },
+  );
 });

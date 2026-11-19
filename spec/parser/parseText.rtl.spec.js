@@ -418,6 +418,21 @@ describe("parseText with direction rtl", () => {
     expect(numbers(rich)).toEqual(["200", "100"]);
   });
 
+  it("preserves a nonbreaking thousands separator across styles", () => {
+    const node = parseRtl({
+      content: [
+        { text: "מחיר 12\u00a0" },
+        { text: "345 שקל", textStyle: { fill: "red" } },
+      ],
+    });
+    expect(visualOrder(node.content[0])).toEqual([
+      " שקל",
+      "12 ",
+      "345",
+      "מחיר ",
+    ]);
+  });
+
   it("overlaps the stroke margins of neighbouring runs", () => {
     const node = parseRtl({
       content: "שלום 2024 שלום",
@@ -491,6 +506,52 @@ describe("parseText with direction rtl", () => {
     // Spaced text is drawn one character at a time and takes no override
     // characters, which would each be counted as a spaced character.
     expect(getTextPartDisplayText(latin)).toBe("Hello");
+  });
+
+  it.each([
+    ["text", parseText],
+    ["text-revealing", parseTextRevealing],
+  ])("wraps %s using the spacing of the resolved runs", (type, parse) => {
+    const layout = (text, width, letterSpacing, style = {}) =>
+      parse({
+        state: {
+          id: "label",
+          type,
+          x: 0,
+          y: 0,
+          direction: "rtl",
+          content: Array.isArray(text) ? text : [{ text }],
+          width,
+          textStyle: { fontSize: 24, letterSpacing, ...style },
+        },
+      });
+    const fullWidth = (text, spacing) => {
+      const [line] = layout(text, 1000, spacing).content;
+      return Math.ceil(
+        line.lineParts.reduce((width, part) => width + part.width, 0),
+      );
+    };
+    const hebrew = "שלום עולם";
+    expect(lineTexts(layout(hebrew, fullWidth(hebrew, 0) + 1, 10))).toEqual([
+      [hebrew],
+    ]);
+
+    const mixed = "שלום ABC";
+    expect(layout(mixed, fullWidth(mixed, 0) + 1, 10).content).toHaveLength(2);
+    expect(layout(mixed, fullWidth(mixed, 10) + 1, 10).content).toHaveLength(1);
+    const styled = [{ text: "שלום AB " }, { text: "CD" }];
+    expect(layout(styled, fullWidth(styled, 10) - 4, 10).content).toHaveLength(
+      2,
+    );
+    expect(
+      lineTexts(layout("שלום\n  ABC", 500, 10, { whiteSpace: "normal" })),
+    ).toEqual([["שלום ", "ABC"]]);
+    expect(lineTexts(layout("אבABCגד", 10, 10, { breakWords: false }))).toEqual(
+      [["אב", "ABC", "גד"]],
+    );
+    const broken = layout("אבABCגד", 10, 10, { breakWords: true });
+    expect(broken.content.length).toBeGreaterThan(1);
+    expect(lineTexts(broken).flat().join("")).toBe("אבABCגד");
   });
 
   it("centres furigana over its base text", () => {

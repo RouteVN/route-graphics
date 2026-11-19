@@ -72,6 +72,8 @@ const LINES = [
   "שלום... עולם",
   "123 שלום 456",
   "שלום 3.14 עולם",
+  "מחיר 12\u00a0345 שקל",
+  "שלום \u202aABC אבג\u202c END",
   "שלום -5 עולם",
   "مرحبا بالعالم",
   "السلام عليكم ورحمة الله وبركاته",
@@ -87,6 +89,7 @@ const LINES = [
   "التاريخ 2024/01/15",
   "الساعة 10:30 صباحا",
   "العدد 1,234.56 كبير",
+  "السعر 12\u00a0345 ريال",
   "الرقم ١٢٣ و ٤٥٦",
   "البريد user@example.com هنا",
   "(abc (def)) نص",
@@ -114,6 +117,14 @@ const HIGHLIGHT = { fill: "#ff6666" };
 
 const createLines = () => {
   const lines = LINES.map((text) => ({ name: text, text, content: text }));
+
+  // WebKit's native canvas ignores this isolate. The equivalent unmarked
+  // reference puts the four words in their expected visual order everywhere.
+  lines.push({
+    name: "left-to-right isolate inside a Hebrew sentence",
+    content: "שלום \u2066hello עולם\u2069 test",
+    text: "שלום עולם test hello",
+  });
 
   // Two emoji in a row, split by a style change.
   lines.push({
