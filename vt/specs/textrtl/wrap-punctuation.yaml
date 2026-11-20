@@ -1,0 +1,232 @@
+---
+title: RTL Text - Punctuation And Numbers Across Line Breaks
+description: Directions are resolved for the whole paragraph before lines are broken, so punctuation and numbers look the same at every width.
+specs:
+- in the top row the comma should always sit directly to the right of hello, also when hello ends a line
+- in the middle row the number should read 456-123 from the left at every width
+- in the bottom row the hyphen should stay between abc and def, or at the end of abc when the line breaks there
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: hb0
+    type: rect
+    x: 40
+    "y": 40
+    width: 330
+    height: 200
+    fill: '#333333'
+  - id: h0
+    type: text
+    x: 40
+    "y": 40
+    direction: rtl
+    width: 330
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם hello, world (test) שלום
+  - id: hb1
+    type: rect
+    x: 400
+    "y": 40
+    width: 420
+    height: 200
+    fill: '#333333'
+  - id: h1
+    type: text
+    x: 400
+    "y": 40
+    direction: rtl
+    width: 420
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם hello, world (test) שלום
+  - id: hb2
+    type: rect
+    x: 850
+    "y": 40
+    width: 400
+    height: 200
+    fill: '#333333'
+  - id: h2
+    type: text
+    x: 850
+    "y": 40
+    direction: rtl
+    width: 400
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום עולם hello, world (test) שלום
+  - id: ab0
+    type: rect
+    x: 40
+    "y": 270
+    width: 300
+    height: 200
+    fill: '#333333'
+  - id: a0
+    type: text
+    x: 40
+    "y": 270
+    direction: rtl
+    width: 300
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: الهاتف رقمه هو 123-456 الآن
+  - id: ab1
+    type: rect
+    x: 370
+    "y": 270
+    width: 380
+    height: 200
+    fill: '#333333'
+  - id: a1
+    type: text
+    x: 370
+    "y": 270
+    direction: rtl
+    width: 380
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: الهاتف رقمه هو 123-456 الآن
+  - id: ab2
+    type: rect
+    x: 780
+    "y": 270
+    width: 470
+    height: 200
+    fill: '#333333'
+  - id: a2
+    type: text
+    x: 780
+    "y": 270
+    direction: rtl
+    width: 470
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: الهاتف رقمه هو 123-456 الآن
+  - id: cb0
+    type: rect
+    x: 40
+    "y": 500
+    width: 200
+    height: 200
+    fill: '#333333'
+  - id: c0
+    type: text
+    x: 40
+    "y": 500
+    direction: rtl
+    width: 200
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: אבג abc - def דהו
+  - id: cb1
+    type: rect
+    x: 270
+    "y": 500
+    width: 260
+    height: 200
+    fill: '#333333'
+  - id: c1
+    type: text
+    x: 270
+    "y": 500
+    direction: rtl
+    width: 260
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: אבג abc - def דהו
+  - id: cb2
+    type: rect
+    x: 560
+    "y": 500
+    width: 330
+    height: 200
+    fill: '#333333'
+  - id: c2
+    type: text
+    x: 560
+    "y": 500
+    direction: rtl
+    width: 330
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: אבג abc - def דהו
+  - id: cb3
+    type: rect
+    x: 920
+    "y": 500
+    width: 330
+    height: 200
+    fill: '#333333'
+  - id: c3
+    type: text
+    x: 920
+    "y": 500
+    direction: rtl
+    width: 330
+    textStyle:
+      fontSize: 34
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: אבג abc - def דהו

@@ -1,0 +1,144 @@
+---
+title: RTL Text Revealing - Dialogue Window
+description: A visual novel style right-to-left message window with a speaker name on the right, mid-reveal and complete; colored indicator assets are intentional.
+specs:
+- the speaker name should sit at the top right
+- the message should type from the right edge of the window
+- the complete indicator should appear after the final character
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 900
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements:
+  - id: win
+    type: rect
+    x: 140
+    "y": 420
+    width: 1000
+    height: 240
+    fill: '#1F1F1F'
+  - id: plate
+    type: rect
+    x: 900
+    "y": 360
+    width: 240
+    height: 60
+    fill: '#333333'
+  - id: name
+    type: text
+    x: 1120
+    "y": 366
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#ffd166'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: ليلى
+- id: talk
+  elements:
+  - id: win
+    type: rect
+    x: 140
+    "y": 420
+    width: 1000
+    height: 240
+    fill: '#1F1F1F'
+  - id: plate
+    type: rect
+    x: 900
+    "y": 360
+    width: 240
+    height: 60
+    fill: '#333333'
+  - id: name
+    type: text
+    x: 1120
+    "y": 366
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 32
+      fill: '#ffd166'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: ليلى
+  - id: msg
+    type: text-revealing
+    x: 170
+    "y": 445
+    direction: rtl
+    width: 940
+    speed: 50
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'مرحبا! '
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: لقد انتظرتك طويلا. هل أحضرت الكتاب الذي وعدتني به؟ قرأت 3 فصول من RouteVN البارحة.
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

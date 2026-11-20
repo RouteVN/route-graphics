@@ -1,0 +1,153 @@
+---
+title: RTL Text Revealing - Typewriter With Latin And Numbers
+description: 'Typewriter reveal over mixed-direction text: every run types in its own slot, Latin words and numbers left to right; colored indicator assets are intentional.'
+specs:
+- revealed text should already be in its final position
+- a Latin word should type left to right inside the right-to-left line
+- the indicator should follow the end of the run being typed
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 300
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 700
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 600
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: blank
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+- id: typing
+  elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    direction: rtl
+    width: 800
+    speed: 45
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'דנה אמרה: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: שלום!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' רוצה לשחק ב-'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' איתי היום? פרק 3 מוכן.'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

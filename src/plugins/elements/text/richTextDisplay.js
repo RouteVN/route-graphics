@@ -7,6 +7,11 @@ import {
   applyTextPartTransform,
   isVerticalWritingMode,
 } from "./verticalTextLayout.js";
+import {
+  isRtlDirection,
+  restyleBidiChunks,
+  setTextPartText,
+} from "./bidiTextLayout.js";
 import { setElementHitTestBounds } from "../elementRenderState.js";
 import {
   applyElementPivot,
@@ -47,6 +52,7 @@ const createTextObject = ({ text, style, x, y, part }) => {
     y: Math.round(y),
   });
   applyTextPartTransform(display, part);
+  if (part) setTextPartText(display, part, text);
   applyTextDecoration(
     display,
     style,
@@ -94,8 +100,25 @@ export const renderRichTextDisplayObject = (
   const layoutWidth =
     element.__layoutWidth ?? element.width ?? element.measuredWidth ?? 0;
 
-  for (let chunkIndex = 0; chunkIndex < element.content.length; chunkIndex++) {
-    const chunk = element.content[chunkIndex];
+  const rtl = isRtlDirection(element);
+  // Right-to-left runs sit in measured slots, so a style that changes their
+  // size (a hover font size, say) needs the lines placed again.
+  const restyled = rtl && Boolean(overrideStyle);
+  const content = restyled
+    ? restyleBidiChunks(
+        element.content,
+        (style) => applyOverrideStyle(style, overrideStyle),
+        {
+          width: layoutWidth,
+          align: getTextAlign(element.textStyle),
+        },
+      )
+    : element.content;
+  const getPartStyle = (style) =>
+    restyled ? style : applyOverrideStyle(style, overrideStyle);
+
+  for (let chunkIndex = 0; chunkIndex < content.length; chunkIndex++) {
+    const chunk = content[chunkIndex];
     const lineContainer = new Container({
       label: `${element.id}-line-${chunkIndex}`,
     });
@@ -105,7 +128,7 @@ export const renderRichTextDisplayObject = (
         lineContainer.addChild(
           createTextObject({
             text: part.furigana.text,
-            style: applyOverrideStyle(part.furigana.textStyle, overrideStyle),
+            style: getPartStyle(part.furigana.textStyle),
             x: part.furigana.x,
             y: part.furigana.y,
           }),
@@ -115,7 +138,7 @@ export const renderRichTextDisplayObject = (
       lineContainer.addChild(
         createTextObject({
           text: part.text,
-          style: applyOverrideStyle(part.textStyle, overrideStyle),
+          style: getPartStyle(part.textStyle),
           x: part.x,
           y: part.y,
           part,
@@ -123,9 +146,9 @@ export const renderRichTextDisplayObject = (
       );
     }
 
-    // Vertical columns are aligned by the parser; their parts already carry
-    // final positions.
-    if (!isVerticalWritingMode(element)) {
+    // Vertical columns and right-to-left lines are aligned by the parser;
+    // their parts already carry final positions.
+    if (!isVerticalWritingMode(element) && !rtl) {
       const lineBounds = lineContainer.getLocalBounds();
 
       lineContainer.x = getHorizontalOffset(

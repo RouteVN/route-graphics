@@ -14,6 +14,14 @@ import {
   isVerticalWritingMode,
   normalizeWritingMode,
 } from "../text/verticalTextLayout.js";
+import {
+  applyBidiLayout,
+  getEmbeddingLevels,
+  measureSpacedBidiLine,
+  isRtlDirection,
+  normalizeDirection,
+  resolveDirectionalAlign,
+} from "../text/bidiTextLayout.js";
 
 const normalizeInitialRevealedCharacters = (value) => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -311,16 +319,35 @@ const consumeMeasuredLineFromSource = (
   };
 };
 
+const measureFirstLine = (text, textStyle, sourceStart, sourceLevels) => {
+  if (sourceLevels && textStyle.letterSpacing) {
+    return measureSpacedBidiLine(text, textStyle, sourceStart, sourceLevels);
+  }
+
+  const metrics = CanvasTextMetrics.measureText(
+    text,
+    new TextStyle(toPixiTextStyle(textStyle, { includeShadow: false })),
+  );
+  return {
+    text: metrics.lines[0] ?? "",
+    width: metrics.lineWidths[0],
+    hasMoreLines: metrics.lines.length > 1,
+  };
+};
+
 /**
  * Creates text chunks (lines) from content segments
  * @param {Array} segments - Text segments with styles
  * @param {number} wordWrapWidth - Maximum width for wrapping
+ * @param {Object} [options]
+ * @param {number} [options.minimumWidth] - Smallest width to report
+ * @param {Uint8Array} [options.sourceLevels] - Paragraph embedding levels for RTL layout
  * @returns {Object} Object containing chunks and dimensions
  */
 export const createTextChunks = (
   segments,
   wordWrapWidth,
-  { minimumWidth = wordWrapWidth } = {},
+  { minimumWidth = wordWrapWidth, sourceLevels } = {},
 ) => {
   const chunks = [];
   let lineParts = [];
@@ -332,6 +359,16 @@ export const createTextChunks = (
 
   const segmentCopy = [...segments];
   const segmentFuriganaAdded = new WeakSet();
+  const sourceStarts = new Map();
+
+  if (sourceLevels) {
+    let sourceLength = 0;
+
+    for (const segment of segments) {
+      sourceStarts.set(segment, sourceLength);
+      sourceLength += segment?.text?.length ?? 0;
+    }
+  }
   const maxIterations = Math.max(
     10,
     segments.reduce((sum, segment) => sum + (segment?.text?.length ?? 0), 0) *
@@ -375,29 +412,25 @@ export const createTextChunks = (
         }
       : segment.textStyle;
 
-    const measurements = CanvasTextMetrics.measureText(
-      segment.text,
-      new TextStyle(
-        toPixiTextStyle(styleWithWordWrap, { includeShadow: false }),
-      ),
+    const line = measureFirstLine(
+      originalText,
+      styleWithWordWrap,
+      sourceStarts.get(segment),
+      sourceLevels,
     );
-
-    // Check if text fits on current line
-    if (measurements.lineWidths[0] > remainingWidth && lineParts.length > 0) {
-      // Wrap to next line
+    if (line.width > remainingWidth && lineParts.length > 0) {
       pushCurrentLine();
-      continue; // Try again with full width
+      continue;
     }
 
-    // Extract text that fits on this line
-    let textPart = measurements.lines[0] ?? "";
-    const wrappedToAdditionalLines = measurements.lines.length > 1;
+    let textPart = line.text;
+    const wrappedToAdditionalLines = line.hasMoreLines;
     let remainingText = "";
     let consumedExplicitNewline = false;
 
     // Preserve trailing spaces that might get trimmed by measureText
     if (
-      measurements.lines.length === 1 &&
+      !wrappedToAdditionalLines &&
       segment.text.endsWith(" ") &&
       !textPart.endsWith(" ")
     ) {
@@ -449,7 +482,7 @@ export const createTextChunks = (
     const partWidth = Math.max(
       0,
       Math.round(
-        measurementsWithNoWrapping.width ?? measurements.lineWidths[0] ?? 0,
+        line.advance ?? measurementsWithNoWrapping.width ?? line.width ?? 0,
       ),
     );
 
@@ -461,6 +494,16 @@ export const createTextChunks = (
       x,
       y,
     };
+
+    if (sourceLevels) {
+      const sourceStart = sourceStarts.get(segment);
+
+      newTextPart.sourceStart = sourceStart;
+      sourceStarts.set(
+        segment,
+        sourceStart + originalText.length - remainingText.length,
+      );
+    }
 
     // Add furigana if present and not already added for this segment
     if (segment.furigana && !segmentFuriganaAdded.has(segment)) {
@@ -558,7 +601,19 @@ export const createTextChunks = (
   };
 };
 
-export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
+// Resolve the paragraph using the original kind of space at segment ends.
+export const getRichTextSourceLevels = (segments, direction) =>
+  getEmbeddingLevels(
+    segments.map((segment) => segment.sourceText).join(""),
+    direction,
+  );
+
+export const prepareRichTextSegments = ({
+  content,
+  defaultTextStyle,
+  width,
+  rtl = false,
+}) =>
   (content || []).map((item, itemIndex) => {
     const itemTextStyle = mergeTextStyle(defaultTextStyle, item.textStyle);
 
@@ -601,12 +656,32 @@ export const prepareRichTextSegments = ({ content, defaultTextStyle, width }) =>
       };
     }
 
-    const convertedText = String(item.text).replace(/ +$/, (match) =>
-      "\u00A0".repeat(match.length),
+    let sourceText = String(item.text);
+    let text = sourceText.replace(/ +$/, (spaces) =>
+      "\u00A0".repeat(spaces.length),
     );
+    // Let Pixi apply the authored whitespace policy before choosing line
+    // breaks by run width. The resulting offsets also index the bidi levels.
+    if (
+      rtl &&
+      itemTextStyle.letterSpacing &&
+      itemTextStyle.wordWrap &&
+      ["normal", "pre-line"].includes(itemTextStyle.whiteSpace)
+    ) {
+      const style = new TextStyle({
+        ...toPixiTextStyle(itemTextStyle, { includeShadow: false }),
+        wordWrapWidth: Infinity,
+        letterSpacing: 0,
+      });
+      text = CanvasTextMetrics.measureText(text, style).lines.join("\n");
+      const trailingSpaces = sourceText.match(/ +$/)?.[0] ?? "";
+      sourceText =
+        text.slice(0, text.length - trailingSpaces.length) + trailingSpaces;
+    }
 
     return {
-      text: convertedText,
+      text,
+      ...(rtl && { sourceText }),
       textStyle: itemTextStyle,
       ...(furigana && { furigana }),
     };
@@ -631,31 +706,48 @@ export const parseTextRevealing = ({ state }) => {
 
   const writingMode = normalizeWritingMode(state.writingMode);
   const vertical = isVerticalWritingMode({ writingMode });
+  const direction = normalizeDirection(state.direction);
+  // Vertical text ignores `direction`.
+  const rtl = !vertical && isRtlDirection({ direction });
 
   const processedContent = prepareRichTextSegments({
     content: state.content,
     defaultTextStyle,
+    rtl,
     width: vertical ? undefined : state.width || undefined,
   });
+  // Use the same paragraph levels for line breaking and run placement.
+  const sourceLevels = rtl
+    ? getRichTextSourceLevels(processedContent, direction)
+    : undefined;
 
   // Calculate text dimensions using unified chunk approach
   const wordWrapWidth = state.width || 500;
   // Vertical text wraps on `height`; without one, columns only break at
   // explicit newlines.
-  const {
-    chunks,
-    width: calculatedWidth,
-    height: calculatedHeight,
-  } = vertical
+  const logicalLayout = vertical
     ? createVerticalTextChunks(processedContent, {
         columnLength: state.height || undefined,
         width: state.width || undefined,
         align: defaultTextStyle.align,
         writingMode,
       })
-    : createTextChunks(processedContent, wordWrapWidth);
-
+    : createTextChunks(processedContent, wordWrapWidth, {
+        sourceLevels,
+      });
+  const { width: calculatedWidth, height: calculatedHeight } = logicalLayout;
   const finalWidth = state.width || calculatedWidth;
+  // Right-to-left lines start at the right edge of the text box.
+  const align = resolveDirectionalAlign(direction, state.textStyle?.align);
+  const chunks = rtl
+    ? applyBidiLayout(logicalLayout.chunks, {
+        direction,
+        width: finalWidth,
+        align,
+        sourceLevels,
+      }).chunks
+    : logicalLayout.chunks;
+
   const finalHeight = vertical
     ? state.height || calculatedHeight
     : calculatedHeight;
@@ -695,8 +787,10 @@ export const parseTextRevealing = ({ state }) => {
     ...computedObj,
     content: chunks,
     ...(vertical && { writingMode }),
+    ...(rtl && { direction }),
     textStyle: {
       ...defaultTextStyle,
+      ...(rtl && { align }),
     },
     speed: state.speed ?? 50,
     revealEffect: state.revealEffect ?? "typewriter",

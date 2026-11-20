@@ -1,0 +1,59 @@
+---
+title: RTL Text - Left-To-Right Text With RTL Words
+description: Without direction, text stays on the ordinary path; Arabic and Hebrew words inside it are still shaped by the browser.
+specs:
+- lines should start at the left
+- Arabic and Hebrew words should be readable inside the English sentences
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    x: 80
+    "y": 100
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: The word for peace is שלום in Hebrew.
+  - id: b
+    type: text
+    x: 80
+    "y": 200
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: In Arabic, hello is مرحبا and thanks is شكرا.
+  - id: c
+    type: text
+    x: 80
+    "y": 300
+    textStyle:
+      fontSize: 36
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: 'Rich: '
+    - text: שלום
+      textStyle:
+        fill: '#ffd166'
+    - text: ' and '
+    - text: مرحبا
+      textStyle:
+        fill: '#06d6a0'
+    - text: .

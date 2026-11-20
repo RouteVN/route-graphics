@@ -1,0 +1,100 @@
+---
+title: RTL Text - Wrapping
+description: With a width, right-to-left text wraps and every line starts at the right edge of the box.
+specs:
+- every line should touch the right edge of its box
+- the last line should be short and still start at the right
+- words should not be split across lines
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b1
+    type: rect
+    x: 80
+    "y": 60
+    width: 520
+    height: 300
+    fill: '#333333'
+  - id: a
+    type: text
+    x: 80
+    "y": 60
+    direction: rtl
+    width: 520
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+  - id: b2
+    type: rect
+    x: 680
+    "y": 60
+    width: 520
+    height: 300
+    fill: '#333333'
+  - id: b
+    type: text
+    x: 680
+    "y": 60
+    direction: rtl
+    width: 520
+    textStyle:
+      fontSize: 32
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.
+  - id: b3
+    type: rect
+    x: 80
+    "y": 420
+    width: 300
+    height: 260
+    fill: '#333333'
+  - id: c
+    type: text
+    x: 80
+    "y": 420
+    direction: rtl
+    width: 300
+    textStyle:
+      fontSize: 22
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+  - id: b4
+    type: rect
+    x: 460
+    "y": 420
+    width: 740
+    height: 260
+    fill: '#333333'
+  - id: d
+    type: text
+    x: 460
+    "y": 420
+    direction: rtl
+    width: 740
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים. היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.

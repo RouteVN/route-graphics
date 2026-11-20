@@ -1,0 +1,138 @@
+---
+title: RTL Text - Menu In Containers
+description: A right-to-left menu built from containers; items are right aligned with anchorX 1.
+specs:
+- menu items should line up on their right edge
+- the title should be centred
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: panel
+    type: rect
+    x: 760
+    "y": 60
+    width: 440
+    height: 600
+    fill: '#1F1F1F'
+  - id: title
+    type: text
+    x: 980
+    "y": 110
+    direction: rtl
+    anchorX: 0.5
+    textStyle:
+      fontSize: 44
+      fill: '#ffd166'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: القائمة الرئيسية
+  - id: items
+    type: container
+    x: 1160
+    "y": 200
+    children:
+    - id: m0
+      type: text
+      x: 0
+      "y": 0
+      direction: rtl
+      anchorX: 1
+      textStyle:
+        fontSize: 38
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+      content: لعبة جديدة
+    - id: m1
+      type: text
+      x: 0
+      "y": 80
+      direction: rtl
+      anchorX: 1
+      textStyle:
+        fontSize: 38
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+      content: متابعة
+    - id: m2
+      type: text
+      x: 0
+      "y": 160
+      direction: rtl
+      anchorX: 1
+      textStyle:
+        fontSize: 38
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+      content: الإعدادات
+    - id: m3
+      type: text
+      x: 0
+      "y": 240
+      direction: rtl
+      anchorX: 1
+      textStyle:
+        fontSize: 38
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+      content: המשך משחק
+    - id: m4
+      type: text
+      x: 0
+      "y": 320
+      direction: rtl
+      anchorX: 1
+      textStyle:
+        fontSize: 38
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+      content: יציאה
+  - id: panel2
+    type: rect
+    x: 80
+    "y": 60
+    width: 600
+    height: 600
+    fill: '#1F1F1F'
+  - id: body
+    type: text
+    x: 100
+    "y": 90
+    direction: rtl
+    width: 560
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'كان يا ما كان في قديم الزمان، ملك عادل يحكم مملكة بعيدة. وكان الناس يحبونه كثيرا لأنه يساعد الفقراء ويستمع إلى الجميع.
+
+
+      היה היה פעם מלך טוב שגר בארמון גדול על ראש ההר. כל יום הוא יצא אל העיר לפגוש את האנשים.'

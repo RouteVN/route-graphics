@@ -25,6 +25,9 @@ vt:
         - title: "Text Vertical"
           files: "textvertical"
           description: "Vertical (top-to-bottom, right-to-left) text layout tests"
+        - title: "Text RTL"
+          files: "textrtl"
+          description: "Right-to-left (Arabic, Hebrew) text layout tests"
     - title: "Container Group"
       type: "groupLabel"
       items:
@@ -91,6 +94,9 @@ vt:
         - title: "Text Revealing Vertical"
           files: "textrevealingvertical"
           description: "Vertical text reveal effects, indicator and furigana tests"
+        - title: "Text Revealing RTL"
+          files: "textrevealingrtl"
+          description: "Right-to-left text reveal effects and indicator tests"
     - title: "Render Complete Group"
       type: "groupLabel"
       items:

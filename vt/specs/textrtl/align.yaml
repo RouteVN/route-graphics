@@ -1,0 +1,219 @@
+---
+title: RTL Text - Alignment
+description: Right-to-left text defaults to right alignment; an authored textStyle.align overrides it.
+specs:
+- the first box (no align) should be right aligned
+- left, center and right should place lines at the left, centre and right of the box
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: b0
+    type: rect
+    x: 60
+    "y": 100
+    width: 270
+    height: 240
+    fill: '#333333'
+  - id: l0
+    type: text
+    x: 60
+    "y": 70
+    content: default
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t0
+    type: text
+    x: 60
+    "y": 100
+    direction: rtl
+    width: 270
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: b1
+    type: rect
+    x: 360
+    "y": 100
+    width: 270
+    height: 240
+    fill: '#333333'
+  - id: l1
+    type: text
+    x: 360
+    "y": 70
+    content: 'align: left'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t1
+    type: text
+    x: 360
+    "y": 100
+    direction: rtl
+    width: 270
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      align: left
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: b2
+    type: rect
+    x: 660
+    "y": 100
+    width: 270
+    height: 240
+    fill: '#333333'
+  - id: l2
+    type: text
+    x: 660
+    "y": 70
+    content: 'align: center'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t2
+    type: text
+    x: 660
+    "y": 100
+    direction: rtl
+    width: 270
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      align: center
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: b3
+    type: rect
+    x: 960
+    "y": 100
+    width: 270
+    height: 240
+    fill: '#333333'
+  - id: l3
+    type: text
+    x: 960
+    "y": 70
+    content: 'align: right'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: t3
+    type: text
+    x: 960
+    "y": 100
+    direction: rtl
+    width: 270
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      align: right
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: l9
+    type: text
+    x: 60
+    "y": 400
+    content: 'no width: lines align inside the widest line'
+    textStyle:
+      fontSize: 16
+      fill: '#A6A6A6'
+      fontFamily: Arial
+  - id: n1
+    type: text
+    x: 60
+    "y": 440
+    direction: rtl
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: n2
+    type: text
+    x: 460
+    "y": 440
+    direction: rtl
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      align: center
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'
+  - id: n3
+    type: text
+    x: 860
+    "y": 440
+    direction: rtl
+    textStyle:
+      fontSize: 26
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      align: left
+    content: 'سطر قصير
+
+      هذا سطر أطول قليلا
+
+      שורה שלישית'

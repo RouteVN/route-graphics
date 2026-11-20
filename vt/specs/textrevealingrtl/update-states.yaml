@@ -1,0 +1,229 @@
+---
+title: RTL Text Revealing - Updates
+description: Switching a revealed element between left-to-right and right-to-left and changing its content; colored indicator assets are intentional.
+specs:
+- first state should be left to right
+- second state should be the same content right to left
+- third state should show new Hebrew content
+steps:
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+- action: keypress
+  key: n
+- action: screenshot
+---
+states:
+- elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    width: 800
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'قالت ليلى: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: «مرحبا!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' هل تريد أن تلعب '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' معي اليوم؟ الفصل 12 جاهز.»'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+- elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    direction: rtl
+    width: 800
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'قالت ليلى: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: «مرحبا!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' هل تريد أن تلعب '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' معي اليوم؟ الفصل 12 جاهز.»'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+- elements:
+  - id: b
+    type: rect
+    x: 240
+    "y": 100
+    width: 800
+    height: 300
+    fill: '#333333'
+  - id: r
+    type: text-revealing
+    x: 240
+    "y": 100
+    direction: rtl
+    width: 800
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: 'דנה אמרה: '
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: שלום!
+      textStyle:
+        fontSize: 34
+        fill: '#ffd166'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' רוצה לשחק ב-'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: RouteVN
+      textStyle:
+        fontSize: 34
+        fill: '#06d6a0'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+    - text: ' איתי היום? פרק 3 מוכן.'
+      textStyle:
+        fontSize: 34
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

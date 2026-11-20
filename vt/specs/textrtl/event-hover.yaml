@@ -1,0 +1,53 @@
+---
+title: RTL Text - Hover Style
+description: Hover textStyle overrides apply to every run of right-to-left text.
+specs:
+- first screenshot should show the idle colours
+- second screenshot should show the hovered text in the hover colour, in the same positions
+steps:
+- action: screenshot
+- action: move
+  x: 900
+  "y": 150
+- action: wait
+  ms: 200
+- action: screenshot
+---
+states:
+- elements:
+  - id: a
+    type: text
+    x: 1200
+    "y": 120
+    direction: rtl
+    anchorX: 1
+    hover:
+      textStyle:
+        fill: '#ffd166'
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: اضغط على زر Start للبدء في RouteVN الآن.
+  - id: b
+    type: text
+    x: 1200
+    "y": 300
+    direction: rtl
+    anchorX: 1
+    hover:
+      textStyle:
+        fill: '#ffd166'
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: לחץ על Start כדי להתחיל את RouteVN עכשיו.

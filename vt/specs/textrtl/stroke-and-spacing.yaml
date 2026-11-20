@@ -1,0 +1,141 @@
+---
+title: RTL Text - Stroke And Letter Spacing
+description: Stroked runs sit as close together as unstroked ones, and letter spacing only spreads left-to-right runs.
+specs:
+- the stroked lines should have ordinary word gaps, with no extra gap around the number or the brackets
+- the stroked Arabic word with a red ending should stay joined across the colour change
+- with letter spacing only Hello should be spread out, with equal space on both sides of it; Hebrew and Arabic keep their normal shapes
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: s0
+    type: text
+    x: 1200
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 56
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      strokeWidth: 8
+      strokeColor: '#2a6fdb'
+    content: שלום 2024 שלום (abc)
+  - id: s1
+    type: text
+    x: 1200
+    "y": 150
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مرح
+      textStyle:
+        fontSize: 72
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+        strokeWidth: 8
+        strokeColor: '#2a6fdb'
+    - text: با
+      textStyle:
+        fontSize: 72
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+        strokeWidth: 8
+        strokeColor: '#2a6fdb'
+    - text: ' كتاب'
+      textStyle:
+        fontSize: 72
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+        strokeWidth: 8
+        strokeColor: '#2a6fdb'
+  - id: s2
+    type: text
+    x: 1200
+    "y": 300
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 56
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      strokeWidth: 8
+      strokeColor: '#2a6fdb'
+    content: مرحبا 2024 بالعالم
+  - id: l0
+    type: text
+    x: 1200
+    "y": 430
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      letterSpacing: 12
+    content: שלום Hello עולם
+  - id: l1
+    type: text
+    x: 1200
+    "y": 530
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content: שלום Hello עולם
+  - id: l2
+    type: text
+    x: 1200
+    "y": 630
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 48
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+      letterSpacing: 12
+    content: مرحبا Hello بالعالم

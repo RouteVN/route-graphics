@@ -1,0 +1,282 @@
+---
+title: RTL Text - Joining Across Style Segments
+description: 'A word split by a colour change is shaped like the unsplit word: letters join only where the script joins them.'
+specs:
+- every word in a row should have the same letter shapes as the white word on the right
+- a red letter after a non-joining letter (after reh, alef or waw) should start a new stroke with no connector
+- letters that join in the white word should stay joined across the colour change
+steps:
+- action: screenshot
+---
+states:
+- elements:
+  - id: w0
+    type: text
+    x: 1200
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مرحبا
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w1
+    type: text
+    x: 800
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مر
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: حبا
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w2
+    type: text
+    x: 400
+    "y": 30
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: مرح
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: با
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w3
+    type: text
+    x: 1200
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: كتاب
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w4
+    type: text
+    x: 800
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: كتا
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ب
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w5
+    type: text
+    x: 400
+    "y": 250
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: كت
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: اب
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w6
+    type: text
+    x: 1200
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: بوب
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w7
+    type: text
+    x: 800
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: بو
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: ب
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+  - id: w8
+    type: text
+    x: 400
+    "y": 470
+    direction: rtl
+    anchorX: 1
+    textStyle:
+      fontSize: 40
+      fill: '#FFFFFF'
+      fontFamily:
+      - NotoSansArabic
+      - NotoSansHebrew
+      - Arial
+      lineHeight: 1.5
+    content:
+    - text: ب
+      textStyle:
+        fontSize: 96
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5
+    - text: وب
+      textStyle:
+        fontSize: 96
+        fill: '#ff6b6b'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.5

@@ -1,0 +1,234 @@
+---
+title: RTL Text Revealing - Typewriter Keeps Joined Shapes
+description: A partly revealed Arabic word is shaped as if the rest of it were there, so letters do not change shape as the next one appears; colored indicator assets are intentional.
+specs:
+- first screenshot shows the full sentence for reference
+- in the second screenshot each line stops inside a word; its last letter should have the joined shape it has in the full sentence, with an open connector, unless it is a letter that never joins forwards
+- the last screenshot should show the same full sentence on every line
+steps:
+- action: screenshot
+- action: customEvent
+  name: vtInstallTimeoutClock
+- action: keypress
+  key: n
+- action: assert
+  type: js
+  fn: vtAssert.renderReady
+  value: true
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 1
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 400
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+- action: customEvent
+  name: vtAdvanceTimeoutClock
+  detail:
+    deltaMS: 30000
+- action: assert
+  type: js
+  fn: vtAssert.timersIdle
+  value: true
+- action: customEvent
+  name: snapShotKeyFrame
+  detail:
+    deltaMS: 16
+- action: screenshot
+---
+states:
+- id: reference
+  elements:
+  - id: t0
+    type: text-revealing
+    x: 300
+    "y": 60
+    direction: rtl
+    width: 700
+    revealEffect: none
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+- id: typing
+  elements:
+  - id: t0
+    type: text-revealing
+    x: 300
+    "y": 40
+    direction: rtl
+    width: 700
+    speed: 40
+    initialRevealedCharacters: 1
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: t1
+    type: text-revealing
+    x: 300
+    "y": 170
+    direction: rtl
+    width: 700
+    speed: 40
+    initialRevealedCharacters: 3
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: t2
+    type: text-revealing
+    x: 300
+    "y": 300
+    direction: rtl
+    width: 700
+    speed: 40
+    initialRevealedCharacters: 8
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: t3
+    type: text-revealing
+    x: 300
+    "y": 430
+    direction: rtl
+    width: 700
+    speed: 40
+    initialRevealedCharacters: 11
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6
+  - id: t4
+    type: text-revealing
+    x: 300
+    "y": 560
+    direction: rtl
+    width: 700
+    speed: 40
+    initialRevealedCharacters: 15
+    revealEffect: typewriter
+    indicator:
+      revealing:
+        src: circle-red
+        width: 14
+        height: 14
+      complete:
+        src: circle-green
+        width: 14
+        height: 14
+      offsetX: 10
+    content:
+    - text: مرحبا بالعالم الجميل
+      textStyle:
+        fontSize: 64
+        fill: '#FFFFFF'
+        fontFamily:
+        - NotoSansArabic
+        - NotoSansHebrew
+        - Arial
+        lineHeight: 1.6

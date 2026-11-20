@@ -13,6 +13,10 @@ import abortableSleep from "../../../util/abortableSleep";
 import { toPixiTextStyle } from "../../../util/toPixiTextStyle.js";
 import { applyTextDecoration } from "../../../util/applyTextDecoration.js";
 import { applyTextPartTransform } from "../text/verticalTextLayout.js";
+import {
+  getTextPartLeadingEdge,
+  setTextPartText,
+} from "../text/bidiTextLayout.js";
 import { normalizeVolume } from "../../../util/normalizeVolume.js";
 import {
   getSoftWipeEdgeWidth,
@@ -36,6 +40,7 @@ const TEXT_REVEAL_SNAPSHOT = Symbol("textRevealSnapshot");
 const TEXT_REVEAL_INDICATOR = Symbol("textRevealIndicator");
 const TEXT_REVEAL_INDICATOR_PLAYBACK = Symbol("textRevealIndicatorPlayback");
 const TEXT_REVEAL_PART = Symbol("textRevealPart");
+const TEXT_REVEAL_INDICATOR_LINE = Symbol("textRevealIndicatorLine");
 const TEXT_REVEAL_SOUND_ID_PREFIX = "__route_graphics_text_reveal_sound__";
 const DEFAULT_TEXT_REVEAL_SPEED = 50;
 const MIN_TEXT_REVEAL_SPEED = 0;
@@ -505,7 +510,14 @@ const positionIndicatorForChunk = (
   indicatorSprite,
   chunk,
   indicatorOffsets,
+  element,
 ) => {
+  // Remembered for positionIndicatorAtCharacter, which is always called for
+  // the line the indicator was last placed on.
+  const rtl = chunk ? chunk.direction === "rtl" : element?.direction === "rtl";
+
+  indicatorSprite[TEXT_REVEAL_INDICATOR_LINE] = { chunk, rtl };
+
   if (chunk?.vertical) {
     indicatorSprite.x =
       chunk.centerX -
@@ -515,9 +527,39 @@ const positionIndicatorForChunk = (
     return;
   }
 
-  indicatorSprite.x = indicatorOffsets.x;
+  // A right-to-left line starts at its right end and the indicator runs
+  // ahead of the text, to its left.
+  if (rtl) {
+    // Without any text the first line would start at the right edge.
+    indicatorSprite.x =
+      (chunk ? chunk.inlineStartX : Math.max(0, element.width ?? 0)) -
+      Math.max(0, indicatorSprite?.width ?? 0) -
+      indicatorOffsets.x;
+  } else {
+    indicatorSprite.x = indicatorOffsets.x;
+  }
+
   indicatorSprite.y =
     getIndicatorLineY(indicatorSprite, chunk) + indicatorOffsets.y;
+};
+
+// Left edge of the text revealed so far on a right-to-left line. Parts are
+// revealed in logical order, so everything before `part` is fully shown;
+// several left-to-right runs in a row (two styled Latin words) put the
+// newest one to the right of the older ones.
+const getRevealedLineLeft = (indicatorSprite, textObject, part) => {
+  const lineParts =
+    indicatorSprite[TEXT_REVEAL_INDICATOR_LINE]?.chunk?.lineParts ?? [];
+  const partIndex = lineParts.indexOf(part);
+  let left = getTextPartLeadingEdge(textObject, part);
+
+  for (let index = 0; index < partIndex; index++) {
+    if ((lineParts[index].text ?? "").length > 0) {
+      left = Math.min(left, Math.round(lineParts[index].x));
+    }
+  }
+
+  return left;
 };
 
 const getVerticalPart = (textObject) => {
@@ -558,6 +600,18 @@ const positionIndicatorAtCharacter = (
     return;
   }
 
+  const part = textObject?.[TEXT_REVEAL_PART];
+
+  // Parts of a right-to-left element sit in fixed slots, and the indicator
+  // leads the text on its left.
+  if (part?.direction) {
+    indicatorSprite.x =
+      getRevealedLineLeft(indicatorSprite, textObject, part) -
+      Math.max(0, indicatorSprite?.width ?? 0) -
+      indicatorOffsets.x;
+    return;
+  }
+
   indicatorSprite.x =
     getCharacterXPositionInATextObject(textObject, characterIndex) +
     indicatorOffsets.x;
@@ -569,7 +623,12 @@ const positionIndicatorAtTextEnd = (
   indicatorOffsets,
 ) => {
   if (!lastTextObject || lastTextObject.text.length === 0) {
-    if (!getVerticalPart(lastTextObject)) {
+    // Nothing is shown; a vertical column and a right-to-left line keep the
+    // indicator at their start, where positionIndicatorForChunk put it.
+    if (
+      !getVerticalPart(lastTextObject) &&
+      !indicatorSprite[TEXT_REVEAL_INDICATOR_LINE]?.rtl
+    ) {
       indicatorSprite.x = indicatorOffsets.x;
     }
     return;
@@ -591,7 +650,7 @@ const completeIndicatorAtTextEnd = (
 ) => {
   applyCompleteIndicator(indicatorSprite);
   const indicatorOffsets = getIndicatorOffsets(element, "complete");
-  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
+  positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets, element);
   positionIndicatorAtTextEnd(indicatorSprite, lastTextObject, indicatorOffsets);
 };
 
@@ -674,6 +733,7 @@ const createPartObjects = (part, textValue = "", furiganaValue = "") => {
   });
   text[TEXT_REVEAL_PART] = part;
   applyTextPartTransform(text, part);
+  setTextPartText(text, part, textValue);
   applyTextDecoration(
     text,
     part.textStyle,
@@ -754,6 +814,8 @@ const buildFullTextContent = (contentContainer, element) => {
         totalCharacters: lineCharacterCount,
         // A wipe travels along the text: across a line, or down a column.
         vertical,
+        // A right-to-left line is wiped from its right end.
+        reversed: !vertical && chunk.direction === "rtl",
         inlineSize: vertical ? lineBounds.height : lineBounds.width,
         blockSize: vertical ? lineBounds.width : lineBounds.height,
         bounds: {
@@ -809,7 +871,12 @@ const runTypewriterPrefixReveal = ({
   let lastVisibleChunk = null;
 
   if (remainingCharacters <= 0) {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
     return;
   }
 
@@ -872,7 +939,12 @@ const runTypewriterPrefixReveal = ({
       indicatorOffsets,
     );
   } else {
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
   }
 
   if (revealedCharacters >= totalCharacters) {
@@ -896,7 +968,12 @@ const runPausedInitialReveal = ({
     const indicatorOffsets = getIndicatorOffsets(element);
     const firstChunk = element.content[0] ?? null;
 
-    positionIndicatorForChunk(indicatorSprite, firstChunk, indicatorOffsets);
+    positionIndicatorForChunk(
+      indicatorSprite,
+      firstChunk,
+      indicatorOffsets,
+      element,
+    );
     return;
   }
 
@@ -934,9 +1011,6 @@ const runTypewriterReveal = async ({
   let revealedAnyNewCharacters = false;
   let lastVisibleTextObject = null;
   let lastVisibleChunk = null;
-  // Vertical columns are made of many one-character parts, so the pause
-  // between steps has to happen between parts as well as inside them.
-  let charactersSinceStep = 0;
 
   if (snapshot) {
     snapshot.revealedCharacters = remainingStartCharacters;
@@ -948,6 +1022,10 @@ const runTypewriterReveal = async ({
 
     const chunk = element.content[chunkIndex];
     let revealedNewCharactersInChunk = false;
+    // A direction change or a vertical cell can split a single authored
+    // segment. Carry the unused part of a reveal step across those runs.
+    const paceAcrossParts = chunk.vertical || chunk.direction === "rtl";
+    let charactersLeftInStep = charactersPerStep;
 
     positionIndicatorForChunk(indicatorSprite, chunk, indicatorOffsets);
 
@@ -980,7 +1058,7 @@ const runTypewriterReveal = async ({
           ? Math.round((prefilledCharacters / fullText.length) * furiganaLength)
           : 0;
 
-      text.text = fullText.substring(0, prefilledCharacters);
+      setTextPartText(text, part, fullText.substring(0, prefilledCharacters));
       if (furiganaText) {
         furiganaText.text = fullFurigana.substring(0, prefilledFuriganaLength);
       }
@@ -997,7 +1075,7 @@ const runTypewriterReveal = async ({
       }
 
       let charIndex = prefilledCharacters;
-      let revealedNewCharactersInPart = false;
+      if (!paceAcrossParts) charactersLeftInStep = charactersPerStep;
 
       while (charIndex < fullText.length) {
         if (signal?.aborted || contentContainer.destroyed) return false;
@@ -1005,17 +1083,16 @@ const runTypewriterReveal = async ({
         // An atomic part is a single cell; never show half of it.
         const nextCharIndex = part.atomic
           ? fullText.length
-          : Math.min(fullText.length, charIndex + charactersPerStep);
+          : Math.min(fullText.length, charIndex + charactersLeftInStep);
         const lastRevealedCharIndex = nextCharIndex - 1;
 
-        text.text = fullText.substring(0, nextCharIndex);
+        setTextPartText(text, part, fullText.substring(0, nextCharIndex));
         positionIndicatorAtCharacter(
           indicatorSprite,
           text,
           lastRevealedCharIndex,
           indicatorOffsets,
         );
-        revealedNewCharactersInPart = true;
         revealedNewCharactersInChunk = true;
         revealedAnyNewCharacters = true;
 
@@ -1031,24 +1108,16 @@ const runTypewriterReveal = async ({
           furiganaText.text = fullFurigana.substring(0, furiganaProgress);
         }
 
+        charactersLeftInStep -= nextCharIndex - charIndex;
         charIndex = nextCharIndex;
 
-        if (charIndex < fullText.length) {
-          await abortableSleep(stepDelay, signal);
-        }
-      }
-
-      if (chunk.vertical && revealedNewCharactersInPart) {
-        charactersSinceStep += part.atomic
-          ? fullText.length
-          : charactersPerStep;
-
         if (
-          charactersSinceStep >= charactersPerStep &&
-          partIndex < chunk.lineParts.length - 1
+          charactersLeftInStep <= 0 &&
+          (charIndex < fullText.length ||
+            (paceAcrossParts && partIndex < chunk.lineParts.length - 1))
         ) {
-          charactersSinceStep = 0;
           await abortableSleep(stepDelay, signal);
+          charactersLeftInStep = charactersPerStep;
         }
       }
     }
@@ -1253,6 +1322,11 @@ const createSoftWipeLineMasks = ({
       sprite.rotation = Math.PI / 2;
       sprite.x = Math.ceil(line.bounds.x + line.bounds.width);
       sprite.y = Math.floor(line.bounds.y - edgeWidth);
+    } else if (line.reversed) {
+      // The same mask, mirrored, so it travels from right to left.
+      sprite.scale.x = -1;
+      sprite.x = Math.ceil(line.bounds.x + line.bounds.width + edgeWidth);
+      sprite.y = Math.floor(line.bounds.y);
     } else {
       sprite.x = Math.floor(line.bounds.x - edgeWidth);
       sprite.y = Math.floor(line.bounds.y);
@@ -1289,7 +1363,9 @@ const applySoftWipeFrame = ({
   let activeLine = timedLines[0];
   let activeLineLeadingEdge = activeLine.vertical
     ? activeLine.bounds.y
-    : activeLine.bounds.x;
+    : activeLine.reversed
+      ? activeLine.bounds.x + activeLine.bounds.width
+      : activeLine.bounds.x;
 
   for (let lineIndex = 0; lineIndex < timedLines.length; lineIndex++) {
     const line = timedLines[lineIndex];
@@ -1351,9 +1427,14 @@ const applySoftWipeFrame = ({
 
     texture.source.update();
     activeLine = line;
-    activeLineLeadingEdge =
-      (line.vertical ? line.bounds.y : line.bounds.x) +
-      Math.min(lineTravelDistance, Math.max(0, lineLeadingEdge - lineStart));
+    const travelled = Math.min(
+      lineTravelDistance,
+      Math.max(0, lineLeadingEdge - lineStart),
+    );
+
+    activeLineLeadingEdge = line.reversed
+      ? line.bounds.x + line.bounds.width - travelled
+      : (line.vertical ? line.bounds.y : line.bounds.x) + travelled;
   }
 
   positionIndicatorForChunk(
@@ -1364,6 +1445,11 @@ const applySoftWipeFrame = ({
 
   if (activeLine.vertical) {
     indicatorSprite.y = activeLineLeadingEdge + indicatorOffsets.x;
+  } else if (activeLine.reversed) {
+    indicatorSprite.x =
+      activeLineLeadingEdge -
+      Math.max(0, indicatorSprite?.width ?? 0) -
+      indicatorOffsets.x;
   } else {
     indicatorSprite.x = activeLineLeadingEdge + indicatorOffsets.x;
   }

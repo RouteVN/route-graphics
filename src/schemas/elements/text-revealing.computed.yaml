@@ -219,6 +219,12 @@ properties:
         blockDirection:
           type: number
           description: Horizontal step to the next column, -1 leftwards or 1 rightwards (vertical chunks only)
+        direction:
+          type: string
+          description: Base direction of the line (right-to-left chunks only)
+        inlineStartX:
+          type: number
+          description: X position where the line starts in reading order (right-to-left chunks only)
         lineParts:
           type: array
           description: Array of text and furigana parts in this line
@@ -236,6 +242,18 @@ properties:
               y:
                 type: number
                 description: Vertical position
+              direction:
+                type: string
+                description: Direction of the run, `ltr` or `rtl` (right-to-left text only)
+              width:
+                type: number
+                description: Width of the run's slot in its line (right-to-left text only)
+              joinBefore:
+                type: boolean
+                description: True when the run continues a joined word from the previous run
+              joinAfter:
+                type: boolean
+                description: True when the next run continues this run's joined word
               furigana:
                 type: object
                 properties:
@@ -252,6 +270,11 @@ properties:
         lineMaxHeight:
           type: number
           description: Maximum height of text in this line
+  direction:
+    type: string
+    enum:
+      - rtl
+    description: Present as `rtl` when the text is laid out right to left
   writingMode:
     type: string
     enum:
