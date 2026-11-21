@@ -70,6 +70,7 @@ jobs:
           node scripts/testInputTouchFocus.mjs
           node scripts/testWheelPassive.mjs
           node scripts/testRendererReset.mjs
+          node scripts/testReleasedTextureDiagnostics.mjs
           node scripts/testVideoPlayback.mjs
           node scripts/testVideoAutoplayRefusal.mjs
           node scripts/testLayoutReport.mjs

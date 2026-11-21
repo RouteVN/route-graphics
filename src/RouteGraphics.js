@@ -54,6 +54,7 @@ import { setShaderTimeInTree } from "./plugins/elements/util/shaderFilterEffect.
 import { installHoverPassThrough } from "./plugins/elements/util/hoverPassThrough.js";
 import { validateShaderAnimationBindings } from "./plugins/elements/util/shaderStateValidation.js";
 import { validateShaderProgramsForRenderer } from "./renderer/pixi/shaderProgramValidation.js";
+import { describeReleasedTextures } from "./util/releasedTextureDiagnostics.js";
 import { createLayoutReport } from "./util/layoutReport.js";
 import {
   loadVerticalFontFace,
@@ -77,6 +78,17 @@ import {
 // Shared by every instance, like the cache inside Pixi's probe.
 const detectBoundedVideoAlphaMode =
   createBoundedVideoAlphaModeDetector(detectVideoAlphaMode);
+
+// Presents the stage. A frame that fails on a released texture names the
+// elements that draw it, which Pixi's own error does not.
+const renderStage = (renderApp) => {
+  try {
+    renderApp.render();
+  } catch (error) {
+    describeReleasedTextures(error, renderApp.stage);
+    throw error;
+  }
+};
 
 const createRouteGraphics = () => {
   const VIDEO_TEXTURE_UPDATE_FPS = 30;
@@ -1192,7 +1204,7 @@ const createRouteGraphics = () => {
   ) => {
     if (!needsReconciliation && isDeepEqual(state, nextState)) {
       if (typeof appInstance.render === "function") {
-        appInstance.render();
+        renderStage(appInstance);
       }
       audioEffectRequestsByState.set(state, nextAudioEffectRequests);
       renderReadiness.presentedUnchanged();
@@ -1298,7 +1310,7 @@ const createRouteGraphics = () => {
       // implicit auto-render loop, which can fail in VT/manual browser runs.
       if (typeof appInstance.render === "function") {
         setShaderTimeInTree(appInstance.stage, shaderTimeMS / 1000);
-        appInstance.render();
+        renderStage(appInstance);
       }
 
       // Commit logical state only after the renderer accepts the frame.
@@ -1317,7 +1329,7 @@ const createRouteGraphics = () => {
               animationBus.setTime(animationPlaybackTimeMS);
             }
             if (!isCurrent()) return;
-            appInstance.render?.();
+            renderStage(appInstance);
             if (!isCurrent()) return;
             ready.resolve();
             completionTracker.complete(version);
@@ -1351,7 +1363,7 @@ const createRouteGraphics = () => {
   const extractFrame = async (label, format) => {
     if (typeof app.render === "function") {
       setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
-      app.render();
+      renderStage(app);
     }
 
     const frame = new Rectangle(0, 0, app.renderer.width, app.renderer.height);
@@ -1531,7 +1543,7 @@ const createRouteGraphics = () => {
         animationPlaybackMode === "manual" &&
         typeof app.render === "function"
       ) {
-        app.render();
+        renderStage(app);
       }
     };
     animationBusListenerCleanup = [
@@ -1552,7 +1564,7 @@ const createRouteGraphics = () => {
         setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
         animationBus.tick(time.deltaMS);
         if (typeof app.render === "function") {
-          app.render();
+          renderStage(app);
         }
       };
       app.ticker.add(frameTickerListener);
@@ -1568,7 +1580,7 @@ const createRouteGraphics = () => {
           setShaderTimeInTree(app.stage, shaderTimeMS / 1000);
           animationBus.tick(deltaMS);
           if (typeof app.render === "function") {
-            app.render();
+            renderStage(app);
           }
         }
       };
@@ -1781,7 +1793,7 @@ const createRouteGraphics = () => {
       }
 
       if (typeof app.render === "function") {
-        app.render();
+        renderStage(app);
       }
     },
 
@@ -1804,7 +1816,7 @@ const createRouteGraphics = () => {
     seekAnimation: (animationId, timeMS, options = {}) => {
       const didSeek = animationBus.seek(animationId, timeMS, options);
       if (didSeek && typeof app.render === "function") {
-        app.render();
+        renderStage(app);
       }
       return didSeek;
     },
@@ -1812,7 +1824,7 @@ const createRouteGraphics = () => {
     setAnimationProgress: (animationId, progress, options = {}) => {
       const didSeek = animationBus.setProgress(animationId, progress, options);
       if (didSeek && typeof app.render === "function") {
-        app.render();
+        renderStage(app);
       }
       return didSeek;
     },
@@ -2337,7 +2349,7 @@ const createRouteGraphics = () => {
         );
       }
       if (typeof app.render === "function") {
-        app.render();
+        renderStage(app);
       }
     },
 
