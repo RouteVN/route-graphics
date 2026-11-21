@@ -1099,13 +1099,23 @@ describe("RouteGraphics public API", () => {
     ).toHaveLength(1);
   });
 
-  it("names the elements that draw a destroyed texture when a frame fails", async () => {
+  it("names the elements that draw a released texture when a frame fails", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const application = pixiMock.__getLastApplication();
     const group = new pixiMock.Container();
     group.label = "group";
     const healthy = new pixiMock.Sprite({ source: { destroyed: false } });
     healthy.label = "healthy";
+    // A render texture has no resource at all; that is not a released one.
+    const renderTexture = new pixiMock.Sprite({
+      source: { destroyed: false, resource: undefined },
+    });
+    renderTexture.label = "render-texture";
+    // A texture returned to a pool keeps its source but loses its image.
+    const pooled = new pixiMock.Sprite({
+      source: { destroyed: false, resource: null },
+    });
+    pooled.label = "pooled";
     const destroyedSource = new pixiMock.Sprite({
       source: { destroyed: true, resource: null },
     });
@@ -1113,7 +1123,9 @@ describe("RouteGraphics public API", () => {
     const destroyedTexture = new pixiMock.Sprite({ destroyed: true });
     destroyedTexture.label = "hero";
     group.addChild(healthy);
+    group.addChild(renderTexture);
     group.addChild(destroyedSource);
+    group.addChild(pooled);
     application.stage.addChild(group);
     application.stage.addChild(destroyedTexture);
     application.render.mockImplementationOnce(() => {
@@ -1132,12 +1144,16 @@ describe("RouteGraphics public API", () => {
     expect(caught).toBeInstanceOf(TypeError);
     expect(caught.message).toBe(
       "null is not an object (evaluating 'e.naturalWidth') " +
-        '[Route Graphics: destroyed texture on "bg-sprite", "hero"]',
+        '[Route Graphics: released texture on "bg-sprite", "pooled", "hero"]',
     );
-    expect(caught.destroyedTextureLabels).toEqual(["bg-sprite", "hero"]);
+    expect(caught.releasedTextureLabels).toEqual([
+      "bg-sprite",
+      "pooled",
+      "hero",
+    ]);
   });
 
-  it("leaves a failed frame's error as it was when no texture is destroyed", async () => {
+  it("leaves a failed frame's error as it was when no texture is released", async () => {
     const { app, pixiMock } = await setupRouteGraphics();
     const application = pixiMock.__getLastApplication();
     application.stage.addChild(

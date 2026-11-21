@@ -54,7 +54,7 @@ import { setShaderTimeInTree } from "./plugins/elements/util/shaderFilterEffect.
 import { installHoverPassThrough } from "./plugins/elements/util/hoverPassThrough.js";
 import { validateShaderAnimationBindings } from "./plugins/elements/util/shaderStateValidation.js";
 import { validateShaderProgramsForRenderer } from "./renderer/pixi/shaderProgramValidation.js";
-import { describeDestroyedTextures } from "./util/destroyedTextureDiagnostics.js";
+import { describeReleasedTextures } from "./util/releasedTextureDiagnostics.js";
 import { createLayoutReport } from "./util/layoutReport.js";
 import {
   loadVerticalFontFace,
@@ -79,13 +79,13 @@ import {
 const detectBoundedVideoAlphaMode =
   createBoundedVideoAlphaModeDetector(detectVideoAlphaMode);
 
-// Presents the stage. A frame that fails on a destroyed texture names the
+// Presents the stage. A frame that fails on a released texture names the
 // elements that draw it, which Pixi's own error does not.
 const renderStage = (renderApp) => {
   try {
     renderApp.render();
   } catch (error) {
-    describeDestroyedTextures(error, renderApp.stage);
+    describeReleasedTextures(error, renderApp.stage);
     throw error;
   }
 };
