@@ -547,8 +547,9 @@ const setupRouteGraphics = async ({
         animations: [],
         audio: [],
       };
-  const { default: createRouteGraphics } =
-    await import("../src/RouteGraphics.js");
+  const { default: createRouteGraphics } = await import(
+    "../src/RouteGraphics.js"
+  );
 
   const app = createRouteGraphics();
   await app.init({
@@ -637,8 +638,9 @@ const setupLiveScreen = async ({ asyncAdd = false } = {}) => {
         create: () => new activePixiMock.Texture(),
       };
       activePixiMock.Matrix = class MockMatrix {};
-      const { containerPlugin } =
-        await import("../src/plugins/elements/container/index.js");
+      const { containerPlugin } = await import(
+        "../src/plugins/elements/container/index.js"
+      );
       const spritesheetPlugin = {
         type: "spritesheet-node",
         parse: ({ state }) => state,
@@ -758,7 +760,7 @@ describe("RouteGraphics public API", () => {
         id: "abandoned",
         elements: [{ id: "old", type: "async-node" }],
       });
-      const abandonedReady = app.whenRenderReady().catch(error => error.name);
+      const abandonedReady = app.whenRenderReady().catch((error) => error.name);
       const oldStage = pixiApp.stage;
       await app.reset({ eventHandler: newEvents });
       expect(await abandonedReady).toBe("AbortError");
@@ -1097,6 +1099,59 @@ describe("RouteGraphics public API", () => {
     ).toHaveLength(1);
   });
 
+  it("names the elements that draw a destroyed texture when a frame fails", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const application = pixiMock.__getLastApplication();
+    const group = new pixiMock.Container();
+    group.label = "group";
+    const healthy = new pixiMock.Sprite({ source: { destroyed: false } });
+    healthy.label = "healthy";
+    const destroyedSource = new pixiMock.Sprite({
+      source: { destroyed: true, resource: null },
+    });
+    destroyedSource.label = "bg-sprite";
+    const destroyedTexture = new pixiMock.Sprite({ destroyed: true });
+    destroyedTexture.label = "hero";
+    group.addChild(healthy);
+    group.addChild(destroyedSource);
+    application.stage.addChild(group);
+    application.stage.addChild(destroyedTexture);
+    application.render.mockImplementationOnce(() => {
+      throw new TypeError(
+        "null is not an object (evaluating 'e.naturalWidth')",
+      );
+    });
+
+    let caught;
+    try {
+      app.render({ id: "frame", elements: [] });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(TypeError);
+    expect(caught.message).toBe(
+      "null is not an object (evaluating 'e.naturalWidth') " +
+        '[Route Graphics: destroyed texture on "bg-sprite", "hero"]',
+    );
+    expect(caught.destroyedTextureLabels).toEqual(["bg-sprite", "hero"]);
+  });
+
+  it("leaves a failed frame's error as it was when no texture is destroyed", async () => {
+    const { app, pixiMock } = await setupRouteGraphics();
+    const application = pixiMock.__getLastApplication();
+    application.stage.addChild(
+      new pixiMock.Sprite({ source: { destroyed: false } }),
+    );
+    application.render.mockImplementationOnce(() => {
+      throw new Error("submit failed");
+    });
+
+    expect(() => app.render({ id: "frame", elements: [] })).toThrow(
+      /^submit failed$/,
+    );
+  });
+
   it.each([
     "mount",
     "update",
@@ -1213,8 +1268,9 @@ describe("RouteGraphics public API", () => {
         },
       },
       pluginsFactory: async () => {
-        const { rectPlugin } =
-          await import("../src/plugins/elements/rect/index.js");
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
         return {
           elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
         };
@@ -1246,8 +1302,9 @@ describe("RouteGraphics public API", () => {
       });
       const { app, pixiMock } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { rectPlugin } =
-            await import("../src/plugins/elements/rect/index.js");
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
           return {
             elements: [
               {
@@ -1286,8 +1343,9 @@ describe("RouteGraphics public API", () => {
     });
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => {
-        const { rectPlugin } =
-          await import("../src/plugins/elements/rect/index.js");
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
         return {
           elements: [
             {
@@ -1329,8 +1387,9 @@ describe("RouteGraphics public API", () => {
     async (action) => {
       const { app } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { rectPlugin } =
-            await import("../src/plugins/elements/rect/index.js");
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
           return {
             elements: [{ ...rectPlugin, add: () => new Promise(() => {}) }],
           };
@@ -1367,8 +1426,9 @@ describe("RouteGraphics public API", () => {
           },
         },
         pluginsFactory: async () => {
-          const { rectPlugin } =
-            await import("../src/plugins/elements/rect/index.js");
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
           return {
             elements: [
               {
@@ -1516,8 +1576,9 @@ describe("RouteGraphics public API", () => {
       const { app } = await setupRouteGraphics({
         initOptions: { eventHandler: events },
         pluginsFactory: async () => {
-          const { rectPlugin } =
-            await import("../src/plugins/elements/rect/index.js");
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
           return {
             elements: [
               {
@@ -1542,8 +1603,9 @@ describe("RouteGraphics public API", () => {
         id: "initial",
         elements: [{ ...fallback.elements[0], fill: "#ff0000" }],
       });
-      const surfaces =
-        await import("../src/plugins/animations/replace/transitionSurfaces.js");
+      const surfaces = await import(
+        "../src/plugins/animations/replace/transitionSurfaces.js"
+      );
       const failure = new Error("overlay construction failed");
       let prepared;
       let failedReady;
@@ -1789,8 +1851,9 @@ describe("RouteGraphics public API", () => {
     const { app } = await setupRouteGraphics({
       rendererOverrides: { gl },
       pluginsFactory: async () => {
-        const { rectPlugin } =
-          await import("../src/plugins/elements/rect/index.js");
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
         return {
           elements: [rectPlugin],
           animations: [],
@@ -1907,8 +1970,9 @@ describe("RouteGraphics public API", () => {
       const { app } = await setupRouteGraphics({
         rendererOverrides: { gl },
         pluginsFactory: async () => {
-          const { rectPlugin } =
-            await import("../src/plugins/elements/rect/index.js");
+          const { rectPlugin } = await import(
+            "../src/plugins/elements/rect/index.js"
+          );
           return {
             elements: [rectPlugin],
             animations: [],
@@ -1961,8 +2025,9 @@ describe("RouteGraphics public API", () => {
     const { app } = await setupRouteGraphics({
       rendererOverrides: { gl },
       pluginsFactory: async () => {
-        const { rectPlugin } =
-          await import("../src/plugins/elements/rect/index.js");
+        const { rectPlugin } = await import(
+          "../src/plugins/elements/rect/index.js"
+        );
         return {
           elements: [rectPlugin],
           animations: [],
@@ -3095,8 +3160,9 @@ describe("RouteGraphics public API", () => {
         eventHandler,
       },
       pluginsFactory: async () => {
-        const { videoPlugin } =
-          await import("../src/plugins/elements/video/index.js");
+        const { videoPlugin } = await import(
+          "../src/plugins/elements/video/index.js"
+        );
 
         return {
           elements: [videoPlugin],
@@ -3189,8 +3255,9 @@ describe("RouteGraphics public API", () => {
   it("updates lazy video texture when first mounted after frame data is ready", async () => {
     const { app, pixiMock } = await setupRouteGraphics({
       pluginsFactory: async () => {
-        const { videoPlugin } =
-          await import("../src/plugins/elements/video/index.js");
+        const { videoPlugin } = await import(
+          "../src/plugins/elements/video/index.js"
+        );
 
         return {
           elements: [videoPlugin],
@@ -3297,8 +3364,9 @@ describe("RouteGraphics public API", () => {
     async (hasFrameCallbacks) => {
       const { app, pixiMock } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { videoPlugin } =
-            await import("../src/plugins/elements/video/index.js");
+          const { videoPlugin } = await import(
+            "../src/plugins/elements/video/index.js"
+          );
 
           return {
             elements: [videoPlugin],
@@ -3400,8 +3468,9 @@ describe("RouteGraphics public API", () => {
     async (metadataReady) => {
       const { app, pixiMock } = await setupRouteGraphics({
         pluginsFactory: async () => {
-          const { videoPlugin } =
-            await import("../src/plugins/elements/video/index.js");
+          const { videoPlugin } = await import(
+            "../src/plugins/elements/video/index.js"
+          );
 
           return {
             elements: [videoPlugin],
@@ -5883,8 +5952,9 @@ describe("RouteGraphics public API", () => {
 
       const { app } = await setupRouteGraphics({
         pluginsFactory: async ({ pixiMock }) => {
-          const { containerPlugin } =
-            await import("../src/plugins/elements/container/index.js");
+          const { containerPlugin } = await import(
+            "../src/plugins/elements/container/index.js"
+          );
           const createChild = (parent, element) => {
             const child = new pixiMock.Container();
             child.label = element.id;
