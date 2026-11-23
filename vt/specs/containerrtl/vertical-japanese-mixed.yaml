@@ -1,0 +1,132 @@
+---
+title: Reading Direction RTL - Japanese Vertical Menu With English
+description: The Japanese vertical menu with English words, letters and digits mixed into the vertical-rl items. Grey rects mark the containers. Renders text because mixed-script vertical menus are a common use of the property.
+specs:
+  - the upper menu has no readingDirection and should place the first item, NEW GAME, on the left
+  - the lower menu sets readingDirection rtl and should place NEW GAME at the right edge of the container, with the following items to its left
+  - items of only English, of Japanese followed by English, and of English or digits inside Japanese should each take one column and keep the same gap
+  - both menus should draw every item identically; only the order of the columns differs
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 60
+        "y": 40
+        width: 560
+        height: 280
+        fill: "#4D4D4D"
+      - id: menu-ltr
+        type: container
+        x: 80
+        "y": 60
+        width: 520
+        direction: horizontal
+        gapX: 32
+        children:
+          - id: menu-ltr-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: NEW GAME
+          - id: menu-ltr-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: ロード Load
+          - id: menu-ltr-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 設定 Settings
+          - id: menu-ltr-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: CGギャラリー
+          - id: menu-ltr-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 第1章 Start
+      - id: frame-rtl
+        type: rect
+        x: 660
+        "y": 400
+        width: 560
+        height: 280
+        fill: "#4D4D4D"
+      - id: menu-rtl
+        type: container
+        x: 680
+        "y": 420
+        width: 520
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 32
+        children:
+          - id: menu-rtl-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: NEW GAME
+          - id: menu-rtl-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: ロード Load
+          - id: menu-rtl-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 設定 Settings
+          - id: menu-rtl-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: CGギャラリー
+          - id: menu-rtl-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 第1章 Start
