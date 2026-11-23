@@ -1,0 +1,263 @@
+---
+title: Reading Direction RTL - Arabic Menu
+description: An Arabic menu and choice row built from containers, without readingDirection on the left and with readingDirection rtl on the right. Renders text because menus of right-to-left text are what the property is for.
+specs:
+  - the left menu should line its items up on their left edge
+  - the right menu should line the same items up on their right edge
+  - the upper choice row should place the widest choice first on the left
+  - the lower choice row should place the widest choice first on the right, with the following choices to its left
+---
+states:
+  - elements:
+      - id: menu-ltr
+        type: container
+        x: 80
+        "y": 80
+        direction: vertical
+        gapY: 16
+        children:
+          - id: menu-ltr-0
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: لعبة جديدة
+          - id: menu-ltr-1
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: متابعة
+          - id: menu-ltr-2
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: الإعدادات
+          - id: menu-ltr-3
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: خروج
+      - id: menu-rtl
+        type: container
+        x: 1200
+        "y": 80
+        anchorX: 1
+        direction: vertical
+        readingDirection: rtl
+        gapY: 16
+        children:
+          - id: menu-rtl-0
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: لعبة جديدة
+          - id: menu-rtl-1
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: متابعة
+          - id: menu-rtl-2
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: الإعدادات
+          - id: menu-rtl-3
+            type: text
+            direction: rtl
+            textStyle:
+              fontSize: 36
+              fill: "#FFFFFF"
+              fontFamily:
+                - NotoSansArabic
+                - Arial
+              lineHeight: 1.5
+            content: خروج
+      - id: choices-ltr
+        type: container
+        x: 80
+        "y": 420
+        direction: horizontal
+        gapX: 24
+        children:
+          - id: choices-ltr-0
+            type: container
+            children:
+              - id: choices-ltr-0-bg
+                type: rect
+                width: 220
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-ltr-0-label
+                type: text
+                direction: rtl
+                x: 110
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: نعم
+          - id: choices-ltr-1
+            type: container
+            children:
+              - id: choices-ltr-1-bg
+                type: rect
+                width: 140
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-ltr-1-label
+                type: text
+                direction: rtl
+                x: 70
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: لا
+          - id: choices-ltr-2
+            type: container
+            children:
+              - id: choices-ltr-2-bg
+                type: rect
+                width: 180
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-ltr-2-label
+                type: text
+                direction: rtl
+                x: 90
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: ربما
+      - id: choices-rtl
+        type: container
+        x: 1200
+        "y": 540
+        anchorX: 1
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 24
+        children:
+          - id: choices-rtl-0
+            type: container
+            children:
+              - id: choices-rtl-0-bg
+                type: rect
+                width: 220
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-rtl-0-label
+                type: text
+                direction: rtl
+                x: 110
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: نعم
+          - id: choices-rtl-1
+            type: container
+            children:
+              - id: choices-rtl-1-bg
+                type: rect
+                width: 140
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-rtl-1-label
+                type: text
+                direction: rtl
+                x: 70
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: لا
+          - id: choices-rtl-2
+            type: container
+            children:
+              - id: choices-rtl-2-bg
+                type: rect
+                width: 180
+                height: 80
+                fill: "#4D4D4D"
+              - id: choices-rtl-2-label
+                type: text
+                direction: rtl
+                x: 90
+                "y": 13
+                anchorX: 0.5
+                textStyle:
+                  fontSize: 36
+                  fill: "#FFFFFF"
+                  fontFamily:
+                    - NotoSansArabic
+                    - Arial
+                  lineHeight: 1.5
+                content: ربما

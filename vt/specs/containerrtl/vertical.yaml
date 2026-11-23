@@ -1,0 +1,167 @@
+---
+title: Reading Direction RTL - Columns
+description: Vertical containers left to right and right to left, first as one column of rects with different widths and then wrapping into three columns. Grey rects mark each container's width.
+specs:
+  - the top left column should line its rects up on the left edge
+  - the top right column should line the same rects up on the right edge
+  - the bottom left container should add its wrapped columns to the right
+  - the bottom right container should be its mirror image, with the first column at the right edge of its frame and later columns to its left
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 80
+        "y": 20
+        width: 400
+        height: 300
+        fill: "#4D4D4D"
+      - id: column-ltr
+        type: container
+        x: 80
+        "y": 40
+        width: 400
+        direction: vertical
+        gapY: 20
+        children:
+          - id: ltr-a
+            type: rect
+            width: 300
+            height: 50
+            fill: "#FFFFFF"
+          - id: ltr-b
+            type: rect
+            width: 200
+            height: 50
+            fill: "#FFFFFF"
+          - id: ltr-c
+            type: rect
+            width: 120
+            height: 50
+            fill: "#FFFFFF"
+          - id: ltr-d
+            type: rect
+            width: 60
+            height: 50
+            fill: "#FFFFFF"
+      - id: frame-rtl
+        type: rect
+        x: 680
+        "y": 20
+        width: 400
+        height: 300
+        fill: "#4D4D4D"
+      - id: column-rtl
+        type: container
+        x: 680
+        "y": 40
+        width: 400
+        direction: vertical
+        readingDirection: rtl
+        gapY: 20
+        children:
+          - id: rtl-a
+            type: rect
+            width: 300
+            height: 50
+            fill: "#FFFFFF"
+          - id: rtl-b
+            type: rect
+            width: 200
+            height: 50
+            fill: "#FFFFFF"
+          - id: rtl-c
+            type: rect
+            width: 120
+            height: 50
+            fill: "#FFFFFF"
+          - id: rtl-d
+            type: rect
+            width: 60
+            height: 50
+            fill: "#FFFFFF"
+      - id: frame-wrap-ltr
+        type: rect
+        x: 80
+        "y": 380
+        width: 500
+        height: 240
+        fill: "#4D4D4D"
+      - id: columns-ltr
+        type: container
+        x: 80
+        "y": 400
+        width: 500
+        height: 200
+        direction: vertical
+        gapX: 20
+        gapY: 20
+        children:
+          - id: wrap-ltr-a
+            type: rect
+            width: 160
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-ltr-b
+            type: rect
+            width: 100
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-ltr-c
+            type: rect
+            width: 120
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-ltr-d
+            type: rect
+            width: 60
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-ltr-e
+            type: rect
+            width: 80
+            height: 90
+            fill: "#FFFFFF"
+      - id: frame-wrap-rtl
+        type: rect
+        x: 680
+        "y": 380
+        width: 500
+        height: 240
+        fill: "#4D4D4D"
+      - id: columns-rtl
+        type: container
+        x: 680
+        "y": 400
+        width: 500
+        height: 200
+        direction: vertical
+        readingDirection: rtl
+        gapX: 20
+        gapY: 20
+        children:
+          - id: wrap-rtl-a
+            type: rect
+            width: 160
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-rtl-b
+            type: rect
+            width: 100
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-rtl-c
+            type: rect
+            width: 120
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-rtl-d
+            type: rect
+            width: 60
+            height: 90
+            fill: "#FFFFFF"
+          - id: wrap-rtl-e
+            type: rect
+            width: 80
+            height: 90
+            fill: "#FFFFFF"

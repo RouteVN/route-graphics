@@ -406,6 +406,7 @@
  * @typedef {Object} ContainerComputedProps
  * @property {'container'} type
  * @property {'absolute' | 'horizontal' | 'vertical'} direction
+ * @property {'rtl'} [readingDirection] - Present when a horizontal or vertical container is laid out from its right edge
  * @property {SpriteComputedNode | TextComputedNode | RectComputedNode | ContainerComputedNode} children
  * @property {number} gapX
  * @property {number} gapY

@@ -1,0 +1,119 @@
+---
+title: Reading Direction RTL - Horizontal Row
+description: The same row of a wide, a medium and a narrow rect, left to right and right to left. Grey rects mark each container's width.
+specs:
+  - the top row should run left to right from the left edge of its grey frame
+  - the second row should be its mirror image, with the wide rect at the right edge of the frame and the free space on the left
+  - the third row has no width, so it should be the mirror image inside its own content width, starting at x 80
+  - the fourth row is anchored by its right edge and should end at the right edge of the frames above it
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 80
+        "y": 40
+        width: 600
+        height: 120
+        fill: "#4D4D4D"
+      - id: row-ltr
+        type: container
+        x: 80
+        "y": 60
+        width: 600
+        direction: horizontal
+        gapX: 20
+        children:
+          - id: ltr-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: ltr-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: ltr-c
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"
+      - id: frame-rtl
+        type: rect
+        x: 80
+        "y": 200
+        width: 600
+        height: 120
+        fill: "#4D4D4D"
+      - id: row-rtl
+        type: container
+        x: 80
+        "y": 220
+        width: 600
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: rtl-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: rtl-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: rtl-c
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"
+      - id: row-rtl-auto
+        type: container
+        x: 80
+        "y": 380
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: auto-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: auto-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: auto-c
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"
+      - id: row-rtl-anchored
+        type: container
+        x: 680
+        "y": 520
+        anchorX: 1
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: anchored-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: anchored-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: anchored-c
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"

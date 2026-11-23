@@ -67,6 +67,22 @@ const getLayoutBottom = (child, layoutPoint) =>
     ? layoutPoint.y
     : child.y + child.height;
 
+const READING_DIRECTIONS = ["ltr", "rtl"];
+
+const normalizeReadingDirection = (readingDirection) => {
+  if (readingDirection === undefined || readingDirection === null) {
+    return "ltr";
+  }
+
+  if (READING_DIRECTIONS.includes(readingDirection)) {
+    return readingDirection;
+  }
+
+  throw new Error(
+    `Input Error: readingDirection must be one of ${READING_DIRECTIONS.join(", ")}.`,
+  );
+};
+
 /**
  * @typedef {import('../../../types.js').BaseElement} BaseElement
  * @typedef {import('../../../types.js').ContainerComputedNode} ContainerComputedNode
@@ -95,6 +111,15 @@ const getLayoutBottom = (child, layoutPoint) =>
  * geometry keeps the scale inherited from ancestor containers. A tween from
  * zero can then grow the group (see util/liveContainerScale.js). A collapsed
  * child container takes no space in this container's layout.
+ *
+ * `readingDirection: rtl` lays a horizontal or vertical container out from its
+ * right edge. The children are placed left to right as usual and every
+ * child's layout box is then mirrored in the container's width, so the result
+ * is the mirror image of the left-to-right layout: rows start at the right and
+ * run leftwards, the children of a column line up on its right, and wrapped
+ * columns are added to the left. The children themselves are moved, not
+ * flipped. Content wider than the container reaches past its left edge.
+ * Absolute containers keep the positions their children were given.
  */
 export const parseContainer = ({
   state,
@@ -107,6 +132,8 @@ export const parseContainer = ({
     state.direction === "horizontal" || state.direction === "vertical"
       ? state.direction
       : "absolute";
+  const readingDirection = normalizeReadingDirection(state.readingDirection);
+  const rtl = readingDirection === "rtl" && direction !== "absolute";
   const scroll = state.scroll ? true : false;
   const gapX = state.gapX ?? 0;
   const gapY = state.gapY ?? 0;
@@ -119,6 +146,8 @@ export const parseContainer = ({
   const scaledHeight = state.height ? state.height * scaleMagnitudeY : 0;
   const children = structuredClone(state.children || []);
   const parsedChildren = [];
+  // The left and right of every child's layout box, for the mirror pass.
+  const layoutBoxes = [];
 
   if (state.gap !== undefined) {
     throw new Error(
@@ -257,6 +286,12 @@ export const parseContainer = ({
       );
     }
 
+    if (rtl) {
+      const right = getLayoutRight(child, layoutPoint);
+
+      layoutBoxes.push({ left: right - getLayoutWidth(child), right });
+    }
+
     parsedChildren.push(child);
   }
 
@@ -266,10 +301,20 @@ export const parseContainer = ({
     height: state.height ? scaledHeight : containerHeight,
   });
 
+  if (rtl) {
+    // The rounded width keeps the mirrored positions on whole pixels.
+    parsedChildren.forEach((child, index) => {
+      const { left, right } = layoutBoxes[index];
+
+      child.x += containerComputed.width - left - right;
+    });
+  }
+
   const finalContainer = {
     ...containerComputed,
     children: parsedChildren,
     direction,
+    ...(rtl && { readingDirection }),
     gapX,
     gapY,
     scroll,

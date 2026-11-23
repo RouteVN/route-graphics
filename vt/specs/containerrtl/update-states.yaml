@@ -1,0 +1,189 @@
+---
+title: Reading Direction RTL - Update Between States
+description: One wrapping container whose reading direction, children and layout axis change between states. The grey rect marks its width.
+specs:
+  - the first state should fill both rows from the left
+  - the second state sets readingDirection rtl, and every rect should move to its mirrored place with both rows starting at the right
+  - the third state adds a fifth rect, which should join the second row on its left
+  - the fourth state changes direction to vertical, and the rects should stack in right-aligned columns that are added to the left
+  - navigating back should restore the third state
+steps:
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: screenshot
+  - action: keypress
+    key: b
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: frame
+        type: rect
+        x: 80
+        "y": 80
+        width: 520
+        height: 400
+        fill: "#4D4D4D"
+      - id: grid
+        type: container
+        x: 80
+        "y": 100
+        width: 520
+        height: 360
+        direction: horizontal
+        gapX: 20
+        gapY: 20
+        children:
+          - id: item-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-c
+            type: rect
+            width: 160
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-d
+            type: rect
+            width: 100
+            height: 80
+            fill: "#FFFFFF"
+  - elements:
+      - id: frame
+        type: rect
+        x: 80
+        "y": 80
+        width: 520
+        height: 400
+        fill: "#4D4D4D"
+      - id: grid
+        type: container
+        x: 80
+        "y": 100
+        width: 520
+        height: 360
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        gapY: 20
+        children:
+          - id: item-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-c
+            type: rect
+            width: 160
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-d
+            type: rect
+            width: 100
+            height: 80
+            fill: "#FFFFFF"
+  - elements:
+      - id: frame
+        type: rect
+        x: 80
+        "y": 80
+        width: 520
+        height: 400
+        fill: "#4D4D4D"
+      - id: grid
+        type: container
+        x: 80
+        "y": 100
+        width: 520
+        height: 360
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        gapY: 20
+        children:
+          - id: item-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-c
+            type: rect
+            width: 160
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-d
+            type: rect
+            width: 100
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-e
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"
+  - elements:
+      - id: frame
+        type: rect
+        x: 80
+        "y": 80
+        width: 520
+        height: 400
+        fill: "#4D4D4D"
+      - id: grid
+        type: container
+        x: 80
+        "y": 100
+        width: 520
+        height: 360
+        direction: vertical
+        readingDirection: rtl
+        gapX: 20
+        gapY: 20
+        children:
+          - id: item-a
+            type: rect
+            width: 200
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-b
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-c
+            type: rect
+            width: 160
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-d
+            type: rect
+            width: 100
+            height: 80
+            fill: "#FFFFFF"
+          - id: item-e
+            type: rect
+            width: 60
+            height: 80
+            fill: "#FFFFFF"

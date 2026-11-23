@@ -1,0 +1,208 @@
+---
+title: Reading Direction RTL - Japanese Vertical Menu With Furigana
+description: The Japanese vertical menu with furigana beside the kanji of each vertical-rl item, one item also ending in an English word. Grey rects mark the containers. Renders text because furigana widens each column, which the layout has to keep in order.
+specs:
+  - the upper menu has no readingDirection and should place the first item, 最初から, on the left
+  - the lower menu sets readingDirection rtl and should place 最初から at the right edge of the container, with the following items to its left
+  - furigana should stay on the right of its own kanji in both menus and should not overlap the neighbouring column
+  - both menus should draw every item identically; only the order of the columns differs
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 60
+        "y": 30
+        width: 560
+        height: 300
+        fill: "#4D4D4D"
+      - id: menu-ltr
+        type: container
+        x: 80
+        "y": 50
+        width: 520
+        direction: horizontal
+        gapX: 24
+        children:
+          - id: menu-ltr-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "最初"
+                furigana:
+                  text: さいしょ
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: "から"
+          - id: menu-ltr-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "続"
+                furigana:
+                  text: つづ
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: "きから"
+          - id: menu-ltr-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "設定"
+                furigana:
+                  text: せってい
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+          - id: menu-ltr-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "回想"
+                furigana:
+                  text: かいそう
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: " Gallery"
+          - id: menu-ltr-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "終了"
+                furigana:
+                  text: しゅうりょう
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+      - id: frame-rtl
+        type: rect
+        x: 660
+        "y": 390
+        width: 560
+        height: 300
+        fill: "#4D4D4D"
+      - id: menu-rtl
+        type: container
+        x: 680
+        "y": 410
+        width: 520
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 24
+        children:
+          - id: menu-rtl-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "最初"
+                furigana:
+                  text: さいしょ
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: "から"
+          - id: menu-rtl-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "続"
+                furigana:
+                  text: つづ
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: "きから"
+          - id: menu-rtl-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "設定"
+                furigana:
+                  text: せってい
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+          - id: menu-rtl-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "回想"
+                furigana:
+                  text: かいそう
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP
+              - text: " Gallery"
+          - id: menu-rtl-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 2.2
+            content:
+              - text: "終了"
+                furigana:
+                  text: しゅうりょう
+                  textStyle:
+                    fontSize: 14
+                    fill: "#D9D9D9"
+                    fontFamily: NotoSansJP

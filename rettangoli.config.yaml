@@ -40,6 +40,9 @@ vt:
         - title: "Container Events"
           files: "containerevent"
           description: "Container event interaction tests"
+        - title: "Container RTL"
+          files: "containerrtl"
+          description: "Right-to-left container layout (readingDirection) tests"
     - title: "Rect Group"
       type: "groupLabel"
       items:

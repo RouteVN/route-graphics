@@ -15,33 +15,34 @@ Try it in the [Playground](/playground/?template=container-layout).
 
 ## Field Reference
 
-| Field        | Type                                     | Required            | Default        | Notes                                                             |
-| ------------ | ---------------------------------------- | ------------------- | -------------- | ----------------------------------------------------------------- |
-| `id`         | string                                   | Yes                 | -              | Element id.                                                       |
-| `type`       | string                                   | Yes                 | -              | Must be `container`.                                              |
-| `x`          | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                 |
-| `y`          | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                 |
-| `width`      | number                                   | No                  | auto           | Derived from children if omitted.                                 |
-| `height`     | number                                   | No                  | auto           | Derived from children if omitted.                                 |
-| `anchorX`    | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                           |
-| `anchorY`    | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                           |
-| `originX`    | number                                   | No                  | anchor         | Transform origin X in pixels.                                     |
-| `originY`    | number                                   | No                  | anchor         | Transform origin Y in pixels.                                     |
-| `alpha`      | number                                   | No                  | `1`            | Opacity `0..1`.                                                   |
-| `blur`       | object                                   | No                  | -              | Directional Gaussian blur applied to the whole subtree.           |
-| `filters`    | array                                    | No                  | `[]`           | Ordered custom shader filters applied to the composed subtree.    |
-| `children`   | array                                    | No                  | `[]`           | Any registered element plugin type can be nested.                 |
-| `direction`  | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`     | Auto-positioning for children in non-absolute modes.              |
-| `gapX`       | number                                   | No                  | `0`            | Horizontal spacing between children, and between wrapped columns. |
-| `gapY`       | number                                   | No                  | `0`            | Vertical spacing between children, and between wrapped rows.      |
-| `rotation`   | number                                   | No                  | `0`            | Degrees.                                                          |
-| `scroll`     | boolean                                  | No                  | `false`        | Enables clipping and wheel scrolling for overflow.                |
-| `scrollbar`  | object                                   | No                  | -              | Optional custom vertical scrollbar chrome for overflow.           |
-| `hover`      | object                                   | No                  | -              | Hover event config. Supports `inheritToChildren`.                 |
-| `click`      | object                                   | No                  | -              | Click event config. Supports `inheritToChildren`.                 |
-| `rightClick` | object                                   | No                  | -              | Right click event config. Supports `inheritToChildren`.           |
-| `scrollUp`   | object                                   | No                  | -              | Wheel-up payload hook.                                            |
-| `scrollDown` | object                                   | No                  | -              | Wheel-down payload hook.                                          |
+| Field              | Type                                     | Required            | Default        | Notes                                                                                           |
+| ------------------ | ---------------------------------------- | ------------------- | -------------- | ----------------------------------------------------------------------------------------------- |
+| `id`               | string                                   | Yes                 | -              | Element id.                                                                                     |
+| `type`             | string                                   | Yes                 | -              | Must be `container`.                                                                            |
+| `x`                | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                               |
+| `y`                | number                                   | Yes (public schema) | `0` at runtime | Position before anchor transform.                                                               |
+| `width`            | number                                   | No                  | auto           | Derived from children if omitted.                                                               |
+| `height`           | number                                   | No                  | auto           | Derived from children if omitted.                                                               |
+| `anchorX`          | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                                                         |
+| `anchorY`          | number                                   | No                  | `0`            | For containers, use `0`, `0.5`, or `1`.                                                         |
+| `originX`          | number                                   | No                  | anchor         | Transform origin X in pixels.                                                                   |
+| `originY`          | number                                   | No                  | anchor         | Transform origin Y in pixels.                                                                   |
+| `alpha`            | number                                   | No                  | `1`            | Opacity `0..1`.                                                                                 |
+| `blur`             | object                                   | No                  | -              | Directional Gaussian blur applied to the whole subtree.                                         |
+| `filters`          | array                                    | No                  | `[]`           | Ordered custom shader filters applied to the composed subtree.                                  |
+| `children`         | array                                    | No                  | `[]`           | Any registered element plugin type can be nested.                                               |
+| `direction`        | `absolute` \| `horizontal` \| `vertical` | No                  | `absolute`     | Auto-positioning for children in non-absolute modes.                                            |
+| `readingDirection` | `ltr` \| `rtl`                           | No                  | `ltr`          | Side that `horizontal` and `vertical` layouts start from. `rtl` is for right-to-left languages. |
+| `gapX`             | number                                   | No                  | `0`            | Horizontal spacing between children, and between wrapped columns.                               |
+| `gapY`             | number                                   | No                  | `0`            | Vertical spacing between children, and between wrapped rows.                                    |
+| `rotation`         | number                                   | No                  | `0`            | Degrees.                                                                                        |
+| `scroll`           | boolean                                  | No                  | `false`        | Enables clipping and wheel scrolling for overflow.                                              |
+| `scrollbar`        | object                                   | No                  | -              | Optional custom vertical scrollbar chrome for overflow.                                         |
+| `hover`            | object                                   | No                  | -              | Hover event config. Supports `inheritToChildren`.                                               |
+| `click`            | object                                   | No                  | -              | Click event config. Supports `inheritToChildren`.                                               |
+| `rightClick`       | object                                   | No                  | -              | Right click event config. Supports `inheritToChildren`.                                         |
+| `scrollUp`         | object                                   | No                  | -              | Wheel-up payload hook.                                                                          |
+| `scrollDown`       | object                                   | No                  | -              | Wheel-down payload hook.                                                                        |
 
 Container `filters` post-process the composed child surface after built-in
 blur. See [Shaders](/docs/guides/shaders/) for the shader interface.
@@ -50,10 +51,25 @@ blur. See [Shaders](/docs/guides/shaders/) for the shader interface.
 
 - `absolute`: child `x`/`y` are used as-is.
 - `horizontal` / `vertical`: parser repositions children and can wrap by container `width`/`height` when provided and `scroll` is false.
+- `readingDirection: rtl` lays a `horizontal` or `vertical` container out from its right edge. See [Right-To-Left Layout](#right-to-left-layout).
 - `gapX` controls horizontal spacing. `gapY` controls vertical spacing. Legacy `gap` is not supported.
 - Child nodes are parsed with the active parser plugin set.
 - `scrollbar.vertical` renders on top of the viewport edge. It syncs with wheel scrolling, thumb dragging, track clicks, and optional start/end buttons.
 - `scrollUp` and `scrollDown` emit semantic wheel events. They are independent of `scroll: true`, which controls overflow clipping and content movement.
+
+## Right-To-Left Layout
+
+Set `readingDirection: rtl` for Arabic, Hebrew and other right-to-left languages, and for rows of vertical Japanese or Chinese text, whose columns are read from right to left. The children are laid out as the mirror image of the default layout inside the container's width:
+
+- `horizontal`: the first child sits at the container's right edge and the row runs leftwards. Every wrapped row starts at the right again, so a row that is not full ends at the left.
+- `vertical`: children still stack top to bottom. Narrower children line up on the container's right edge, and wrapped columns are added to the left.
+- `absolute`: ignored. Children keep the `x` they were given.
+- Children are moved, not flipped. Text keeps its own `direction`, so set `direction: rtl` on the text elements too.
+- With a `width` wider than its content, the container keeps the free space on the left. Content wider than the container reaches past its left edge.
+- `scroll: true`: a container that overflows horizontally starts at its right end and scrolls leftwards. `anchorToBottom` shows the left end. A vertical scrollbar overlays the left edge.
+- The container's own `x`, `anchorX` and `width` are unchanged. To pin a right-to-left row to the right side of the screen, give it `anchorX: 1` or a `width`.
+
+`readingDirection` is the layout counterpart of the [`direction`](/docs/nodes/text/) of a `text` element. A container's own `direction` is its layout axis.
 
 ## Blur
 
@@ -72,7 +88,7 @@ blur. See [Shaders](/docs/guides/shaders/) for the shader interface.
 - Custom scrollbar chrome is currently available for the vertical axis only.
 - `scrollbar` is only used when `scroll: true` and the container actually overflows.
 - `thickness` is the scrollbar width for the vertical axis.
-- The scrollbar overlays the container's right edge; it does not reserve extra layout width.
+- The scrollbar overlays the container's right edge, or its left edge with `readingDirection: rtl`; it does not reserve extra layout width.
 - Clicking the track scrolls by one viewport page toward the click position.
 - `startButton.step` and `endButton.step` control how many pixels each arrow/button press moves the content.
 - `thumb.length` fixes the thumb height. If omitted, the thumb height is computed from the viewport/content ratio.
@@ -180,6 +196,75 @@ elements:
         width: 260
         height: 56
         fill: "0x2a2a2a"
+```
+
+## Example: Right-To-Left Choice Row
+
+The first choice sits at the right edge of the 900px row, and the row ends on the left.
+
+```yaml
+elements:
+  - id: choices
+    type: container
+    x: 1180
+    y: 520
+    anchorX: 1
+    width: 900
+    direction: horizontal
+    readingDirection: rtl
+    gapX: 24
+    children:
+      - id: choice-1
+        type: rect
+        width: 260
+        height: 56
+        fill: "0x2a2a2a"
+      - id: choice-2
+        type: rect
+        width: 260
+        height: 56
+        fill: "0x2a2a2a"
+```
+
+## Example: Japanese Vertical Menu
+
+Vertical Japanese is read in columns from right to left. With `readingDirection: rtl` the first item is the rightmost column.
+
+```yaml
+elements:
+  - id: menu
+    type: container
+    x: 1180
+    y: 80
+    anchorX: 1
+    direction: horizontal
+    readingDirection: rtl
+    gapX: 32
+    children:
+      - id: menu-start
+        type: text
+        writingMode: vertical-rl
+        content: "はじめから"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
+      - id: menu-continue
+        type: text
+        writingMode: vertical-rl
+        content: "つづきから"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
+      - id: menu-settings
+        type: text
+        writingMode: vertical-rl
+        content: "設定"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
 ```
 
 ## Example: Scrollable Container
