@@ -95,8 +95,25 @@ properties:
   direction:
     type: string
     enum: [absolute, horizontal, vertical]
-    description: Layout direction for children. Horizontal arranges left-to-right, vertical arranges top-to-bottom.
+    description: Layout direction for children. Horizontal arranges left-to-right (right-to-left with `readingDirection` `rtl`), vertical arranges top-to-bottom.
     default: absolute
+  readingDirection:
+    type: string
+    enum: [ltr, rtl]
+    default: ltr
+    description: >-
+      Side that a horizontal or vertical layout starts from. `rtl` is for
+      Arabic, Hebrew and other right-to-left languages, and gives the mirror
+      image of the default layout inside the container's width. A horizontal
+      container places its first child at its right edge and runs leftwards,
+      and every wrapped row starts at the right again. A vertical container
+      lines its children up on its right edge and adds wrapped columns to the
+      left. Children are moved, not flipped, and content wider than the
+      container reaches past its left edge. A scrolling container starts at
+      its right end and puts its vertical scrollbar on the left. Ignored when
+      `direction` is `absolute`. This is the layout counterpart of the
+      `direction` of a `text` element; a container's own `direction` is its
+      layout axis.
   gapX:
     type: number
     description: Horizontal spacing between child elements in pixels, and between wrapped columns.
@@ -115,7 +132,7 @@ properties:
     default: false
   anchorToBottom:
     type: boolean
-    description: When true, automatically scrolls to show bottom/right content instead of top/left. Only applies when scroll is enabled.
+    description: When true, automatically scrolls to show bottom/right content instead of top/left (bottom/left content with `readingDirection` `rtl`). Only applies when scroll is enabled.
     default: false
   scrollbar:
     type: object

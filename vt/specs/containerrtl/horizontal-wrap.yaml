@@ -1,0 +1,93 @@
+---
+title: Reading Direction RTL - Wrapping Rows
+description: Five rects of different widths wrap into two rows inside a 520px container, left to right and right to left. Grey rects mark each container's width.
+specs:
+  - the left grid should fill each row from the left
+  - the right grid should be its mirror image, with every row starting at the right edge of its frame
+  - the second row of the right grid is not full and should leave its free space on the left
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 80
+        "y": 80
+        width: 520
+        height: 260
+        fill: "#4D4D4D"
+      - id: grid-ltr
+        type: container
+        x: 80
+        "y": 100
+        width: 520
+        direction: horizontal
+        gapX: 20
+        gapY: 20
+        children:
+          - id: ltr-a
+            type: rect
+            width: 200
+            height: 100
+            fill: "#FFFFFF"
+          - id: ltr-b
+            type: rect
+            width: 120
+            height: 100
+            fill: "#FFFFFF"
+          - id: ltr-c
+            type: rect
+            width: 160
+            height: 100
+            fill: "#FFFFFF"
+          - id: ltr-d
+            type: rect
+            width: 100
+            height: 100
+            fill: "#FFFFFF"
+          - id: ltr-e
+            type: rect
+            width: 220
+            height: 100
+            fill: "#FFFFFF"
+      - id: frame-rtl
+        type: rect
+        x: 680
+        "y": 80
+        width: 520
+        height: 260
+        fill: "#4D4D4D"
+      - id: grid-rtl
+        type: container
+        x: 680
+        "y": 100
+        width: 520
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        gapY: 20
+        children:
+          - id: rtl-a
+            type: rect
+            width: 200
+            height: 100
+            fill: "#FFFFFF"
+          - id: rtl-b
+            type: rect
+            width: 120
+            height: 100
+            fill: "#FFFFFF"
+          - id: rtl-c
+            type: rect
+            width: 160
+            height: 100
+            fill: "#FFFFFF"
+          - id: rtl-d
+            type: rect
+            width: 100
+            height: 100
+            fill: "#FFFFFF"
+          - id: rtl-e
+            type: rect
+            width: 220
+            height: 100
+            fill: "#FFFFFF"

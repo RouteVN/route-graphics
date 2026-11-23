@@ -1,0 +1,199 @@
+---
+title: Reading Direction RTL - Scrolling
+description: Right-to-left containers that overflow. Each row holds five 120px rects that get shorter in reading order, so the tallest rect is the first child. Grey rects mark the viewports. The scrollbar uses the coloured scrollbar assets of the other scrollbar specs.
+diffThreshold: 0.5
+specs:
+  - first screenshot, the top row should start at its right end with the tallest rect at the right edge of the viewport
+  - first screenshot, the second row uses anchorToBottom and should show its left end, with the shortest rect at the left edge
+  - first screenshot, the list should line its rects up on the right edge and show its scrollbar on the left edge
+  - second screenshot, wheeling left over the top row should bring the next rects in from the left
+  - third screenshot, the top row should stop at its end with the shortest rect at the left edge
+  - fourth screenshot, the top row should be back at its start, the second row should have moved 150px towards its start, and the list and its thumb should have scrolled down
+steps:
+  - action: move
+    x: 290
+    "y": 110
+  - action: scroll
+    deltaX: -150
+    deltaY: 0
+  - action: wait
+    ms: 200
+  - action: screenshot
+  - action: scroll
+    deltaX: -1000
+    deltaY: 0
+  - action: wait
+    ms: 200
+  - action: screenshot
+  - action: scroll
+    deltaX: 1000
+    deltaY: 0
+  - action: move
+    x: 290
+    "y": 290
+  - action: scroll
+    deltaX: 150
+    deltaY: 0
+  - action: move
+    x: 800
+    "y": 160
+  - action: scroll
+    deltaX: 0
+    deltaY: 120
+  - action: wait
+    ms: 200
+  - action: screenshot
+---
+states:
+  - elements:
+      - id: frame-row
+        type: rect
+        x: 80
+        "y": 40
+        width: 420
+        height: 140
+        fill: "#4D4D4D"
+      - id: row
+        type: container
+        x: 90
+        "y": 50
+        width: 400
+        height: 120
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 10
+        scroll: true
+        children:
+          - id: row-a
+            type: rect
+            width: 120
+            height: 120
+            fill: "#FFFFFF"
+          - id: row-b
+            type: rect
+            width: 120
+            height: 100
+            fill: "#FFFFFF"
+          - id: row-c
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: row-d
+            type: rect
+            width: 120
+            height: 60
+            fill: "#FFFFFF"
+          - id: row-e
+            type: rect
+            width: 120
+            height: 40
+            fill: "#FFFFFF"
+      - id: frame-row-end
+        type: rect
+        x: 80
+        "y": 220
+        width: 420
+        height: 140
+        fill: "#4D4D4D"
+      - id: row-end
+        type: container
+        x: 90
+        "y": 230
+        width: 400
+        height: 120
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 10
+        scroll: true
+        anchorToBottom: true
+        children:
+          - id: row-end-a
+            type: rect
+            width: 120
+            height: 120
+            fill: "#FFFFFF"
+          - id: row-end-b
+            type: rect
+            width: 120
+            height: 100
+            fill: "#FFFFFF"
+          - id: row-end-c
+            type: rect
+            width: 120
+            height: 80
+            fill: "#FFFFFF"
+          - id: row-end-d
+            type: rect
+            width: 120
+            height: 60
+            fill: "#FFFFFF"
+          - id: row-end-e
+            type: rect
+            width: 120
+            height: 40
+            fill: "#FFFFFF"
+      - id: frame-list
+        type: rect
+        x: 680
+        "y": 40
+        width: 240
+        height: 240
+        fill: "#4D4D4D"
+      - id: list
+        type: container
+        x: 690
+        "y": 50
+        width: 220
+        height: 220
+        direction: vertical
+        readingDirection: rtl
+        gapY: 8
+        scroll: true
+        scrollbar:
+          vertical:
+            thickness: 16
+            track:
+              src: vertical-idle-bar
+              hoverSrc: vertical-hover-bar
+              pressSrc: vertical-hover-bar
+            thumb:
+              src: vertical-idle-thumb
+              hoverSrc: vertical-hover-thumb
+              pressSrc: vertical-hover-thumb
+        children:
+          - id: list-a
+            type: rect
+            width: 184
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-b
+            type: rect
+            width: 140
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-c
+            type: rect
+            width: 184
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-d
+            type: rect
+            width: 100
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-e
+            type: rect
+            width: 184
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-f
+            type: rect
+            width: 160
+            height: 56
+            fill: "#FFFFFF"
+          - id: list-g
+            type: rect
+            width: 184
+            height: 56
+            fill: "#FFFFFF"

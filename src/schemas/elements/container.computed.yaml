@@ -69,6 +69,11 @@ properties:
     enum: [absolute, horizontal, vertical]
     description: Layout direction for children. Absolute preserves child x/y, horizontal arranges left-to-right, vertical arranges top-to-bottom.
     default: absolute
+  readingDirection:
+    type: string
+    enum:
+      - rtl
+    description: Present as `rtl` when a horizontal or vertical container is laid out from its right edge. The children's x positions are already mirrored.
   alpha:
     type: number
     description: Opacity/transparency of the container (0-1)

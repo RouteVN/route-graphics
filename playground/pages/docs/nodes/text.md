@@ -149,6 +149,8 @@ Without `direction`, Arabic and Hebrew words inside left-to-right text are still
 
 `direction` only applies to horizontal text; vertical writing modes ignore it. Like vertical text, right-to-left text always renders through the rich text path, so timeline animations that target individual text units are not available on it.
 
+`direction` sets the text inside one element. To lay rows and columns of elements out from the right, set [`readingDirection: rtl`](/docs/nodes/container/#right-to-left-layout) on their container.
+
 ## Emitted Events
 
 | Event Name   | Fired When               | Payload Shape                               |

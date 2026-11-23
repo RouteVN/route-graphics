@@ -52,9 +52,14 @@ const getVerticalScrollbarLabels = (id) => ({
 
 const isAtEdge = (value, edge) => Math.abs(value - edge) < 0.5;
 
+// Offset 0 shows the start of the content. `endScroll` is the offset that
+// shows its end: `minScroll`, or `maxScroll` on the horizontal axis of a
+// right-to-left container, whose content runs leftwards from the right edge.
 const getInitialAxisOffset = ({
   hasOverflow,
   minScroll,
+  maxScroll = 0,
+  endScroll = minScroll,
   previousOffset,
   wasAtEnd,
   anchorToEnd,
@@ -64,11 +69,11 @@ const getInitialAxisOffset = ({
   }
 
   if (anchorToEnd && (previousOffset === undefined || wasAtEnd)) {
-    return minScroll;
+    return endScroll;
   }
 
   if (typeof previousOffset === "number") {
-    return clamp(previousOffset, minScroll, 0);
+    return clamp(previousOffset, minScroll, maxScroll);
   }
 
   return 0;
@@ -362,7 +367,11 @@ const syncVerticalScrollbar = ({ controller }) => {
     controller.element.scroll &&
     thickness > 0 &&
     controller.viewportHeight > 0;
-  root.x = Math.max(controller.viewportWidth - thickness, 0);
+  // The lane is on the side the content ends at: the right, or the left of a
+  // right-to-left container.
+  root.x = controller.rightToLeft
+    ? 0
+    : Math.max(controller.viewportWidth - thickness, 0);
   root.y = 0;
 
   track.x = 0;
@@ -422,7 +431,7 @@ export const getScrollingState = ({ container }) => {
     scrollYOffset: controller.scrollYOffset,
     wasAtHorizontalEnd:
       controller.hasHorizontalOverflow &&
-      isAtEdge(controller.scrollXOffset, controller.minScrollX),
+      isAtEdge(controller.scrollXOffset, controller.endScrollX),
     wasAtVerticalEnd:
       controller.hasVerticalOverflow &&
       isAtEdge(controller.scrollYOffset, controller.minScrollY),
@@ -440,18 +449,28 @@ export const setupScrolling = ({
   allowViewportWithoutScroll = false,
   previousState = null,
 }) => {
+  // A right-to-left container lays its content out from its right edge, so
+  // content wider than the viewport reaches past the left edge instead.
+  const rightToLeft = element.readingDirection === "rtl";
   let totalWidth = 0;
   let totalHeight = 0;
+  let contentLeft = 0;
 
   element.children.forEach((child) => {
     totalWidth = Math.max(child.width + child.x, totalWidth);
     totalHeight = Math.max(child.height + child.y, totalHeight);
+    if (rightToLeft) {
+      contentLeft = Math.min(child.x, contentLeft);
+    }
   });
 
   const hasVerticalOverflow = !!(
     element.height && totalHeight > element.height
   );
-  const hasHorizontalOverflow = !!(element.width && totalWidth > element.width);
+  const hasHorizontalOverflow = !!(
+    element.width &&
+    (totalWidth > element.width || contentLeft < 0)
+  );
   const shouldEnableViewport =
     (element.scroll || allowViewportWithoutScroll) &&
     (hasVerticalOverflow || hasHorizontalOverflow);
@@ -481,7 +500,9 @@ export const setupScrolling = ({
     contentContainer.mask = clip;
 
     const minScrollY = -(totalHeight - (element.height || totalHeight));
-    const minScrollX = -(totalWidth - (element.width || totalWidth));
+    const minScrollX = Math.min((element.width || totalWidth) - totalWidth, 0);
+    const maxScrollX = Math.max(-contentLeft, 0);
+    const endScrollX = rightToLeft ? maxScrollX : minScrollX;
     const controller = {
       container,
       contentContainer,
@@ -493,11 +514,16 @@ export const setupScrolling = ({
       viewportHeight: element.height || totalHeight,
       hasHorizontalOverflow,
       hasVerticalOverflow,
+      rightToLeft,
       minScrollX,
+      maxScrollX,
+      endScrollX,
       minScrollY,
       scrollXOffset: getInitialAxisOffset({
         hasOverflow: hasHorizontalOverflow,
         minScroll: minScrollX,
+        maxScroll: maxScrollX,
+        endScroll: endScrollX,
         previousOffset: previousState?.scrollXOffset,
         wasAtEnd: previousState?.wasAtHorizontalEnd,
         anchorToEnd: !!element.anchorToBottom,
@@ -515,7 +541,7 @@ export const setupScrolling = ({
         const nextY = y ?? controller.scrollYOffset;
 
         controller.scrollXOffset = controller.hasHorizontalOverflow
-          ? clamp(nextX, controller.minScrollX, 0)
+          ? clamp(nextX, controller.minScrollX, controller.maxScrollX)
           : 0;
         controller.scrollYOffset = controller.hasVerticalOverflow
           ? clamp(nextY, controller.minScrollY, 0)

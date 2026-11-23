@@ -1,0 +1,206 @@
+---
+title: Reading Direction RTL - Nested And Scaled Containers
+description: Each container applies its own reading direction, and a scaled right-to-left container mirrors inside its scaled width. Grey rects mark the outer containers' widths.
+specs:
+  - first row, a right-to-left row whose middle child is a left-to-right column, the row should start at the right edge of its frame and the stacked rects inside it should line up on their left
+  - second row, the same with a right-to-left column, the stacked rects should line up on their right
+  - third row, a left-to-right row whose middle child is a right-to-left column, the row should start at the left edge and only the stacked rects should line up on their right
+  - fourth row, the first row's layout at half scale with scaleX and scaleY 0.5, should be the first row at half size, starting at the right edge of its 300px frame
+---
+states:
+  - elements:
+      - id: frame-1
+        type: rect
+        x: 80
+        "y": 20
+        width: 600
+        height: 160
+        fill: "#4D4D4D"
+      - id: outer-rtl-inner-ltr
+        type: container
+        x: 80
+        "y": 30
+        width: 600
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: one-a
+            type: rect
+            width: 160
+            height: 140
+            fill: "#FFFFFF"
+          - id: one-stack
+            type: container
+            x: 0
+            "y": 0
+            direction: vertical
+            gapY: 10
+            children:
+              - id: one-stack-a
+                type: rect
+                width: 140
+                height: 40
+                fill: "#FFFFFF"
+              - id: one-stack-b
+                type: rect
+                width: 80
+                height: 40
+                fill: "#FFFFFF"
+              - id: one-stack-c
+                type: rect
+                width: 40
+                height: 40
+                fill: "#FFFFFF"
+          - id: one-b
+            type: rect
+            width: 60
+            height: 140
+            fill: "#FFFFFF"
+      - id: frame-2
+        type: rect
+        x: 80
+        "y": 200
+        width: 600
+        height: 160
+        fill: "#4D4D4D"
+      - id: outer-rtl-inner-rtl
+        type: container
+        x: 80
+        "y": 210
+        width: 600
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: two-a
+            type: rect
+            width: 160
+            height: 140
+            fill: "#FFFFFF"
+          - id: two-stack
+            type: container
+            x: 0
+            "y": 0
+            direction: vertical
+            gapY: 10
+            readingDirection: rtl
+            children:
+              - id: two-stack-a
+                type: rect
+                width: 140
+                height: 40
+                fill: "#FFFFFF"
+              - id: two-stack-b
+                type: rect
+                width: 80
+                height: 40
+                fill: "#FFFFFF"
+              - id: two-stack-c
+                type: rect
+                width: 40
+                height: 40
+                fill: "#FFFFFF"
+          - id: two-b
+            type: rect
+            width: 60
+            height: 140
+            fill: "#FFFFFF"
+      - id: frame-3
+        type: rect
+        x: 80
+        "y": 380
+        width: 600
+        height: 160
+        fill: "#4D4D4D"
+      - id: outer-ltr-inner-rtl
+        type: container
+        x: 80
+        "y": 390
+        width: 600
+        direction: horizontal
+        gapX: 20
+        children:
+          - id: three-a
+            type: rect
+            width: 160
+            height: 140
+            fill: "#FFFFFF"
+          - id: three-stack
+            type: container
+            x: 0
+            "y": 0
+            direction: vertical
+            gapY: 10
+            readingDirection: rtl
+            children:
+              - id: three-stack-a
+                type: rect
+                width: 140
+                height: 40
+                fill: "#FFFFFF"
+              - id: three-stack-b
+                type: rect
+                width: 80
+                height: 40
+                fill: "#FFFFFF"
+              - id: three-stack-c
+                type: rect
+                width: 40
+                height: 40
+                fill: "#FFFFFF"
+          - id: three-b
+            type: rect
+            width: 60
+            height: 140
+            fill: "#FFFFFF"
+      - id: frame-4
+        type: rect
+        x: 80
+        "y": 560
+        width: 300
+        height: 80
+        fill: "#4D4D4D"
+      - id: scaled
+        type: container
+        x: 80
+        "y": 565
+        width: 600
+        scaleX: 0.5
+        scaleY: 0.5
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 20
+        children:
+          - id: four-a
+            type: rect
+            width: 160
+            height: 140
+            fill: "#FFFFFF"
+          - id: four-stack
+            type: container
+            x: 0
+            "y": 0
+            direction: vertical
+            gapY: 10
+            children:
+              - id: four-stack-a
+                type: rect
+                width: 140
+                height: 40
+                fill: "#FFFFFF"
+              - id: four-stack-b
+                type: rect
+                width: 80
+                height: 40
+                fill: "#FFFFFF"
+              - id: four-stack-c
+                type: rect
+                width: 40
+                height: 40
+                fill: "#FFFFFF"
+          - id: four-b
+            type: rect
+            width: 60
+            height: 140
+            fill: "#FFFFFF"
