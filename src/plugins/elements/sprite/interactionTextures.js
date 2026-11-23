@@ -25,7 +25,10 @@ export const createInteractionTextureSetter = (sprite, baseTexture) => {
   sprite._cleanupInteractionTextures = cleanup;
   sprite.once?.("destroyed", cleanup);
 
-  return (texture) => {
+  return (requestedTexture) => {
+    // An interaction image that is not in the cache, because its file did not
+    // load or its texture was unloaded, leaves the base image showing.
+    const texture = requestedTexture ?? baseTexture;
     let selected = texture;
     if (
       texture !== baseTexture &&

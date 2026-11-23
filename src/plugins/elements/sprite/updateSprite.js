@@ -296,7 +296,8 @@ export const updateSprite = ({
   } = {}) => {
     const currentWidth = spriteElement.width;
     const currentHeight = spriteElement.height;
-    const texture = src ? Texture.from(src) : Texture.EMPTY;
+    // A src that is not in the cache draws nothing, as an empty src does.
+    const texture = (src && Texture.from(src)) || Texture.EMPTY;
     spriteElement.texture = texture;
     spriteElement.width = Math.round(preserveWidth ? currentWidth : width);
     spriteElement.height = Math.round(preserveHeight ? currentHeight : height);
