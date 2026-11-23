@@ -59,7 +59,7 @@ blur. See [Shaders](/docs/guides/shaders/) for the shader interface.
 
 ## Right-To-Left Layout
 
-Set `readingDirection: rtl` for Arabic, Hebrew and other right-to-left languages. The children are laid out as the mirror image of the default layout inside the container's width:
+Set `readingDirection: rtl` for Arabic, Hebrew and other right-to-left languages, and for rows of vertical Japanese or Chinese text, whose columns are read from right to left. The children are laid out as the mirror image of the default layout inside the container's width:
 
 - `horizontal`: the first child sits at the container's right edge and the row runs leftwards. Every wrapped row starts at the right again, so a row that is not full ends at the left.
 - `vertical`: children still stack top to bottom. Narrower children line up on the container's right edge, and wrapped columns are added to the left.
@@ -224,6 +224,47 @@ elements:
         width: 260
         height: 56
         fill: "0x2a2a2a"
+```
+
+## Example: Japanese Vertical Menu
+
+Vertical Japanese is read in columns from right to left. With `readingDirection: rtl` the first item is the rightmost column.
+
+```yaml
+elements:
+  - id: menu
+    type: container
+    x: 1180
+    y: 80
+    anchorX: 1
+    direction: horizontal
+    readingDirection: rtl
+    gapX: 32
+    children:
+      - id: menu-start
+        type: text
+        writingMode: vertical-rl
+        content: "はじめから"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
+      - id: menu-continue
+        type: text
+        writingMode: vertical-rl
+        content: "つづきから"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
+      - id: menu-settings
+        type: text
+        writingMode: vertical-rl
+        content: "設定"
+        textStyle:
+          fontSize: 40
+          fill: "#ffffff"
+          fontFamily: NotoSansJP
 ```
 
 ## Example: Scrollable Container

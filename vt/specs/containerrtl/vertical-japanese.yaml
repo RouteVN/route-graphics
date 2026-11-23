@@ -1,0 +1,131 @@
+---
+title: Reading Direction RTL - Japanese Vertical Menu
+description: A Japanese menu of vertical-rl text items in a horizontal container. Vertical Japanese is read in columns from right to left, so the first item belongs on the right. Grey rects mark the containers. Renders text because vertical text menus are a main use of the property.
+specs:
+  - the upper menu has no readingDirection and should place the first item, はじめから, on the left
+  - the lower menu sets readingDirection rtl and should place はじめから at the right edge of the container, with the following items to its left and the free space on the left
+  - every item should still read top to bottom
+---
+states:
+  - elements:
+      - id: frame-ltr
+        type: rect
+        x: 60
+        "y": 40
+        width: 560
+        height: 280
+        fill: "#4D4D4D"
+      - id: menu-ltr
+        type: container
+        x: 80
+        "y": 60
+        width: 520
+        direction: horizontal
+        gapX: 32
+        children:
+          - id: menu-ltr-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: はじめから
+          - id: menu-ltr-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: つづきから
+          - id: menu-ltr-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 設定
+          - id: menu-ltr-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: ギャラリー
+          - id: menu-ltr-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 終了
+      - id: frame-rtl
+        type: rect
+        x: 660
+        "y": 400
+        width: 560
+        height: 280
+        fill: "#4D4D4D"
+      - id: menu-rtl
+        type: container
+        x: 680
+        "y": 420
+        width: 520
+        direction: horizontal
+        readingDirection: rtl
+        gapX: 32
+        children:
+          - id: menu-rtl-0
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: はじめから
+          - id: menu-rtl-1
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: つづきから
+          - id: menu-rtl-2
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 設定
+          - id: menu-rtl-3
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: ギャラリー
+          - id: menu-rtl-4
+            type: text
+            writingMode: vertical-rl
+            textStyle:
+              fontSize: 40
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.6
+            content: 終了
