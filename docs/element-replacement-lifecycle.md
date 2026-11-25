@@ -98,6 +98,15 @@ that add's element. Otherwise its children would be registered under an outer
 owner, a key no desired element protects, and a sibling's render could prune the
 parent that a not-yet-mounted child still needs.
 
+Because the desired tree protects that key, the registration outlives the add.
+When scrolling moves a container's children into the `*-content` container it
+creates, whether the container is mounting or an update makes it scroll, the
+container moves their registered parent with them. Otherwise a child that
+mounts later, such as one entering with a transition or a replacement waiting
+on cleanup, resolves to the container itself and mounts outside the scrolled,
+clipped content. Only the content container that scrolling created counts; a
+child element whose id ends in `-content` is not one.
+
 ### 5. Cleanup is revalidated after every asynchronous boundary
 
 After an asynchronous previous-plugin deletion settles, the replacement must:
@@ -259,6 +268,8 @@ Every review finding must have a test that fails before its production fix.
 | R11  | Async B add is superseded by desired type C before B mounts                                                         | Physical B is marked as B, deleted through B's plugin, and replaced by exactly one C                          | `spec/elements/elementReplacementLifecycle.spec.js` |
 | R12  | A custom composite moves a pending child to a new slot but leaves the old slot connected                            | The marked live child's new slot supersedes stale registration; cleanup and mount target the new slot         | `spec/elements/elementReplacementLifecycle.spec.js` |
 | R13  | A container or composite mounts with a sibling container before a child that enters with a transition               | The child fades in inside its owner and stays there through the next render of the same state                 | `spec/animations/nestedEnterTransition.spec.js`     |
+| R14  | A scrolling or bottom-anchored container mounts with overflowing content and a child that enters with a transition  | The child fades in and stays inside the container's `*-content`, scrolled and clipped with its siblings       | `spec/animations/nestedEnterTransition.spec.js`     |
+| R15  | An update makes a container scroll while a child's replacement waits on cleanup, or while its add settles later     | The replacement mounts once, inside the new `*-content`                                                       | `spec/elements/scrollContentRenderParent.spec.js`   |
 
 Existing tests remain required for:
 
@@ -284,16 +295,17 @@ This keeps the browser sequences deterministic while still exercising the real
 Route Graphics parser, Pixi display tree, completion tracker, manual animation
 clock, and canvas presentation.
 
-| Scenario                      | Spec                                                                        | Browser guarantees                                                                                                  |
-| ----------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Retained replacement adoption | `vt/specs/container/deferred-element-replacement-adoption.yaml`             | A remains live while scrolling reparents it; B mounts in the current parent; completion waits for B's animation     |
-| Latest-state removal          | `vt/specs/container/deferred-element-replacement-removal.yaml`              | B is never dispatched against live A; cleanup retargets after reparenting; the cleanup-only frame removes A visibly |
-| Replace-transition ordering   | `vt/specs/replacetransition/deferred-previous-plugin-delete.yaml`           | No transition is installed before A cleanup settles; completion waits for transition playback; B owns final output  |
-| Async replacement add         | `vt/specs/elements/deferred-replacement-add.yaml`                           | Completion waits for async B mounting and the deferred mount explicitly presents the final canvas frame             |
-| Persistent transition rebuild | `vt/specs/replacetransition/persistent-deferred-delete-parent-rebuild.yaml` | Pending continuity survives scrolling reparenting; cleanup and installation retarget to the rebuilt parent          |
-| Nested enter transition       | `vt/specs/containertransition/container-nested-fade-in-next-state.yaml`     | A child entering inside a container that mounts in the same render stays visible after the next state               |
+| Scenario                      | Spec                                                                        | Browser guarantees                                                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Retained replacement adoption | `vt/specs/container/deferred-element-replacement-adoption.yaml`             | A remains live while scrolling reparents it; B mounts in the current parent; completion waits for B's animation           |
+| Latest-state removal          | `vt/specs/container/deferred-element-replacement-removal.yaml`              | B is never dispatched against live A; cleanup retargets after reparenting; the cleanup-only frame removes A visibly       |
+| Replace-transition ordering   | `vt/specs/replacetransition/deferred-previous-plugin-delete.yaml`           | No transition is installed before A cleanup settles; completion waits for transition playback; B owns final output        |
+| Async replacement add         | `vt/specs/elements/deferred-replacement-add.yaml`                           | Completion waits for async B mounting and the deferred mount explicitly presents the final canvas frame                   |
+| Persistent transition rebuild | `vt/specs/replacetransition/persistent-deferred-delete-parent-rebuild.yaml` | Pending continuity survives scrolling reparenting; cleanup and installation retarget to the rebuilt parent                |
+| Nested enter transition       | `vt/specs/containertransition/container-nested-fade-in-next-state.yaml`     | A child entering inside a container that mounts in the same render stays visible after the next state                     |
+| Anchored enter transition     | `vt/specs/containertransition/container-anchored-fade-in-next-state.yaml`   | A child entering inside a bottom-anchored container that mounts in the same render stays in its scrolled, clipped content |
 
-The six specs produce nineteen browser screenshots.
+The seven specs produce twenty-two browser screenshots.
 
 ## Implementation Boundaries
 

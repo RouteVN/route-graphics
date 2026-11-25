@@ -10,7 +10,8 @@ import { renderElements } from "../../src/plugins/elements/renderElements.js";
 // area and a character portrait that fades in. Children of a container that
 // mounts in the same render must stay in that container, whatever their
 // siblings mount first, both while the portrait fades in and after the next
-// line renders the same scene without the transition.
+// line renders the same scene without the transition. A scrolling or
+// bottom-anchored story keeps the portrait in its scrolled, clipped content.
 
 const rect = (id) => ({
   id,
@@ -31,13 +32,19 @@ const container = (id, children, extra = {}) => ({
   ...extra,
 });
 
+// Computed containers carry their size, which scrolling measures.
 const portrait = container("portrait", [rect("portrait-base")], {
   x: 520,
   y: 1080,
+  width: 100,
+  height: 100,
   anchorX: 0.5,
   anchorY: 1,
 });
-const clickArea = container("click-area", [rect("click-area-hit")]);
+const clickArea = container("click-area", [rect("click-area-hit")], {
+  width: 100,
+  height: 100,
+});
 
 const enterPortrait = {
   id: "portrait-enter",
@@ -141,11 +148,13 @@ const scenes = [
     name: "a container sibling mounts before the portrait",
     tree: [container("story", [clickArea, portrait])],
     owner: "story",
+    parent: "story",
   },
   {
     name: "a container sibling mounts after the portrait",
     tree: [container("story", [portrait, clickArea])],
     owner: "story",
+    parent: "story",
   },
   {
     name: "the portrait is nested two containers deep",
@@ -156,6 +165,7 @@ const scenes = [
       ]),
     ],
     owner: "stage",
+    parent: "stage",
   },
   {
     name: "a composite element renders the portrait into its slot",
@@ -169,12 +179,37 @@ const scenes = [
       },
     ],
     owner: "story",
+    parent: "story-slot",
+  },
+  {
+    name: "the story scrolls its overflowing content",
+    tree: [
+      container("story", [clickArea, portrait], {
+        scroll: true,
+        width: 1920,
+        height: 600,
+      }),
+    ],
+    owner: "story",
+    parent: "story-content",
+  },
+  {
+    name: "the story anchors its overflowing content to the bottom",
+    tree: [
+      container("story", [portrait, clickArea], {
+        anchorToBottom: true,
+        width: 1920,
+        height: 600,
+      }),
+    ],
+    owner: "story",
+    parent: "story-content",
   },
 ];
 const elementIds = ["story", "stage", "backdrop", "click-area", "portrait"];
 
 describe("an element that enters inside a container mounting in the same render", () => {
-  describe.each(scenes)("when $name", ({ tree, owner }) => {
+  describe.each(scenes)("when $name", ({ tree, owner, parent }) => {
     it("fades in inside its container", () => {
       const stage = createStage();
 
@@ -189,6 +224,7 @@ describe("an element that enters inside a container mounting in the same render"
 
       const shown = stage.root.getChildByLabel("portrait", true);
       expect(stage.getOwnerLabel("portrait", elementIds)).toBe(owner);
+      expect(shown.parent.label).toBe(parent);
       expect(shown.visible).toBe(true);
       expect(shown.alpha).toBe(1);
     });
@@ -208,6 +244,7 @@ describe("an element that enters inside a container mounting in the same render"
       const shown = stage.root.getChildByLabel("portrait", true);
       expect(shown?.destroyed).toBe(false);
       expect(stage.getOwnerLabel("portrait", elementIds)).toBe(owner);
+      expect(shown.parent.label).toBe(parent);
       expect(shown.visible).toBe(true);
       expect(shown.alpha).toBe(1);
       expect(shown.getChildByLabel("portrait-base")).toBeTruthy();
