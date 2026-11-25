@@ -99,11 +99,13 @@ owner, a key no desired element protects, and a sibling's render could prune the
 parent that a not-yet-mounted child still needs.
 
 Because the desired tree protects that key, the registration outlives the add.
-A plugin that moves the children it rendered into another display object
-within the same add moves their registered parent with them, as a container
-does when scrolling moves its children into `*-content`. Otherwise a child that
-mounts after the add, such as one entering with a transition, resolves to the
-container itself and mounts outside the scrolled, clipped content.
+When scrolling moves a container's children into the `*-content` container it
+creates, whether the container is mounting or an update makes it scroll, the
+container moves their registered parent with them. Otherwise a child that
+mounts later, such as one entering with a transition or a replacement waiting
+on cleanup, resolves to the container itself and mounts outside the scrolled,
+clipped content. Only the content container that scrolling created counts; a
+child element whose id ends in `-content` is not one.
 
 ### 5. Cleanup is revalidated after every asynchronous boundary
 
@@ -267,6 +269,7 @@ Every review finding must have a test that fails before its production fix.
 | R12  | A custom composite moves a pending child to a new slot but leaves the old slot connected                            | The marked live child's new slot supersedes stale registration; cleanup and mount target the new slot         | `spec/elements/elementReplacementLifecycle.spec.js` |
 | R13  | A container or composite mounts with a sibling container before a child that enters with a transition               | The child fades in inside its owner and stays there through the next render of the same state                 | `spec/animations/nestedEnterTransition.spec.js`     |
 | R14  | A scrolling or bottom-anchored container mounts with overflowing content and a child that enters with a transition  | The child fades in and stays inside the container's `*-content`, scrolled and clipped with its siblings       | `spec/animations/nestedEnterTransition.spec.js`     |
+| R15  | An update makes a container scroll while a child's replacement waits on cleanup, or while its add settles later     | The replacement mounts once, inside the new `*-content`                                                       | `spec/elements/scrollContentRenderParent.spec.js`   |
 
 Existing tests remain required for:
 

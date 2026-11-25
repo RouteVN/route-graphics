@@ -179,16 +179,11 @@ export const addContainer = ({
       interactive: !!scroll,
       allowViewportWithoutScroll: !!element.anchorToBottom,
     });
-    const contentContainer = container.children.find(
-      (child) => child.label === `${id}-content`,
-    );
-    if (contentContainer) {
-      moveRenderParent({
-        renderContext,
-        from: container,
-        to: contentContainer,
-      });
-    }
+    moveRenderParent({
+      renderContext,
+      from: container,
+      to: container.__routeGraphicsScrollController?.contentContainer,
+    });
   }
 
   bindContainerInteractions({
