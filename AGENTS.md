@@ -13,7 +13,9 @@ ships when a later pull request bumps for its own change.
 
 - `fix`: patch, for example 1.53.0 → 1.53.1
 - `feat`: minor, for example 1.53.0 → 1.54.0
-- Breaking change (`!` after the type, or a `BREAKING CHANGE` footer): major
+- Breaking change (`!` after the type, or a `BREAKING CHANGE` footer): minor,
+  as in Route Engine. Do not bump the major version unless the maintainer asks
+  for it.
 
 The npm package contains `bin/`, `dist/`, and `package.json`. Bump for changes
 to `src/`, `bin/`, the build, or runtime `dependencies`. Do not bump for
