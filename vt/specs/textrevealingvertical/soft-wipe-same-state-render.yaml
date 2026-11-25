@@ -1,0 +1,82 @@
+---
+title: Vertical Text Revealing - Soft Wipe Same State Render
+description: Rendering the same state again while vertical-rl and vertical-lr softWipes run continues both wipes from where they were; colored indicator assets are intentional.
+specs:
+  - both wipes should be part way down their first column before the second render
+  - right after the same state renders again both frames should be unchanged, not the full text
+  - the vertical-rl wipe should then continue into the column to its left, the vertical-lr wipe into the column to its right
+  - the complete indicators should appear after the last columns
+steps:
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 900
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 500
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 8000
+  - action: screenshot
+---
+states:
+  - id: vertical-soft-wipe-first-render
+    elements:
+      - &rl
+        id: rl
+        type: text-revealing
+        writingMode: vertical-rl
+        x: 300
+        "y": 60
+        height: 440
+        speed: 22
+        revealEffect: softWipe
+        softWipe:
+          easing: linear
+        indicator: &indicator
+          revealing:
+            src: circle-red
+            width: 14
+            height: 14
+          complete:
+            src: circle-green
+            width: 14
+            height: 14
+          offsetX: 12
+        content:
+          - text: 「同じ行をもう一度描いても、ワイプは止まった所から続く。」
+            textStyle: &japanese
+              fontSize: 34
+              fill: "#FFFFFF"
+              fontFamily: NotoSansJP
+              lineHeight: 1.8
+      - &lr
+        id: lr
+        type: text-revealing
+        writingMode: vertical-lr
+        x: 760
+        "y": 60
+        height: 440
+        speed: 22
+        revealEffect: softWipe
+        softWipe:
+          easing: linear
+        indicator: *indicator
+        content:
+          - text: 「左から右へ進む列も、同じ所から続きを描く。」
+            textStyle: *japanese
+  - id: vertical-soft-wipe-same-state
+    elements:
+      - *rl
+      - *lr
