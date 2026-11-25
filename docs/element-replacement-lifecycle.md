@@ -90,6 +90,14 @@ live marked child or the rebuilt built-in `*-content` container. The built-in
 naming convention is only a recovery path; custom composite slots do not need to
 follow it.
 
+The registration key uses the same owner as the desired tree, including while
+the owner itself mounts. A container or custom composite renders its children
+inside its own `add`, before its display object carries a live marker. Owner
+resolution therefore treats a display object attached by a still-running add as
+that add's element. Otherwise its children would be registered under an outer
+owner, a key no desired element protects, and a sibling's render could prune the
+parent that a not-yet-mounted child still needs.
+
 ### 5. Cleanup is revalidated after every asynchronous boundary
 
 After an asynchronous previous-plugin deletion settles, the replacement must:
@@ -250,6 +258,7 @@ Every review finding must have a test that fails before its production fix.
 | R10b | Live previous-plugin cleanup rejects                                                                                | Rejection is observed and returned; temporary resources and completion are released exactly once              | `spec/animations/runReplaceAnimation.spec.js`       |
 | R11  | Async B add is superseded by desired type C before B mounts                                                         | Physical B is marked as B, deleted through B's plugin, and replaced by exactly one C                          | `spec/elements/elementReplacementLifecycle.spec.js` |
 | R12  | A custom composite moves a pending child to a new slot but leaves the old slot connected                            | The marked live child's new slot supersedes stale registration; cleanup and mount target the new slot         | `spec/elements/elementReplacementLifecycle.spec.js` |
+| R13  | A container or composite mounts with a sibling container before a child that enters with a transition               | The child fades in inside its owner and stays there through the next render of the same state                 | `spec/animations/nestedEnterTransition.spec.js`     |
 
 Existing tests remain required for:
 
@@ -282,8 +291,9 @@ clock, and canvas presentation.
 | Replace-transition ordering   | `vt/specs/replacetransition/deferred-previous-plugin-delete.yaml`           | No transition is installed before A cleanup settles; completion waits for transition playback; B owns final output  |
 | Async replacement add         | `vt/specs/elements/deferred-replacement-add.yaml`                           | Completion waits for async B mounting and the deferred mount explicitly presents the final canvas frame             |
 | Persistent transition rebuild | `vt/specs/replacetransition/persistent-deferred-delete-parent-rebuild.yaml` | Pending continuity survives scrolling reparenting; cleanup and installation retarget to the rebuilt parent          |
+| Nested enter transition       | `vt/specs/containertransition/container-nested-fade-in-next-state.yaml`     | A child entering inside a container that mounts in the same render stays visible after the next state               |
 
-The five specs produce sixteen browser screenshots.
+The six specs produce nineteen browser screenshots.
 
 ## Implementation Boundaries
 
