@@ -2,6 +2,7 @@ import { Container } from "pixi.js";
 import { setupScrolling } from "./util/scrollingUtils.js";
 import { bindContainerInteractions } from "./util/bindContainerInteractions.js";
 import { renderElements } from "../renderElements.js";
+import { moveRenderParent } from "../elementRenderState.js";
 import { dispatchLiveAnimations } from "../../animations/planAnimations.js";
 import {
   getContainerChildAnimations,
@@ -177,6 +178,11 @@ export const addContainer = ({
       element,
       interactive: !!scroll,
       allowViewportWithoutScroll: !!element.anchorToBottom,
+    });
+    moveRenderParent({
+      renderContext,
+      from: container,
+      to: container.__routeGraphicsScrollController?.contentContainer,
     });
   }
 

@@ -31,7 +31,10 @@ import {
   applyElementTransform,
   getElementTransformTargetState,
 } from "../util/transform.js";
-import { setElementRenderState } from "../elementRenderState.js";
+import {
+  moveRenderParent,
+  setElementRenderState,
+} from "../elementRenderState.js";
 import {
   getContainerChildAnimations,
   getContainerLiveScaleAnimations,
@@ -162,6 +165,13 @@ export const updateContainer = ({
           previousState: previousScrollState,
         });
       }
+      // Children registered on the container itself, because it did not
+      // scroll when they rendered, now live in the new content container.
+      moveRenderParent({
+        renderContext,
+        from: containerElement,
+        to: containerElement.__routeGraphicsScrollController?.contentContainer,
+      });
 
       bindContainerInteractions({
         app,

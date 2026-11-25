@@ -1,0 +1,90 @@
+---
+title: Bottom-Anchored Log Entry Fade In Then Next State
+description: >-
+  A backlog container anchored to its bottom mounts with more entries than it
+  can show, and its newest entry fades in. The next state renders the same log
+  without the transition, as the next line does. The frame behind the log is
+  dark gray, the older entries gray and light gray, and the newest entry white.
+specs:
+  - the log shows its bottom, so the first entry is out of view and the second
+    is cut off at the top edge of the frame
+  - the newest entry fades in at the bottom of the frame
+  - the newest entry stays at the bottom of the frame, clipped with the others,
+    after the next state repeats the log
+steps:
+  - action: keypress
+    key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 400
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+---
+states:
+  - elements: []
+  - elements:
+      - &frame
+        id: log-frame
+        type: rect
+        x: 300
+        'y': 160
+        width: 680
+        height: 400
+        fill: '#404040'
+      - &log
+        id: log
+        type: container
+        x: 320
+        'y': 180
+        width: 640
+        height: 360
+        anchorToBottom: true
+        children:
+          - id: line-1
+            type: rect
+            x: 0
+            'y': 0
+            width: 640
+            height: 160
+            fill: '#737373'
+          - id: line-2
+            type: rect
+            x: 0
+            'y': 200
+            width: 640
+            height: 160
+            fill: '#A3A3A3'
+          - id: entry
+            type: container
+            x: 0
+            'y': 400
+            children:
+              - id: entry-base
+                type: rect
+                x: 0
+                'y': 0
+                width: 640
+                height: 200
+                fill: '#FFFFFF'
+    animations:
+      - id: entry-enter
+        targetId: entry
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 600
+                  value: 1
+                  easing: linear
+  - elements:
+      - *frame
+      - *log
