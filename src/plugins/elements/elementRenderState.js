@@ -458,6 +458,19 @@ const isInLifecycleTree = (displayObject, rootParent) => {
   return false;
 };
 
+// A plugin that moves the children it rendered into another display object
+// within the same add, as scrolling moves them into a content container,
+// moves their render parent with them. Otherwise a child that mounts later,
+// such as one entering with a transition, mounts beside that container
+// instead of inside it.
+export const moveRenderParent = ({ renderContext, from, to }) => {
+  const lifecycle = renderContext?.[RENDER_LIFECYCLE];
+  if (!lifecycle) return;
+  for (const [key, parent] of lifecycle.renderParents) {
+    if (parent === from) lifecycle.renderParents.set(key, to);
+  }
+};
+
 export const pruneElementRenderState = (lifecycle) => {
   for (const [key, parent] of lifecycle.renderParents) {
     if (
