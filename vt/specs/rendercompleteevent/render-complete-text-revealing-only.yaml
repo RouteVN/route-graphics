@@ -3,12 +3,18 @@ title: Render Complete Event - Text Revealing Only
 description: Asserts renderComplete waits for typewriter text revealing completion.
 specs:
   - renderComplete should fire once with aborted=false after text reveal completion
-skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents
   - action: keypress
     key: "n"
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value: []
   - action: wait
     ms: 2000
   - action: screenshot

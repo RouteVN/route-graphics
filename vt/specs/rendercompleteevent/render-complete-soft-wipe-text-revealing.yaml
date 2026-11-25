@@ -3,14 +3,24 @@ title: Render Complete Event - Soft Wipe Text Revealing
 description: Asserts renderComplete waits for softWipe text revealing completion.
 specs:
   - renderComplete should fire once with aborted=false after softWipe completion
-skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents
   - action: customEvent
     name: "snapShotKeyFrame"
     detail:
-      deltaMS: 1100
+      deltaMS: 300
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value: []
+  - action: customEvent
+    name: "snapShotKeyFrame"
+    detail:
+      deltaMS: 800
   - action: screenshot
   - action: assert
     type: js

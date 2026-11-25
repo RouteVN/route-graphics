@@ -3,12 +3,18 @@ title: Render Complete Event - Video and Text Revealing
 description: Asserts renderComplete waits for both non-looping video and text revealing completion; video asset colors are an intentional visual exception.
 specs:
   - renderComplete should fire once with aborted=false after video and text reveal complete
-skipScreenshot: true
 steps:
   - action: customEvent
     name: clearEvents
   - action: keypress
     key: "n"
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value: []
   - action: wait
     ms: 7000
   - action: screenshot
