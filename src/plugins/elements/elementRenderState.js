@@ -11,6 +11,7 @@ const DEFERRED_RENDER_STATE_COMMIT = Symbol(
   "routeGraphicsDeferredRenderStateCommit",
 );
 const PARENT_RENDER_STATE = Symbol("routeGraphicsParentRenderState");
+const PENDING_MOUNTS = Symbol("routeGraphicsPendingMounts");
 const RENDER_LIFECYCLE = Symbol("routeGraphicsElementRenderLifecycle");
 
 const isPromise = (value) => value && typeof value.then === "function";
@@ -69,6 +70,27 @@ const getAddedChild = (parent, element, childrenBefore) => {
   return null;
 };
 
+const removePendingMount = (parent, pendingMount) => {
+  const pendingMounts = parent[PENDING_MOUNTS];
+  pendingMounts.splice(pendingMounts.indexOf(pendingMount), 1);
+  if (pendingMounts.length === 0) delete parent[PENDING_MOUNTS];
+};
+
+// The element whose add attached this display object and is still running.
+const getMountingElement = (displayObject) => {
+  const pendingMounts = displayObject.parent?.[PENDING_MOUNTS] ?? [];
+  for (let index = pendingMounts.length - 1; index >= 0; index--) {
+    const { element, childrenBefore } = pendingMounts[index];
+    if (
+      displayObject.label === element.id &&
+      !childrenBefore.has(displayObject)
+    ) {
+      return element;
+    }
+  }
+  return null;
+};
+
 const markMountedElement = (
   child,
   element,
@@ -105,12 +127,21 @@ export const addElementWithRenderState = ({ plugin, ...options }) => {
     const child = getAddedChild(parent, element, childrenBefore);
     if (child) child.destroy({ children: true });
   };
+  // Containers and composite plugins attach their display object and render
+  // its children in the same add, before the object is marked below. While
+  // the add runs, the pending mount lets those children resolve this element
+  // as their owner.
+  const pendingMount = { element, childrenBefore };
+  parent[PENDING_MOUNTS] ??= [];
+  parent[PENDING_MOUNTS].push(pendingMount);
   let operation;
   try {
     operation = plugin.add(options);
   } catch (error) {
     discardPartialMount();
     throw error;
+  } finally {
+    removePendingMount(parent, pendingMount);
   }
   let mountedChild = getAddedChild(parent, element, childrenBefore);
   markMountedElement(mountedChild, element, {
@@ -223,10 +254,14 @@ export const updateElementWithRenderState = ({ plugin, ...options }) => {
   });
 };
 
+// Children are keyed by the element that owns them, the same key the desired
+// tree uses. A wrong owner leaves a registered parent that no desired element
+// protects, so a sibling's render can prune it before the child mounts.
 const getOwnerElementId = (parent) => {
   let ancestor = parent;
   while (ancestor) {
-    const element = getElementRenderState(ancestor);
+    const element =
+      getElementRenderState(ancestor) ?? getMountingElement(ancestor);
     if (element) {
       return element.id;
     }

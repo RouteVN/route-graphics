@@ -1,0 +1,76 @@
+---
+title: Nested Container Fade In Then Next State
+description: >-
+  A story container mounts with a click-area container and a portrait container
+  that fades in, the scene of a visual novel line. The next state renders the
+  same scene without the transition, as the next line does. The click area is
+  gray and the portrait white.
+specs:
+  - the portrait fades in at the bottom center of the story container
+  - the portrait stays visible after the next state repeats the scene
+  - the click area stays visible throughout
+steps:
+  - action: keypress
+    key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 400
+  - action: keypress
+    key: 'n'
+  - action: screenshot
+---
+states:
+  - elements: []
+  - elements:
+      - &story
+        id: story
+        type: container
+        x: 0
+        'y': 0
+        children:
+          - id: click-area
+            type: container
+            x: 0
+            'y': 0
+            children:
+              - id: click-area-hit
+                type: rect
+                x: 40
+                'y': 40
+                width: 240
+                height: 120
+                fill: '#737373'
+          - id: portrait
+            type: container
+            x: 640
+            'y': 680
+            anchorX: 0.5
+            anchorY: 1
+            children:
+              - id: portrait-base
+                type: rect
+                x: 0
+                'y': 0
+                width: 320
+                height: 480
+                fill: '#FFFFFF'
+    animations:
+      - id: portrait-enter
+        targetId: portrait
+        type: transition
+        next:
+          tween:
+            alpha:
+              initialValue: 0
+              keyframes:
+                - duration: 600
+                  value: 1
+                  easing: linear
+  - elements:
+      - *story
