@@ -57,3 +57,8 @@ VT notes:
   `screenshot` step after its last time step so the final frame is captured.
 - `rtgl vt screenshot --item` replaces all candidate images. Capture every
   fixture again before running `vt:compare` on the whole suite.
+- The sample videos load only for fixtures that name `video-sample`. The VT
+  image's arm64 Chromium cannot decode them, so those fixtures fail or time out
+  on Apple Silicon. CI runs on x86, where they play: take their reference
+  images from the failed CI run's `failures-visual-*` artifact, and look at
+  them before committing.
