@@ -28,3 +28,32 @@ that holds the version.
 Before opening a pull request, and again before asking for review, check that
 `package.json` has a higher version than `main` when the change ships in the
 package, and say the new version in the description.
+
+## Tests
+
+Every change that alters behaviour ships with unit tests and visual tests (VT)
+in the same pull request. Leave either out only for a very good reason, and
+give the reason in the pull request description. Changes that only touch docs,
+CI, or the playground need neither.
+
+- Test the case that was broken through the path the app uses, for example by
+  rendering real elements, not only by calling the helper you changed. Check
+  that the new tests fail without the change.
+- Cover the variants the change touches, such as right-to-left and vertical
+  text, elements inside containers, and repeated renders of the same state.
+- Add VT fixtures whose screenshots show the frames before, during and after
+  the behaviour, and use `assert` steps for events such as `renderComplete`
+  when their timing matters.
+- Look at every new reference image before committing it.
+
+VT notes:
+
+- Run VT through the `vt:*` scripts. They set `RTGL_VT_DEBUG=true`, which is
+  what makes `snapShotKeyFrame` steps advance time.
+- A fixture with `skipScreenshot: true` is skipped completely, including its
+  `assert` steps. A fixture that asserts must take a screenshot.
+- Each screenshot shows the frame from the previous screenshot step, and the
+  automatic final screenshot shows the last one. End a fixture with a
+  `screenshot` step after its last time step so the final frame is captured.
+- `rtgl vt screenshot --item` replaces all candidate images. Capture every
+  fixture again before running `vt:compare` on the whole suite.
