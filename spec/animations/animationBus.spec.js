@@ -1242,6 +1242,43 @@ describe("animationBus auto tween shorthand", () => {
     expect(animationBus.getState().activeCount).toBe(0);
   });
 
+  it("starts a custom animation at its startTime", () => {
+    const animationBus = createAnimationBus();
+    const applyFrame = vi.fn();
+    const onComplete = vi.fn();
+
+    animationBus.dispatch({
+      type: "START",
+      payload: {
+        id: "custom-start-time",
+        driver: "custom",
+        duration: 500,
+        startTime: 200,
+        applyFrame,
+        onComplete,
+      },
+    });
+    animationBus.flush();
+
+    expect(applyFrame).toHaveBeenCalledTimes(1);
+    expect(applyFrame).toHaveBeenCalledWith(200);
+    expect(animationBus.getState().animations).toEqual([
+      expect.objectContaining({
+        id: "custom-start-time",
+        currentTime: 200,
+        duration: 500,
+        progress: 0.4,
+      }),
+    ]);
+
+    animationBus.tick(100);
+    expect(applyFrame).toHaveBeenLastCalledWith(300);
+
+    animationBus.tick(200);
+    expect(applyFrame).toHaveBeenLastCalledWith(500);
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
   it("completes custom animations immediately by default during playback", () => {
     const animationBus = createAnimationBus();
     const applyFrame = vi.fn();

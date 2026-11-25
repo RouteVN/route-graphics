@@ -1,0 +1,98 @@
+---
+title: Text Revealing - Soft Wipe Same State Render During Container Tween
+description: When the same state renders again with a tween on the line's container, the line keeps the frame it reached until the tween ends, then the wipe continues; colored indicator assets are intentional.
+specs:
+  - the wipe should be part way through the first line before the second render
+  - during the container tween the line should keep that frame, not show the full text
+  - after the tween the wipe should continue from the same point
+  - the complete indicator should appear after the last line
+steps:
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 900
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 700
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1400
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 8000
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-first-render
+    elements:
+      - &box
+        id: dialogue-box
+        type: container
+        x: 140
+        "y": 160
+        children:
+          - id: panel
+            type: rect
+            x: 0
+            "y": 0
+            width: 1000
+            height: 300
+            fill: "#333333"
+          - id: soft-wipe-line
+            type: text-revealing
+            x: 40
+            "y": 40
+            width: 920
+            speed: 22
+            revealEffect: softWipe
+            softWipe:
+              easing: linear
+            indicator:
+              revealing:
+                src: circle-red
+                width: 14
+                height: 14
+              complete:
+                src: circle-green
+                width: 14
+                height: 14
+              offsetX: 10
+            content:
+              - text: "The box slides while the same line is drawn again. "
+                textStyle:
+                  fontSize: 34
+                  fill: "#FFFFFF"
+                  fontFamily: Arial
+                  lineHeight: 1.6
+              - text: "The line waits on the frame it reached."
+                textStyle:
+                  fontSize: 34
+                  fill: "#ffd166"
+                  fontFamily: Arial
+                  lineHeight: 1.6
+  - id: soft-wipe-same-state-box-tween
+    elements:
+      - *box
+    animations:
+      - id: dialogue-box-slide
+        targetId: dialogue-box
+        type: update
+        tween:
+          "y":
+            initialValue: 220
+            keyframes:
+              - duration: 600
+                value: 160
+                easing: linear

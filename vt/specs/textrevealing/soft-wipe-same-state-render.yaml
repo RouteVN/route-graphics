@@ -1,0 +1,80 @@
+---
+title: Text Revealing - Soft Wipe Same State Render
+description: Rendering the same state again while a softWipe runs continues the wipe from where it was; colored indicator assets are intentional.
+specs:
+  - the wipe should be part way through the first line before the second render
+  - right after the same state renders again the frame should be unchanged, not the full text
+  - the wipe should then continue into the second line
+  - the complete indicator should appear after the last line
+steps:
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 900
+  - action: screenshot
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 1400
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 8000
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-first-render
+    elements:
+      - &panel
+        id: panel
+        type: rect
+        x: 140
+        "y": 160
+        width: 1000
+        height: 300
+        fill: "#333333"
+      - &line
+        id: soft-wipe-line
+        type: text-revealing
+        x: 180
+        "y": 200
+        width: 920
+        speed: 22
+        revealEffect: softWipe
+        softWipe:
+          easing: linear
+        indicator:
+          revealing:
+            src: circle-red
+            width: 14
+            height: 14
+          complete:
+            src: circle-green
+            width: 14
+            height: 14
+          offsetX: 10
+        content:
+          - text: "The same line is drawn again while its soft wipe runs. "
+            textStyle:
+              fontSize: 34
+              fill: "#FFFFFF"
+              fontFamily: Arial
+              lineHeight: 1.6
+          - text: "The wipe keeps going from where it was."
+            textStyle:
+              fontSize: 34
+              fill: "#ffd166"
+              fontFamily: Arial
+              lineHeight: 1.6
+  - id: soft-wipe-same-state
+    elements:
+      - *panel
+      - *line

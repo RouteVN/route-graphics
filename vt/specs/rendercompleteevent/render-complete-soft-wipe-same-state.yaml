@@ -1,0 +1,69 @@
+---
+title: Render Complete Event - Soft Wipe Same State Render
+description: Asserts that rendering the same state again during a softWipe aborts the first render and completes the second only when the resumed wipe finishes.
+specs:
+  - the first render should report aborted=true when the same state renders again
+  - the second render should not complete while the resumed wipe is still running
+  - the second render should complete once with aborted=false after the wipe finishes
+  - the first screenshot should show the wipe part way, the second the full line
+steps:
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: customEvent
+    name: clearEvents
+  - action: keypress
+    key: "n"
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 300
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: soft-wipe-first-render
+        aborted: true
+  - action: screenshot
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 3000
+  - action: assert
+    type: js
+    fn: vtAssert.payloadDeepEquals
+    args:
+      - renderComplete
+      - all
+    value:
+      - id: soft-wipe-first-render
+        aborted: true
+      - id: soft-wipe-same-state
+        aborted: false
+  - action: screenshot
+---
+states:
+  - id: soft-wipe-first-render
+    elements:
+      - &line
+        id: revealing-text
+        type: text-revealing
+        content:
+          - text: Soft wipe render drawn twice
+            textStyle:
+              fontSize: 42
+              fill: "#FFFFFF"
+              fontFamily: Helvetica
+        x: 120
+        "y": 240
+        width: 700
+        alpha: 1
+        speed: 16
+        revealEffect: softWipe
+  - id: soft-wipe-same-state
+    elements:
+      - *line

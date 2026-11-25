@@ -420,7 +420,7 @@ export const createAnimationBus = () => {
     }
 
     try {
-      context.applyFrame(0);
+      context.applyFrame(context.currentTime);
     } catch (error) {
       disposeContext(context);
       throw error;
@@ -619,13 +619,15 @@ export const createAnimationBus = () => {
   };
 
   const startCustomAnimation = (payload) => {
+    const duration = payload.duration ?? 0;
     const context = {
       id: payload.id,
       kind: "custom",
       program: payload.program,
       instance: payload.instance,
-      duration: payload.duration ?? 0,
-      currentTime: 0,
+      duration,
+      // A custom animation resumed after a render starts part way through.
+      currentTime: clampAnimationTime(payload.startTime ?? 0, duration),
       playbackSpeed: DEFAULT_PLAYBACK_SPEED,
       deferCompletionUntilNextFrame:
         payload.deferCompletionUntilNextFrame === true,
