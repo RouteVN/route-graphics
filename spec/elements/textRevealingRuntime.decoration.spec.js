@@ -220,7 +220,7 @@ describe("runTextReveal text decoration", () => {
       );
     }
 
-    startAction.payload.onCancel();
+    startAction.payload.onComplete();
     for (const lineIndex of [0, 1]) {
       const lineContainer = getLineContainer(
         contentContainer,

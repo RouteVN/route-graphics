@@ -683,12 +683,14 @@ const setTextRevealSnapshot = (container, snapshot) => {
   return snapshot;
 };
 
-const getResumableTypewriterSnapshot = (container) => {
+const RESUMABLE_TEXT_REVEAL_MODES = new Set(["typewriter", "softWipe"]);
+
+const getResumableTextRevealSnapshot = (container) => {
   const snapshot = getTextRevealSnapshot(container);
 
   if (
     !snapshot ||
-    snapshot.mode !== "typewriter" ||
+    !RESUMABLE_TEXT_REVEAL_MODES.has(snapshot.mode) ||
     snapshot.completed === true
   ) {
     return null;
@@ -698,7 +700,7 @@ const getResumableTypewriterSnapshot = (container) => {
 };
 
 export const canResumeTextReveal = (container) =>
-  Boolean(getResumableTypewriterSnapshot(container));
+  Boolean(getResumableTextRevealSnapshot(container));
 
 export const clearTextRevealingContainer = (container) => {
   if (container[TEXT_REVEAL_RUNTIME]) {
@@ -1277,22 +1279,27 @@ const createSoftWipeInitialTimeline = ({
   };
 };
 
+// Safe to call again, and after the content holding the masks was destroyed.
 const destroySoftWipeLineMasks = (lineMasks) => {
   lineMasks.forEach((lineMask) => {
     if (!lineMask) {
       return;
     }
 
-    if (lineMask.line.container.mask === lineMask.sprite) {
-      lineMask.line.container.mask = null;
+    const { line, sprite, texture } = lineMask;
+
+    if (!line.container.destroyed && line.container.mask === sprite) {
+      line.container.mask = null;
     }
 
-    if (lineMask.sprite.parent) {
-      lineMask.sprite.parent.removeChild(lineMask.sprite);
+    if (!sprite.destroyed) {
+      sprite.parent?.removeChild(sprite);
+      sprite.destroy();
     }
 
-    lineMask.sprite.destroy();
-    lineMask.texture.destroy(true);
+    if (!texture.destroyed) {
+      texture.destroy(true);
+    }
   });
 };
 
@@ -1538,6 +1545,7 @@ const runSoftWipeReveal = ({
   animationBus,
   completionTracker,
   app,
+  snapshot,
 }) => {
   const indicatorOffsets = getIndicatorOffsets(element);
   const effectiveSpeed = getEffectiveSpeed(element.speed ?? 50);
@@ -1584,6 +1592,17 @@ const runSoftWipeReveal = ({
     softWipe,
     easingName: softWipe.easing,
   });
+  const resumeTime = clamp(snapshot?.elapsedMs ?? 0, 0, duration);
+
+  if (resumeTime >= duration) {
+    completeIndicatorAtTextEnd(
+      indicatorSprite,
+      lastChunk,
+      lastTextObject,
+      element,
+    );
+    return false;
+  }
 
   const stateVersion = completionTracker.getVersion();
   const animationId = `${element.id}-soft-wipe`;
@@ -1603,58 +1622,78 @@ const runSoftWipeReveal = ({
     return false;
   }
 
-  let finalized = false;
-  const stopRevealSound = startTextRevealSound({ app, element });
+  const applyFrameAt = (timelineTime) => {
+    const currentTime = Math.min(duration, timelineTime);
 
-  const finalize = (completed) => {
-    if (finalized) {
+    if (snapshot) {
+      snapshot.elapsedMs = currentTime;
+    }
+
+    applySoftWipeFrame({
+      timedLines,
+      lineMasks,
+      easing,
+      indicatorSprite,
+      indicatorOffsets,
+      currentTime,
+    });
+  };
+
+  // Show the resumed frame now, not only when the bus starts the animation.
+  if (resumeTime > 0) {
+    applyFrameAt(resumeTime);
+  }
+
+  let ended = false;
+  const stopRevealSound = startTextRevealSound({ app, element });
+  const releaseMasks = () => destroySoftWipeLineMasks(lineMasks);
+
+  // Each render cancels the wipe. Like an aborted typewriter, a cancelled
+  // wipe keeps its last frame until this container is resumed, restarted,
+  // cleared or destroyed, so a delayed resume does not flash the full text.
+  contentContainer.once("destroyed", releaseMasks);
+
+  const end = (completed) => {
+    if (ended) {
       return;
     }
 
-    finalized = true;
+    ended = true;
 
     const hasFinishingSound = stopRevealSound({ completed });
-    if (!hasFinishingSound) {
-      unregisterTextRevealRuntime(container, finalizeCleanup);
-    }
 
-    lineMasks.forEach((lineMask) => {
-      if (lineMask.line.container.mask === lineMask.sprite) {
-        lineMask.line.container.mask = null;
-      }
-
-      if (lineMask.sprite.parent) {
-        lineMask.sprite.parent.removeChild(lineMask.sprite);
-      }
-
-      lineMask.sprite.destroy();
-      lineMask.texture.destroy(true);
-    });
-
-    if (completed) {
-      completeIndicatorAtTextEnd(
-        indicatorSprite,
-        lastChunk,
-        lastTextObject,
-        element,
-      );
-    }
-  };
-
-  const finalizeCleanup = () => {
-    if (finalized) {
-      stopRevealSound();
+    if (!completed) {
       return;
     }
 
-    animationBus.dispatch({
-      type: "CANCEL",
-      id: animationId,
-    });
-    finalize(false);
+    if (!hasFinishingSound) {
+      unregisterTextRevealRuntime(container, runtimeCleanup);
+    }
+
+    releaseMasks();
+    completeIndicatorAtTextEnd(
+      indicatorSprite,
+      lastChunk,
+      lastTextObject,
+      element,
+    );
   };
 
-  registerTextRevealRuntime(container, finalizeCleanup);
+  const runtimeCleanup = () => {
+    if (ended) {
+      stopRevealSound();
+    } else {
+      animationBus.dispatch({
+        type: "CANCEL",
+        id: animationId,
+      });
+      end(false);
+    }
+
+    releaseMasks();
+  };
+
+  registerTextRevealRuntime(container, runtimeCleanup);
   completionTracker.track(stateVersion);
 
   animationBus.dispatch({
@@ -1663,26 +1702,21 @@ const runSoftWipeReveal = ({
       id: animationId,
       driver: "custom",
       duration,
-      applyFrame: (currentTime) => {
-        applySoftWipeFrame({
-          timedLines,
-          lineMasks,
-          easing,
-          indicatorSprite,
-          indicatorOffsets,
-          currentTime: Math.min(duration, currentTime),
-        });
-      },
+      startTime: resumeTime,
+      applyFrame: applyFrameAt,
       applyTargetState: () => {
-        finalize(false);
+        end(false);
       },
       onComplete: () => {
+        if (snapshot) {
+          snapshot.completed = true;
+        }
         completionTracker.complete(stateVersion);
-        finalize(true);
+        end(true);
       },
       onCancel: () => {
         completionTracker.complete(stateVersion);
-        finalize(false);
+        end(false);
       },
       isValid: () =>
         Boolean(container) &&
@@ -1712,10 +1746,13 @@ export const runTextReveal = async ({
 
   const renderImmediately = shouldRenderTextRevealImmediately(element);
   const resumableSnapshot =
-    playback === "resume" ? getResumableTypewriterSnapshot(container) : null;
+    playback === "resume" ? getResumableTextRevealSnapshot(container) : null;
   const initialRevealedCharacters = getInitialRevealedCharacters(element);
 
-  if (playback === "resume" && !resumableSnapshot) {
+  if (
+    playback === "resume" &&
+    resumableSnapshot?.mode !== getTextRevealSnapshotMode(element)
+  ) {
     return;
   }
 
@@ -1741,6 +1778,11 @@ export const runTextReveal = async ({
 
   trackIndicatorSetup();
   clearTextRevealingContainer(container);
+  // Keep the progress while the indicator loads. A render in that time then
+  // resumes from it instead of skipping the emptied container.
+  if (resumableSnapshot) {
+    setTextRevealSnapshot(container, resumableSnapshot);
+  }
   container.zIndex = zIndex;
 
   const contentContainer = new Container({ label: `${element.id}-content` });
@@ -1798,9 +1840,15 @@ export const runTextReveal = async ({
       onLayoutMounted?.();
       completed = true;
     } else if (element.revealEffect === "softWipe") {
-      setTextRevealSnapshot(container, {
+      // A render cancels the running wipe. An unchanged later render resumes
+      // it from the time the last frame showed.
+      const snapshot = setTextRevealSnapshot(container, {
         mode: "softWipe",
         revealedCharacters: initialRevealedCharacters,
+        elapsedMs:
+          resumableSnapshot?.mode === "softWipe"
+            ? (resumableSnapshot.elapsedMs ?? 0)
+            : 0,
         completed: false,
       });
 
@@ -1812,10 +1860,12 @@ export const runTextReveal = async ({
         animationBus,
         completionTracker,
         app,
+        snapshot,
       });
       onLayoutMounted?.();
 
       if (!dispatched && !signal?.aborted && !container.destroyed) {
+        snapshot.completed = true;
         completionTracker.track(stateVersion);
         completeIndicatorSetup();
         completed = true;
