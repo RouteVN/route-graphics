@@ -8,6 +8,8 @@ steps:
     name: clearEvents
   - action: keypress
     key: "n"
+  - action: wait
+    ms: 1000
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
@@ -16,7 +18,7 @@ steps:
       - all
     value: []
   - action: wait
-    ms: 7000
+    ms: 6000
   - action: screenshot
   - action: assert
     type: js

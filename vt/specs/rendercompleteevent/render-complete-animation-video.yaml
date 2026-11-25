@@ -8,6 +8,10 @@ steps:
     name: clearEvents
   - action: keypress
     key: 'n'
+  - action: customEvent
+    name: snapShotKeyFrame
+    detail:
+      deltaMS: 700
   - action: assert
     type: js
     fn: vtAssert.payloadDeepEquals
@@ -15,10 +19,6 @@ steps:
       - renderComplete
       - all
     value: []
-  - action: customEvent
-    name: snapShotKeyFrame
-    detail:
-      deltaMS: 700
   - action: wait
     ms: 7000
   - action: screenshot

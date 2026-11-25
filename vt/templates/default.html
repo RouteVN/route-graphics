@@ -404,18 +404,22 @@
         },
       };
 
+      const vtStateSourceText =
+        document.getElementById("vt-state")?.textContent ?? "";
       const isVtDebug =
         window?.RTGL_VT_DEBUG === true || window?.RTGL_VT_DEBUG === "true";
+      // Any spec that names a video asset gets the videos, not only the
+      // video section: renderComplete specs wait on a playing video too.
       const isVideoVisualTest =
-        isVtDebug && window.location.pathname.includes("/video/");
+        isVtDebug && vtStateSourceText.includes("video-sample");
       const shouldLoadOptionalVideo =
         isVideoVisualTest ||
         (!isVtDebug &&
           (window?.RTGL_VT_INCLUDE_MEDIA === true ||
             new URLSearchParams(window.location.search).get("media") === "1"));
 
-      // Load video for its dedicated VT section while keeping it opt-in on
-      // unrelated debug pages and manual browser runs.
+      // Keep video opt-in on debug pages that do not name it and on manual
+      // browser runs.
       if (shouldLoadOptionalVideo) {
         Object.assign(assetsObject, {
           "video-sample": {
@@ -431,8 +435,6 @@
 
       // Decoding every audio fixture slows down each page that plays none of
       // them, so load only the audio assets this spec names.
-      const vtStateSourceText =
-        document.getElementById("vt-state")?.textContent ?? "";
       for (const [key, asset] of Object.entries(assetsObject)) {
         if (
           asset.type.startsWith("audio/") &&
