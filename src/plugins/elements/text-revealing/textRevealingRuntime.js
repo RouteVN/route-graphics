@@ -1778,10 +1778,17 @@ export const runTextReveal = async ({
 
   trackIndicatorSetup();
   clearTextRevealingContainer(container);
-  // Keep the progress while the indicator loads. A render in that time then
-  // resumes from it instead of skipping the emptied container.
-  if (resumableSnapshot) {
-    setTextRevealSnapshot(container, resumableSnapshot);
+  // Keep the reveal resumable while the indicator loads. A render in that
+  // time then resumes it instead of skipping the emptied container.
+  if (!renderImmediately) {
+    setTextRevealSnapshot(
+      container,
+      resumableSnapshot ?? {
+        mode: getTextRevealSnapshotMode(element),
+        revealedCharacters: initialRevealedCharacters,
+        completed: false,
+      },
+    );
   }
   container.zIndex = zIndex;
 

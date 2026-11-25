@@ -1,4 +1,4 @@
-import { Container } from "pixi.js";
+import { Cache, Container, Spritesheet, Texture } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { createAnimationBus } from "../../src/plugins/animations/animationBus.js";
@@ -33,7 +33,13 @@ const createSoftWipeElement = (overrides = {}) =>
     },
   });
 
-const startReveal = async ({ container, element, animationBus, playback }) => {
+const startReveal = async ({
+  container,
+  element,
+  animationBus,
+  playback,
+  flush = true,
+}) => {
   const completionTracker = createCompletionTracker();
 
   await runTextReveal({
@@ -45,7 +51,10 @@ const startReveal = async ({ container, element, animationBus, playback }) => {
     signal: new AbortController().signal,
     playback,
   });
-  animationBus.flush();
+
+  if (flush) {
+    animationBus.flush();
+  }
 
   return completionTracker;
 };
@@ -93,7 +102,14 @@ describe("runTextReveal soft wipe resume", () => {
       element,
       animationBus,
       playback: "resume",
+      flush: false,
     });
+
+    // The resumed frame shows before the bus starts the animation.
+    expect(getWipeState(animationBus)).toBeUndefined();
+    expect(getIndicatorX(container)).toBeCloseTo(reachedX);
+
+    animationBus.flush();
 
     expect(getWipeState(animationBus)).toMatchObject({
       currentTime: duration / 2,
@@ -165,6 +181,68 @@ describe("runTextReveal soft wipe resume", () => {
 
     expect(clearedTexture.destroyed).toBe(true);
     expect(destroyedTexture.destroyed).toBe(true);
+  });
+
+  it("keeps a new wipe resumable while its spritesheet indicator loads", async () => {
+    Cache.set(
+      "soft-wipe-indicator",
+      new Texture({ source: Texture.WHITE.source }),
+    );
+    const element = createSoftWipeElement({
+      indicator: {
+        revealing: {
+          kind: "spritesheet",
+          src: "soft-wipe-indicator",
+          atlas: { frames: { a: { x: 0, y: 0, width: 1, height: 1 } } },
+        },
+      },
+    });
+    const parse = Spritesheet.prototype.parse;
+    const pendingParses = [];
+    const parseSpy = vi
+      .spyOn(Spritesheet.prototype, "parse")
+      .mockImplementation(async function () {
+        await new Promise((resolve) => pendingParses.push(resolve));
+        return parse.call(this);
+      });
+
+    try {
+      const animationBus = createAnimationBus();
+      const container = new Container();
+      const firstRender = new AbortController();
+      const first = runTextReveal({
+        container,
+        element,
+        completionTracker: createCompletionTracker(),
+        animationBus,
+        zIndex: 0,
+        signal: firstRender.signal,
+        playback: "autoplay",
+      });
+
+      // A render while the indicator loads resumes the reveal.
+      expect(canResumeTextReveal(container)).toBe(true);
+      firstRender.abort();
+      const resumed = runTextReveal({
+        container,
+        element,
+        completionTracker: createCompletionTracker(),
+        animationBus,
+        zIndex: 0,
+        signal: new AbortController().signal,
+        playback: "resume",
+      });
+
+      pendingParses.splice(0).forEach((resolve) => resolve());
+      await first;
+      await resumed;
+      animationBus.flush();
+
+      expect(getWipeState(animationBus)).toMatchObject({ currentTime: 0 });
+      expect(getLineMask(container)).toBeTruthy();
+    } finally {
+      parseSpy.mockRestore();
+    }
   });
 
   it("does not resume a soft wipe that completed", async () => {
